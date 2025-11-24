@@ -3,6 +3,7 @@
 class ClickTrail_Admin {
 
         private $option_name = 'clicktrail_attribution_settings';
+        private $text_domain = 'clicktrail';
 
 	public function init() {
 		add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
@@ -123,8 +124,8 @@ class ClickTrail_Admin {
                 if ( get_option( 'clicktrail_pii_risk_detected' ) ) {
                         ?>
                         <div class="notice notice-error is-dismissible">
-                                <p><strong><?php esc_html_e( 'ClickTrail Audit detected PII risk on your Thank You page. Your tracking may be deactivated by Google.', 'clicktrail' ); ?></strong></p>
-                                <p><a href="#" class="button button-primary"><?php esc_html_e( 'Fix PII Issues Now', 'clicktrail' ); ?></a></p>
+                                <p><strong><?php esc_html_e( 'ClickTrail Audit detected PII risk on your Thank You page. Your tracking may be deactivated by Google.', $this->text_domain ); ?></strong></p>
+                                <p><a href="#" class="button button-primary"><?php esc_html_e( 'Fix PII Issues Now', $this->text_domain ); ?></a></p>
                         </div>
                         <?php
                 }
