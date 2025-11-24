@@ -89,8 +89,8 @@ class ClickTrail_Core {
                 $options = get_option( 'hp_attribution_settings', array() );
                 $enable_attribution = isset( $options['enable_attribution'] ) ? (bool) $options['enable_attribution'] : true;
                 $cookie_days = isset( $options['cookie_days'] ) ? absint( $options['cookie_days'] ) : 90;
-                $enable_consent = isset( $options['enable_consent_banner'] ) ? (bool) $options['enable_consent_banner'] : 0;
-                $require_consent = isset( $options['require_consent'] ) ? (bool) $options['require_consent'] : 0;
+                $enable_consent = isset( $options['enable_consent_banner'] ) ? (bool) $options['enable_consent_banner'] : 1;
+                $require_consent = isset( $options['require_consent'] ) ? (bool) $options['require_consent'] : 1;
 
                 // Attribution Script
                 if ( $enable_attribution ) {
