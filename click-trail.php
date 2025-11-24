@@ -5,6 +5,9 @@
  * Description: Captures marketing parameters (UTMs, Click IDs), persists them, and handles basic consent management.
  * Version:     1.0.0-beta
  * Author:      Vizuh
+ * License:     GPL-2.0-or-later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ * Source:      https://github.com/vizuh/click-trail
  * Text Domain: clicktrail
  * Domain Path: /languages
  * License:     GPLv2 or later
