@@ -32,14 +32,14 @@ class ClickTrail_Admin {
 			'clicktrail'
 		);
 
-		add_settings_field(
-			'enable_attribution',
-			'Enable Attribution',
-			array( $this, 'render_checkbox_field' ),
-			'clicktrail',
-			'hp_general_section',
-			array( 'label_for' => 'enable_attribution' )
-		);
+                add_settings_field(
+                        'enable_attribution',
+                        'Enable Attribution',
+                        array( $this, 'render_checkbox_field' ),
+                        'clicktrail',
+                        'hp_general_section',
+                        array( 'label_for' => 'enable_attribution', 'default' => 1 )
+                );
 
 		add_settings_field(
 			'cookie_days',
@@ -91,12 +91,13 @@ class ClickTrail_Admin {
 		<?php
 	}
 
-	public function render_checkbox_field( $args ) {
-		$options = get_option( $this->option_name );
-		$value = isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : '';
-		?>
-		<input type="checkbox" id="<?php echo esc_attr( $args['label_for'] ); ?>" name="<?php echo esc_attr( $this->option_name . '[' . $args['label_for'] . ']' ); ?>" value="1" <?php checked( 1, $value ); ?> />
-		<?php
+        public function render_checkbox_field( $args ) {
+                $options = get_option( $this->option_name, array() );
+                $default = isset( $args['default'] ) ? $args['default'] : '';
+                $value = isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : $default;
+                ?>
+                <input type="checkbox" id="<?php echo esc_attr( $args['label_for'] ); ?>" name="<?php echo esc_attr( $this->option_name . '[' . $args['label_for'] . ']' ); ?>" value="1" <?php checked( 1, $value ); ?> />
+                <?php
 	}
 
 	public function render_number_field( $args ) {
