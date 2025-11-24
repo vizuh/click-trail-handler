@@ -119,16 +119,16 @@ class ClickTrail_Admin {
 		wp_send_json_error();
 	}
 
-	public function display_pii_warning() {
+        public function display_pii_warning() {
                 if ( get_option( 'clicktrail_pii_risk_detected' ) ) {
-			?>
-			<div class="notice notice-error is-dismissible">
-				<p><strong><?php _e( 'ClickTrail Audit detected PII risk on your Thank You page. Your tracking may be deactivated by Google.', 'clicktrail' ); ?></strong></p>
-				<p><a href="#" class="button button-primary"><?php _e( 'Fix PII Issues Now', 'clicktrail' ); ?></a></p>
-			</div>
-			<?php
-		}
-	}
+                        ?>
+                        <div class="notice notice-error is-dismissible">
+                                <p><strong><?php esc_html_e( 'ClickTrail Audit detected PII risk on your Thank You page. Your tracking may be deactivated by Google.', 'clicktrail' ); ?></strong></p>
+                                <p><a href="#" class="button button-primary"><?php esc_html_e( 'Fix PII Issues Now', 'clicktrail' ); ?></a></p>
+                        </div>
+                        <?php
+                }
+        }
 
 	public function sanitize_settings( $input ) {
 		$new_input = array();
