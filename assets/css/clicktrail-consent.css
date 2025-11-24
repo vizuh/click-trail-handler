@@ -1,4 +1,4 @@
-#hp-consent-banner {
+#ct-consent-banner {
     position: fixed;
     bottom: 0;
     left: 0;
@@ -11,7 +11,7 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
 }
 
-.hp-consent-content {
+.ct-consent-content {
     max-width: 1200px;
     margin: 0 auto;
     display: flex;
@@ -21,18 +21,18 @@
     gap: 15px;
 }
 
-.hp-consent-content p {
+.ct-consent-content p {
     margin: 0;
     font-size: 14px;
     color: #333;
 }
 
-.hp-consent-actions {
+.ct-consent-actions {
     display: flex;
     gap: 10px;
 }
 
-.hp-btn-primary, .hp-btn-secondary {
+.ct-btn-primary, .ct-btn-secondary {
     padding: 8px 16px;
     border-radius: 4px;
     cursor: pointer;
@@ -41,21 +41,21 @@
     font-weight: 500;
 }
 
-.hp-btn-primary {
+.ct-btn-primary {
     background: #0073aa;
     color: #fff;
 }
 
-.hp-btn-primary:hover {
+.ct-btn-primary:hover {
     background: #005177;
 }
 
-.hp-btn-secondary {
+.ct-btn-secondary {
     background: #f0f0f1;
     color: #2271b1;
     border: 1px solid #2271b1;
 }
 
-.hp-btn-secondary:hover {
+.ct-btn-secondary:hover {
     background: #f6f7f7;
 }

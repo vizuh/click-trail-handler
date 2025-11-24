@@ -2,12 +2,12 @@
     'use strict';
 
     const CONFIG = window.clickTrailConfig || {
-        cookieName: 'hp_attribution',
+        cookieName: 'ct_attribution',
         cookieDays: 90,
         requireConsent: true
     };
 
-    const CONSENT_COOKIE = 'hp_consent';
+    const CONSENT_COOKIE = 'ct_consent';
 
     class ClickTrailAttribution {
         constructor() {
@@ -33,13 +33,13 @@
                     if (preferences.marketing) {
                         console.log('ClickTrail: Consent granted, running...');
                         this.runAttribution();
-                        window.removeEventListener('hp_consent_updated', maybeRun);
+                        window.removeEventListener('ct_consent_updated', maybeRun);
                         window.removeEventListener('consent_granted', maybeRun);
                     }
                 };
 
                 console.log('ClickTrail: Waiting for consent...');
-                window.addEventListener('hp_consent_updated', maybeRun);
+                window.addEventListener('ct_consent_updated', maybeRun);
                 window.addEventListener('consent_granted', maybeRun);
                 return;
             }
@@ -116,8 +116,8 @@
             // GTM Bridge: Page View
             window.dataLayer = window.dataLayer || [];
             window.dataLayer.push({
-                event: 'hp_page_view',
-                hp_attribution: storedData
+                event: 'ct_page_view',
+                ct_attribution: storedData
             });
 
             // GTM Bridge: Form Listeners
@@ -128,10 +128,10 @@
             // Contact Form 7
             document.addEventListener('wpcf7mailsent', (e) => {
                 window.dataLayer.push({
-                    event: 'hp_lead',
+                    event: 'ct_lead',
                     form_provider: 'cf7',
                     form_id: e.detail.contactFormId,
-                    hp_attribution: data
+                    ct_attribution: data
                 });
             });
 
@@ -139,9 +139,9 @@
             if (window.jQuery) {
                 window.jQuery(document.body).on('fluentform_submission_success', function () {
                     window.dataLayer.push({
-                        event: 'hp_lead',
+                        event: 'ct_lead',
                         form_provider: 'fluentform',
-                        hp_attribution: data
+                        ct_attribution: data
                     });
                 });
             }
@@ -150,10 +150,10 @@
             if (window.jQuery) {
                 window.jQuery(document).on('gform_confirmation_loaded', function (e, formId) {
                     window.dataLayer.push({
-                        event: 'hp_lead',
+                        event: 'ct_lead',
                         form_provider: 'gravityforms',
                         form_id: formId,
-                        hp_attribution: data
+                        ct_attribution: data
                     });
                 });
             }
@@ -193,7 +193,7 @@
                 // We use fetch for simplicity, assuming modern browser or polyfill
                 if (CONFIG.ajaxUrl) {
                     const formData = new FormData();
-                    formData.append('action', 'hp_log_pii_risk');
+                    formData.append('action', 'ct_log_pii_risk');
                     formData.append('pii_found', 'true');
                     if (CONFIG.nonce) {
                         formData.append('nonce', CONFIG.nonce);
@@ -242,7 +242,7 @@
                 try {
                     return JSON.parse(cookie);
                 } catch (e) {
-                    console.error('HP Attribution: Error parsing cookie', e);
+                    console.error('ClickTrail Attribution: Error parsing cookie', e);
                 }
             }
             // Fallback to LocalStorage
@@ -251,7 +251,7 @@
                 try {
                     return JSON.parse(ls);
                 } catch (e) {
-                    console.error('HP Attribution: Error parsing localStorage', e);
+                    console.error('ClickTrail Attribution: Error parsing localStorage', e);
                 }
             }
             return null;

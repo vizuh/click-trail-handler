@@ -1,10 +1,10 @@
 (function () {
     'use strict';
 
-    const CONSENT_COOKIE = 'hp_consent';
+    const CONSENT_COOKIE = 'ct_consent';
     const CONSENT_DAYS = 365;
 
-    class HPConsent {
+    class ClickTrailConsent {
         constructor() {
             this.init();
         }
@@ -36,34 +36,34 @@
         showBanner() {
             // Create Banner HTML
             const banner = document.createElement('div');
-            banner.id = 'hp-consent-banner';
+            banner.id = 'ct-consent-banner';
             banner.innerHTML = `
-                <div class="hp-consent-content">
-                    <p>We use cookies to improve your experience and analyze traffic. 
+                <div class="ct-consent-content">
+                    <p>We use cookies to improve your experience and analyze traffic.
                        <a href="/privacy-policy">Read more</a>.
                     </p>
-                    <div class="hp-consent-actions">
-                        <button id="hp-accept-all" class="hp-btn-primary">Accept All</button>
-                        <button id="hp-reject-all" class="hp-btn-secondary">Reject Non-Essential</button>
+                    <div class="ct-consent-actions">
+                        <button id="ct-accept-all" class="ct-btn-primary">Accept All</button>
+                        <button id="ct-reject-all" class="ct-btn-secondary">Reject Non-Essential</button>
                     </div>
                 </div>
             `;
             document.body.appendChild(banner);
 
             // Bind Events
-            document.getElementById('hp-accept-all').addEventListener('click', () => {
+            document.getElementById('ct-accept-all').addEventListener('click', () => {
                 this.setConsent({ analytics: true, marketing: true });
                 this.hideBanner();
             });
 
-            document.getElementById('hp-reject-all').addEventListener('click', () => {
+            document.getElementById('ct-reject-all').addEventListener('click', () => {
                 this.setConsent({ analytics: false, marketing: false });
                 this.hideBanner();
             });
         }
 
         hideBanner() {
-            const banner = document.getElementById('hp-consent-banner');
+            const banner = document.getElementById('ct-consent-banner');
             if (banner) banner.remove();
         }
 
@@ -73,7 +73,7 @@
             this.pushConsentToDataLayer(preferences);
 
             // Dispatch event for other scripts
-            window.dispatchEvent(new CustomEvent('hp_consent_updated', { detail: preferences }));
+            window.dispatchEvent(new CustomEvent('ct_consent_updated', { detail: preferences }));
         }
 
         pushConsentToDataLayer(preferences) {
@@ -81,8 +81,8 @@
 
             // Push event
             window.dataLayer.push({
-                event: 'hp_consent_update',
-                hp_consent: preferences
+                event: 'ct_consent_update',
+                ct_consent: preferences
             });
 
             // Google Consent Mode v2 (Basic)
@@ -124,9 +124,9 @@
     }
 
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => new HPConsent());
-    } else {
-        new HPConsent();
-    }
+            document.addEventListener('DOMContentLoaded', () => new ClickTrailConsent());
+        } else {
+            new ClickTrailConsent();
+        }
 
 })();
