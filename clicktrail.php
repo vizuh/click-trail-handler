@@ -3,7 +3,7 @@
  * Plugin Name: ClickTrail
  * Plugin URI:  https://vizuh.com
  * Description: Captures marketing parameters (UTMs, Click IDs), persists them, and handles basic consent management.
- * Version:     1.0.0-beta
+ * Version:     1.0.0
  * Author:      Vizuh
  * License:     GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -19,7 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define Constants
-define( 'CLICKTRAIL_VERSION', '1.0.0-beta' );
+define( 'CLICKTRAIL_VERSION', '1.0.0' );
 define( 'CLICKTRAIL_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CLICKTRAIL_URL', plugin_dir_url( __FILE__ ) );
 define( 'CLICKTRAIL_BASENAME', plugin_basename( __FILE__ ) );
