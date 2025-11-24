@@ -169,6 +169,17 @@
             const piiKeys = ['email', 'phone', 'firstname', 'lastname', 'first_name', 'last_name', 'customerEmail', 'customer_email'];
             let piiFound = false;
 
+            const hasPermissionForPiiLogging = () => {
+                const consent = this.getConsent();
+
+                if (CONFIG.requireConsent == '1') {
+                    return !!(consent && consent.marketing);
+                }
+
+                // Even when consent is not required globally, only log PII when an explicit consent decision allows marketing.
+                return !!(consent && consent.marketing);
+            };
+
             // Helper to recursively search object
             const searchObj = (obj) => {
                 for (let key in obj) {
@@ -188,6 +199,11 @@
             });
 
             if (piiFound) {
+                if (!hasPermissionForPiiLogging()) {
+                    console.warn('ClickTrail: PII detected but logging blocked until user grants marketing consent.');
+                    return;
+                }
+
                 console.warn('ClickTrail: PII detected in Data Layer. Sending alert.');
                 // Send AJAX to log risk
                 // We use fetch for simplicity, assuming modern browser or polyfill
