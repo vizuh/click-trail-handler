@@ -1,45 +1,6 @@
 <?php
 
 /**
- * Sanitize attribution data recursively.
- *
- * @param mixed $data The raw attribution data.
- * @return array|string Sanitized data.
- */
-function clicktrail_sanitize_attribution_data( $data ) {
-        if ( is_array( $data ) ) {
-                foreach ( $data as $key => $value ) {
-                        $data[ $key ] = clicktrail_sanitize_attribution_data( $value );
-                }
-
-                return $data;
-        }
-
-        if ( is_scalar( $data ) ) {
-                return sanitize_text_field( (string) $data );
-        }
-
-        return '';
-}
-
-/**
- * Retrieve the current attribution data from the cookie.
- *
- * @return array|null The attribution data array or null if not found.
- */
-function clicktrail_get_attribution() {
-    if ( isset( $_COOKIE['ct_attribution'] ) ) {
-        $cookie_value = sanitize_text_field( wp_unslash( $_COOKIE['ct_attribution'] ) );
-        $data         = json_decode( $cookie_value, true );
-        if ( is_array( $data ) && json_last_error() === JSON_ERROR_NONE ) {
-            return clicktrail_sanitize_attribution_data( $data );
-        }
-    }
-
-    return null;
-}
-
-/**
  * Sanitize attribution data arrays from cookies or request payloads.
  *
  * @param array $data Raw attribution data.
@@ -70,6 +31,23 @@ function clicktrail_sanitize_attribution_data( $data ) {
     }
 
     return $sanitized;
+}
+
+/**
+ * Retrieve the current attribution data from the cookie.
+ *
+ * @return array|null The attribution data array or null if not found.
+ */
+function clicktrail_get_attribution() {
+    if ( isset( $_COOKIE['ct_attribution'] ) ) {
+        $cookie_value = sanitize_text_field( wp_unslash( $_COOKIE['ct_attribution'] ) );
+        $data         = json_decode( $cookie_value, true );
+        if ( is_array( $data ) && json_last_error() === JSON_ERROR_NONE ) {
+            return clicktrail_sanitize_attribution_data( $data );
+        }
+    }
+
+    return null;
 }
 
 /**
