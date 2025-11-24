@@ -2,7 +2,7 @@
 
 class ClickTrail_Admin {
 
-	private $option_name = 'hp_attribution_settings';
+        private $option_name = 'clicktrail_attribution_settings';
 
 	public function init() {
 		add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
@@ -25,19 +25,19 @@ class ClickTrail_Admin {
 	public function register_settings() {
 		register_setting( $this->option_name, $this->option_name, array( $this, 'sanitize_settings' ) );
 
-		add_settings_section(
-			'hp_general_section',
-			'General Settings',
-			null,
-			'clicktrail'
-		);
+                add_settings_section(
+                        'clicktrail_general_section',
+                        'General Settings',
+                        null,
+                        'clicktrail'
+                );
 
                 add_settings_field(
                         'enable_attribution',
                         'Enable Attribution',
                         array( $this, 'render_checkbox_field' ),
                         'clicktrail',
-                        'hp_general_section',
+                        'clicktrail_general_section',
                         array( 'label_for' => 'enable_attribution', 'default' => 1 )
                 );
 
@@ -45,24 +45,24 @@ class ClickTrail_Admin {
 			'cookie_days',
 			'Cookie Duration (Days)',
 			array( $this, 'render_number_field' ),
-			'clicktrail',
-			'hp_general_section',
+                        'clicktrail',
+                        'clicktrail_general_section',
 			array( 'label_for' => 'cookie_days', 'default' => 90 )
 		);
 
-		add_settings_section(
-			'hp_consent_section',
-			'Consent Settings',
-			null,
-			'clicktrail'
-		);
+                add_settings_section(
+                        'clicktrail_consent_section',
+                        'Consent Settings',
+                        null,
+                        'clicktrail'
+                );
 
                 add_settings_field(
                         'enable_consent_banner',
                         'Enable Consent Banner',
                         array( $this, 'render_checkbox_field' ),
                         'clicktrail',
-                        'hp_consent_section',
+                        'clicktrail_consent_section',
                         array( 'label_for' => 'enable_consent_banner', 'default' => 1 )
                 );
 
@@ -71,7 +71,7 @@ class ClickTrail_Admin {
                         'Require Consent for Tracking',
                         array( $this, 'render_checkbox_field' ),
                         'clicktrail',
-                        'hp_consent_section',
+                        'clicktrail_consent_section',
                         array( 'label_for' => 'require_consent', 'default' => 1 )
                 );
 	}
@@ -113,14 +113,14 @@ class ClickTrail_Admin {
 		check_ajax_referer( 'clicktrail_pii_nonce', 'nonce' );
 		
 		if ( isset( $_POST['pii_found'] ) && $_POST['pii_found'] === 'true' ) {
-			update_option( 'hp_pii_risk_detected', true );
+                        update_option( 'clicktrail_pii_risk_detected', true );
 			wp_send_json_success();
 		}
 		wp_send_json_error();
 	}
 
 	public function display_pii_warning() {
-		if ( get_option( 'hp_pii_risk_detected' ) ) {
+                if ( get_option( 'clicktrail_pii_risk_detected' ) ) {
 			?>
 			<div class="notice notice-error is-dismissible">
 				<p><strong><?php _e( 'ClickTrail Audit detected PII risk on your Thank You page. Your tracking may be deactivated by Google.', 'clicktrail' ); ?></strong></p>

@@ -39,13 +39,13 @@ class ClickTrail_Core {
 	 * @since    1.0.0
 	 * @access   private
 	 */
-	private function load_dependencies() {
-		// Admin
-		require_once CLICKTRAIL_DIR . 'includes/admin/class-hp-settings.php';
-		
-		// Integrations
-		require_once CLICKTRAIL_DIR . 'includes/integrations/class-hp-form-integrations.php';
-		require_once CLICKTRAIL_DIR . 'includes/integrations/class-hp-woocommerce.php';
+        private function load_dependencies() {
+                // Admin
+                require_once CLICKTRAIL_DIR . 'includes/admin/class-clicktrail-settings.php';
+
+                // Integrations
+                require_once CLICKTRAIL_DIR . 'includes/integrations/class-clicktrail-form-integrations.php';
+                require_once CLICKTRAIL_DIR . 'includes/integrations/class-clicktrail-woocommerce.php';
 	}
 
 	/**
@@ -60,8 +60,8 @@ class ClickTrail_Core {
 		$plugin_settings->init();
 
 		// AJAX for PII Logging
-		add_action( 'wp_ajax_hp_log_pii_risk', array( $plugin_settings, 'ajax_log_pii_risk' ) );
-		add_action( 'wp_ajax_nopriv_hp_log_pii_risk', array( $plugin_settings, 'ajax_log_pii_risk' ) );
+                add_action( 'wp_ajax_ct_log_pii_risk', array( $plugin_settings, 'ajax_log_pii_risk' ) );
+                add_action( 'wp_ajax_nopriv_ct_log_pii_risk', array( $plugin_settings, 'ajax_log_pii_risk' ) );
 	}
 
 	/**
@@ -72,7 +72,7 @@ class ClickTrail_Core {
 	 * @access   private
 	 */
 	private function define_public_hooks() {
-		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+                add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		
 		// Initialize Integrations
 		$form_integrations = new ClickTrail_Form_Integrations();
@@ -86,7 +86,7 @@ class ClickTrail_Core {
 	 * Enqueue the public-facing scripts and styles.
 	 */
         public function enqueue_scripts() {
-                $options = get_option( 'hp_attribution_settings', array() );
+                $options = get_option( 'clicktrail_attribution_settings', array() );
                 $enable_attribution = isset( $options['enable_attribution'] ) ? (bool) $options['enable_attribution'] : true;
                 $cookie_days = isset( $options['cookie_days'] ) ? absint( $options['cookie_days'] ) : 90;
                 $enable_consent = isset( $options['enable_consent_banner'] ) ? (bool) $options['enable_consent_banner'] : 1;
@@ -103,7 +103,7 @@ class ClickTrail_Core {
                         );
 
                         wp_localize_script( 'clicktrail-attribution-js', 'clickTrailConfig', array(
-                                'cookieName' => 'hp_attribution',
+                                'cookieName' => 'ct_attribution',
                                 'cookieDays' => $cookie_days,
                                 'requireConsent' => $require_consent,
                                 'ajaxUrl'    => admin_url( 'admin-ajax.php' ),
@@ -111,23 +111,23 @@ class ClickTrail_Core {
                         ));
                 }
 
-		// Consent Script & Style
-		if ( $enable_consent ) {
-			wp_enqueue_style(
-				'hp-consent-css',
-				CLICKTRAIL_URL . 'assets/css/hp-consent.css',
-				array(),
-				CLICKTRAIL_VERSION,
-				'all'
-			);
+                // Consent Script & Style
+                if ( $enable_consent ) {
+                        wp_enqueue_style(
+                                'clicktrail-consent-css',
+                                CLICKTRAIL_URL . 'assets/css/clicktrail-consent.css',
+                                array(),
+                                CLICKTRAIL_VERSION,
+                                'all'
+                        );
 
 			wp_enqueue_script(
-				'hp-consent-js',
-				CLICKTRAIL_URL . 'assets/js/hp-consent.js',
-				array(),
-				CLICKTRAIL_VERSION,
-				true // Footer
-			);
+                                'clicktrail-consent-js',
+                                CLICKTRAIL_URL . 'assets/js/clicktrail-consent.js',
+                                array(),
+                                CLICKTRAIL_VERSION,
+                                true // Footer
+                        );
 		}
 	}
 

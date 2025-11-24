@@ -21,7 +21,7 @@ class ClickTrail_Form_Integrations {
 	 * Contact Form 7: Add Hidden Fields
 	 */
 	public function cf7_add_hidden_fields( $fields ) {
-		$attribution = hp_get_attribution();
+                $attribution = clicktrail_get_attribution();
 		if ( ! $attribution ) {
 			return $fields;
 		}
@@ -29,9 +29,9 @@ class ClickTrail_Form_Integrations {
 		// Flatten the array for hidden fields
 		$flat_data = $this->flatten_attribution( $attribution );
 
-		foreach ( $flat_data as $key => $value ) {
-			$fields[ 'hp_' . $key ] = $value;
-		}
+                foreach ( $flat_data as $key => $value ) {
+                        $fields[ 'ct_' . $key ] = $value;
+                }
 
 		return $fields;
 	}
@@ -60,9 +60,9 @@ class ClickTrail_Form_Integrations {
 
 	public function gf_populate_fields( $value, $field, $name ) {
 		// If user manually added fields with dynamic population parameter names
-		// e.g. hp_utm_source
-		if ( strpos( $name, 'hp_' ) === 0 ) {
-			$key = substr( $name, 3 ); // remove hp_
+                // e.g. ct_utm_source
+                if ( strpos( $name, 'ct_' ) === 0 ) {
+                        $key = substr( $name, 3 ); // remove ct_
 			// Logic to find key in attribution array
 			// ...
 		}
@@ -73,14 +73,14 @@ class ClickTrail_Form_Integrations {
 	 * Fluent Forms: Add Hidden Fields
 	 */
 	public function ff_add_hidden_fields( $form, $data ) {
-		$attribution = hp_get_attribution();
+                $attribution = clicktrail_get_attribution();
 		if ( ! $attribution ) {
 			return;
 		}
 		$flat_data = $this->flatten_attribution( $attribution );
-		foreach ( $flat_data as $key => $value ) {
-			echo '<input type="hidden" name="hp_' . esc_attr( $key ) . '" value="' . esc_attr( $value ) . '">';
-		}
+                foreach ( $flat_data as $key => $value ) {
+                        echo '<input type="hidden" name="ct_' . esc_attr( $key ) . '" value="' . esc_attr( $value ) . '">';
+                }
 	}
 
 	/**

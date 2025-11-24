@@ -76,4 +76,4 @@ Blockquotes are email style:
 
 And Backticks for code:
 
-`<?php hp_get_attribution(); ?>`
+`<?php clicktrail_get_attribution(); ?>`
