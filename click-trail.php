@@ -25,8 +25,8 @@ define( 'CLICKTRAIL_URL', plugin_dir_url( __FILE__ ) );
 define( 'CLICKTRAIL_BASENAME', plugin_basename( __FILE__ ) );
 
 // Include Core Class
-require_once CLICKTRAIL_DIR . 'includes/class-hp-attribution-core.php';
-require_once CLICKTRAIL_DIR . 'includes/hp-attribution-functions.php';
+require_once CLICKTRAIL_DIR . 'includes/class-ct-attribution-core.php';
+require_once CLICKTRAIL_DIR . 'includes/ct-attribution-functions.php';
 
 /**
  * Initialize the plugin
