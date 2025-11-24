@@ -29,7 +29,7 @@ function clicktrail_sanitize_attribution_data( $data ) {
  */
 function clicktrail_get_attribution() {
         if ( isset( $_COOKIE['ct_attribution'] ) ) {
-                $raw_cookie_value = wp_unslash( $_COOKIE['ct_attribution'] );
+                $raw_cookie_value = sanitize_text_field( wp_unslash( $_COOKIE['ct_attribution'] ) );
                 $data             = json_decode( $raw_cookie_value, true );
 
                 if ( json_last_error() === JSON_ERROR_NONE ) {
