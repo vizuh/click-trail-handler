@@ -4,7 +4,7 @@
     const CONFIG = window.clickTrailConfig || {
         cookieName: 'hp_attribution',
         cookieDays: 90,
-        requireConsent: false
+        requireConsent: true
     };
 
     const CONSENT_COOKIE = 'hp_consent';
@@ -19,22 +19,32 @@
         }
 
         init() {
-            if (CONFIG.requireConsent == '1') { // PHP sends string '1' or '0' usually, but let's be safe
+            const requiresConsent = CONFIG.requireConsent === true || CONFIG.requireConsent === '1' || CONFIG.requireConsent === 1;
+
+            if (requiresConsent) {
                 const consent = this.getConsent();
                 if (consent && consent.marketing) {
                     this.runAttribution();
-                } else {
-                    console.log('ClickTrail: Waiting for consent...');
-                    window.addEventListener('hp_consent_updated', (e) => {
-                        if (e.detail.marketing) {
-                            console.log('ClickTrail: Consent granted, running...');
-                            this.runAttribution();
-                        }
-                    });
+                    return;
                 }
-            } else {
-                this.runAttribution();
+
+                const maybeRun = (event) => {
+                    const preferences = event.detail || {};
+                    if (preferences.marketing) {
+                        console.log('ClickTrail: Consent granted, running...');
+                        this.runAttribution();
+                        window.removeEventListener('hp_consent_updated', maybeRun);
+                        window.removeEventListener('consent_granted', maybeRun);
+                    }
+                };
+
+                console.log('ClickTrail: Waiting for consent...');
+                window.addEventListener('hp_consent_updated', maybeRun);
+                window.addEventListener('consent_granted', maybeRun);
+                return;
             }
+
+            this.runAttribution();
         }
 
         runAttribution() {
@@ -279,13 +289,12 @@
         }
     }
 
-    // Initialize - Wait for consent signal (requires user to implement a CMP)
-    window.addEventListener('consent_granted', () => {
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => new ClickTrailAttribution());
-        } else {
-            new ClickTrailAttribution();
-        }
-    });
+    const bootstrapAttribution = () => new ClickTrailAttribution();
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', bootstrapAttribution);
+    } else {
+        bootstrapAttribution();
+    }
 
 })();
