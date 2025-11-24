@@ -215,21 +215,8 @@
                 expires = "; expires=" + date.toUTCString();
             }
 
-            // Get Apex Domain (simplified for MVP, can be improved)
-            const hostname = window.location.hostname;
-            const parts = hostname.split('.');
-            let domain = hostname;
-            if (parts.length > 2) {
-                // e.g. www.example.com -> .example.com
-                // This is naive for co.uk etc, but works for standard domains. 
-                // For MVP we can try to set on the root.
-                // A better way is to try setting on the widest possible domain.
-                domain = '.' + parts.slice(-2).join('.');
-            } else {
-                domain = '.' + hostname;
-            }
-
-            document.cookie = name + "=" + (value || "") + expires + "; path=/; domain=" + domain + "; SameSite=Lax; Secure";
+            // Rely on default browser behavior for domain
+            document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax; Secure";
         }
 
         getCookie(name) {
