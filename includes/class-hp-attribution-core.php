@@ -85,28 +85,31 @@ class ClickTrail_Core {
 	/**
 	 * Enqueue the public-facing scripts and styles.
 	 */
-	public function enqueue_scripts() {
-		$options = get_option( 'hp_attribution_settings' );
-		$cookie_days = isset( $options['cookie_days'] ) ? $options['cookie_days'] : 90;
-		$enable_consent = isset( $options['enable_consent_banner'] ) ? $options['enable_consent_banner'] : 0;
-		$require_consent = isset( $options['require_consent'] ) ? $options['require_consent'] : 0;
+        public function enqueue_scripts() {
+                $options = get_option( 'hp_attribution_settings', array() );
+                $enable_attribution = isset( $options['enable_attribution'] ) ? (bool) $options['enable_attribution'] : true;
+                $cookie_days = isset( $options['cookie_days'] ) ? absint( $options['cookie_days'] ) : 90;
+                $enable_consent = isset( $options['enable_consent_banner'] ) ? (bool) $options['enable_consent_banner'] : 0;
+                $require_consent = isset( $options['require_consent'] ) ? (bool) $options['require_consent'] : 0;
 
-		// Attribution Script
-		wp_enqueue_script(
-			'clicktrail-attribution-js',
-			CLICKTRAIL_URL . 'assets/js/clicktrail-attribution.js',
-			array(), 
-			CLICKTRAIL_VERSION,
-			false // Load in Head
-		);
+                // Attribution Script
+                if ( $enable_attribution ) {
+                        wp_enqueue_script(
+                                'clicktrail-attribution-js',
+                                CLICKTRAIL_URL . 'assets/js/clicktrail-attribution.js',
+                                array(),
+                                CLICKTRAIL_VERSION,
+                                false // Load in Head
+                        );
 
-		wp_localize_script( 'clicktrail-attribution-js', 'clickTrailConfig', array(
-			'cookieName' => 'hp_attribution',
-			'cookieDays' => $cookie_days,
-			'requireConsent' => $require_consent,
-			'ajaxUrl'    => admin_url( 'admin-ajax.php' ),
-			'nonce'      => wp_create_nonce( 'clicktrail_pii_nonce' ),
-		));
+                        wp_localize_script( 'clicktrail-attribution-js', 'clickTrailConfig', array(
+                                'cookieName' => 'hp_attribution',
+                                'cookieDays' => $cookie_days,
+                                'requireConsent' => $require_consent,
+                                'ajaxUrl'    => admin_url( 'admin-ajax.php' ),
+                                'nonce'      => wp_create_nonce( 'clicktrail_pii_nonce' ),
+                        ));
+                }
 
 		// Consent Script & Style
 		if ( $enable_consent ) {

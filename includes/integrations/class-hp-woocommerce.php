@@ -1,6 +1,6 @@
 <?php
 
-class HP_WooCommerce_Integration {
+class ClickTrail_WooCommerce_Integration {
 
 	public function init() {
 		add_action( 'woocommerce_checkout_create_order', array( $this, 'save_order_attribution' ), 10, 2 );
