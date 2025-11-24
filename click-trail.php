@@ -23,6 +23,7 @@ define( 'CLICKTRAIL_VERSION', '1.0.0-beta' );
 define( 'CLICKTRAIL_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CLICKTRAIL_URL', plugin_dir_url( __FILE__ ) );
 define( 'CLICKTRAIL_BASENAME', plugin_basename( __FILE__ ) );
+define( 'CLICKTRAIL_PII_NONCE_ACTION', 'clicktrail_pii_nonce' );
 
 // Include Core Class
 require_once CLICKTRAIL_DIR . 'includes/class-clicktrail-core.php';
