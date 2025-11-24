@@ -109,13 +109,17 @@ class ClickTrail_Admin {
 		<?php
 	}
 
-	public function ajax_log_pii_risk() {
-		check_ajax_referer( 'clicktrail_pii_nonce', 'nonce' );
-		
-		if ( isset( $_POST['pii_found'] ) && $_POST['pii_found'] === 'true' ) {
-			update_option( 'ct_pii_risk_detected', true );
-			wp_send_json_success();
-		}
+        public function ajax_log_pii_risk() {
+                check_ajax_referer( 'clicktrail_pii_nonce', 'nonce' );
+
+                if ( ! current_user_can( 'manage_options' ) ) {
+                        wp_send_json_error( array( 'message' => __( 'Insufficient permissions to log PII alerts.', 'clicktrail' ) ), 403 );
+                }
+
+                if ( isset( $_POST['pii_found'] ) && $_POST['pii_found'] === 'true' ) {
+                        update_option( 'hp_pii_risk_detected', true );
+                        wp_send_json_success();
+                }
 		wp_send_json_error();
 	}
 
