@@ -1,6 +1,28 @@
 <?php
 
 /**
+ * Sanitize attribution data recursively.
+ *
+ * @param mixed $data The raw attribution data.
+ * @return array|string Sanitized data.
+ */
+function clicktrail_sanitize_attribution_data( $data ) {
+        if ( is_array( $data ) ) {
+                foreach ( $data as $key => $value ) {
+                        $data[ $key ] = clicktrail_sanitize_attribution_data( $value );
+                }
+
+                return $data;
+        }
+
+        if ( is_scalar( $data ) ) {
+                return sanitize_text_field( (string) $data );
+        }
+
+        return '';
+}
+
+/**
  * Retrieve the current attribution data from the cookie.
  *
  * @return array|null The attribution data array or null if not found.
