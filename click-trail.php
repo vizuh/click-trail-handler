@@ -1,11 +1,10 @@
-<?php
 /**
- * Plugin Name: HP Attribution & Consent
- * Plugin URI:  https://example.com
+ * Plugin Name: ClickTrail
+ * Plugin URI:  https://vizuh.com
  * Description: Captures marketing parameters (UTMs, Click IDs), persists them, and handles basic consent management.
- * Version:     1.0.0
- * Author:      Hugo M
- * Text Domain: hp-attribution
+ * Version:     1.0.0-beta
+ * Author:      Vizuh
+ * Text Domain: clicktrail
  * Domain Path: /languages
  */
 
@@ -14,10 +13,10 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define Constants
-define( 'HP_ATTRIBUTION_VERSION', '1.0.0' );
-define( 'HP_ATTRIBUTION_DIR', plugin_dir_path( __FILE__ ) );
-define( 'HP_ATTRIBUTION_URL', plugin_dir_url( __FILE__ ) );
-define( 'HP_ATTRIBUTION_BASENAME', plugin_basename( __FILE__ ) );
+define( 'CLICKTRAIL_VERSION', '1.0.0-beta' );
+define( 'CLICKTRAIL_DIR', plugin_dir_path( __FILE__ ) );
+define( 'CLICKTRAIL_URL', plugin_dir_url( __FILE__ ) );
+define( 'CLICKTRAIL_BASENAME', plugin_basename( __FILE__ ) );
 
 // Include Core Class
 require_once HP_ATTRIBUTION_DIR . 'includes/class-hp-attribution-core.php';
