@@ -57,23 +57,23 @@ class ClickTrail_Admin {
 			'clicktrail'
 		);
 
-		add_settings_field(
-			'enable_consent_banner',
-			'Enable Consent Banner',
-			array( $this, 'render_checkbox_field' ),
-			'clicktrail',
-			'hp_consent_section',
-			array( 'label_for' => 'enable_consent_banner' )
-		);
+                add_settings_field(
+                        'enable_consent_banner',
+                        'Enable Consent Banner',
+                        array( $this, 'render_checkbox_field' ),
+                        'clicktrail',
+                        'hp_consent_section',
+                        array( 'label_for' => 'enable_consent_banner', 'default' => 1 )
+                );
 
-		add_settings_field(
-			'require_consent',
-			'Require Consent for Tracking',
-			array( $this, 'render_checkbox_field' ),
-			'clicktrail',
-			'hp_consent_section',
-			array( 'label_for' => 'require_consent' )
-		);
+                add_settings_field(
+                        'require_consent',
+                        'Require Consent for Tracking',
+                        array( $this, 'render_checkbox_field' ),
+                        'clicktrail',
+                        'hp_consent_section',
+                        array( 'label_for' => 'require_consent', 'default' => 1 )
+                );
 	}
 
 	public function render_settings_page() {
