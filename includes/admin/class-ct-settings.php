@@ -2,7 +2,8 @@
 
 class ClickTrail_Admin {
 
-	private $option_name = 'ct_attribution_settings';
+        private $option_name = 'ct_attribution_settings';
+        private $text_domain = 'clicktrail';
 
 	public function init() {
 		add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
@@ -113,7 +114,7 @@ class ClickTrail_Admin {
                 check_ajax_referer( 'clicktrail_pii_nonce', 'nonce' );
 
                 if ( ! current_user_can( 'manage_options' ) ) {
-                        wp_send_json_error( array( 'message' => __( 'Insufficient permissions to log PII alerts.', 'clicktrail' ) ), 403 );
+                        wp_send_json_error( array( 'message' => __( 'Insufficient permissions to log PII alerts.', $this->text_domain ) ), 403 );
                 }
 
                 if ( isset( $_POST['pii_found'] ) && $_POST['pii_found'] === 'true' ) {
@@ -127,8 +128,8 @@ class ClickTrail_Admin {
 		if ( get_option( 'ct_pii_risk_detected' ) ) {
 			?>
 			<div class="notice notice-error is-dismissible">
-				<p><strong><?php _e( 'ClickTrail Audit detected PII risk on your Thank You page. Your tracking may be deactivated by Google.', 'clicktrail' ); ?></strong></p>
-				<p><a href="#" class="button button-primary"><?php _e( 'Fix PII Issues Now', 'clicktrail' ); ?></a></p>
+                                <p><strong><?php _e( 'ClickTrail Audit detected PII risk on your Thank You page. Your tracking may be deactivated by Google.', $this->text_domain ); ?></strong></p>
+                                <p><a href="#" class="button button-primary"><?php _e( 'Fix PII Issues Now', $this->text_domain ); ?></a></p>
 			</div>
 			<?php
 		}
