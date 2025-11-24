@@ -47,7 +47,7 @@ function clicktrail_get_attribution() {
  * @return string|null The value or null.
  */
 function clicktrail_get_attribution_field( $type, $field ) {
-        $data = clicktrail_get_attribution();
+	$data = clicktrail_get_attribution();
 	if ( $data && isset( $data[ $type ] ) && isset( $data[ $type ][ $field ] ) ) {
 		return $data[ $type ][ $field ];
 	}
