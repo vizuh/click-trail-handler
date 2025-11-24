@@ -107,7 +107,7 @@ class ClickTrail_Core {
                                 'cookieDays' => $cookie_days,
                                 'requireConsent' => $require_consent,
                                 'ajaxUrl'    => admin_url( 'admin-ajax.php' ),
-                                'nonce'      => wp_create_nonce( 'clicktrail_pii_nonce' ),
+                                'nonce'      => wp_create_nonce( CLICKTRAIL_PII_NONCE_ACTION ),
                         ));
                 }
 
