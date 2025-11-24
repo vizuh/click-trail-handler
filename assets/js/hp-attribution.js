@@ -231,11 +231,13 @@
         }
     }
 
-    // Initialize
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => new HPAttribution());
-    } else {
-        new HPAttribution();
-    }
+    // Initialize - Wait for consent signal (requires user to implement a CMP)
+    window.addEventListener('consent_granted', () => {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', () => new HPAttribution());
+        } else {
+            new HPAttribution();
+        }
+    });
 
 })();
