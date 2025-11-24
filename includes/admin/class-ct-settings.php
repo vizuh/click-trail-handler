@@ -111,7 +111,11 @@ class ClickTrail_Admin {
 	}
 
         public function ajax_log_pii_risk() {
-                check_ajax_referer( 'clicktrail_pii_nonce', 'nonce' );
+                $nonce = isset( $_POST['nonce'] ) ? sanitize_text_field( wp_unslash( $_POST['nonce'] ) ) : '';
+
+                if ( ! wp_verify_nonce( $nonce, CLICKTRAIL_PII_NONCE_ACTION ) ) {
+                        wp_send_json_error( array( 'message' => __( 'Invalid nonce for logging.', $this->text_domain ) ), 403 );
+                }
 
                 if ( ! current_user_can( 'manage_options' ) ) {
                         wp_send_json_error( array( 'message' => __( 'Insufficient permissions to log PII alerts.', $this->text_domain ) ), 403 );
@@ -121,8 +125,8 @@ class ClickTrail_Admin {
                         update_option( 'hp_pii_risk_detected', true );
                         wp_send_json_success();
                 }
-		wp_send_json_error();
-	}
+                wp_send_json_error();
+        }
 
 	public function display_pii_warning() {
 		if ( get_option( 'ct_pii_risk_detected' ) ) {
