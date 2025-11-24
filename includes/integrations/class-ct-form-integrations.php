@@ -20,8 +20,8 @@ class ClickTrail_Form_Integrations {
 	/**
 	 * Contact Form 7: Add Hidden Fields
 	 */
-	public function cf7_add_hidden_fields( $fields ) {
-		$attribution = ct_get_attribution();
+public function cf7_add_hidden_fields( $fields ) {
+$attribution = clicktrail_get_attribution();
 		if ( ! $attribution ) {
 			return $fields;
 		}
@@ -72,8 +72,8 @@ class ClickTrail_Form_Integrations {
 	/**
 	 * Fluent Forms: Add Hidden Fields
 	 */
-	public function ff_add_hidden_fields( $form, $data ) {
-		$attribution = ct_get_attribution();
+public function ff_add_hidden_fields( $form, $data ) {
+$attribution = clicktrail_get_attribution();
 		if ( ! $attribution ) {
 			return;
 		}
