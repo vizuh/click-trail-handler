@@ -135,18 +135,17 @@ class ClickTrail_Admin {
 
     public function sanitize_settings( $input ) {
         $new_input = array();
-        if ( isset( $input['enable_attribution'] ) ) {
-            $new_input['enable_attribution'] = absint( $input['enable_attribution'] );
-        }
+        
+        // Checkboxes: If not present in input, it means they were unchecked (value 0)
+        $new_input['enable_attribution'] = isset( $input['enable_attribution'] ) ? absint( $input['enable_attribution'] ) : 0;
+        $new_input['enable_consent_banner'] = isset( $input['enable_consent_banner'] ) ? absint( $input['enable_consent_banner'] ) : 0;
+        $new_input['require_consent'] = isset( $input['require_consent'] ) ? absint( $input['require_consent'] ) : 0;
+
+        // Number fields
         if ( isset( $input['cookie_days'] ) ) {
             $new_input['cookie_days'] = absint( $input['cookie_days'] );
         }
-        if ( isset( $input['enable_consent_banner'] ) ) {
-            $new_input['enable_consent_banner'] = absint( $input['enable_consent_banner'] );
-        }
-        if ( isset( $input['require_consent'] ) ) {
-            $new_input['require_consent'] = absint( $input['require_consent'] );
-        }
+
         return $new_input;
     }
 
