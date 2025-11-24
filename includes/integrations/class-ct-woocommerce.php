@@ -12,8 +12,8 @@ class ClickTrail_WooCommerce_Integration {
 	 * @param WC_Order $order
 	 * @param array $data
 	 */
-	public function save_order_attribution( $order, $data ) {
-		$attribution = ct_get_attribution();
+public function save_order_attribution( $order, $data ) {
+$attribution = clicktrail_get_attribution();
 		if ( ! $attribution ) {
 			return;
 		}
