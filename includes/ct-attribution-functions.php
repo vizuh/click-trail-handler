@@ -36,12 +36,16 @@ function clicktrail_sanitize_attribution_data( $data ) {
  * @return array|null The attribution data array or null if not found.
  */
 function clicktrail_get_attribution() {
-        if ( isset( $_COOKIE['attribution'] ) ) {
-                $raw_cookie_value = sanitize_text_field( wp_unslash( $_COOKIE['attribution'] ) );
-                $data             = json_decode( $raw_cookie_value, true );
+        $keys = array( 'ct_attribution', 'attribution' );
 
-                if ( json_last_error() === JSON_ERROR_NONE ) {
-                        return clicktrail_sanitize_attribution_data( $data );
+        foreach ( $keys as $key ) {
+                if ( isset( $_COOKIE[ $key ] ) ) {
+                        $raw_cookie_value = sanitize_text_field( wp_unslash( $_COOKIE[ $key ] ) );
+                        $data             = json_decode( $raw_cookie_value, true );
+
+                        if ( json_last_error() === JSON_ERROR_NONE ) {
+                                return clicktrail_sanitize_attribution_data( $data );
+                        }
                 }
         }
         return null;
