@@ -75,6 +75,23 @@ class ClickTrail_Admin {
                         'ct_consent_section',
                         array( 'label_for' => 'require_consent', 'default' => 1 )
                 );
+
+		add_settings_field(
+			'consent_mode_region',
+			'Consent Mode',
+			array( $this, 'render_select_field' ),
+			'clicktrail',
+			'ct_consent_section',
+			array(
+				'label_for' => 'consent_mode_region',
+				'default' => 'strict',
+				'options' => array(
+					'strict' => 'Strict (Default Denied)',
+					'relaxed' => 'Relaxed (Default Granted)',
+					'custom' => 'Custom (Geo-based)'
+				)
+			)
+		);
 	}
 
 	public function render_settings_page() {
@@ -99,6 +116,22 @@ class ClickTrail_Admin {
                 ?>
                 <input type="checkbox" id="<?php echo esc_attr( $args['label_for'] ); ?>" name="<?php echo esc_attr( $this->option_name . '[' . $args['label_for'] . ']' ); ?>" value="1" <?php checked( 1, $value ); ?> />
                 <?php
+	}
+
+	public function render_select_field( $args ) {
+		$options = get_option( $this->option_name, array() );
+		$default = isset( $args['default'] ) ? $args['default'] : '';
+		$value = isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : $default;
+		$select_options = isset( $args['options'] ) ? $args['options'] : array();
+		?>
+		<select id="<?php echo esc_attr( $args['label_for'] ); ?>" name="<?php echo esc_attr( $this->option_name . '[' . $args['label_for'] . ']' ); ?>">
+			<?php foreach ( $select_options as $key => $label ) : ?>
+				<option value="<?php echo esc_attr( $key ); ?>" <?php selected( $key, $value ); ?>>
+					<?php echo esc_html( $label ); ?>
+				</option>
+			<?php endforeach; ?>
+		</select>
+		<?php
 	}
 
 	public function render_number_field( $args ) {
@@ -141,6 +174,7 @@ class ClickTrail_Admin {
 		if( isset( $input['cookie_days'] ) ) $new_input['cookie_days'] = absint( $input['cookie_days'] );
 		if( isset( $input['enable_consent_banner'] ) ) $new_input['enable_consent_banner'] = absint( $input['enable_consent_banner'] );
 		if( isset( $input['require_consent'] ) ) $new_input['require_consent'] = absint( $input['require_consent'] );
+		if( isset( $input['consent_mode_region'] ) ) $new_input['consent_mode_region'] = sanitize_text_field( $input['consent_mode_region'] );
 		return $new_input;
 	}
 
