@@ -2,10 +2,12 @@
     'use strict';
 
     const CONFIG = window.clickTrailConfig || {
-        cookieName: 'ct_attribution',
+        cookieName: 'attribution',
         cookieDays: 90,
         requireConsent: true
     };
+
+    const LEGACY_KEY = 'ct_attribution';
 
     const CONSENT_COOKIE = 'ct_consent';
 
@@ -21,6 +23,8 @@
         }
 
         init() {
+            this.migrateLegacyData();
+
             const requiresConsent = CONFIG.requireConsent === true || CONFIG.requireConsent === '1' || CONFIG.requireConsent === 1;
 
             if (requiresConsent) {
@@ -57,71 +61,20 @@
             const hasGclid = !!currentParams['gclid'];
             const hasUtm = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'].some(key => !!currentParams[key]);
 
-            // Only proceed if we have params or if it's a new session (logic can be complex, for now check params)
-            // Actually, we should always check if we need to update last_touch
+            let storedData = this.getStoredData() || {};
 
-            let storedData = this.getStoredData();
-
-            // Debug: Init
-            console.log('ClickTrail init', {
-                url: window.location.href,
-                params: currentParams,
-                storedDataBefore: storedData
-            });
-
-            // Prepare new touch data
-            let newTouch = {};
-            let hasMarketingParams = false;
-
-            this.paramsToCapture.forEach(param => {
-                if (currentParams[param]) {
-                    newTouch[param] = currentParams[param];
-                    hasMarketingParams = true;
-                }
-            });
-
-            if (isExternalReferrer) {
-                newTouch['referrer'] = referrer;
-                // External referrers can be organic/referral touches even without UTMs
-            }
-
-            // Normalize alternate ValueTrack names to canonical keys
-            if (!newTouch['campaign_id'] && currentParams['campaignid']) newTouch['campaign_id'] = currentParams['campaignid'];
-            if (!newTouch['adgroup_id'] && currentParams['adgroupid']) newTouch['adgroup_id'] = currentParams['adgroupid'];
-            if (!newTouch['ad_id'] && currentParams['creative']) newTouch['ad_id'] = currentParams['creative'];
-            if (!newTouch['utm_term'] && currentParams['keyword']) newTouch['utm_term'] = currentParams['keyword'];
-
-            // Fallback defaults when only gclid is present
-            if (hasGclid && !hasUtm) {
-                if (!newTouch['utm_source']) newTouch['utm_source'] = 'google';
-                if (!newTouch['utm_medium']) newTouch['utm_medium'] = 'cpc';
-            }
+            const attributionFields = this.mapParamsToAttributionFields(currentParams, referrer);
+            const hasAttributionSignal = this.hasAttributionSignal(attributionFields);
 
             // Timestamp
             const now = new Date().toISOString();
 
-            const isAdClick = this.isAdClick(currentParams);
-            const hasAttributionSignal = isAdClick || hasMarketingParams || isExternalReferrer;
-
             if (hasAttributionSignal) {
-                newTouch['timestamp'] = now;
-                newTouch['landing_page'] = window.location.href;
-
-                // Ensure we always have an object to mutate
-                storedData = storedData ? { ...storedData } : { session_count: 0 };
-
-                // First touch is written once, on the first qualifying visit
-                if (!storedData.first_touch) {
-                    storedData.first_touch = newTouch;
+                if (!this.hasFirstTouch(storedData)) {
+                    this.applyTouch('ft', storedData, attributionFields, now);
                 }
 
-                // Last touch rules: always update for ad clicks; optionally for other qualifying external visits
-                const shouldUpdateLastTouch = isAdClick || !storedData.last_touch || (!isAdClick && (hasMarketingParams || isExternalReferrer));
-
-                if (shouldUpdateLastTouch) {
-                    storedData.last_touch = newTouch;
-                }
-
+                this.applyTouch('lt', storedData, attributionFields, now);
                 storedData.session_count = (storedData.session_count || 0) + 1;
 
                 this.saveData(storedData);
@@ -144,6 +97,158 @@
 
             // GTM Bridge: Form Listeners
             this.initFormListeners(storedData);
+        }
+
+        hasAttributionSignal(attributionFields) {
+            return Object.keys(attributionFields).some((key) => {
+                const value = attributionFields[key];
+                return value !== undefined && value !== null && value !== '';
+            });
+        }
+
+        hasFirstTouch(storedData) {
+            return !!(storedData && (storedData.ft_source || storedData.ft_medium || storedData.ft_campaign || storedData.ft_gclid));
+        }
+
+        applyTouch(prefix, storedData, fields, timestamp) {
+            const mapping = ['source', 'medium', 'campaign', 'campaign_id', 'adgroup_id', 'ad_id', 'term', 'matchtype', 'network', 'device', 'gclid', 'wbraid', 'gbraid', 'msclkid', 'fbclid', 'ttclid', 'twclid', 'sc_click_id', 'epik', 'content', 'referrer'];
+
+            mapping.forEach((key) => {
+                const value = fields[key];
+                const prop = `${prefix}_${key}`;
+                if (value !== undefined && value !== null && value !== '') {
+                    storedData[prop] = value;
+                }
+            });
+
+            storedData[`${prefix === 'ft' ? 'first' : 'last'}_touch_timestamp`] = timestamp;
+            storedData[`${prefix}_landing_page`] = window.location.href;
+        }
+
+        mapParamsToAttributionFields(params, referrer) {
+            const fields = {
+                source: params.utm_source || '',
+                medium: params.utm_medium || '',
+                campaign: params.utm_campaign || '',
+                campaign_id: params.campaignid || params.utm_campaign_id || '',
+                adgroup_id: params.adgroupid || '',
+                ad_id: params.creative || '',
+                term: params.utm_term || params.keyword || '',
+                matchtype: params.matchtype || '',
+                network: params.network || '',
+                device: params.device || '',
+                gclid: params.gclid || '',
+                wbraid: params.wbraid || '',
+                gbraid: params.gbraid || '',
+                msclkid: params.msclkid || '',
+                fbclid: params.fbclid || '',
+                ttclid: params.ttclid || '',
+                twclid: params.twclid || '',
+                sc_click_id: params.sc_click_id || '',
+                epik: params.epik || '',
+                content: params.utm_content || ''
+            };
+
+            if (referrer && !this.isInternalReferrer(referrer)) {
+                fields.referrer = referrer;
+            }
+
+            return fields;
+        }
+
+        migrateLegacyData() {
+            // Don't migrate if new key is already present
+            const existing = this.getStoredData();
+            if (existing) {
+                return;
+            }
+
+            const legacyRaw = this.readLegacyData();
+            if (!legacyRaw) {
+                return;
+            }
+
+            const mapped = this.mapLegacyToFlat(legacyRaw);
+            if (mapped) {
+                this.saveData(mapped);
+            }
+        }
+
+        readLegacyData() {
+            const cookie = this.getCookie(LEGACY_KEY);
+            if (cookie) {
+                try {
+                    return JSON.parse(cookie);
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            try {
+                const ls = localStorage.getItem(LEGACY_KEY);
+                if (ls) {
+                    return JSON.parse(ls);
+                }
+            } catch (e) {
+                // Ignore
+            }
+
+            return null;
+        }
+
+        mapLegacyToFlat(legacyObj) {
+            if (!legacyObj) return null;
+
+            const out = {};
+            const mapTouch = (touch, prefix) => {
+                if (!touch || typeof touch !== 'object') return;
+
+                out[`${prefix}_source`] = touch.utm_source || touch.source || '';
+                out[`${prefix}_medium`] = touch.utm_medium || touch.medium || '';
+                out[`${prefix}_campaign`] = touch.utm_campaign || touch.campaign || '';
+                out[`${prefix}_campaign_id`] = touch.campaign_id || '';
+                out[`${prefix}_adgroup_id`] = touch.adgroup_id || '';
+                out[`${prefix}_ad_id`] = touch.ad_id || '';
+                out[`${prefix}_term`] = touch.utm_term || touch.term || touch.keyword || '';
+                out[`${prefix}_matchtype`] = touch.matchtype || '';
+                out[`${prefix}_network`] = touch.network || '';
+                out[`${prefix}_device`] = touch.device || '';
+                out[`${prefix}_gclid`] = touch.gclid || '';
+                out[`${prefix}_wbraid`] = touch.wbraid || '';
+                out[`${prefix}_gbraid`] = touch.gbraid || '';
+                out[`${prefix}_msclkid`] = touch.msclkid || '';
+                out[`${prefix}_fbclid`] = touch.fbclid || '';
+                out[`${prefix}_ttclid`] = touch.ttclid || '';
+                out[`${prefix}_twclid`] = touch.twclid || '';
+                out[`${prefix}_sc_click_id`] = touch.sc_click_id || '';
+                out[`${prefix}_epik`] = touch.epik || '';
+                out[`${prefix}_content`] = touch.utm_content || touch.content || '';
+
+                if (touch.referrer) {
+                    out[`${prefix}_referrer`] = touch.referrer;
+                }
+
+                if (touch.landing_page) {
+                    out[`${prefix}_landing_page`] = touch.landing_page;
+                }
+            };
+
+            mapTouch(legacyObj.first_touch, 'ft');
+            mapTouch(legacyObj.last_touch, 'lt');
+
+            if (legacyObj.first_touch_timestamp) {
+                out.first_touch_timestamp = legacyObj.first_touch_timestamp;
+            }
+
+            if (legacyObj.last_touch_timestamp) {
+                out.last_touch_timestamp = legacyObj.last_touch_timestamp;
+            }
+
+            if (legacyObj.session_count) {
+                out.session_count = legacyObj.session_count;
+            }
+
+            return out;
         }
 
         initFormListeners(data) {
@@ -294,13 +399,13 @@
                 }
             }
             // Fallback to LocalStorage
-            const ls = localStorage.getItem(CONFIG.cookieName);
-            if (ls) {
-                try {
+            try {
+                const ls = localStorage.getItem(CONFIG.cookieName);
+                if (ls) {
                     return JSON.parse(ls);
-                } catch (e) {
-                    console.error('ClickTrail Attribution: Error parsing localStorage', e);
                 }
+            } catch (e) {
+                console.error('ClickTrail Attribution: Error parsing localStorage', e);
             }
             return null;
         }
