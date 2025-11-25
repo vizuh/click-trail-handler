@@ -2,7 +2,7 @@
 
 class ClickTrail_Admin {
 
-        private $option_name = 'ct_attribution_settings';
+        private $option_name = 'clicktrail_attribution_settings';
         private $text_domain = 'click-trail-main';
 
 	public function init() {
