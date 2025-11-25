@@ -15,8 +15,10 @@
         constructor() {
             this.paramsToCapture = [
                 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+                'campaign_id', 'campaignid', 'adgroup_id', 'adgroupid', 'ad_id', 'creative', 'keyword', 'matchtype', 'network', 'device', 'placement', 'targetid',
                 'gclid', 'fbclid', 'wbraid', 'gbraid', 'msclkid', 'ttclid', 'twclid', 'sc_click_id', 'epik'
             ];
+            this.paidMediums = ['cpc', 'ppc', 'paidsearch', 'paid-search', 'paid', 'paid_social', 'paid social', 'display'];
             this.init();
         }
 
@@ -54,6 +56,10 @@
         runAttribution() {
             const currentParams = this.getURLParams();
             const referrer = document.referrer;
+            const isExternalReferrer = referrer && !this.isInternalReferrer(referrer);
+
+            const hasGclid = !!currentParams['gclid'];
+            const hasUtm = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'].some(key => !!currentParams[key]);
 
             let storedData = this.getStoredData() || {};
 
@@ -355,6 +361,16 @@
             return params;
         }
 
+        isAdClick(params) {
+            const paidClickIds = ['gclid', 'fbclid', 'wbraid', 'gbraid', 'msclkid', 'ttclid', 'twclid', 'sc_click_id', 'epik'];
+            const hasPaidId = paidClickIds.some(id => params[id]);
+
+            const medium = (params['utm_medium'] || '').toLowerCase();
+            const mediumIsPaid = this.paidMediums.includes(medium);
+
+            return hasPaidId || mediumIsPaid;
+        }
+
         isInternalReferrer(referrer) {
             if (!referrer) return false;
             return referrer.indexOf(window.location.hostname) !== -1;
@@ -410,8 +426,9 @@
                 expires = "; expires=" + date.toUTCString();
             }
 
-            // Rely on default browser behavior for domain
-            document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax; Secure";
+            // Rely on default browser behavior for domain; only set Secure on HTTPS to allow HTTP support
+            const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
+            document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax" + secureFlag;
         }
 
         getCookie(name) {
