@@ -41,7 +41,7 @@ class ClickTrail_Core {
 	 */
         private function load_dependencies() {
                 // Admin
-                require_once CLICKTRAIL_DIR . 'includes/admin/class-clicktrail-settings.php';
+                require_once CLICKTRAIL_DIR . 'includes/admin/class-ct-settings.php';
 
                 // Integrations
                 require_once CLICKTRAIL_DIR . 'includes/integrations/class-clicktrail-form-integrations.php';
