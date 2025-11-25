@@ -103,7 +103,7 @@ class ClickTrail_Core {
                         );
 
                         wp_localize_script( 'clicktrail-attribution-js', 'clickTrailConfig', array(
-                                'cookieName' => 'ct_attribution',
+                                'cookieName' => 'attribution',
                                 'cookieDays' => $cookie_days,
                                 'requireConsent' => $require_consent,
                                 'ajaxUrl'    => admin_url( 'admin-ajax.php' ),
