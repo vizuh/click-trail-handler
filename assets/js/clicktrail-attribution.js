@@ -305,8 +305,9 @@
                 expires = "; expires=" + date.toUTCString();
             }
 
-            // Rely on default browser behavior for domain
-            document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax; Secure";
+            // Rely on default browser behavior for domain; only set Secure on HTTPS to allow HTTP support
+            const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
+            document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax" + secureFlag;
         }
 
         getCookie(name) {
