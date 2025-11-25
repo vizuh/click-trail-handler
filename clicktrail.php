@@ -28,6 +28,7 @@ define( 'CLICKTRAIL_PII_NONCE_ACTION', 'clicktrail_pii_nonce' );
 // Include Core Class
 require_once CLICKTRAIL_DIR . 'includes/class-clicktrail-core.php';
 require_once CLICKTRAIL_DIR . 'includes/clicktrail-attribution-functions.php';
+require_once CLICKTRAIL_DIR . 'includes/clicktrail-canonical.php';
 
 /**
  * Initialize the plugin
