@@ -6,28 +6,30 @@
  * @param array $data Raw attribution data.
  * @return array Sanitized attribution data.
  */
-function clicktrail_sanitize_attribution_data( $data ) {
-    if ( ! is_array( $data ) ) {
-        return array();
-    }
-
-    $sanitized = array();
-
-    foreach ( $data as $key => $value ) {
-        $meta_key = sanitize_key( $key );
-        if ( '' === $meta_key ) {
-            continue;
+if ( ! function_exists( 'clicktrail_sanitize_attribution_data' ) ) {
+    function clicktrail_sanitize_attribution_data( $data ) {
+        if ( ! is_array( $data ) ) {
+            return array();
         }
 
-        if ( 'session_count' === $meta_key ) {
-            $sanitized[ $meta_key ] = absint( $value );
-            continue;
+        $sanitized = array();
+
+        foreach ( $data as $key => $value ) {
+            $meta_key = sanitize_key( $key );
+            if ( '' === $meta_key ) {
+                continue;
+            }
+
+            if ( 'session_count' === $meta_key ) {
+                $sanitized[ $meta_key ] = absint( $value );
+                continue;
+            }
+
+            $sanitized[ $meta_key ] = sanitize_text_field( wp_unslash( $value ) );
         }
 
-        $sanitized[ $meta_key ] = sanitize_text_field( wp_unslash( $value ) );
+        return $sanitized;
     }
-
-    return $sanitized;
 }
 
 /**
@@ -35,20 +37,22 @@ function clicktrail_sanitize_attribution_data( $data ) {
  *
  * @return array|null The attribution data array or null if not found.
  */
-function clicktrail_get_attribution() {
-    $keys = array( 'ct_attribution', 'attribution' );
+if ( ! function_exists( 'clicktrail_get_attribution' ) ) {
+    function clicktrail_get_attribution() {
+        $keys = array( 'ct_attribution', 'attribution' );
 
-    foreach ( $keys as $key ) {
-        if ( isset( $_COOKIE[ $key ] ) ) {
-            $cookie_value = sanitize_text_field( wp_unslash( $_COOKIE[ $key ] ) );
-            $data         = json_decode( $cookie_value, true );
-            if ( is_array( $data ) && json_last_error() === JSON_ERROR_NONE ) {
-                return clicktrail_sanitize_attribution_data( $data );
+        foreach ( $keys as $key ) {
+            if ( isset( $_COOKIE[ $key ] ) ) {
+                $cookie_value = sanitize_text_field( wp_unslash( $_COOKIE[ $key ] ) );
+                $data         = json_decode( $cookie_value, true );
+                if ( is_array( $data ) && json_last_error() === JSON_ERROR_NONE ) {
+                    return clicktrail_sanitize_attribution_data( $data );
+                }
             }
         }
-    }
 
-    return null;
+        return null;
+    }
 }
 
 /**
@@ -58,18 +62,20 @@ function clicktrail_get_attribution() {
  * @param string $field The field key (e.g., "source").
  * @return string|null The value or null.
  */
-function clicktrail_get_attribution_field( $type, $field ) {
-    $data = clicktrail_get_attribution();
-    if ( ! $data ) {
+if ( ! function_exists( 'clicktrail_get_attribution_field' ) ) {
+    function clicktrail_get_attribution_field( $type, $field ) {
+        $data = clicktrail_get_attribution();
+        if ( ! $data ) {
+            return null;
+        }
+
+        $prefix = 'first_touch' === $type ? 'ft_' : 'lt_';
+        $key    = $prefix . $field;
+
+        if ( isset( $data[ $key ] ) ) {
+            return $data[ $key ];
+        }
+
         return null;
     }
-
-    $prefix = 'first_touch' === $type ? 'ft_' : 'lt_';
-    $key    = $prefix . $field;
-
-    if ( isset( $data[ $key ] ) ) {
-        return $data[ $key ];
-    }
-
-    return null;
 }
