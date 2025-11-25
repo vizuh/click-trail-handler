@@ -7,6 +7,14 @@
         requireConsent: true
     };
 
+    // Support both the current cookie/localStorage key and a legacy/fallback key.
+    const COOKIE_KEYS = Array.from(
+        new Set([
+            CONFIG.cookieName || 'ct_attribution',
+            'attribution'
+        ])
+    );
+
     const CONSENT_COOKIE = 'ct_consent';
 
     class ClickTrailAttribution {
@@ -127,39 +135,118 @@
         initFormListeners(data) {
             // Contact Form 7
             document.addEventListener('wpcf7mailsent', (e) => {
-                window.dataLayer.push({
-                    event: 'ct_lead',
-                    form_provider: 'cf7',
-                    form_id: e.detail.contactFormId,
-                    ct_attribution: data
-                });
+                this.pushLeadEvents('cf7', e.detail.contactFormId, data);
             });
 
             // Fluent Forms (jQuery)
             if (window.jQuery) {
                 window.jQuery(document.body).on('fluentform_submission_success', function () {
-                    window.dataLayer.push({
-                        event: 'ct_lead',
-                        form_provider: 'fluentform',
-                        ct_attribution: data
-                    });
+                    window.clickTrailAttribution.pushLeadEvents('fluentform', '', data);
                 });
             }
 
             // Gravity Forms (jQuery) - gform_confirmation_loaded
             if (window.jQuery) {
                 window.jQuery(document).on('gform_confirmation_loaded', function (e, formId) {
-                    window.dataLayer.push({
-                        event: 'ct_lead',
-                        form_provider: 'gravityforms',
-                        form_id: formId,
-                        ct_attribution: data
-                    });
+                    window.clickTrailAttribution.pushLeadEvents('gravityforms', formId, data);
                 });
             }
 
             // PII Scanner
             this.scanDataLayerForPII();
+        }
+
+        pushLeadEvents(provider, formId, data) {
+            const payload = this.buildLeadPayload(provider, formId, data);
+
+            window.dataLayer = window.dataLayer || [];
+            window.dataLayer.push(payload);
+
+            // Maintain legacy event shape for existing GTM setups.
+            window.dataLayer.push({
+                event: 'ct_lead',
+                form_provider: provider,
+                form_id: formId,
+                ct_attribution: data
+            });
+
+            if (typeof window.gtag === 'function') {
+                const { event, ...params } = payload;
+                window.gtag('event', event, params);
+            }
+        }
+
+        buildLeadPayload(provider, formId, data) {
+            const flat = this.flattenAttribution(data);
+
+            return {
+                event: 'lead_submit',
+                form_provider: provider || '',
+                form_id: formId || '',
+                ...flat
+            };
+        }
+
+        flattenAttribution(data) {
+            const flat = {
+                ft_source: '',
+                ft_medium: '',
+                ft_campaign: '',
+                ft_term: '',
+                ft_content: '',
+                ft_gclid: '',
+                ft_fbclid: '',
+                ft_wbraid: '',
+                ft_gbraid: '',
+                ft_msclkid: '',
+                ft_ttclid: '',
+                ft_twclid: '',
+                ft_sc_click_id: '',
+                ft_epik: '',
+                lt_source: '',
+                lt_medium: '',
+                lt_campaign: '',
+                lt_term: '',
+                lt_content: '',
+                lt_gclid: '',
+                lt_fbclid: '',
+                lt_wbraid: '',
+                lt_gbraid: '',
+                lt_msclkid: '',
+                lt_ttclid: '',
+                lt_twclid: '',
+                lt_sc_click_id: '',
+                lt_epik: ''
+            };
+
+            if (!data) {
+                return flat;
+            }
+
+            const mapKey = (key) => {
+                const map = {
+                    utm_source: 'source',
+                    utm_medium: 'medium',
+                    utm_campaign: 'campaign',
+                    utm_term: 'term',
+                    utm_content: 'content'
+                };
+                return map[key] || key;
+            };
+
+            const assignTouch = (touchKey, prefix) => {
+                if (data[touchKey] && typeof data[touchKey] === 'object') {
+                    Object.keys(data[touchKey]).forEach((key) => {
+                        const mappedKey = mapKey(key);
+                        flat[`${prefix}${mappedKey}`] = data[touchKey][key];
+                    });
+                }
+            };
+
+            assignTouch('first_touch', 'ft_');
+            assignTouch('last_touch', 'lt_');
+
+            return flat;
         }
 
         scanDataLayerForPII() {
@@ -252,24 +339,30 @@
         }
 
         getStoredData() {
-            // Try Cookie first
-            const cookie = this.getCookie(CONFIG.cookieName);
-            if (cookie) {
-                try {
-                    return JSON.parse(cookie);
-                } catch (e) {
-                    console.error('ClickTrail Attribution: Error parsing cookie', e);
+            // Try cookies first
+            for (const key of COOKIE_KEYS) {
+                const cookie = this.getCookie(key);
+                if (cookie) {
+                    try {
+                        return JSON.parse(cookie);
+                    } catch (e) {
+                        console.error('ClickTrail Attribution: Error parsing cookie', e);
+                    }
                 }
             }
+
             // Fallback to LocalStorage
-            const ls = localStorage.getItem(CONFIG.cookieName);
-            if (ls) {
-                try {
-                    return JSON.parse(ls);
-                } catch (e) {
-                    console.error('ClickTrail Attribution: Error parsing localStorage', e);
+            for (const key of COOKIE_KEYS) {
+                const ls = localStorage.getItem(key);
+                if (ls) {
+                    try {
+                        return JSON.parse(ls);
+                    } catch (e) {
+                        console.error('ClickTrail Attribution: Error parsing localStorage', e);
+                    }
                 }
             }
+
             return null;
         }
 
@@ -305,7 +398,11 @@
         }
     }
 
-    const bootstrapAttribution = () => new ClickTrailAttribution();
+    const bootstrapAttribution = () => {
+        const instance = new ClickTrailAttribution();
+        window.clickTrailAttribution = instance;
+        return instance;
+    };
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', bootstrapAttribution);
