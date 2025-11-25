@@ -120,7 +120,7 @@ class ClickTrail_WooCommerce_Integration {
     }
 
     /**
-     * Flatten attribution data to ft_*/lt_* fields for GA4.
+     * Flatten attribution data to ft_* / lt_* fields for GA4.
      *
      * @param array $attribution Nested attribution.
      *
