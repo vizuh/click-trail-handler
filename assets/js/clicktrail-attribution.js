@@ -16,6 +16,7 @@
                 'campaign_id', 'campaignid', 'adgroup_id', 'adgroupid', 'ad_id', 'creative', 'keyword', 'matchtype', 'network', 'device', 'placement', 'targetid',
                 'gclid', 'fbclid', 'wbraid', 'gbraid', 'msclkid', 'ttclid', 'twclid', 'sc_click_id', 'epik'
             ];
+            this.paidMediums = ['cpc', 'ppc', 'paidsearch', 'paid-search', 'paid', 'paid_social', 'paid social', 'display'];
             this.init();
         }
 
@@ -51,6 +52,7 @@
         runAttribution() {
             const currentParams = this.getURLParams();
             const referrer = document.referrer;
+            const isExternalReferrer = referrer && !this.isInternalReferrer(referrer);
 
             const hasGclid = !!currentParams['gclid'];
             const hasUtm = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'].some(key => !!currentParams[key]);
@@ -78,10 +80,9 @@
                 }
             });
 
-            if (referrer && !this.isInternalReferrer(referrer)) {
+            if (isExternalReferrer) {
                 newTouch['referrer'] = referrer;
-                // If referrer is external, it might be a new touch even without UTMs (organic/referral)
-                // But for MVP we focus on explicit params + referrer
+                // External referrers can be organic/referral touches even without UTMs
             }
 
             // Normalize alternate ValueTrack names to canonical keys
@@ -99,24 +100,29 @@
             // Timestamp
             const now = new Date().toISOString();
 
-            if (hasMarketingParams || (newTouch['referrer'] && !storedData)) {
-                // We have new data.
+            const isAdClick = this.isAdClick(currentParams);
+            const hasAttributionSignal = isAdClick || hasMarketingParams || isExternalReferrer;
+
+            if (hasAttributionSignal) {
                 newTouch['timestamp'] = now;
                 newTouch['landing_page'] = window.location.href;
 
-                if (!storedData) {
-                    // First visit ever
-                    storedData = {
-                        first_touch: newTouch,
-                        last_touch: newTouch,
-                        session_count: 1
-                    };
-                } else {
-                    // Returning visitor
-                    // Update last_touch
-                    storedData.last_touch = newTouch;
-                    storedData.session_count = (storedData.session_count || 1) + 1;
+                // Ensure we always have an object to mutate
+                storedData = storedData ? { ...storedData } : { session_count: 0 };
+
+                // First touch is written once, on the first qualifying visit
+                if (!storedData.first_touch) {
+                    storedData.first_touch = newTouch;
                 }
+
+                // Last touch rules: always update for ad clicks; optionally for other qualifying external visits
+                const shouldUpdateLastTouch = isAdClick || !storedData.last_touch || (!isAdClick && (hasMarketingParams || isExternalReferrer));
+
+                if (shouldUpdateLastTouch) {
+                    storedData.last_touch = newTouch;
+                }
+
+                storedData.session_count = (storedData.session_count || 0) + 1;
 
                 this.saveData(storedData);
 
@@ -248,6 +254,16 @@
                 params[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);
             }
             return params;
+        }
+
+        isAdClick(params) {
+            const paidClickIds = ['gclid', 'fbclid', 'wbraid', 'gbraid', 'msclkid', 'ttclid', 'twclid', 'sc_click_id', 'epik'];
+            const hasPaidId = paidClickIds.some(id => params[id]);
+
+            const medium = (params['utm_medium'] || '').toLowerCase();
+            const mediumIsPaid = this.paidMediums.includes(medium);
+
+            return hasPaidId || mediumIsPaid;
         }
 
         isInternalReferrer(referrer) {
