@@ -13,6 +13,7 @@
         constructor() {
             this.paramsToCapture = [
                 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+                'campaign_id', 'campaignid', 'adgroup_id', 'adgroupid', 'ad_id', 'creative', 'keyword', 'matchtype', 'network', 'device', 'placement', 'targetid',
                 'gclid', 'fbclid', 'wbraid', 'gbraid', 'msclkid', 'ttclid', 'twclid', 'sc_click_id', 'epik'
             ];
             this.init();
@@ -51,6 +52,9 @@
             const currentParams = this.getURLParams();
             const referrer = document.referrer;
 
+            const hasGclid = !!currentParams['gclid'];
+            const hasUtm = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'].some(key => !!currentParams[key]);
+
             // Only proceed if we have params or if it's a new session (logic can be complex, for now check params)
             // Actually, we should always check if we need to update last_touch
 
@@ -78,6 +82,18 @@
                 newTouch['referrer'] = referrer;
                 // If referrer is external, it might be a new touch even without UTMs (organic/referral)
                 // But for MVP we focus on explicit params + referrer
+            }
+
+            // Normalize alternate ValueTrack names to canonical keys
+            if (!newTouch['campaign_id'] && currentParams['campaignid']) newTouch['campaign_id'] = currentParams['campaignid'];
+            if (!newTouch['adgroup_id'] && currentParams['adgroupid']) newTouch['adgroup_id'] = currentParams['adgroupid'];
+            if (!newTouch['ad_id'] && currentParams['creative']) newTouch['ad_id'] = currentParams['creative'];
+            if (!newTouch['utm_term'] && currentParams['keyword']) newTouch['utm_term'] = currentParams['keyword'];
+
+            // Fallback defaults when only gclid is present
+            if (hasGclid && !hasUtm) {
+                if (!newTouch['utm_source']) newTouch['utm_source'] = 'google';
+                if (!newTouch['utm_medium']) newTouch['utm_medium'] = 'cpc';
             }
 
             // Timestamp
