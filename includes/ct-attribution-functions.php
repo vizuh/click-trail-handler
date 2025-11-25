@@ -1,25 +1,33 @@
 <?php
 
 /**
- * Sanitize attribution data recursively.
+ * Sanitize flat attribution data.
  *
  * @param mixed $data The raw attribution data.
- * @return array|string Sanitized data.
+ * @return array Sanitized data.
  */
 function clicktrail_sanitize_attribution_data( $data ) {
-        if ( is_array( $data ) ) {
-                foreach ( $data as $key => $value ) {
-                        $data[ $key ] = clicktrail_sanitize_attribution_data( $value );
+        if ( ! is_array( $data ) ) {
+                return array();
+        }
+
+        $sanitized = array();
+
+        foreach ( $data as $key => $value ) {
+                $sanitized_key = sanitize_key( $key );
+                if ( '' === $sanitized_key ) {
+                        continue;
                 }
 
-                return $data;
+                if ( 'session_count' === $sanitized_key ) {
+                        $sanitized[ $sanitized_key ] = absint( $value );
+                        continue;
+                }
+
+                $sanitized[ $sanitized_key ] = sanitize_text_field( (string) $value );
         }
 
-        if ( is_scalar( $data ) ) {
-                return sanitize_text_field( (string) $data );
-        }
-
-        return '';
+        return $sanitized;
 }
 
 /**
@@ -47,13 +55,21 @@ function clicktrail_get_attribution() {
  * Retrieve a specific field from the attribution data.
  *
  * @param string $type 'first_touch' or 'last_touch'.
- * @param string $field The field key (e.g., 'utm_source').
+ * @param string $field The field key (e.g., 'source').
  * @return string|null The value or null.
  */
 function clicktrail_get_attribution_field( $type, $field ) {
-	$data = clicktrail_get_attribution();
-	if ( $data && isset( $data[ $type ] ) && isset( $data[ $type ][ $field ] ) ) {
-		return $data[ $type ][ $field ];
-	}
-	return null;
+        $data = clicktrail_get_attribution();
+        if ( ! $data ) {
+                return null;
+        }
+
+        $prefix = 'first_touch' === $type ? 'ft_' : 'lt_';
+        $key    = $prefix . $field;
+
+        if ( isset( $data[ $key ] ) ) {
+                return $data[ $key ];
+        }
+
+        return null;
 }

@@ -83,25 +83,15 @@ $attribution = clicktrail_get_attribution();
 		}
 	}
 
-	/**
-	 * Helper to flatten attribution data
-	 */
-	private function flatten_attribution( $data ) {
-		$flat = array();
-		if ( isset( $data['first_touch'] ) ) {
-			foreach ( $data['first_touch'] as $k => $v ) {
-				$flat['ft_' . $k] = $v;
-			}
-		}
-		if ( isset( $data['last_touch'] ) ) {
-			foreach ( $data['last_touch'] as $k => $v ) {
-				$flat['lt_' . $k] = $v;
-			}
-		}
-		if ( isset( $data['landing_page'] ) ) $flat['landing_page'] = $data['landing_page']; // Wait, landing_page is inside touch?
-		// My JS saves landing_page inside the touch object.
-		
-		return $flat;
-	}
+        /**
+         * Helper to flatten attribution data
+         */
+        private function flatten_attribution( $data ) {
+                if ( ! is_array( $data ) ) {
+                        return array();
+                }
+
+                return $data;
+        }
 
 }

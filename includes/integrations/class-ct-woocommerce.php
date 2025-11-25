@@ -18,24 +18,14 @@ $attribution = clicktrail_get_attribution();
 			return;
 		}
 
-		// First Touch
-		if ( isset( $attribution['first_touch'] ) ) {
-			foreach ( $attribution['first_touch'] as $key => $value ) {
-				$order->update_meta_data( '_ct_ft_' . $key, $value );
-			}
-		}
+                foreach ( $attribution as $key => $value ) {
+                        if ( 'session_count' === $key ) {
+                                $order->update_meta_data( '_ct_session_count', absint( $value ) );
+                                continue;
+                        }
 
-		// Last Touch
-		if ( isset( $attribution['last_touch'] ) ) {
-			foreach ( $attribution['last_touch'] as $key => $value ) {
-				$order->update_meta_data( '_ct_lt_' . $key, $value );
-			}
-		}
-
-		// Session Count
-		if ( isset( $attribution['session_count'] ) ) {
-			$order->update_meta_data( '_ct_session_count', $attribution['session_count'] );
-		}
-	}
+                        $order->update_meta_data( '_ct_' . $key, $value );
+                }
+        }
 
 }
