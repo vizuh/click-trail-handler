@@ -72,7 +72,8 @@ class ClickTrail_Core {
 	 * @access   private
 	 */
 	private function define_public_hooks() {
-                add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+        add_action( 'wp_head', array( $this, 'inject_consent_defaults' ), 1 );
+        add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		
 		// Initialize Integrations
 		$form_integrations = new ClickTrail_Form_Integrations();
@@ -130,6 +131,61 @@ class ClickTrail_Core {
                         );
 		}
 	}
+
+    /**
+     * Inject Consent Mode defaults into the head.
+     */
+    public function inject_consent_defaults() {
+        $options = get_option( 'clicktrail_attribution_settings', array() );
+        $enable_consent = isset( $options['enable_consent_banner'] ) ? (bool) $options['enable_consent_banner'] : true;
+
+        if ( ! $enable_consent ) {
+            return;
+        }
+
+        $mode = isset( $options['consent_mode_region'] ) ? $options['consent_mode_region'] : 'strict';
+        ?>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+<?php if ( 'relaxed' === $mode ) : ?>
+gtag('consent', 'default', {
+    'ad_storage': 'granted',
+    'ad_user_data': 'granted',
+    'ad_personalization': 'granted',
+    'analytics_storage': 'granted'
+});
+<?php elseif ( 'custom' === $mode ) : ?>
+// EU / UK / Switzerland: default DENIED
+gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied',
+    'region': [
+        'AT','BE','BG','CH','CY','CZ','DE','DK','EE','ES','FI','FR','GB','GR',
+        'HR','HU','IE','IS','IT','LI','LT','LU','LV','MT','NL','NO','PL','PT',
+        'RO','SE','SI','SK'
+    ]
+});
+// Everyone else: default GRANTED
+gtag('consent', 'default', {
+    'ad_storage': 'granted',
+    'ad_user_data': 'granted',
+    'ad_personalization': 'granted',
+    'analytics_storage': 'granted'
+});
+<?php else : // Strict ?>
+gtag('consent', 'default', {
+    'ad_storage': 'denied',
+    'ad_user_data': 'denied',
+    'ad_personalization': 'denied',
+    'analytics_storage': 'denied'
+});
+<?php endif; ?>
+</script>
+        <?php
+    }
 
 	/**
 	 * Run the loader to execute all of the hooks with WordPress.
