@@ -8,7 +8,7 @@ class ClickTrail_Form_Integrations {
 		// add_action( 'wpcf7_before_send_mail', array( $this, 'cf7_save_attribution' ) ); // Optional if we want to save elsewhere
 
 		// Gravity Forms
-		add_filter( 'gform_pre_render', array( $this, 'gf_add_hidden_fields' ) );
+		// add_filter( 'gform_pre_render', array( $this, 'gf_add_hidden_fields' ) );
 		add_filter( 'gform_field_value', array( $this, 'gf_populate_fields' ), 10, 3 );
 		// add_action( 'gform_after_submission', array( $this, 'gf_save_attribution' ), 10, 2 );
 
@@ -36,35 +36,25 @@ class ClickTrail_Form_Integrations {
 		return $fields;
 	}
 
-	/**
-	 * Gravity Forms: Add Hidden Fields (Simplified)
-	 * Note: GF is complex to add fields dynamically in pre_render without adding them to the form object.
-	 * A better approach for GF is to use "Allow Field to be Populated Dynamically" in the UI, 
-	 * BUT the requirement is "Automatic".
-	 * 
-	 * We can inject hidden inputs via a hook that outputs HTML inside the form tag, 
-	 * but GF might strip them on submission if not registered.
-	 * 
-	 * Strategy: Use `gform_form_tag` to append hidden inputs? No, that's outside the form.
-	 * Use `gform_after_open`?
-	 */
-	public function gf_add_hidden_fields( $form ) {
-		// This is tricky in GF. Modifying the $form object to add fields on the fly is risky.
-		// Alternative: Add a single hidden field that stores the JSON?
-		// Or just rely on PHP submission hook to save meta.
-		
-		// For MVP, let's rely on saving meta during submission, 
-		// and maybe inject a script to populate if fields exist.
-		return $form;
-	}
+
 
 	public function gf_populate_fields( $value, $field, $name ) {
-		// If user manually added fields with dynamic population parameter names
-                // e.g. ct_utm_source
-                if ( strpos( $name, 'ct_' ) === 0 ) {
-                        $key = substr( $name, 3 ); // remove ct_
-			// Logic to find key in attribution array
-			// ...
+		// Check if the parameter name starts with 'ct_'
+        if ( 0 === strpos( $name, 'ct_' ) ) {
+            $key = substr( $name, 3 ); // remove 'ct_' prefix
+
+            // Get attribution data
+            $attribution = clicktrail_get_attribution();
+            if ( ! $attribution ) {
+                return $value;
+            }
+
+            // Flatten the data to find the key easily
+            $flat_data = $this->flatten_attribution( $attribution );
+
+            if ( isset( $flat_data[ $key ] ) ) {
+                return $flat_data[ $key ];
+            }
 		}
 		return $value;
 	}
