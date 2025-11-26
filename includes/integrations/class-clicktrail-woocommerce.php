@@ -44,6 +44,11 @@ class ClickTrail_WooCommerce_Integration {
             return;
         }
 
+        // Duplicate Prevention: Check if we already tracked this order
+        if ( get_post_meta( $order_id, '_clicktrail_tracking_sent', true ) ) {
+            return;
+        }
+
         $order = wc_get_order( $order_id );
         if ( ! $order ) {
             return;
@@ -81,6 +86,9 @@ class ClickTrail_WooCommerce_Integration {
             window.dataLayer.push(<?php echo wp_json_encode( $payload ); ?>);
         </script>
         <?php
+
+        // Mark order as tracked to prevent duplicates on refresh
+        update_post_meta( $order_id, '_clicktrail_tracking_sent', 'yes' );
     }
 
     /**
