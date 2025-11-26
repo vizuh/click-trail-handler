@@ -285,12 +285,44 @@
         }
 
         initWhatsAppListener(data) {
+            // Check if WhatsApp tracking is enabled
+            if (!CONFIG.enableWhatsapp) {
+                return;
+            }
+
             document.addEventListener('click', (e) => {
                 const link = e.target.closest('a');
                 if (!this.isWhatsAppLink(link)) return;
 
                 const attribution = data || {};
 
+                // Append attribution to link if enabled
+                if (CONFIG.whatsappAppendAttribution) {
+                    const url = new URL(link.href);
+                    const currentText = url.searchParams.get('text') || '';
+                    const attributionText = this.buildAttributionText(attribution);
+                    if (attributionText) {
+                        const newText = currentText ? `${currentText}\n\n${attributionText}` : attributionText;
+                        url.searchParams.set('text', newText);
+                        link.href = url.toString();
+                    }
+                }
+
+                // Log click if enabled
+                if (CONFIG.whatsappLogClicks && CONFIG.ajaxUrl) {
+                    const formData = new FormData();
+                    formData.append('action', 'ct_log_wa_click');
+                    formData.append('wa_href', link.href);
+                    formData.append('wa_location', window.location.href);
+                    formData.append('attribution', JSON.stringify(attribution));
+
+                    fetch(CONFIG.ajaxUrl, {
+                        method: 'POST',
+                        body: formData
+                    }).catch(e => console.error('ClickTrail: Error logging WhatsApp click', e));
+                }
+
+                // Push to dataLayer
                 const payload = {
                     event: 'wa_click',
                     wa_href: link.href,
@@ -301,6 +333,19 @@
                 window.dataLayer = window.dataLayer || [];
                 window.dataLayer.push(payload);
             });
+        }
+
+        buildAttributionText(data) {
+            if (!data || Object.keys(data).length === 0) {
+                return '';
+            }
+
+            const parts = [];
+            if (data.ft_source) parts.push(`Source: ${data.ft_source}`);
+            if (data.ft_medium) parts.push(`Medium: ${data.ft_medium}`);
+            if (data.ft_campaign) parts.push(`Campaign: ${data.ft_campaign}`);
+
+            return parts.length > 0 ? `[Tracking: ${parts.join(' | ')}]` : '';
         }
 
         isWhatsAppLink(el) {

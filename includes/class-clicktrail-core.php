@@ -29,6 +29,7 @@ class ClickTrail_Core {
 	 */
 	public function __construct() {
 		$this->load_dependencies();
+		$this->register_cpt();
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
 	}
@@ -49,6 +50,34 @@ class ClickTrail_Core {
 	}
 
 	/**
+	 * Register Custom Post Types
+	 */
+	private function register_cpt() {
+		add_action( 'init', array( $this, 'register_whatsapp_cpt' ) );
+	}
+
+	/**
+	 * Register WhatsApp Click CPT
+	 */
+	public function register_whatsapp_cpt() {
+		register_post_type( 'ct_wa_click', array(
+			'labels' => array(
+				'name' => 'WhatsApp Clicks',
+				'singular_name' => 'WhatsApp Click'
+			),
+			'public' => false,
+			'show_ui' => true,
+			'show_in_menu' => 'clicktrail',
+			'capability_type' => 'post',
+			'capabilities' => array(
+				'create_posts' => 'do_not_allow'
+			),
+			'map_meta_cap' => true,
+			'supports' => array( 'title' )
+		) );
+	}
+
+	/**
 	 * Register all of the hooks related to the admin area functionality
 	 * of the plugin.
 	 *
@@ -62,6 +91,10 @@ class ClickTrail_Core {
 		// AJAX for PII Logging
                 add_action( 'wp_ajax_ct_log_pii_risk', array( $plugin_settings, 'ajax_log_pii_risk' ) );
                 add_action( 'wp_ajax_nopriv_ct_log_pii_risk', array( $plugin_settings, 'ajax_log_pii_risk' ) );
+
+		// AJAX for WhatsApp Click Logging
+		add_action( 'wp_ajax_ct_log_wa_click', array( $this, 'ajax_log_wa_click' ) );
+		add_action( 'wp_ajax_nopriv_ct_log_wa_click', array( $this, 'ajax_log_wa_click' ) );
 	}
 
 	/**
@@ -109,6 +142,9 @@ class ClickTrail_Core {
                                 'requireConsent' => $require_consent,
                                 'ajaxUrl'    => admin_url( 'admin-ajax.php' ),
                                 'nonce'      => wp_create_nonce( CLICKTRAIL_PII_NONCE_ACTION ),
+                                'enableWhatsapp' => isset( $options['enable_whatsapp'] ) ? (bool) $options['enable_whatsapp'] : true,
+                                'whatsappAppendAttribution' => isset( $options['whatsapp_append_attribution'] ) ? (bool) $options['whatsapp_append_attribution'] : false,
+                                'whatsappLogClicks' => isset( $options['whatsapp_log_clicks'] ) ? (bool) $options['whatsapp_log_clicks'] : false
                         ));
                 }
 
@@ -195,5 +231,35 @@ gtag('consent', 'default', {
 	public function run() {
 		// In a more complex setup we might use a Loader class, 
 		// but for now we just rely on the constructor adding hooks.
+	}
+
+	/**
+	 * AJAX handler for logging WhatsApp clicks
+	 */
+	public function ajax_log_wa_click() {
+		// No nonce check needed for public tracking
+		$wa_href = isset( $_POST['wa_href'] ) ? esc_url_raw( $_POST['wa_href'] ) : '';
+		$wa_location = isset( $_POST['wa_location'] ) ? esc_url_raw( $_POST['wa_location'] ) : '';
+		$attribution = isset( $_POST['attribution'] ) ? json_decode( stripslashes( $_POST['attribution'] ), true ) : array();
+
+		if ( ! $wa_href ) {
+			wp_send_json_error( array( 'message' => 'Missing wa_href' ) );
+		}
+
+		// Create post
+		$post_id = wp_insert_post( array(
+			'post_type' => 'ct_wa_click',
+			'post_title' => 'WhatsApp Click - ' . date( 'Y-m-d H:i:s' ),
+			'post_status' => 'publish'
+		) );
+
+		if ( ! is_wp_error( $post_id ) ) {
+			update_post_meta( $post_id, '_wa_href', $wa_href );
+			update_post_meta( $post_id, '_wa_location', $wa_location );
+			update_post_meta( $post_id, '_attribution', $attribution );
+			wp_send_json_success( array( 'post_id' => $post_id ) );
+		} else {
+			wp_send_json_error( array( 'message' => $post_id->get_error_message() ) );
+		}
 	}
 }
