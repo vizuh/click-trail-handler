@@ -80,10 +80,11 @@
             window.dataLayer = window.dataLayer || [];
 
             // Push event
-            window.dataLayer.push({
-                event: 'ct_consent_update',
-                ct_consent: preferences
-            });
+            // Push event
+            // window.dataLayer.push({
+            //     event: 'ct_consent_update',
+            //     ct_consent: preferences
+            // });
 
             // Google Consent Mode v2 (Basic)
             // If GTM is used, this helps. 
