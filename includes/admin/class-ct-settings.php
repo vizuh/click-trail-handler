@@ -26,18 +26,19 @@ class ClickTrail_Admin {
 	public function register_settings() {
 		register_setting( $this->option_name, $this->option_name, array( $this, 'sanitize_settings' ) );
 
+		// General Tab
 		add_settings_section(
 			'ct_general_section',
 			'General Settings',
 			null,
-			'clicktrail'
+			'clicktrail_general'
 		);
 
                 add_settings_field(
                         'enable_attribution',
                         'Enable Attribution',
                         array( $this, 'render_checkbox_field' ),
-                        'clicktrail',
+                        'clicktrail_general',
                         'ct_general_section',
                         array( 'label_for' => 'enable_attribution', 'default' => 1 )
                 );
@@ -46,7 +47,7 @@ class ClickTrail_Admin {
 			'cookie_days',
 			'Cookie Duration (Days)',
 			array( $this, 'render_number_field' ),
-			'clicktrail',
+			'clicktrail_general',
 			'ct_general_section',
 			array( 'label_for' => 'cookie_days', 'default' => 90 )
 		);
@@ -55,14 +56,14 @@ class ClickTrail_Admin {
 			'ct_consent_section',
 			'Consent Settings',
 			null,
-			'clicktrail'
+			'clicktrail_general'
 		);
 
                 add_settings_field(
                         'enable_consent_banner',
                         'Enable Consent Banner',
                         array( $this, 'render_checkbox_field' ),
-                        'clicktrail',
+                        'clicktrail_general',
                         'ct_consent_section',
                         array( 'label_for' => 'enable_consent_banner', 'default' => 1 )
                 );
@@ -71,7 +72,7 @@ class ClickTrail_Admin {
                         'require_consent',
                         'Require Consent for Tracking',
                         array( $this, 'render_checkbox_field' ),
-                        'clicktrail',
+                        'clicktrail_general',
                         'ct_consent_section',
                         array( 'label_for' => 'require_consent', 'default' => 1 )
                 );
@@ -80,7 +81,7 @@ class ClickTrail_Admin {
 			'consent_mode_region',
 			'Consent Mode',
 			array( $this, 'render_select_field' ),
-			'clicktrail',
+			'clicktrail_general',
 			'ct_consent_section',
 			array(
 				'label_for' => 'consent_mode_region',
@@ -92,16 +93,60 @@ class ClickTrail_Admin {
 				)
 			)
 		);
+
+		// WhatsApp Tab
+		add_settings_section(
+			'ct_whatsapp_section',
+			'WhatsApp Tracking Settings',
+			null,
+			'clicktrail_whatsapp'
+		);
+
+		add_settings_field(
+			'enable_whatsapp',
+			'Enable WhatsApp Tracking',
+			array( $this, 'render_checkbox_field' ),
+			'clicktrail_whatsapp',
+			'ct_whatsapp_section',
+			array( 'label_for' => 'enable_whatsapp', 'default' => 1 )
+		);
+
+		add_settings_field(
+			'whatsapp_append_attribution',
+			'Append Attribution to Message',
+			array( $this, 'render_checkbox_field' ),
+			'clicktrail_whatsapp',
+			'ct_whatsapp_section',
+			array( 'label_for' => 'whatsapp_append_attribution', 'default' => 0 )
+		);
+
+		add_settings_field(
+			'whatsapp_log_clicks',
+			'Log WhatsApp Clicks',
+			array( $this, 'render_checkbox_field' ),
+			'clicktrail_whatsapp',
+			'ct_whatsapp_section',
+			array( 'label_for' => 'whatsapp_log_clicks', 'default' => 0 )
+		);
 	}
 
 	public function render_settings_page() {
+		$active_tab = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'general';
 		?>
 		<div class="wrap">
-			<h1>Attribution & Consent Settings</h1>
+			<h1>ClickTrail Settings</h1>
+			<h2 class="nav-tab-wrapper">
+				<a href="?page=clicktrail&tab=general" class="nav-tab <?php echo $active_tab === 'general' ? 'nav-tab-active' : ''; ?>">General</a>
+				<a href="?page=clicktrail&tab=whatsapp" class="nav-tab <?php echo $active_tab === 'whatsapp' ? 'nav-tab-active' : ''; ?>">WhatsApp</a>
+			</h2>
 			<form method="post" action="options.php">
 				<?php
 				settings_fields( $this->option_name );
-				do_settings_sections( 'clicktrail' );
+				if ( $active_tab === 'general' ) {
+					do_settings_sections( 'clicktrail_general' );
+				} else {
+					do_settings_sections( 'clicktrail_whatsapp' );
+				}
 				submit_button();
 				?>
 			</form>
@@ -175,6 +220,9 @@ class ClickTrail_Admin {
 		if( isset( $input['enable_consent_banner'] ) ) $new_input['enable_consent_banner'] = absint( $input['enable_consent_banner'] );
 		if( isset( $input['require_consent'] ) ) $new_input['require_consent'] = absint( $input['require_consent'] );
 		if( isset( $input['consent_mode_region'] ) ) $new_input['consent_mode_region'] = sanitize_text_field( $input['consent_mode_region'] );
+		if( isset( $input['enable_whatsapp'] ) ) $new_input['enable_whatsapp'] = absint( $input['enable_whatsapp'] );
+		if( isset( $input['whatsapp_append_attribution'] ) ) $new_input['whatsapp_append_attribution'] = absint( $input['whatsapp_append_attribution'] );
+		if( isset( $input['whatsapp_log_clicks'] ) ) $new_input['whatsapp_log_clicks'] = absint( $input['whatsapp_log_clicks'] );
 		return $new_input;
 	}
 
