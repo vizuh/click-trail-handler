@@ -103,6 +103,9 @@
 
             // GTM Bridge: Form Listeners
             this.initFormListeners(storedData);
+
+            // WhatsApp Listener
+            this.initWhatsAppListener(storedData);
         }
 
         hasAttributionSignal(attributionFields) {
@@ -279,6 +282,37 @@
 
             // PII Scanner
             this.scanDataLayerForPII();
+        }
+
+        initWhatsAppListener(data) {
+            document.addEventListener('click', (e) => {
+                const link = e.target.closest('a');
+                if (!this.isWhatsAppLink(link)) return;
+
+                const attribution = data || {};
+
+                const payload = {
+                    event: 'wa_click',
+                    wa_href: link.href,
+                    wa_location: window.location.href,
+                    ...attribution
+                };
+
+                window.dataLayer = window.dataLayer || [];
+                window.dataLayer.push(payload);
+            });
+        }
+
+        isWhatsAppLink(el) {
+            if (!el || el.tagName !== 'A') return false;
+            const href = el.getAttribute('href') || '';
+            if (!href) return false;
+            return (
+                href.includes('wa.me/') ||
+                href.includes('whatsapp.com/send') ||
+                href.includes('api.whatsapp.com/send') ||
+                href.startsWith('whatsapp://send')
+            );
         }
 
         pushLeadEvents(provider, formId, data) {
@@ -487,13 +521,15 @@
             }
 
             // Fallback to LocalStorage
-            for (const key of COOKIE_KEYS) {
-                const ls = localStorage.getItem(key);
-                if (ls) {
-                    try {
-                        return JSON.parse(ls);
-                    } catch (e) {
-                        console.error('ClickTrail Attribution: Error parsing localStorage', e);
+            try {
+                for (const key of COOKIE_KEYS) {
+                    const ls = localStorage.getItem(key);
+                    if (ls) {
+                        try {
+                            return JSON.parse(ls);
+                        } catch (e) {
+                            console.error('ClickTrail Attribution: Error parsing localStorage', e);
+                        }
                     }
                 }
             } catch (e) {
