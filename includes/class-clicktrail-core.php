@@ -162,8 +162,7 @@ class ClickTrail_Core {
 		$consent_settings = new ClickTrail\Modules\Consent_Mode\Consent_Mode_Settings();
 		$enable_consent = $consent_settings->is_consent_mode_enabled();
 		
-		// Legacy setting for "Require Consent" - might want to migrate this too, but for now keep reading from old options or new if we move it.
-		// For now, let's assume "Require Consent" is part of the attribution logic, but it relies on Consent Mode status.
+		// Legacy setting for "Require Consent"
 		$require_consent = isset( $options['require_consent'] ) ? (bool) $options['require_consent'] : 1;
 
 		// Attribution Script
@@ -201,6 +200,26 @@ class ClickTrail_Core {
 			wp_enqueue_script(
 				'clicktrail-consent-js',
 				CLICKTRAIL_URL . 'assets/js/clicktrail-consent.js',
+				array(),
+				CLICKTRAIL_VERSION,
+				true // Footer
+			);
+		}
+
+		// Events Tracking Script
+		wp_enqueue_script(
+			'clicktrail-events-js',
+			CLICKTRAIL_URL . 'assets/js/clicktrail-events.js',
+			array(),
+			CLICKTRAIL_VERSION,
+			true // Footer
+		);
+	}
+
+	/**
+	 * Run the loader to execute all of the hooks with WordPress.
+	 */
+	public function run() {
 		// In a more complex setup we might use a Loader class, 
 		// but for now we just rely on the constructor adding hooks.
 	}
