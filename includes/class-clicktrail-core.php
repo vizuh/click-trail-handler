@@ -61,6 +61,8 @@ class ClickTrail_Core {
 		require_once CLICKTRAIL_DIR . 'includes/Modules/GTM/GTM_Settings.php';
 		require_once CLICKTRAIL_DIR . 'includes/Modules/GTM/Web_Tag.php';
 
+		require_once CLICKTRAIL_DIR . 'includes/Modules/Events/Events_Logger.php';
+
 		// Admin
 		require_once CLICKTRAIL_DIR . 'includes/admin/class-ct-settings.php';
 
@@ -133,6 +135,10 @@ class ClickTrail_Core {
 		// Register Modules
 		$this->consent_mode->register();
 		$this->gtm->register();
+
+		// Register Events Logger
+		$events_logger = new ClickTrail\Modules\Events\Events_Logger( $this->context );
+		$events_logger->register();
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		
