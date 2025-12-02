@@ -2,7 +2,7 @@
 
 ![Vizuh Logo](assets/vizuh-logo.png)
 
-# ClickTrail: Consent & Marketing Attribution
+# ClickTrail – UTM, Click ID & Ad Tracking (with Consent)
 
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.0%2B-purple.svg)](https://php.net/)
@@ -67,7 +67,7 @@ Captures click IDs from all major advertising platforms:
 ### 🚀 Installation
 
 1. Download the plugin from the [releases page](https://github.com/vizuh/click-trail/releases)
-2. Upload to `/wp-content/plugins/clicktrail-consent-marketing-attribution/` directory
+2. Upload to `/wp-content/plugins/click-trail-handler/` directory
 3. Activate through the WordPress 'Plugins' menu
 4. Navigate to **ClickTrail** in the admin menu to configure settings
 
@@ -158,7 +158,7 @@ Captura click IDs de todas as principais plataformas de publicidade:
 ### 🚀 Instalação
 
 1. Baixe o plugin da [página de releases](https://github.com/vizuh/click-trail/releases)
-2. Faça upload para o diretório `/wp-content/plugins/clicktrail-consent-marketing-attribution/`
+2. Faça upload para o diretório `/wp-content/plugins/click-trail-handler/`
 3. Ative através do menu 'Plugins' do WordPress
 4. Vá para **ClickTrail** no menu administrativo para configurar as definições
 

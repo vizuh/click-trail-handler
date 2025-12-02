@@ -28,7 +28,7 @@ class ClickTrail_WooCommerce_Admin {
 		
 		foreach ( $columns as $key => $value ) {
 			if ( 'order_total' === $key ) {
-				$new_columns['clicktrail_source'] = __( 'Source', 'clicktrail-consent-marketing-attribution' );
+				$new_columns['clicktrail_source'] = __( 'Source', 'click-trail-handler' );
 			}
 			$new_columns[ $key ] = $value;
 		}
@@ -70,7 +70,7 @@ class ClickTrail_WooCommerce_Admin {
 
 			echo implode( ' / ', $display );
 		} else {
-			echo '<span style="color: #999;">' . esc_html__( 'Direct', 'clicktrail-consent-marketing-attribution' ) . '</span>';
+			echo '<span style="color: #999;">' . esc_html__( 'Direct', 'click-trail-handler' ) . '</span>';
 		}
 	}
 
@@ -80,7 +80,7 @@ class ClickTrail_WooCommerce_Admin {
 	public function add_attribution_meta_box() {
 		add_meta_box(
 			'clicktrail_attribution',
-			__( 'Marketing Attribution', 'clicktrail-consent-marketing-attribution' ),
+			__( 'Marketing Attribution', 'click-trail-handler' ),
 			array( $this, 'render_attribution_meta_box' ),
 			'shop_order',
 			'side',
@@ -96,25 +96,25 @@ class ClickTrail_WooCommerce_Admin {
 	public function render_attribution_meta_box( $post ) {
 		$order = wc_get_order( $post->ID );
 		if ( ! $order ) {
-			echo '<p>' . esc_html__( 'No attribution data available.', 'clicktrail-consent-marketing-attribution' ) . '</p>';
+			echo '<p>' . esc_html__( 'No attribution data available.', 'click-trail-handler' ) . '</p>';
 			return;
 		}
 
 		// Get all attribution metadata
 		$attribution_fields = array(
-			'ft_source'      => __( 'Source', 'clicktrail-consent-marketing-attribution' ),
-			'ft_medium'      => __( 'Medium', 'clicktrail-consent-marketing-attribution' ),
-			'ft_campaign'    => __( 'Campaign', 'clicktrail-consent-marketing-attribution' ),
-			'ft_term'        => __( 'Term', 'clicktrail-consent-marketing-attribution' ),
-			'ft_content'     => __( 'Content', 'clicktrail-consent-marketing-attribution' ),
-			'ft_gclid'       => __( 'Google Click ID', 'clicktrail-consent-marketing-attribution' ),
-			'ft_fbclid'      => __( 'Facebook Click ID', 'clicktrail-consent-marketing-attribution' ),
-			'ft_li_fat_id'   => __( 'LinkedIn Click ID', 'clicktrail-consent-marketing-attribution' ),
-			'ft_landing_page' => __( 'Landing Page', 'clicktrail-consent-marketing-attribution' ),
+			'ft_source'      => __( 'Source', 'click-trail-handler' ),
+			'ft_medium'      => __( 'Medium', 'click-trail-handler' ),
+			'ft_campaign'    => __( 'Campaign', 'click-trail-handler' ),
+			'ft_term'        => __( 'Term', 'click-trail-handler' ),
+			'ft_content'     => __( 'Content', 'click-trail-handler' ),
+			'ft_gclid'       => __( 'Google Click ID', 'click-trail-handler' ),
+			'ft_fbclid'      => __( 'Facebook Click ID', 'click-trail-handler' ),
+			'ft_li_fat_id'   => __( 'LinkedIn Click ID', 'click-trail-handler' ),
+			'ft_landing_page' => __( 'Landing Page', 'click-trail-handler' ),
 		);
 
 		echo '<div style="margin-bottom: 15px;">';
-		echo '<h4 style="margin: 0 0 10px 0;">' . esc_html__( 'First Touch', 'clicktrail-consent-marketing-attribution' ) . '</h4>';
+		echo '<h4 style="margin: 0 0 10px 0;">' . esc_html__( 'First Touch', 'click-trail-handler' ) . '</h4>';
 		
 		$has_data = false;
 		foreach ( $attribution_fields as $key => $label ) {
@@ -135,7 +135,7 @@ class ClickTrail_WooCommerce_Admin {
 		}
 
 		if ( ! $has_data ) {
-			echo '<p style="color: #999; font-size: 12px;">' . esc_html__( 'No first-touch data available', 'clicktrail-consent-marketing-attribution' ) . '</p>';
+			echo '<p style="color: #999; font-size: 12px;">' . esc_html__( 'No first-touch data available', 'click-trail-handler' ) . '</p>';
 		}
 		
 		echo '</div>';
@@ -146,13 +146,13 @@ class ClickTrail_WooCommerce_Admin {
 		
 		if ( $lt_source || $lt_medium ) {
 			echo '<div>';
-			echo '<h4 style="margin: 0 0 10px 0;">' . esc_html__( 'Last Touch', 'clicktrail-consent-marketing-attribution' ) . '</h4>';
+			echo '<h4 style="margin: 0 0 10px 0;">' . esc_html__( 'Last Touch', 'click-trail-handler' ) . '</h4>';
 			
 			if ( $lt_source ) {
-				echo '<p style="margin: 5px 0; font-size: 12px;"><strong>' . esc_html__( 'Source', 'clicktrail-consent-marketing-attribution' ) . ':</strong> ' . esc_html( $lt_source ) . '</p>';
+				echo '<p style="margin: 5px 0; font-size: 12px;"><strong>' . esc_html__( 'Source', 'click-trail-handler' ) . ':</strong> ' . esc_html( $lt_source ) . '</p>';
 			}
 			if ( $lt_medium ) {
-				echo '<p style="margin: 5px 0; font-size: 12px;"><strong>' . esc_html__( 'Medium', 'clicktrail-consent-marketing-attribution' ) . ':</strong> ' . esc_html( $lt_medium ) . '</p>';
+				echo '<p style="margin: 5px 0; font-size: 12px;"><strong>' . esc_html__( 'Medium', 'click-trail-handler' ) . ':</strong> ' . esc_html( $lt_medium ) . '</p>';
 			}
 			
 			echo '</div>';
