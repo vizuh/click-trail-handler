@@ -1,9 +1,293 @@
-```
-                                <p><a href="#" class="button button-primary"><?php esc_html_e( 'Fix PII Issues Now', 'click-trail-handler' ); ?></a></p>
-			</div>
-			<?php
-		}
+<?php
+/**
+ * Class ClickTrail_Admin
+ *
+ * @package   ClickTrail
+ */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
+/**
+ * Class for managing admin settings.
+ */
+class ClickTrail_Admin {
+
+	/**
+	 * Context instance.
+	 *
+	 * @var ClickTrail\Core\Context
+	 */
+	protected $context;
+
+	/**
+	 * Constructor.
+	 *
+	 * @param ClickTrail\Core\Context $context Plugin context.
+	 */
+	public function __construct( $context ) {
+		$this->context = $context;
 	}
+
+	/**
+	 * Initialize hooks.
+	 */
+	public function init() {
+		add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
+		add_action( 'admin_init', array( $this, 'register_settings' ) );
+		add_action( 'admin_notices', array( $this, 'display_pii_warning' ) );
+	}
+
+	/**
+	 * Add admin menu.
+	 */
+	public function add_admin_menu() {
+		add_menu_page(
+			__( 'ClickTrail Settings', 'click-trail-handler' ),
+			'ClickTrail',
+			'manage_options',
+			'clicktrail-settings',
+			array( $this, 'render_settings_page' ),
+			'dashicons-chart-line',
+			30
+		);
+	}
+
+	/**
+	 * Register settings.
+	 */
+	public function register_settings() {
+		// 1. Attribution Settings (General & WhatsApp)
+		register_setting( 'clicktrail_attribution_settings', 'clicktrail_attribution_settings', array( $this, 'sanitize_settings' ) );
+
+		// General Section
+		add_settings_section(
+			'clicktrail_general_section',
+			__( 'General Attribution Settings', 'click-trail-handler' ),
+			null,
+			'clicktrail_general_tab'
+		);
+
+		add_settings_field(
+			'enable_attribution',
+			__( 'Enable Attribution Tracking', 'click-trail-handler' ),
+			array( $this, 'render_checkbox_field' ),
+			'clicktrail_general_tab',
+			'clicktrail_general_section',
+			array( 'label_for' => 'enable_attribution', 'option_name' => 'clicktrail_attribution_settings' )
+		);
+
+		add_settings_field(
+			'cookie_days',
+			__( 'Cookie Expiration (Days)', 'click-trail-handler' ),
+			array( $this, 'render_number_field' ),
+			'clicktrail_general_tab',
+			'clicktrail_general_section',
+			array( 'label_for' => 'cookie_days', 'option_name' => 'clicktrail_attribution_settings' )
+		);
+
+		// WhatsApp Section
+		add_settings_section(
+			'clicktrail_whatsapp_section',
+			__( 'WhatsApp Tracking', 'click-trail-handler' ),
+			null,
+			'clicktrail_whatsapp_tab'
+		);
+
+		add_settings_field(
+			'enable_whatsapp',
+			__( 'Enable WhatsApp Tracking', 'click-trail-handler' ),
+			array( $this, 'render_checkbox_field' ),
+			'clicktrail_whatsapp_tab',
+			'clicktrail_whatsapp_section',
+			array( 'label_for' => 'enable_whatsapp', 'option_name' => 'clicktrail_attribution_settings' )
+		);
+
+		add_settings_field(
+			'whatsapp_append_attribution',
+			__( 'Append Attribution to Message', 'click-trail-handler' ),
+			array( $this, 'render_checkbox_field' ),
+			'clicktrail_whatsapp_tab',
+			'clicktrail_whatsapp_section',
+			array( 'label_for' => 'whatsapp_append_attribution', 'option_name' => 'clicktrail_attribution_settings' )
+		);
+
+		add_settings_field(
+			'whatsapp_log_clicks',
+			__( 'Log Clicks (Custom Post Type)', 'click-trail-handler' ),
+			array( $this, 'render_checkbox_field' ),
+			'clicktrail_whatsapp_tab',
+			'clicktrail_whatsapp_section',
+			array( 'label_for' => 'whatsapp_log_clicks', 'option_name' => 'clicktrail_attribution_settings' )
+		);
+
+		// 2. Consent Mode Settings
+		// Registered via Consent_Mode_Settings class, but we add section/fields here for display
+		add_settings_section(
+			'clicktrail_consent_section',
+			__( 'Consent Mode Configuration', 'click-trail-handler' ),
+			null,
+			'clicktrail_consent_mode'
+		);
+
+		add_settings_field(
+			'enabled',
+			__( 'Enable Consent Mode', 'click-trail-handler' ),
+			array( $this, 'render_consent_checkbox' ),
+			'clicktrail_consent_mode',
+			'clicktrail_consent_section',
+			array( 'label_for' => 'enabled' )
+		);
+
+		add_settings_field(
+			'regions',
+			__( 'Regions (e.g. EU)', 'click-trail-handler' ),
+			array( $this, 'render_regions_field' ),
+			'clicktrail_consent_mode',
+			'clicktrail_consent_section',
+			array( 'label_for' => 'regions' )
+		);
+
+		// 3. GTM Settings
+		add_settings_section(
+			'clicktrail_gtm_section',
+			__( 'Google Tag Manager', 'click-trail-handler' ),
+			null,
+			'clicktrail_gtm'
+		);
+
+		add_settings_field(
+			'container_id',
+			__( 'Container ID (GTM-XXXXXX)', 'click-trail-handler' ),
+			array( $this, 'render_gtm_text_field' ),
+			'clicktrail_gtm',
+			'clicktrail_gtm_section',
+			array( 'label_for' => 'container_id' )
+		);
+	}
+
+	/**
+	 * Render settings page with tabs.
+	 */
+	public function render_settings_page() {
+		$active_tab = isset( $_GET['tab'] ) ? sanitize_text_field( $_GET['tab'] ) : 'general';
+		?>
+		<div class="wrap">
+			<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
+			
+			<h2 class="nav-tab-wrapper">
+				<a href="?page=clicktrail-settings&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>">General</a>
+				<a href="?page=clicktrail-settings&tab=whatsapp" class="nav-tab <?php echo $active_tab == 'whatsapp' ? 'nav-tab-active' : ''; ?>">WhatsApp</a>
+				<a href="?page=clicktrail-settings&tab=consent" class="nav-tab <?php echo $active_tab == 'consent' ? 'nav-tab-active' : ''; ?>">Consent Mode</a>
+				<a href="?page=clicktrail-settings&tab=gtm" class="nav-tab <?php echo $active_tab == 'gtm' ? 'nav-tab-active' : ''; ?>">Google Tag Manager</a>
+			</h2>
+
+			<form action="options.php" method="post">
+				<?php
+				if ( $active_tab == 'general' ) {
+					settings_fields( 'clicktrail_attribution_settings' );
+					do_settings_sections( 'clicktrail_attribution_settings' ); // Renders both General and WhatsApp sections if not filtered, so we need to be careful or just render specific sections manually? 
+                    // Actually do_settings_sections renders ALL sections for the page. 
+                    // To separate them, we should have registered them to different "pages" or just hide them via CSS/logic.
+                    // A cleaner way for tabs with do_settings_sections is to use different page slugs in add_settings_section, 
+                    // BUT register_setting links to option groups.
+                    
+                    // Let's use a simpler approach: Render the specific section by ID if possible, or just accept that 'clicktrail_attribution_settings' page has both.
+                    // Wait, add_settings_section 4th arg is 'page'. I used 'clicktrail_attribution_settings' for both.
+                    // I will change the 'page' argument in register_settings to match the tabs.
+                    
+                    // Re-thinking: I'll use the 'page' argument to separate them.
+                    // General -> 'clicktrail_general_tab'
+                    // WhatsApp -> 'clicktrail_whatsapp_tab'
+                    // Consent -> 'clicktrail_consent_mode'
+                    // GTM -> 'clicktrail_gtm'
+                    
+                    // But settings_fields() needs the OPTION GROUP.
+                    // do_settings_sections() needs the PAGE.
+                    
+                    // So:
+                    // Tab 1: settings_fields('clicktrail_attribution_settings'); do_settings_sections('clicktrail_general_tab');
+                    // Tab 2: settings_fields('clicktrail_attribution_settings'); do_settings_sections('clicktrail_whatsapp_tab');
+                    
+				} elseif ( $active_tab == 'whatsapp' ) {
+                    settings_fields( 'clicktrail_attribution_settings' );
+                    // I need to update register_settings to use 'clicktrail_whatsapp_tab' as the page
+                } elseif ( $active_tab == 'consent' ) {
+					settings_fields( 'clicktrail_consent_mode' );
+					do_settings_sections( 'clicktrail_consent_mode' );
+				} elseif ( $active_tab == 'gtm' ) {
+					settings_fields( 'clicktrail_gtm' );
+					do_settings_sections( 'clicktrail_gtm' );
+				}
+                
+                // For General/WhatsApp split, I'll handle it in the register_settings below by changing the 'page' arg.
+                // But wait, I can't change it dynamically here.
+                // I will update the register_settings method to use distinct page names for sections.
+				
+                // Temporary fix for this render method:
+                if ( $active_tab == 'general' ) {
+                     // I will output the General section manually or use the distinct page name I'm about to set.
+                     do_settings_sections( 'clicktrail_general_tab' );
+                }
+                if ( $active_tab == 'whatsapp' ) {
+                     do_settings_sections( 'clicktrail_whatsapp_tab' );
+                }
+
+				submit_button();
+				?>
+			</form>
+		</div>
+		<?php
+	}
+
+    // ... Helper methods ...
+    
+    public function render_checkbox_field( $args ) {
+		$option_name = $args['option_name'];
+		$options = get_option( $option_name );
+		$value = isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : 0;
+		?>
+		<input type="checkbox" name="<?php echo esc_attr( $option_name . '[' . $args['label_for'] . ']' ); ?>" value="1" <?php checked( 1, $value ); ?> />
+		<?php
+	}
+
+	public function render_number_field( $args ) {
+		$option_name = $args['option_name'];
+		$options = get_option( $option_name );
+		$value = isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : '';
+		?>
+		<input type="number" name="<?php echo esc_attr( $option_name . '[' . $args['label_for'] . ']' ); ?>" value="<?php echo esc_attr( $value ); ?>" class="regular-text" />
+		<?php
+	}
+    
+    public function render_consent_checkbox( $args ) {
+        $settings = new ClickTrail\Modules\Consent_Mode\Consent_Mode_Settings();
+        $value = $settings->get();
+        $enabled = isset($value['enabled']) ? $value['enabled'] : 0;
+        ?>
+        <input type="checkbox" name="clicktrail_consent_mode[enabled]" value="1" <?php checked(1, $enabled); ?> />
+        <?php
+    }
+
+    public function render_regions_field( $args ) {
+        $settings = new ClickTrail\Modules\Consent_Mode\Consent_Mode_Settings();
+        $value = $settings->get();
+        $regions = isset($value['regions']) ? $value['regions'] : '';
+        ?>
+        <input type="text" name="clicktrail_consent_mode[regions]" value="<?php echo esc_attr($regions); ?>" class="regular-text" placeholder="EU, EE, UK" />
+        <p class="description">Comma-separated list of region codes.</p>
+        <?php
+    }
+
+    public function render_gtm_text_field( $args ) {
+        $settings = new ClickTrail\Modules\GTM\GTM_Settings();
+        $value = $settings->get();
+        $id = isset($value['container_id']) ? $value['container_id'] : '';
+        ?>
+        <input type="text" name="clicktrail_gtm[container_id]" value="<?php echo esc_attr($id); ?>" class="regular-text" placeholder="GTM-XXXXXX" />
+        <?php
+    }
 
 	public function ajax_log_pii_risk() {
 		check_ajax_referer( 'clicktrail_pii_nonce', 'nonce' );
@@ -17,6 +301,17 @@
 			wp_send_json_success();
 		}
 		wp_send_json_error();
+	}
+
+	public function display_pii_warning() {
+		if ( get_option( 'clicktrail_pii_risk_detected' ) ) {
+			?>
+			<div class="notice notice-error is-dismissible">
+				<p><strong><?php esc_html_e( 'ClickTrail Audit detected PII risk on your Thank You page. Your tracking may be deactivated by Google.', 'click-trail-handler' ); ?></strong></p>
+				<p><a href="#" class="button button-primary"><?php esc_html_e( 'Fix PII Issues Now', 'click-trail-handler' ); ?></a></p>
+			</div>
+			<?php
+		}
 	}
 
 	public function sanitize_settings( $input ) {
@@ -33,4 +328,3 @@
 	}
 
 }
-```
