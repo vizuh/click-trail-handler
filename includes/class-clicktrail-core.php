@@ -195,17 +195,6 @@ class ClickTrail_Core {
 			wp_enqueue_script(
 				'clicktrail-consent-js',
 				CLICKTRAIL_URL . 'assets/js/clicktrail-consent.js',
-				array(),
-				CLICKTRAIL_VERSION,
-				true // Footer
-			);
-		}
-	}
-
-	/**
-	 * Run the loader to execute all of the hooks with WordPress.
-	 */
-	public function run() {
 		// In a more complex setup we might use a Loader class, 
 		// but for now we just rely on the constructor adding hooks.
 	}
