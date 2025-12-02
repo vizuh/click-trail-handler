@@ -187,53 +187,18 @@ class ClickTrail_Admin {
 				<?php
 				if ( $active_tab == 'general' ) {
 					settings_fields( 'clicktrail_attribution_settings' );
-					do_settings_sections( 'clicktrail_attribution_settings' ); // Renders both General and WhatsApp sections if not filtered, so we need to be careful or just render specific sections manually? 
-                    // Actually do_settings_sections renders ALL sections for the page. 
-                    // To separate them, we should have registered them to different "pages" or just hide them via CSS/logic.
-                    // A cleaner way for tabs with do_settings_sections is to use different page slugs in add_settings_section, 
-                    // BUT register_setting links to option groups.
-                    
-                    // Let's use a simpler approach: Render the specific section by ID if possible, or just accept that 'clicktrail_attribution_settings' page has both.
-                    // Wait, add_settings_section 4th arg is 'page'. I used 'clicktrail_attribution_settings' for both.
-                    // I will change the 'page' argument in register_settings to match the tabs.
-                    
-                    // Re-thinking: I'll use the 'page' argument to separate them.
-                    // General -> 'clicktrail_general_tab'
-                    // WhatsApp -> 'clicktrail_whatsapp_tab'
-                    // Consent -> 'clicktrail_consent_mode'
-                    // GTM -> 'clicktrail_gtm'
-                    
-                    // But settings_fields() needs the OPTION GROUP.
-                    // do_settings_sections() needs the PAGE.
-                    
-                    // So:
-                    // Tab 1: settings_fields('clicktrail_attribution_settings'); do_settings_sections('clicktrail_general_tab');
-                    // Tab 2: settings_fields('clicktrail_attribution_settings'); do_settings_sections('clicktrail_whatsapp_tab');
-                    
+					do_settings_sections( 'clicktrail_general_tab' );
 				} elseif ( $active_tab == 'whatsapp' ) {
-                    settings_fields( 'clicktrail_attribution_settings' );
-                    // I need to update register_settings to use 'clicktrail_whatsapp_tab' as the page
-                } elseif ( $active_tab == 'consent' ) {
+					settings_fields( 'clicktrail_attribution_settings' );
+					do_settings_sections( 'clicktrail_whatsapp_tab' );
+				} elseif ( $active_tab == 'consent' ) {
 					settings_fields( 'clicktrail_consent_mode' );
 					do_settings_sections( 'clicktrail_consent_mode' );
 				} elseif ( $active_tab == 'gtm' ) {
 					settings_fields( 'clicktrail_gtm' );
 					do_settings_sections( 'clicktrail_gtm' );
 				}
-                
-                // For General/WhatsApp split, I'll handle it in the register_settings below by changing the 'page' arg.
-                // But wait, I can't change it dynamically here.
-                // I will update the register_settings method to use distinct page names for sections.
 				
-                // Temporary fix for this render method:
-                if ( $active_tab == 'general' ) {
-                     // I will output the General section manually or use the distinct page name I'm about to set.
-                     do_settings_sections( 'clicktrail_general_tab' );
-                }
-                if ( $active_tab == 'whatsapp' ) {
-                     do_settings_sections( 'clicktrail_whatsapp_tab' );
-                }
-
 				submit_button();
 				?>
 			</form>
