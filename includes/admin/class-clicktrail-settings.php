@@ -159,8 +159,8 @@ class ClickTrail_Admin {
         if ( get_option( 'clicktrail_pii_risk_detected' ) ) {
             ?>
             <div class="notice notice-error is-dismissible">
-                <p><strong><?php esc_html_e( 'ClickTrail Audit detected PII risk on your Thank You page. Your tracking may be deactivated by Google.', 'click-trail-main' ); ?></strong></p>
-                <p><a href="#" class="button button-primary"><?php esc_html_e( 'Fix PII Issues Now', 'click-trail-main' ); ?></a></p>
+                <p><strong><?php esc_html_e( 'ClickTrail Audit detected PII risk on your Thank You page. Your tracking may be deactivated by Google.', 'clicktrail-consent-marketing-attribution' ); ?></strong></p>
+                <p><a href="#" class="button button-primary"><?php esc_html_e( 'Fix PII Issues Now', 'clicktrail-consent-marketing-attribution' ); ?></a></p>
             </div>
             <?php
         }

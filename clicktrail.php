@@ -1,17 +1,15 @@
 <?php
 /**
- * Plugin Name: ClickTrail
+ * Plugin Name: ClickTrail: Consent & Marketing Attribution
  * Plugin URI:  https://vizuh.com
- * Description: Captures marketing parameters (UTMs, Click IDs), persists them, and handles basic consent management.
+ * Description: Complete consent management and marketing attribution solution. Captures UTM parameters and click IDs, manages user consent with Google Consent Mode, and tracks attribution across forms, WooCommerce, and WhatsApp.
  * Version:     1.0.0
  * Author:      Vizuh
  * License:     GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Source:      https://github.com/vizuh/click-trail
- * Text Domain: click-trail-main
+ * Text Domain: clicktrail-consent-marketing-attribution
  * Domain Path: /languages
- * License:     GPLv2 or later
- * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  */
 
 if ( ! defined( 'ABSPATH' ) ) {

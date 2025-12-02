@@ -1,7 +1,7 @@
-=== ClickTrail ===
+=== ClickTrail: Consent & Marketing Attribution ===
 Contributors: hugoc
 Donate link: https://vizuh.com/
-Tags: analytics, attribution, utm, consent, woocommerce, whatsapp, tracking
+Tags: analytics, attribution, utm, consent, consent mode, woocommerce, whatsapp, tracking, gdpr, privacy
 Requires at least: 5.0
 Tested up to: 6.8
 Stable tag: 1.0.0
@@ -9,15 +9,15 @@ Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Lead & Order Attribution for WordPress forms, WooCommerce and WhatsApp.
+Complete consent management and marketing attribution solution for WordPress, WooCommerce, and popular form plugins.
 
 == Description ==
 
-**What is ClickTrail?**
+**What is ClickTrail: Consent & Marketing Attribution?**
 
-ClickTrail is a WordPress plugin that finally shows you which campaigns actually generate your leads and sales.
+ClickTrail is a comprehensive WordPress plugin that bridges the gap between **user privacy compliance** and **accurate marketing attribution**. It combines robust consent management with powerful attribution tracking to help you understand which campaigns drive results—while respecting user privacy.
 
-It captures first- and last-touch UTMs and click IDs, stores them in cookies, and automatically attaches that data to your form entries and WooCommerce orders. On top of that, it ships with a lightweight consent banner + Consent Mode defaults, so your tracking stays aligned with EU-style privacy rules.
+The plugin captures first- and last-touch UTMs and click IDs, stores them in cookies (with user consent when required), and automatically attaches that data to your form entries and WooCommerce orders. Built-in consent banner with Google Consent Mode integration ensures your tracking stays compliant with GDPR and other privacy regulations.
 
 Built for WordPress 5.0+ / PHP 7.0+, it includes a simple settings screen for marketers and the front-end scripts needed for attribution and consent handling.
 
@@ -69,7 +69,7 @@ Attribution data is read from cookies (`ct_attribution` / `attribution`), saniti
 
 == Installation ==
 
-1.  Upload the plugin files to the `/wp-content/plugins/clicktrail` directory, or install the plugin through the WordPress plugins screen directly.
+1.  Upload the plugin files to the `/wp-content/plugins/clicktrail-consent-marketing-attribution` directory, or install the plugin through the WordPress plugins screen directly.
 2.  Activate the plugin through the 'Plugins' screen in WordPress.
 3.  Go to **ClickTrail** in the admin menu to configure attribution and consent settings.
 4.  For supported form plugins, submit a test entry to verify UTM values are captured.
