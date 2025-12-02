@@ -47,6 +47,11 @@ class ClickTrail_Core {
                 // Integrations
                 require_once CLICKTRAIL_DIR . 'includes/integrations/class-clicktrail-form-integrations.php';
                 require_once CLICKTRAIL_DIR . 'includes/integrations/class-clicktrail-woocommerce.php';
+
+                // WooCommerce Admin (if WooCommerce is active)
+                if ( class_exists( 'WooCommerce' ) ) {
+                        require_once CLICKTRAIL_DIR . 'includes/admin/class-clicktrail-woocommerce-admin.php';
+                }
 	}
 
 	/**
@@ -95,6 +100,12 @@ class ClickTrail_Core {
 		// AJAX for WhatsApp Click Logging
 		add_action( 'wp_ajax_ct_log_wa_click', array( $this, 'ajax_log_wa_click' ) );
 		add_action( 'wp_ajax_nopriv_ct_log_wa_click', array( $this, 'ajax_log_wa_click' ) );
+
+		// Initialize WooCommerce Admin features
+		if ( class_exists( 'WooCommerce' ) && class_exists( 'ClickTrail_WooCommerce_Admin' ) ) {
+			$wc_admin = new ClickTrail_WooCommerce_Admin();
+			$wc_admin->init();
+		}
 	}
 
 	/**

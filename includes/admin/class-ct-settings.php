@@ -188,6 +188,16 @@ class ClickTrail_Admin {
 		<?php
 	}
 
+	public function render_consent_section_description() {
+		?>
+		<p style="max-width: 800px; background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; margin: 10px 0;">
+			<strong>⚠️ Consent Compliance Notice:</strong> The built-in consent banner is a basic solution suitable for small websites. For full GDPR/CCPA compliance or if you operate in highly regulated industries, we recommend using a dedicated Consent Management Platform (CMP) such as <a href="https://www.cookiebot.com/" target="_blank">Cookiebot</a>, <a href="https://www.onetrust.com/" target="_blank">OneTrust</a>, or <a href="https://borlabs.io/borlabs-cookie/" target="_blank">Borlabs Cookie</a>.
+			<br><br>
+			<em>Disclaimer: Ultimate compliance with privacy regulations is the responsibility of the website owner. This plugin provides tools to assist with consent management, but does not guarantee legal compliance.</em>
+		</p>
+		<?php
+	}
+
 	public function ajax_log_pii_risk() {
 		check_ajax_referer( 'clicktrail_pii_nonce', 'nonce' );
 
