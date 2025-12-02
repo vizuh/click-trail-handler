@@ -52,6 +52,9 @@ Attribution data is read from cookies (`ct_attribution` / `attribution`), saniti
     *   Prevents duplicate events on page refresh.
 *   **WhatsApp**:
     *   Automatically tracks clicks on WhatsApp links (`wa.me`, `whatsapp.com`, `api.whatsapp.com`) and pushes a `wa_click` event to the dataLayer with full attribution details.
+*   **Event Tracking (New)**:
+    *   **Client-side**: Automatically tracks searches, file downloads, scroll depth (25%, 50%, 75%, 90%), and time on page.
+    *   **Server-side**: Tracks user logins, signups, and comments, pushing them to the dataLayer for accurate measurement.
 
 == Installation ==
 
@@ -84,6 +87,14 @@ The built-in consent banner is a basic solution suitable for small websites. For
 2.  Example ClickTrail consent banner on the frontend.
 
 == Changelog ==
+
+= 1.1.0 =
+*   **New**: Added comprehensive Event Tracking (Searches, Downloads, Scroll Depth, Time on Page).
+*   **New**: Added Server-side Event Tracking for User Login, Signups, and Comments.
+*   **New**: Implemented Google Consent Mode v2 support with region-specific defaults.
+*   **New**: Added manual Google Tag Manager (GTM) Container ID injection.
+*   **Improvement**: Refactored codebase for better modularity and performance.
+*   **Improvement**: Enhanced WooCommerce integration with "Source" column and detailed meta box.
 
 = 1.0.0 =
 *   Initial release with attribution capture, consent banner, and integrations for WooCommerce, Contact Form 7, Fluent Forms, and WhatsApp.
