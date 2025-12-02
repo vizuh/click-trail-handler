@@ -24,7 +24,9 @@ Built for WordPress 5.0+ / PHP 7.0+, it includes a simple settings screen for ma
 **Key Benefits**
 
 *   **See the real source of every lead and order**: First-touch and last-touch UTMs + click IDs are persisted for up to 90 days and injected into supported forms and Woo orders automatically.
+*   **WooCommerce admin insights**: New "Source" column in orders list shows attribution at a glance. View full first-touch and last-touch attribution in order details.
 *   **Make GA4 & Meta tracking actually useful**: ClickTrail pushes enriched, GA4-ready purchase events from WooCommerce thank-you pages, with campaign data and line items included.
+*   **Multi-platform click ID support**: Captures click IDs from Google (gclid, wbraid, gbraid), Meta (fbclid), TikTok (ttclid), Microsoft (msclkid), Twitter (twclid), LinkedIn (li_fat_id), Snapchat (ScCid), and Pinterest (epik).
 *   **Stay privacy-aware without losing all signal**: A built-in consent banner and Consent Mode defaults let you block or allow tracking based on strict, relaxed, or geo-based rules.
 
 **Admin & Configuration**
@@ -62,6 +64,8 @@ Attribution data is read from cookies (`ct_attribution` / `attribution`), saniti
     *   **Gravity Forms**: Scaffolding is in place for dynamic population.
 *   **WooCommerce**:
     *   Saves sanitized attribution metadata (including session count) to orders at checkout.
+    *   **New**: "Source" column in WooCommerce orders list shows first-touch attribution (e.g., "Google / CPC").
+    *   **New**: Attribution meta box on order edit page displays complete first-touch and last-touch data.
     *   Emits a GA4-ready purchase event on the thank-you page, including first- and last-touch fields and line-item data.
     *   Prevents duplicate events on page refresh.
 *   **WhatsApp**:
@@ -87,6 +91,10 @@ If you enable "Require Consent for Tracking" in the settings, ClickTrail will de
 = How does the WhatsApp tracking work? =
 
 The plugin automatically detects clicks on WhatsApp links and pushes a `wa_click` event to the dataLayer, including the current attribution data. You can use this event in GTM to trigger tags.
+
+= Is the built-in consent banner GDPR compliant? =
+
+The built-in consent banner is a basic solution suitable for small websites. For full GDPR/CCPA compliance or if you operate in highly regulated industries, we strongly recommend using a dedicated Consent Management Platform (CMP) such as Cookiebot, OneTrust, or Borlabs Cookie. Ultimate compliance with privacy regulations is the responsibility of the website owner.
 
 == Screenshots ==
 

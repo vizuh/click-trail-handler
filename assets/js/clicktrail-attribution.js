@@ -22,7 +22,7 @@
             this.paramsToCapture = [
                 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
                 'campaign_id', 'campaignid', 'adgroup_id', 'adgroupid', 'ad_id', 'creative', 'keyword', 'matchtype', 'network', 'device', 'placement', 'targetid',
-                'gclid', 'fbclid', 'wbraid', 'gbraid', 'msclkid', 'ttclid', 'twclid', 'sc_click_id', 'epik'
+                'gclid', 'fbclid', 'wbraid', 'gbraid', 'msclkid', 'ttclid', 'twclid', 'li_fat_id', 'ScCid', 'sc_click_id', 'epik'
             ];
             this.paidMediums = ['cpc', 'ppc', 'paidsearch', 'paid-search', 'paid', 'paid_social', 'paid social', 'display'];
             this.init();
@@ -120,7 +120,7 @@
         }
 
         applyTouch(prefix, storedData, fields, timestamp) {
-            const mapping = ['source', 'medium', 'campaign', 'campaign_id', 'adgroup_id', 'ad_id', 'term', 'matchtype', 'network', 'device', 'gclid', 'wbraid', 'gbraid', 'msclkid', 'fbclid', 'ttclid', 'twclid', 'sc_click_id', 'epik', 'content', 'referrer'];
+            const mapping = ['source', 'medium', 'campaign', 'campaign_id', 'adgroup_id', 'ad_id', 'term', 'matchtype', 'network', 'device', 'gclid', 'wbraid', 'gbraid', 'msclkid', 'fbclid', 'ttclid', 'twclid', 'li_fat_id', 'ScCid', 'sc_click_id', 'epik', 'content', 'referrer'];
 
             mapping.forEach((key) => {
                 const value = fields[key];
@@ -153,6 +153,8 @@
                 fbclid: params.fbclid || '',
                 ttclid: params.ttclid || '',
                 twclid: params.twclid || '',
+                li_fat_id: params.li_fat_id || '',
+                ScCid: params.ScCid || '',
                 sc_click_id: params.sc_click_id || '',
                 epik: params.epik || '',
                 content: params.utm_content || ''
@@ -229,6 +231,8 @@
                 out[`${prefix}_fbclid`] = touch.fbclid || '';
                 out[`${prefix}_ttclid`] = touch.ttclid || '';
                 out[`${prefix}_twclid`] = touch.twclid || '';
+                out[`${prefix}_li_fat_id`] = touch.li_fat_id || '';
+                out[`${prefix}_ScCid`] = touch.ScCid || '';
                 out[`${prefix}_sc_click_id`] = touch.sc_click_id || '';
                 out[`${prefix}_epik`] = touch.epik || '';
                 out[`${prefix}_content`] = touch.utm_content || touch.content || '';
@@ -405,6 +409,8 @@
                 ft_msclkid: '',
                 ft_ttclid: '',
                 ft_twclid: '',
+                ft_li_fat_id: '',
+                ft_ScCid: '',
                 ft_sc_click_id: '',
                 ft_epik: '',
                 lt_source: '',
@@ -419,6 +425,8 @@
                 lt_msclkid: '',
                 lt_ttclid: '',
                 lt_twclid: '',
+                lt_li_fat_id: '',
+                lt_ScCid: '',
                 lt_sc_click_id: '',
                 lt_epik: ''
             };

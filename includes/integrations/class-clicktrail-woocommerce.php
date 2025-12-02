@@ -148,6 +148,8 @@ class ClickTrail_WooCommerce_Integration {
             'ft_msclkid'     => '',
             'ft_ttclid'      => '',
             'ft_twclid'      => '',
+            'ft_li_fat_id'   => '',
+            'ft_ScCid'       => '',
             'ft_sc_click_id' => '',
             'ft_epik'        => '',
             'lt_source'      => '',
@@ -162,6 +164,8 @@ class ClickTrail_WooCommerce_Integration {
             'lt_msclkid'     => '',
             'lt_ttclid'      => '',
             'lt_twclid'      => '',
+            'lt_li_fat_id'   => '',
+            'lt_ScCid'       => '',
             'lt_sc_click_id' => '',
             'lt_epik'        => '',
         );
