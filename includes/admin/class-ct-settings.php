@@ -205,8 +205,10 @@ class ClickTrail_Admin {
 			wp_send_json_error( array( 'message' => __( 'Insufficient permissions to log PII alerts.', 'clicktrail-consent-marketing-attribution' ) ), 403 );
 		}
 
-		if ( isset( $_POST['pii_found'] ) && $_POST['pii_found'] === 'true' ) {
-			update_option( 'hp_pii_risk_detected', true );
+                $pii_found = isset( $_POST['pii_found'] ) ? filter_var( wp_unslash( $_POST['pii_found'] ), FILTER_VALIDATE_BOOLEAN ) : false;
+
+                if ( $pii_found ) {
+                        update_option( 'ct_pii_risk_detected', true );
 			wp_send_json_success();
 		}
 		wp_send_json_error();
