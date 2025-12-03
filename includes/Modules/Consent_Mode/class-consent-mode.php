@@ -1,9 +1,4 @@
 <?php
-/**
- * Class ClickTrail\Modules\Consent_Mode\Consent_Mode
- *
- * @package   ClickTrail
- */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -12,6 +7,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 namespace ClickTrail\Modules\Consent_Mode;
 
 use ClickTrail\Core\Context;
+
+/**
+ * Class ClickTrail\Modules\Consent_Mode\Consent_Mode
+ *
+ * @package   ClickTrail
+ */
 
 /**
  * Class for handling consent mode.
