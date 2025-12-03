@@ -1,9 +1,10 @@
 <?php
+
+namespace ClickTrail\Modules\Consent_Mode;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
-namespace ClickTrail\Modules\Consent_Mode;
 
 use ClickTrail\Core\Context;
 
