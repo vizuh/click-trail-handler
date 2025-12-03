@@ -13,7 +13,7 @@ Complete consent management and marketing attribution solution. Captures UTMs an
 
 == Description ==
 
-The plugin captures first- and last-touch UTMs and click IDs, stores them in cookies (with user consent when required), and automatically attaches that data to your form entries and WooCommerce orders. Built-in consent banner with Google Consent Mode integration ensures your tracking stays compliant with GDPR and other privacy regulations.
+ClickTrail captures first- and last-touch UTMs and click IDs, stores them in cookies (with user consent when required), and automatically attaches that data to your form entries and WooCommerce orders. Built-in consent banner with Google Consent Mode integration ensures your tracking stays compliant with GDPR and other privacy regulations.
 
 **Key Benefits**
 
