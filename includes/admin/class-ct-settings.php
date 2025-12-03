@@ -37,6 +37,7 @@ class ClickTrail_Admin {
 		add_action( 'admin_menu', array( $this, 'add_admin_menu' ) );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_notices', array( $this, 'display_pii_warning' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 	}
 
 	/**
@@ -50,7 +51,26 @@ class ClickTrail_Admin {
 			'clicktrail-settings',
 			array( $this, 'render_settings_page' ),
 			'dashicons-chart-line',
-			30
+			56 // Analytics plugin zone (after Plugins, near Yoast/MonsterInsights)
+		);
+	}
+
+	/**
+	 * Enqueue admin assets (conditional loading).
+	 *
+	 * @param string $hook Current admin page hook.
+	 */
+	public function enqueue_admin_assets( $hook ) {
+		// Only load on our plugin pages
+		if ( strpos( $hook, 'clicktrail' ) === false ) {
+			return;
+		}
+
+		wp_enqueue_style(
+			'clicktrail-admin',
+			CLICKTRAIL_URL . 'assets/css/admin.css',
+			array(),
+			CLICKTRAIL_VERSION
 		);
 	}
 
