@@ -194,14 +194,26 @@ class ClickTrail_Admin {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page navigation does not require nonce.
 		$active_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : 'general';
 		?>
-		<div class="wrap">
+		<div class="wrap clicktrail-settings-wrap">
 			<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 			
 			<h2 class="nav-tab-wrapper">
-				<a href="?page=clicktrail-settings&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>">General</a>
-				<a href="?page=clicktrail-settings&tab=whatsapp" class="nav-tab <?php echo $active_tab == 'whatsapp' ? 'nav-tab-active' : ''; ?>">WhatsApp</a>
-				<a href="?page=clicktrail-settings&tab=consent" class="nav-tab <?php echo $active_tab == 'consent' ? 'nav-tab-active' : ''; ?>">Consent Mode</a>
-				<a href="?page=clicktrail-settings&tab=gtm" class="nav-tab <?php echo $active_tab == 'gtm' ? 'nav-tab-active' : ''; ?>">Google Tag Manager</a>
+				<a href="?page=clicktrail-settings&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>">
+					<span class="dashicons dashicons-admin-generic"></span>
+					<?php esc_html_e( 'Attribution', 'click-trail-handler' ); ?>
+				</a>
+				<a href="?page=clicktrail-settings&tab=whatsapp" class="nav-tab <?php echo $active_tab == 'whatsapp' ? 'nav-tab-active' : ''; ?>">
+					<span class="dashicons dashicons-format-chat"></span>
+					<?php esc_html_e( 'WhatsApp', 'click-trail-handler' ); ?>
+				</a>
+				<a href="?page=clicktrail-settings&tab=consent" class="nav-tab <?php echo $active_tab == 'consent' ? 'nav-tab-active' : ''; ?>">
+					<span class="dashicons dashicons-privacy"></span>
+					<?php esc_html_e( 'Privacy & Consent', 'click-trail-handler' ); ?>
+				</a>
+				<a href="?page=clicktrail-settings&tab=gtm" class="nav-tab <?php echo $active_tab == 'gtm' ? 'nav-tab-active' : ''; ?>">
+					<span class="dashicons dashicons-chart-bar"></span>
+					<?php esc_html_e( 'Integrations', 'click-trail-handler' ); ?>
+				</a>
 			</h2>
 
 			<form action="options.php" method="post">
