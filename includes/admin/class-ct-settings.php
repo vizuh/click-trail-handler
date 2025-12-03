@@ -30,15 +30,16 @@ class ClickTrail_Admin {
 		$this->context = $context;
 	}
 
-	/**
-	 * Initialize hooks.
-	 */
-	public function init() {
-		add_action( 'admin_menu', array( $this, 'add_admin_menu' ), 1 );
-		add_action( 'admin_init', array( $this, 'register_settings' ) );
-		add_action( 'admin_notices', array( $this, 'display_pii_warning' ) );
-		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
-	}
+        /**
+         * Initialize hooks.
+         */
+        public function init() {
+                // Run early so the parent menu exists before CPT submenus attach.
+                add_action( 'admin_menu', array( $this, 'add_admin_menu' ), 1 );
+                add_action( 'admin_init', array( $this, 'register_settings' ) );
+                add_action( 'admin_notices', array( $this, 'display_pii_warning' ) );
+                add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
+        }
 
 	/**
 	 * Add admin menu.
