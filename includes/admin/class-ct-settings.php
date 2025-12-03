@@ -1,8 +1,8 @@
 <?php
 /**
- * Class ClickTrail_Admin
+ * ClickTrail Admin Settings
  *
- * @package   ClickTrail
+ * @package ClickTrail
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -10,21 +10,21 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Class for managing admin settings.
+ * Class ClickTrail_Admin
  */
 class ClickTrail_Admin {
 
 	/**
-	 * Context instance.
+	 * Context.
 	 *
-	 * @var ClickTrail\Core\Context
+	 * @var string
 	 */
-	protected $context;
+	private $context;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param ClickTrail\Core\Context $context Plugin context.
+	 * @param string $context Context.
 	 */
 	public function __construct( $context ) {
 		$this->context = $context;
@@ -95,7 +95,11 @@ class ClickTrail_Admin {
 			array( $this, 'render_checkbox_field' ),
 			'clicktrail_general_tab',
 			'clicktrail_general_section',
-			array( 'label_for' => 'enable_attribution', 'option_name' => 'clicktrail_attribution_settings' )
+			array( 
+				'label_for' => 'enable_attribution', 
+				'option_name' => 'clicktrail_attribution_settings',
+				'tooltip' => __( 'Automatically track UTM parameters and Click IDs from incoming traffic.', 'click-trail-handler' )
+			)
 		);
 
 		add_settings_field(
@@ -121,7 +125,11 @@ class ClickTrail_Admin {
 			array( $this, 'render_checkbox_field' ),
 			'clicktrail_whatsapp_tab',
 			'clicktrail_whatsapp_section',
-			array( 'label_for' => 'enable_whatsapp', 'option_name' => 'clicktrail_attribution_settings' )
+			array( 
+				'label_for' => 'enable_whatsapp', 
+				'option_name' => 'clicktrail_attribution_settings',
+				'tooltip' => __( 'Track clicks on WhatsApp links and buttons.', 'click-trail-handler' )
+			)
 		);
 
 		add_settings_field(
@@ -130,7 +138,11 @@ class ClickTrail_Admin {
 			array( $this, 'render_checkbox_field' ),
 			'clicktrail_whatsapp_tab',
 			'clicktrail_whatsapp_section',
-			array( 'label_for' => 'whatsapp_append_attribution', 'option_name' => 'clicktrail_attribution_settings' )
+			array( 
+				'label_for' => 'whatsapp_append_attribution', 
+				'option_name' => 'clicktrail_attribution_settings',
+				'tooltip' => __( 'Add attribution data to the pre-filled WhatsApp message.', 'click-trail-handler' )
+			)
 		);
 
 		add_settings_field(
@@ -139,11 +151,14 @@ class ClickTrail_Admin {
 			array( $this, 'render_checkbox_field' ),
 			'clicktrail_whatsapp_tab',
 			'clicktrail_whatsapp_section',
-			array( 'label_for' => 'whatsapp_log_clicks', 'option_name' => 'clicktrail_attribution_settings' )
+			array( 
+				'label_for' => 'whatsapp_log_clicks', 
+				'option_name' => 'clicktrail_attribution_settings',
+				'tooltip' => __( 'Save each WhatsApp click as a "WhatsApp Click" post in WordPress.', 'click-trail-handler' )
+			)
 		);
 
 		// 2. Consent Mode Settings
-		// Registered via Consent_Mode_Settings class, but we add section/fields here for display
 		add_settings_section(
 			'clicktrail_consent_section',
 			__( 'Consent Mode Configuration', 'click-trail-handler' ),
@@ -239,14 +254,32 @@ class ClickTrail_Admin {
 		<?php
 	}
 
-    // ... Helper methods ...
-    
-    public function render_checkbox_field( $args ) {
+	/**
+	 * Render checkbox field as modern toggle switch.
+	 *
+	 * @param array $args Field arguments.
+	 */
+	public function render_checkbox_field( $args ) {
 		$option_name = $args['option_name'];
 		$options = get_option( $option_name );
 		$value = isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : 0;
+		$tooltip = isset( $args['tooltip'] ) ? $args['tooltip'] : '';
 		?>
-		<input type="checkbox" name="<?php echo esc_attr( $option_name . '[' . $args['label_for'] . ']' ); ?>" value="1" <?php checked( 1, $value ); ?> />
+		<div class="clicktrail-toggle-wrapper">
+			<label class="clicktrail-toggle">
+				<input type="checkbox" name="<?php echo esc_attr( $option_name . '[' . $args['label_for'] . ']' ); ?>" value="1" <?php checked( 1, $value ); ?> />
+				<span class="clicktrail-toggle-slider"></span>
+			</label>
+			<span class="clicktrail-toggle-label">
+				<?php echo $value ? esc_html__( 'Enabled', 'click-trail-handler' ) : esc_html__( 'Disabled', 'click-trail-handler' ); ?>
+			</span>
+			<?php if ( $tooltip ) : ?>
+				<span class="clicktrail-help-tip" data-tip="<?php echo esc_attr( $tooltip ); ?>">?</span>
+			<?php endif; ?>
+		</div>
+		<?php if ( isset( $args['description'] ) ) : ?>
+			<p class="clicktrail-description"><?php echo wp_kses_post( $args['description'] ); ?></p>
+		<?php endif; ?>
 		<?php
 	}
 
@@ -258,34 +291,42 @@ class ClickTrail_Admin {
 		<input type="number" name="<?php echo esc_attr( $option_name . '[' . $args['label_for'] . ']' ); ?>" value="<?php echo esc_attr( $value ); ?>" class="regular-text" />
 		<?php
 	}
-    
-    public function render_consent_checkbox( $args ) {
-        $settings = new ClickTrail\Modules\Consent_Mode\Consent_Mode_Settings();
-        $value = $settings->get();
-        $enabled = isset($value['enabled']) ? $value['enabled'] : 0;
-        ?>
-        <input type="checkbox" name="clicktrail_consent_mode[enabled]" value="1" <?php checked(1, $enabled); ?> />
-        <?php
-    }
+	
+	public function render_consent_checkbox( $args ) {
+		$settings = new ClickTrail\Modules\Consent_Mode\Consent_Mode_Settings();
+		$value = $settings->get();
+		$enabled = isset($value['enabled']) ? $value['enabled'] : 0;
+		?>
+		<div class="clicktrail-toggle-wrapper">
+			<label class="clicktrail-toggle">
+				<input type="checkbox" name="clicktrail_consent_mode[enabled]" value="1" <?php checked(1, $enabled); ?> />
+				<span class="clicktrail-toggle-slider"></span>
+			</label>
+			<span class="clicktrail-toggle-label">
+				<?php echo $enabled ? esc_html__( 'Enabled', 'click-trail-handler' ) : esc_html__( 'Disabled', 'click-trail-handler' ); ?>
+			</span>
+		</div>
+		<?php
+	}
 
-    public function render_regions_field( $args ) {
-        $settings = new ClickTrail\Modules\Consent_Mode\Consent_Mode_Settings();
-        $value = $settings->get();
-        $regions = isset($value['regions']) ? $value['regions'] : '';
-        ?>
-        <input type="text" name="clicktrail_consent_mode[regions]" value="<?php echo esc_attr($regions); ?>" class="regular-text" placeholder="EU, EE, UK" />
-        <p class="description">Comma-separated list of region codes.</p>
-        <?php
-    }
+	public function render_regions_field( $args ) {
+		$settings = new ClickTrail\Modules\Consent_Mode\Consent_Mode_Settings();
+		$value = $settings->get();
+		$regions = isset($value['regions']) ? $value['regions'] : '';
+		?>
+		<input type="text" name="clicktrail_consent_mode[regions]" value="<?php echo esc_attr($regions); ?>" class="regular-text" placeholder="EU, EE, UK" />
+		<p class="description"><?php esc_html_e( 'Comma-separated list of region codes.', 'click-trail-handler' ); ?></p>
+		<?php
+	}
 
-    public function render_gtm_text_field( $args ) {
-        $settings = new ClickTrail\Modules\GTM\GTM_Settings();
-        $value = $settings->get();
-        $id = isset($value['container_id']) ? $value['container_id'] : '';
-        ?>
-        <input type="text" name="clicktrail_gtm[container_id]" value="<?php echo esc_attr($id); ?>" class="regular-text" placeholder="GTM-XXXXXX" />
-        <?php
-    }
+	public function render_gtm_text_field( $args ) {
+		$settings = new ClickTrail\Modules\GTM\GTM_Settings();
+		$value = $settings->get();
+		$id = isset($value['container_id']) ? $value['container_id'] : '';
+		?>
+		<input type="text" name="clicktrail_gtm[container_id]" value="<?php echo esc_attr($id); ?>" class="regular-text" placeholder="GTM-XXXXXX" />
+		<?php
+	}
 
 	public function ajax_log_pii_risk() {
 		check_ajax_referer( 'clicktrail_pii_nonce', 'nonce' );

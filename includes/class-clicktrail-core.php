@@ -81,11 +81,7 @@ class ClickTrail_Core {
 	 * Define the locale for this plugin for internationalization.
 	 */
 	private function set_locale() {
-		load_plugin_textdomain(
-			'click-trail-handler',
-			false,
-			dirname( CLICKTRAIL_BASENAME ) . '/languages/'
-		);
+		// load_plugin_textdomain is handled automatically by WordPress.org
 	}
 
 	/**
@@ -253,6 +249,7 @@ class ClickTrail_Core {
 		$wa_location = isset( $_POST['wa_location'] ) ? esc_url_raw( wp_unslash( $_POST['wa_location'] ) ) : '';
 		
 		// Decode attribution data
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- JSON string is decoded and then sanitized.
 		$attribution_raw = isset( $_POST['attribution'] ) ? wp_unslash( $_POST['attribution'] ) : '';
 		$attribution     = json_decode( $attribution_raw, true );
 		
