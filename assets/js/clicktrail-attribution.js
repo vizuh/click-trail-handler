@@ -186,6 +186,7 @@
         }
 
         readLegacyData() {
+            const LEGACY_KEY = 'ct_attribution_legacy';
             const cookie = this.getCookie(LEGACY_KEY);
             if (cookie) {
                 try {
@@ -315,10 +316,11 @@
                 // Log click if enabled
                 if (CONFIG.whatsappLogClicks && CONFIG.ajaxUrl) {
                     const formData = new FormData();
-                    formData.append('action', 'ct_log_wa_click');
+                    formData.append('action', 'clicktrail_log_wa_click');
                     formData.append('wa_href', link.href);
                     formData.append('wa_location', window.location.href);
                     formData.append('attribution', JSON.stringify(attribution));
+                    formData.append('nonce', CONFIG.nonce);
 
                     fetch(CONFIG.ajaxUrl, {
                         method: 'POST',

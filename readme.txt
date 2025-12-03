@@ -1,25 +1,18 @@
-=== ClickTrail: Consent & Marketing Attribution ===
-Contributors: hugoc
-Donate link: https://vizuh.com/
-Tags: analytics, attribution, utm, consent, consent mode, woocommerce, whatsapp, tracking, gdpr, privacy
+=== ClickTrail – UTM, Click ID & Ad Tracking (with Consent) ===
+Contributors: vizuh
+Tags: attribution, utm, tracking, consent mode, gtm
 Requires at least: 5.0
-Tested up to: 6.8
-Stable tag: 1.0.0
+Tested up to: 6.9
+Stable tag: 1.1.0
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Complete consent management and marketing attribution solution for WordPress, WooCommerce, and popular form plugins.
+Complete consent management and marketing attribution solution. Captures UTMs and click IDs, manages consent, and tracks across forms and WooCommerce.
 
 == Description ==
 
-**What is ClickTrail: Consent & Marketing Attribution?**
-
-ClickTrail is a comprehensive WordPress plugin that bridges the gap between **user privacy compliance** and **accurate marketing attribution**. It combines robust consent management with powerful attribution tracking to help you understand which campaigns drive results—while respecting user privacy.
-
-The plugin captures first- and last-touch UTMs and click IDs, stores them in cookies (with user consent when required), and automatically attaches that data to your form entries and WooCommerce orders. Built-in consent banner with Google Consent Mode integration ensures your tracking stays compliant with GDPR and other privacy regulations.
-
-Built for WordPress 5.0+ / PHP 7.0+, it includes a simple settings screen for marketers and the front-end scripts needed for attribution and consent handling.
+ClickTrail captures first- and last-touch UTMs and click IDs, stores them in cookies (with user consent when required), and automatically attaches that data to your form entries and WooCommerce orders. Built-in consent banner with Google Consent Mode integration ensures your tracking stays compliant with GDPR and other privacy regulations.
 
 **Key Benefits**
 
@@ -70,10 +63,13 @@ Attribution data is read from cookies (`ct_attribution` / `attribution`), saniti
     *   Prevents duplicate events on page refresh.
 *   **WhatsApp**:
     *   Automatically tracks clicks on WhatsApp links (`wa.me`, `whatsapp.com`, `api.whatsapp.com`) and pushes a `wa_click` event to the dataLayer with full attribution details.
+*   **Event Tracking (New)**:
+    *   **Client-side**: Automatically tracks searches, file downloads, scroll depth (25%, 50%, 75%, 90%), and time on page.
+    *   **Server-side**: Tracks user logins, signups, and comments, pushing them to the dataLayer for accurate measurement.
 
 == Installation ==
 
-1.  Upload the plugin files to the `/wp-content/plugins/clicktrail-consent-marketing-attribution` directory, or install the plugin through the WordPress plugins screen directly.
+1.  Upload the plugin files to the `/wp-content/plugins/click-trail-handler` directory, or install the plugin through the WordPress plugins screen directly.
 2.  Activate the plugin through the 'Plugins' screen in WordPress.
 3.  Go to **ClickTrail** in the admin menu to configure attribution and consent settings.
 4.  For supported form plugins, submit a test entry to verify UTM values are captured.
@@ -102,6 +98,14 @@ The built-in consent banner is a basic solution suitable for small websites. For
 2.  Example ClickTrail consent banner on the frontend.
 
 == Changelog ==
+
+= 1.1.0 =
+*   **New**: Added comprehensive Event Tracking (Searches, Downloads, Scroll Depth, Time on Page).
+*   **New**: Added Server-side Event Tracking for User Login, Signups, and Comments.
+*   **New**: Implemented Google Consent Mode v2 support with region-specific defaults.
+*   **New**: Added manual Google Tag Manager (GTM) Container ID injection.
+*   **Improvement**: Refactored codebase for better modularity and performance.
+*   **Improvement**: Enhanced WooCommerce integration with "Source" column and detailed meta box.
 
 = 1.0.0 =
 *   Initial release with attribution capture, consent banner, and integrations for WooCommerce, Contact Form 7, Fluent Forms, and WhatsApp.

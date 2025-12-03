@@ -6,29 +6,45 @@
  * This is used to define internationalization, admin-specific hooks, and
  * public-facing site hooks.
  */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 class ClickTrail_Core {
 
 	/**
-	 * The loader that's responsible for maintaining and registering all hooks that power
-	 * the plugin.
+	 * Plugin context.
 	 *
-	 * @since    1.0.0
-	 * @access   protected
-	 * @var      HP_Attribution_Loader    $loader    Maintains and registers all hooks for the plugin.
+	 * @var ClickTrail\Core\Context
 	 */
-	protected $loader;
+	protected $context;
+
+	/**
+	 * Consent Mode module.
+	 *
+	 * @var ClickTrail\Modules\Consent_Mode\Consent_Mode
+	 */
+	protected $consent_mode;
+
+	/**
+	 * GTM module.
+	 *
+	 * @var ClickTrail\Modules\GTM\Web_Tag
+	 */
+	protected $gtm;
 
 	/**
 	 * Define the core functionality of the plugin.
-	 *
-	 * Set the plugin name and the plugin version that can be used throughout the plugin.
-	 * Load the dependencies, define the locale, and set the hooks for the admin area and
-	 * the public-facing side of the site.
-	 *
-	 * @since    1.0.0
 	 */
 	public function __construct() {
 		$this->load_dependencies();
+		$this->context = new ClickTrail\Core\Context( CLICKTRAIL_PLUGIN_MAIN_FILE );
+		
+		// Initialize Modules
+		$this->consent_mode = new ClickTrail\Modules\Consent_Mode\Consent_Mode( $this->context );
+		$this->gtm          = new ClickTrail\Modules\GTM\Web_Tag( $this->context );
+
 		$this->register_cpt();
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
@@ -36,23 +52,36 @@ class ClickTrail_Core {
 
 	/**
 	 * Load the required dependencies for this plugin.
-	 *
-	 * @since    1.0.0
-	 * @access   private
 	 */
-        private function load_dependencies() {
-                // Admin
-                require_once CLICKTRAIL_DIR . 'includes/admin/class-ct-settings.php';
+	private function load_dependencies() {
+		// Core
+		require_once CLICKTRAIL_DIR . 'includes/Core/class-context.php';
+		require_once CLICKTRAIL_DIR . 'includes/Core/Storage/class-setting.php';
 
-                // Integrations
-                require_once CLICKTRAIL_DIR . 'includes/integrations/class-clicktrail-form-integrations.php';
-                require_once CLICKTRAIL_DIR . 'includes/integrations/class-clicktrail-woocommerce.php';
+		// Modules
+		require_once CLICKTRAIL_DIR . 'includes/Modules/Consent_Mode/class-regions.php';
+		require_once CLICKTRAIL_DIR . 'includes/Modules/Consent_Mode/class-consent-mode-settings.php';
+		require_once CLICKTRAIL_DIR . 'includes/Modules/Consent_Mode/class-consent-mode.php';
+		
+		require_once CLICKTRAIL_DIR . 'includes/Modules/GTM/class-gtm-settings.php';
+		require_once CLICKTRAIL_DIR . 'includes/Modules/GTM/class-web-tag.php';
 
-                // WooCommerce Admin (if WooCommerce is active)
-                if ( class_exists( 'WooCommerce' ) ) {
-                        require_once CLICKTRAIL_DIR . 'includes/admin/class-clicktrail-woocommerce-admin.php';
-                }
+		require_once CLICKTRAIL_DIR . 'includes/Modules/Events/class-events-logger.php';
+
+		// Admin
+		require_once CLICKTRAIL_DIR . 'includes/admin/class-ct-settings.php';
+
+		// Integrations
+		require_once CLICKTRAIL_DIR . 'includes/integrations/class-clicktrail-form-integrations.php';
+		require_once CLICKTRAIL_DIR . 'includes/integrations/class-clicktrail-woocommerce.php';
+
+		// WooCommerce Admin (if WooCommerce is active)
+		if ( class_exists( 'WooCommerce' ) ) {
+			require_once CLICKTRAIL_DIR . 'includes/admin/class-clicktrail-woocommerce-admin.php';
+		}
 	}
+
+
 
 	/**
 	 * Register Custom Post Types
@@ -65,41 +94,38 @@ class ClickTrail_Core {
 	 * Register WhatsApp Click CPT
 	 */
 	public function register_whatsapp_cpt() {
-		register_post_type( 'ct_wa_click', array(
-			'labels' => array(
-				'name' => 'WhatsApp Clicks',
-				'singular_name' => 'WhatsApp Click'
-			),
-			'public' => false,
-			'show_ui' => true,
-			'show_in_menu' => 'clicktrail',
-			'capability_type' => 'post',
-			'capabilities' => array(
-				'create_posts' => 'do_not_allow'
-			),
-			'map_meta_cap' => true,
-			'supports' => array( 'title' )
-		) );
+		register_post_type(
+			'ct_wa_click',
+			array(
+				'labels'       => array(
+					'name'          => __( 'WhatsApp Clicks', 'click-trail-handler' ),
+					'singular_name' => __( 'WhatsApp Click', 'click-trail-handler' ),
+				),
+				'public'       => false,
+				'show_ui'      => true,
+				'show_in_menu' => 'clicktrail-settings',
+				'capability_type' => 'post',
+				'capabilities' => array(
+					'create_posts' => 'do_not_allow',
+				),
+				'map_meta_cap' => true,
+				'supports'     => array( 'title' ),
+			)
+		);
 	}
 
 	/**
 	 * Register all of the hooks related to the admin area functionality
 	 * of the plugin.
-	 *
-	 * @since    1.0.0
-	 * @access   private
 	 */
 	private function define_admin_hooks() {
-		$plugin_settings = new ClickTrail_Admin();
-		$plugin_settings->init();
+		$plugin_admin = new ClickTrail_Admin( $this->context );
+		$plugin_admin->init();
 
-		// AJAX for PII Logging
-                add_action( 'wp_ajax_ct_log_pii_risk', array( $plugin_settings, 'ajax_log_pii_risk' ) );
-                add_action( 'wp_ajax_nopriv_ct_log_pii_risk', array( $plugin_settings, 'ajax_log_pii_risk' ) );
-
-		// AJAX for WhatsApp Click Logging
-		add_action( 'wp_ajax_ct_log_wa_click', array( $this, 'ajax_log_wa_click' ) );
-		add_action( 'wp_ajax_nopriv_ct_log_wa_click', array( $this, 'ajax_log_wa_click' ) );
+		// AJAX hooks
+		add_action( 'wp_ajax_clicktrail_log_pii_risk', array( $plugin_admin, 'ajax_log_pii_risk' ) );
+		add_action( 'wp_ajax_clicktrail_log_wa_click', array( $this, 'ajax_log_wa_click' ) );
+		add_action( 'wp_ajax_nopriv_clicktrail_log_wa_click', array( $this, 'ajax_log_wa_click' ) );
 
 		// Initialize WooCommerce Admin features
 		if ( class_exists( 'WooCommerce' ) && class_exists( 'ClickTrail_WooCommerce_Admin' ) ) {
@@ -111,13 +137,17 @@ class ClickTrail_Core {
 	/**
 	 * Register all of the hooks related to the public-facing functionality
 	 * of the plugin.
-	 *
-	 * @since    1.0.0
-	 * @access   private
 	 */
 	private function define_public_hooks() {
-        add_action( 'wp_head', array( $this, 'inject_consent_defaults' ), 1 );
-        add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+		// Register Modules
+		$this->consent_mode->register();
+		$this->gtm->register();
+
+		// Register Events Logger
+		$events_logger = new ClickTrail\Modules\Events\Events_Logger( $this->context );
+		$events_logger->register();
+
+		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		
 		// Initialize Integrations
 		$form_integrations = new ClickTrail_Form_Integrations();
@@ -130,114 +160,75 @@ class ClickTrail_Core {
 	/**
 	 * Enqueue the public-facing scripts and styles.
 	 */
-        public function enqueue_scripts() {
-                $options = get_option( 'clicktrail_attribution_settings', array() );
-                $enable_attribution = isset( $options['enable_attribution'] ) ? (bool) $options['enable_attribution'] : true;
-                $cookie_days = isset( $options['cookie_days'] ) ? absint( $options['cookie_days'] ) : 90;
-                $enable_consent = isset( $options['enable_consent_banner'] ) ? (bool) $options['enable_consent_banner'] : 1;
-                $require_consent = isset( $options['require_consent'] ) ? (bool) $options['require_consent'] : 1;
+	public function enqueue_scripts() {
+		$options            = get_option( 'clicktrail_attribution_settings', array() );
+		$enable_attribution = isset( $options['enable_attribution'] ) ? (bool) $options['enable_attribution'] : true;
+		$cookie_days        = isset( $options['cookie_days'] ) ? absint( $options['cookie_days'] ) : 90;
+		
+		// Use new Consent Mode settings
+		$consent_settings = new ClickTrail\Modules\Consent_Mode\Consent_Mode_Settings();
+		$enable_consent   = $consent_settings->is_consent_mode_enabled();
+		
+		// Legacy setting for "Require Consent"
+		$require_consent = isset( $options['require_consent'] ) ? (bool) $options['require_consent'] : 1;
 
-                // Attribution Script
-                if ( $enable_attribution ) {
-                        wp_enqueue_script(
-                                'clicktrail-attribution-js',
-                                CLICKTRAIL_URL . 'assets/js/clicktrail-attribution.js',
-                                array(),
-                                CLICKTRAIL_VERSION,
-                                false // Load in Head
-                        );
+		// Attribution Script
+		if ( $enable_attribution ) {
+			wp_enqueue_script(
+				'clicktrail-attribution-js',
+				CLICKTRAIL_URL . 'assets/js/clicktrail-attribution.js',
+				array(),
+				CLICKTRAIL_VERSION,
+				false // Load in Head
+			);
 
-                        wp_localize_script( 'clicktrail-attribution-js', 'clickTrailConfig', array(
-                                'cookieName' => 'attribution',
-                                'cookieDays' => $cookie_days,
-                                'requireConsent' => $require_consent,
-                                'ajaxUrl'    => admin_url( 'admin-ajax.php' ),
-                                'nonce'      => wp_create_nonce( CLICKTRAIL_PII_NONCE_ACTION ),
-                                'enableWhatsapp' => isset( $options['enable_whatsapp'] ) ? (bool) $options['enable_whatsapp'] : true,
-                                'whatsappAppendAttribution' => isset( $options['whatsapp_append_attribution'] ) ? (bool) $options['whatsapp_append_attribution'] : false,
-                                'whatsappLogClicks' => isset( $options['whatsapp_log_clicks'] ) ? (bool) $options['whatsapp_log_clicks'] : false
-                        ));
-                }
+			wp_localize_script(
+				'clicktrail-attribution-js',
+				'clickTrailConfig',
+				array(
+					'cookieName'                => 'attribution',
+					'cookieDays'                => $cookie_days,
+					'requireConsent'            => $require_consent,
+					'ajaxUrl'                   => admin_url( 'admin-ajax.php' ),
+					'nonce'                     => wp_create_nonce( CLICKTRAIL_PII_NONCE_ACTION ),
+					'enableWhatsapp'            => isset( $options['enable_whatsapp'] ) ? (bool) $options['enable_whatsapp'] : true,
+					'whatsappAppendAttribution' => isset( $options['whatsapp_append_attribution'] ) ? (bool) $options['whatsapp_append_attribution'] : false,
+					'whatsappLogClicks'         => isset( $options['whatsapp_log_clicks'] ) ? (bool) $options['whatsapp_log_clicks'] : false,
+				)
+			);
+		}
 
-                // Consent Script & Style
-                if ( $enable_consent ) {
-                        wp_enqueue_style(
-                                'clicktrail-consent-css',
-                                CLICKTRAIL_URL . 'assets/css/clicktrail-consent.css',
-                                array(),
-                                CLICKTRAIL_VERSION,
-                                'all'
-                        );
+		// Consent Script & Style (Only if enabled in new settings)
+		if ( $enable_consent ) {
+			wp_enqueue_style(
+				'clicktrail-consent-css',
+				CLICKTRAIL_URL . 'assets/css/clicktrail-consent.css',
+				array(),
+				CLICKTRAIL_VERSION,
+				'all'
+			);
 
 			wp_enqueue_script(
-                                'clicktrail-consent-js',
-                                CLICKTRAIL_URL . 'assets/js/clicktrail-consent.js',
-                                array(),
-                                CLICKTRAIL_VERSION,
-                                true // Footer
-                        );
+				'clicktrail-consent-js',
+				CLICKTRAIL_URL . 'assets/js/clicktrail-consent.js',
+				array(),
+				CLICKTRAIL_VERSION,
+				true // Footer
+			);
 		}
+
+		// Events Tracking Script
+		wp_enqueue_script(
+			'clicktrail-events-js',
+			CLICKTRAIL_URL . 'assets/js/clicktrail-events.js',
+			array(),
+			CLICKTRAIL_VERSION,
+			true // Footer
+		);
 	}
-
-    /**
-     * Inject Consent Mode defaults into the head.
-     */
-    public function inject_consent_defaults() {
-        $options = get_option( 'clicktrail_attribution_settings', array() );
-        $enable_consent = isset( $options['enable_consent_banner'] ) ? (bool) $options['enable_consent_banner'] : true;
-
-        if ( ! $enable_consent ) {
-            return;
-        }
-
-        $mode = isset( $options['consent_mode_region'] ) ? $options['consent_mode_region'] : 'strict';
-        ?>
-<script>
-window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-<?php if ( 'relaxed' === $mode ) : ?>
-gtag('consent', 'default', {
-    'ad_storage': 'granted',
-    'ad_user_data': 'granted',
-    'ad_personalization': 'granted',
-    'analytics_storage': 'granted'
-});
-<?php elseif ( 'custom' === $mode ) : ?>
-// EU / UK / Switzerland: default DENIED
-gtag('consent', 'default', {
-    'ad_storage': 'denied',
-    'ad_user_data': 'denied',
-    'ad_personalization': 'denied',
-    'analytics_storage': 'denied',
-    'region': [
-        'AT','BE','BG','CH','CY','CZ','DE','DK','EE','ES','FI','FR','GB','GR',
-        'HR','HU','IE','IS','IT','LI','LT','LU','LV','MT','NL','NO','PL','PT',
-        'RO','SE','SI','SK'
-    ]
-});
-// Everyone else: default GRANTED
-gtag('consent', 'default', {
-    'ad_storage': 'granted',
-    'ad_user_data': 'granted',
-    'ad_personalization': 'granted',
-    'analytics_storage': 'granted'
-});
-<?php else : // Strict ?>
-gtag('consent', 'default', {
-    'ad_storage': 'denied',
-    'ad_user_data': 'denied',
-    'ad_personalization': 'denied',
-    'analytics_storage': 'denied'
-});
-<?php endif; ?>
-</script>
-        <?php
-    }
 
 	/**
 	 * Run the loader to execute all of the hooks with WordPress.
-	 *
-	 * @since    1.0.0
 	 */
 	public function run() {
 		// In a more complex setup we might use a Loader class, 
@@ -260,11 +251,13 @@ gtag('consent', 'default', {
 		}
 
 		// Create post
-		$post_id = wp_insert_post( array(
-			'post_type' => 'ct_wa_click',
-			'post_title' => 'WhatsApp Click - ' . date( 'Y-m-d H:i:s' ),
-			'post_status' => 'publish'
-		) );
+		$post_id = wp_insert_post(
+			array(
+				'post_type'   => 'ct_wa_click',
+				'post_title'  => 'WhatsApp Click - ' . gmdate( 'Y-m-d H:i:s' ),
+				'post_status' => 'publish',
+			)
+		);
 
 		if ( ! is_wp_error( $post_id ) ) {
 			update_post_meta( $post_id, '_wa_href', $wa_href );
