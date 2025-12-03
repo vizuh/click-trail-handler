@@ -71,6 +71,7 @@ class Web_Tag {
 		";
 
 		printf( "\n<!-- %s -->\n", esc_html__( 'Google Tag Manager snippet added by ClickTrail', 'click-trail-handler' ) );
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Content is hardcoded script with safely escaped ID.
 		printf( "<script>%s</script>", sprintf( $script, esc_js( $container_id ) ) );
 		printf( "\n<!-- %s -->\n", esc_html__( 'End Google Tag Manager snippet added by ClickTrail', 'click-trail-handler' ) );
 	}

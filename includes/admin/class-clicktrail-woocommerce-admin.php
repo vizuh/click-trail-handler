@@ -68,7 +68,7 @@ class ClickTrail_WooCommerce_Admin {
 				$display[] = esc_html( strtoupper( $ft_medium ) );
 			}
 
-			echo implode( ' / ', $display );
+			echo esc_html( implode( ' / ', $display ) );
 		} else {
 			echo '<span style="color: #999;">' . esc_html__( 'Direct', 'click-trail-handler' ) . '</span>';
 		}
