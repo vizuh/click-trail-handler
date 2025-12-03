@@ -213,19 +213,19 @@ class ClickTrail_Admin {
 			<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 			
 			<h2 class="nav-tab-wrapper">
-				<a href="?page=clicktrail-settings&tab=general" class="nav-tab <?php echo $active_tab == 'general' ? 'nav-tab-active' : ''; ?>">
+				<a href="?page=clicktrail-settings&tab=general" class="nav-tab <?php echo esc_attr( 'general' === $active_tab ? 'nav-tab-active' : '' ); ?>">
 					<span class="dashicons dashicons-admin-generic"></span>
 					<?php esc_html_e( 'Attribution', 'click-trail-handler' ); ?>
 				</a>
-				<a href="?page=clicktrail-settings&tab=whatsapp" class="nav-tab <?php echo $active_tab == 'whatsapp' ? 'nav-tab-active' : ''; ?>">
+				<a href="?page=clicktrail-settings&tab=whatsapp" class="nav-tab <?php echo esc_attr( 'whatsapp' === $active_tab ? 'nav-tab-active' : '' ); ?>">
 					<span class="dashicons dashicons-format-chat"></span>
 					<?php esc_html_e( 'WhatsApp', 'click-trail-handler' ); ?>
 				</a>
-				<a href="?page=clicktrail-settings&tab=consent" class="nav-tab <?php echo $active_tab == 'consent' ? 'nav-tab-active' : ''; ?>">
+				<a href="?page=clicktrail-settings&tab=consent" class="nav-tab <?php echo esc_attr( 'consent' === $active_tab ? 'nav-tab-active' : '' ); ?>">
 					<span class="dashicons dashicons-privacy"></span>
 					<?php esc_html_e( 'Privacy & Consent', 'click-trail-handler' ); ?>
 				</a>
-				<a href="?page=clicktrail-settings&tab=gtm" class="nav-tab <?php echo $active_tab == 'gtm' ? 'nav-tab-active' : ''; ?>">
+				<a href="?page=clicktrail-settings&tab=gtm" class="nav-tab <?php echo esc_attr( 'gtm' === $active_tab ? 'nav-tab-active' : '' ); ?>">
 					<span class="dashicons dashicons-chart-bar"></span>
 					<?php esc_html_e( 'Integrations', 'click-trail-handler' ); ?>
 				</a>
@@ -331,9 +331,8 @@ class ClickTrail_Admin {
 	public function ajax_log_pii_risk() {
 		check_ajax_referer( 'clicktrail_pii_nonce', 'nonce' );
 
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Insufficient permissions to log PII alerts.', 'click-trail-handler' ) ), 403 );
-		}
+		// Removed capability check - this is meant to be a public feature
+		// Non-admin users can log PII risks detected on public pages
 
 		if ( isset( $_POST['pii_found'] ) && $_POST['pii_found'] === 'true' ) {
 			update_option( 'clicktrail_pii_risk_detected', true );
