@@ -1,9 +1,10 @@
 <?php
+
+namespace ClickTrail\Modules\Events;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
-namespace ClickTrail\Modules\Events;
 
 use ClickTrail\Core\Context;
 

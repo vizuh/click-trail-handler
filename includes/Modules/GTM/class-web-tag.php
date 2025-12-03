@@ -1,9 +1,10 @@
 <?php
+
+namespace ClickTrail\Modules\GTM;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-
-namespace ClickTrail\Modules\GTM;
 
 use ClickTrail\Core\Context;
 
