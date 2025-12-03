@@ -250,7 +250,10 @@ class ClickTrail_Core {
 		
 		// Decode attribution data
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- JSON string is decoded and then sanitized.
-		$attribution_raw = isset( $_POST['attribution'] ) ? wp_unslash( $_POST['attribution'] ) : '';
+		$attribution_raw = filter_input( INPUT_POST, 'attribution', FILTER_DEFAULT );
+		if ( $attribution_raw ) {
+			$attribution_raw = wp_unslash( $attribution_raw );
+		}
 		$attribution     = json_decode( $attribution_raw, true );
 		
 		if ( function_exists( 'clicktrail_sanitize_attribution_data' ) ) {

@@ -2,7 +2,7 @@
 Contributors: vizuh
 Tags: attribution, utm, tracking, consent mode, gtm
 Requires at least: 5.0
-Tested up to: 6.7.1
+Tested up to: 6.9
 Stable tag: 1.1.0
 Requires PHP: 7.0
 License: GPLv2 or later

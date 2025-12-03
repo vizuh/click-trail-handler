@@ -42,10 +42,10 @@ if ( ! function_exists( 'clicktrail_get_attribution' ) ) {
 		$keys = array( 'ct_attribution', 'attribution' );
 
 		foreach ( $keys as $key ) {
-			if ( isset( $_COOKIE[ $key ] ) ) {
+			if ( filter_input( INPUT_COOKIE, $key, FILTER_DEFAULT ) ) {
 				// Don't sanitize JSON string - decode first, then sanitize the data
 				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- JSON string is decoded and then sanitized.
-				$cookie_value = wp_unslash( $_COOKIE[ $key ] );
+				$cookie_value = wp_unslash( filter_input( INPUT_COOKIE, $key, FILTER_DEFAULT ) );
 				$data         = json_decode( $cookie_value, true );
 				if ( is_array( $data ) && JSON_ERROR_NONE === json_last_error() ) {
 					return clicktrail_sanitize_attribution_data( $data );
