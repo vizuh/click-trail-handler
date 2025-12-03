@@ -77,12 +77,7 @@ class ClickTrail_Core {
 		}
 	}
 
-	/**
-	 * Define the locale for this plugin for internationalization.
-	 */
-	private function set_locale() {
-		// load_plugin_textdomain is handled automatically by WordPress.org
-	}
+
 
 	/**
 	 * Register Custom Post Types
