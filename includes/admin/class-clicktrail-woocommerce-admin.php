@@ -61,11 +61,11 @@ class ClickTrail_WooCommerce_Admin {
 			$display = array();
 			
 			if ( $ft_source ) {
-				$display[] = esc_html( ucfirst( $ft_source ) );
+				$display[] = esc_html( $ft_source );
 			}
 			
 			if ( $ft_medium ) {
-				$display[] = esc_html( strtoupper( $ft_medium ) );
+				$display[] = esc_html( $ft_medium );
 			}
 
 			echo esc_html( implode( ' / ', $display ) );

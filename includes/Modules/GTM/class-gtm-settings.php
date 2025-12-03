@@ -49,7 +49,19 @@ class GTM_Settings extends Setting {
 			$new_value = $this->get();
 
 			if ( isset( $value['container_id'] ) ) {
-				$new_value['container_id'] = sanitize_text_field( $value['container_id'] );
+				$container_id = sanitize_text_field( $value['container_id'] );
+				
+				// Validate GTM Container ID format (GTM-XXXXXXX)
+				if ( ! empty( $container_id ) && ! preg_match( '/^GTM-[A-Z0-9]+$/i', $container_id ) ) {
+					add_settings_error(
+						'clicktrail_gtm',
+						'invalid_container_id',
+						__( 'Invalid GTM Container ID format. Should be GTM-XXXXXX', 'click-trail-handler' )
+					);
+					$container_id = '';
+				}
+				
+				$new_value['container_id'] = $container_id;
 			}
 
 			return $new_value;

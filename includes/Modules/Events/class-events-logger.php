@@ -1,6 +1,6 @@
 <?php
 /**
- * Class ClickTrail\Modules\Events\Events_Logger
+ * Class ClickTrail\\Modules\\Events\\Events_Logger
  *
  * @package   ClickTrail
  */
@@ -47,11 +47,14 @@ class Events_Logger {
 	 * @param WP_User $user       User Object.
 	 */
 	public function log_login_event( $user_login, $user ) {
-		$this->set_event_cookie( 'ct_event_login', array(
-			'event'   => 'login',
-			'user_id' => $user->ID,
-			'method'  => 'wordpress',
-		) );
+		$this->set_event_cookie(
+			'ct_event_login',
+			array(
+				'event'   => 'login',
+				'user_id' => $user->ID,
+				'method'  => 'wordpress',
+			)
+		);
 	}
 
 	/**
@@ -60,11 +63,14 @@ class Events_Logger {
 	 * @param int $user_id User ID.
 	 */
 	public function log_signup_event( $user_id ) {
-		$this->set_event_cookie( 'ct_event_signup', array(
-			'event'   => 'sign_up',
-			'user_id' => $user_id,
-			'method'  => 'wordpress',
-		) );
+		$this->set_event_cookie(
+			'ct_event_signup',
+			array(
+				'event'   => 'sign_up',
+				'user_id' => $user_id,
+				'method'  => 'wordpress',
+			)
+		);
 	}
 
 	/**
@@ -79,10 +85,13 @@ class Events_Logger {
 			return;
 		}
 
-		$this->set_event_cookie( 'ct_event_comment', array(
-			'event'      => 'comment_submit',
-			'comment_id' => $comment_id,
-		) );
+		$this->set_event_cookie(
+			'ct_event_comment',
+			array(
+				'event'      => 'comment_submit',
+				'comment_id' => $comment_id,
+			)
+		);
 	}
 
 	/**
@@ -92,13 +101,54 @@ class Events_Logger {
 	 * @param array  $data  Event data.
 	 */
 	private function set_event_cookie( $name, $data ) {
-		// Set cookie for 1 minute
-		setcookie( $name, wp_json_encode( $data ), time() + 60, COOKIEPATH, COOKIE_DOMAIN );
+		// Set cookie for 1 minute with security flags
+		setcookie(
+			$name,
+			wp_json_encode( $data ),
+			array(
+				'expires'  => time() + 60,
+				'path'     => COOKIEPATH,
+				'domain'   => COOKIE_DOMAIN,
+				'secure'   => is_ssl(),
+				'httponly' => true,
+				'samesite' => 'Lax',
+			)
+		);
 	}
 
 	/**
 	 * Render server-side events into dataLayer.
 	 */
+	public function render_server_events() {
+		$events        = array( 'ct_event_login', 'ct_event_signup', 'ct_event_comment' );
+		$pushed_events = array();
+
+		foreach ( $events as $cookie_name ) {
+			if ( isset( $_COOKIE[ $cookie_name ] ) ) {
+				$event_data = json_decode( sanitize_text_field( wp_unslash( $_COOKIE[ $cookie_name ] ) ), true );
+				
+				if ( $event_data ) {
+					$pushed_events[] = $event_data;
+					// Clear the cookie after reading
+					setcookie(
+						$cookie_name,
+						'',
+						array(
+							'expires'  => time() - 3600,
+							'path'     => COOKIEPATH,
+							'domain'   => COOKIE_DOMAIN,
+							'secure'   => is_ssl(),
+							'httponly' => true,
+							'samesite' => 'Lax',
+						)
+					);
+				}
+			}
+		}
+
+		if ( ! empty( $pushed_events ) ) {
+			echo "<script>\n";
+			echo "window.dataLayer = window.dataLayer || [];\n";
 			foreach ( $pushed_events as $event ) {
 				printf( "window.dataLayer.push(%s);\n", wp_json_encode( $event ) );
 			}
