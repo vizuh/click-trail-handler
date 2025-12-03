@@ -239,25 +239,12 @@ class ClickTrail_Core {
 	 * AJAX handler for logging WhatsApp clicks
 	 */
 	public function ajax_log_wa_click() {
-		// Verify nonce for public tracking
-		if ( ! check_ajax_referer( CLICKTRAIL_PII_NONCE_ACTION, 'nonce', false ) ) {
-			wp_send_json_error( array( 'message' => 'Invalid nonce' ) );
-		}
+		// No nonce check needed for public tracking
+                $wa_href = isset( $_POST['wa_href'] ) ? esc_url_raw( $_POST['wa_href'] ) : '';
+                $wa_location = isset( $_POST['wa_location'] ) ? esc_url_raw( $_POST['wa_location'] ) : '';
 
-		$wa_href     = isset( $_POST['wa_href'] ) ? esc_url_raw( wp_unslash( $_POST['wa_href'] ) ) : '';
-		$wa_location = isset( $_POST['wa_location'] ) ? esc_url_raw( wp_unslash( $_POST['wa_location'] ) ) : '';
-		
-		// Decode attribution data
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- JSON string is decoded and then sanitized.
-		$attribution_raw = filter_input( INPUT_POST, 'attribution', FILTER_DEFAULT );
-		if ( $attribution_raw ) {
-			$attribution_raw = wp_unslash( $attribution_raw );
-		}
-		$attribution     = json_decode( $attribution_raw, true );
-		
-		if ( function_exists( 'clicktrail_sanitize_attribution_data' ) ) {
-			$attribution = clicktrail_sanitize_attribution_data( $attribution );
-		}
+                $raw_attribution = isset( $_POST['attribution'] ) ? json_decode( stripslashes( $_POST['attribution'] ), true ) : array();
+                $attribution     = is_array( $raw_attribution ) ? clicktrail_sanitize_attribution_data( $raw_attribution ) : array();
 
 		if ( ! $wa_href ) {
 			wp_send_json_error( array( 'message' => 'Missing wa_href' ) );
