@@ -24,6 +24,9 @@ define( 'CLICKTRAIL_BASENAME', plugin_basename( __FILE__ ) );
 define( 'CLICKTRAIL_PLUGIN_MAIN_FILE', __FILE__ );
 define( 'CLICKTRAIL_PII_NONCE_ACTION', 'clicktrail_pii_nonce' );
 
+// Load text domain for translations
+load_plugin_textdomain( 'click-trail-handler', false, dirname( CLICKTRAIL_BASENAME ) . '/languages' );
+
 // Include Core Class
 require_once CLICKTRAIL_DIR . 'includes/class-clicktrail-core.php';
 require_once CLICKTRAIL_DIR . 'includes/clicktrail-attribution-functions.php';
