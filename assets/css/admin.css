@@ -1,0 +1,409 @@
+/**
+ * ClickTrail Admin Styles
+ * Professional styling for the plugin settings page
+ */
+
+/* ========================================
+   Main Settings Container
+   ======================================== */
+.clicktrail-settings-wrap {
+    max-width: 1200px;
+    margin: 20px 0;
+}
+
+/* ========================================
+   Card-Based Sections
+   ======================================== */
+.clicktrail-section {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+    margin: 20px 0;
+    padding: 0;
+}
+
+.clicktrail-section-header {
+    background: #f6f7f7;
+    border-bottom: 1px solid #c3c4c7;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.clicktrail-section-header h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+.clicktrail-section-header .dashicons {
+    color: #2271b1;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+}
+
+.clicktrail-section-body {
+    padding: 20px;
+}
+
+/* ========================================
+   Form Table Improvements
+   ======================================== */
+.clicktrail-settings-wrap .form-table th {
+    font-weight: 600;
+    color: #1d2327;
+    padding: 15px 10px 15px 0;
+}
+
+.clicktrail-settings-wrap .form-table td {
+    padding: 15px 10px;
+}
+
+.clicktrail-settings-wrap .form-table tr {
+    border-bottom: 1px solid #f0f0f1;
+}
+
+.clicktrail-settings-wrap .form-table tr:last-child {
+    border-bottom: none;
+}
+
+/* ========================================
+   Toggle Switches (Modern UI)
+   ======================================== */
+.clicktrail-toggle-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.clicktrail-toggle {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.clicktrail-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.clicktrail-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #8c8f94;
+    transition: 0.3s;
+    border-radius: 24px;
+}
+
+.clicktrail-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: 0.3s;
+    border-radius: 50%;
+}
+
+.clicktrail-toggle input:checked + .clicktrail-toggle-slider {
+    background-color: #2271b1;
+}
+
+.clicktrail-toggle input:focus + .clicktrail-toggle-slider {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px #2271b1;
+}
+
+.clicktrail-toggle input:checked + .clicktrail-toggle-slider:before {
+    transform: translateX(20px);
+}
+
+.clicktrail-toggle-label {
+    font-weight: 500;
+    color: #50575e;
+}
+
+/* ========================================
+   Status Indicators
+   ======================================== */
+.clicktrail-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.clicktrail-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.clicktrail-status.connected {
+    background: #d7f5e3;
+    color: #00703c;
+}
+
+.clicktrail-status.connected .clicktrail-status-dot {
+    background: #00a32a;
+}
+
+.clicktrail-status.disconnected {
+    background: #fce8e7;
+    color: #8b0000;
+}
+
+.clicktrail-status.disconnected .clicktrail-status-dot {
+    background: #d63638;
+}
+
+.clicktrail-status.warning {
+    background: #fcf3cf;
+    color: #826200;
+}
+
+.clicktrail-status.warning .clicktrail-status-dot {
+    background: #dba617;
+}
+
+/* ========================================
+   Help Tooltips
+   ======================================== */
+.clicktrail-help-tip {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    text-align: center;
+    border-radius: 50%;
+    background: #2271b1;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: help;
+    margin-left: 5px;
+    position: relative;
+}
+
+.clicktrail-help-tip:hover::after {
+    content: attr(data-tip);
+    position: absolute;
+    left: 50%;
+    bottom: 100%;
+    transform: translateX(-50%);
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    background: #1d2327;
+    color: #fff;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 400;
+    white-space: nowrap;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.clicktrail-help-tip:hover::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 100%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-top-color: #1d2327;
+}
+
+/* ========================================
+   Buttons & Actions
+   ======================================== */
+.clicktrail-test-button {
+    margin-left: 10px;
+    vertical-align: middle;
+}
+
+.clicktrail-button-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+/* ========================================
+   Tab Navigation Improvements
+   ======================================== */
+.nav-tab-wrapper {
+    margin: 20px 0;
+    border-bottom: 1px solid #c3c4c7;
+}
+
+.nav-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+}
+
+.nav-tab .dashicons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+.nav-tab-active {
+    color: #2271b1;
+}
+
+/* ========================================
+   Description Text
+   ======================================== */
+.clicktrail-description {
+    color: #646970;
+    font-size: 13px;
+    margin: 5px 0 0 0;
+    line-height: 1.5;
+}
+
+.clicktrail-feature-list {
+    margin: 10px 0;
+    padding-left: 20px;
+}
+
+.clicktrail-feature-list li {
+    color: #646970;
+    font-size: 13px;
+    margin: 4px 0;
+}
+
+/* ========================================
+   Success/Error Messages
+   ======================================== */
+.clicktrail-notice {
+    margin: 20px 0;
+    padding: 12px;
+    border-left: 4px solid;
+    background: #fff;
+}
+
+.clicktrail-notice.success {
+    border-left-color: #00a32a;
+    background: #d7f5e3;
+}
+
+.clicktrail-notice.error {
+    border-left-color: #d63638;
+    background: #fce8e7;
+}
+
+/* ========================================
+   Setup Wizard (Phase 3)
+   ======================================== */
+.clicktrail-wizard {
+    max-width: 800px;
+    margin: 40px auto;
+}
+
+.clicktrail-wizard-step {
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-radius: 4px;
+    padding: 30px;
+    margin: 20px 0;
+}
+
+.clicktrail-wizard-progress {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    list-style: none;
+    padding: 0;
+}
+
+.clicktrail-wizard-progress li {
+    flex: 1;
+    text-align: center;
+    position: relative;
+    color: #8c8f94;
+}
+
+.clicktrail-wizard-progress li.active {
+    color: #2271b1;
+    font-weight: 600;
+}
+
+.clicktrail-wizard-progress li.completed {
+    color: #00a32a;
+}
+
+/* ========================================
+   Responsive Design
+   ======================================== */
+@media (max-width: 782px) {
+    .clicktrail-settings-wrap .form-table th,
+    .clicktrail-settings-wrap .form-table td {
+        display: block;
+        width: 100%;
+        padding: 10px 0;
+    }
+    
+    .clicktrail-button-group {
+        flex-direction: column;
+    }
+    
+    .clicktrail-toggle-wrapper {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* ========================================
+   Import/Export Section (Phase 3)
+   ======================================== */
+.clicktrail-import-export {
+    background: #f6f7f7;
+    border: 1px dashed #c3c4c7;
+    padding: 20px;
+    border-radius: 4px;
+    margin: 20px 0;
+}
+
+.clicktrail-import-export h4 {
+    margin: 0 0 15px 0;
+    color: #1d2327;
+}
+
+.clicktrail-import-export textarea {
+    width: 100%;
+    min-height: 150px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+}
+
+/* ========================================
+   Loading States
+   ======================================== */
+.clicktrail-loading {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #2271b1;
+    border-radius: 50%;
+    animation: clicktrail-spin 1s linear infinite;
+}
+
+@keyframes clicktrail-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
