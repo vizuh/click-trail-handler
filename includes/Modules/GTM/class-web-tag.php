@@ -5,6 +5,10 @@
  * @package   ClickTrail
  */
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 namespace ClickTrail\Modules\GTM;
 
 use ClickTrail\Core\Context;

@@ -6,6 +6,11 @@
  * This is used to define internationalization, admin-specific hooks, and
  * public-facing site hooks.
  */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 class ClickTrail_Core {
 
 	/**
@@ -34,7 +39,6 @@ class ClickTrail_Core {
 	 */
 	public function __construct() {
 		$this->load_dependencies();
-		$this->set_locale();
 		$this->context = new ClickTrail\Core\Context( CLICKTRAIL_PLUGIN_MAIN_FILE );
 		
 		// Initialize Modules
