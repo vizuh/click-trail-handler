@@ -99,25 +99,6 @@ class Events_Logger {
 	/**
 	 * Render server-side events into dataLayer.
 	 */
-	public function render_server_events() {
-		$events = array( 'ct_event_login', 'ct_event_signup', 'ct_event_comment' );
-		$pushed_events = array();
-
-		foreach ( $events as $cookie_name ) {
-			if ( isset( $_COOKIE[ $cookie_name ] ) ) {
-				$data = json_decode( stripslashes( $_COOKIE[ $cookie_name ] ), true );
-				if ( $data ) {
-					$pushed_events[] = $data;
-				}
-				// Clear cookie
-				setcookie( $cookie_name, '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN );
-				unset( $_COOKIE[ $cookie_name ] );
-			}
-		}
-
-		if ( ! empty( $pushed_events ) ) {
-			echo "<script>\n";
-			echo "window.dataLayer = window.dataLayer || [];\n";
 			foreach ( $pushed_events as $event ) {
 				printf( "window.dataLayer.push(%s);\n", wp_json_encode( $event ) );
 			}

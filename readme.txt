@@ -1,7 +1,19 @@
 
-The plugin captures first- and last-touch UTMs and click IDs, stores them in cookies (with user consent when required), and automatically attaches that data to your form entries and WooCommerce orders. Built-in consent banner with Google Consent Mode integration ensures your tracking stays compliant with GDPR and other privacy regulations.
+=== ClickTrail – UTM, Click ID & Ad Tracking (with Consent) ===
+Contributors: vizuh
+Tags: attribution, utm, tracking, consent mode, gtm
+Requires at least: 5.0
+Tested up to: 6.7
+Stable tag: 1.1.0
+Requires PHP: 7.0
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Built for WordPress 5.0+ / PHP 7.0+, it includes a simple settings screen for marketers and the front-end scripts needed for attribution and consent handling.
+Complete consent management and marketing attribution solution. Captures UTMs and click IDs, manages consent, and tracks across forms and WooCommerce.
+
+== Description ==
+
+The plugin captures first- and last-touch UTMs and click IDs, stores them in cookies (with user consent when required), and automatically attaches that data to your form entries and WooCommerce orders. Built-in consent banner with Google Consent Mode integration ensures your tracking stays compliant with GDPR and other privacy regulations.
 
 **Key Benefits**
 
