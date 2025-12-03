@@ -1,10 +1,4 @@
 <?php
-/**
- * Class ClickTrail\Modules\GTM\Web_Tag
- *
- * @package   ClickTrail
- */
-
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -12,6 +6,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 namespace ClickTrail\Modules\GTM;
 
 use ClickTrail\Core\Context;
+
+/**
+ * Class ClickTrail\Modules\GTM\Web_Tag
+ *
+ * @package   ClickTrail
+ */
 
 /**
  * Class for Web tag.

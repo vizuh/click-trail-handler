@@ -1,10 +1,4 @@
 <?php
-/**
- * Class ClickTrail\\Modules\\Events\\Events_Logger
- *
- * @package   ClickTrail
- */
-
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -12,6 +6,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 namespace ClickTrail\Modules\Events;
 
 use ClickTrail\Core\Context;
+
+/**
+ * Class ClickTrail\Modules\Events\Events_Logger
+ *
+ * @package   ClickTrail
+ */
 
 /**
  * Class for logging server-side events to dataLayer.
