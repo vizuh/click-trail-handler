@@ -249,9 +249,11 @@ gtag('consent', 'default', {
 	 */
 	public function ajax_log_wa_click() {
 		// No nonce check needed for public tracking
-		$wa_href = isset( $_POST['wa_href'] ) ? esc_url_raw( $_POST['wa_href'] ) : '';
-		$wa_location = isset( $_POST['wa_location'] ) ? esc_url_raw( $_POST['wa_location'] ) : '';
-		$attribution = isset( $_POST['attribution'] ) ? json_decode( stripslashes( $_POST['attribution'] ), true ) : array();
+                $wa_href = isset( $_POST['wa_href'] ) ? esc_url_raw( $_POST['wa_href'] ) : '';
+                $wa_location = isset( $_POST['wa_location'] ) ? esc_url_raw( $_POST['wa_location'] ) : '';
+
+                $raw_attribution = isset( $_POST['attribution'] ) ? json_decode( stripslashes( $_POST['attribution'] ), true ) : array();
+                $attribution     = is_array( $raw_attribution ) ? clicktrail_sanitize_attribution_data( $raw_attribution ) : array();
 
 		if ( ! $wa_href ) {
 			wp_send_json_error( array( 'message' => 'Missing wa_href' ) );
