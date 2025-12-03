@@ -335,8 +335,10 @@ class ClickTrail_Admin {
 		// Removed capability check - this is meant to be a public feature
 		// Non-admin users can log PII risks detected on public pages
 
-		if ( isset( $_POST['pii_found'] ) && $_POST['pii_found'] === 'true' ) {
-			update_option( 'clicktrail_pii_risk_detected', true );
+                $pii_found = isset( $_POST['pii_found'] ) ? filter_var( wp_unslash( $_POST['pii_found'] ), FILTER_VALIDATE_BOOLEAN ) : false;
+
+                if ( $pii_found ) {
+                        update_option( 'ct_pii_risk_detected', true );
 			wp_send_json_success();
 		}
 		wp_send_json_error();
