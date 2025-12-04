@@ -54,30 +54,18 @@ class ClickTrail_Core {
 	 * Load the required dependencies for this plugin.
 	 */
 	private function load_dependencies() {
-		// Core
-		require_once CLICKTRAIL_DIR . 'includes/Core/class-context.php';
-		require_once CLICKTRAIL_DIR . 'includes/Core/Storage/class-setting.php';
+		// Autoloader
+		require_once CLICKTRAIL_DIR . 'includes/class-autoloader.php';
+		\ClickTrail\Autoloader::run();
 
-		// Modules
-		require_once CLICKTRAIL_DIR . 'includes/Modules/Consent_Mode/class-regions.php';
-		require_once CLICKTRAIL_DIR . 'includes/Modules/Consent_Mode/class-consent-mode-settings.php';
-		require_once CLICKTRAIL_DIR . 'includes/Modules/Consent_Mode/class-consent-mode.php';
-		
-		require_once CLICKTRAIL_DIR . 'includes/Modules/GTM/class-gtm-settings.php';
-		require_once CLICKTRAIL_DIR . 'includes/Modules/GTM/class-web-tag.php';
-
-		require_once CLICKTRAIL_DIR . 'includes/Modules/Events/class-events-logger.php';
-
-		// Admin
-		require_once CLICKTRAIL_DIR . 'includes/admin/class-ct-settings.php';
-
-		// Integrations
-		require_once CLICKTRAIL_DIR . 'includes/integrations/class-clicktrail-form-integrations.php';
-		require_once CLICKTRAIL_DIR . 'includes/integrations/class-clicktrail-woocommerce.php';
+		// Legacy / Non-namespaced files
+		require_once CLICKTRAIL_DIR . 'includes/admin/class-ct-settings.php'; // ClickTrail_Admin (Not namespaced)
+		require_once CLICKTRAIL_DIR . 'includes/integrations/class-clicktrail-form-integrations.php'; // ClickTrail_Form_Integrations (Not namespaced)
+		require_once CLICKTRAIL_DIR . 'includes/integrations/class-clicktrail-woocommerce.php'; // ClickTrail_WooCommerce_Integration (Not namespaced)
 
 		// WooCommerce Admin (if WooCommerce is active)
 		if ( class_exists( 'WooCommerce' ) ) {
-			require_once CLICKTRAIL_DIR . 'includes/admin/class-clicktrail-woocommerce-admin.php';
+			require_once CLICKTRAIL_DIR . 'includes/admin/class-clicktrail-woocommerce-admin.php'; // ClickTrail_WooCommerce_Admin (Not namespaced)
 		}
 	}
 
