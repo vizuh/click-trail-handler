@@ -239,12 +239,17 @@ class ClickTrail_Core {
 	 * AJAX handler for logging WhatsApp clicks
 	 */
 	public function ajax_log_wa_click() {
-		// No nonce check needed for public tracking
-                $wa_href = isset( $_POST['wa_href'] ) ? esc_url_raw( $_POST['wa_href'] ) : '';
-                $wa_location = isset( $_POST['wa_location'] ) ? esc_url_raw( $_POST['wa_location'] ) : '';
+		// Verify nonce
+		if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['nonce'] ) ), CLICKTRAIL_PII_NONCE_ACTION ) ) {
+			wp_send_json_error( array( 'message' => 'Invalid nonce' ) );
+		}
 
-                $raw_attribution = isset( $_POST['attribution'] ) ? json_decode( stripslashes( $_POST['attribution'] ), true ) : array();
-                $attribution     = is_array( $raw_attribution ) ? clicktrail_sanitize_attribution_data( $raw_attribution ) : array();
+		$wa_href     = isset( $_POST['wa_href'] ) ? esc_url_raw( wp_unslash( $_POST['wa_href'] ) ) : '';
+		$wa_location = isset( $_POST['wa_location'] ) ? esc_url_raw( wp_unslash( $_POST['wa_location'] ) ) : '';
+
+		$raw_attribution_json = isset( $_POST['attribution'] ) ? wp_unslash( $_POST['attribution'] ) : '';
+		$raw_attribution      = json_decode( $raw_attribution_json, true );
+		$attribution          = is_array( $raw_attribution ) ? clicktrail_sanitize_attribution_data( $raw_attribution ) : array();
 
 		if ( ! $wa_href ) {
 			wp_send_json_error( array( 'message' => 'Missing wa_href' ) );
