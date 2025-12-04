@@ -5,6 +5,10 @@
  * @param array $data Raw attribution data.
  * @return array Sanitized attribution data.
  */
+
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
 if ( ! function_exists( 'clicktrail_sanitize_attribution_data' ) ) {
 	function clicktrail_sanitize_attribution_data( $data ) {
 		if ( ! is_array( $data ) ) {
