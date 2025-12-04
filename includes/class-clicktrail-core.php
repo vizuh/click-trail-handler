@@ -235,6 +235,7 @@ class ClickTrail_Core {
 		$wa_href     = isset( $_POST['wa_href'] ) ? esc_url_raw( wp_unslash( $_POST['wa_href'] ) ) : '';
 		$wa_location = isset( $_POST['wa_location'] ) ? esc_url_raw( wp_unslash( $_POST['wa_location'] ) ) : '';
 
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- JSON string is decoded and then sanitized.
 		$raw_attribution_json = isset( $_POST['attribution'] ) ? wp_unslash( $_POST['attribution'] ) : '';
 		$raw_attribution      = json_decode( $raw_attribution_json, true );
 		$attribution          = is_array( $raw_attribution ) ? clicktrail_sanitize_attribution_data( $raw_attribution ) : array();
