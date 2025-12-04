@@ -1,12 +1,12 @@
 <?php
 
-namespace ClickTrail\Modules\Events;
+namespace CLICUTCL\Modules\Events;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use ClickTrail\Core\Context;
+use CLICUTCL\Core\Context;
 
 /**
  * Class ClickTrail\Modules\Events\Events_Logger

@@ -5,7 +5,7 @@
  * @package ClickTrail
  */
 
-namespace ClickTrail;
+namespace CLICUTCL;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -33,13 +33,13 @@ class Autoloader {
 	 * @param string $class Class name.
 	 */
 	private static function autoload( $class ) {
-		// Only load ClickTrail classes.
-		if ( 0 !== strpos( $class, 'ClickTrail\\' ) ) {
+		// Only load CLICUTCL classes.
+		if ( 0 !== strpos( $class, 'CLICUTCL\\' ) ) {
 			return;
 		}
 
 		// Remove the root namespace.
-		$relative_class = str_replace( 'ClickTrail\\', '', $class );
+		$relative_class = str_replace( 'CLICUTCL\\', '', $class );
 
 		// Convert namespace to path.
 		// 1. Lowercase.
@@ -60,11 +60,11 @@ class Autoloader {
 		$directory_path = str_replace( '_', '-', strtolower( $directory_path ) );
 
 		// Build full path.
-		$path = CLICKTRAIL_DIR . 'includes' . DIRECTORY_SEPARATOR . $directory_path . DIRECTORY_SEPARATOR . $file_name;
+		$path = CLICUTCL_DIR . 'includes' . DIRECTORY_SEPARATOR . $directory_path . DIRECTORY_SEPARATOR . $file_name;
 		
 		// Handle root includes (no subdirectory)
 		if ( empty( $directory_path ) ) {
-			$path = CLICKTRAIL_DIR . 'includes' . DIRECTORY_SEPARATOR . $file_name;
+			$path = CLICUTCL_DIR . 'includes' . DIRECTORY_SEPARATOR . $file_name;
 		}
 
 		if ( file_exists( $path ) ) {

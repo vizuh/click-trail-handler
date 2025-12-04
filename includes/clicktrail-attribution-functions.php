@@ -9,8 +9,8 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
-if ( ! function_exists( 'clicktrail_sanitize_attribution_data' ) ) {
-	function clicktrail_sanitize_attribution_data( $data ) {
+if ( ! function_exists( 'clicutcl_sanitize_attribution_data' ) ) {
+	function clicutcl_sanitize_attribution_data( $data ) {
 		if ( ! is_array( $data ) ) {
 			return array();
 		}
@@ -41,8 +41,8 @@ if ( ! function_exists( 'clicktrail_sanitize_attribution_data' ) ) {
  *
  * @return array|null The attribution data array or null if not found.
  */
-if ( ! function_exists( 'clicktrail_get_attribution' ) ) {
-	function clicktrail_get_attribution() {
+if ( ! function_exists( 'clicutcl_get_attribution' ) ) {
+	function clicutcl_get_attribution() {
 		$keys = array( 'ct_attribution', 'attribution' );
 
 		foreach ( $keys as $key ) {
@@ -52,7 +52,7 @@ if ( ! function_exists( 'clicktrail_get_attribution' ) ) {
 				$cookie_value = wp_unslash( filter_input( INPUT_COOKIE, $key, FILTER_DEFAULT ) );
 				$data         = json_decode( $cookie_value, true );
 				if ( is_array( $data ) && JSON_ERROR_NONE === json_last_error() ) {
-					return clicktrail_sanitize_attribution_data( $data );
+					return clicutcl_sanitize_attribution_data( $data );
 				}
 			}
 		}
@@ -68,9 +68,9 @@ if ( ! function_exists( 'clicktrail_get_attribution' ) ) {
  * @param string $field The field key (e.g., "source").
  * @return string|null The value or null.
  */
-if ( ! function_exists( 'clicktrail_get_attribution_field' ) ) {
-	function clicktrail_get_attribution_field( $type, $field ) {
-		$data = clicktrail_get_attribution();
+if ( ! function_exists( 'clicutcl_get_attribution_field' ) ) {
+	function clicutcl_get_attribution_field( $type, $field ) {
+		$data = clicutcl_get_attribution();
 		if ( ! $data ) {
 			return null;
 		}

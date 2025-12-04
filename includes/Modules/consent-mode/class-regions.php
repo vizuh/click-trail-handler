@@ -5,7 +5,7 @@
  * @package   ClickTrail
  */
 
-namespace ClickTrail\Modules\Consent_Mode;
+namespace CLICUTCL\Modules\Consent_Mode;
 
 /**
  * Class containing region data.

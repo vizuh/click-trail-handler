@@ -5,7 +5,7 @@
  * 
  * Adds attribution display features to the WooCommerce admin interface.
  */
-class ClickTrail_WooCommerce_Admin {
+class CLICUTCL_WooCommerce_Admin {
 
 	public function init() {
 		// Add "Source" column to orders list
@@ -28,7 +28,7 @@ class ClickTrail_WooCommerce_Admin {
 		
 		foreach ( $columns as $key => $value ) {
 			if ( 'order_total' === $key ) {
-				$new_columns['clicktrail_source'] = __( 'Source', 'click-trail-handler' );
+				$new_columns['clicutcl_source'] = __( 'Source', 'click-trail-handler' );
 			}
 			$new_columns[ $key ] = $value;
 		}
@@ -43,7 +43,7 @@ class ClickTrail_WooCommerce_Admin {
 	 * @param int $post_id Order ID
 	 */
 	public function render_source_column( $column, $post_id ) {
-		if ( 'clicktrail_source' !== $column ) {
+		if ( 'clicutcl_source' !== $column ) {
 			return;
 		}
 
@@ -54,8 +54,8 @@ class ClickTrail_WooCommerce_Admin {
 		}
 
 		// Get first-touch or last-touch attribution
-		$ft_source = $order->get_meta( '_ct_ft_source' );
-		$ft_medium = $order->get_meta( '_ct_ft_medium' );
+		$ft_source = $order->get_meta( '_clicutcl_ft_source' );
+		$ft_medium = $order->get_meta( '_clicutcl_ft_medium' );
 
 		if ( $ft_source || $ft_medium ) {
 			$display = array();
@@ -79,7 +79,7 @@ class ClickTrail_WooCommerce_Admin {
 	 */
 	public function add_attribution_meta_box() {
 		add_meta_box(
-			'clicktrail_attribution',
+			'clicutcl_attribution',
 			__( 'Marketing Attribution', 'click-trail-handler' ),
 			array( $this, 'render_attribution_meta_box' ),
 			'shop_order',
@@ -118,7 +118,7 @@ class ClickTrail_WooCommerce_Admin {
 		
 		$has_data = false;
 		foreach ( $attribution_fields as $key => $label ) {
-			$value = $order->get_meta( '_ct_' . $key );
+			$value = $order->get_meta( '_clicutcl_' . $key );
 			if ( $value ) {
 				$has_data = true;
 				echo '<p style="margin: 5px 0; font-size: 12px;">';
@@ -141,8 +141,8 @@ class ClickTrail_WooCommerce_Admin {
 		echo '</div>';
 
 		// Last Touch
-		$lt_source = $order->get_meta( '_ct_lt_source' );
-		$lt_medium = $order->get_meta( '_ct_lt_medium' );
+		$lt_source = $order->get_meta( '_clicutcl_lt_source' );
+		$lt_medium = $order->get_meta( '_clicutcl_lt_medium' );
 		
 		if ( $lt_source || $lt_medium ) {
 			echo '<div>';

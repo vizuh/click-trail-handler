@@ -20,25 +20,25 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define Constants
-define( 'CLICKTRAIL_VERSION', '1.1.0' );
-define( 'CLICKTRAIL_DIR', plugin_dir_path( __FILE__ ) );
-define( 'CLICKTRAIL_URL', plugin_dir_url( __FILE__ ) );
-define( 'CLICKTRAIL_BASENAME', plugin_basename( __FILE__ ) );
-define( 'CLICKTRAIL_PLUGIN_MAIN_FILE', __FILE__ );
-define( 'CLICKTRAIL_PII_NONCE_ACTION', 'clicktrail_pii_nonce' );
+define( 'CLICUTCL_VERSION', '1.1.0' );
+define( 'CLICUTCL_DIR', plugin_dir_path( __FILE__ ) );
+define( 'CLICUTCL_URL', plugin_dir_url( __FILE__ ) );
+define( 'CLICUTCL_BASENAME', plugin_basename( __FILE__ ) );
+define( 'CLICUTCL_PLUGIN_MAIN_FILE', __FILE__ );
+define( 'CLICUTCL_PII_NONCE_ACTION', 'clicutcl_pii_nonce' );
 
 
 
 // Include Core Class
-require_once CLICKTRAIL_DIR . 'includes/class-clicktrail-core.php';
-require_once CLICKTRAIL_DIR . 'includes/clicktrail-attribution-functions.php';
-require_once CLICKTRAIL_DIR . 'includes/clicktrail-canonical.php';
+require_once CLICUTCL_DIR . 'includes/class-clicktrail-core.php';
+require_once CLICUTCL_DIR . 'includes/clicktrail-attribution-functions.php';
+require_once CLICUTCL_DIR . 'includes/clicktrail-canonical.php';
 
 /**
  * Initialize the plugin
  */
-function clicktrail_init() {
-	$plugin = new ClickTrail_Core();
+function clicutcl_init() {
+	$plugin = new CLICUTCL_Core();
 	$plugin->run();
 }
-add_action( 'plugins_loaded', 'clicktrail_init' );
+add_action( 'plugins_loaded', 'clicutcl_init' );

@@ -13,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @param string $url Raw URL.
  * @return string URL without tracking parameters.
  */
-function clicktrail_strip_tracking_params_from_url( $url ) {
+function clicutcl_strip_tracking_params_from_url( $url ) {
         if ( ! $url ) {
                 return $url;
         }
@@ -58,14 +58,14 @@ function clicktrail_strip_tracking_params_from_url( $url ) {
  * @param string $canonical Original canonical URL.
  * @return string Filtered canonical URL.
  */
-function clicktrail_clean_yoast_canonical( $canonical ) {
+function clicutcl_clean_yoast_canonical( $canonical ) {
         if ( ! $canonical ) {
                 return $canonical;
         }
 
-        return clicktrail_strip_tracking_params_from_url( $canonical );
+        return clicutcl_strip_tracking_params_from_url( $canonical );
 }
-add_filter( 'wpseo_canonical', 'clicktrail_clean_yoast_canonical', 20 );
+add_filter( 'wpseo_canonical', 'clicutcl_clean_yoast_canonical', 20 );
 
 /**
  * Clean core WordPress canonical URLs.
@@ -74,11 +74,11 @@ add_filter( 'wpseo_canonical', 'clicktrail_clean_yoast_canonical', 20 );
  * @param int|WP_Post $post      Current post object or ID.
  * @return string Filtered canonical URL.
  */
-function clicktrail_clean_core_canonical( $canonical, $post ) {
+function clicutcl_clean_core_canonical( $canonical, $post ) {
         if ( ! $canonical ) {
                 return $canonical;
         }
 
-        return clicktrail_strip_tracking_params_from_url( $canonical );
+        return clicutcl_strip_tracking_params_from_url( $canonical );
 }
-add_filter( 'get_canonical_url', 'clicktrail_clean_core_canonical', 20, 2 );
+add_filter( 'get_canonical_url', 'clicutcl_clean_core_canonical', 20, 2 );

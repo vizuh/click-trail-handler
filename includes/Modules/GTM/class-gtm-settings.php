@@ -5,9 +5,9 @@
  * @package   ClickTrail
  */
 
-namespace ClickTrail\Modules\GTM;
+namespace CLICUTCL\Modules\GTM;
 
-use ClickTrail\Core\Storage\Setting;
+use CLICUTCL\Core\Storage\Setting;
 
 /**
  * Class to store GTM settings.
@@ -17,7 +17,7 @@ class GTM_Settings extends Setting {
 	/**
 	 * The user option name for this setting.
 	 */
-	const OPTION = 'clicktrail_gtm';
+	const OPTION = 'clicutcl_gtm';
 
 	/**
 	 * Gets the expected value type.
@@ -54,7 +54,7 @@ class GTM_Settings extends Setting {
 				// Validate GTM Container ID format (GTM-XXXXXXX)
 				if ( ! empty( $container_id ) && ! preg_match( '/^GTM-[A-Z0-9]+$/i', $container_id ) ) {
 					add_settings_error(
-						'clicktrail_gtm',
+						'clicutcl_gtm',
 						'invalid_container_id',
 						__( 'Invalid GTM Container ID format. Should be GTM-XXXXXX', 'click-trail-handler' )
 					);

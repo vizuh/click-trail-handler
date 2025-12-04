@@ -10,9 +10,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Class ClickTrail_Admin
+ * Class CLICUTCL_Admin
  */
-class ClickTrail_Admin {
+class CLICUTCL_Admin {
 
 	/**
 	 * Context.
@@ -49,7 +49,7 @@ class ClickTrail_Admin {
 			__( 'ClickTrail Settings', 'click-trail-handler' ),
 			'ClickTrail',
 			'manage_options',
-			'clicktrail-settings',
+			'clicutcl-settings',
 			array( $this, 'render_settings_page' ),
 			'dashicons-chart-line',
 			56 // Analytics plugin zone (after Plugins, near Yoast/MonsterInsights)
@@ -63,15 +63,15 @@ class ClickTrail_Admin {
 	 */
 	public function enqueue_admin_assets( $hook ) {
 		// Only load on our plugin pages
-		if ( strpos( $hook, 'clicktrail' ) === false ) {
+		if ( strpos( $hook, 'clicutcl' ) === false ) {
 			return;
 		}
 
 		wp_enqueue_style(
-			'clicktrail-admin',
-			CLICKTRAIL_URL . 'assets/css/admin.css',
+			'clicutcl-admin',
+			CLICUTCL_URL . 'assets/css/admin.css',
 			array(),
-			CLICKTRAIL_VERSION
+			CLICUTCL_VERSION
 		);
 	}
 
@@ -80,25 +80,25 @@ class ClickTrail_Admin {
 	 */
 	public function register_settings() {
 		// 1. Attribution Settings (General & WhatsApp)
-		register_setting( 'clicktrail_attribution_settings', 'clicktrail_attribution_settings', array( $this, 'sanitize_settings' ) );
+		register_setting( 'clicutcl_attribution_settings', 'clicutcl_attribution_settings', array( $this, 'sanitize_settings' ) );
 
 		// General Section
 		add_settings_section(
-			'clicktrail_general_section',
+			'clicutcl_general_section',
 			__( 'General Attribution Settings', 'click-trail-handler' ),
 			null,
-			'clicktrail_general_tab'
+			'clicutcl_general_tab'
 		);
 
 		add_settings_field(
 			'enable_attribution',
 			__( 'Enable Attribution Tracking', 'click-trail-handler' ),
 			array( $this, 'render_checkbox_field' ),
-			'clicktrail_general_tab',
-			'clicktrail_general_section',
+			'clicutcl_general_tab',
+			'clicutcl_general_section',
 			array( 
 				'label_for' => 'enable_attribution', 
-				'option_name' => 'clicktrail_attribution_settings',
+				'option_name' => 'clicutcl_attribution_settings',
 				'tooltip' => __( 'Automatically track UTM parameters and Click IDs from incoming traffic.', 'click-trail-handler' )
 			)
 		);
@@ -107,28 +107,28 @@ class ClickTrail_Admin {
 			'cookie_days',
 			__( 'Cookie Expiration (Days)', 'click-trail-handler' ),
 			array( $this, 'render_number_field' ),
-			'clicktrail_general_tab',
-			'clicktrail_general_section',
-			array( 'label_for' => 'cookie_days', 'option_name' => 'clicktrail_attribution_settings' )
+			'clicutcl_general_tab',
+			'clicutcl_general_section',
+			array( 'label_for' => 'cookie_days', 'option_name' => 'clicutcl_attribution_settings' )
 		);
 
 		// WhatsApp Section
 		add_settings_section(
-			'clicktrail_whatsapp_section',
+			'clicutcl_whatsapp_section',
 			__( 'WhatsApp Tracking', 'click-trail-handler' ),
 			null,
-			'clicktrail_whatsapp_tab'
+			'clicutcl_whatsapp_tab'
 		);
 
 		add_settings_field(
 			'enable_whatsapp',
 			__( 'Enable WhatsApp Tracking', 'click-trail-handler' ),
 			array( $this, 'render_checkbox_field' ),
-			'clicktrail_whatsapp_tab',
-			'clicktrail_whatsapp_section',
+			'clicutcl_whatsapp_tab',
+			'clicutcl_whatsapp_section',
 			array( 
 				'label_for' => 'enable_whatsapp', 
-				'option_name' => 'clicktrail_attribution_settings',
+				'option_name' => 'clicutcl_attribution_settings',
 				'tooltip' => __( 'Track clicks on WhatsApp links and buttons.', 'click-trail-handler' )
 			)
 		);
@@ -137,11 +137,11 @@ class ClickTrail_Admin {
 			'whatsapp_append_attribution',
 			__( 'Append Attribution to Message', 'click-trail-handler' ),
 			array( $this, 'render_checkbox_field' ),
-			'clicktrail_whatsapp_tab',
-			'clicktrail_whatsapp_section',
+			'clicutcl_whatsapp_tab',
+			'clicutcl_whatsapp_section',
 			array( 
 				'label_for' => 'whatsapp_append_attribution', 
-				'option_name' => 'clicktrail_attribution_settings',
+				'option_name' => 'clicutcl_attribution_settings',
 				'tooltip' => __( 'Add attribution data to the pre-filled WhatsApp message.', 'click-trail-handler' )
 			)
 		);
@@ -150,29 +150,29 @@ class ClickTrail_Admin {
 			'whatsapp_log_clicks',
 			__( 'Log Clicks (Custom Post Type)', 'click-trail-handler' ),
 			array( $this, 'render_checkbox_field' ),
-			'clicktrail_whatsapp_tab',
-			'clicktrail_whatsapp_section',
+			'clicutcl_whatsapp_tab',
+			'clicutcl_whatsapp_section',
 			array( 
 				'label_for' => 'whatsapp_log_clicks', 
-				'option_name' => 'clicktrail_attribution_settings',
+				'option_name' => 'clicutcl_attribution_settings',
 				'tooltip' => __( 'Save each WhatsApp click as a "WhatsApp Click" post in WordPress.', 'click-trail-handler' )
 			)
 		);
 
 		// 2. Consent Mode Settings
 		add_settings_section(
-			'clicktrail_consent_section',
+			'clicutcl_consent_section',
 			__( 'Consent Mode Configuration', 'click-trail-handler' ),
 			null,
-			'clicktrail_consent_mode'
+			'clicutcl_consent_mode'
 		);
 
 		add_settings_field(
 			'enabled',
 			__( 'Enable Consent Mode', 'click-trail-handler' ),
 			array( $this, 'render_consent_checkbox' ),
-			'clicktrail_consent_mode',
-			'clicktrail_consent_section',
+			'clicutcl_consent_mode',
+			'clicutcl_consent_section',
 			array( 'label_for' => 'enabled' )
 		);
 
@@ -180,25 +180,25 @@ class ClickTrail_Admin {
 			'regions',
 			__( 'Regions (e.g. EU)', 'click-trail-handler' ),
 			array( $this, 'render_regions_field' ),
-			'clicktrail_consent_mode',
-			'clicktrail_consent_section',
+			'clicutcl_consent_mode',
+			'clicutcl_consent_section',
 			array( 'label_for' => 'regions' )
 		);
 
 		// 3. GTM Settings
 		add_settings_section(
-			'clicktrail_gtm_section',
+			'clicutcl_gtm_section',
 			__( 'Google Tag Manager', 'click-trail-handler' ),
 			null,
-			'clicktrail_gtm'
+			'clicutcl_gtm'
 		);
 
 		add_settings_field(
 			'container_id',
 			__( 'Container ID (GTM-XXXXXX)', 'click-trail-handler' ),
 			array( $this, 'render_gtm_text_field' ),
-			'clicktrail_gtm',
-			'clicktrail_gtm_section',
+			'clicutcl_gtm',
+			'clicutcl_gtm_section',
 			array( 'label_for' => 'container_id' )
 		);
 	}
@@ -214,19 +214,19 @@ class ClickTrail_Admin {
 			<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
 			
 			<h2 class="nav-tab-wrapper">
-				<a href="?page=clicktrail-settings&tab=general" class="nav-tab <?php echo esc_attr( 'general' === $active_tab ? 'nav-tab-active' : '' ); ?>">
+				<a href="?page=clicutcl-settings&tab=general" class="nav-tab <?php echo esc_attr( 'general' === $active_tab ? 'nav-tab-active' : '' ); ?>">
 					<span class="dashicons dashicons-admin-generic"></span>
 					<?php esc_html_e( 'Attribution', 'click-trail-handler' ); ?>
 				</a>
-				<a href="?page=clicktrail-settings&tab=whatsapp" class="nav-tab <?php echo esc_attr( 'whatsapp' === $active_tab ? 'nav-tab-active' : '' ); ?>">
+				<a href="?page=clicutcl-settings&tab=whatsapp" class="nav-tab <?php echo esc_attr( 'whatsapp' === $active_tab ? 'nav-tab-active' : '' ); ?>">
 					<span class="dashicons dashicons-format-chat"></span>
 					<?php esc_html_e( 'WhatsApp', 'click-trail-handler' ); ?>
 				</a>
-				<a href="?page=clicktrail-settings&tab=consent" class="nav-tab <?php echo esc_attr( 'consent' === $active_tab ? 'nav-tab-active' : '' ); ?>">
+				<a href="?page=clicutcl-settings&tab=consent" class="nav-tab <?php echo esc_attr( 'consent' === $active_tab ? 'nav-tab-active' : '' ); ?>">
 					<span class="dashicons dashicons-privacy"></span>
 					<?php esc_html_e( 'Privacy & Consent', 'click-trail-handler' ); ?>
 				</a>
-				<a href="?page=clicktrail-settings&tab=gtm" class="nav-tab <?php echo esc_attr( 'gtm' === $active_tab ? 'nav-tab-active' : '' ); ?>">
+				<a href="?page=clicutcl-settings&tab=gtm" class="nav-tab <?php echo esc_attr( 'gtm' === $active_tab ? 'nav-tab-active' : '' ); ?>">
 					<span class="dashicons dashicons-chart-bar"></span>
 					<?php esc_html_e( 'Integrations', 'click-trail-handler' ); ?>
 				</a>
@@ -235,17 +235,17 @@ class ClickTrail_Admin {
 			<form action="options.php" method="post">
 				<?php
 				if ( $active_tab == 'general' ) {
-					settings_fields( 'clicktrail_attribution_settings' );
-					do_settings_sections( 'clicktrail_general_tab' );
+					settings_fields( 'clicutcl_attribution_settings' );
+					do_settings_sections( 'clicutcl_general_tab' );
 				} elseif ( $active_tab == 'whatsapp' ) {
-					settings_fields( 'clicktrail_attribution_settings' );
-					do_settings_sections( 'clicktrail_whatsapp_tab' );
+					settings_fields( 'clicutcl_attribution_settings' );
+					do_settings_sections( 'clicutcl_whatsapp_tab' );
 				} elseif ( $active_tab == 'consent' ) {
-					settings_fields( 'clicktrail_consent_mode' );
-					do_settings_sections( 'clicktrail_consent_mode' );
+					settings_fields( 'clicutcl_consent_mode' );
+					do_settings_sections( 'clicutcl_consent_mode' );
 				} elseif ( $active_tab == 'gtm' ) {
-					settings_fields( 'clicktrail_gtm' );
-					do_settings_sections( 'clicktrail_gtm' );
+					settings_fields( 'clicutcl_gtm' );
+					do_settings_sections( 'clicutcl_gtm' );
 				}
 				
 				submit_button();
@@ -294,13 +294,13 @@ class ClickTrail_Admin {
 	}
 	
 	public function render_consent_checkbox( $args ) {
-		$settings = new ClickTrail\Modules\Consent_Mode\Consent_Mode_Settings();
+		$settings = new CLICUTCL\Modules\Consent_Mode\Consent_Mode_Settings();
 		$value = $settings->get();
 		$enabled = isset($value['enabled']) ? $value['enabled'] : 0;
 		?>
 		<div class="clicktrail-toggle-wrapper">
 			<label class="clicktrail-toggle">
-				<input type="checkbox" name="clicktrail_consent_mode[enabled]" value="1" <?php checked(1, $enabled); ?> />
+				<input type="checkbox" name="clicutcl_consent_mode[enabled]" value="1" <?php checked(1, $enabled); ?> />
 				<span class="clicktrail-toggle-slider"></span>
 			</label>
 			<span class="clicktrail-toggle-label">
@@ -311,29 +311,29 @@ class ClickTrail_Admin {
 	}
 
 	public function render_regions_field( $args ) {
-		$settings = new ClickTrail\Modules\Consent_Mode\Consent_Mode_Settings();
+		$settings = new CLICUTCL\Modules\Consent_Mode\Consent_Mode_Settings();
 		$value = $settings->get();
 		$regions = isset($value['regions']) ? $value['regions'] : '';
 		if ( is_array( $regions ) ) {
 			$regions = implode( ', ', $regions );
 		}
 		?>
-		<input type="text" name="clicktrail_consent_mode[regions]" value="<?php echo esc_attr($regions); ?>" class="regular-text" placeholder="EU, EE, UK" />
+		<input type="text" name="clicutcl_consent_mode[regions]" value="<?php echo esc_attr($regions); ?>" class="regular-text" placeholder="EU, EE, UK" />
 		<p class="description"><?php esc_html_e( 'Comma-separated list of region codes.', 'click-trail-handler' ); ?></p>
 		<?php
 	}
 
 	public function render_gtm_text_field( $args ) {
-		$settings = new ClickTrail\Modules\GTM\GTM_Settings();
+		$settings = new CLICUTCL\Modules\GTM\GTM_Settings();
 		$value = $settings->get();
 		$id = isset($value['container_id']) ? $value['container_id'] : '';
 		?>
-		<input type="text" name="clicktrail_gtm[container_id]" value="<?php echo esc_attr($id); ?>" class="regular-text" placeholder="GTM-XXXXXX" />
+		<input type="text" name="clicutcl_gtm[container_id]" value="<?php echo esc_attr($id); ?>" class="regular-text" placeholder="GTM-XXXXXX" />
 		<?php
 	}
 
 	public function ajax_log_pii_risk() {
-		check_ajax_referer( 'clicktrail_pii_nonce', 'nonce' );
+		check_ajax_referer( 'clicutcl_pii_nonce', 'nonce' );
 
 		// Removed capability check - this is meant to be a public feature
 		// Non-admin users can log PII risks detected on public pages
@@ -341,14 +341,14 @@ class ClickTrail_Admin {
                 $pii_found = isset( $_POST['pii_found'] ) ? filter_var( wp_unslash( $_POST['pii_found'] ), FILTER_VALIDATE_BOOLEAN ) : false;
 
                 if ( $pii_found ) {
-                        update_option( 'ct_pii_risk_detected', true );
+                        update_option( 'clicutcl_pii_risk_detected', true );
 			wp_send_json_success();
 		}
 		wp_send_json_error();
 	}
 
 	public function display_pii_warning() {
-		if ( get_option( 'clicktrail_pii_risk_detected' ) ) {
+		if ( get_option( 'clicutcl_pii_risk_detected' ) ) {
 			?>
 			<div class="notice notice-error is-dismissible">
 				<p><strong><?php esc_html_e( 'ClickTrail Audit detected PII risk on your Thank You page. Your tracking may be deactivated by Google.', 'click-trail-handler' ); ?></strong></p>

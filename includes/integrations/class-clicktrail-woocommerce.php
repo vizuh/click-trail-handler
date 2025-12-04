@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class ClickTrail_WooCommerce_Integration {
+class CLICUTCL_WooCommerce_Integration {
 
 	public function init() {
 		// Safety check: ensure WooCommerce is active
@@ -23,7 +23,7 @@ class ClickTrail_WooCommerce_Integration {
 	 * @param array    $data
 	 */
 	public function save_order_attribution( $order, $data ) {
-		$attribution = clicktrail_get_attribution();
+		$attribution = clicutcl_get_attribution();
 		if ( ! $attribution ) {
 			return;
 		}
@@ -35,11 +35,11 @@ class ClickTrail_WooCommerce_Integration {
 			}
 
 			if ( 'session_count' === $meta_key ) {
-				$order->update_meta_data( '_ct_session_count', absint( $value ) );
+				$order->update_meta_data( '_clicutcl_session_count', absint( $value ) );
 				continue;
 			}
 
-			$order->update_meta_data( '_ct_' . $meta_key, sanitize_text_field( $value ) );
+			$order->update_meta_data( '_clicutcl_' . $meta_key, sanitize_text_field( $value ) );
 		}
 	}
 
@@ -54,7 +54,7 @@ class ClickTrail_WooCommerce_Integration {
 		}
 
 		// Duplicate Prevention: Check if we already tracked this order
-		if ( get_post_meta( $order_id, '_clicktrail_tracking_sent', true ) ) {
+		if ( get_post_meta( $order_id, '_clicutcl_tracking_sent', true ) ) {
 			return;
 		}
 
@@ -97,7 +97,7 @@ class ClickTrail_WooCommerce_Integration {
 		<?php
 
 		// Mark order as tracked to prevent duplicates on refresh
-		update_post_meta( $order_id, '_clicktrail_tracking_sent', 'yes' );
+		update_post_meta( $order_id, '_clicutcl_tracking_sent', 'yes' );
 	}
 
 	/**
@@ -117,17 +117,17 @@ class ClickTrail_WooCommerce_Integration {
 			$key   = $meta->key;
 			$value = $meta->value;
 
-			if ( 0 === strpos( $key, '_ct_ft_' ) ) {
-				$attribution['first_touch'][ substr( $key, 7 ) ] = $value;
+			if ( 0 === strpos( $key, '_clicutcl_ft_' ) ) {
+				$attribution['first_touch'][ substr( $key, 13 ) ] = $value;
 			}
 
-			if ( 0 === strpos( $key, '_ct_lt_' ) ) {
-				$attribution['last_touch'][ substr( $key, 7 ) ] = $value;
+			if ( 0 === strpos( $key, '_clicutcl_lt_' ) ) {
+				$attribution['last_touch'][ substr( $key, 13 ) ] = $value;
 			}
 		}
 
 		if ( empty( $attribution['first_touch'] ) && empty( $attribution['last_touch'] ) ) {
-			$cookie_attr = clicktrail_get_attribution();
+			$cookie_attr = clicutcl_get_attribution();
 			if ( $cookie_attr ) {
 				$attribution = wp_parse_args( $cookie_attr, $attribution );
 			}

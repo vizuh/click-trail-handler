@@ -5,7 +5,7 @@
  * @package   ClickTrail
  */
 
-namespace ClickTrail\Core;
+namespace CLICUTCL\Core;
 
 /**
  * Class providing context about the plugin.

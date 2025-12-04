@@ -1,12 +1,12 @@
 <?php
 
-namespace ClickTrail\Modules\Consent_Mode;
+namespace CLICUTCL\Modules\Consent_Mode;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use ClickTrail\Core\Context;
+use CLICUTCL\Core\Context;
 
 /**
  * Class ClickTrail\Modules\Consent_Mode\Consent_Mode
@@ -63,7 +63,7 @@ class Consent_Mode {
 	 */
 	public function render_gtag_consent_data_layer_snippet() {
 		$consent_defaults = apply_filters(
-			'clicktrail_consent_defaults',
+			'clicutcl_consent_defaults',
 			array(
 				'ad_personalization'      => 'denied',
 				'ad_storage'              => 'denied',

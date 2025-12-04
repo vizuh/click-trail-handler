@@ -5,9 +5,9 @@
  * @package   ClickTrail
  */
 
-namespace ClickTrail\Modules\Consent_Mode;
+namespace CLICUTCL\Modules\Consent_Mode;
 
-use ClickTrail\Core\Storage\Setting;
+use CLICUTCL\Core\Storage\Setting;
 
 /**
  * Class to store user consent mode settings.
@@ -17,7 +17,7 @@ class Consent_Mode_Settings extends Setting {
 	/**
 	 * The user option name for this setting.
 	 */
-	const OPTION = 'clicktrail_consent_mode';
+	const OPTION = 'clicutcl_consent_mode';
 
 	/**
 	 * Gets the expected value type.

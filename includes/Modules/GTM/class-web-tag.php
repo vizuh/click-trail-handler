@@ -1,12 +1,12 @@
 <?php
 
-namespace ClickTrail\Modules\GTM;
+namespace CLICUTCL\Modules\GTM;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-use ClickTrail\Core\Context;
+use CLICUTCL\Core\Context;
 
 /**
  * Class ClickTrail\Modules\GTM\Web_Tag
@@ -86,10 +86,10 @@ class Web_Tag {
 	 */
 	public function render_no_js() {
 		// Prevent double rendering if wp_body_open triggered and footer also runs
-		if ( defined( 'CLICKTRAIL_GTM_NOSCRIPT_RENDERED' ) ) {
+		if ( defined( 'CLICUTCL_GTM_NOSCRIPT_RENDERED' ) ) {
 			return;
 		}
-		define( 'CLICKTRAIL_GTM_NOSCRIPT_RENDERED', true );
+		define( 'CLICUTCL_GTM_NOSCRIPT_RENDERED', true );
 
 		$container_id = $this->gtm_settings->get_container_id();
 		if ( empty( $container_id ) ) {

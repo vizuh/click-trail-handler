@@ -5,7 +5,7 @@
  * @package   ClickTrail
  */
 
-namespace ClickTrail\Core\Storage;
+namespace CLICUTCL\Core\Storage;
 
 /**
  * Base class for a single setting.

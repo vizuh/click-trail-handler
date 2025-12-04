@@ -4,7 +4,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class ClickTrail_Form_Integrations {
+class CLICUTCL_Form_Integrations {
 
 	public function init() {
 		// Contact Form 7
@@ -25,7 +25,7 @@ class ClickTrail_Form_Integrations {
 	 * Contact Form 7: Add Hidden Fields
 	 */
 	public function cf7_add_hidden_fields( $fields ) {
-                $attribution = clicktrail_get_attribution();
+                $attribution = clicutcl_get_attribution();
 		if ( ! $attribution ) {
 			return $fields;
 		}
@@ -48,7 +48,7 @@ class ClickTrail_Form_Integrations {
             $key = substr( $name, 3 ); // remove 'ct_' prefix
 
             // Get attribution data
-            $attribution = clicktrail_get_attribution();
+            $attribution = clicutcl_get_attribution();
             if ( ! $attribution ) {
                 return $value;
             }
@@ -67,7 +67,7 @@ class ClickTrail_Form_Integrations {
 	 * Fluent Forms: Add Hidden Fields
 	 */
 	public function ff_add_hidden_fields( $form, $data ) {
-                $attribution = clicktrail_get_attribution();
+                $attribution = clicutcl_get_attribution();
 		if ( ! $attribution ) {
 			return;
 		}
