@@ -5,11 +5,14 @@
  * Description: Complete consent management and marketing attribution solution. Captures UTM parameters and click IDs, manages user consent with Google Consent Mode, and tracks attribution across forms, WooCommerce, and WhatsApp.
  * Version:     1.1.0
  * Author:      Vizuh
+ * Author URI:  https://vizuh.com
  * License:     GPL-2.0-or-later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Source:      https://github.com/vizuh/click-trail
  * Text Domain: click-trail-handler
  * Domain Path: /languages
+ * Requires at least: 5.0
+ * Requires PHP:      7.0
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
