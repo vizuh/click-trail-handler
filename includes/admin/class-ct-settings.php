@@ -314,6 +314,9 @@ class ClickTrail_Admin {
 		$settings = new ClickTrail\Modules\Consent_Mode\Consent_Mode_Settings();
 		$value = $settings->get();
 		$regions = isset($value['regions']) ? $value['regions'] : '';
+		if ( is_array( $regions ) ) {
+			$regions = implode( ', ', $regions );
+		}
 		?>
 		<input type="text" name="clicktrail_consent_mode[regions]" value="<?php echo esc_attr($regions); ?>" class="regular-text" placeholder="EU, EE, UK" />
 		<p class="description"><?php esc_html_e( 'Comma-separated list of region codes.', 'click-trail-handler' ); ?></p>
