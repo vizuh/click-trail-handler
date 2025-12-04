@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: ClickTrail – UTM, Click ID & Ad Tracking (with Consent)
- * Plugin URI:  https://vizuh.com
+ * Plugin URI:  https://github.com/vizuh/click-trail-handler
  * Description: Complete consent management and marketing attribution solution. Captures UTM parameters and click IDs, manages user consent with Google Consent Mode, and tracks attribution across forms, WooCommerce, and WhatsApp.
  * Version:     1.1.0
  * Author:      Vizuh
