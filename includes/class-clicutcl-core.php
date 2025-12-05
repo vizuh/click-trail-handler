@@ -59,13 +59,13 @@ class CLICUTCL_Core {
 		\CLICUTCL\Autoloader::run();
 
 		// Legacy / Non-namespaced files
-		require_once CLICUTCL_DIR . 'includes/admin/class-ct-settings.php'; // CLICUTCL_Admin (Not namespaced)
-		require_once CLICUTCL_DIR . 'includes/integrations/class-clicktrail-form-integrations.php'; // CLICUTCL_Form_Integrations (Not namespaced)
-		require_once CLICUTCL_DIR . 'includes/integrations/class-clicktrail-woocommerce.php'; // CLICUTCL_WooCommerce_Integration (Not namespaced)
+		require_once CLICUTCL_DIR . 'includes/admin/class-clicutcl-admin.php'; // CLICUTCL_Admin (Not namespaced)
+		require_once CLICUTCL_DIR . 'includes/integrations/class-clicutcl-form-integrations.php'; // CLICUTCL_Form_Integrations (Not namespaced)
+		require_once CLICUTCL_DIR . 'includes/integrations/class-clicutcl-woocommerce.php'; // CLICUTCL_WooCommerce_Integration (Not namespaced)
 
 		// WooCommerce Admin (if WooCommerce is active)
 		if ( class_exists( 'WooCommerce' ) ) {
-			require_once CLICUTCL_DIR . 'includes/admin/class-clicktrail-woocommerce-admin.php'; // CLICUTCL_WooCommerce_Admin (Not namespaced)
+			require_once CLICUTCL_DIR . 'includes/admin/class-clicutcl-woocommerce-admin.php'; // CLICUTCL_WooCommerce_Admin (Not namespaced)
 		}
 	}
 
@@ -164,7 +164,7 @@ class CLICUTCL_Core {
 		if ( $enable_attribution ) {
 			wp_enqueue_script(
 				'clicutcl-attribution-js',
-				CLICUTCL_URL . 'assets/js/clicktrail-attribution.js',
+				CLICUTCL_URL . 'assets/js/clicutcl-attribution.js',
 				array(),
 				CLICUTCL_VERSION,
 				false // Load in Head
@@ -190,7 +190,7 @@ class CLICUTCL_Core {
 		if ( $enable_consent ) {
 			wp_enqueue_style(
 				'clicutcl-consent-css',
-				CLICUTCL_URL . 'assets/css/clicktrail-consent.css',
+				CLICUTCL_URL . 'assets/css/clicutcl-consent.css',
 				array(),
 				CLICUTCL_VERSION,
 				'all'
@@ -198,7 +198,7 @@ class CLICUTCL_Core {
 
 			wp_enqueue_script(
 				'clicutcl-consent-js',
-				CLICUTCL_URL . 'assets/js/clicktrail-consent.js',
+				CLICUTCL_URL . 'assets/js/clicutcl-consent.js',
 				array(),
 				CLICUTCL_VERSION,
 				true // Footer
@@ -208,7 +208,7 @@ class CLICUTCL_Core {
 		// Events Tracking Script
 		wp_enqueue_script(
 			'clicutcl-events-js',
-			CLICUTCL_URL . 'assets/js/clicktrail-events.js',
+			CLICUTCL_URL . 'assets/js/clicutcl-events.js',
 			array(),
 			CLICUTCL_VERSION,
 			true // Footer

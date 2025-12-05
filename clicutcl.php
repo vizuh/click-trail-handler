@@ -30,9 +30,9 @@ define( 'CLICUTCL_PII_NONCE_ACTION', 'clicutcl_pii_nonce' );
 
 
 // Include Core Class
-require_once CLICUTCL_DIR . 'includes/class-clicktrail-core.php';
-require_once CLICUTCL_DIR . 'includes/clicktrail-attribution-functions.php';
-require_once CLICUTCL_DIR . 'includes/clicktrail-canonical.php';
+require_once CLICUTCL_DIR . 'includes/class-clicutcl-core.php';
+require_once CLICUTCL_DIR . 'includes/clicutcl-attribution-functions.php';
+require_once CLICUTCL_DIR . 'includes/clicutcl-canonical.php';
 
 /**
  * Initialize the plugin
