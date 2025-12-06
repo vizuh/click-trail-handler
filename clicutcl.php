@@ -27,8 +27,6 @@ define( 'CLICUTCL_BASENAME', plugin_basename( __FILE__ ) );
 define( 'CLICUTCL_PLUGIN_MAIN_FILE', __FILE__ );
 define( 'CLICUTCL_PII_NONCE_ACTION', 'clicutcl_pii_nonce' );
 
-
-
 // Include Core Class
 require_once CLICUTCL_DIR . 'includes/class-clicutcl-core.php';
 require_once CLICUTCL_DIR . 'includes/clicutcl-attribution-functions.php';

@@ -10,7 +10,7 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
 	exit;
 }
 
-// Delete options.
+// Delete plugin options
 delete_option( 'clicutcl_attribution_settings' );
 delete_option( 'clicutcl_consent_mode' );
 delete_option( 'clicutcl_gtm' );
