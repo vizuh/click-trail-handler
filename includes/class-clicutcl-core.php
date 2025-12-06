@@ -69,8 +69,6 @@ class CLICUTCL_Core {
 		}
 	}
 
-
-
 	/**
 	 * Register Custom Post Types
 	 */
@@ -172,7 +170,7 @@ class CLICUTCL_Core {
 
 			wp_localize_script(
 				'clicutcl-attribution-js',
-				'clickTrailConfig',
+				'clicutcl_config',
 				array(
 					'cookieName'                => 'attribution',
 					'cookieDays'                => $cookie_days,

@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    const CONFIG = window.clickTrailConfig || {
+    const CONFIG = window.clicutcl_config || {
         cookieName: 'attribution',
         cookieDays: 90,
         requireConsent: true
