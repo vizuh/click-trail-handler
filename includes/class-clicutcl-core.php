@@ -58,7 +58,7 @@ class CLICUTCL_Core {
 		require_once CLICUTCL_DIR . 'includes/class-autoloader.php';
 		\CLICUTCL\Autoloader::run();
 
-		// Legacy / Non-namespaced files
+		// Non-namespaced files
 		require_once CLICUTCL_DIR . 'includes/admin/class-clicutcl-admin.php'; // CLICUTCL_Admin (Not namespaced)
 		require_once CLICUTCL_DIR . 'includes/integrations/class-clicutcl-form-integrations.php'; // CLICUTCL_Form_Integrations (Not namespaced)
 		require_once CLICUTCL_DIR . 'includes/integrations/class-clicutcl-woocommerce.php'; // CLICUTCL_WooCommerce_Integration (Not namespaced)
@@ -155,7 +155,6 @@ class CLICUTCL_Core {
 		$consent_settings = new CLICUTCL\Modules\Consent_Mode\Consent_Mode_Settings();
 		$enable_consent   = $consent_settings->is_consent_mode_enabled();
 		
-		// Legacy setting for "Require Consent"
 		$require_consent = isset( $options['require_consent'] ) ? (bool) $options['require_consent'] : 1;
 
 		// Attribution Script

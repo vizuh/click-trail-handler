@@ -7,13 +7,7 @@
         requireConsent: true
     };
 
-    // Support both the current cookie/localStorage key and a legacy/fallback key.
-    const COOKIE_KEYS = Array.from(
-        new Set([
-            CONFIG.cookieName || 'ct_attribution',
-            'attribution'
-        ])
-    );
+    const COOKIE_KEY = CONFIG.cookieName || 'attribution';
 
     const CONSENT_COOKIE = 'ct_consent';
 
@@ -29,7 +23,6 @@
         }
 
         init() {
-            this.migrateLegacyData();
 
             const requiresConsent = CONFIG.requireConsent === true || CONFIG.requireConsent === '1' || CONFIG.requireConsent === 1;
 
@@ -167,103 +160,7 @@
             return fields;
         }
 
-        migrateLegacyData() {
-            // Don't migrate if new key is already present
-            const existing = this.getStoredData();
-            if (existing) {
-                return;
-            }
 
-            const legacyRaw = this.readLegacyData();
-            if (!legacyRaw) {
-                return;
-            }
-
-            const mapped = this.mapLegacyToFlat(legacyRaw);
-            if (mapped) {
-                this.saveData(mapped);
-            }
-        }
-
-        readLegacyData() {
-            const LEGACY_KEY = 'ct_attribution_legacy';
-            const cookie = this.getCookie(LEGACY_KEY);
-            if (cookie) {
-                try {
-                    return JSON.parse(cookie);
-                } catch (e) {
-                    return null;
-                }
-            }
-
-            try {
-                const ls = localStorage.getItem(LEGACY_KEY);
-                if (ls) {
-                    return JSON.parse(ls);
-                }
-            } catch (e) {
-                // Ignore
-            }
-
-            return null;
-        }
-
-        mapLegacyToFlat(legacyObj) {
-            if (!legacyObj) return null;
-
-            const out = {};
-            const mapTouch = (touch, prefix) => {
-                if (!touch || typeof touch !== 'object') return;
-
-                out[`${prefix}_source`] = touch.utm_source || touch.source || '';
-                out[`${prefix}_medium`] = touch.utm_medium || touch.medium || '';
-                out[`${prefix}_campaign`] = touch.utm_campaign || touch.campaign || '';
-                out[`${prefix}_campaign_id`] = touch.campaign_id || '';
-                out[`${prefix}_adgroup_id`] = touch.adgroup_id || '';
-                out[`${prefix}_ad_id`] = touch.ad_id || '';
-                out[`${prefix}_term`] = touch.utm_term || touch.term || touch.keyword || '';
-                out[`${prefix}_matchtype`] = touch.matchtype || '';
-                out[`${prefix}_network`] = touch.network || '';
-                out[`${prefix}_device`] = touch.device || '';
-                out[`${prefix}_gclid`] = touch.gclid || '';
-                out[`${prefix}_wbraid`] = touch.wbraid || '';
-                out[`${prefix}_gbraid`] = touch.gbraid || '';
-                out[`${prefix}_msclkid`] = touch.msclkid || '';
-                out[`${prefix}_fbclid`] = touch.fbclid || '';
-                out[`${prefix}_ttclid`] = touch.ttclid || '';
-                out[`${prefix}_twclid`] = touch.twclid || '';
-                out[`${prefix}_li_fat_id`] = touch.li_fat_id || '';
-                out[`${prefix}_ScCid`] = touch.ScCid || '';
-                out[`${prefix}_sc_click_id`] = touch.sc_click_id || '';
-                out[`${prefix}_epik`] = touch.epik || '';
-                out[`${prefix}_content`] = touch.utm_content || touch.content || '';
-
-                if (touch.referrer) {
-                    out[`${prefix}_referrer`] = touch.referrer;
-                }
-
-                if (touch.landing_page) {
-                    out[`${prefix}_landing_page`] = touch.landing_page;
-                }
-            };
-
-            mapTouch(legacyObj.first_touch, 'ft');
-            mapTouch(legacyObj.last_touch, 'lt');
-
-            if (legacyObj.first_touch_timestamp) {
-                out.first_touch_timestamp = legacyObj.first_touch_timestamp;
-            }
-
-            if (legacyObj.last_touch_timestamp) {
-                out.last_touch_timestamp = legacyObj.last_touch_timestamp;
-            }
-
-            if (legacyObj.session_count) {
-                out.session_count = legacyObj.session_count;
-            }
-
-            return out;
-        }
 
         initFormListeners(data) {
             // Contact Form 7
@@ -372,13 +269,7 @@
             window.dataLayer = window.dataLayer || [];
             window.dataLayer.push(payload);
 
-            // Maintain legacy event shape for existing GTM setups.
-            window.dataLayer.push({
-                event: 'ct_lead',
-                form_provider: provider,
-                form_id: formId,
-                ct_attribution: data
-            });
+
 
             if (typeof window.gtag === 'function') {
                 const { event, ...params } = payload;
@@ -563,28 +454,24 @@
         }
 
         getStoredData() {
-            // Try cookies first
-            for (const key of COOKIE_KEYS) {
-                const cookie = this.getCookie(key);
-                if (cookie) {
-                    try {
-                        return JSON.parse(cookie);
-                    } catch (e) {
-                        console.error('ClickTrail Attribution: Error parsing cookie', e);
-                    }
+            // Try cookie first
+            const cookie = this.getCookie(COOKIE_KEY);
+            if (cookie) {
+                try {
+                    return JSON.parse(cookie);
+                } catch (e) {
+                    console.error('ClickTrail Attribution: Error parsing cookie', e);
                 }
             }
 
             // Fallback to LocalStorage
             try {
-                for (const key of COOKIE_KEYS) {
-                    const ls = localStorage.getItem(key);
-                    if (ls) {
-                        try {
-                            return JSON.parse(ls);
-                        } catch (e) {
-                            console.error('ClickTrail Attribution: Error parsing localStorage', e);
-                        }
+                const ls = localStorage.getItem(COOKIE_KEY);
+                if (ls) {
+                    try {
+                        return JSON.parse(ls);
+                    } catch (e) {
+                        console.error('ClickTrail Attribution: Error parsing localStorage', e);
                     }
                 }
             } catch (e) {
