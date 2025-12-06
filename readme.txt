@@ -1,5 +1,5 @@
 === ClickTrail – UTM, Click ID & Ad Tracking (with Consent) ===
-Contributors: vizuh, hugoc
+Contributors: vizuh, hugoc, meaowsdev
 Tags: attribution, utm, tracking, consent mode, gtm
 Requires at least: 5.0
 Tested up to: 6.9
