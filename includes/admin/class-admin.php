@@ -5,41 +5,49 @@
  * @package ClickTrail
  */
 
+namespace CLICUTCL\Admin;
+
+use CLICUTCL\Modules\Consent_Mode\Consent_Mode_Settings;
+use CLICUTCL\Modules\GTM\GTM_Settings;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 /**
- * Class CLICUTCL_Admin
+ * Class Admin
  */
-class CLICUTCL_Admin {
+class Admin {
 
 	/**
 	 * Context.
 	 *
-	 * @var string
+	 * @var \CLICUTCL\Core\Context
 	 */
 	private $context;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param string $context Context.
+	 * @param \CLICUTCL\Core\Context $context Context.
 	 */
 	public function __construct( $context ) {
 		$this->context = $context;
 	}
 
-        /**
-         * Initialize hooks.
-         */
-        public function init() {
-                // Run early so the parent menu exists before CPT submenus attach.
-                add_action( 'admin_menu', array( $this, 'add_admin_menu' ), 1 );
-                add_action( 'admin_init', array( $this, 'register_settings' ) );
-                add_action( 'admin_notices', array( $this, 'display_pii_warning' ) );
-                add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
-        }
+	/**
+	 * Initialize hooks.
+	 */
+	public function init() {
+		// Run early so the parent menu exists before CPT submenus attach.
+		add_action( 'admin_menu', array( $this, 'add_admin_menu' ), 1 );
+		add_action( 'admin_init', array( $this, 'register_settings' ) );
+		add_action( 'admin_notices', array( $this, 'display_pii_warning' ) );
+		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
+		
+		// AJAX hooks for Admin/Settings functionality
+		add_action( 'wp_ajax_clicutcl_log_pii_risk', array( $this, 'ajax_log_pii_risk' ) );
+	}
 
 	/**
 	 * Add admin menu.
@@ -294,7 +302,7 @@ class CLICUTCL_Admin {
 	}
 	
 	public function render_consent_checkbox( $args ) {
-		$settings = new CLICUTCL\Modules\Consent_Mode\Consent_Mode_Settings();
+		$settings = new Consent_Mode_Settings();
 		$value = $settings->get();
 		$enabled = isset($value['enabled']) ? $value['enabled'] : 0;
 		?>
@@ -311,7 +319,7 @@ class CLICUTCL_Admin {
 	}
 
 	public function render_regions_field( $args ) {
-		$settings = new CLICUTCL\Modules\Consent_Mode\Consent_Mode_Settings();
+		$settings = new Consent_Mode_Settings();
 		$value = $settings->get();
 		$regions = isset($value['regions']) ? $value['regions'] : '';
 		if ( is_array( $regions ) ) {
@@ -324,7 +332,7 @@ class CLICUTCL_Admin {
 	}
 
 	public function render_gtm_text_field( $args ) {
-		$settings = new CLICUTCL\Modules\GTM\GTM_Settings();
+		$settings = new GTM_Settings();
 		$value = $settings->get();
 		$id = isset($value['container_id']) ? $value['container_id'] : '';
 		?>
@@ -337,11 +345,16 @@ class CLICUTCL_Admin {
 
 		// Removed capability check - this is meant to be a public feature
 		// Non-admin users can log PII risks detected on public pages
+		
+		// OPTIMIZATION: Check if already detected to save DB writes
+		if ( get_option( 'clicutcl_pii_risk_detected' ) ) {
+			wp_send_json_success();
+		}
 
-                $pii_found = isset( $_POST['pii_found'] ) ? filter_var( wp_unslash( $_POST['pii_found'] ), FILTER_VALIDATE_BOOLEAN ) : false;
+		$pii_found = isset( $_POST['pii_found'] ) ? filter_var( wp_unslash( $_POST['pii_found'] ), FILTER_VALIDATE_BOOLEAN ) : false;
 
-                if ( $pii_found ) {
-                        update_option( 'clicutcl_pii_risk_detected', true );
+		if ( $pii_found ) {
+			update_option( 'clicutcl_pii_risk_detected', true );
 			wp_send_json_success();
 		}
 		wp_send_json_error();

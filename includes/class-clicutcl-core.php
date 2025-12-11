@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * The core plugin class.
  *
@@ -10,6 +12,9 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
+use CLICUTCL\Admin\Admin;
+use CLICUTCL\Post_Types\WhatsApp_Click;
 
 class CLICUTCL_Core {
 
@@ -59,7 +64,7 @@ class CLICUTCL_Core {
 		\CLICUTCL\Autoloader::run();
 
 		// Non-namespaced files
-		require_once CLICUTCL_DIR . 'includes/admin/class-clicutcl-admin.php'; // CLICUTCL_Admin (Not namespaced)
+		// require_once CLICUTCL_DIR . 'includes/integrations/class-clicutcl-form-integrations.php'; // CLICUTCL_Form_Integrations (Not namespaced)
 		require_once CLICUTCL_DIR . 'includes/integrations/class-clicutcl-form-integrations.php'; // CLICUTCL_Form_Integrations (Not namespaced)
 		require_once CLICUTCL_DIR . 'includes/integrations/class-clicutcl-woocommerce.php'; // CLICUTCL_WooCommerce_Integration (Not namespaced)
 
@@ -73,31 +78,8 @@ class CLICUTCL_Core {
 	 * Register Custom Post Types
 	 */
 	private function register_cpt() {
-		add_action( 'init', array( $this, 'register_whatsapp_cpt' ) );
-	}
-
-	/**
-	 * Register WhatsApp Click CPT
-	 */
-	public function register_whatsapp_cpt() {
-		register_post_type(
-			'clicutcl_wa_click',
-			array(
-				'labels'       => array(
-					'name'          => __( 'WhatsApp Clicks', 'click-trail-handler' ),
-					'singular_name' => __( 'WhatsApp Click', 'click-trail-handler' ),
-				),
-				'public'       => false,
-				'show_ui'      => true,
-				'show_in_menu' => 'clicutcl-settings',
-				'capability_type' => 'post',
-				'capabilities' => array(
-					'create_posts' => 'do_not_allow',
-				),
-				'map_meta_cap' => true,
-				'supports'     => array( 'title' ),
-			)
-		);
+		$wa_click = new WhatsApp_Click();
+		add_action( 'init', array( $wa_click, 'register' ) );
 	}
 
 	/**
@@ -105,7 +87,7 @@ class CLICUTCL_Core {
 	 * of the plugin.
 	 */
 	private function define_admin_hooks() {
-		$plugin_admin = new CLICUTCL_Admin( $this->context );
+		$plugin_admin = new Admin( $this->context );
 		$plugin_admin->init();
 
 		// AJAX hooks
@@ -239,6 +221,15 @@ class CLICUTCL_Core {
 
 		if ( ! $wa_href ) {
 			wp_send_json_error( array( 'message' => 'Missing wa_href' ) );
+		}
+
+		// Security: Validate strict WhatsApp URL allowlist
+		$allowed_hosts = array( 'wa.me', 'whatsapp.com', 'api.whatsapp.com', 'web.whatsapp.com' );
+		$parsed_url    = wp_parse_url( $wa_href );
+		
+		if ( ! $parsed_url || ! isset( $parsed_url['host'] ) || ! in_array( $parsed_url['host'], $allowed_hosts, true ) ) {
+			// Also allow direct phone numbers if your plugin supports that (optional), otherwise strict URL:
+			wp_send_json_error( array( 'message' => 'Invalid WhatsApp URL' ) );
 		}
 
 		// Create post
