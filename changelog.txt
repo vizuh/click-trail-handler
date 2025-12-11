@@ -1,0 +1,13 @@
+Changelog
+========
+
+= 1.1.0 =
+*   Added comprehensive Event Tracking (Searches, Downloads, Scroll Depth, Time on Page).
+*   Added Server-side Event Tracking for User Login, Signups, and Comments.
+*   Implemented Google Consent Mode v2 support with region-specific defaults.
+*   Added manual Google Tag Manager (GTM) Container ID injection.
+*   Refactored codebase for better modularity and performance.
+*   Enhanced WooCommerce integration with "Source" column and detailed meta box.
+
+= 1.0.0 =
+*   Initial release with attribution capture, consent banner, and integrations for WooCommerce, Contact Form 7, Fluent Forms, and WhatsApp.
