@@ -82,7 +82,9 @@
                     if (!marks[mark] && percent >= mark) {
                         marks[mark] = true;
                         this.pushEvent('scroll', {
-                            percent_scrolled: mark
+                            scroll_depth_threshold: parseInt(mark),
+                            scroll_depth_units: 'percent',
+                            scroll_direction: 'vertical'
                         });
                     }
                 });
@@ -110,7 +112,8 @@
                     // Only track if tab is visible (optional, but good practice)
                     if (!document.hidden) {
                         this.pushEvent('time_on_page', {
-                            seconds: seconds
+                            time_on_page_seconds: seconds, // Explicit variable name
+                            value: seconds // Standard value for metrics
                         });
                     }
                 }, seconds * 1000);
