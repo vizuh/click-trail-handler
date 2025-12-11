@@ -5,7 +5,7 @@ Contributors: hugoc
 Tags: attribution, utm, tracking, consent mode, gtm
 Requires at least: 5.0
 Tested up to: 6.9
-Stable tag: 1.1.0
+Stable tag: 1.1.1
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -91,6 +91,10 @@ ClickTrail provides consent controls and Consent Mode defaults, but ultimate com
 
 == Changelog ==
 
+= 1.1.1 =
+*   **Docs/Assets**: Updated readme copy and release guidance for WP.org parsing and added references for refreshed screenshots.
+*   **Compatibility**: Set Stable tag and plugin version to 1.1.1 to align GitHub and SVN releases.
+
 = 1.1.0 =
 *   **New**: Added comprehensive Event Tracking (Searches, Downloads, Scroll Depth, Time on Page).
 *   **New**: Added Server-side Event Tracking for User Login, Signups, and Comments.
@@ -102,6 +106,9 @@ ClickTrail provides consent controls and Consent Mode defaults, but ultimate com
 Previous release notes are available in `changelog.txt`.
 
 == Upgrade Notice ==
+
+= 1.1.1 =
+Documentation and asset updates only; no functional changes. Apply this to keep your WP.org listing in sync with the latest readme and screenshots.
 
 = 1.1.0 =
 Adds event tracking, Consent Mode v2 updates, and GA4/GTM enhancements. Review consent settings before upgrading to ensure privacy compliance.
