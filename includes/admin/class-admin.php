@@ -52,15 +52,24 @@ class Admin {
 	/**
 	 * Add admin menu.
 	 */
-	public function add_admin_menu() {
+	public function admin_menu() {
 		add_menu_page(
-			__( 'ClickTrail Settings', 'click-trail-handler' ),
-			'ClickTrail',
+			__( 'ClickTrail', 'click-trail-handler' ),
+			__( 'ClickTrail', 'click-trail-handler' ),
 			'manage_options',
 			'clicutcl-settings',
 			array( $this, 'render_settings_page' ),
-			'dashicons-chart-line',
+			'dashicons-chart-area', // Attribution friendly icon
 			56 // Analytics plugin zone (after Plugins, near Yoast/MonsterInsights)
+		);
+
+		add_submenu_page(
+			'clicutcl-settings',
+			__( 'Logs', 'click-trail-handler' ),
+			__( 'Logs', 'click-trail-handler' ),
+			'manage_options',
+			'clicutcl-logs',
+			array( $this, 'logs_page' )
 		);
 	}
 
@@ -382,6 +391,22 @@ class Admin {
 		if( isset( $input['whatsapp_append_attribution'] ) ) $new_input['whatsapp_append_attribution'] = absint( $input['whatsapp_append_attribution'] );
 		if( isset( $input['whatsapp_log_clicks'] ) ) $new_input['whatsapp_log_clicks'] = absint( $input['whatsapp_log_clicks'] );
 		return $new_input;
+	}
+
+	public function logs_page() {
+		require_once CLICUTCL_DIR . 'includes/admin/class-log-list-table.php';
+		$table = new Log_List_Table();
+		$table->prepare_items();
+		?>
+		<div class="wrap">
+			<h1><?php esc_html_e( 'ClickTrail Logs', 'click-trail-handler' ); ?></h1>
+			<form method="post">
+				<?php
+				$table->display();
+				?>
+			</form>
+		</div>
+		<?php
 	}
 
 }

@@ -99,6 +99,8 @@ ClickTrail provides consent controls and Consent Mode defaults, but ultimate com
 *   **Fix**: Improved Time on Page tracking to send explicit `time_on_page_seconds` metric.
 *   **Feature**: Introduced Custom Database Table (`wp_clicutcl_events`) for scalable event logging, removing reliance on Custom Post Types.
 *   **Feature**: Implemented REST API Log Endpoint (`/wp-json/clicutcl/v1/log`) for faster and lighter tracking requests.
+*   **Feature**: Added Admin Log Viewer (`ClickTrail > Logs`) to view events from the custom database table.
+*   **Feature**: Implemented Automated Database Cleanup (Cron) to keep the events table healthy.
 *   **Refactor**: Centralized settings logic (`Atribution_Settings`) and Attribution Utilities (`Utils\Attribution`) for better maintainability.
 
 = 1.1.1 =
