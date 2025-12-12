@@ -38,6 +38,14 @@ register_activation_hook( __FILE__, function() {
 	CLICUTCL\Autoloader::run();
 	require_once CLICUTCL_DIR . 'includes/database/class-installer.php';
 	CLICUTCL\Database\Installer::run();
+
+	if ( ! wp_next_scheduled( 'clicutcl_daily_cleanup' ) ) {
+		wp_schedule_event( time(), 'daily', 'clicutcl_daily_cleanup' );
+	}
+} );
+
+register_deactivation_hook( __FILE__, function() {
+	wp_clear_scheduled_hook( 'clicutcl_daily_cleanup' );
 } );
 
 /**

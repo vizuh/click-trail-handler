@@ -19,6 +19,7 @@ use CLICUTCL\Ajax\Log_Handler;
 use CLICUTCL\Integrations\WooCommerce;
 use CLICUTCL\Integrations\Form_Integrations;
 use CLICUTCL\Api\Log_Controller;
+use CLICUTCL\Utils\Cleanup;
 
 class CLICUTCL_Core {
 
@@ -57,6 +58,9 @@ class CLICUTCL_Core {
 		$this->register_cpt();
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
+		
+		$cleanup = new Cleanup();
+		$cleanup->register();
 	}
 
 	/**

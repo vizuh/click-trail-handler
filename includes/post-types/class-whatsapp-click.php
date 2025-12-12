@@ -28,8 +28,8 @@ class WhatsApp_Click {
 					'singular_name' => __( 'WhatsApp Click', 'click-trail-handler' ),
 				),
 				'public'       => false,
-				'show_ui'      => true,
-				'show_in_menu' => 'clicutcl-settings',
+				'show_ui'      => false,
+				'show_in_menu' => false,
 				'capability_type' => 'post',
 				'capabilities' => array(
 					'create_posts' => 'do_not_allow',
