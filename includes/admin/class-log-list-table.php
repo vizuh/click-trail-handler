@@ -73,6 +73,7 @@ class Log_List_Table extends \WP_List_Table {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Admin-only query: table is plugin-owned and escaped; ORDER BY identifiers are whitelisted; LIMIT/OFFSET use placeholders.
 		$this->items = $wpdb->get_results(
 			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned and escaped; identifiers are whitelisted.
 				"SELECT * FROM {$table_name_escaped} ORDER BY {$orderby} {$order} LIMIT %d OFFSET %d",
 				$per_page,
 				$offset
