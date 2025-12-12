@@ -39,17 +39,21 @@ class Cleanup {
 		}
 
 		$table_name = $wpdb->prefix . 'clicutcl_events';
+		$table_name = esc_sql( $table_name ); // Internal, but still escape.
 
 		// Safety check: Ensure table exists
-		if ( $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) !== $table_name ) {
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Lightweight metadata check on plugin-owned table; no core wrapper available.
+		if ( $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $table_name ) ) !== $table_name ) {
 			return;
 		}
 
-		$wpdb->query(
-			$wpdb->prepare(
-				"DELETE FROM $table_name WHERE created_at < DATE_SUB(NOW(), INTERVAL %d DAY)",
-				$days
-			)
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is internal and not user input.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Cron cleanup on plugin-owned table; values are prepared and query runs infrequently.
+		$sql = $wpdb->prepare(
+			"DELETE FROM {$table_name} WHERE created_at < DATE_SUB(NOW(), INTERVAL %d DAY)",
+			$days
 		);
+
+		$wpdb->query( $sql );
 	}
 }

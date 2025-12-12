@@ -104,6 +104,7 @@ class Log_Controller extends WP_REST_Controller {
 
 
 		// Check if table exists (for gradual migration support)
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom plugin table existence check; lightweight metadata query, no core wrapper available.
 		if ( $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $table_name ) ) === $table_name ) {
 			// Write to Custom Table
 			$inserted = $wpdb->insert(
