@@ -65,10 +65,12 @@ class Log_List_Table extends \WP_List_Table {
 
 		// Count total items
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is internal and not user input.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin-only count query on plugin-owned table; negligible load, no separate caching needed.
 		$total_items = (int) $wpdb->get_var( "SELECT COUNT(id) FROM {$table_name}" );
 
 		// Fetch items
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table and column names are whitelisted; only values use placeholders.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin-only paginated read from plugin-owned table; values are prepared and identifiers are whitelisted.
 		$sql = "SELECT * FROM {$table_name} ORDER BY {$orderby} {$order} LIMIT %d OFFSET %d";
 
 		$this->items = $wpdb->get_results(
