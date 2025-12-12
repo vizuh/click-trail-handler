@@ -84,7 +84,8 @@
                         this.pushEvent('scroll', {
                             scroll_depth_threshold: parseInt(mark),
                             scroll_depth_units: 'percent',
-                            scroll_direction: 'vertical'
+                            scroll_direction: 'vertical',
+                            percent_scrolled: parseInt(mark)
                         });
                     }
                 });
