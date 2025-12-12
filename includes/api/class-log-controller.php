@@ -104,7 +104,7 @@ class Log_Controller extends WP_REST_Controller {
 
 
 		// Check if table exists (for gradual migration support)
-		if ( $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) === $table_name ) {
+		if ( $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $table_name ) ) === $table_name ) {
 			// Write to Custom Table
 			$inserted = $wpdb->insert(
 				$table_name,

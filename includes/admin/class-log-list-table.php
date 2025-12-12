@@ -40,6 +40,8 @@ class Log_List_Table extends \WP_List_Table {
 		global $wpdb;
 
 		$table_name = $wpdb->prefix . 'clicutcl_events';
+		$table_name = esc_sql( $table_name ); // Internal table name.
+
 		$per_page   = 20;
 		$columns    = $this->get_columns();
 		$hidden     = array();
@@ -52,16 +54,26 @@ class Log_List_Table extends \WP_List_Table {
 		$offset       = ( $current_page - 1 ) * $per_page;
 
 		// Sorting
-		$orderby = ( isset( $_GET['orderby'] ) ) ? sanitize_sql_orderby( $_GET['orderby'] ) : 'created_at';
-		$order   = ( isset( $_GET['order'] ) ) ? sanitize_text_field( $_GET['order'] ) : 'DESC';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- List table sorting only, no state change.
+		$orderby_raw = isset( $_GET['orderby'] ) ? wp_unslash( $_GET['orderby'] ) : 'created_at';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- List table sorting only, no state change.
+		$order_raw   = isset( $_GET['order'] ) ? wp_unslash( $_GET['order'] ) : 'desc';
+		
+		$valid_orderby = array( 'id', 'created_at', 'event_type' );
+		$orderby       = in_array( $orderby_raw, $valid_orderby, true ) ? $orderby_raw : 'created_at';
+		$order         = strtolower( $order_raw ) === 'asc' ? 'ASC' : 'DESC';
 
 		// Count total items
-		$total_items = $wpdb->get_var( "SELECT COUNT(id) FROM $table_name" );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is internal and not user input.
+		$total_items = (int) $wpdb->get_var( "SELECT COUNT(id) FROM {$table_name}" );
 
 		// Fetch items
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table and column names are whitelisted; only values use placeholders.
+		$sql = "SELECT * FROM {$table_name} ORDER BY {$orderby} {$order} LIMIT %d OFFSET %d";
+
 		$this->items = $wpdb->get_results(
 			$wpdb->prepare(
-				"SELECT * FROM $table_name ORDER BY $orderby $order LIMIT %d OFFSET %d",
+				$sql,
 				$per_page,
 				$offset
 			),
@@ -174,6 +186,6 @@ class Log_List_Table extends \WP_List_Table {
 	 * No items found message.
 	 */
 	public function no_items() {
-		_e( 'No logs found.', 'click-trail-handler' );
+		esc_html_e( 'No logs found.', 'click-trail-handler' );
 	}
 }
