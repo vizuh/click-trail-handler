@@ -39,7 +39,7 @@ class Cleanup {
 		}
 
 		$table_name = $wpdb->prefix . 'clicutcl_events';
-		$table_name = esc_sql( $table_name ); // Internal, but still escape.
+		$table_name_escaped = esc_sql( $table_name ); // Internal, but still escape.
 
 		// Safety check: Ensure table exists
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Lightweight metadata check on plugin-owned table; no core wrapper available.
@@ -47,10 +47,9 @@ class Cleanup {
 			return;
 		}
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is internal and not user input.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Cron cleanup on plugin-owned table; values are prepared and query runs infrequently.
 		$sql = $wpdb->prepare(
-			"DELETE FROM {$table_name} WHERE created_at < DATE_SUB(NOW(), INTERVAL %d DAY)",
+			"DELETE FROM {$table_name_escaped} WHERE created_at < DATE_SUB(NOW(), INTERVAL %d DAY)",
 			$days
 		);
 

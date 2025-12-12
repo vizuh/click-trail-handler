@@ -84,8 +84,9 @@ class Log_Controller extends WP_REST_Controller {
 	private function handle_wa_click( $params ) {
 		global $wpdb;
 
-		$wa_href     = isset( $params['wa_href'] ) ? esc_url_raw( $params['wa_href'] ) : '';
-		$wa_location = isset( $params['wa_location'] ) ? esc_url_raw( $params['wa_location'] ) : '';
+		// Strictly sanitize and cast params.
+		$wa_href     = isset( $params['wa_href'] ) ? esc_url_raw( wp_unslash( (string) $params['wa_href'] ) ) : '';
+		$wa_location = isset( $params['wa_location'] ) ? esc_url_raw( wp_unslash( (string) $params['wa_location'] ) ) : '';
 		$attribution = isset( $params['attribution'] ) ? Attribution::sanitize( $params['attribution'] ) : array();
 
 		if ( ! $wa_href ) {
@@ -101,7 +102,6 @@ class Log_Controller extends WP_REST_Controller {
 		}
 
 		$table_name = $wpdb->prefix . 'clicutcl_events';
-
 
 		// Check if table exists (for gradual migration support)
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Custom plugin table existence check; lightweight metadata query, no core wrapper available.

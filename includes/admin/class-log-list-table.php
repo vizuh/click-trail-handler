@@ -40,7 +40,7 @@ class Log_List_Table extends \WP_List_Table {
 		global $wpdb;
 
 		$table_name = $wpdb->prefix . 'clicutcl_events';
-		$table_name = esc_sql( $table_name ); // Internal table name.
+		$table_name_escaped = esc_sql( $table_name ); // Internal table name.
 
 		$per_page   = 20;
 		$columns    = $this->get_columns();
@@ -57,21 +57,19 @@ class Log_List_Table extends \WP_List_Table {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- List table sorting only, no state change.
 		$orderby_raw = isset( $_GET['orderby'] ) ? wp_unslash( $_GET['orderby'] ) : 'created_at';
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- List table sorting only, no state change.
-		$order_raw   = isset( $_GET['order'] ) ? wp_unslash( $_GET['order'] ) : 'desc';
+		$order_raw   = isset( $_GET['order'] ) ? wp_unslash( $_GET['order'] ) : 'DESC';
 		
 		$valid_orderby = array( 'id', 'created_at', 'event_type' );
 		$orderby       = in_array( $orderby_raw, $valid_orderby, true ) ? $orderby_raw : 'created_at';
-		$order         = strtolower( $order_raw ) === 'asc' ? 'ASC' : 'DESC';
+		$order         = ( 'ASC' === strtoupper( $order_raw ) ) ? 'ASC' : 'DESC';
 
 		// Count total items
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is internal and not user input.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin-only count query on plugin-owned table; negligible load, no separate caching needed.
-		$total_items = (int) $wpdb->get_var( "SELECT COUNT(id) FROM {$table_name}" );
+		$total_items = (int) $wpdb->get_var( "SELECT COUNT(id) FROM {$table_name_escaped}" );
 
 		// Fetch items
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table and column names are whitelisted; only values use placeholders.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin-only paginated read from plugin-owned table; values are prepared and identifiers are whitelisted.
-		$sql = "SELECT * FROM {$table_name} ORDER BY {$orderby} {$order} LIMIT %d OFFSET %d";
+		$sql = "SELECT * FROM {$table_name_escaped} ORDER BY {$orderby} {$order} LIMIT %d OFFSET %d";
 
 		$this->items = $wpdb->get_results(
 			$wpdb->prepare(
