@@ -211,36 +211,20 @@
                 }
 
                 // Log click if enabled
-                if (CONFIG.whatsappLogClicks) {
-                    if (CONFIG.restUrl) {
-                        // REST API (Preferred)
-                        fetch(CONFIG.restUrl, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'X-WP-Nonce': CONFIG.nonce
-                            },
-                            body: JSON.stringify({
-                                event: 'wa_click',
-                                wa_href: link.href,
-                                wa_location: window.location.href,
-                                attribution: attribution
-                            })
-                        }).catch(e => console.error('ClickTrail: Error logging WhatsApp click (REST)', e));
-                    } else if (CONFIG.ajaxUrl) {
-                        // Admin AJAX (Fallback)
-                        const formData = new FormData();
-                        formData.append('action', 'clicutcl_log_wa_click');
-                        formData.append('wa_href', link.href);
-                        formData.append('wa_location', window.location.href);
-                        formData.append('attribution', JSON.stringify(attribution));
-                        formData.append('nonce', CONFIG.nonce); // Note: Nonce might fail if it's strictly for REST now, but we kept the old AJAX handler for now.
-
-                        fetch(CONFIG.ajaxUrl, {
-                            method: 'POST',
-                            body: formData
-                        }).catch(e => console.error('ClickTrail: Error logging WhatsApp click (AJAX)', e));
-                    }
+                if (CONFIG.whatsappLogClicks && CONFIG.restUrl) {
+                    fetch(CONFIG.restUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-WP-Nonce': CONFIG.nonce
+                        },
+                        body: JSON.stringify({
+                            event: 'wa_click',
+                            wa_href: link.href,
+                            wa_location: window.location.href,
+                            attribution: attribution
+                        })
+                    }).catch(e => console.error('ClickTrail: Error logging WhatsApp click (REST)', e));
                 }
 
                 // Push to dataLayer
