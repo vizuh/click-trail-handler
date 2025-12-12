@@ -7,6 +7,8 @@
 
 namespace CLICUTCL\Integrations;
 
+use CLICUTCL\Utils\Attribution;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -36,7 +38,7 @@ class WooCommerce {
 	 * @param array     $data  Request Data.
 	 */
 	public function save_order_attribution( $order, $data ) {
-		$attribution = clicutcl_get_attribution();
+		$attribution = Attribution::get();
 		if ( ! $attribution ) {
 			return;
 		}
@@ -140,7 +142,7 @@ class WooCommerce {
 		}
 
 		if ( empty( $attribution['first_touch'] ) && empty( $attribution['last_touch'] ) ) {
-			$cookie_attr = clicutcl_get_attribution();
+			$cookie_attr = Attribution::get();
 			if ( $cookie_attr ) {
 				$attribution = wp_parse_args( $cookie_attr, $attribution );
 			}

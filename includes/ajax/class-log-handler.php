@@ -7,6 +7,8 @@
 
 namespace CLICUTCL\Ajax;
 
+use CLICUTCL\Utils\Attribution;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -40,7 +42,7 @@ class Log_Handler {
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- JSON string is decoded and then sanitized.
 		$raw_attribution_json = isset( $_POST['attribution'] ) ? wp_unslash( $_POST['attribution'] ) : '';
 		$raw_attribution      = json_decode( $raw_attribution_json, true );
-		$attribution          = is_array( $raw_attribution ) ? clicutcl_sanitize_attribution_data( $raw_attribution ) : array();
+		$attribution          = is_array( $raw_attribution ) ? Attribution::sanitize( $raw_attribution ) : array();
 
 		if ( ! $wa_href ) {
 			wp_send_json_error( array( 'message' => 'Missing wa_href' ) );

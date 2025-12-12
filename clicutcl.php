@@ -29,8 +29,16 @@ define( 'CLICUTCL_PII_NONCE_ACTION', 'clicutcl_pii_nonce' );
 
 // Include Core Class
 require_once CLICUTCL_DIR . 'includes/class-clicutcl-core.php';
-require_once CLICUTCL_DIR . 'includes/clicutcl-attribution-functions.php';
+// require_once CLICUTCL_DIR . 'includes/clicutcl-attribution-functions.php'; // Moved to CLICUTCL\Utils\Attribution
 require_once CLICUTCL_DIR . 'includes/clicutcl-canonical.php';
+
+// Activation Hook
+register_activation_hook( __FILE__, function() {
+	require_once CLICUTCL_DIR . 'includes/class-autoloader.php';
+	CLICUTCL\Autoloader::run();
+	require_once CLICUTCL_DIR . 'includes/database/class-installer.php';
+	CLICUTCL\Database\Installer::run();
+} );
 
 /**
  * Initialize the plugin

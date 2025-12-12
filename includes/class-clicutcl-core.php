@@ -18,6 +18,7 @@ use CLICUTCL\Post_Types\WhatsApp_Click;
 use CLICUTCL\Ajax\Log_Handler;
 use CLICUTCL\Integrations\WooCommerce;
 use CLICUTCL\Integrations\Form_Integrations;
+use CLICUTCL\Api\Log_Controller;
 
 class CLICUTCL_Core {
 
@@ -122,8 +123,15 @@ class CLICUTCL_Core {
 		$form_integrations = new Form_Integrations();
 		$form_integrations->init();
 
+
 		$woocommerce_integration = new WooCommerce();
 		$woocommerce_integration->init();
+
+		// Register REST API
+		add_action( 'rest_api_init', function() {
+			$controller = new Log_Controller();
+			$controller->register_routes();
+		} );
 	}
 
 	/**
@@ -158,7 +166,8 @@ class CLICUTCL_Core {
 					'cookieDays'                => $cookie_days,
 					'requireConsent'            => $require_consent,
 					'ajaxUrl'                   => admin_url( 'admin-ajax.php' ),
-					'nonce'                     => wp_create_nonce( CLICUTCL_PII_NONCE_ACTION ),
+					'restUrl'                   => get_rest_url( null, 'clicutcl/v1/log' ),
+					'nonce'                     => wp_create_nonce( 'wp_rest' ), // REST Nonce
 					'enableWhatsapp'            => isset( $options['enable_whatsapp'] ) ? (bool) $options['enable_whatsapp'] : true,
 					'whatsappAppendAttribution' => isset( $options['whatsapp_append_attribution'] ) ? (bool) $options['whatsapp_append_attribution'] : false,
 					'whatsappLogClicks'         => isset( $options['whatsapp_log_clicks'] ) ? (bool) $options['whatsapp_log_clicks'] : false,

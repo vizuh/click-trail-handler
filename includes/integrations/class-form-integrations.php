@@ -7,6 +7,8 @@
 
 namespace CLICUTCL\Integrations;
 
+use CLICUTCL\Utils\Attribution;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -37,7 +39,7 @@ class Form_Integrations {
 	 * @return array
 	 */
 	public function cf7_add_hidden_fields( $fields ) {
-		$attribution = clicutcl_get_attribution();
+		$attribution = Attribution::get();
 		if ( ! $attribution ) {
 			return $fields;
 		}
@@ -66,7 +68,7 @@ class Form_Integrations {
 			$key = substr( $name, 3 ); // remove 'ct_' prefix
 
 			// Get attribution data
-			$attribution = clicutcl_get_attribution();
+			$attribution = Attribution::get();
 			if ( ! $attribution ) {
 				return $value;
 			}
@@ -88,7 +90,7 @@ class Form_Integrations {
 	 * @param array  $data Form data.
 	 */
 	public function ff_add_hidden_fields( $form, $data ) {
-		$attribution = clicutcl_get_attribution();
+		$attribution = Attribution::get();
 		if ( ! $attribution ) {
 			return;
 		}

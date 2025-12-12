@@ -93,9 +93,13 @@ ClickTrail provides consent controls and Consent Mode defaults, but ultimate com
 
 = 1.2.0 =
 *   **Security**: Hardened AJAX handlers with strict WhatsApp URL validation and optimized PII risk logging using nonce verification and state checks.
-*   **Refactor**: Major architectural improvements including Namespaced Admin class (`CLICUTCL\Admin`), decoupled AJAX Log Handler `CLICUTCL\Ajax\Log_Handler`, and extracted CPT registration `CLICUTCL\Post_Types`.
+*   **Refactor**: Major architectural improvements including Namespaced Admin class, decoupled AJAX Log Handler, and extracted CPT registration.
+*   **Refactor**: Standardized Integrations (WooCommerce & Forms) into namespaced classes (`CLICUTCL\Integrations`), cleaning up the global namespace and dependencies.
 *   **Fix**: Fixed GTM Data Layer variables for Scroll Tracking (now sends `scroll_depth_threshold`, `scroll_depth_units`, `scroll_direction`).
 *   **Fix**: Improved Time on Page tracking to send explicit `time_on_page_seconds` metric.
+*   **Feature**: Introduced Custom Database Table (`wp_clicutcl_events`) for scalable event logging, removing reliance on Custom Post Types.
+*   **Feature**: Implemented REST API Log Endpoint (`/wp-json/clicutcl/v1/log`) for faster and lighter tracking requests.
+*   **Refactor**: Centralized settings logic (`Atribution_Settings`) and Attribution Utilities (`Utils\Attribution`) for better maintainability.
 
 = 1.1.1 =
 *   **Docs/Assets**: Updated readme copy and release guidance for WP.org parsing and added references for refreshed screenshots.
