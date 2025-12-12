@@ -27,6 +27,10 @@ define( 'CLICUTCL_BASENAME', plugin_basename( __FILE__ ) );
 define( 'CLICUTCL_PLUGIN_MAIN_FILE', __FILE__ );
 define( 'CLICUTCL_PII_NONCE_ACTION', 'clicutcl_pii_nonce' );
 
+// Include Autoloader
+require_once CLICUTCL_DIR . 'includes/class-autoloader.php';
+CLICUTCL\Autoloader::run();
+
 // Include Core Class
 require_once CLICUTCL_DIR . 'includes/class-clicutcl-core.php';
 // require_once CLICUTCL_DIR . 'includes/clicutcl-attribution-functions.php'; // Moved to CLICUTCL\Utils\Attribution
@@ -34,8 +38,7 @@ require_once CLICUTCL_DIR . 'includes/clicutcl-canonical.php';
 
 // Activation Hook
 register_activation_hook( __FILE__, function() {
-	require_once CLICUTCL_DIR . 'includes/class-autoloader.php';
-	CLICUTCL\Autoloader::run();
+	// Autoloader is already loaded globally
 	require_once CLICUTCL_DIR . 'includes/database/class-installer.php';
 	CLICUTCL\Database\Installer::run();
 
