@@ -16,6 +16,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 use CLICUTCL\Admin\Admin;
 use CLICUTCL\Post_Types\WhatsApp_Click;
 use CLICUTCL\Ajax\Log_Handler;
+use CLICUTCL\Integrations\WooCommerce;
+use CLICUTCL\Integrations\Form_Integrations;
 
 class CLICUTCL_Core {
 
@@ -62,14 +64,10 @@ class CLICUTCL_Core {
 	private function load_dependencies() {
 		// Autoloader
 		require_once CLICUTCL_DIR . 'includes/class-autoloader.php';
-		\CLICUTCL\Autoloader::run();
-
-		// Non-namespaced files
-		// require_once CLICUTCL_DIR . 'includes/integrations/class-clicutcl-form-integrations.php'; // CLICUTCL_Form_Integrations (Not namespaced)
-		require_once CLICUTCL_DIR . 'includes/integrations/class-clicutcl-form-integrations.php'; // CLICUTCL_Form_Integrations (Not namespaced)
-		require_once CLICUTCL_DIR . 'includes/integrations/class-clicutcl-woocommerce.php'; // CLICUTCL_WooCommerce_Integration (Not namespaced)
-
 		// WooCommerce Admin (if WooCommerce is active)
+		if ( class_exists( 'WooCommerce' ) ) {
+			require_once CLICUTCL_DIR . 'includes/admin/class-clicutcl-woocommerce-admin.php'; // CLICUTCL_WooCommerce_Admin (Not namespaced)
+		}
 		if ( class_exists( 'WooCommerce' ) ) {
 			require_once CLICUTCL_DIR . 'includes/admin/class-clicutcl-woocommerce-admin.php'; // CLICUTCL_WooCommerce_Admin (Not namespaced)
 		}
@@ -121,10 +119,10 @@ class CLICUTCL_Core {
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		
 		// Initialize Integrations
-		$form_integrations = new CLICUTCL_Form_Integrations();
+		$form_integrations = new Form_Integrations();
 		$form_integrations->init();
 
-		$woocommerce_integration = new CLICUTCL_WooCommerce_Integration();
+		$woocommerce_integration = new WooCommerce();
 		$woocommerce_integration->init();
 	}
 

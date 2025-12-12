@@ -5,7 +5,7 @@ Contributors: hugoc
 Tags: attribution, utm, tracking, consent mode, gtm
 Requires at least: 5.0
 Tested up to: 6.9
-Stable tag: 1.1.1
+Stable tag: 1.2.0
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -91,6 +91,12 @@ ClickTrail provides consent controls and Consent Mode defaults, but ultimate com
 
 == Changelog ==
 
+= 1.2.0 =
+*   **Security**: Hardened AJAX handlers with strict WhatsApp URL validation and optimized PII risk logging using nonce verification and state checks.
+*   **Refactor**: Major architectural improvements including Namespaced Admin class (`CLICUTCL\Admin`), decoupled AJAX Log Handler `CLICUTCL\Ajax\Log_Handler`, and extracted CPT registration `CLICUTCL\Post_Types`.
+*   **Fix**: Fixed GTM Data Layer variables for Scroll Tracking (now sends `scroll_depth_threshold`, `scroll_depth_units`, `scroll_direction`).
+*   **Fix**: Improved Time on Page tracking to send explicit `time_on_page_seconds` metric.
+
 = 1.1.1 =
 *   **Docs/Assets**: Updated readme copy and release guidance for WP.org parsing and added references for refreshed screenshots.
 *   **Compatibility**: Set Stable tag and plugin version to 1.1.1 to align GitHub and SVN releases.
@@ -106,6 +112,9 @@ ClickTrail provides consent controls and Consent Mode defaults, but ultimate com
 Previous release notes are available in `changelog.txt`.
 
 == Upgrade Notice ==
+
+= 1.2.0 =
+Major security hardening and internal refactoring. Includes fixes for Scroll Tracking and Time on Page data layer variables.
 
 = 1.1.1 =
 Documentation and asset updates only; no functional changes. Apply this to keep your WP.org listing in sync with the latest readme and screenshots.

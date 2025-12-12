@@ -1,11 +1,24 @@
 <?php
+/**
+ * WooCommerce Integration
+ *
+ * @package ClickTrail
+ */
+
+namespace CLICUTCL\Integrations;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-class CLICUTCL_WooCommerce_Integration {
+/**
+ * Class WooCommerce
+ */
+class WooCommerce {
 
+	/**
+	 * Initialize hooks.
+	 */
 	public function init() {
 		// Safety check: ensure WooCommerce is active
 		if ( ! class_exists( 'WooCommerce' ) ) {
@@ -19,8 +32,8 @@ class CLICUTCL_WooCommerce_Integration {
 	/**
 	 * Save attribution data to the order.
 	 *
-	 * @param WC_Order $order
-	 * @param array    $data
+	 * @param \WC_Order $order Order.
+	 * @param array     $data  Request Data.
 	 */
 	public function save_order_attribution( $order, $data ) {
 		$attribution = clicutcl_get_attribution();
@@ -103,7 +116,7 @@ class CLICUTCL_WooCommerce_Integration {
 	/**
 	 * Gather attribution data saved on the order or fall back to the current cookie.
 	 *
-	 * @param WC_Order $order Order instance.
+	 * @param \WC_Order $order Order instance.
 	 *
 	 * @return array
 	 */
