@@ -13,7 +13,7 @@ Changelog
 *   **Feature**: Added Admin Log Viewer (`ClickTrail > Logs`) to view events from the custom database table.
 *   **Feature**: Implemented Automated Database Cleanup (Cron) to keep the events table healthy.
 *   **Refactor**: Centralized settings logic (`Atribution_Settings`) and Attribution Utilities (`Utils\Attribution`) for better maintainability.
-*   **Fix**: Fixed GTM Data Layer variables for Scroll Tracking (now sends `scroll_depth_threshold`, `scroll_depth_units`, `scroll_direction`).
+*   **Fix**: Fixed GTM Data Layer variables for Scroll Tracking (now sends `scroll_depth_threshold`, `scroll_depth_units`, `scroll_direction`, and `percent_scrolled` for GA4 compatibility).
 *   **Fix**: Improved Time on Page tracking to send explicit `time_on_page_seconds` metric.
 
 = 1.1.1 =
