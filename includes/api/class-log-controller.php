@@ -102,6 +102,7 @@ class Log_Controller extends WP_REST_Controller {
 
 		$table_name = $wpdb->prefix . 'clicutcl_events';
 
+
 		// Check if table exists (for gradual migration support)
 		if ( $wpdb->get_var( "SHOW TABLES LIKE '$table_name'" ) === $table_name ) {
 			// Write to Custom Table
@@ -120,23 +121,7 @@ class Log_Controller extends WP_REST_Controller {
 			);
 
 			if ( $inserted ) {
-				return rest_ensure_response( array( 'success' => true, 'id' => $wpdb->insert_id, 'storage' => 'db' ) );
-			}
-		} else {
-			// Fallback to CPT (Deprecated but safe for transition)
-			$post_id = wp_insert_post(
-				array(
-					'post_type'   => 'clicutcl_wa_click',
-					'post_title'  => 'WhatsApp Click - ' . gmdate( 'Y-m-d H:i:s' ),
-					'post_status' => 'publish',
-				)
-			);
-			
-			if ( ! is_wp_error( $post_id ) ) {
-				update_post_meta( $post_id, '_wa_href', $wa_href );
-				update_post_meta( $post_id, '_wa_location', $wa_location );
-				update_post_meta( $post_id, '_attribution', $attribution );
-				return rest_ensure_response( array( 'success' => true, 'id' => $post_id, 'storage' => 'cpt' ) );
+				return rest_ensure_response( array( 'success' => true, 'id' => $wpdb->insert_id ) );
 			}
 		}
 

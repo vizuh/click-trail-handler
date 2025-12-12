@@ -14,8 +14,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use CLICUTCL\Admin\Admin;
-use CLICUTCL\Post_Types\WhatsApp_Click;
-use CLICUTCL\Ajax\Log_Handler;
 use CLICUTCL\Integrations\WooCommerce;
 use CLICUTCL\Integrations\Form_Integrations;
 use CLICUTCL\Api\Log_Controller;
@@ -55,7 +53,7 @@ class CLICUTCL_Core {
 		$this->consent_mode = new CLICUTCL\Modules\Consent_Mode\Consent_Mode( $this->context );
 		$this->gtm          = new CLICUTCL\Modules\GTM\Web_Tag( $this->context );
 
-		$this->register_cpt();
+
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
 		
@@ -81,22 +79,12 @@ class CLICUTCL_Core {
 	/**
 	 * Register Custom Post Types
 	 */
-	private function register_cpt() {
-		$wa_click = new WhatsApp_Click();
-		add_action( 'init', array( $wa_click, 'register' ) );
-	}
-
-	/**
 	 * Register all of the hooks related to the admin area functionality
 	 * of the plugin.
 	 */
 	private function define_admin_hooks() {
 		$plugin_admin = new Admin( $this->context );
 		$plugin_admin->init();
-
-		// Initialize AJAX Handler
-		$log_handler = new Log_Handler();
-		$log_handler->register();
 
 		// AJAX hooks (Admin specific)
 		add_action( 'wp_ajax_clicutcl_log_pii_risk', array( $plugin_admin, 'ajax_log_pii_risk' ) );
@@ -169,7 +157,6 @@ class CLICUTCL_Core {
 					'cookieName'                => 'attribution',
 					'cookieDays'                => $cookie_days,
 					'requireConsent'            => $require_consent,
-					'ajaxUrl'                   => admin_url( 'admin-ajax.php' ),
 					'restUrl'                   => get_rest_url( null, 'clicutcl/v1/log' ),
 					'nonce'                     => wp_create_nonce( 'wp_rest' ), // REST Nonce
 					'enableWhatsapp'            => isset( $options['enable_whatsapp'] ) ? (bool) $options['enable_whatsapp'] : true,

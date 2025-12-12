@@ -8,6 +8,8 @@ Changelog
 *   **Feature**: Implemented REST API Log Endpoint (`/wp-json/clicutcl/v1/log`) for faster and lighter tracking requests.
 *   **Refactor**: Major architectural improvements including Namespaced Admin class, decoupled AJAX Log Handler, and extracted CPT registration.
 *   **Refactor**: Standardized Integrations (WooCommerce & Forms) into namespaced classes (`CLICUTCL\Integrations`).
+*   **Cleanup**: Removed legacy `clicutcl_wa_click` Custom Post Type and associated AJAX handlers.
+*   **Cleanup**: Removed `CLICUTCL\Ajax\Log_Handler` and `CLICUTCL\Post_Types\WhatsApp_Click` classes.
 *   **Feature**: Added Admin Log Viewer (`ClickTrail > Logs`) to view events from the custom database table.
 *   **Feature**: Implemented Automated Database Cleanup (Cron) to keep the events table healthy.
 *   **Refactor**: Centralized settings logic (`Atribution_Settings`) and Attribution Utilities (`Utils\Attribution`) for better maintainability.
