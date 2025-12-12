@@ -46,7 +46,7 @@ ClickTrail captures first- and last-touch UTMs and click IDs (gclid, fbclid, ttc
 
 ### Documentation & Translations
 
-The base readme is English-only. For Portuguese guidance, visit [ClickTrail docs em Português](https://exemplo.com/pt/clicktrail). Use WordPress.org translations (GlotPress) to localize the readme for additional languages.
+The base readme is English-only. Use WordPress.org translations (GlotPress) to localize the readme for additional languages.
 
 == Installation ==
 

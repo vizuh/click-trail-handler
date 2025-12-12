@@ -64,11 +64,13 @@ class Log_List_Table extends \WP_List_Table {
 		$order         = ( 'ASC' === strtoupper( $order_raw ) ) ? 'ASC' : 'DESC';
 
 		// Count total items
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin-only count query on plugin-owned table; identifiers are escaped.
+		// Count total items
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned and escaped; cannot be parameterized as a value.
 		$total_items = (int) $wpdb->get_var( "SELECT COUNT(id) FROM {$table_name_escaped}" );
 
 		// Fetch items
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Admin-only paginated read from plugin-owned table; identifiers are whitelisted/escaped and values use placeholders.
+		// Fetch items
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Admin-only query: table is plugin-owned and escaped; ORDER BY identifiers are whitelisted; LIMIT/OFFSET use placeholders.
 		$this->items = $wpdb->get_results(
 			$wpdb->prepare(
 				"SELECT * FROM {$table_name_escaped} ORDER BY {$orderby} {$order} LIMIT %d OFFSET %d",

@@ -47,7 +47,7 @@ class Cleanup {
 			return;
 		}
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Cron cleanup on plugin-owned table; identifiers are escaped and values use placeholders.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Cron cleanup on plugin-owned table; table name is internal and escaped, days value uses a placeholder.
 		$wpdb->query(
 			$wpdb->prepare(
 				"DELETE FROM {$table_name_escaped} WHERE created_at < DATE_SUB(NOW(), INTERVAL %d DAY)",
