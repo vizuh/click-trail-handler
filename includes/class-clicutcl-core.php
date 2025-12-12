@@ -71,23 +71,15 @@ class CLICUTCL_Core {
 		if ( class_exists( 'WooCommerce' ) ) {
 			require_once CLICUTCL_DIR . 'includes/admin/class-clicutcl-woocommerce-admin.php'; // CLICUTCL_WooCommerce_Admin (Not namespaced)
 		}
-		if ( class_exists( 'WooCommerce' ) ) {
-			require_once CLICUTCL_DIR . 'includes/admin/class-clicutcl-woocommerce-admin.php'; // CLICUTCL_WooCommerce_Admin (Not namespaced)
-		}
 	}
 
 	/**
-	 * Register Custom Post Types
-	 */
 	 * Register all of the hooks related to the admin area functionality
 	 * of the plugin.
 	 */
 	private function define_admin_hooks() {
 		$plugin_admin = new Admin( $this->context );
 		$plugin_admin->init();
-
-		// AJAX hooks (Admin specific)
-		add_action( 'wp_ajax_clicutcl_log_pii_risk', array( $plugin_admin, 'ajax_log_pii_risk' ) );
 
 		// Initialize WooCommerce Admin features
 		if ( class_exists( 'WooCommerce' ) && class_exists( 'CLICUTCL_WooCommerce_Admin' ) ) {
