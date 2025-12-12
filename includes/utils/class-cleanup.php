@@ -47,12 +47,12 @@ class Cleanup {
 			return;
 		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Cron cleanup on plugin-owned table; values are prepared and query runs infrequently.
-		$sql = $wpdb->prepare(
-			"DELETE FROM {$table_name_escaped} WHERE created_at < DATE_SUB(NOW(), INTERVAL %d DAY)",
-			$days
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Cron cleanup on plugin-owned table; identifiers are escaped and values use placeholders.
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$table_name_escaped} WHERE created_at < DATE_SUB(NOW(), INTERVAL %d DAY)",
+				$days
+			)
 		);
-
-		$wpdb->query( $sql );
 	}
 }

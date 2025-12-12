@@ -54,9 +54,9 @@ class Log_List_Table extends \WP_List_Table {
 		$offset       = ( $current_page - 1 ) * $per_page;
 
 		// Sorting
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- List table sorting only, no state change.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- List table sorting only, no state change; validated via whitelist below.
 		$orderby_raw = isset( $_GET['orderby'] ) ? wp_unslash( $_GET['orderby'] ) : 'created_at';
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- List table sorting only, no state change.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- List table sorting only, no state change; validated via whitelist below.
 		$order_raw   = isset( $_GET['order'] ) ? wp_unslash( $_GET['order'] ) : 'DESC';
 		
 		$valid_orderby = array( 'id', 'created_at', 'event_type' );
@@ -64,21 +64,28 @@ class Log_List_Table extends \WP_List_Table {
 		$order         = ( 'ASC' === strtoupper( $order_raw ) ) ? 'ASC' : 'DESC';
 
 		// Count total items
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin-only count query on plugin-owned table; negligible load, no separate caching needed.
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin-only count query on plugin-owned table; identifiers are escaped.
 		$total_items = (int) $wpdb->get_var( "SELECT COUNT(id) FROM {$table_name_escaped}" );
 
 		// Fetch items
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Admin-only paginated read from plugin-owned table; values are prepared and identifiers are whitelisted.
-		$sql = "SELECT * FROM {$table_name_escaped} ORDER BY {$orderby} {$order} LIMIT %d OFFSET %d";
-
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Admin-only paginated read from plugin-owned table; identifiers are whitelisted/escaped and values use placeholders.
 		$this->items = $wpdb->get_results(
 			$wpdb->prepare(
-				$sql,
+				"SELECT * FROM {$table_name_escaped} ORDER BY {$orderby} {$order} LIMIT %d OFFSET %d",
 				$per_page,
 				$offset
 			),
 			ARRAY_A
 		);
+
+		$this->set_pagination_args(
+			array(
+				'total_items' => $total_items,
+				'per_page'    => $per_page,
+				'total_pages' => ceil( $total_items / $per_page ),
+			)
+		);
+	}
 
 		$this->set_pagination_args(
 			array(
