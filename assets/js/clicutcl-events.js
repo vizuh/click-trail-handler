@@ -87,10 +87,12 @@
                     if (!marks[mark] && percent >= mark) {
                         marks[mark] = true;
                         this.pushEvent('scroll', {
-                            scroll_depth_threshold: parseInt(mark),
-                            scroll_depth_units: 'percent',
-                            scroll_direction: 'vertical',
-                            percent_scrolled: parseInt(mark)
+                            // GTM standard built-in variables
+                            'gtm.scrollThreshold': parseInt(mark),
+                            'gtm.scrollUnits': 'percent',
+                            'gtm.scrollDirection': 'vertical',
+                            // GA4 Enhanced Measurement compatibility
+                            'percent_scrolled': parseInt(mark)
                         });
                     }
                 });
