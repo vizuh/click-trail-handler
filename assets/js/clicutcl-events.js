@@ -71,12 +71,12 @@
             let marks = { 25: false, 50: false, 75: false, 90: false };
 
             const calculateScroll = () => {
-                const h = document.documentElement,
-                    b = document.body,
-                    st = 'scrollTop',
-                    sh = 'scrollHeight';
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+                const scrollHeight = document.documentElement.scrollHeight || document.body.scrollHeight;
+                const clientHeight = document.documentElement.clientHeight || window.innerHeight;
 
-                const percent = (h[st] || b[st]) / ((h[sh] || b[sh]) - h.clientHeight) * 100;
+                // Calculate scroll percentage
+                const percent = (scrollTop / (scrollHeight - clientHeight)) * 100;
 
                 Object.keys(marks).forEach(mark => {
                     if (!marks[mark] && percent >= mark) {
