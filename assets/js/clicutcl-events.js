@@ -19,10 +19,15 @@
 
         pushEvent(eventName, params = {}) {
             window.dataLayer = window.dataLayer || [];
-            window.dataLayer.push({
+            const eventData = {
                 event: eventName,
                 ...params
-            });
+            };
+
+            // Debug logging
+            console.log('🔵 ClickTrail Event:', eventName, eventData);
+
+            window.dataLayer.push(eventData);
         }
 
         /**
