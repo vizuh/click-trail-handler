@@ -7,7 +7,7 @@
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.0%2B-purple.svg)](https://php.net/)
 [![License](https://img.shields.io/badge/License-GPLv2%2B-green.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
-[![Version](https://img.shields.io/badge/Version-1.2.0-orange.svg)](https://github.com/vizuh/click-trail)
+[![Version](https://img.shields.io/badge/Version-1.2.1-orange.svg)](https://github.com/vizuh/click-trail)
 
 **Stop losing campaign data. See what actually converts. Make better marketing decisions.**
 
