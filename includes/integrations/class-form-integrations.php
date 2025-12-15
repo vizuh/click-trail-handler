@@ -15,6 +15,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * Class Form_Integrations
+ *
+ * @deprecated 1.3.0 Use Form_Integration_Manager and specific adapters instead.
  */
 class Form_Integrations {
 
