@@ -6,15 +6,16 @@ Changelog
 *   **Security**: Hardened AJAX handlers with strict WhatsApp URL validation and optimized PII risk logging using nonce verification and state checks.
 *   **Feature**: Introduced Custom Database Table (`wp_clicutcl_events`) for scalable event logging, removing reliance on Custom Post Types.
 *   **Feature**: Implemented REST API Log Endpoint (`/wp-json/clicutcl/v1/log`) for faster and lighter tracking requests.
-*   **Refactor**: Major architectural improvements including Namespaced Admin class, decoupled AJAX Log Handler, and extracted CPT registration.
-*   **Refactor**: Standardized Integrations (WooCommerce & Forms) into namespaced classes (`CLICUTCL\Integrations`).
-*   **Cleanup**: Removed legacy `clicutcl_wa_click` Custom Post Type and associated AJAX handlers.
-*   **Cleanup**: Removed `CLICUTCL\Ajax\Log_Handler` and `CLICUTCL\Post_Types\WhatsApp_Click` classes.
 *   **Feature**: Added Admin Log Viewer (`ClickTrail > Logs`) to view events from the custom database table.
 *   **Feature**: Implemented Automated Database Cleanup (Cron) to keep the events table healthy.
-*   **Refactor**: Centralized settings logic (`Atribution_Settings`) and Attribution Utilities (`Utils\Attribution`) for better maintainability.
-*   **Fix**: Fixed GTM Data Layer variables for Scroll Tracking (now sends `scroll_depth_threshold`, `scroll_depth_units`, `scroll_direction`, and `percent_scrolled` for GA4 compatibility).
-*   **Fix**: Improved Time on Page tracking to send explicit `time_on_page_seconds` metric.
+*   **Refactor**: Major architectural improvements including Namespaced Admin class, decoupled AJAX Log Handler, and extracted CPT registration.
+*   **Refactor**: Standardized Integrations (WooCommerce & Forms) into namespaced classes (`CLICUTCL\Integrations`), cleaning up the global namespace and dependencies.
+*   **Refactor**: Centralized settings logic (`Attribution_Settings`) and Attribution Utilities (`Utils\Attribution`) for better maintainability.
+*   **Fix**: Fixed GTM Data Layer variables for Scroll Tracking—now uses GTM's built-in variable names (`gtm.scrollThreshold`, `gtm.scrollUnits`, `gtm.scrollDirection`) plus `percent_scrolled` for GA4 compatibility. No custom Data Layer Variables needed in GTM!
+*   **Fix**: Fixed scroll percentage calculation bug that prevented events from firing. Changed from string-based property access to direct property access with cross-browser fallbacks.
+*   **Fix**: Improved engagement tracking by renaming `time_on_page` event to `user_engagement` with descriptive engagement levels (quick_view, browsing, engaged, interested, highly_engaged) and added `engagement_time_msec`, `time_label`, and `time_threshold` parameters.
+*   **Cleanup**: Removed legacy `clicutcl_wa_click` Custom Post Type and associated AJAX handlers.
+*   **Cleanup**: Removed `CLICUTCL\Ajax\Log_Handler` and `CLICUTCL\Post_Types\WhatsApp_Click` classes.
 
 = 1.1.1 =
 *   Refreshed readme copy and release guidance to align WordPress.org listing with latest documentation.

@@ -7,9 +7,9 @@
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.0%2B-purple.svg)](https://php.net/)
 [![License](https://img.shields.io/badge/License-GPLv2%2B-green.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
-[![Version](https://img.shields.io/badge/Version-1.1.0-orange.svg)](https://github.com/vizuh/click-trail)
+[![Version](https://img.shields.io/badge/Version-1.2.0-orange.svg)](https://github.com/vizuh/click-trail)
 
-**Complete consent management and marketing attribution solution for WordPress**
+**Stop losing campaign data. See what actually converts. Make better marketing decisions.**
 
 [🇧🇷 Português](#português) • [🇺🇸 English](#english)
 
@@ -21,9 +21,15 @@
 
 ### 🎯 What is ClickTrail?
 
-**ClickTrail** is a comprehensive WordPress plugin that bridges the gap between **user privacy compliance** and **accurate marketing attribution**. It combines robust consent management with powerful attribution tracking to help you understand which campaigns drive results—while respecting user privacy.
+Most WordPress sites **lose campaign data** the moment a visitor clicks away from the landing page. If they don't convert immediately, your UTM/click ID context is gone forever—leaving you with "Direct / None" conversions and a massive reporting blind spot.
 
-The plugin captures first- and last-touch UTMs and click IDs, stores them in cookies (with user consent when required), and automatically attaches that data to your form entries and WooCommerce orders. The built-in consent banner with Google Consent Mode integration ensures your tracking stays compliant with GDPR and other privacy regulations.
+**ClickTrail fixes that.**
+
+It captures **first-touch and last-touch UTMs + click IDs** (gclid, fbclid, ttclid, msclkid, and more), stores them in first-party cookies (with consent), and **automatically injects that attribution into every form submission and WooCommerce order**—even when the buyer journey takes multiple pages or multiple sessions.
+
+**The result?** You can finally prove which campaigns drive real conversions, cut wasted ad spend, and make marketing decisions based on actual data instead of guesswork.
+
+Plus, the built-in consent banner with **Google Consent Mode v2** keeps you GDPR-compliant while preserving the attribution signals you need for GA4, Meta, and other platforms.
 
 ### ✨ Key Features
 
@@ -34,8 +40,9 @@ The plugin captures first- and last-touch UTMs and click IDs, stores them in coo
 - **WooCommerce Attribution**: Automatically saves attribution metadata to orders at checkout
 
 #### 📈 **Advanced Event Tracking**
-- **Client-Side Events**: Automatically tracks Site Searches, File Downloads, Scroll Depth (25/50/75/90%), and Time on Page.
+- **Client-Side Events**: Automatically tracks Site Searches, File Downloads, **Scroll Depth (25/50/75/90%)** using GTM's built-in variables, and **User Engagement** (10s/30s/1m/2m/5m) with descriptive engagement levels.
 - **Server-Side Events**: Tracks User Logins, User Signups, and Comments, pushing them to the dataLayer.
+- **GA4-Ready**: All events push to dataLayer in GA4-compatible format for easy GTM integration.
 
 #### 🔒 **Privacy & Consent**
 - **Built-in Consent Banner**: Customizable consent management interface
@@ -129,8 +136,9 @@ O plugin captura UTMs de primeiro e último toque e click IDs, armazena em cooki
 - **Atribuição WooCommerce**: Salva automaticamente metadados de atribuição em pedidos no checkout
 
 #### 📈 **Rastreamento de Eventos Avançado**
-- **Eventos Client-Side**: Rastreia automaticamente Buscas no Site, Downloads de Arquivos, Profundidade de Rolagem (25/50/75/90%) e Tempo na Página.
+- **Eventos Client-Side**: Rastreia automaticamente Buscas no Site, Downloads de Arquivos, **Profundidade de Rolagem (25/50/75/90%)** usando variáveis integradas do GTM, e **Engajamento do Usuário** (10s/30s/1m/2m/5m) com níveis de engajamento descritivos.
 - **Eventos Server-Side**: Rastreia Login de Usuário, Cadastro de Usuário e Comentários, enviando-os para o dataLayer.
+- **Pronto para GA4**: Todos os eventos são enviados para dataLayer em formato compatível com GA4 para fácil integração com GTM.
 
 #### 🔒 **Privacidade & Consentimento**
 - **Banner de Consentimento Integrado**: Interface personalizável de gerenciamento de consentimento
