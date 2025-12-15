@@ -2,6 +2,14 @@ Changelog
 ========
 
 
+= 1.2.1 =
+*   **Fix**: Fixed scroll tracking to use GTM's built-in variable names (`gtm.scrollThreshold`, `gtm.scrollUnits`, `gtm.scrollDirection`) instead of custom Data Layer Variables, making GTM setup simpler and more reliable.
+*   **Fix**: Fixed scroll percentage calculation bug that prevented scroll events from firing. Changed from string-based property access to direct property access with cross-browser fallbacks for better reliability.
+*   **Improvement**: Renamed `time_on_page` event to `user_engagement` with descriptive engagement levels (quick_view, browsing, engaged, interested, highly_engaged) and added detailed parameters (`engagement_time_msec`, `time_label`, `time_threshold`) for better analytics insights.
+*   **Fix**: Corrected typo in settings class name (`Attribution_Settings`) for consistency.
+*   **Docs**: Updated readme.txt and README.md with benefit-focused messaging emphasizing ROI and business value over technical features.
+
+
 = 1.2.0 =
 *   **Security**: Hardened AJAX handlers with strict WhatsApp URL validation and optimized PII risk logging using nonce verification and state checks.
 *   **Feature**: Introduced Custom Database Table (`wp_clicutcl_events`) for scalable event logging, removing reliance on Custom Post Types.
