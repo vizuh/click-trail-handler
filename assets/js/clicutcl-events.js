@@ -113,18 +113,29 @@
          * Tracks 10s, 30s, 60s, 120s, 300s
          */
         trackTimeOnPage() {
-            const times = [10, 30, 60, 120, 300];
+            const timeThresholds = [
+                { seconds: 10, label: '10_seconds', engagement: 'quick_view' },
+                { seconds: 30, label: '30_seconds', engagement: 'browsing' },
+                { seconds: 60, label: '1_minute', engagement: 'engaged' },
+                { seconds: 120, label: '2_minutes', engagement: 'interested' },
+                { seconds: 300, label: '5_minutes', engagement: 'highly_engaged' }
+            ];
 
-            times.forEach(seconds => {
+            timeThresholds.forEach(threshold => {
                 setTimeout(() => {
-                    // Only track if tab is visible (optional, but good practice)
+                    // Only track if tab is visible
                     if (!document.hidden) {
-                        this.pushEvent('time_on_page', {
-                            time_on_page_seconds: seconds, // Explicit variable name
-                            value: seconds // Standard value for metrics
+                        this.pushEvent('user_engagement', {
+                            // GTM friendly parameters
+                            'engagement_time_msec': threshold.seconds * 1000,
+                            'time_threshold': threshold.seconds,
+                            'time_label': threshold.label,
+                            'engagement_level': threshold.engagement,
+                            // GA4 compatibility
+                            'value': threshold.seconds
                         });
                     }
-                }, seconds * 1000);
+                }, threshold.seconds * 1000);
             });
         }
     }
