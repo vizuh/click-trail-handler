@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use CLICUTCL\Admin\Admin;
 use CLICUTCL\Integrations\WooCommerce;
-use CLICUTCL\Integrations\Form_Integrations;
+
 use CLICUTCL\Api\Log_Controller;
 use CLICUTCL\Utils\Cleanup;
 
@@ -104,7 +104,7 @@ class CLICUTCL_Core {
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 		
 		// Initialize Integrations
-		$form_integrations = new Form_Integrations();
+		$form_integrations = new CLICUTCL\Integrations\Form_Integration_Manager();
 		$form_integrations->init();
 
 
