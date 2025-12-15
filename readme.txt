@@ -1,3 +1,14 @@
+=== ClickTrail  UTM, Click ID & Ad Tracking (with Consent) ===
+Author: Vizuh
+Author URI: https://vizuh.com
+Contributors: hugoc
+Tags: attribution, utm, tracking, consent mode, gtm
+Requires at least: 5.0
+Tested up to: 6.9
+Stable tag: 1.2.1
+Requires PHP: 7.0
+License: GPLv2 or later
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Persist and attach first- and last-touch UTMs + click IDs to every form submission and WooCommerce order (with consent) — so you can see what actually converts and stop wasting budget on “unknown” traffic.
 
 == Description ==
@@ -107,6 +118,13 @@ ClickTrail provides consent controls and Consent Mode defaults, but ultimate com
 
 == Changelog ==
 
+= 1.2.1 =
+*   **Fix**: Fixed scroll tracking to use GTM's built-in variable names (`gtm.scrollThreshold`, `gtm.scrollUnits`, `gtm.scrollDirection`) instead of custom Data Layer Variables, making GTM setup simpler and more reliable.
+*   **Fix**: Fixed scroll percentage calculation bug that prevented scroll events from firing. Changed from string-based property access to direct property access with cross-browser fallbacks for better reliability.
+*   **Improvement**: Renamed `time_on_page` event to `user_engagement` with descriptive engagement levels (quick_view, browsing, engaged, interested, highly_engaged) and added detailed parameters (`engagement_time_msec`, `time_label`, `time_threshold`) for better analytics insights.
+*   **Fix**: Corrected typo in settings class name (`Attribution_Settings`) for consistency.
+*   **Docs**: Updated readme.txt and README.md with benefit-focused messaging emphasizing ROI and business value over technical features.
+
 = 1.2.0 =
 *   **Security**: Hardened AJAX handlers with strict WhatsApp URL validation and optimized PII risk logging using nonce verification and state checks.
 *   **Refactor**: Major architectural improvements including Namespaced Admin class, decoupled AJAX Log Handler, and extracted CPT registration.
@@ -135,6 +153,9 @@ Previous release notes are available in `changelog.txt`.
 
 == Upgrade Notice ==
 
+= 1.2.1 =
+Scroll tracking improvements: Now uses GTM built-in variables (no custom setup needed!) and fixes scroll calculation bug. Engagement tracking enhanced with descriptive levels. Recommended update for better GTM compatibility.
+
 = 1.2.0 =
 Major security hardening and internal refactoring. Includes fixes for Scroll Tracking (now uses GTM built-in variables) and enhanced user engagement tracking with descriptive engagement levels.
 
@@ -143,3 +164,4 @@ Documentation and asset updates only; no functional changes. Apply this to keep 
 
 = 1.1.0 =
 Adds event tracking, Consent Mode v2 updates, and GA4/GTM enhancements. Review consent settings before upgrading to ensure privacy compliance.
+
