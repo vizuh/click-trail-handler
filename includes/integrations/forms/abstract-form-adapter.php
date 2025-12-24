@@ -66,6 +66,7 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 			'attribution' => $attribution,
 		);
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Intentional insert into custom plugin table.
 		$wpdb->insert(
 			$table_name,
 			array(

@@ -73,17 +73,8 @@ require_once CLICUTCL_DIR . 'includes/class-clicutcl-core.php';
 // require_once CLICUTCL_DIR . 'includes/clicutcl-attribution-functions.php'; // Moved to CLICUTCL\Utils\Attribution
 require_once CLICUTCL_DIR . 'includes/clicutcl-canonical.php';
 
-/**
- * Load translations at init or later (prevents "triggered too early" patterns).
- */
-function clicutcl_load_textdomain(): void {
-	load_plugin_textdomain(
-		'click-trail-handler',
-		false,
-		dirname( CLICUTCL_BASENAME ) . '/languages'
-	);
-}
-add_action( 'init', 'clicutcl_load_textdomain', 0 );
+// Translations are loaded automatically by WordPress 4.6+ for plugins hosted on WordPress.org.
+// See: https://developer.wordpress.org/plugins/internationalization/how-to-internationalize-your-plugin/#loading-text-domain
 
 // Activation Hook
 register_activation_hook( __FILE__, function() {
