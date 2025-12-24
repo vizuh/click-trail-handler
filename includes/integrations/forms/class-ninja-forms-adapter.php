@@ -99,7 +99,15 @@ class Ninja_Forms_Adapter extends Abstract_Form_Adapter {
 	 * @param array $form_data The form data.
 	 * @param mixed $form_id Unused in this hook signature usually, embedded in data.
 	 */
-	public function on_submission( $form_data, $form_id = null ) {
+	/**
+	 * Handle submission (log to DB).
+	 *
+	 * @param array $arg1 The form data.
+	 * @param mixed $arg2 Unused/Optional.
+	 */
+	public function on_submission( $arg1, $arg2 = null ) {
+		$form_data = $arg1;
+		$form_id = $arg2;
 		if ( isset( $form_data['extra']['clicktrail_attribution'] ) ) {
 			$attribution = $form_data['extra']['clicktrail_attribution'];
 			$form_id     = isset( $form_data['form_id'] ) ? $form_data['form_id'] : ( isset( $form_data['id'] ) ? $form_data['id'] : 0 );

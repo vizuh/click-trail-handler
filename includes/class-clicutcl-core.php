@@ -43,10 +43,33 @@ class CLICUTCL_Core {
 	protected $gtm;
 
 	/**
+	 * Whether the plugin booted correctly.
+	 *
+	 * @var bool
+	 */
+	protected $booted = false;
+
+	/**
 	 * Define the core functionality of the plugin.
 	 */
 	public function __construct() {
 		$this->load_dependencies();
+
+		if ( ! class_exists( 'CLICUTCL\\Core\\Context' ) ) {
+			add_action( 'admin_notices', function() {
+				if ( ! current_user_can( 'activate_plugins' ) ) {
+					return;
+				}
+				echo '<div class="notice notice-error"><p>';
+				echo esc_html__(
+					'ClickTrail Handler failed to boot: missing class CLICUTCL\\Core\\Context. Check your autoloader mapping and release ZIP contents.',
+					'click-trail-handler'
+				);
+				echo '</p></div>';
+			} );
+			return;
+		}
+
 		$this->context = new CLICUTCL\Core\Context( CLICUTCL_PLUGIN_MAIN_FILE );
 		
 		// Initialize Modules
@@ -59,14 +82,15 @@ class CLICUTCL_Core {
 		
 		$cleanup = new Cleanup();
 		$cleanup->register();
+		$this->booted = true;
 	}
 
 	/**
 	 * Load the required dependencies for this plugin.
 	 */
 	private function load_dependencies() {
-		// Autoloader
-		require_once CLICUTCL_DIR . 'includes/class-autoloader.php';
+		// Autoloader handled in bootstrap
+
 		// WooCommerce Admin (if WooCommerce is active)
 		if ( class_exists( 'WooCommerce' ) ) {
 			require_once CLICUTCL_DIR . 'includes/admin/class-clicutcl-woocommerce-admin.php'; // CLICUTCL_WooCommerce_Admin (Not namespaced)
@@ -191,6 +215,9 @@ class CLICUTCL_Core {
 	 * Run the loader to execute all of the hooks with WordPress.
 	 */
 	public function run() {
+		if ( ! $this->booted ) {
+			return;
+		}
 		// In a more complex setup we might use a Loader class, 
 		// but for now we just rely on the constructor adding hooks.
 	}

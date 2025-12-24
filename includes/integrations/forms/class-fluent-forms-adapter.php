@@ -82,7 +82,17 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 	 * @param array $form_data Posted data.
 	 * @param object $form     Form object.
 	 */
-	public function on_submission( $entry_id, $form_data, $form = null ) {
+	/**
+	 * Handle submission (log to DB and Fluent Meta).
+	 *
+	 * @param int   $arg1 Submission ID (mapped to arg1).
+	 * @param array $arg2 Posted data (mapped to arg2).
+	 * @param object $arg3 Form object (optional).
+	 */
+	public function on_submission( $arg1, $arg2, $arg3 = null ) {
+		$entry_id = $arg1;
+		$form_data = $arg2;
+		$form = $arg3;
 		// Use payload from cookie or form_data?
 		// form_data should contain our hidden fields if they were submitted.
 		

@@ -106,7 +106,15 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 	 * @param array $form_data Form data.
 	 * @param int   $entry_id  Entry ID.
 	 */
-	public function on_submission( $fields, $entry, $form_data, $entry_id ) {
+	/**
+	 * Handle submission.
+	 *
+	 * @param mixed $fields    Sanitized field data (mapped to arg1).
+	 * @param mixed $entry     Original entry $_POST (mapped to arg2).
+	 * @param mixed $form_data Form data (optional extra).
+	 * @param mixed $entry_id  Entry ID (optional extra).
+	 */
+	public function on_submission( $fields, $entry, $form_data = null, $entry_id = null ) {
 		$payload = $this->get_attribution_payload();
 		if ( empty( $payload ) ) {
 			return;

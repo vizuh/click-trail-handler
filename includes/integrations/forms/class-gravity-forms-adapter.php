@@ -88,7 +88,15 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 	 * @param array $entry The entry data.
 	 * @param array $form  The form object.
 	 */
-	public function on_submission( $entry, $form ) {
+	/**
+	 * Handle submission.
+	 *
+	 * @param array $arg1 The entry data.
+	 * @param array $arg2 The form object.
+	 */
+	public function on_submission( $arg1, $arg2 ) {
+		$entry = $arg1;
+		$form = $arg2;
 		// Retrieve attribution from the entry actually submitted? 
 		// Or retrieve from cookie at this moment?
 		// Since fields were likely hidden fields populated by `populate_fields_dynamic`, 

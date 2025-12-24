@@ -83,7 +83,17 @@ class CF7_Adapter extends Abstract_Form_Adapter {
 	 * @param bool   $abort        Abort status.
 	 * @param object $submission   Submission object.
 	 */
-	public function on_submission( $contact_form, $abort = null, $submission = null ) {
+	/**
+	 * Handle submission (log to DB).
+	 *
+	 * @param object $arg1 CF7 Form object.
+	 * @param bool   $arg2 Abort status.
+	 * @param object $arg3 Submission object.
+	 */
+	public function on_submission( $arg1, $arg2 = null, $arg3 = null ) {
+		$contact_form = $arg1;
+		$abort = $arg2;
+		$submission = $arg3;
 		// If $submission is not passed (older CF7 versions), get instances.
 		if ( ! $submission ) {
 			$submission = \WPCF7_Submission::get_instance();
@@ -95,28 +105,21 @@ class CF7_Adapter extends Abstract_Form_Adapter {
 
 		$posted_data = $submission->get_posted_data();
 		
-		// Extract attribution from posted data (since we added hidden fields)
-		// Or get it fresh if verification needed? 
-		// Relying on posted data is better as it reflects what was in the form at submission time.
-		
 		$attribution = array();
 		
-		// We iterate our known mapping to extract
-		$keys = Attribution_Provider::get_field_mapping();
-		foreach ( $keys as $key ) {
-			$prefixed = $this->get_field_name( $key );
-			if ( isset( $posted_data[ $prefixed ] ) ) {
-				$attribution[ $key ] = sanitize_text_field( $posted_data[ $prefixed ] );
+		// Check provider existence to prevent fatal if core is messed up
+		if ( class_exists( 'CLICUTCL\Core\Attribution_Provider' ) && is_callable( array( 'CLICUTCL\Core\Attribution_Provider', 'get_field_mapping' ) ) ) {
+			// We iterate our known mapping to extract
+			$keys = Attribution_Provider::get_field_mapping();
+			foreach ( $keys as $key ) {
+				$prefixed = $this->get_field_name( $key );
+				if ( isset( $posted_data[ $prefixed ] ) ) {
+					$attribution[ $key ] = sanitize_text_field( $posted_data[ $prefixed ] );
+				}
 			}
 		}
 		
 		if ( empty( $attribution ) ) {
-			// Fallback: try to get from cookie if hidden fields failed?
-			// But prompt says "Add submission persistence: Stored in CF7 database addons".
-			// If we added hidden fields, they are in posted_data, and CF7 database plugins *typically* save all posted fields.
-			// So by just adding hidden fields (done above), we satisfy "Stored in CF7 database addons".
-			// But we also need to log to OUR table.
-			
 			// If empty, maybe try getting payload directly.
 			$attribution = $this->get_attribution_payload();
 		}

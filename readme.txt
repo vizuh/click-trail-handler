@@ -1,15 +1,16 @@
-=== ClickTrail  UTM, Click ID & Ad Tracking (with Consent) ===
+=== ClickTrail – UTM, Click ID & Ad Tracking (with Consent) ===
 Author: Vizuh
 Author URI: https://vizuh.com
 Contributors: hugoc
 Tags: attribution, utm, tracking, consent mode, gtm
 Requires at least: 5.0
 Tested up to: 6.9
-Stable tag: 1.2.1
+Stable tag: 1.2.2
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
-Persist and attach first- and last-touch UTMs + click IDs to every form submission and WooCommerce order (with consent) — so you can see what actually converts and stop wasting budget on “unknown” traffic.
+
+Complete marketing attribution: UTMs & Click IDs for WooCommerce and forms. Built-in consent banner + Google Consent Mode support.
 
 == Description ==
 
@@ -118,6 +119,13 @@ ClickTrail provides consent controls and Consent Mode defaults, but ultimate com
 
 == Changelog ==
 
+= 1.2.2 =
+*   **Fix**: Resolved critical autoloading issues on Linux/Unix environments (case-sensitive paths) to prevent Fatal Errors during activation.
+*   **Fix**: Implemented strict PHP interface compatibility for all Form Adapters (CF7, WPForms, Gravity Forms, Ninja Forms, Fluent Forms) to resolve fatal errors on PHP 8+.
+*   **Fix**: Added robust "preflight" checks in the boot sequence to safely deactivate the plugin if files are corrupted or missing, instead of crashing the site.
+*   **Improvement**: Enhanced autoloader performance and added fallback for mixed naming conventions.
+*   **Improvement**: Updated plugin metadata and readme for better WordPress.org validation compliance.
+
 = 1.2.1 =
 *   **Fix**: Fixed scroll tracking to use GTM's built-in variable names (`gtm.scrollThreshold`, `gtm.scrollUnits`, `gtm.scrollDirection`) instead of custom Data Layer Variables, making GTM setup simpler and more reliable.
 *   **Fix**: Fixed scroll percentage calculation bug that prevented scroll events from firing. Changed from string-based property access to direct property access with cross-browser fallbacks for better reliability.
@@ -152,6 +160,9 @@ ClickTrail provides consent controls and Consent Mode defaults, but ultimate com
 Previous release notes are available in `changelog.txt`.
 
 == Upgrade Notice ==
+
+= 1.2.2 =
+Critical update: Fixes fatal errors on activation for Linux environments and PHP 8+ strict compatibility issues. Recommended for all users.
 
 = 1.2.1 =
 Scroll tracking improvements: Now uses GTM built-in variables (no custom setup needed!) and fixes scroll calculation bug. Engagement tracking enhanced with descriptive levels. Recommended update for better GTM compatibility.

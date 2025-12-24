@@ -49,5 +49,12 @@ interface Form_Adapter_Interface {
 	 * @param mixed $submission_data The submission data.
 	 * @param mixed $form_id The form ID.
 	 */
-	public function on_submission( $submission_data, $form_id );
+	/**
+	 * Handle form submission.
+	 *
+	 * Note: Arguments vary by platform.
+	 *
+	 * @return void
+	 */
+	public function on_submission( $arg1, $arg2 );
 }
