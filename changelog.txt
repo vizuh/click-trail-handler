@@ -1,6 +1,17 @@
 Changelog
 ========
 
+= 1.2.3 =
+*   **Fix**: Fixed Short Description formatting in readme.txt to comply with WordPress.org plugin guidelines.
+*   **Improvement**: Removed deprecated `load_plugin_textdomain()` call—WordPress 4.6+ handles translations automatically for plugins hosted on WordPress.org.
+*   **Improvement**: Added PHPCS ignore comment for intentional direct database query on custom plugin table.
+
+= 1.2.2 =
+*   **Fix**: Resolved critical autoloading issues on Linux/Unix environments (case-sensitive paths) to prevent Fatal Errors during activation.
+*   **Fix**: Implemented strict PHP interface compatibility for all Form Adapters (CF7, WPForms, Gravity Forms, Ninja Forms, Fluent Forms) to resolve fatal errors on PHP 8+.
+*   **Fix**: Added robust "preflight" checks in the boot sequence to safely deactivate the plugin if files are corrupted or missing, instead of crashing the site.
+*   **Improvement**: Enhanced autoloader performance and added fallback for mixed naming conventions.
+*   **Improvement**: Updated plugin metadata and readme for better WordPress.org validation compliance.
 
 = 1.2.1 =
 *   **Fix**: Fixed scroll tracking to use GTM's built-in variable names (`gtm.scrollThreshold`, `gtm.scrollUnits`, `gtm.scrollDirection`) instead of custom Data Layer Variables, making GTM setup simpler and more reliable.

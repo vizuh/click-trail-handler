@@ -5,7 +5,7 @@ Contributors: hugoc
 Tags: attribution, utm, tracking, consent mode, gtm
 Requires at least: 5.0
 Tested up to: 6.9
-Stable tag: 1.2.2
+Stable tag: 1.2.3
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -119,6 +119,11 @@ ClickTrail provides consent controls and Consent Mode defaults, but ultimate com
 
 == Changelog ==
 
+= 1.2.3 =
+*   **Fix**: Fixed Short Description formatting in readme.txt to comply with WordPress.org plugin guidelines.
+*   **Improvement**: Removed deprecated `load_plugin_textdomain()` call—WordPress 4.6+ handles translations automatically for plugins hosted on WordPress.org.
+*   **Improvement**: Added PHPCS ignore comment for intentional direct database query on custom plugin table.
+
 = 1.2.2 =
 *   **Fix**: Resolved critical autoloading issues on Linux/Unix environments (case-sensitive paths) to prevent Fatal Errors during activation.
 *   **Fix**: Implemented strict PHP interface compatibility for all Form Adapters (CF7, WPForms, Gravity Forms, Ninja Forms, Fluent Forms) to resolve fatal errors on PHP 8+.
@@ -160,6 +165,9 @@ ClickTrail provides consent controls and Consent Mode defaults, but ultimate com
 Previous release notes are available in `changelog.txt`.
 
 == Upgrade Notice ==
+
+= 1.2.3 =
+Minor update: Fixes WordPress.org plugin check warnings (short description format, deprecated textdomain loader). Recommended for compliance.
 
 = 1.2.2 =
 Critical update: Fixes fatal errors on activation for Linux environments and PHP 8+ strict compatibility issues. Recommended for all users.
