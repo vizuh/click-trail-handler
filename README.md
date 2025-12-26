@@ -56,6 +56,7 @@ Plus, the built-in consent banner with **Google Consent Mode v2** keeps you GDPR
   - **Relaxed Mode**: Everything granted by default
   - **Geo-based Mode**: Custom rules for EU/UK/CH vs. rest of world
 - **GDPR Ready**: Designed with privacy regulations in mind
+- **Localization**: Native support for English and Portuguese (Brazil)
 
 #### 📊 **Multi-Platform Click ID Support**
 Captures click IDs from all major advertising platforms:

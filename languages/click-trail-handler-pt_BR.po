@@ -1,0 +1,413 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: ClickTrail 1.3.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-12-26 21:55+0000\n"
+"PO-Revision-Date: 2025-12-26 21:55+0000\n"
+"Last-Translator: ClickTrail AI\n"
+"Language-Team: pt_BR\n"
+"Language: pt_BR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: ClickTrail AI\n"
+
+#: includes/admin/class-site-health.php:17
+msgid "ClickTrail: Caching/conflicts detected"
+msgstr "ClickTrail: Cache/conflitos detectados"
+
+#: includes/admin/class-site-health.php:22
+msgid "ClickTrail: Frontend script running"
+msgstr "ClickTrail: Script de frontend em execução"
+
+#: includes/admin/class-site-health.php:27
+msgid "ClickTrail: Attribution cookie readable"
+msgstr "ClickTrail: Cookie de atribuição legível"
+
+#: includes/admin/class-site-health.php:49
+msgid "No common caching/conflict plugins detected"
+msgstr "Nenhum plugin comum de cache/conflito detectado"
+
+#: includes/admin/class-site-health.php:50
+msgid "ClickTrail will still work best with JS injection enabled."
+msgstr "O ClickTrail ainda funcionará melhor com a injeção de JS ativada."
+
+#: includes/admin/class-site-health.php:56
+msgid "Caching/optimization detected (JS injection recommended)"
+msgstr "Cache/otimização detectados (injeção de JS recomendada)"
+
+#: includes/admin/class-site-health.php:58
+#, php-format
+msgid "Detected: %s. Full-page caching can make server-side hidden fields stale. Enable ClickTrail’s JS Field Injector."
+msgstr "Detectado: %s. O cache de página inteira pode tornar os campos ocultos do lado do servidor obsoletos. Ative o Injetor de Campo JS do ClickTrail."
+
+#: includes/admin/class-site-health.php:71
+msgid "Frontend script seen in the last 24h"
+msgstr "Script de frontend visto nas últimas 24h"
+
+#: includes/admin/class-site-health.php:72
+msgid "Your frontend script reported activity recently."
+msgstr "Seu script de frontend reportou atividade recentemente."
+
+#: includes/admin/class-site-health.php:78
+msgid "Frontend script not seen recently"
+msgstr "Script de frontend não visto recentemente"
+
+#: includes/admin/class-site-health.php:79
+msgid "If you use caching/minification, confirm the ClickTrail JS is loaded on public pages."
+msgstr "Se você usa cache/minificação, confirme se o JS do ClickTrail está carregado em páginas públicas."
+
+#: includes/admin/class-site-health.php:94
+msgid "Attribution cookie present in request"
+msgstr "Cookie de atribuição presente na requisição"
+
+#: includes/admin/class-site-health.php:95
+msgid "Server received the attribution cookie."
+msgstr "O servidor recebeu o cookie de atribuição."
+
+#: includes/admin/class-site-health.php:99
+msgid "This may be normal if no UTM visit occurred."
+msgstr "Isso pode ser normal se nenhuma visita UTM ocorreu."
+
+#: includes/admin/class-site-health.php:101
+msgid "Note: Consent Mode is enabled. If you have not granted consent, no cookie will be set."
+msgstr "Nota: O Modo de Consentimento está ativado. Se você não concedeu consentimento, nenhum cookie será definido."
+
+#: includes/admin/class-site-health.php:103
+msgid "Test by visiting a page with ?utm_source=test."
+msgstr "Teste visitando uma página com ?utm_source=test."
+
+#: includes/admin/class-site-health.php:108
+msgid "Attribution cookie not present in request"
+msgstr "Cookie de atribuição não presente na requisição"
+
+#: includes/admin/class-log-list-table.php:101
+msgid "Date"
+msgstr "Data"
+
+#: includes/admin/class-log-list-table.php:102
+msgid "Event Type"
+msgstr "Tipo de Evento"
+
+#: includes/admin/class-log-list-table.php:103
+msgid "Details"
+msgstr "Detalhes"
+
+#: includes/admin/class-log-list-table.php:190
+msgid "No logs found."
+msgstr "Nenhum log encontrado."
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:31
+#: includes/admin/class-clicutcl-woocommerce-admin.php:105
+#: includes/admin/class-clicutcl-woocommerce-admin.php:152
+msgid "Source"
+msgstr "Origem"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:73
+msgid "Direct"
+msgstr "Direto"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:83
+msgid "Marketing Attribution"
+msgstr "Atribuição de Marketing"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:99
+msgid "No attribution data available."
+msgstr "Nenhum dado de atribuição disponível."
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:106
+#: includes/admin/class-clicutcl-woocommerce-admin.php:155
+msgid "Medium"
+msgstr "Meio"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:107
+msgid "Campaign"
+msgstr "Campanha"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:108
+msgid "Term"
+msgstr "Termo"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:109
+msgid "Content"
+msgstr "Conteúdo"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:110
+msgid "Google Click ID"
+msgstr "Google Click ID"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:111
+msgid "Facebook Click ID"
+msgstr "Facebook Click ID"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:112
+msgid "LinkedIn Click ID"
+msgstr "LinkedIn Click ID"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:113
+msgid "Landing Page"
+msgstr "Página de Destino"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:117
+msgid "First Touch"
+msgstr "Primeiro Toque"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:138
+msgid "No first-touch data available"
+msgstr "Nenhum dado de primeiro toque disponível"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:149
+msgid "Last Touch"
+msgstr "Último Toque"
+
+#: includes/admin/class-admin.php:69
+msgid "ClickTrail Status"
+msgstr "Status do ClickTrail"
+
+#: includes/admin/class-admin.php:96
+msgid "Attribution Cookie"
+msgstr "Cookie de Atribuição"
+
+#: includes/admin/class-admin.php:97
+msgid "Caching Status"
+msgstr "Status de Cache"
+
+#: includes/admin/class-admin.php:98
+msgid "JS Injection"
+msgstr "Injeção de JS"
+
+#: includes/admin/class-admin.php:99
+msgid "Link Decoration"
+msgstr "Decoração de Link"
+
+#: includes/admin/class-admin.php:101
+msgid "Run Full Diagnostics"
+msgstr "Executar Diagnóstico Completo"
+
+#: includes/admin/class-admin.php:110
+#: includes/admin/class-admin.php:111
+msgid "ClickTrail"
+msgstr "ClickTrail"
+
+#: includes/admin/class-admin.php:122
+#: includes/admin/class-admin.php:123
+#: includes/admin/class-admin.php:411
+msgid "Settings"
+msgstr "Configurações"
+
+#: includes/admin/class-admin.php:131
+#: includes/admin/class-admin.php:132
+msgid "Logs"
+msgstr "Logs"
+
+#: includes/admin/class-admin.php:171
+msgid "General Attribution Settings"
+msgstr "Configurações Gerais de Atribuição"
+
+#: includes/admin/class-admin.php:178
+msgid "Enable Attribution Tracking"
+msgstr "Ativar Rastreamento de Atribuição"
+
+#: includes/admin/class-admin.php:185
+msgid "Automatically track UTM parameters and Click IDs from incoming traffic."
+msgstr "Rastrear automaticamente parâmetros UTM e Click IDs do tráfego de entrada."
+
+#: includes/admin/class-admin.php:191
+msgid "Cookie Expiration (Days)"
+msgstr "Expiração do Cookie (Dias)"
+
+#: includes/admin/class-admin.php:201
+msgid "Reliability & Cross-Domain"
+msgstr "Confiabilidade & Domínio Cruzado"
+
+#: includes/admin/class-admin.php:208
+msgid "Enable JS Field Injector"
+msgstr "Ativar Injetor de Campo JS"
+
+#: includes/admin/class-admin.php:215
+msgid "CRITICAL: Fills hidden fields via JavaScript. Required for sites with caching (WP Rocket, WP Engine, Cloudflare)."
+msgstr "CRÍTICO: Preenche campos ocultos via JavaScript. Necessário para sites com cache (WP Rocket, WP Engine, Cloudflare)."
+
+#: includes/admin/class-admin.php:216
+msgid "Keep this ON to ensure data is captured even when the page is cached."
+msgstr "Mantenha isso ATIVADO para garantir que os dados sejam capturados mesmo quando a página estiver em cache."
+
+#: includes/admin/class-admin.php:222
+msgid "Overwrite Existing Values"
+msgstr "Sobrescrever Valores Existentes"
+
+#: includes/admin/class-admin.php:229
+msgid "If checked, JS will overwrite fields that already have a value."
+msgstr "Se marcado, o JS sobrescreverá os campos que já possuem um valor."
+
+#: includes/admin/class-admin.php:234
+msgid "Use MutationObserver"
+msgstr "Usar MutationObserver"
+
+#: includes/admin/class-admin.php:242
+msgid "Detects forms in popups or loaded via AJAX (Elementor, etc)."
+msgstr "Detecta formulários em popups ou carregados via AJAX (Elementor, etc)."
+
+#: includes/admin/class-admin.php:248
+msgid "Enable Link Decoration"
+msgstr "Ativar Decoração de Link"
+
+#: includes/admin/class-admin.php:255
+msgid "Appends UTMs/Click IDs to outbound links."
+msgstr "Anexa UTMs/Click IDs a links externos."
+
+#: includes/admin/class-admin.php:261
+msgid "Allowed Domains"
+msgstr "Domínios Permitidos"
+
+#: includes/admin/class-admin.php:268
+msgid "Comma-separated list of domains to decorate (e.g., app.mysite.com, otherdomain.com)."
+msgstr "Lista separada por vírgulas de domínios para decorar (ex: app.meusite.com, outrodominio.com)."
+
+#: includes/admin/class-admin.php:274
+msgid "Skip Signed URLs"
+msgstr "Pular URLs Assinadas"
+
+#: includes/admin/class-admin.php:281
+msgid "Avoid decorating signed URLs (e.g. Amazon S3, secure tokens) to prevent breaking signatures."
+msgstr "Evita decorar URLs assinadas (ex: Amazon S3, tokens seguros) para evitar quebra de assinaturas."
+
+#: includes/admin/class-admin.php:289
+msgid "WhatsApp Tracking"
+msgstr "Rastreamento de WhatsApp"
+
+#: includes/admin/class-admin.php:296
+msgid "Enable WhatsApp Tracking"
+msgstr "Ativar Rastreamento de WhatsApp"
+
+#: includes/admin/class-admin.php:303
+msgid "Track clicks on WhatsApp links and buttons."
+msgstr "Rastrear cliques em links e botões do WhatsApp."
+
+#: includes/admin/class-admin.php:309
+msgid "Append Attribution to Message"
+msgstr "Anexar Atribuição à Mensagem"
+
+#: includes/admin/class-admin.php:316
+msgid "Add attribution data to the pre-filled WhatsApp message."
+msgstr "Adicionar dados de atribuição à mensagem pré-preenchida do WhatsApp."
+
+#: includes/admin/class-admin.php:322
+msgid "Log Clicks (Custom Post Type)"
+msgstr "Logar Cliques (Custom Post Type)"
+
+#: includes/admin/class-admin.php:329
+msgid "Save each WhatsApp click as a \"WhatsApp Click\" post in WordPress."
+msgstr "Salvar cada clique do WhatsApp como um post de \"Clique do WhatsApp\" no WordPress."
+
+#: includes/admin/class-admin.php:336
+msgid "Consent Mode Configuration"
+msgstr "Configuração do Modo de Consentimento"
+
+#: includes/admin/class-admin.php:343
+msgid "Enable Consent Mode"
+msgstr "Ativar Modo de Consentimento"
+
+#: includes/admin/class-admin.php:352
+msgid "Regions (e.g. EU)"
+msgstr "Regiões (ex: EU)"
+
+#: includes/admin/class-admin.php:362
+msgid "Google Tag Manager"
+msgstr "Google Tag Manager"
+
+#: includes/admin/class-admin.php:369
+msgid "Container ID (GTM-XXXXXX)"
+msgstr "ID do Contêiner (GTM-XXXXXX)"
+
+#: includes/admin/class-admin.php:415
+msgid "WhatsApp"
+msgstr "WhatsApp"
+
+#: includes/admin/class-admin.php:419
+msgid "Privacy & Consent"
+msgstr "Privacidade & Consentimento"
+
+#: includes/admin/class-admin.php:423
+msgid "Integrations"
+msgstr "Integrações"
+
+#: includes/admin/class-admin.php:467
+#: includes/admin/class-admin.php:499
+#: includes/class-clicutcl-core.php:225
+msgid "Enabled"
+msgstr "Ativado"
+
+#: includes/admin/class-admin.php:467
+#: includes/admin/class-admin.php:499
+#: includes/class-clicutcl-core.php:226
+msgid "Disabled"
+msgstr "Desativado"
+
+#: includes/admin/class-admin.php:514
+msgid "Comma-separated list of region codes."
+msgstr "Lista separada por vírgulas de códigos de região."
+
+#: includes/admin/class-admin.php:551
+msgid "ClickTrail Audit detected PII risk on your Thank You page. Your tracking may be deactivated by Google."
+msgstr "A Auditoria do ClickTrail detectou risco de PII na sua página de Obrigado. Seu rastreamento pode ser desativado pelo Google."
+
+#: includes/admin/class-admin.php:552
+msgid "Fix PII Issues Now"
+msgstr "Corrigir Problemas de PII Agora"
+
+#: includes/admin/class-admin.php:577
+msgid "ClickTrail Logs"
+msgstr "Logs do ClickTrail"
+
+#: includes/class-clicutcl-core.php:65
+msgid "ClickTrail Handler failed to boot: missing class CLICUTCL\\Core\\Context. Check your autoloader mapping and release ZIP contents."
+msgstr "O ClickTrail Handler falhou ao iniciar: classe CLICUTCL\\Core\\Context ausente. Verifique o mapeamento do autoloader e o conteúdo do arquivo ZIP da versão."
+
+#: clicutcl.php:115
+msgid "ClickTrail Handler could not start because a required class is missing. This usually means the release ZIP is missing files or the autoloader mapping is incorrect."
+msgstr "O ClickTrail Handler não pôde iniciar porque uma classe obrigatória está ausente. Isso geralmente significa que o arquivo ZIP da versão está sem arquivos ou o mapeamento do autoloader está incorreto."
+
+#: includes/modules/GTM/class-web-tag.php:78
+msgid "Google Tag Manager snippet added by ClickTrail"
+msgstr "Snippet do Google Tag Manager adicionado pelo ClickTrail"
+
+#: includes/modules/GTM/class-web-tag.php:81
+msgid "End Google Tag Manager snippet added by ClickTrail"
+msgstr "Fim do snippet do Google Tag Manager adicionado pelo ClickTrail"
+
+#: includes/modules/GTM/class-web-tag.php:102
+msgid "Google Tag Manager (noscript) snippet added by ClickTrail"
+msgstr "Snippet do Google Tag Manager (noscript) adicionado pelo ClickTrail"
+
+#: includes/modules/GTM/class-web-tag.php:106
+msgid "End Google Tag Manager (noscript) snippet added by ClickTrail"
+msgstr "Fim do snippet do Google Tag Manager (noscript) adicionado pelo ClickTrail"
+
+#: includes/modules/GTM/class-gtm-settings.php:59
+msgid "Invalid GTM Container ID format. Should be GTM-XXXXXX"
+msgstr "Formato de ID de Contêiner do GTM inválido. Deve ser GTM-XXXXXX"
+
+#: includes/modules/consent-mode/class-consent-mode.php:80
+msgid "Google tag (gtag.js) consent mode dataLayer added by ClickTrail"
+msgstr "dataLayer do modo de consentimento do Google tag (gtag.js) adicionado pelo ClickTrail"
+
+#: includes/modules/consent-mode/class-consent-mode.php:87
+msgid "End Google tag (gtag.js) consent mode dataLayer added by ClickTrail"
+msgstr "Fim do dataLayer do modo de consentimento do Google tag (gtag.js) adicionado pelo ClickTrail"
+
+#: includes/class-clicutcl-core.php:216
+msgid "We use cookies to improve your experience and analyze traffic."
+msgstr "Usamos cookies para melhorar sua experiência e analisar o tráfego."
+
+#: includes/class-clicutcl-core.php:217
+msgid "Read more"
+msgstr "Saiba mais"
+
+#: includes/class-clicutcl-core.php:218
+msgid "Accept All"
+msgstr "Aceitar Todos"
+
+#: includes/class-clicutcl-core.php:219
+msgid "Reject Non-Essential"
+msgstr "Rejeitar Não Essenciais"

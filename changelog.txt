@@ -9,6 +9,7 @@ Changelog
 *   **Feature (Dashboard)**: Added "ClickTrail Status" dashboard widget for real-time tracking health visibility.
 *   **Improvement**: Added JS Fallback for WooCommerce Checkout, ensuring order attribution is captured even when server-side cookies are stripped.
 *   **Improvement**: Renamed the primary settings submenu from "ClickTrail" to "Settings" to eliminate duplicate labels and improve UX.
+*   **Improvement**: Added official Portuguese (Brazil) translation (`pt_BR`) covering Admin, Consent Banner, and Site Health.
 *   **Improvement**: Fully refactored attribution frontend to remove jQuery dependency and expose a modern JS API (`window.ClickTrail`).
 
 = 1.2.3 =

@@ -127,6 +127,7 @@ ClickTrail provides consent controls and Consent Mode defaults, but ultimate com
 * Improvement: Added Dashboard Widget "ClickTrail Status" for quick visibility of tracking health.
 * Improvement: Added JS Fallback for WooCommerce Checkout to ensure order attribution works even if cookies are stripped by server-side caching.
 * Improvement: Renamed the main settings submenu from "ClickTrail" to "Settings" for better Admin UX.
+* Improvement: Added official Portuguese (Brazil) translation support (`pt_BR`).
 * Improvement: Removed dependency on jQuery for attribution logic.
 
 = 1.2.3 =

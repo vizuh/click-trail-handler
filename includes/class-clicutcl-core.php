@@ -211,6 +211,18 @@ class CLICUTCL_Core {
 				CLICUTCL_VERSION,
 				true // Footer
 			);
+
+			wp_localize_script(
+				'clicutcl-consent-js',
+				'clicutclConsentL10n',
+				array(
+					'bannerText'      => __( 'We use cookies to improve your experience and analyze traffic.', 'click-trail-handler' ),
+					'readMore'        => __( 'Read more', 'click-trail-handler' ),
+					'acceptAll'       => __( 'Accept All', 'click-trail-handler' ),
+					'rejectEssential' => __( 'Reject Non-Essential', 'click-trail-handler' ),
+					'privacyUrl'      => get_privacy_policy_url() ?: '#',
+				)
+			);
 		}
 
 		// Events Tracking Script

@@ -34,17 +34,25 @@
         }
 
         showBanner() {
+            const l10n = window.clicutclConsentL10n || {
+                bannerText: 'We use cookies to improve your experience and analyze traffic.',
+                readMore: 'Read more',
+                acceptAll: 'Accept All',
+                rejectEssential: 'Reject Non-Essential',
+                privacyUrl: '/privacy-policy'
+            };
+
             // Create Banner HTML
             const banner = document.createElement('div');
             banner.id = 'ct-consent-banner';
             banner.innerHTML = `
                 <div class="ct-consent-content">
-                    <p>We use cookies to improve your experience and analyze traffic.
-                       <a href="/privacy-policy">Read more</a>.
+                    <p>${l10n.bannerText}
+                       <a href="${l10n.privacyUrl}">${l10n.readMore}</a>.
                     </p>
                     <div class="ct-consent-actions">
-                        <button id="ct-accept-all" class="ct-btn-primary">Accept All</button>
-                        <button id="ct-reject-all" class="ct-btn-secondary">Reject Non-Essential</button>
+                        <button id="ct-accept-all" class="ct-btn-primary">${l10n.acceptAll}</button>
+                        <button id="ct-reject-all" class="ct-btn-secondary">${l10n.rejectEssential}</button>
                     </div>
                 </div>
             `;
