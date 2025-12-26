@@ -7,7 +7,7 @@
 [![WordPress](https://img.shields.io/badge/WordPress-5.0%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.0%2B-purple.svg)](https://php.net/)
 [![License](https://img.shields.io/badge/License-GPLv2%2B-green.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
-[![Version](https://img.shields.io/badge/Version-1.2.1-orange.svg)](https://github.com/vizuh/click-trail)
+[![Version](https://img.shields.io/badge/Version-1.3.0-orange.svg)](https://github.com/vizuh/click-trail)
 
 **Stop losing campaign data. See what actually converts. Make better marketing decisions.**
 
@@ -38,6 +38,10 @@ Plus, the built-in consent banner with **Google Consent Mode v2** keeps you GDPR
 - **90-Day Cookie Persistence**: Maintains attribution data for up to 90 days
 - **Automatic Form Integration**: Seamlessly injects attribution data into Contact Form 7, Fluent Forms, and Gravity Forms
 - **WooCommerce Attribution**: Automatically saves attribution metadata to orders at checkout
+- **Cache Resilience**: Client-side field injection ensures attribution works even on fully cached sites (WP Rocket, Cloudflare)
+- **Cross-Domain Tracking**: Safe link decoration to pass attribution to subdomains and allowed external sites
+- **Advanced Bot Protection**: Prevents attribution pollution from crawlers and headless browsers
+- **Site Health & Diagnostics**: Proactive alerts for caching conflicts and cookie-blocking issues
 
 #### 📈 **Advanced Event Tracking**
 - **Client-Side Events**: Automatically tracks Site Searches, File Downloads, **Scroll Depth (25/50/75/90%)** using GTM's built-in variables, and **User Engagement** (10s/30s/1m/2m/5m) with descriptive engagement levels.
@@ -134,6 +138,10 @@ O plugin captura UTMs de primeiro e último toque e click IDs, armazena em cooki
 - **Persistência de 90 Dias**: Mantém dados de atribuição por até 90 dias
 - **Integração Automática com Formulários**: Injeta dados de atribuição em Contact Form 7, Fluent Forms e Gravity Forms
 - **Atribuição WooCommerce**: Salva automaticamente metadados de atribuição em pedidos no checkout
+- **Resiliência a Cache**: Injeção de campos via JS garante que a atribuição funcione mesmo em sites com cache agressivo (WP Rocket, Cloudflare)
+- **Rastreamento Transdomínio**: Decoração segura de links para passar atribuição para subdomínios e sites externos permitidos
+- **Proteção Avançada contra Bots**: Previne poluição de dados por robôs e navegadores headless
+- **Saúde do Site e Diagnóstico**: Alertas proativos para conflitos de cache e bloqueio de cookies
 
 #### 📈 **Rastreamento de Eventos Avançado**
 - **Eventos Client-Side**: Rastreia automaticamente Buscas no Site, Downloads de Arquivos, **Profundidade de Rolagem (25/50/75/90%)** usando variáveis integradas do GTM, e **Engajamento do Usuário** (10s/30s/1m/2m/5m) com níveis de engajamento descritivos.
@@ -230,6 +238,10 @@ O plugin captura UTMs de primeiro e último toque e click IDs, armazena em cooki
 - **Persistência de 90 Dias**: Mantém dados de atribuição por até 90 dias
 - **Integração Automática com Formulários**: Injeta dados de atribuição em Contact Form 7, Fluent Forms e Gravity Forms
 - **Atribuição WooCommerce**: Salva automaticamente metadados de atribuição em pedidos no checkout
+- **Resiliência a Cache**: Injeção de campos via JS garante que a atribuição funcione mesmo em sites com cache agressivo (WP Rocket, Cloudflare)
+- **Rastreamento Transdomínio**: Decoração segura de links para passar atribuição para subdomínios e sites externos permitidos
+- **Proteção Avançada contra Bots**: Previne poluição de dados por robôs e navegadores headless
+- **Saúde do Site e Diagnóstico**: Alertas proativos para conflitos de cache e bloqueio de cookies
 
 #### 🔒 **Privacidade & Consentimento**
 - **Banner de Consentimento Integrado**: Interface personalizável de gerenciamento de consentimento

@@ -1,6 +1,15 @@
 Changelog
 ========
 
+= 1.3.0 =
+*   **Feature (Cache Resurrection)**: Implemented Client-Side Field Injection (`enable_js_injection`) to automatically populate hidden form fields via JavaScript, ensuring accurate attribution even on fully cached pages (WP Rocket, Cloudflare, local caching).
+*   **Feature (Cross-Domain)**: Introduced Link Decoration (`enable_link_decoration`) to safely pass attribution parameters to allowed domains, with automatic support for all subdomains of the current site.
+*   **Feature (Bot Protection)**: Added advanced bot detection to prevent attribution pollution from crawlers, webdrivers, and headless browsers.
+*   **Feature (DX/Insight)**: Integrated with WordPress Site Health to provide proactive diagnostics on caching conflicts and cookie blocking.
+*   **Feature (Dashboard)**: Added "ClickTrail Status" dashboard widget for real-time tracking health visibility.
+*   **Improvement**: Added JS Fallback for WooCommerce Checkout, ensuring order attribution is captured even when server-side cookies are stripped.
+*   **Improvement**: Fully refactored attribution frontend to remove jQuery dependency and expose a modern JS API (`window.ClickTrail`).
+
 = 1.2.3 =
 *   **Fix**: Fixed Short Description formatting in readme.txt to comply with WordPress.org plugin guidelines.
 *   **Improvement**: Removed deprecated `load_plugin_textdomain()` call—WordPress 4.6+ handles translations automatically for plugins hosted on WordPress.org.

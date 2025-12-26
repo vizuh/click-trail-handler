@@ -5,7 +5,7 @@ Contributors: hugoc
 Tags: attribution, utm, tracking, consent mode, gtm
 Requires at least: 5.0
 Tested up to: 6.9
-Stable tag: 1.2.3
+Stable tag: 1.3.0
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -119,6 +119,15 @@ ClickTrail provides consent controls and Consent Mode defaults, but ultimate com
 
 == Changelog ==
 
+= 1.3.0 =
+* Feature: Cache Resurrection! Now supports Client-Side Field Injection (`enable_js_injection`) to populate hidden form fields even on fully cached pages (WP Rocket, Cloudflare, etc.).
+* Feature: Cross-Domain Tracking. Added Link Decoration (`enable_link_decoration`) to safely pass UTMs and Click IDs to allowed domains and subdomains.
+* Feature: Added Advanced Bot Protection to prevent attribution pollution from crawlers and headless browsers.
+* Feature: Added Site Health diagnostics to detect caching conflicts, JS issues, and blocking of cookies.
+* Improvement: Added Dashboard Widget "ClickTrail Status" for quick visibility of tracking health.
+* Improvement: Added JS Fallback for WooCommerce Checkout to ensure order attribution works even if cookies are stripped by server-side caching.
+* Improvement: Removed dependency on jQuery for attribution logic.
+
 = 1.2.3 =
 *   **Fix**: Fixed Short Description formatting in readme.txt to comply with WordPress.org plugin guidelines.
 *   **Improvement**: Removed deprecated `load_plugin_textdomain()` call—WordPress 4.6+ handles translations automatically for plugins hosted on WordPress.org.
@@ -165,6 +174,9 @@ ClickTrail provides consent controls and Consent Mode defaults, but ultimate com
 Previous release notes are available in `changelog.txt`.
 
 == Upgrade Notice ==
+
+= 1.3.0 =
+Major update: Introduces Cache Resurrection (Client-Side Injection), Link Decoration (Cross-Domain Tracking), Bot Protection, and new Site Health diagnostics. Highly recommended for accurate attribution on cached sites.
 
 = 1.2.3 =
 Minor update: Fixes WordPress.org plugin check warnings (short description format, deprecated textdomain loader). Recommended for compliance.
