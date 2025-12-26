@@ -173,11 +173,23 @@ class CLICUTCL_Core {
 					'cookieName'                => 'attribution',
 					'cookieDays'                => $cookie_days,
 					'requireConsent'            => $require_consent,
-					'restUrl'                   => get_rest_url( null, 'clicutcl/v1/log' ),
-					'nonce'                     => wp_create_nonce( 'wp_rest' ), // REST Nonce
 					'enableWhatsapp'            => isset( $options['enable_whatsapp'] ) ? (bool) $options['enable_whatsapp'] : true,
 					'whatsappAppendAttribution' => isset( $options['whatsapp_append_attribution'] ) ? (bool) $options['whatsapp_append_attribution'] : false,
 					'whatsappLogClicks'         => isset( $options['whatsapp_log_clicks'] ) ? (bool) $options['whatsapp_log_clicks'] : false,
+					'restUrl'                   => get_rest_url( null, 'clicutcl/v1/log' ),
+					'nonce'                     => wp_create_nonce( 'wp_rest' ), // REST Nonce
+					
+					// JS Injection Config
+					'injectEnabled'             => isset( $options['enable_js_injection'] ) ? (bool) $options['enable_js_injection'] : true,
+					'injectOverwrite'           => isset( $options['inject_overwrite'] ) ? (bool) $options['inject_overwrite'] : false,
+					'injectMutationObserver'    => isset( $options['inject_mutation_observer'] ) ? (bool) $options['inject_mutation_observer'] : true,
+					'injectFullBlob'            => false, // Reserved for future use
+
+					// Link Decoration Config
+					'linkDecorateEnabled'       => isset( $options['enable_link_decoration'] ) ? (bool) $options['enable_link_decoration'] : false,
+					'linkAllowedDomains'        => isset( $options['link_allowed_domains'] ) ? array_map('trim', explode(',', $options['link_allowed_domains'])) : [],
+					'linkSkipSigned'            => isset( $options['link_skip_signed'] ) ? (bool) $options['link_skip_signed'] : true,
+					'linkAppendBlob'            => false, // Reserved for future use
 				)
 			);
 		}
