@@ -115,6 +115,7 @@ class WooCommerce {
 			$found = false;
 			foreach ( $map as $key ) {
 				$input_name = "ct_{$prefix}_{$key}";
+				// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in parent function collect_from_post_data.
 				if ( ! empty( $_POST[ $input_name ] ) ) {
 					$attr["{$store_prefix}_{$key}"] = sanitize_text_field( wp_unslash( $_POST[ $input_name ] ) );
 					$found = true;
@@ -131,6 +132,7 @@ class WooCommerce {
 		// ID fallbacks if not prefixed (legacy)
 		$ids = ['gclid', 'fbclid', 'msclkid', 'ttclid'];
 		foreach($ids as $id) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in parent function collect_from_post_data.
 			if (!empty($_POST['ct_'.$id]) && empty($attr['lt_'.$id])) {
 				$attr['lt_'.$id] = sanitize_text_field( wp_unslash( $_POST['ct_'.$id] ) );
 			}
