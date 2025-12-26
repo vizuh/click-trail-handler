@@ -38,6 +38,9 @@ class Admin {
 	/**
 	 * Initialize hooks.
 	 */
+	/**
+	 * Initialize hooks.
+	 */
 	public function init() {
 		// Run early so the parent menu exists before CPT submenus attach.
 		add_action( 'admin_menu', array( $this, 'admin_menu' ), 1 );
@@ -47,6 +50,56 @@ class Admin {
 		
 		// AJAX hooks for Admin/Settings functionality
 		add_action( 'wp_ajax_clicutcl_log_pii_risk', array( $this, 'ajax_log_pii_risk' ) );
+		
+		// Site Health
+		require_once CLICUTCL_DIR . 'includes/admin/class-site-health.php';
+		$site_health = new SiteHealth();
+		$site_health->register();
+
+		// Dashboard Widget
+		add_action( 'wp_dashboard_setup', array( $this, 'add_dashboard_widget' ) );
+	}
+
+	/**
+	 * Add Dashboard Widget.
+	 */
+	public function add_dashboard_widget() {
+		wp_add_dashboard_widget(
+			'clicutcl_dashboard_status',
+			__( 'ClickTrail Status', 'click-trail-handler' ),
+			array( $this, 'display_dashboard_widget' )
+		);
+	}
+
+	/**
+	 * Display Dashboard Widget content.
+	 */
+	public function display_dashboard_widget() {
+		$options = get_option( 'clicutcl_attribution_settings', array() );
+		$js_enabled = isset( $options['enable_js_injection'] ) ? $options['enable_js_injection'] : 1;
+		$link_decor = isset( $options['enable_link_decoration'] ) ? $options['enable_link_decoration'] : 0;
+		$domains = isset( $options['link_allowed_domains'] ) ? $options['link_allowed_domains'] : '';
+		$domain_count = $domains ? count( array_filter( explode( ',', $domains ) ) ) : 0;
+		
+		// Cookie check (server-side only)
+		$cookie_name = 'attribution'; // Default
+		$cookie_status = isset( $_COOKIE[$cookie_name] ) ? '✅ Detected' : '❌ Not Detected (Visit site with UTMs)';
+		
+		// Caching check
+		$caching = 'None Detected';
+		if ( defined('WP_ROCKET_VERSION') || defined('LSCWP_V') || defined('WPCACHEHOME') || defined('AUTOPTIMIZE_PLUGIN_VERSION') ) {
+			$caching = '⚠️ Caching Plugin Detected';
+		}
+
+		echo '<div class="clicutcl-widget-content">';
+		echo '<table class="widefat" style="border:0;box-shadow:none;">';
+		echo '<tr><td><strong>' . esc_html__( 'Attribution Cookie', 'click-trail-handler' ) . '</strong></td><td>' . esc_html( $cookie_status ) . '</td></tr>';
+		echo '<tr><td><strong>' . esc_html__( 'Caching Status', 'click-trail-handler' ) . '</strong></td><td>' . esc_html( $caching ) . '</td></tr>';
+		echo '<tr><td><strong>' . esc_html__( 'JS Injection', 'click-trail-handler' ) . '</strong></td><td>' . ( $js_enabled ? '✅ On' : '❌ Off' ) . '</td></tr>';
+		echo '<tr><td><strong>' . esc_html__( 'Link Decoration', 'click-trail-handler' ) . '</strong></td><td>' . ( $link_decor ? '✅ On (' . intval( $domain_count ) . ' domains)' : '❌ Off' ) . '</td></tr>';
+		echo '</table>';
+		echo '<p style="text-align:right;margin-top:10px;"><a href="' . esc_url( admin_url( 'site-health.php?tab=status' ) ) . '">' . esc_html__( 'Run Full Diagnostics', 'click-trail-handler' ) . ' &rarr;</a></p>';
+		echo '</div>';
 	}
 
 	/**
@@ -79,7 +132,20 @@ class Admin {
 	 * @param string $hook Current admin page hook.
 	 */
 	public function enqueue_admin_assets( $hook ) {
-		// Only load on our plugin pages
+		// Ping Site Health on all admin pages to confirm JS execution
+		wp_enqueue_script(
+			'clicutcl-admin-sitehealth',
+			CLICUTCL_URL . 'assets/js/admin-sitehealth.js',
+			array(),
+			CLICUTCL_VERSION,
+			true
+		);
+		wp_localize_script( 'clicutcl-admin-sitehealth', 'clicutclSiteHealth', array(
+			'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+			'nonce'   => wp_create_nonce( 'clicutcl_sitehealth' )
+		) );
+
+		// Only load CSS on our plugin pages
 		if ( strpos( $hook, 'clicutcl' ) === false ) {
 			return;
 		}
@@ -128,6 +194,94 @@ class Admin {
 			'clicutcl_general_section',
 			array( 'label_for' => 'cookie_days', 'option_name' => 'clicutcl_attribution_settings' )
 		);
+
+		// Advanced / Reliability Section
+		add_settings_section(
+			'clicutcl_advanced_section',
+			__( 'Reliability & Cross-Domain', 'click-trail-handler' ),
+			null,
+			'clicutcl_general_tab'
+		);
+
+		add_settings_field(
+			'enable_js_injection',
+			__( 'Enable JS Field Injector', 'click-trail-handler' ),
+			array( $this, 'render_checkbox_field' ),
+			'clicutcl_general_tab',
+			'clicutcl_advanced_section',
+			array( 
+				'label_for' => 'enable_js_injection', 
+				'option_name' => 'clicutcl_attribution_settings',
+				'tooltip' => __( 'CRITICAL: Fills hidden fields via JavaScript. Required for sites with caching (WP Rocket, WP Engine, Cloudflare).', 'click-trail-handler' ),
+				'description' => __( 'Keep this ON to ensure data is captured even when the page is cached.', 'click-trail-handler' )
+			)
+		);
+
+		add_settings_field(
+			'inject_overwrite',
+			__( 'Overwrite Existing Values', 'click-trail-handler' ),
+			array( $this, 'render_checkbox_field' ),
+			'clicutcl_general_tab',
+			'clicutcl_advanced_section',
+			array( 
+				'label_for' => 'inject_overwrite', 
+				'option_name' => 'clicutcl_attribution_settings',
+				'tooltip' => __( 'If checked, JS will overwrite fields that already have a value.', 'click-trail-handler' )
+			)
+		);
+
+		add_settings_field(
+			'inject_mutation_observer',
+			__( 'Use MutationObserver', 'click-trail-handler' ),
+			array( $this, 'render_checkbox_field' ),
+			'clicutcl_general_tab',
+			'clicutcl_advanced_section',
+			array( 
+				'label_for' => 'inject_mutation_observer', 
+				'option_name' => 'clicutcl_attribution_settings',
+				'tooltip' => __( 'Detects forms in popups or loaded via AJAX (Elementor, etc).', 'click-trail-handler' )
+			)
+		);
+
+		add_settings_field(
+			'enable_link_decoration',
+			__( 'Enable Link Decoration', 'click-trail-handler' ),
+			array( $this, 'render_checkbox_field' ),
+			'clicutcl_general_tab',
+			'clicutcl_advanced_section',
+			array( 
+				'label_for' => 'enable_link_decoration', 
+				'option_name' => 'clicutcl_attribution_settings',
+				'tooltip' => __( 'Appends UTMs/Click IDs to outbound links.', 'click-trail-handler' )
+			)
+		);
+
+		add_settings_field(
+			'link_allowed_domains',
+			__( 'Allowed Domains', 'click-trail-handler' ),
+			array( $this, 'render_text_field' ),
+			'clicutcl_general_tab',
+			'clicutcl_advanced_section',
+			array( 
+				'label_for' => 'link_allowed_domains', 
+				'option_name' => 'clicutcl_attribution_settings',
+				'description' => __( 'Comma-separated list of domains to decorate (e.g., app.mysite.com, otherdomain.com).', 'click-trail-handler' )
+			)
+		);
+		
+		add_settings_field(
+			'link_skip_signed',
+			__( 'Skip Signed URLs', 'click-trail-handler' ),
+			array( $this, 'render_checkbox_field' ),
+			'clicutcl_general_tab',
+			'clicutcl_advanced_section',
+			array( 
+				'label_for' => 'link_skip_signed', 
+				'option_name' => 'clicutcl_attribution_settings',
+				'tooltip' => __( 'Avoid decorating signed URLs (e.g. Amazon S3, secure tokens) to prevent breaking signatures.', 'click-trail-handler' )
+			)
+		);
+
 
 		// WhatsApp Section
 		add_settings_section(
@@ -219,6 +373,27 @@ class Admin {
 			array( 'label_for' => 'container_id' )
 		);
 	}
+
+	/**
+	 * Render text field.
+	 *
+	 * @param array $args Field arguments.
+	 */
+	public function render_text_field( $args ) {
+		$option_name = $args['option_name'];
+		$options = get_option( $option_name );
+		$value = isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : '';
+		$description = isset( $args['description'] ) ? $args['description'] : '';
+		?>
+		<input type="text" name="<?php echo esc_attr( $option_name . '[' . $args['label_for'] . ']' ); ?>" value="<?php echo esc_attr( $value ); ?>" class="regular-text" />
+		<?php if ( $description ) : ?>
+			<p class="description"><?php echo wp_kses_post( $description ); ?></p>
+		<?php endif; ?>
+		<?php
+	}
+
+	/**
+	 * Render settings page with tabs.
 
 	/**
 	 * Render settings page with tabs.
