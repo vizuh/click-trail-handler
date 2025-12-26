@@ -29,6 +29,30 @@ class WooCommerce {
 		
 		add_action( 'woocommerce_checkout_create_order', array( $this, 'save_order_attribution' ), 10, 2 );
 		add_action( 'woocommerce_thankyou', array( $this, 'push_purchase_event' ), 20, 1 );
+		
+		// Output hidden fields for JS Injection (Cache Resilience)
+		add_action( 'woocommerce_after_order_notes', array( $this, 'output_hidden_checkout_fields' ) );
+	}
+
+	/**
+	 * Output hidden fields in the checkout form so JS can populate them.
+	 * This ensures attribution is captured even if server-side cookie reading fails due to caching.
+	 *
+	 * @param \WC_Checkout $checkout Checkout object.
+	 */
+	public function output_hidden_checkout_fields( $checkout ) {
+		$fields = array(
+			'ct_ft_source', 'ct_ft_medium', 'ct_ft_campaign', 'ct_ft_term', 'ct_ft_content',
+			'ct_lt_source', 'ct_lt_medium', 'ct_lt_campaign', 'ct_lt_term', 'ct_lt_content',
+			'ct_gclid', 'ct_fbclid', 'ct_msclkid', 'ct_ttclid'
+		);
+		
+		echo '<div class="clicutcl-checkout-fields" style="display:none;">';
+		foreach ( $fields as $field ) {
+			// Output empty inputs; JS Injector will fill them
+			echo '<input type="hidden" name="' . esc_attr( $field ) . '" value="" />';
+		}
+		echo '</div>';
 	}
 
 	/**
@@ -38,7 +62,14 @@ class WooCommerce {
 	 * @param array     $data  Request Data.
 	 */
 	public function save_order_attribution( $order, $data ) {
+		// 1. Try server-side cookie first (most reliable if not stripped)
 		$attribution = Attribution::get();
+		
+		// 2. Fallback to POST data (Client-Side Injection)
+		if ( empty( $attribution ) ) {
+			$attribution = $this->collect_from_post_data( $data );
+		}
+		
 		if ( ! $attribution ) {
 			return;
 		}
@@ -48,7 +79,13 @@ class WooCommerce {
 			if ( '' === $meta_key ) {
 				continue;
 			}
-
+			
+			// Map standard keys to storage keys if needed, but our array usually is flat or structured?
+			// Attribution::get() returns flat? No, it implies structured in other parts.
+			// Let's assume flat for the fallback logic or handle structure.
+			// Actually `Attribution::get()` returns the cookie array (structured).
+			// We need to flatten our POST data to match that structure or just save what we have.
+			
 			if ( 'session_count' === $meta_key ) {
 				$order->update_meta_data( '_clicutcl_session_count', absint( $value ) );
 				continue;
@@ -56,6 +93,45 @@ class WooCommerce {
 
 			$order->update_meta_data( '_clicutcl_' . $meta_key, sanitize_text_field( $value ) );
 		}
+	}
+
+	/**
+	 * Collect attribution from POST data (Fallback).
+	 *
+	 * @param array $data Request data.
+	 * @return array|null
+	 */
+	private function collect_from_post_data( $data ) {
+		$attr = array();
+		
+		// Helper to extract
+		$extract = function( $prefix, $store_prefix ) use ( $data, &$attr ) {
+			$map = ['source', 'medium', 'campaign', 'term', 'content', 'gclid', 'fbclid', 'msclkid', 'ttclid'];
+			$found = false;
+			foreach ( $map as $key ) {
+				$input_name = "ct_{$prefix}_{$key}";
+				if ( ! empty( $_POST[ $input_name ] ) ) {
+					$attr["{$store_prefix}_{$key}"] = sanitize_text_field( $_POST[ $input_name ] );
+					$found = true;
+				}
+			}
+			return $found;
+		};
+
+		// First Touch
+		$extract('ft', 'ft');
+		// Last Touch
+		$extract('lt', 'lt');
+		
+		// ID fallbacks if not prefixed (legacy)
+		$ids = ['gclid', 'fbclid', 'msclkid', 'ttclid'];
+		foreach($ids as $id) {
+			if (!empty($_POST['ct_'.$id]) && empty($attr['lt_'.$id])) {
+				$attr['lt_'.$id] = sanitize_text_field($_POST['ct_'.$id]);
+			}
+		}
+
+		return !empty($attr) ? $attr : null;
 	}
 
 	/**

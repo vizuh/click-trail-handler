@@ -85,6 +85,9 @@ class SiteHealth {
 		$cookie_name = apply_filters('clicutcl_cookie_name', 'attribution'); // Default 'attribution' from core
 		$has_cookie = isset($_COOKIE[$cookie_name]) && !empty($_COOKIE[$cookie_name]);
 
+		$options = get_option('clicutcl_consent_mode', []);
+		$consent_enabled = !empty($options['enabled']);
+
 		if ($has_cookie) {
 			return [
 				'status' => 'good',
@@ -93,10 +96,17 @@ class SiteHealth {
 			];
 		}
 
+		$description = __('This may be normal if no UTM visit occurred.', 'click-trail-handler');
+		if ($consent_enabled) {
+			$description .= ' ' . __('Note: Consent Mode is enabled. If you have not granted consent, no cookie will be set.', 'click-trail-handler');
+		} else {
+			$description .= ' ' . __('Test by visiting a page with ?utm_source=test.', 'click-trail-handler');
+		}
+
 		return [
 			'status' => 'recommended',
 			'label' => __('Attribution cookie not present in request', 'click-trail-handler'),
-			'description' => __('This may be normal if no UTM visit occurred. Test by visiting a page with ?utm_source=test.', 'click-trail-handler'),
+			'description' => $description,
 		];
 	}
 
