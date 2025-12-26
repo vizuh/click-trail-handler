@@ -8,6 +8,7 @@ Changelog
 *   **Feature (DX/Insight)**: Integrated with WordPress Site Health to provide proactive diagnostics on caching conflicts and cookie blocking.
 *   **Feature (Dashboard)**: Added "ClickTrail Status" dashboard widget for real-time tracking health visibility.
 *   **Improvement**: Added JS Fallback for WooCommerce Checkout, ensuring order attribution is captured even when server-side cookies are stripped.
+*   **Improvement**: Renamed the primary settings submenu from "ClickTrail" to "Settings" to eliminate duplicate labels and improve UX.
 *   **Improvement**: Fully refactored attribution frontend to remove jQuery dependency and expose a modern JS API (`window.ClickTrail`).
 
 = 1.2.3 =

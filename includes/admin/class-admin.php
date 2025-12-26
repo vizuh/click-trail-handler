@@ -116,6 +116,16 @@ class Admin {
 			56 // Analytics plugin zone (after Plugins, near Yoast/MonsterInsights)
 		);
 
+		// Override the first submenu item to be "Settings" instead of repeating "ClickTrail"
+		add_submenu_page(
+			'clicutcl-settings',
+			__( 'Settings', 'click-trail-handler' ),
+			__( 'Settings', 'click-trail-handler' ),
+			'manage_options',
+			'clicutcl-settings',
+			array( $this, 'render_settings_page' )
+		);
+
 		add_submenu_page(
 			'clicutcl-settings',
 			__( 'Logs', 'click-trail-handler' ),
