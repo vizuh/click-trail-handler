@@ -180,6 +180,37 @@
         }
     };
 
+    // --- 3.5 BOT DETECTOR ---
+    const BotDetector = {
+        isBot: function () {
+            const ua = navigator.userAgent || "";
+            // Common bots list
+            const bots = [
+                "googlebot", "bingbot", "yandexbot", "duckduckbot", "baiduspider",
+                "twitterbot", "facebookexternalhit", "rogerbot", "linkedinbot",
+                "embedly", "quora link preview", "showyoubot", "outbrain",
+                "pinterest/0.", "developers.google.com/+/web/snippet",
+                "slackbot", "vkShare", "W3C_Validator", "redditbot", "applebot",
+                "whatsapp", "flipboard", "tumblr", "bitlybot", "skypeuripreview",
+                "nuzzel", "discordbot", "google page speed", "qwantify",
+                "pinterestbot", "bitrix link preview", "xing-contenttabreceiver",
+                "telegrambot", "semrushbot", "mj12bot", "ahrefsbot", "dotbot"
+            ];
+
+            // 1. User Agent Check
+            const lowerUa = ua.toLowerCase();
+            if (bots.some(b => lowerUa.indexOf(b) !== -1)) return true;
+
+            // 2. Headless Browser Check (WebDriver)
+            if (navigator.webdriver) return true;
+
+            // 3. PhantomJS / Headless Chrome specific properties
+            if (window.callPhantom || window._phantom) return true;
+
+            return false;
+        }
+    };
+
     // --- 4. LINK DECORATOR ---
     const Decorator = {
         isSkippable: function (href) {
@@ -189,14 +220,34 @@
         },
 
         matchesAllowedDomain: function (url) {
+            // 1. Check configured allowed list
             const allowed = (CONFIG.linkAllowedDomains || []);
-            if (!allowed.length) return false;
-
             const host = (url.hostname || "").toLowerCase();
-            return allowed.some(d => {
-                const cleanD = d.trim().toLowerCase();
-                return cleanD && (host === cleanD || host.endsWith("." + cleanD));
-            });
+
+            if (allowed.length) {
+                const manualMatch = allowed.some(d => {
+                    const cleanD = d.trim().toLowerCase();
+                    return cleanD && (host === cleanD || host.endsWith("." + cleanD));
+                });
+                if (manualMatch) return true;
+            }
+
+            // 2. Auto-Allow Subdomains of Current Site
+            // Logic: if target hostname ends with current hostname (e.g. shop.site.com ends with site.com)
+            // or if they share the same root domain (approximate).
+            // Safe check: if target host ends with current host (handling www stripping)
+
+            const currentHost = window.location.hostname.toLowerCase().replace(/^www\./, '');
+            const targetHost = host.replace(/^www\./, '');
+
+            // If target is subdomain of current (e.g. app.site.com -> site.com)
+            if (targetHost.endsWith("." + currentHost)) return true;
+
+            // If current is subdomain of target (e.g. site.com -> site.co.uk - wait, no)
+            // Better: just check strict subdomain relationship.
+            // If on www.site.com (site.com), allow app.site.com.
+
+            return false;
         },
 
         decorateUrl: function (rawHref) {
@@ -228,15 +279,6 @@
 
             let changed = false;
             keys.forEach(k => {
-                // Determine value: try last touch, then first touch, then raw
-                // Actually Store.getData() returns the flat attribution object (ft_*, lt_*) + raw properties?
-                // Wait, existing logic creates ft_* and lt_*. It doesn't keep raw utm_source at top level usually, 
-                // UNLESS applyTouch puts it there. 
-                // Let's check Main Logic below. It puts ft_* and lt_*.
-                // BUT Handl pattern is usually: pass the CURRENT session values if available, or last touch?
-                // Standard practice: Pass the values that brought the user HERE.
-                // So if I have lt_source, I should pass that as utm_source.
-
                 let val = data['lt_' + k.replace('utm_', '')]; // Try lt_source for utm_source
                 if (!val) val = data[k]; // Try direct (if stored)
 
@@ -279,6 +321,11 @@
     // Preserving original class logic but using Store
     class ClickTrailAttribution {
         constructor() {
+            // Anti-Bot Protection
+            if (BotDetector.isBot()) {
+                console.log("ClickTrail: Bot detected, attribution paused.");
+                return;
+            }
             this.init();
         }
 
