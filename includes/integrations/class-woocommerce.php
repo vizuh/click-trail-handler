@@ -102,6 +102,11 @@ class WooCommerce {
 	 * @return array|null
 	 */
 	private function collect_from_post_data( $data ) {
+		// Nonce check for WooCommerce checkout security
+		if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'woocommerce-process_checkout' ) ) {
+			return null; 
+		}
+
 		$attr = array();
 		
 		// Helper to extract
@@ -111,7 +116,7 @@ class WooCommerce {
 			foreach ( $map as $key ) {
 				$input_name = "ct_{$prefix}_{$key}";
 				if ( ! empty( $_POST[ $input_name ] ) ) {
-					$attr["{$store_prefix}_{$key}"] = sanitize_text_field( $_POST[ $input_name ] );
+					$attr["{$store_prefix}_{$key}"] = sanitize_text_field( wp_unslash( $_POST[ $input_name ] ) );
 					$found = true;
 				}
 			}
@@ -127,7 +132,7 @@ class WooCommerce {
 		$ids = ['gclid', 'fbclid', 'msclkid', 'ttclid'];
 		foreach($ids as $id) {
 			if (!empty($_POST['ct_'.$id]) && empty($attr['lt_'.$id])) {
-				$attr['lt_'.$id] = sanitize_text_field($_POST['ct_'.$id]);
+				$attr['lt_'.$id] = sanitize_text_field( wp_unslash( $_POST['ct_'.$id] ) );
 			}
 		}
 
