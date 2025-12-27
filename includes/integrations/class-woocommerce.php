@@ -117,6 +117,7 @@ class WooCommerce {
 				$input_name = "ct_{$prefix}_{$key}";
 				// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in parent function collect_from_post_data.
 				if ( ! empty( $_POST[ $input_name ] ) ) {
+					// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in parent function collect_from_post_data.
 					$attr["{$store_prefix}_{$key}"] = sanitize_text_field( wp_unslash( $_POST[ $input_name ] ) );
 					$found = true;
 				}
