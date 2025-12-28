@@ -184,8 +184,7 @@ Previous release notes are available in `changelog.txt`.
 
 = 1.3.1 =
 Minor update: Performance optim (conditional JS loading) & Security hardening (WooCommerce active check). Addresses red flags.
-+
-+= 1.3.0 =
+= 1.3.0 =
 Major update: Introduces Cache Resurrection (Client-Side Injection), Link Decoration (Cross-Domain Tracking), Bot Protection, and new Site Health diagnostics. Highly recommended for accurate attribution on cached sites.
 
 = 1.2.3 =
