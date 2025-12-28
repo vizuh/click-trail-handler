@@ -132,8 +132,10 @@ class CLICUTCL_Core {
 		$form_integrations->init();
 
 
-		$woocommerce_integration = new WooCommerce();
-		$woocommerce_integration->init();
+		if ( class_exists( 'WooCommerce' ) ) {
+			$woocommerce_integration = new WooCommerce();
+			$woocommerce_integration->init();
+		}
 
 		// Register REST API
 		add_action( 'rest_api_init', function() {
@@ -226,13 +228,36 @@ class CLICUTCL_Core {
 		}
 
 		// Events Tracking Script
-		wp_enqueue_script(
-			'clicutcl-events-js',
-			CLICUTCL_URL . 'assets/js/clicutcl-events.js',
-			array(),
-			CLICUTCL_VERSION,
-			true // Footer
-		);
+		// Conditional loading: Front-end only, not feeds/robots, and respects attribution setting/filter.
+		$should_load_events = ! is_admin() && ! is_feed() && ! is_robots() && ! is_trackback();
+		
+		if ( $enable_attribution ) {
+			// If attribution is on, we generally want events.
+			// But allow filter to override.
+		} else {
+			// If attribution is off, maybe we don't want events? 
+			// The request said "Always-on... could be seen as avoidable...".
+			// Let's assume if attribution is disabled, this might be too. 
+			// However, localizing it to the same option seems safest for "state".
+			$should_load_events = false; 
+		}
+
+		/**
+		 * Filter to determine if the events tracking script should be loaded.
+		 *
+		 * @since 1.3.0
+		 *
+		 * @param bool $should_load_events Whether to load the script.
+		 */
+		if ( apply_filters( 'clicutcl_should_load_events_js', $should_load_events ) ) {
+			wp_enqueue_script(
+				'clicutcl-events-js',
+				CLICUTCL_URL . 'assets/js/clicutcl-events.js',
+				array(),
+				CLICUTCL_VERSION,
+				true // Footer
+			);
+		}
 	}
 
 	/**
