@@ -47,6 +47,7 @@ function clicutcl_bootstrap(): void {
 	}
 
 	// Hard fallback: ensure Context is loadable even if autoloader mapping is wrong.
+	// This guards against "missing class" errors in production if the ZIP structure varies.
 	if ( ! class_exists( 'CLICUTCL\\Core\\Context' ) ) {
 		$candidates = array(
 			CLICUTCL_DIR . 'includes/core/class-context.php',

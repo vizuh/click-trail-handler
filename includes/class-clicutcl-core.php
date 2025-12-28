@@ -159,13 +159,18 @@ class CLICUTCL_Core {
 		$require_consent = isset( $options['require_consent'] ) ? (bool) $options['require_consent'] : 1;
 
 		// Attribution Script
+		// Strategies:
+		// 1. Attribution JS loads in HEAD to ensure immediate capture of UTMs/GCLIDs before any redirects or other scripts run.
+		// 2. It also handles link decoration reliably before user interaction.
+		// 3. Heavier scripts (Consent, Events) are correctly deferred to the footer for performance.
 		if ( $enable_attribution ) {
 			wp_enqueue_script(
 				'clicutcl-attribution-js',
 				CLICUTCL_URL . 'assets/js/clicutcl-attribution.js',
 				array(),
 				CLICUTCL_VERSION,
-				false // Load in Head
+				CLICUTCL_VERSION,
+				false // Load in Head: Essential for immediate UTM/GCLID capture before redirects and link decoration.
 			);
 
 			wp_localize_script(
@@ -185,6 +190,7 @@ class CLICUTCL_Core {
 					'injectEnabled'             => isset( $options['enable_js_injection'] ) ? (bool) $options['enable_js_injection'] : true,
 					'injectOverwrite'           => isset( $options['inject_overwrite'] ) ? (bool) $options['inject_overwrite'] : false,
 					'injectMutationObserver'    => isset( $options['inject_mutation_observer'] ) ? (bool) $options['inject_mutation_observer'] : true,
+					'injectObserverTarget'      => isset( $options['inject_observer_target'] ) ? (string) $options['inject_observer_target'] : 'body', // Default: body, user can override via filter/option
 					'injectFullBlob'            => false, // Reserved for future use
 
 					// Link Decoration Config
