@@ -5,7 +5,7 @@ Contributors: hugoc
 Tags: attribution, utm, tracking, consent mode, gtm
 Requires at least: 5.0
 Tested up to: 6.9
-Stable tag: 1.3.0
+Stable tag: 1.3.1
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -119,6 +119,11 @@ ClickTrail provides consent controls and Consent Mode defaults, but ultimate com
 
 == Changelog ==
 
+= 1.3.1 =
+* Performance: Implemented conditional loading for `clicutcl-events.js` tracking script to reduce front-end overhead on non-tracking pages and admin area.
+* Security: Added safety check for WooCommerce integration to prevent instantiation if the plugin is not active.
+* Improvement: Added `clicutcl_should_load_events_js` filter for developers to override script loading logic.
+
 = 1.3.0 =
 * Feature: Cache Resurrection! Now supports Client-Side Field Injection (`enable_js_injection`) to populate hidden form fields even on fully cached pages (WP Rocket, Cloudflare, etc.).
 * Feature: Cross-Domain Tracking. Added Link Decoration (`enable_link_decoration`) to safely pass UTMs and Click IDs to allowed domains and subdomains.
@@ -177,7 +182,10 @@ Previous release notes are available in `changelog.txt`.
 
 == Upgrade Notice ==
 
-= 1.3.0 =
+= 1.3.1 =
++Minor update: Addresses performance and safety red flags by conditionally loading tracking scripts and adding existence checks for WooCommerce integration.
++
++= 1.3.0 =
 Major update: Introduces Cache Resurrection (Client-Side Injection), Link Decoration (Cross-Domain Tracking), Bot Protection, and new Site Health diagnostics. Highly recommended for accurate attribution on cached sites.
 
 = 1.2.3 =

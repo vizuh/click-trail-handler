@@ -1,7 +1,12 @@
 Changelog
 ========
 
-= 1.3.0 =
+= 1.3.1 =
++*   **Performance**: Implemented conditional loading for `clicutcl-events.js` tracking script—now only loads on the front-end (excluding feeds, robots, and admin) to minimize overhead.
++*   **Security (Safety Check)**: Added existence check for `WooCommerce` class before instantiating the integration, preventing potential hooks from loading unnecessarily.
++*   **Improvement (Extensibility)**: Introduced `clicutcl_should_load_events_js` filter to allow granular control over when tracking scripts are enqueued.
++
++= 1.3.0 =
 *   **Feature (Cache Resurrection)**: Implemented Client-Side Field Injection (`enable_js_injection`) to automatically populate hidden form fields via JavaScript, ensuring accurate attribution even on fully cached pages (WP Rocket, Cloudflare, local caching).
 *   **Feature (Cross-Domain)**: Introduced Link Decoration (`enable_link_decoration`) to safely pass attribution parameters to allowed domains, with automatic support for all subdomains of the current site.
 *   **Feature (Bot Protection)**: Added advanced bot detection to prevent attribution pollution from crawlers, webdrivers, and headless browsers.
