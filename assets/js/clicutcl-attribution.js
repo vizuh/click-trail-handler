@@ -168,11 +168,18 @@
 
             // 3. MutationObserver (Elementor popups etc)
             if (CONFIG.injectMutationObserver) {
-                const obs = new MutationObserver((mutations) => {
-                    // primitive debounce/throttle check could go here, but for now raw is fine for form inputs
-                    run();
-                });
-                obs.observe(document.documentElement, { childList: true, subtree: true });
+                const targetSelector = CONFIG.injectObserverTarget || 'body';
+                const targetNode = document.querySelector(targetSelector);
+
+                if (targetNode) {
+                    let timeout;
+                    const obs = new MutationObserver((mutations) => {
+                        // De-bounce execution to avoid performance hits on rapid DOM changes
+                        clearTimeout(timeout);
+                        timeout = setTimeout(run, 200);
+                    });
+                    obs.observe(targetNode, { childList: true, subtree: true });
+                }
             }
 
             // 4. Fallback

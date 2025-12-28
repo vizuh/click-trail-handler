@@ -51,7 +51,9 @@ class Cleanup {
 		$wpdb->query(
 			$wpdb->prepare(
 				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned and escaped; days is placeholder.
-				"DELETE FROM {$table_name_escaped} WHERE created_at < DATE_SUB(UTC_TIMESTAMP(), INTERVAL %d DAY)",
+				// Default retention is 90 days to match standard attribution windows (e.g., Google Ads).
+				// This can be adjusted via the 'clicutcl_attribution_settings' option.
+				"DELETE FROM {$table_name_escaped} WHERE created_at < DATE_SUB(UTC_TIMESTAMP(), INTERVAL %d DAY) LIMIT 1000",
 				$days
 			)
 		);

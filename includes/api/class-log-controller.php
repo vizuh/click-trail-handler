@@ -54,8 +54,18 @@ class Log_Controller extends WP_REST_Controller {
 	 * @return bool
 	 */
 	public function create_item_permissions_check( $request ) {
-		// Public endpoint, but we can rate limit or check nonces if we pass them
-		return true;
+		// Verify Nonce (passed in header X-WP-Nonce or _wpnonce param)
+		// The JS client sends this via clicutcl_config.nonce
+		$nonce = $request->get_header( 'x_wp_nonce' );
+		if ( ! $nonce ) {
+			$nonce = $request->get_param( '_wpnonce' );
+		}
+
+		if ( ! $nonce ) {
+			return new WP_Error( 'rest_forbidden', 'Missing Nonce', array( 'status' => 401 ) );
+		}
+
+		return wp_verify_nonce( $nonce, 'wp_rest' );
 	}
 
 	/**
