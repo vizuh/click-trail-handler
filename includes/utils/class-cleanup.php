@@ -48,14 +48,12 @@ class Cleanup {
 		}
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Cron cleanup on plugin-owned table.
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned and escaped.
+		$sql = "DELETE FROM {$table_name_escaped} WHERE created_at < DATE_SUB(UTC_TIMESTAMP(), INTERVAL %d DAY) LIMIT 1000";
+
 		$wpdb->query(
-			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned and escaped; days is placeholder.
-				// Default retention is 90 days to match standard attribution windows (e.g., Google Ads).
-				// This can be adjusted via the 'clicutcl_attribution_settings' option.
-				"DELETE FROM {$table_name_escaped} WHERE created_at < DATE_SUB(UTC_TIMESTAMP(), INTERVAL %d DAY) LIMIT 1000",
-				$days
-			)
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- The query string is constructed safely above.
+			$wpdb->prepare( $sql, $days )
 		);
 	}
 }
