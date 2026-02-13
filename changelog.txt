@@ -1,12 +1,26 @@
 Changelog
 ========
 
+= 1.3.2 =
+*   **Security**: Enforced signed-token authorization for WA click ingestion, removed Origin/Referer as a security control, and added trusted-proxy-aware client IP handling.
+*   **Security**: Closed WA ingestion bypass paths and aligned authorization checks across endpoints.
+*   **Performance**: Removed hot-path option churn for WA diagnostics and moved attempt/dispatch traces to debug-only transient ring buffers.
+*   **Performance**: Eliminated per-request schema checks on the WA hot path with DB readiness flags and fail-fast handling when DB is not ready.
+*   **Reliability**: Added canonical click-ID normalization boundary (`lt_/ft_` to canonical IDs) before allowlist/signing flow.
+*   **Reliability**: Hardened settings sanitization with schema+merge behavior to prevent silent setting loss on partial saves.
+*   **Admin UX/Perf**: Scoped admin script loading to relevant screens instead of global wp-admin enqueue.
+*   **Polish**: Escaped DB-derived admin table output (`created_at`) and standardized safe output rendering.
+*   **Developer Experience**: Added debug-gated JS logging to avoid production console noise by default.
+*   **API**: WA endpoint contract now requires a signed `token` for accepted writes.
+*   **Internal**: Diagnostics storage now uses transient ring buffers instead of hot-path option-array rewrites.
+*   **Internal**: Added hardening config surfaces for token TTL, nonce replay limits, trusted proxies, and diagnostics buffering/throttling.
+
 = 1.3.1 =
-+*   **Performance**: Implemented conditional loading for `clicutcl-events.js` tracking script—now only loads on the front-end (excluding feeds, robots, and admin) to minimize overhead.
-+*   **Security (Safety Check)**: Added existence check for `WooCommerce` class before instantiating the integration, preventing potential hooks from loading unnecessarily.
-+*   **Improvement (Extensibility)**: Introduced `clicutcl_should_load_events_js` filter to allow granular control over when tracking scripts are enqueued.
-+
-+= 1.3.0 =
+*   **Performance**: Implemented conditional loading for `clicutcl-events.js` tracking script—now only loads on the front-end (excluding feeds, robots, and admin) to minimize overhead.
+*   **Security (Safety Check)**: Added existence check for `WooCommerce` class before instantiating the integration, preventing potential hooks from loading unnecessarily.
+*   **Improvement (Extensibility)**: Introduced `clicutcl_should_load_events_js` filter to allow granular control over when tracking scripts are enqueued.
+
+= 1.3.0 =
 *   **Feature (Cache Resurrection)**: Implemented Client-Side Field Injection (`enable_js_injection`) to automatically populate hidden form fields via JavaScript, ensuring accurate attribution even on fully cached pages (WP Rocket, Cloudflare, local caching).
 *   **Feature (Cross-Domain)**: Introduced Link Decoration (`enable_link_decoration`) to safely pass attribution parameters to allowed domains, with automatic support for all subdomains of the current site.
 *   **Feature (Bot Protection)**: Added advanced bot detection to prevent attribution pollution from crawlers, webdrivers, and headless browsers.

@@ -5,7 +5,7 @@ Contributors: hugoc
 Tags: attribution, utm, tracking, consent mode, gtm
 Requires at least: 5.0
 Tested up to: 6.9
-Stable tag: 1.3.1
+Stable tag: 1.3.2
 Requires PHP: 7.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -119,6 +119,20 @@ ClickTrail provides consent controls and Consent Mode defaults, but ultimate com
 
 == Changelog ==
 
+= 1.3.2 =
+* **Security**: Enforced signed-token authorization for WA click ingestion, removed Origin/Referer as a security control, and added trusted-proxy-aware client IP handling.
+* **Security**: Closed WA ingestion bypass paths and aligned authorization checks across endpoints.
+* **Performance**: Removed hot-path option churn for WA diagnostics and moved attempt/dispatch traces to debug-only transient ring buffers.
+* **Performance**: Eliminated per-request schema checks on the WA hot path with DB readiness flags and fail-fast handling when DB is not ready.
+* **Reliability**: Added canonical click-ID normalization boundary (`lt_/ft_` to canonical IDs) before allowlist/signing flow.
+* **Reliability**: Hardened settings sanitization with schema+merge behavior to prevent silent setting loss on partial saves.
+* **Admin UX/Perf**: Scoped admin script loading to relevant screens instead of global wp-admin enqueue.
+* **Polish**: Escaped DB-derived admin table output (`created_at`) and standardized safe output rendering.
+* **Developer Experience**: Added debug-gated JS logging to avoid production console noise by default.
+* **API**: WA endpoint contract now requires a signed `token` for accepted writes.
+* **Internal**: Diagnostics storage now uses transient ring buffers instead of hot-path option-array rewrites.
+* **Internal**: Added hardening config surfaces for token TTL, nonce replay limits, trusted proxies, and diagnostics buffering/throttling.
+
 = 1.3.1 =
 * Performance: Implemented conditional loading for `clicutcl-events.js` tracking script to reduce front-end overhead on non-tracking pages and admin area.
 * Security: Added safety check for WooCommerce integration to prevent instantiation if the plugin is not active.
@@ -182,6 +196,9 @@ Previous release notes are available in `changelog.txt`.
 
 == Upgrade Notice ==
 
+= 1.3.2 =
+Security and reliability hardening release. WhatsApp click ingestion now requires signed tokens, diagnostics hot-path writes were optimized, and admin script loading is now screen-scoped.
+
 = 1.3.1 =
 Minor update: Performance optim (conditional JS loading) & Security hardening (WooCommerce active check). Addresses red flags.
 = 1.3.0 =
@@ -204,4 +221,3 @@ Documentation and asset updates only; no functional changes. Apply this to keep 
 
 = 1.1.0 =
 Adds event tracking, Consent Mode v2 updates, and GA4/GTM enhancements. Review consent settings before upgrading to ensure privacy compliance.
-

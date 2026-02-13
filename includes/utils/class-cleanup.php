@@ -55,5 +55,27 @@ class Cleanup {
 			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- The query string is constructed safely above.
 			$wpdb->prepare( $sql, $days )
 		);
+
+		$queue_days = (int) apply_filters( 'clicutcl_queue_retention_days', 7 );
+		if ( $queue_days < 1 ) {
+			$queue_days = 7;
+		}
+
+		$queue_table = $wpdb->prefix . 'clicutcl_queue';
+		$queue_table_escaped = esc_sql( $queue_table );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Lightweight metadata check on plugin-owned table; no core wrapper available.
+		if ( $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $queue_table ) ) !== $queue_table ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned and escaped.
+		$queue_sql = "DELETE FROM {$queue_table_escaped} WHERE created_at < DATE_SUB(UTC_TIMESTAMP(), INTERVAL %d DAY) LIMIT 1000";
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Cron cleanup on plugin-owned table.
+		$wpdb->query(
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- The query string is constructed safely above.
+			$wpdb->prepare( $queue_sql, $queue_days )
+		);
 	}
 }

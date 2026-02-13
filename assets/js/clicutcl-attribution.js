@@ -14,6 +14,16 @@
                 .replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
         },
 
+        base64UrlDecode: function (str) {
+            try {
+                let s = String(str || '').replace(/-/g, '+').replace(/_/g, '/');
+                while (s.length % 4) s += '=';
+                return decodeURIComponent(escape(atob(s)));
+            } catch (e) {
+                return '';
+            }
+        },
+
         safeJsonParse: function (str) {
             try { return JSON.parse(str); } catch (e) { return null; }
         },
@@ -67,6 +77,41 @@
             try {
                 localStorage.setItem(CONFIG.cookieName, dataStr);
             } catch (e) { }
+        },
+
+        buildToken: function (data) {
+            const allow = [
+                'ft_source', 'ft_medium', 'ft_campaign',
+                'lt_source', 'lt_medium', 'lt_campaign',
+                'gclid', 'fbclid', 'msclkid', 'ttclid'
+            ];
+            const out = {};
+            allow.forEach((k) => {
+                if (data && data[k]) {
+                    const v = String(data[k]);
+                    out[k] = v.length > 128 ? v.slice(0, 128) : v;
+                }
+            });
+            if (!Object.keys(out).length) return null;
+            return { v: 1, ts: Math.floor(Date.now() / 1000), data: out };
+        },
+
+        encodeToken: function (data) {
+            const token = this.buildToken(data);
+            if (!token) return '';
+            return this.base64UrlEncode(JSON.stringify(token));
+        },
+
+        decodeToken: function (token) {
+            const raw = this.base64UrlDecode(token);
+            if (!raw) return null;
+            const obj = this.safeJsonParse(raw);
+            if (!obj || !obj.data || !obj.ts) return null;
+            const maxDays = parseInt(CONFIG.tokenMaxAgeDays || CONFIG.cookieDays || 90, 10);
+            const maxAge = maxDays * 24 * 60 * 60;
+            const age = Math.floor(Date.now() / 1000) - parseInt(obj.ts, 10);
+            if (age < 0 || age > maxAge) return null;
+            return obj.data;
         }
     };
 
@@ -300,6 +345,17 @@
                 }
             });
 
+            if (CONFIG.linkAppendToken) {
+                const tokenParam = CONFIG.tokenParam || 'ct_token';
+                if (!url.searchParams.has(tokenParam)) {
+                    const token = Store.encodeToken(data);
+                    if (token) {
+                        url.searchParams.set(tokenParam, token);
+                        changed = true;
+                    }
+                }
+            }
+
             return changed ? url.toString() : null;
         },
 
@@ -322,7 +378,6 @@
             document.addEventListener("touchstart", handler, { capture: true, passive: true });
         }
     };
-
 
     // --- 5. MAIN ATTRIBUTION LOGIC ---
     // Preserving original class logic but using Store
@@ -373,6 +428,26 @@
         runAttribution() {
             const currentParams = Store.getQueryParams();
             const referrer = document.referrer;
+
+            // Cross-domain token support
+            if (CONFIG.linkAppendToken) {
+                const tokenParam = CONFIG.tokenParam || 'ct_token';
+                const tokenValue = currentParams[tokenParam];
+                if (tokenValue) {
+                    const tokenData = Store.decodeToken(tokenValue);
+                    if (tokenData) {
+                        let stored = Store.getData() || {};
+                        const now = new Date().toISOString();
+                        // Merge token data without overwriting existing values
+                        Object.keys(tokenData).forEach((k) => {
+                            if (!stored[k]) stored[k] = tokenData[k];
+                        });
+                        stored.lt_touch_timestamp = now;
+                        stored.lt_landing_page = window.location.href;
+                        Store.saveData(stored);
+                    }
+                }
+            }
 
             // Logic to determine if we have new attribution
             const hasAttributionSignal = this.checkSignal(currentParams, referrer);
@@ -487,7 +562,131 @@
 
         initWhatsAppListener(data) {
             if (!CONFIG.enableWhatsapp) return;
-            // ... (original WA logic)
+
+            const requiresConsent = CONFIG.requireConsent === true || CONFIG.requireConsent === '1';
+            if (requiresConsent) {
+                const consent = this.getConsent();
+                if (!consent || !consent.marketing) {
+                    return;
+                }
+            }
+
+            const logClicks = CONFIG.whatsappLogClicks === true || CONFIG.whatsappLogClicks === '1';
+            const appendAttr = CONFIG.whatsappAppendAttribution === true || CONFIG.whatsappAppendAttribution === '1';
+            const allowedHosts = ['wa.me', 'whatsapp.com', 'api.whatsapp.com', 'web.whatsapp.com'];
+
+            const sendLog = async (payload) => {
+                if (!CONFIG.publicLogUrl) return;
+
+                const body = JSON.stringify(payload);
+                if (navigator.sendBeacon) {
+                    const blob = new Blob([body], { type: 'application/json' });
+                    navigator.sendBeacon(CONFIG.publicLogUrl, blob);
+                    return;
+                }
+
+                try {
+                    await fetch(CONFIG.publicLogUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body,
+                        keepalive: true
+                    });
+                } catch (e) { }
+            };
+
+            const getSafeAttribution = () => {
+                const raw = Store.getData() || {};
+                const allowed = [
+                    'ft_source', 'ft_medium', 'ft_campaign',
+                    'lt_source', 'lt_medium', 'lt_campaign',
+                    'gclid', 'fbclid', 'msclkid', 'ttclid'
+                ];
+                const out = {};
+                allowed.forEach((key) => {
+                    if (raw[key]) {
+                        const val = String(raw[key]);
+                        out[key] = val.length > 128 ? val.slice(0, 128) : val;
+                    }
+                });
+                return out;
+            };
+
+            const normalizeTarget = (url) => {
+                const host = url.hostname;
+                const path = (url.pathname || '/').replace(/\d+/g, 'redacted');
+                return {
+                    type: host,
+                    path: path.startsWith('/') ? path : '/' + path
+                };
+            };
+
+            const shouldLog = (key) => {
+                try {
+                    const last = sessionStorage.getItem('ct_wa_last');
+                    if (last) {
+                        const parts = last.split('|');
+                        const lastTs = parseInt(parts[0], 10) || 0;
+                        const lastKey = parts[1] || '';
+                        if (lastKey === key && (Date.now() - lastTs) < 1500) {
+                            return false;
+                        }
+                    }
+                    sessionStorage.setItem('ct_wa_last', String(Date.now()) + '|' + key);
+                } catch (e) { }
+                return true;
+            };
+
+            const handler = (evt) => {
+                const a = evt.target.closest('a');
+                if (!a) return;
+
+                const href = a.getAttribute('href');
+                if (!href) return;
+
+                let url;
+                try {
+                    url = new URL(href, window.location.href);
+                } catch (e) {
+                    return;
+                }
+
+                if (!allowedHosts.includes(url.hostname)) return;
+
+                if (appendAttr && window.ClickTrail && typeof window.ClickTrail.getEncoded === 'function') {
+                    const encoded = window.ClickTrail.getEncoded();
+                    if (encoded) {
+                        const text = url.searchParams.get('text') || '';
+                        const glue = text ? '\n\n' : '';
+                        url.searchParams.set('text', text + glue + 'CT:' + encoded);
+                        a.href = url.toString();
+                    }
+                }
+
+                if (logClicks) {
+                    const eventId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('ct_' + Math.random().toString(36).slice(2));
+                    const ts = Math.floor(Date.now() / 1000);
+                    const target = normalizeTarget(url);
+                    const pagePath = window.location.pathname || '/';
+                    const dedupeKey = target.type + '|' + target.path;
+
+                    if (!shouldLog(dedupeKey)) return;
+
+                    const payload = {
+                        event: 'wa_click',
+                        event_id: eventId,
+                        ts: ts,
+                        page_path: pagePath,
+                        wa_target_type: target.type,
+                        wa_target_path: target.path,
+                        attribution: getSafeAttribution()
+                    };
+                    sendLog(payload);
+                }
+            };
+
+            document.addEventListener('click', handler, true);
+            document.addEventListener('touchstart', handler, { capture: true, passive: true });
         }
     }
 
