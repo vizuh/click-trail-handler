@@ -8,6 +8,8 @@
 namespace CLICUTCL\Integrations\Forms;
 
 use CLICUTCL\Core\Attribution_Provider;
+use CLICUTCL\Server_Side\Dispatcher;
+use CLICUTCL\Server_Side\Event;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -59,19 +61,30 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 		}
 
 		$table_name = $wpdb->prefix . 'clicutcl_events';
+
+		$event_id = Event::generate_id( 'form' );
 		
 		$event_data = array(
+			'event_id'   => $event_id,
 			'platform'    => $platform,
 			'form_id'     => $form_id,
 			'attribution' => $attribution,
 		);
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Intentional insert into custom plugin table.
-		$wpdb->insert(
+		$wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Intentional insert into custom plugin table.
 			$table_name,
 			array(
 				'event_type' => 'form_submission',
 				'event_data' => wp_json_encode( $event_data ),
+			)
+		);
+
+		Dispatcher::dispatch_form_submission(
+			$platform,
+			$form_id,
+			$attribution,
+			array(
+				'event_id' => $event_id,
 			)
 		);
 	}

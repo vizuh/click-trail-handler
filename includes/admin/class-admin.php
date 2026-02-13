@@ -9,6 +9,8 @@ namespace CLICUTCL\Admin;
 
 use CLICUTCL\Modules\Consent_Mode\Consent_Mode_Settings;
 use CLICUTCL\Modules\GTM\GTM_Settings;
+use CLICUTCL\Server_Side\Dispatcher;
+use CLICUTCL\Server_Side\Settings;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -50,6 +52,13 @@ class Admin {
 		
 		// AJAX hooks for Admin/Settings functionality
 		add_action( 'wp_ajax_clicutcl_log_pii_risk', array( $this, 'ajax_log_pii_risk' ) );
+		add_action( 'wp_ajax_clicutcl_test_endpoint', array( $this, 'ajax_test_endpoint' ) );
+		add_action( 'wp_ajax_clicutcl_toggle_debug', array( $this, 'ajax_toggle_debug' ) );
+
+		if ( is_multisite() ) {
+			add_action( 'network_admin_menu', array( $this, 'network_admin_menu' ) );
+			add_action( 'network_admin_edit_clicutcl_network_settings', array( $this, 'save_network_settings' ) );
+		}
 		
 		// Site Health
 		require_once CLICUTCL_DIR . 'includes/admin/class-site-health.php';
@@ -134,6 +143,15 @@ class Admin {
 			'clicutcl-logs',
 			array( $this, 'logs_page' )
 		);
+
+		add_submenu_page(
+			'clicutcl-settings',
+			__( 'Diagnostics', 'click-trail-handler' ),
+			__( 'Diagnostics', 'click-trail-handler' ),
+			'manage_options',
+			'clicutcl-diagnostics',
+			array( $this, 'diagnostics_page' )
+		);
 	}
 
 	/**
@@ -143,13 +161,14 @@ class Admin {
 	 */
 	public function enqueue_admin_assets( $hook ) {
 		// Ping Site Health on all admin pages to confirm JS execution
-		wp_enqueue_script(
+		wp_register_script(
 			'clicutcl-admin-sitehealth',
 			CLICUTCL_URL . 'assets/js/admin-sitehealth.js',
 			array(),
 			CLICUTCL_VERSION,
-			true
+			\clicutcl_script_args( true, 'defer' )
 		);
+		wp_enqueue_script( 'clicutcl-admin-sitehealth' );
 		wp_localize_script( 'clicutcl-admin-sitehealth', 'clicutclSiteHealth', array(
 			'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 			'nonce'   => wp_create_nonce( 'clicutcl_sitehealth' )
@@ -166,6 +185,25 @@ class Admin {
 			array(),
 			CLICUTCL_VERSION
 		);
+
+		if ( strpos( $hook, 'clicutcl-diagnostics' ) !== false ) {
+			wp_register_script(
+				'clicutcl-admin-diagnostics',
+				CLICUTCL_URL . 'assets/js/admin-diagnostics.js',
+				array(),
+				CLICUTCL_VERSION,
+				\clicutcl_script_args( true, 'defer' )
+			);
+			wp_enqueue_script( 'clicutcl-admin-diagnostics' );
+			wp_localize_script(
+				'clicutcl-admin-diagnostics',
+				'clicutclDiagnostics',
+				array(
+					'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+					'nonce'   => wp_create_nonce( 'clicutcl_diag' ),
+				)
+			);
+		}
 	}
 
 	/**
@@ -292,6 +330,20 @@ class Admin {
 			)
 		);
 
+		add_settings_field(
+			'enable_cross_domain_token',
+			__( 'Enable Cross-Domain Token', 'click-trail-handler' ),
+			array( $this, 'render_checkbox_field' ),
+			'clicutcl_general_tab',
+			'clicutcl_advanced_section',
+			array(
+				'label_for'   => 'enable_cross_domain_token',
+				'option_name' => 'clicutcl_attribution_settings',
+				'tooltip'     => __( 'Attach a compact attribution token to outbound links for cross-domain continuity.', 'click-trail-handler' ),
+				'description' => __( 'Adds a ct_token parameter to allowed cross-domain links. Token is limited to non-PII attribution fields.', 'click-trail-handler' ),
+			)
+		);
+
 
 		// WhatsApp Section
 		add_settings_section(
@@ -382,6 +434,86 @@ class Admin {
 			'clicutcl_gtm_section',
 			array( 'label_for' => 'container_id' )
 		);
+
+		// 4. Server-side Settings
+		register_setting( 'clicutcl_server_side', 'clicutcl_server_side', array( $this, 'sanitize_server_side_settings' ) );
+
+		add_settings_section(
+			'clicutcl_server_side_section',
+			__( 'Server-side Transport', 'click-trail-handler' ),
+			null,
+			'clicutcl_server_side_tab'
+		);
+
+		add_settings_field(
+			'enabled',
+			__( 'Enable Server-side Sending', 'click-trail-handler' ),
+			array( $this, 'render_checkbox_field' ),
+			'clicutcl_server_side_tab',
+			'clicutcl_server_side_section',
+			array(
+				'label_for'   => 'enabled',
+				'option_name' => 'clicutcl_server_side',
+				'tooltip'     => __( 'Send canonical events to your self-hosted collector endpoint.', 'click-trail-handler' ),
+			)
+		);
+
+		add_settings_field(
+			'endpoint_url',
+			__( 'Collector Endpoint URL', 'click-trail-handler' ),
+			array( $this, 'render_text_field' ),
+			'clicutcl_server_side_tab',
+			'clicutcl_server_side_section',
+			array(
+				'label_for'   => 'endpoint_url',
+				'option_name' => 'clicutcl_server_side',
+				'description' => __( 'Example: https://sgtm.yourdomain.com/collect', 'click-trail-handler' ),
+			)
+		);
+
+		add_settings_field(
+			'adapter',
+			__( 'Adapter Type', 'click-trail-handler' ),
+			array( $this, 'render_select_field' ),
+			'clicutcl_server_side_tab',
+			'clicutcl_server_side_section',
+			array(
+				'label_for'   => 'adapter',
+				'option_name' => 'clicutcl_server_side',
+				'options'     => array(
+					'generic'   => __( 'Generic Collector', 'click-trail-handler' ),
+					'sgtm'      => __( 'sGTM (Server GTM)', 'click-trail-handler' ),
+					'meta_capi' => __( 'Meta CAPI (future)', 'click-trail-handler' ),
+				),
+			)
+		);
+
+		add_settings_field(
+			'timeout',
+			__( 'Request Timeout (seconds)', 'click-trail-handler' ),
+			array( $this, 'render_number_field' ),
+			'clicutcl_server_side_tab',
+			'clicutcl_server_side_section',
+			array(
+				'label_for'   => 'timeout',
+				'option_name' => 'clicutcl_server_side',
+			)
+		);
+
+		if ( is_multisite() && ! empty( Settings::get_network() ) ) {
+			add_settings_field(
+				'use_network',
+				__( 'Use Network Defaults', 'click-trail-handler' ),
+				array( $this, 'render_checkbox_field' ),
+				'clicutcl_server_side_tab',
+				'clicutcl_server_side_section',
+				array(
+					'label_for'   => 'use_network',
+					'option_name' => 'clicutcl_server_side',
+					'tooltip'     => __( 'Use network-level server-side settings for this site.', 'click-trail-handler' ),
+				)
+			);
+		}
 	}
 
 	/**
@@ -399,6 +531,27 @@ class Admin {
 		<?php if ( $description ) : ?>
 			<p class="description"><?php echo wp_kses_post( $description ); ?></p>
 		<?php endif; ?>
+		<?php
+	}
+
+	/**
+	 * Render select field.
+	 *
+	 * @param array $args Field arguments.
+	 */
+	public function render_select_field( $args ) {
+		$option_name = $args['option_name'];
+		$options     = get_option( $option_name, array() );
+		$current     = isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : '';
+		$choices     = isset( $args['options'] ) && is_array( $args['options'] ) ? $args['options'] : array();
+		?>
+		<select name="<?php echo esc_attr( $option_name . '[' . $args['label_for'] . ']' ); ?>">
+			<?php foreach ( $choices as $value => $label ) : ?>
+				<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $current, $value ); ?>>
+					<?php echo esc_html( $label ); ?>
+				</option>
+			<?php endforeach; ?>
+		</select>
 		<?php
 	}
 
@@ -432,6 +585,10 @@ class Admin {
 					<span class="dashicons dashicons-chart-bar"></span>
 					<?php esc_html_e( 'Integrations', 'click-trail-handler' ); ?>
 				</a>
+				<a href="?page=clicutcl-settings&tab=server" class="nav-tab <?php echo esc_attr( 'server' === $active_tab ? 'nav-tab-active' : '' ); ?>">
+					<span class="dashicons dashicons-cloud"></span>
+					<?php esc_html_e( 'Server-side', 'click-trail-handler' ); ?>
+				</a>
 			</h2>
 
 			<form action="options.php" method="post">
@@ -448,6 +605,9 @@ class Admin {
 				} elseif ( $active_tab == 'gtm' ) {
 					settings_fields( 'clicutcl_gtm' );
 					do_settings_sections( 'clicutcl_gtm' );
+				} elseif ( $active_tab == 'server' ) {
+					settings_fields( 'clicutcl_server_side' );
+					do_settings_sections( 'clicutcl_server_side_tab' );
 				}
 				
 				submit_button();
@@ -467,10 +627,12 @@ class Admin {
 		$options = get_option( $option_name );
 		$value = isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : 0;
 		$tooltip = isset( $args['tooltip'] ) ? $args['tooltip'] : '';
+		$field_name = $option_name . '[' . $args['label_for'] . ']';
 		?>
 		<div class="clicktrail-toggle-wrapper">
 			<label class="clicktrail-toggle">
-				<input type="checkbox" name="<?php echo esc_attr( $option_name . '[' . $args['label_for'] . ']' ); ?>" value="1" <?php checked( 1, $value ); ?> />
+				<input type="hidden" name="<?php echo esc_attr( $field_name ); ?>" value="0" />
+				<input type="checkbox" name="<?php echo esc_attr( $field_name ); ?>" value="1" <?php checked( 1, $value ); ?> />
 				<span class="clicktrail-toggle-slider"></span>
 			</label>
 			<span class="clicktrail-toggle-label">
@@ -566,16 +728,579 @@ class Admin {
 	}
 
 	public function sanitize_settings( $input ) {
+		$current = get_option( 'clicutcl_attribution_settings', array() );
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return is_array( $current ) ? $current : array();
+		}
+
+		$input = is_array( $input ) ? wp_unslash( $input ) : array();
+
+		$schema = $this->get_attribution_settings_schema();
+		$current = is_array( $current ) ? $current : array();
+		$merged = $this->apply_settings_defaults( $current, $schema );
+
+		foreach ( $schema as $key => $rule ) {
+			if ( ! array_key_exists( $key, $input ) ) {
+				continue;
+			}
+
+			$sanitizer = isset( $rule['sanitize'] ) ? $rule['sanitize'] : null;
+			if ( is_callable( $sanitizer ) ) {
+				$merged[ $key ] = call_user_func( $sanitizer, $input[ $key ] );
+			}
+		}
+
+		return $merged;
+	}
+
+	/**
+	 * Canonical schema for clicutcl_attribution_settings.
+	 *
+	 * @return array
+	 */
+	private function get_attribution_settings_schema() {
+		return array(
+			'enable_attribution'         => array(
+				'default'  => 1,
+				'sanitize' => array( $this, 'sanitize_toggle' ),
+			),
+			'cookie_days'                => array(
+				'default'  => 90,
+				'sanitize' => array( $this, 'sanitize_cookie_days' ),
+			),
+			'enable_js_injection'        => array(
+				'default'  => 1,
+				'sanitize' => array( $this, 'sanitize_toggle' ),
+			),
+			'inject_overwrite'           => array(
+				'default'  => 0,
+				'sanitize' => array( $this, 'sanitize_toggle' ),
+			),
+			'inject_mutation_observer'   => array(
+				'default'  => 1,
+				'sanitize' => array( $this, 'sanitize_toggle' ),
+			),
+			'inject_observer_target'     => array(
+				'default'  => 'body',
+				'sanitize' => array( $this, 'sanitize_observer_target' ),
+			),
+			'enable_link_decoration'     => array(
+				'default'  => 0,
+				'sanitize' => array( $this, 'sanitize_toggle' ),
+			),
+			'link_allowed_domains'       => array(
+				'default'  => '',
+				'sanitize' => array( $this, 'sanitize_domains_csv' ),
+			),
+			'link_skip_signed'           => array(
+				'default'  => 1,
+				'sanitize' => array( $this, 'sanitize_toggle' ),
+			),
+			'enable_cross_domain_token'  => array(
+				'default'  => 0,
+				'sanitize' => array( $this, 'sanitize_toggle' ),
+			),
+			'enable_whatsapp'            => array(
+				'default'  => 1,
+				'sanitize' => array( $this, 'sanitize_toggle' ),
+			),
+			'whatsapp_append_attribution' => array(
+				'default'  => 0,
+				'sanitize' => array( $this, 'sanitize_toggle' ),
+			),
+			'whatsapp_log_clicks'        => array(
+				'default'  => 0,
+				'sanitize' => array( $this, 'sanitize_toggle' ),
+			),
+			// Backward compatibility for legacy keys still read in some installs.
+			'enable_consent_banner'      => array(
+				'default'  => 0,
+				'sanitize' => array( $this, 'sanitize_toggle' ),
+			),
+			'require_consent'            => array(
+				'default'  => 1,
+				'sanitize' => array( $this, 'sanitize_toggle' ),
+			),
+			'consent_mode_region'        => array(
+				'default'  => '',
+				'sanitize' => 'sanitize_text_field',
+			),
+		);
+	}
+
+	/**
+	 * Ensure all known settings have stable defaults without dropping unknown keys.
+	 *
+	 * @param array $existing Existing stored settings.
+	 * @param array $schema   Settings schema.
+	 * @return array
+	 */
+	private function apply_settings_defaults( $existing, $schema ) {
+		$existing = is_array( $existing ) ? $existing : array();
+		foreach ( $schema as $key => $rule ) {
+			if ( ! array_key_exists( $key, $existing ) ) {
+				$existing[ $key ] = isset( $rule['default'] ) ? $rule['default'] : '';
+			}
+		}
+
+		return $existing;
+	}
+
+	/**
+	 * Sanitize checkbox/toggle values to 0|1.
+	 *
+	 * @param mixed $value Raw input.
+	 * @return int
+	 */
+	private function sanitize_toggle( $value ) {
+		return (int) (bool) $value;
+	}
+
+	/**
+	 * Sanitize cookie retention days.
+	 *
+	 * @param mixed $value Raw input.
+	 * @return int
+	 */
+	private function sanitize_cookie_days( $value ) {
+		$days = absint( $value );
+		if ( $days < 1 ) {
+			$days = 90;
+		}
+
+		return min( 3650, $days );
+	}
+
+	/**
+	 * Sanitize CSS selector for injection observer target.
+	 *
+	 * @param mixed $value Raw input.
+	 * @return string
+	 */
+	private function sanitize_observer_target( $value ) {
+		$selector = trim( sanitize_text_field( (string) $value ) );
+		if ( '' === $selector ) {
+			return 'body';
+		}
+
+		if ( strlen( $selector ) > 120 ) {
+			$selector = substr( $selector, 0, 120 );
+		}
+
+		return $selector;
+	}
+
+	/**
+	 * Normalize domains list into a comma-separated canonical string.
+	 *
+	 * @param mixed $value Raw domains value.
+	 * @return string
+	 */
+	private function sanitize_domains_csv( $value ) {
+		$raw = is_array( $value ) ? $value : preg_split( '/[\r\n,\s]+/', (string) $value );
+		$raw = is_array( $raw ) ? $raw : array();
+		$out = array();
+
+		foreach ( $raw as $item ) {
+			$item = trim( (string) $item );
+			if ( '' === $item ) {
+				continue;
+			}
+
+			$item = preg_replace( '#^https?://#i', '', $item );
+			$item = preg_replace( '#/.*$#', '', $item );
+			$item = strtolower( trim( $item ) );
+
+			if ( preg_match( '/^[a-z0-9.-]+\.[a-z]{2,}$/', $item ) ) {
+				$out[] = $item;
+			}
+		}
+
+		$out = array_values( array_unique( $out ) );
+		return implode( ',', $out );
+	}
+
+	public function sanitize_server_side_settings( $input ) {
 		$new_input = array();
-		if( isset( $input['enable_attribution'] ) ) $new_input['enable_attribution'] = absint( $input['enable_attribution'] );
-		if( isset( $input['cookie_days'] ) ) $new_input['cookie_days'] = absint( $input['cookie_days'] );
-		if( isset( $input['enable_consent_banner'] ) ) $new_input['enable_consent_banner'] = absint( $input['enable_consent_banner'] );
-		if( isset( $input['require_consent'] ) ) $new_input['require_consent'] = absint( $input['require_consent'] );
-		if( isset( $input['consent_mode_region'] ) ) $new_input['consent_mode_region'] = sanitize_text_field( $input['consent_mode_region'] );
-		if( isset( $input['enable_whatsapp'] ) ) $new_input['enable_whatsapp'] = absint( $input['enable_whatsapp'] );
-		if( isset( $input['whatsapp_append_attribution'] ) ) $new_input['whatsapp_append_attribution'] = absint( $input['whatsapp_append_attribution'] );
-		if( isset( $input['whatsapp_log_clicks'] ) ) $new_input['whatsapp_log_clicks'] = absint( $input['whatsapp_log_clicks'] );
+		$new_input['enabled'] = isset( $input['enabled'] ) ? absint( $input['enabled'] ) : 0;
+
+		if ( isset( $input['endpoint_url'] ) ) {
+			$new_input['endpoint_url'] = esc_url_raw( trim( $input['endpoint_url'] ) );
+		}
+
+		if ( isset( $input['adapter'] ) ) {
+			$adapter = sanitize_key( $input['adapter'] );
+			$allowed = array( 'generic', 'sgtm', 'meta_capi' );
+			$new_input['adapter'] = in_array( $adapter, $allowed, true ) ? $adapter : 'generic';
+		}
+
+		if ( isset( $input['timeout'] ) ) {
+			$timeout = absint( $input['timeout'] );
+			$new_input['timeout'] = $timeout > 0 ? min( 15, $timeout ) : 5;
+		}
+
+		if ( isset( $input['use_network'] ) ) {
+			$new_input['use_network'] = absint( $input['use_network'] );
+		}
+
 		return $new_input;
+	}
+
+	public function network_admin_menu() {
+		add_menu_page(
+			__( 'ClickTrail Network', 'click-trail-handler' ),
+			__( 'ClickTrail', 'click-trail-handler' ),
+			'manage_network_options',
+			'clicutcl-network-settings',
+			array( $this, 'render_network_settings_page' ),
+			'dashicons-chart-area',
+			56
+		);
+	}
+
+	public function render_network_settings_page() {
+		if ( ! current_user_can( 'manage_network_options' ) ) {
+			return;
+		}
+
+		$options = Settings::get_network();
+		?>
+		<div class="wrap">
+			<h1><?php esc_html_e( 'ClickTrail Network Settings', 'click-trail-handler' ); ?></h1>
+			<form method="post" action="edit.php?action=clicutcl_network_settings">
+				<?php wp_nonce_field( 'clicutcl_network_settings' ); ?>
+				<table class="form-table" role="presentation">
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Enable Server-side Sending', 'click-trail-handler' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox" name="clicutcl_server_side_network[enabled]" value="1" <?php checked( 1, $options['enabled'] ?? 0 ); ?> />
+								<?php esc_html_e( 'Enabled', 'click-trail-handler' ); ?>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Collector Endpoint URL', 'click-trail-handler' ); ?></th>
+						<td>
+							<input type="text" name="clicutcl_server_side_network[endpoint_url]" value="<?php echo esc_attr( $options['endpoint_url'] ?? '' ); ?>" class="regular-text" />
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Adapter Type', 'click-trail-handler' ); ?></th>
+						<td>
+							<select name="clicutcl_server_side_network[adapter]">
+								<?php
+								$adapter = $options['adapter'] ?? 'generic';
+								$choices = array(
+									'generic'   => __( 'Generic Collector', 'click-trail-handler' ),
+									'sgtm'      => __( 'sGTM (Server GTM)', 'click-trail-handler' ),
+									'meta_capi' => __( 'Meta CAPI (future)', 'click-trail-handler' ),
+								);
+								foreach ( $choices as $value => $label ) :
+									?>
+									<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $adapter, $value ); ?>>
+										<?php echo esc_html( $label ); ?>
+									</option>
+								<?php endforeach; ?>
+							</select>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Request Timeout (seconds)', 'click-trail-handler' ); ?></th>
+						<td>
+							<input type="number" min="1" max="15" name="clicutcl_server_side_network[timeout]" value="<?php echo esc_attr( $options['timeout'] ?? 5 ); ?>" />
+						</td>
+					</tr>
+				</table>
+				<?php submit_button(); ?>
+			</form>
+		</div>
+		<?php
+	}
+
+	public function save_network_settings() {
+		if ( ! current_user_can( 'manage_network_options' ) ) {
+			wp_die( esc_html__( 'Forbidden', 'click-trail-handler' ) );
+		}
+
+		check_admin_referer( 'clicutcl_network_settings' );
+
+		$raw = filter_input( INPUT_POST, 'clicutcl_server_side_network', FILTER_DEFAULT, FILTER_REQUIRE_ARRAY );
+		$raw = is_array( $raw ) ? $raw : array();
+		$raw = map_deep( $raw, 'sanitize_text_field' );
+		$clean = $this->sanitize_server_side_settings( $raw );
+
+		update_site_option( Settings::OPTION_NETWORK, $clean );
+
+		wp_safe_redirect( network_admin_url( 'admin.php?page=clicutcl-network-settings&updated=1' ) );
+		exit;
+	}
+
+	public function diagnostics_page() {
+		global $wpdb;
+
+		$table_name = $wpdb->prefix . 'clicutcl_events';
+		$cache_key  = 'clicutcl_diag_wa_clicks';
+
+		$rows = wp_cache_get( $cache_key, 'clicutcl' );
+		if ( false === $rows ) {
+			$query = $wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+				"SELECT * FROM {$table_name} WHERE event_type = %s ORDER BY created_at DESC LIMIT 20",
+				'wa_click'
+			);
+			$rows = $wpdb->get_results( $query, ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+			wp_cache_set( $cache_key, $rows, 'clicutcl', 60 );
+		}
+
+		$last_error = get_option( 'clicutcl_last_error', array() );
+		$last_error_time = '';
+		if ( isset( $last_error['time'] ) ) {
+			$last_error_time = date_i18n( 'Y-m-d H:i:s', (int) $last_error['time'] );
+		}
+
+		$attempts = get_option( 'clicutcl_attempts', array() );
+		if ( ! is_array( $attempts ) ) {
+			$attempts = array();
+		}
+
+		$dispatches = get_option( 'clicutcl_dispatch_log', array() );
+		if ( ! is_array( $dispatches ) ) {
+			$dispatches = array();
+		}
+
+		$debug_until = get_transient( 'clicutcl_debug_until' );
+		$debug_active = $debug_until && (int) $debug_until > time();
+		$debug_until_str = $debug_active ? date_i18n( 'Y-m-d H:i:s', (int) $debug_until ) : '';
+
+		$sample_payload = array();
+		if ( ! empty( $attempts ) ) {
+			$first = $attempts[0];
+			$sample_payload = array(
+				'event_id'       => $first['event_id'] ?? '',
+				'ts'             => $first['time'] ?? '',
+				'page_path'      => $first['page_path'] ?? '',
+				'wa_target_type' => $first['wa_target_type'] ?? '',
+				'wa_target_path' => $first['wa_target_path'] ?? '',
+			);
+		}
+		?>
+		<div class="wrap">
+			<h1><?php esc_html_e( 'ClickTrail Diagnostics', 'click-trail-handler' ); ?></h1>
+
+			<h2><?php esc_html_e( 'Endpoint Test', 'click-trail-handler' ); ?></h2>
+			<p>
+				<button class="button" id="clicutcl-test-endpoint"><?php esc_html_e( 'Test Endpoint', 'click-trail-handler' ); ?></button>
+				<span id="clicutcl-test-endpoint-status" style="margin-left:10px;"></span>
+			</p>
+			<p class="description">
+				<?php esc_html_e( 'Checks if your server-side endpoint is reachable.', 'click-trail-handler' ); ?>
+			</p>
+
+			<h2><?php esc_html_e( 'Last Error', 'click-trail-handler' ); ?></h2>
+			<?php if ( ! empty( $last_error ) ) : ?>
+				<p>
+					<strong><?php echo esc_html( $last_error['code'] ?? '' ); ?></strong>
+					<?php echo esc_html( $last_error['message'] ?? '' ); ?>
+					<?php if ( $last_error_time ) : ?>
+						<span style="margin-left:8px;color:#666;"><?php echo esc_html( $last_error_time ); ?></span>
+					<?php endif; ?>
+				</p>
+			<?php else : ?>
+				<p><?php esc_html_e( 'No errors recorded.', 'click-trail-handler' ); ?></p>
+			<?php endif; ?>
+
+			<h2><?php esc_html_e( 'Debug Logging', 'click-trail-handler' ); ?></h2>
+			<p>
+				<?php if ( $debug_active ) : ?>
+					<strong><?php esc_html_e( 'Enabled', 'click-trail-handler' ); ?></strong>
+					<span style="margin-left:8px;color:#666;"><?php echo esc_html( $debug_until_str ); ?></span>
+				<?php else : ?>
+					<strong><?php esc_html_e( 'Disabled', 'click-trail-handler' ); ?></strong>
+				<?php endif; ?>
+			</p>
+			<p>
+				<button class="button" id="clicutcl-debug-toggle" data-mode="<?php echo esc_attr( $debug_active ? 'off' : 'on' ); ?>">
+					<?php echo esc_html( $debug_active ? __( 'Disable Debug', 'click-trail-handler' ) : __( 'Enable 15 Minutes', 'click-trail-handler' ) ); ?>
+				</button>
+				<span id="clicutcl-debug-status" style="margin-left:10px;"></span>
+			</p>
+
+			<h2><?php esc_html_e( 'Recent Attempts', 'click-trail-handler' ); ?></h2>
+			<table class="widefat striped">
+				<thead>
+					<tr>
+						<th><?php esc_html_e( 'Time', 'click-trail-handler' ); ?></th>
+						<th><?php esc_html_e( 'Status', 'click-trail-handler' ); ?></th>
+						<th><?php esc_html_e( 'Reason', 'click-trail-handler' ); ?></th>
+						<th><?php esc_html_e( 'Target', 'click-trail-handler' ); ?></th>
+						<th><?php esc_html_e( 'Page', 'click-trail-handler' ); ?></th>
+						<th><?php esc_html_e( 'Event ID', 'click-trail-handler' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+				<?php if ( ! empty( $attempts ) ) : ?>
+					<?php foreach ( $attempts as $attempt ) : ?>
+						<tr>
+							<td><?php echo esc_html( date_i18n( 'Y-m-d H:i:s', (int) ( $attempt['time'] ?? 0 ) ) ); ?></td>
+							<td><?php echo esc_html( $attempt['status'] ?? '' ); ?></td>
+							<td><?php echo esc_html( $attempt['reason'] ?? '' ); ?></td>
+							<td><?php echo esc_html( ( $attempt['wa_target_type'] ?? '' ) . ( $attempt['wa_target_path'] ?? '' ) ); ?></td>
+							<td><?php echo esc_html( $attempt['page_path'] ?? '' ); ?></td>
+							<td><?php echo esc_html( $attempt['event_id'] ?? '' ); ?></td>
+						</tr>
+					<?php endforeach; ?>
+				<?php else : ?>
+					<tr>
+						<td colspan="6"><?php esc_html_e( 'No attempts recorded.', 'click-trail-handler' ); ?></td>
+					</tr>
+				<?php endif; ?>
+				</tbody>
+			</table>
+
+			<h2><?php esc_html_e( 'Recent Dispatches', 'click-trail-handler' ); ?></h2>
+			<p class="description">
+				<?php esc_html_e( 'Successful dispatches are recorded while Debug Logging is enabled. Failures are always recorded.', 'click-trail-handler' ); ?>
+			</p>
+			<table class="widefat striped">
+				<thead>
+					<tr>
+						<th><?php esc_html_e( 'Time', 'click-trail-handler' ); ?></th>
+						<th><?php esc_html_e( 'Event', 'click-trail-handler' ); ?></th>
+						<th><?php esc_html_e( 'Event ID', 'click-trail-handler' ); ?></th>
+						<th><?php esc_html_e( 'Adapter', 'click-trail-handler' ); ?></th>
+						<th><?php esc_html_e( 'Status', 'click-trail-handler' ); ?></th>
+						<th><?php esc_html_e( 'HTTP', 'click-trail-handler' ); ?></th>
+						<th><?php esc_html_e( 'Endpoint', 'click-trail-handler' ); ?></th>
+						<th><?php esc_html_e( 'Message', 'click-trail-handler' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+				<?php if ( ! empty( $dispatches ) ) : ?>
+					<?php foreach ( $dispatches as $dispatch ) : ?>
+						<tr>
+							<td><?php echo esc_html( date_i18n( 'Y-m-d H:i:s', (int) ( $dispatch['time'] ?? 0 ) ) ); ?></td>
+							<td><?php echo esc_html( $dispatch['event_name'] ?? '' ); ?></td>
+							<td><?php echo esc_html( $dispatch['event_id'] ?? '' ); ?></td>
+							<td><?php echo esc_html( $dispatch['adapter'] ?? '' ); ?></td>
+							<td><?php echo esc_html( $dispatch['status'] ?? '' ); ?></td>
+							<td><?php echo esc_html( $dispatch['http_status'] ?? '' ); ?></td>
+							<td><?php echo esc_html( $dispatch['endpoint_host'] ?? '' ); ?></td>
+							<td><?php echo esc_html( $dispatch['message'] ?? '' ); ?></td>
+						</tr>
+					<?php endforeach; ?>
+				<?php else : ?>
+					<tr>
+						<td colspan="8"><?php esc_html_e( 'No dispatches recorded yet.', 'click-trail-handler' ); ?></td>
+					</tr>
+				<?php endif; ?>
+				</tbody>
+			</table>
+
+			<h2><?php esc_html_e( 'Sanitized Payload Sample', 'click-trail-handler' ); ?></h2>
+			<?php if ( ! empty( $sample_payload ) ) : ?>
+				<p>
+					<button class="button" id="clicutcl-copy-payload"><?php esc_html_e( 'Copy Sample', 'click-trail-handler' ); ?></button>
+					<span id="clicutcl-copy-payload-status" style="margin-left:10px;"></span>
+				</p>
+				<pre id="clicutcl-payload-sample" style="max-width:900px;white-space:pre-wrap;"><?php echo esc_html( wp_json_encode( $sample_payload, JSON_PRETTY_PRINT ) ); ?></pre>
+			<?php else : ?>
+				<p><?php esc_html_e( 'No sample available yet.', 'click-trail-handler' ); ?></p>
+			<?php endif; ?>
+
+			<h2><?php esc_html_e( 'Recent WhatsApp Clicks', 'click-trail-handler' ); ?></h2>
+			<table class="widefat striped">
+				<thead>
+					<tr>
+						<th><?php esc_html_e( 'Date', 'click-trail-handler' ); ?></th>
+						<th><?php esc_html_e( 'Target', 'click-trail-handler' ); ?></th>
+						<th><?php esc_html_e( 'Page Path', 'click-trail-handler' ); ?></th>
+						<th><?php esc_html_e( 'Attribution', 'click-trail-handler' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+				<?php if ( ! empty( $rows ) ) : ?>
+					<?php foreach ( $rows as $row ) : ?>
+						<?php
+						$data = json_decode( $row['event_data'], true );
+						$wa_target_type = isset( $data['wa_target_type'] ) ? $data['wa_target_type'] : '';
+						$wa_target_path = isset( $data['wa_target_path'] ) ? $data['wa_target_path'] : '';
+						$page_path = isset( $data['page_path'] ) ? $data['page_path'] : '';
+						$attr = isset( $data['attribution'] ) && is_array( $data['attribution'] ) ? $data['attribution'] : array();
+						$attr_keys = array( 'ft_source', 'ft_medium', 'ft_campaign', 'lt_source', 'lt_medium', 'lt_campaign', 'gclid', 'fbclid', 'msclkid', 'ttclid' );
+						$attr_parts = array();
+						foreach ( $attr_keys as $key ) {
+							if ( ! empty( $attr[ $key ] ) ) {
+								$attr_parts[] = $key . ': ' . $attr[ $key ];
+							}
+						}
+						?>
+						<tr>
+							<td><?php echo esc_html( $row['created_at'] ); ?></td>
+							<td><?php echo esc_html( $wa_target_type . $wa_target_path ); ?></td>
+							<td><?php echo esc_html( $page_path ); ?></td>
+							<td><?php echo esc_html( $attr_parts ? implode( ' | ', $attr_parts ) : '-' ); ?></td>
+						</tr>
+					<?php endforeach; ?>
+				<?php else : ?>
+					<tr>
+						<td colspan="4"><?php esc_html_e( 'No WhatsApp clicks found.', 'click-trail-handler' ); ?></td>
+					</tr>
+				<?php endif; ?>
+				</tbody>
+			</table>
+		</div>
+		<?php
+	}
+
+	public function ajax_test_endpoint() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => 'forbidden' ), 403 );
+		}
+		check_ajax_referer( 'clicutcl_diag', 'nonce' );
+
+		$result = Dispatcher::health_check();
+
+		if ( $result->skipped ) {
+			wp_send_json_error(
+				array(
+					'message' => __( 'Server-side adapter not configured.', 'click-trail-handler' ),
+				)
+			);
+		}
+
+		if ( $result->success ) {
+			wp_send_json_success(
+				array(
+					// translators: %1$d: HTTP status code.
+					'message' => sprintf( __( 'Endpoint reachable (HTTP %1$d).', 'click-trail-handler' ), (int) $result->status ),
+				)
+			);
+		}
+
+		wp_send_json_error(
+			array(
+				// translators: %1$d: HTTP status code, %2$s: error message.
+				'message' => sprintf( __( 'Endpoint error (HTTP %1$d): %2$s', 'click-trail-handler' ), (int) $result->status, $result->message ),
+			)
+		);
+	}
+
+	public function ajax_toggle_debug() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => 'forbidden' ), 403 );
+		}
+		check_ajax_referer( 'clicutcl_diag', 'nonce' );
+
+		$mode = isset( $_POST['mode'] ) ? sanitize_text_field( wp_unslash( $_POST['mode'] ) ) : 'on';
+		if ( 'off' === $mode ) {
+			delete_transient( 'clicutcl_debug_until' );
+			wp_send_json_success( array( 'message' => __( 'Debug disabled.', 'click-trail-handler' ) ) );
+		}
+
+		$until = time() + ( 15 * MINUTE_IN_SECONDS );
+		set_transient( 'clicutcl_debug_until', $until, 15 * MINUTE_IN_SECONDS );
+		wp_send_json_success( array( 'message' => __( 'Debug enabled for 15 minutes.', 'click-trail-handler' ) ) );
 	}
 
 	public function logs_page() {

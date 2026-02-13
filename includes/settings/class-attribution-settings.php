@@ -90,4 +90,13 @@ class Attribution_Settings {
 	public function log_whatsapp_clicks() {
 		return isset( $this->settings['whatsapp_log_clicks'] ) ? (bool) $this->settings['whatsapp_log_clicks'] : false;
 	}
+
+	/**
+	 * Enable cross-domain token?
+	 *
+	 * @return bool
+	 */
+	public function is_cross_domain_token_enabled() {
+		return isset( $this->settings['enable_cross_domain_token'] ) ? (bool) $this->settings['enable_cross_domain_token'] : false;
+	}
 }

@@ -15,6 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 use CLICUTCL\Admin\Admin;
 use CLICUTCL\Integrations\WooCommerce;
+use CLICUTCL\Server_Side\Queue;
 
 use CLICUTCL\Api\Log_Controller;
 use CLICUTCL\Utils\Cleanup;
@@ -126,6 +127,8 @@ class CLICUTCL_Core {
 		$events_logger->register();
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
+
+		Queue::register();
 		
 		// Initialize Integrations
 		$form_integrations = new CLICUTCL\Integrations\Form_Integration_Manager();
@@ -164,14 +167,14 @@ class CLICUTCL_Core {
 		// 2. It also handles link decoration reliably before user interaction.
 		// 3. Heavier scripts (Consent, Events) are correctly deferred to the footer for performance.
 		if ( $enable_attribution ) {
-			wp_enqueue_script(
+			wp_register_script(
 				'clicutcl-attribution-js',
 				CLICUTCL_URL . 'assets/js/clicutcl-attribution.js',
 				array(),
 				CLICUTCL_VERSION,
-				CLICUTCL_VERSION,
-				false // Load in Head: Essential for immediate UTM/GCLID capture before redirects and link decoration.
+				\clicutcl_script_args( false )
 			);
+			wp_enqueue_script( 'clicutcl-attribution-js' ); // Load in Head: Essential for immediate UTM/GCLID capture before redirects and link decoration.
 
 			wp_localize_script(
 				'clicutcl-attribution-js',
@@ -184,6 +187,7 @@ class CLICUTCL_Core {
 					'whatsappAppendAttribution' => isset( $options['whatsapp_append_attribution'] ) ? (bool) $options['whatsapp_append_attribution'] : false,
 					'whatsappLogClicks'         => isset( $options['whatsapp_log_clicks'] ) ? (bool) $options['whatsapp_log_clicks'] : false,
 					'restUrl'                   => get_rest_url( null, 'clicutcl/v1/log' ),
+					'publicLogUrl'              => get_rest_url( null, 'clicutcl/v1/wa-click' ),
 					'nonce'                     => wp_create_nonce( 'wp_rest' ), // REST Nonce
 					
 					// JS Injection Config
@@ -197,6 +201,9 @@ class CLICUTCL_Core {
 					'linkDecorateEnabled'       => isset( $options['enable_link_decoration'] ) ? (bool) $options['enable_link_decoration'] : false,
 					'linkAllowedDomains'        => isset( $options['link_allowed_domains'] ) ? array_map('trim', explode(',', $options['link_allowed_domains'])) : [],
 					'linkSkipSigned'            => isset( $options['link_skip_signed'] ) ? (bool) $options['link_skip_signed'] : true,
+					'linkAppendToken'           => isset( $options['enable_cross_domain_token'] ) ? (bool) $options['enable_cross_domain_token'] : false,
+					'tokenParam'                => 'ct_token',
+					'tokenMaxAgeDays'           => $cookie_days,
 					'linkAppendBlob'            => false, // Reserved for future use
 				)
 			);
@@ -212,13 +219,14 @@ class CLICUTCL_Core {
 				'all'
 			);
 
-			wp_enqueue_script(
+			wp_register_script(
 				'clicutcl-consent-js',
 				CLICUTCL_URL . 'assets/js/clicutcl-consent.js',
 				array(),
 				CLICUTCL_VERSION,
-				true // Footer
+				\clicutcl_script_args( true, 'defer' ) // Footer
 			);
+			wp_enqueue_script( 'clicutcl-consent-js' );
 
 			wp_localize_script(
 				'clicutcl-consent-js',
@@ -256,13 +264,14 @@ class CLICUTCL_Core {
 		 * @param bool $should_load_events Whether to load the script.
 		 */
 		if ( apply_filters( 'clicutcl_should_load_events_js', $should_load_events ) ) {
-			wp_enqueue_script(
+			wp_register_script(
 				'clicutcl-events-js',
 				CLICUTCL_URL . 'assets/js/clicutcl-events.js',
 				array(),
 				CLICUTCL_VERSION,
-				true // Footer
+				\clicutcl_script_args( true, 'defer' ) // Footer
 			);
+			wp_enqueue_script( 'clicutcl-events-js' );
 		}
 	}
 

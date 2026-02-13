@@ -3,7 +3,7 @@
  * Plugin Name: ClickTrail – UTM, Click ID & Ad Tracking (with Consent)
  * Plugin URI:  https://github.com/vizuh/click-trail-handler
  * Description: Complete consent management and marketing attribution solution. Captures UTM parameters and click IDs, manages user consent with Google Consent Mode, and tracks attribution across forms, WooCommerce, and WhatsApp.
- * Version:     1.3.1
+ * Version:     1.3.2
  * Author:      Vizuh
  * Author URI:  https://vizuh.com
  * License:     GPL-2.0-or-later
@@ -20,12 +20,41 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define Constants
-define( 'CLICUTCL_VERSION', '1.3.1' );
+define( 'CLICUTCL_VERSION', '1.3.2' );
 define( 'CLICUTCL_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CLICUTCL_URL', plugin_dir_url( __FILE__ ) );
 define( 'CLICUTCL_BASENAME', plugin_basename( __FILE__ ) );
 define( 'CLICUTCL_PLUGIN_MAIN_FILE', __FILE__ );
 define( 'CLICUTCL_PII_NONCE_ACTION', 'clicutcl_pii_nonce' );
+
+/**
+ * Build script enqueue args with backward compatibility for pre-6.3 WordPress.
+ *
+ * @param bool   $in_footer Whether to print the script in footer.
+ * @param string $strategy  Optional loading strategy: defer|async.
+ * @return array|bool
+ */
+function clicutcl_script_args( $in_footer = false, $strategy = '' ) {
+	global $wp_version;
+
+	$in_footer = (bool) $in_footer;
+	$strategy  = strtolower( (string) $strategy );
+
+	// Before WP 6.3, the 5th parameter is a boolean ($in_footer).
+	if ( ! isset( $wp_version ) || version_compare( (string) $wp_version, '6.3', '<' ) ) {
+		return $in_footer;
+	}
+
+	$args = array(
+		'in_footer' => $in_footer,
+	);
+
+	if ( in_array( $strategy, array( 'defer', 'async' ), true ) ) {
+		$args['strategy'] = $strategy;
+	}
+
+	return $args;
+}
 
 /**
  * Bootstrap autoloading safely (Composer if present, then plugin autoloader).
@@ -86,10 +115,17 @@ register_activation_hook( __FILE__, function() {
 	if ( ! wp_next_scheduled( 'clicutcl_daily_cleanup' ) ) {
 		wp_schedule_event( time(), 'daily', 'clicutcl_daily_cleanup' );
 	}
+
+	if ( class_exists( 'CLICUTCL\\Server_Side\\Queue' ) ) {
+		CLICUTCL\Server_Side\Queue::ensure_schedule();
+	}
 } );
 
 register_deactivation_hook( __FILE__, function() {
 	wp_clear_scheduled_hook( 'clicutcl_daily_cleanup' );
+	if ( class_exists( 'CLICUTCL\\Server_Side\\Queue' ) ) {
+		CLICUTCL\Server_Side\Queue::clear_schedule();
+	}
 } );
 
 /**

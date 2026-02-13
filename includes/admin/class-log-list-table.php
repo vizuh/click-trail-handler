@@ -163,8 +163,13 @@ class Log_List_Table extends \WP_List_Table {
 
 		$output = [];
 		
-		if ( isset( $data['wa_href'] ) ) {
-			$output[] = '<strong>Link:</strong> ' . esc_url( $data['wa_href'] );
+		if ( isset( $data['wa_target_type'] ) || isset( $data['wa_target_path'] ) ) {
+			$target = ( $data['wa_target_type'] ?? '' ) . ( $data['wa_target_path'] ?? '' );
+			$output[] = '<strong>Target:</strong> ' . esc_html( $target );
+		}
+
+		if ( isset( $data['page_path'] ) ) {
+			$output[] = '<strong>Page:</strong> ' . esc_html( $data['page_path'] );
 		}
 		
 		if ( isset( $data['attribution'] ) && is_array( $data['attribution'] ) ) {

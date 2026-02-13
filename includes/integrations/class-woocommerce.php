@@ -8,6 +8,7 @@
 namespace CLICUTCL\Integrations;
 
 use CLICUTCL\Utils\Attribution;
+use CLICUTCL\Server_Side\Dispatcher;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -187,6 +188,18 @@ class WooCommerce {
 				),
 			),
 			$flat_attr
+		);
+
+		Dispatcher::dispatch_purchase(
+			array(
+				'event_id'       => 'purchase_' . (int) $order->get_id(),
+				'order_id'       => (int) $order->get_id(),
+				'transaction_id' => (string) $order->get_order_number(),
+				'value'          => (float) $order->get_total(),
+				'currency'       => $order->get_currency(),
+				'items'          => $items_js,
+				'attribution'    => $attribution,
+			)
 		);
 		?>
 		<script>
