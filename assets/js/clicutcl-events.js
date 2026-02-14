@@ -7,6 +7,7 @@
      */
     class ClickTrailEvents {
         constructor() {
+            this.debugEnabled = !!(window.clicutclEventsConfig && window.clicutclEventsConfig.debug);
             this.init();
         }
 
@@ -24,10 +25,14 @@
                 ...params
             };
 
-            // Debug logging
-            console.log('🔵 ClickTrail Event:', eventName, eventData);
+            this.debugLog('ClickTrail Event:', eventName, eventData);
 
             window.dataLayer.push(eventData);
+        }
+
+        debugLog(...args) {
+            if (!this.debugEnabled) return;
+            console.log('[ClickTrail]', ...args);
         }
 
         /**

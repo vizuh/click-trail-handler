@@ -16,6 +16,40 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Dispatcher {
 	/**
+	 * Transient key for dispatch ring buffer.
+	 */
+	private const DISPATCH_BUFFER_TRANSIENT = 'clicutcl_dispatch_buffer';
+
+	/**
+	 * Transient key for last error.
+	 */
+	private const LAST_ERROR_TRANSIENT = 'clicutcl_last_error';
+
+	/**
+	 * Transient key for aggregated failure telemetry.
+	 */
+	private const FAILURE_TELEMETRY_TRANSIENT = 'clicutcl_failure_telemetry';
+
+	/**
+	 * Transient key for telemetry write throttling.
+	 */
+	private const FAILURE_TELEMETRY_FLUSH_LOCK = 'clicutcl_failure_flush_lock';
+
+	/**
+	 * In-request failure counters waiting for flush.
+	 *
+	 * @var array<string,int>
+	 */
+	private static $failure_deltas = array();
+
+	/**
+	 * Whether shutdown flush hook is registered.
+	 *
+	 * @var bool
+	 */
+	private static $failure_flush_registered = false;
+
+	/**
 	 * Dispatch WA click event.
 	 *
 	 * @param array $payload Payload.
@@ -64,6 +98,8 @@ class Dispatcher {
 
 		$endpoint = self::get_endpoint();
 		if ( ! $endpoint ) {
+			self::record_last_error( 'missing_endpoint', 'missing_endpoint' );
+			self::record_failure( 'missing_endpoint' );
 			return Adapter_Result::skipped( 'missing_endpoint' );
 		}
 
@@ -73,6 +109,8 @@ class Dispatcher {
 
 		$adapter = self::get_adapter();
 		if ( ! $adapter ) {
+			self::record_last_error( 'missing_adapter', 'missing_adapter' );
+			self::record_failure( 'missing_adapter' );
 			return Adapter_Result::error( 0, 'missing_adapter' );
 		}
 
@@ -80,6 +118,7 @@ class Dispatcher {
 		self::log_dispatch( $event, $adapter, $result );
 		if ( ! $result->success && ! $result->skipped ) {
 			self::record_last_error( 'adapter_error', $result->message );
+			self::record_failure( 'adapter_error' );
 			Queue::enqueue( $event, $adapter->get_name(), self::get_endpoint(), $result->message );
 		}
 
@@ -219,15 +258,124 @@ class Dispatcher {
 	 * @return void
 	 */
 	public static function record_last_error( $code, $message ) {
-		update_option(
-			'clicutcl_last_error',
-			array(
-				'code'    => sanitize_key( $code ),
-				'message' => sanitize_text_field( $message ),
-				'time'    => time(),
-			),
-			false
+		$entry = array(
+			'code'    => sanitize_key( $code ),
+			'message' => sanitize_text_field( $message ),
+			'time'    => time(),
 		);
+
+		$existing = get_transient( self::LAST_ERROR_TRANSIENT );
+		if (
+			is_array( $existing ) &&
+			( $existing['code'] ?? '' ) === $entry['code'] &&
+			( $existing['message'] ?? '' ) === $entry['message'] &&
+			( (int) ( $existing['time'] ?? 0 ) + 30 ) > time()
+		) {
+			return;
+		}
+
+		$ttl = (int) apply_filters( 'clicutcl_diag_last_error_ttl', DAY_IN_SECONDS );
+		$ttl = max( 300, $ttl );
+		set_transient( self::LAST_ERROR_TRANSIENT, $entry, $ttl );
+	}
+
+	/**
+	 * Record a failure signal without payload data (failure-only telemetry).
+	 *
+	 * @param string $code Failure code.
+	 * @return void
+	 */
+	public static function record_failure( $code ) {
+		$code = self::normalize_failure_code( $code );
+
+		if ( ! isset( self::$failure_deltas[ $code ] ) ) {
+			self::$failure_deltas[ $code ] = 0;
+		}
+		self::$failure_deltas[ $code ]++;
+
+		if ( ! self::$failure_flush_registered ) {
+			self::$failure_flush_registered = true;
+			add_action( 'shutdown', array( __CLASS__, 'flush_failure_telemetry' ), 1 );
+		}
+	}
+
+	/**
+	 * Flush in-request failure counters to aggregated transient storage.
+	 *
+	 * @return void
+	 */
+	public static function flush_failure_telemetry() {
+		if ( empty( self::$failure_deltas ) ) {
+			return;
+		}
+
+		$deltas = self::$failure_deltas;
+		self::$failure_deltas = array();
+
+		$flush_interval = (int) apply_filters( 'clicutcl_failure_telemetry_flush_interval', 10 );
+		$flush_interval = max( 0, $flush_interval );
+
+		if ( $flush_interval > 0 && get_transient( self::FAILURE_TELEMETRY_FLUSH_LOCK ) ) {
+			self::log_failure_telemetry_line( $deltas, true );
+			return;
+		}
+
+		if ( $flush_interval > 0 ) {
+			set_transient( self::FAILURE_TELEMETRY_FLUSH_LOCK, 1, $flush_interval );
+		}
+
+		$telemetry = get_transient( self::FAILURE_TELEMETRY_TRANSIENT );
+		$telemetry = is_array( $telemetry ) ? $telemetry : array();
+
+		$bucket_key = gmdate( 'YmdH' );
+		if ( ! isset( $telemetry[ $bucket_key ] ) || ! is_array( $telemetry[ $bucket_key ] ) ) {
+			$telemetry[ $bucket_key ] = array(
+				'bucket_start' => time() - ( time() % HOUR_IN_SECONDS ),
+				'updated_at'   => time(),
+				'total'        => 0,
+				'codes'        => array(),
+			);
+		}
+
+		foreach ( $deltas as $code => $count ) {
+			$count = absint( $count );
+			if ( $count < 1 ) {
+				continue;
+			}
+
+			$telemetry[ $bucket_key ]['total'] += $count;
+			if ( ! isset( $telemetry[ $bucket_key ]['codes'][ $code ] ) ) {
+				$telemetry[ $bucket_key ]['codes'][ $code ] = 0;
+			}
+			$telemetry[ $bucket_key ]['codes'][ $code ] += $count;
+		}
+		$telemetry[ $bucket_key ]['updated_at'] = time();
+
+		krsort( $telemetry, SORT_STRING );
+		$bucket_limit = (int) apply_filters( 'clicutcl_failure_telemetry_bucket_limit', 72 );
+		$bucket_limit = max( 1, min( 720, $bucket_limit ) );
+		$telemetry    = array_slice( $telemetry, 0, $bucket_limit, true );
+
+		$ttl = (int) apply_filters( 'clicutcl_failure_telemetry_ttl', 7 * DAY_IN_SECONDS );
+		$ttl = max( HOUR_IN_SECONDS, $ttl );
+		set_transient( self::FAILURE_TELEMETRY_TRANSIENT, $telemetry, $ttl );
+
+		self::maybe_emit_remote_failure_telemetry( $bucket_key, $deltas );
+	}
+
+	/**
+	 * Return aggregated failure telemetry buckets.
+	 *
+	 * @return array
+	 */
+	public static function get_failure_telemetry() {
+		$telemetry = get_transient( self::FAILURE_TELEMETRY_TRANSIENT );
+		if ( ! is_array( $telemetry ) ) {
+			return array();
+		}
+
+		krsort( $telemetry, SORT_STRING );
+		return $telemetry;
 	}
 
 	/**
@@ -246,11 +394,7 @@ class Dispatcher {
 	 * @param Adapter_Result $result Adapter result.
 	 * @return bool
 	 */
-	private static function should_log_dispatch( Adapter_Result $result ) {
-		if ( ! $result->success || $result->skipped ) {
-			return true;
-		}
-
+	private static function should_log_dispatch( Adapter_Result $result ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
 		return self::is_debug_enabled();
 	}
 
@@ -297,14 +441,93 @@ class Dispatcher {
 			'endpoint_host' => $endpoint_host,
 		);
 
-		$dispatches = get_option( 'clicutcl_dispatch_log', array() );
+		$dispatches = get_transient( self::DISPATCH_BUFFER_TRANSIENT );
 		if ( ! is_array( $dispatches ) ) {
-			$dispatches = array();
+			$legacy = get_option( 'clicutcl_dispatch_log', array() );
+			$dispatches = is_array( $legacy ) ? $legacy : array();
 		}
 
-		array_unshift( $dispatches, $entry );
-		$dispatches = array_slice( $dispatches, 0, 20 );
+		$max = (int) apply_filters( 'clicutcl_diag_dispatch_buffer_size', 20 );
+		$max = max( 1, min( 200, $max ) );
 
-		update_option( 'clicutcl_dispatch_log', $dispatches, false );
+		array_unshift( $dispatches, $entry );
+		$dispatches = array_slice( $dispatches, 0, $max );
+
+		$ttl = (int) apply_filters( 'clicutcl_diag_buffer_ttl', 6 * HOUR_IN_SECONDS );
+		$ttl = max( HOUR_IN_SECONDS, $ttl );
+		set_transient( self::DISPATCH_BUFFER_TRANSIENT, $dispatches, $ttl );
+	}
+
+	/**
+	 * Normalize error codes for telemetry buckets.
+	 *
+	 * @param string $code Raw code.
+	 * @return string
+	 */
+	private static function normalize_failure_code( $code ) {
+		$normalized = sanitize_key( (string) $code );
+		if ( '' === $normalized ) {
+			return 'unknown_failure';
+		}
+
+		return substr( $normalized, 0, 64 );
+	}
+
+	/**
+	 * Emit remote telemetry hook when explicitly enabled.
+	 *
+	 * @param string $bucket_key Hour bucket key.
+	 * @param array  $deltas Failure counters for this flush.
+	 * @return void
+	 */
+	private static function maybe_emit_remote_failure_telemetry( $bucket_key, $deltas ) {
+		if ( ! self::is_remote_failure_telemetry_enabled() ) {
+			return;
+		}
+
+		do_action(
+			'clicutcl_failure_telemetry_remote',
+			array(
+				'version'      => 1,
+				'bucket'       => sanitize_text_field( (string) $bucket_key ),
+				'emitted_at'   => time(),
+				'site_host'    => sanitize_text_field( (string) wp_parse_url( home_url(), PHP_URL_HOST ) ),
+				'failure_code' => array_map( 'absint', is_array( $deltas ) ? $deltas : array() ),
+			)
+		);
+	}
+
+	/**
+	 * Check remote telemetry opt-in.
+	 *
+	 * @return bool
+	 */
+	private static function is_remote_failure_telemetry_enabled() {
+		$options = Settings::get();
+		return ! empty( $options['remote_failure_telemetry'] );
+	}
+
+	/**
+	 * Fallback server-log line when writes are throttled.
+	 *
+	 * @param array $deltas Failure counters.
+	 * @param bool  $throttled Whether write was throttled.
+	 * @return void
+	 */
+	private static function log_failure_telemetry_line( $deltas, $throttled ) {
+		if ( ! function_exists( 'error_log' ) ) {
+			return;
+		}
+
+		$payload = array(
+			'source'    => 'clicktrail',
+			'event'     => 'failure_telemetry',
+			'throttled' => (bool) $throttled,
+			'time'      => time(),
+			'codes'     => array_map( 'absint', is_array( $deltas ) ? $deltas : array() ),
+		);
+
+		// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		error_log( wp_json_encode( $payload ) );
 	}
 }

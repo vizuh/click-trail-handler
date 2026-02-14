@@ -16,8 +16,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 use CLICUTCL\Admin\Admin;
 use CLICUTCL\Integrations\WooCommerce;
 use CLICUTCL\Server_Side\Queue;
-
-use CLICUTCL\Api\Log_Controller;
 use CLICUTCL\Utils\Cleanup;
 
 class CLICUTCL_Core {
@@ -140,11 +138,6 @@ class CLICUTCL_Core {
 			$woocommerce_integration->init();
 		}
 
-		// Register REST API
-		add_action( 'rest_api_init', function() {
-			$controller = new Log_Controller();
-			$controller->register_routes();
-		} );
 	}
 
 	/**
@@ -154,6 +147,8 @@ class CLICUTCL_Core {
 		$options            = get_option( 'clicutcl_attribution_settings', array() );
 		$enable_attribution = isset( $options['enable_attribution'] ) ? (bool) $options['enable_attribution'] : true;
 		$cookie_days        = isset( $options['cookie_days'] ) ? absint( $options['cookie_days'] ) : 90;
+		$debug_until        = get_transient( 'clicutcl_debug_until' );
+		$debug_active       = $debug_until && (int) $debug_until > time();
 		
 		// Use new Consent Mode settings
 		$consent_settings = new CLICUTCL\Modules\Consent_Mode\Consent_Mode_Settings();
@@ -185,10 +180,7 @@ class CLICUTCL_Core {
 					'requireConsent'            => $require_consent,
 					'enableWhatsapp'            => isset( $options['enable_whatsapp'] ) ? (bool) $options['enable_whatsapp'] : true,
 					'whatsappAppendAttribution' => isset( $options['whatsapp_append_attribution'] ) ? (bool) $options['whatsapp_append_attribution'] : false,
-					'whatsappLogClicks'         => isset( $options['whatsapp_log_clicks'] ) ? (bool) $options['whatsapp_log_clicks'] : false,
-					'restUrl'                   => get_rest_url( null, 'clicutcl/v1/log' ),
-					'publicLogUrl'              => get_rest_url( null, 'clicutcl/v1/wa-click' ),
-					'nonce'                     => wp_create_nonce( 'wp_rest' ), // REST Nonce
+					'debug'                     => (bool) $debug_active,
 					
 					// JS Injection Config
 					'injectEnabled'             => isset( $options['enable_js_injection'] ) ? (bool) $options['enable_js_injection'] : true,
@@ -272,6 +264,13 @@ class CLICUTCL_Core {
 				\clicutcl_script_args( true, 'defer' ) // Footer
 			);
 			wp_enqueue_script( 'clicutcl-events-js' );
+			wp_localize_script(
+				'clicutcl-events-js',
+				'clicutclEventsConfig',
+				array(
+					'debug' => ! empty( $debug_active ),
+				)
+			);
 		}
 	}
 

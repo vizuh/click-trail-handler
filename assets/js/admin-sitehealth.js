@@ -1,5 +1,6 @@
 (function () {
     if (!window.clicutclSiteHealth) return;
+    const debug = !!window.clicutclSiteHealth.debug;
 
     fetch(window.clicutclSiteHealth.ajaxUrl, {
         method: "POST",
@@ -12,6 +13,8 @@
             nonce: window.clicutclSiteHealth.nonce
         }).toString()
     }).catch(() => {
-        console.warn('ClickTrail SiteHealth Ping Failed');
+        if (debug) {
+            console.warn('[ClickTrail] SiteHealth ping failed');
+        }
     });
 })();

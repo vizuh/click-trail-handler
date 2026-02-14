@@ -19,7 +19,7 @@ class SiteHealth {
 		];
 
 		$tests['direct']['clicutcl_js_seen'] = [
-			'label' => __('ClickTrail: Frontend script running', 'click-trail-handler'),
+			'label' => __('ClickTrail: Admin diagnostics script heartbeat', 'click-trail-handler'),
 			'test'  => [$this, 'test_js_seen'],
 		];
 
@@ -69,15 +69,15 @@ class SiteHealth {
 		if ($last_seen && (time() - $last_seen) < DAY_IN_SECONDS) {
 			return [
 				'status' => 'good',
-				'label' => __('Frontend script seen in the last 24h', 'click-trail-handler'),
-				'description' => __('Your frontend script reported activity recently.', 'click-trail-handler'),
+				'label' => __('Admin diagnostics script seen in the last 24h', 'click-trail-handler'),
+				'description' => __('A recent wp-admin heartbeat ping was recorded.', 'click-trail-handler'),
 			];
 		}
 
 		return [
 			'status' => 'recommended',
-			'label' => __('Frontend script not seen recently', 'click-trail-handler'),
-			'description' => __('If you use caching/minification, confirm the ClickTrail JS is loaded on public pages.', 'click-trail-handler'),
+			'label' => __('Admin diagnostics script not seen recently', 'click-trail-handler'),
+			'description' => __('Open a ClickTrail admin screen (or Site Health) to refresh the diagnostics heartbeat.', 'click-trail-handler'),
 		];
 	}
 
