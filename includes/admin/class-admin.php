@@ -479,7 +479,9 @@ class Admin {
 				'options'     => array(
 					'generic'   => __( 'Generic Collector', 'click-trail-handler' ),
 					'sgtm'      => __( 'sGTM (Server GTM)', 'click-trail-handler' ),
-					'meta_capi' => __( 'Meta CAPI (future)', 'click-trail-handler' ),
+					'meta_capi' => __( 'Meta CAPI', 'click-trail-handler' ),
+					'google_ads' => __( 'Google Ads / GA4', 'click-trail-handler' ),
+					'linkedin_capi' => __( 'LinkedIn CAPI', 'click-trail-handler' ),
 				),
 			)
 		);
@@ -951,7 +953,7 @@ class Admin {
 
 		if ( isset( $input['adapter'] ) ) {
 			$adapter = sanitize_key( $input['adapter'] );
-			$allowed = array( 'generic', 'sgtm', 'meta_capi' );
+			$allowed = array( 'generic', 'sgtm', 'meta_capi', 'google_ads', 'linkedin_capi' );
 			$new_input['adapter'] = in_array( $adapter, $allowed, true ) ? $adapter : 'generic';
 		}
 
@@ -1017,7 +1019,9 @@ class Admin {
 								$choices = array(
 									'generic'   => __( 'Generic Collector', 'click-trail-handler' ),
 									'sgtm'      => __( 'sGTM (Server GTM)', 'click-trail-handler' ),
-									'meta_capi' => __( 'Meta CAPI (future)', 'click-trail-handler' ),
+									'meta_capi' => __( 'Meta CAPI', 'click-trail-handler' ),
+									'google_ads' => __( 'Google Ads / GA4', 'click-trail-handler' ),
+									'linkedin_capi' => __( 'LinkedIn CAPI', 'click-trail-handler' ),
 								);
 								foreach ( $choices as $value => $label ) :
 									?>

@@ -1,6 +1,6 @@
 <?php
 /**
- * Meta CAPI Adapter
+ * LinkedIn Conversions API adapter scaffold.
  *
  * @package ClickTrail
  */
@@ -12,9 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Class Meta_Capi_Adapter
+ * Class LinkedIn_Capi_Adapter
  */
-class Meta_Capi_Adapter implements Adapter_Interface {
+class LinkedIn_Capi_Adapter implements Adapter_Interface {
 	/**
 	 * Endpoint URL.
 	 *
@@ -33,7 +33,7 @@ class Meta_Capi_Adapter implements Adapter_Interface {
 	 * Constructor.
 	 *
 	 * @param string $endpoint Endpoint URL.
-	 * @param int    $timeout Timeout seconds.
+	 * @param int    $timeout Timeout.
 	 */
 	public function __construct( $endpoint, $timeout = 5 ) {
 		$this->endpoint = (string) $endpoint;
@@ -41,12 +41,12 @@ class Meta_Capi_Adapter implements Adapter_Interface {
 	}
 
 	/**
-	 * Adapter name.
+	 * Adapter key.
 	 *
 	 * @return string
 	 */
 	public function get_name() {
-		return 'meta_capi';
+		return 'linkedin_capi';
 	}
 
 	/**
@@ -58,7 +58,7 @@ class Meta_Capi_Adapter implements Adapter_Interface {
 	public function send( Event $event ) {
 		$body = $event->to_array();
 		$body['schema_version'] = 2;
-		$body['collector']      = 'meta_capi';
+		$body['collector']      = 'linkedin_capi';
 
 		$response = wp_remote_post(
 			$this->endpoint,
@@ -103,3 +103,4 @@ class Meta_Capi_Adapter implements Adapter_Interface {
 		return new Adapter_Result( $ok, $status, $ok ? 'reachable' : 'unreachable', array( 'endpoint' => $this->endpoint ) );
 	}
 }
+

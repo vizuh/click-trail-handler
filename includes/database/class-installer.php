@@ -94,6 +94,15 @@ class Installer {
 		// Backward-compatible aggregate readiness flags.
 		update_option( 'clicutcl_db_ready', ( $events_ready && $queue_ready ) ? 1 : 0, false );
 		update_option( 'clicutcl_db_ready_checked_at', $checked_at, false );
+
+		// Seed tracking v2 option surfaces once (feature flags, destinations, lifecycle, external providers).
+		if ( class_exists( 'CLICUTCL\\Tracking\\Settings' ) ) {
+			$option_name = \CLICUTCL\Tracking\Settings::OPTION;
+			$existing    = get_option( $option_name, null );
+			if ( null === $existing ) {
+				update_option( $option_name, \CLICUTCL\Tracking\Settings::defaults(), false );
+			}
+		}
 	}
 
 	/**

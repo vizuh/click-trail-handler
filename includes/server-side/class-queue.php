@@ -7,6 +7,8 @@
 
 namespace CLICUTCL\Server_Side;
 
+use CLICUTCL\Tracking\Dedup_Store;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -230,10 +232,23 @@ class Queue {
 			return;
 		}
 
+		$event_payload = $event->to_array();
+		$event_name    = isset( $event_payload['event_name'] ) ? sanitize_key( (string) $event_payload['event_name'] ) : '';
+		$event_id      = isset( $event_payload['event_id'] ) ? sanitize_text_field( (string) $event_payload['event_id'] ) : '';
+		$destination   = method_exists( $adapter, 'get_name' ) ? sanitize_key( (string) $adapter->get_name() ) : $adapter_key;
+
+		if ( $event_name && $event_id && Dedup_Store::is_duplicate( $destination, $event_name, $event_id ) ) {
+			self::delete_row( (int) $row['id'] );
+			return;
+		}
+
 		$result = $adapter->send( $event );
 		Dispatcher::log_dispatch( $event, $adapter, $result );
 
 		if ( $result->success ) {
+			if ( $event_name && $event_id ) {
+				Dedup_Store::mark( $destination, $event_name, $event_id );
+			}
 			self::delete_row( (int) $row['id'] );
 			return;
 		}
