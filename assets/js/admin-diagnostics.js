@@ -88,6 +88,34 @@
                     });
             });
         }
+
+        const purgeBtn = document.getElementById('clicutcl-purge-data');
+        const purgeStatus = document.getElementById('clicutcl-purge-data-status');
+        if (purgeBtn && purgeStatus) {
+            purgeBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+
+                const ok = window.confirm('Purge local tracking data now? This cannot be undone.');
+                if (!ok) return;
+
+                purgeStatus.textContent = 'Purging...';
+                post(window.clicutclDiagnostics.ajaxUrl, {
+                    action: 'clicutcl_purge_tracking_data',
+                    nonce: window.clicutclDiagnostics.nonce
+                })
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        if (data && data.success) {
+                            purgeStatus.textContent = data.data && data.data.message ? data.data.message : 'Purged';
+                            return;
+                        }
+                        purgeStatus.textContent = data && data.data && data.data.message ? data.data.message : 'Purge failed';
+                    })
+                    .catch(function () {
+                        purgeStatus.textContent = 'Purge failed';
+                    });
+            });
+        }
     }
 
     if (document.readyState === 'loading') {

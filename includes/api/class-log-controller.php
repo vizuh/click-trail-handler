@@ -16,6 +16,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// Legacy v1 controller is disabled by default.
+// Enable only for controlled migrations/backward compatibility.
+if ( ! defined( 'CLICUTCL_ENABLE_LEGACY_V1_API' ) || true !== CLICUTCL_ENABLE_LEGACY_V1_API ) {
+	return;
+}
+
 /**
  * Class Log_Controller
  */

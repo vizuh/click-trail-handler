@@ -229,6 +229,20 @@
                         value: String(security.webhook_replay_window || ''),
                         onChange: (v) => update('security.webhook_replay_window', v)
                     }),
+                    el(TextControl, {
+                        key: 'rate_limit_window',
+                        label: __('API Rate Window (seconds)', 'click-trail-handler'),
+                        type: 'number',
+                        value: String(security.rate_limit_window || ''),
+                        onChange: (v) => update('security.rate_limit_window', v)
+                    }),
+                    el(TextControl, {
+                        key: 'rate_limit_limit',
+                        label: __('API Rate Limit (requests/window)', 'click-trail-handler'),
+                        type: 'number',
+                        value: String(security.rate_limit_limit || ''),
+                        onChange: (v) => update('security.rate_limit_limit', v)
+                    }),
                     el(TextareaControl, {
                         key: 'trusted_proxies',
                         label: __('Trusted Proxies (one per line)', 'click-trail-handler'),
@@ -352,4 +366,3 @@
         boot();
     }
 })(window.wp, window.clicutclTrackingV2Config || {});
-

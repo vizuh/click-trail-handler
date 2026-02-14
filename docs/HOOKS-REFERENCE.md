@@ -52,6 +52,16 @@ This file lists plugin-specific filters/actions exposed in current code.
   - location: `includes/api/class-tracking-controller.php`
   - args: `(int $limit)`
 
+- `clicutcl_v2_event_buffer_size`
+  - location: `includes/api/class-tracking-controller.php`
+  - args: `(int $max_entries)`
+  - default: `50`
+
+- `clicutcl_v2_event_buffer_ttl`
+  - location: `includes/api/class-tracking-controller.php`
+  - args: `(int $ttl_seconds)`
+  - default: `6 * HOUR_IN_SECONDS`
+
 - `clicutcl_v2_trusted_proxies`
   - location: `includes/api/class-tracking-controller.php`
   - args: `(array|string $trusted_proxies)`
@@ -147,6 +157,11 @@ This file lists plugin-specific filters/actions exposed in current code.
   - location: `includes/utils/class-cleanup.php`
   - args: `(int $days)`
 
+- `clicutcl_preserve_data_on_uninstall`
+  - location: `uninstall.php`
+  - args: `(bool $preserve_data)`
+  - default: `false` (tables are dropped)
+
 ## Actions
 
 - `clicutcl_failure_telemetry_remote`
@@ -158,4 +173,3 @@ This file lists plugin-specific filters/actions exposed in current code.
     - emitted timestamp
     - site host
     - aggregated failure code counts
-

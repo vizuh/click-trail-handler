@@ -29,7 +29,7 @@ This is a source map of plugin files and their responsibilities.
   - consent banner UI and `ct_consent` cookie management
   - consent updates to dataLayer/gtag
 - `assets/js/ct-consent.js`
-  - alternate consent script variant (legacy/simple)
+  - alternate consent script variant (legacy/simple, not enqueued by default)
 - `assets/js/admin-sitehealth.js`
   - admin heartbeat ping for Site Health test
 - `assets/js/admin-diagnostics.js`
@@ -171,4 +171,3 @@ This is a source map of plugin files and their responsibilities.
 
 - `languages/README.md` - translation folder notes
 - `languages/click-trail-handler-pt_BR.po` - Portuguese (Brazil) translation source
-

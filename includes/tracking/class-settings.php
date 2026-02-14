@@ -73,6 +73,8 @@ class Settings {
 				'token_ttl_seconds'     => 7 * DAY_IN_SECONDS,
 				'token_nonce_limit'     => 0,
 				'webhook_replay_window' => 300,
+				'rate_limit_window'     => 60,
+				'rate_limit_limit'      => 60,
 				'trusted_proxies'       => array(),
 				'allowed_token_hosts'   => array(),
 			),
@@ -178,6 +180,14 @@ class Settings {
 			if ( array_key_exists( 'webhook_replay_window', $security ) ) {
 				$window = absint( $security['webhook_replay_window'] );
 				$merged['security']['webhook_replay_window'] = max( 60, min( 3600, $window ) );
+			}
+			if ( array_key_exists( 'rate_limit_window', $security ) ) {
+				$window = absint( $security['rate_limit_window'] );
+				$merged['security']['rate_limit_window'] = max( 5, min( 3600, $window ) );
+			}
+			if ( array_key_exists( 'rate_limit_limit', $security ) ) {
+				$limit = absint( $security['rate_limit_limit'] );
+				$merged['security']['rate_limit_limit'] = max( 1, min( 2000, $limit ) );
 			}
 			if ( array_key_exists( 'trusted_proxies', $security ) ) {
 				$merged['security']['trusted_proxies'] = self::sanitize_proxies_list( $security['trusted_proxies'] );
