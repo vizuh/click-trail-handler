@@ -146,6 +146,7 @@
                     return Store.base64UrlEncode(JSON.stringify(d || {}));
                 }
             };
+            window.ClickTrailIdentity = Identity.get();
 
             // Site Health Timestamp
             try { localStorage.setItem('clicutcl_js_last_seen', String(Date.now())); } catch (e) { }
@@ -396,6 +397,57 @@
         }
     };
 
+    // --- 4.5 IDENTITY ---
+    const Identity = {
+        eventId: function (prefix = 'evt') {
+            if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+                return window.crypto.randomUUID();
+            }
+            return prefix + '_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        },
+
+        sessionId: function () {
+            try {
+                const existing = sessionStorage.getItem('ct_session_id');
+                if (existing) return existing;
+                const created = this.eventId('sess');
+                sessionStorage.setItem('ct_session_id', created);
+                Store.setCookie('ct_session_id', created, 1);
+                return created;
+            } catch (e) {
+                const cookie = Store.getCookie('ct_session_id');
+                if (cookie) return cookie;
+                const created = this.eventId('sess');
+                Store.setCookie('ct_session_id', created, 1);
+                return created;
+            }
+        },
+
+        visitorId: function () {
+            try {
+                const existing = localStorage.getItem('ct_visitor_id');
+                if (existing) return existing;
+                const created = this.eventId('vis');
+                localStorage.setItem('ct_visitor_id', created);
+                Store.setCookie('ct_visitor_id', created, 365);
+                return created;
+            } catch (e) {
+                const cookie = Store.getCookie('ct_visitor_id');
+                if (cookie) return cookie;
+                const created = this.eventId('vis');
+                Store.setCookie('ct_visitor_id', created, 365);
+                return created;
+            }
+        },
+
+        get: function () {
+            return {
+                session_id: this.sessionId(),
+                visitor_id: this.visitorId()
+            };
+        }
+    };
+
     // --- 5. MAIN ATTRIBUTION LOGIC ---
     // Preserving original class logic but using Store
     class ClickTrailAttribution {
@@ -501,8 +553,12 @@
 
             // Push to DataLayer
             window.dataLayer = window.dataLayer || [];
+            const identity = Identity.get();
             window.dataLayer.push({
                 event: 'ct_page_view',
+                event_id: Identity.eventId('pv'),
+                session_id: identity.session_id,
+                visitor_id: identity.visitor_id,
                 ct_attribution: storedData
             });
 
@@ -605,6 +661,24 @@
             const appendAttr = CONFIG.whatsappAppendAttribution === true || CONFIG.whatsappAppendAttribution === '1';
             const allowedHosts = ['wa.me', 'whatsapp.com', 'api.whatsapp.com', 'web.whatsapp.com'];
 
+            const sendBatch = (eventPayload) => {
+                if (!CONFIG.eventsBatchUrl || !CONFIG.eventsToken) return;
+
+                fetch(CONFIG.eventsBatchUrl, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Clicutcl-Token': CONFIG.eventsToken
+                    },
+                    body: JSON.stringify({
+                        token: CONFIG.eventsToken,
+                        events: [eventPayload]
+                    }),
+                    keepalive: true
+                }).catch(() => { });
+            };
+
             const getSafeAttribution = () => {
                 const raw = withCanonicalClickIds(Store.getData() || {});
                 const allowed = [
@@ -678,13 +752,42 @@
 
                 if (!shouldEmit(dedupeKey)) return;
 
+                const identity = Identity.get();
+                const eventId = Identity.eventId('wa');
                 window.dataLayer = window.dataLayer || [];
                 window.dataLayer.push({
                     event: 'wa_click',
+                    event_id: eventId,
+                    session_id: identity.session_id,
+                    visitor_id: identity.visitor_id,
                     page_path: window.location.pathname || '/',
                     wa_target_type: target.type,
                     wa_target_path: target.path,
                     attribution: getSafeAttribution()
+                });
+
+                sendBatch({
+                    event_name: 'contact_whatsapp_start',
+                    event_id: eventId,
+                    event_time: Math.floor(Date.now() / 1000),
+                    funnel_stage: 'mid',
+                    session_id: identity.session_id,
+                    source_channel: 'web',
+                    page_context: {
+                        path: window.location.pathname || '/',
+                        title: document.title || ''
+                    },
+                    attribution: getSafeAttribution(),
+                    consent: this.getConsent() || {},
+                    lead_context: {
+                        provider: 'whatsapp',
+                        submit_status: 'captured',
+                        target_type: target.type,
+                        target_path: target.path
+                    },
+                    meta: {
+                        schema_version: 2
+                    }
                 });
             };
 

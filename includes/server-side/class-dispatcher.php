@@ -7,6 +7,8 @@
 
 namespace CLICUTCL\Server_Side;
 
+use CLICUTCL\Tracking\Dedup_Store;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -114,6 +116,14 @@ class Dispatcher {
 			return Adapter_Result::error( 0, 'missing_adapter' );
 		}
 
+		$event_payload    = $event->to_array();
+		$event_name       = isset( $event_payload['event_name'] ) ? sanitize_key( (string) $event_payload['event_name'] ) : '';
+		$event_id         = isset( $event_payload['event_id'] ) ? sanitize_text_field( (string) $event_payload['event_id'] ) : '';
+		$destination_key  = method_exists( $adapter, 'get_name' ) ? sanitize_key( (string) $adapter->get_name() ) : 'adapter';
+		if ( $event_name && $event_id && Dedup_Store::is_duplicate( $destination_key, $event_name, $event_id ) ) {
+			return Adapter_Result::skipped( 'duplicate_event' );
+		}
+
 		$result = $adapter->send( $event );
 		self::log_dispatch( $event, $adapter, $result );
 		if ( ! $result->success && ! $result->skipped ) {
@@ -121,8 +131,58 @@ class Dispatcher {
 			self::record_failure( 'adapter_error' );
 			Queue::enqueue( $event, $adapter->get_name(), self::get_endpoint(), $result->message );
 		}
+		if ( $result->success && ! $result->skipped && $event_name && $event_id ) {
+			Dedup_Store::mark( $destination_key, $event_name, $event_id );
+		}
 
 		return $result;
+	}
+
+	/**
+	 * Dispatch canonical event v2 payload through the existing adapter pipeline.
+	 *
+	 * @param array $event_v2 Canonical event v2 payload.
+	 * @return Adapter_Result
+	 */
+	public static function dispatch_from_v2( array $event_v2 ) {
+		$event_name = isset( $event_v2['event_name'] ) ? sanitize_key( (string) $event_v2['event_name'] ) : '';
+		$event_id   = isset( $event_v2['event_id'] ) ? sanitize_text_field( (string) $event_v2['event_id'] ) : '';
+		if ( ! $event_name || ! $event_id ) {
+			return Adapter_Result::error( 0, 'invalid_v2_event' );
+		}
+
+		$legacy = array(
+			'event_name'   => $event_name,
+			'event_id'     => $event_id,
+			'timestamp'    => isset( $event_v2['event_time'] ) ? absint( $event_v2['event_time'] ) : time(),
+			'source'       => isset( $event_v2['source_channel'] ) ? sanitize_text_field( (string) $event_v2['source_channel'] ) : 'web',
+			'page'         => isset( $event_v2['page_context'] ) && is_array( $event_v2['page_context'] ) ? $event_v2['page_context'] : array(),
+			'attribution'  => isset( $event_v2['attribution'] ) && is_array( $event_v2['attribution'] ) ? $event_v2['attribution'] : array(),
+			'consent'      => isset( $event_v2['consent'] ) && is_array( $event_v2['consent'] ) ? $event_v2['consent'] : array(),
+			'meta'         => isset( $event_v2['meta'] ) && is_array( $event_v2['meta'] ) ? $event_v2['meta'] : array(),
+		);
+
+		if ( isset( $event_v2['lead_context'] ) && is_array( $event_v2['lead_context'] ) ) {
+			$legacy['form'] = $event_v2['lead_context'];
+		}
+		if ( isset( $event_v2['commerce_context'] ) && is_array( $event_v2['commerce_context'] ) ) {
+			$legacy['commerce'] = $event_v2['commerce_context'];
+		}
+		if ( isset( $event_v2['identity'] ) && is_array( $event_v2['identity'] ) ) {
+			$legacy['meta']['identity'] = $event_v2['identity'];
+		}
+		if ( isset( $event_v2['delivery_context'] ) && is_array( $event_v2['delivery_context'] ) ) {
+			$legacy['meta']['delivery_context'] = $event_v2['delivery_context'];
+		}
+		if ( isset( $event_v2['session_id'] ) ) {
+			$legacy['meta']['session_id'] = sanitize_text_field( (string) $event_v2['session_id'] );
+		}
+		if ( isset( $event_v2['funnel_stage'] ) ) {
+			$legacy['meta']['funnel_stage'] = sanitize_key( (string) $event_v2['funnel_stage'] );
+		}
+
+		$event = new Event( $legacy );
+		return self::dispatch( $event );
 	}
 
 	/**
@@ -211,6 +271,10 @@ class Dispatcher {
 				return new Sgtm_Adapter( $endpoint, $timeout );
 			case 'meta_capi':
 				return new Meta_Capi_Adapter( $endpoint, $timeout );
+			case 'google_ads':
+				return new Google_Ads_Adapter( $endpoint, $timeout );
+			case 'linkedin_capi':
+				return new LinkedIn_Capi_Adapter( $endpoint, $timeout );
 			case 'generic':
 			default:
 				return new Generic_Collector_Adapter( $endpoint, $timeout );
@@ -376,6 +440,31 @@ class Dispatcher {
 
 		krsort( $telemetry, SORT_STRING );
 		return $telemetry;
+	}
+
+	/**
+	 * Return delivery diagnostics bundle.
+	 *
+	 * @return array
+	 */
+	public static function get_delivery_diagnostics() {
+		$last_error = get_transient( self::LAST_ERROR_TRANSIENT );
+		if ( ! is_array( $last_error ) ) {
+			$legacy    = get_option( 'clicutcl_last_error', array() );
+			$last_error = is_array( $legacy ) ? $legacy : array();
+		}
+
+		$dispatches = get_transient( self::DISPATCH_BUFFER_TRANSIENT );
+		if ( ! is_array( $dispatches ) ) {
+			$legacy     = get_option( 'clicutcl_dispatch_log', array() );
+			$dispatches = is_array( $legacy ) ? $legacy : array();
+		}
+
+		return array(
+			'last_error'        => $last_error,
+			'recent_dispatches' => $dispatches,
+			'failure_telemetry' => self::get_failure_telemetry(),
+		);
 	}
 
 	/**

@@ -14,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use CLICUTCL\Admin\Admin;
+use CLICUTCL\Api\Tracking_Controller;
 use CLICUTCL\Integrations\WooCommerce;
 use CLICUTCL\Server_Side\Queue;
 use CLICUTCL\Utils\Cleanup;
@@ -127,6 +128,14 @@ class CLICUTCL_Core {
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 
 		Queue::register();
+
+		add_action(
+			'rest_api_init',
+			function() {
+				$controller = new Tracking_Controller();
+				$controller->register_routes();
+			}
+		);
 		
 		// Initialize Integrations
 		$form_integrations = new CLICUTCL\Integrations\Form_Integration_Manager();
@@ -149,6 +158,12 @@ class CLICUTCL_Core {
 		$cookie_days        = isset( $options['cookie_days'] ) ? absint( $options['cookie_days'] ) : 90;
 		$debug_until        = get_transient( 'clicutcl_debug_until' );
 		$debug_active       = $debug_until && (int) $debug_until > time();
+		$events_transport_enabled = class_exists( 'CLICUTCL\\Tracking\\Settings' ) && \CLICUTCL\Tracking\Settings::feature_enabled( 'event_v2' );
+		if ( $events_transport_enabled && class_exists( 'CLICUTCL\\Server_Side\\Dispatcher' ) ) {
+			$events_transport_enabled = \CLICUTCL\Server_Side\Dispatcher::is_enabled();
+		}
+		$events_batch_url   = $events_transport_enabled ? rest_url( 'clicutcl/v2/events/batch' ) : '';
+		$events_token       = ( $events_transport_enabled && class_exists( 'CLICUTCL\\Tracking\\Auth' ) ) ? \CLICUTCL\Tracking\Auth::mint_client_token() : '';
 		
 		// Use new Consent Mode settings
 		$consent_settings = new CLICUTCL\Modules\Consent_Mode\Consent_Mode_Settings();
@@ -181,6 +196,8 @@ class CLICUTCL_Core {
 					'enableWhatsapp'            => isset( $options['enable_whatsapp'] ) ? (bool) $options['enable_whatsapp'] : true,
 					'whatsappAppendAttribution' => isset( $options['whatsapp_append_attribution'] ) ? (bool) $options['whatsapp_append_attribution'] : false,
 					'debug'                     => (bool) $debug_active,
+					'eventsBatchUrl'            => esc_url_raw( $events_batch_url ),
+					'eventsToken'               => $events_token,
 					
 					// JS Injection Config
 					'injectEnabled'             => isset( $options['enable_js_injection'] ) ? (bool) $options['enable_js_injection'] : true,
@@ -268,7 +285,25 @@ class CLICUTCL_Core {
 				'clicutcl-events-js',
 				'clicutclEventsConfig',
 				array(
-					'debug' => ! empty( $debug_active ),
+					'debug'         => ! empty( $debug_active ),
+					'eventsBatchUrl'=> esc_url_raw( $events_batch_url ),
+					'eventsToken'   => $events_token,
+					'thankYouMatchers' => array_values(
+						(array) apply_filters(
+							'clicutcl_thank_you_matchers',
+							array()
+						)
+					),
+					'iframeOrigins' => array_values(
+						(array) apply_filters(
+							'clicutcl_iframe_origin_allowlist',
+							array(
+								'calendly.com',
+								'typeform.com',
+								'hubspot.com',
+							)
+						)
+					),
 				)
 			);
 		}

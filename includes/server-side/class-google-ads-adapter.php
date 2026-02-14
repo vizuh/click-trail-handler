@@ -1,6 +1,6 @@
 <?php
 /**
- * Meta CAPI Adapter
+ * Google Ads / GA4 Adapter (native path scaffold).
  *
  * @package ClickTrail
  */
@@ -12,9 +12,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 /**
- * Class Meta_Capi_Adapter
+ * Class Google_Ads_Adapter
  */
-class Meta_Capi_Adapter implements Adapter_Interface {
+class Google_Ads_Adapter implements Adapter_Interface {
 	/**
 	 * Endpoint URL.
 	 *
@@ -33,7 +33,7 @@ class Meta_Capi_Adapter implements Adapter_Interface {
 	 * Constructor.
 	 *
 	 * @param string $endpoint Endpoint URL.
-	 * @param int    $timeout Timeout seconds.
+	 * @param int    $timeout Timeout.
 	 */
 	public function __construct( $endpoint, $timeout = 5 ) {
 		$this->endpoint = (string) $endpoint;
@@ -41,24 +41,24 @@ class Meta_Capi_Adapter implements Adapter_Interface {
 	}
 
 	/**
-	 * Adapter name.
+	 * Adapter key.
 	 *
 	 * @return string
 	 */
 	public function get_name() {
-		return 'meta_capi';
+		return 'google_ads';
 	}
 
 	/**
 	 * Send event.
 	 *
-	 * @param Event $event Event.
+	 * @param Event $event Canonical event.
 	 * @return Adapter_Result
 	 */
 	public function send( Event $event ) {
 		$body = $event->to_array();
 		$body['schema_version'] = 2;
-		$body['collector']      = 'meta_capi';
+		$body['collector']      = 'google_ads';
 
 		$response = wp_remote_post(
 			$this->endpoint,
@@ -103,3 +103,4 @@ class Meta_Capi_Adapter implements Adapter_Interface {
 		return new Adapter_Result( $ok, $status, $ok ? 'reachable' : 'unreachable', array( 'endpoint' => $this->endpoint ) );
 	}
 }
+
