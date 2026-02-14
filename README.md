@@ -106,7 +106,8 @@ Access the **Attribution & Consent Settings** page from the ClickTrail admin men
 
 ### 📖 Documentation
 
-For detailed documentation, visit [vizuh.com/clicktrail-docs](https://vizuh.com)
+- Local technical docs (code-grounded): [`docs/README.md`](docs/README.md)
+- Public docs: [vizuh.com/clicktrail-docs](https://vizuh.com)
 
 ### 🤝 Support
 
