@@ -136,6 +136,7 @@ Auth:
 Data returned:
 
 - delivery: last error, recent dispatches, failure telemetry
+- delivery also includes `event_intake` (debug-window-only v2 intake ring buffer)
 - dedup: dedup check/hit/miss stats by destination
 
 ## Legacy API Class (v1)
@@ -153,6 +154,7 @@ Important status:
 
 - current plugin bootstrap does not instantiate/register `Log_Controller`
 - these routes are defined in code but not active unless explicitly registered elsewhere
+- legacy v1 class loading is disabled by default unless `CLICUTCL_ENABLE_LEGACY_V1_API` is set to `true`
 
 ## Key Filters Affecting API Behavior
 
@@ -163,4 +165,3 @@ Important status:
 - `clicutcl_trusted_proxies`
 - `clicutcl_webhook_replay_window`
 - `clicutcl_webhook_replay_protection`
-

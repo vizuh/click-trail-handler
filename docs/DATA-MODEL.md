@@ -101,6 +101,7 @@ Dedup and API guards:
 
 - `clicutcl_v2_dup_*`
 - `clicutcl_v2_dedup_stats`
+- `clicutcl_v2_events_buffer`
 - `clicutcl_v2_rl_*`
 - `clicutcl_v2_nonce_*`
 
@@ -161,8 +162,7 @@ Cleanup behavior:
 
 `uninstall.php`:
 
-- removes plugin options (including some legacy keys)
-- clears queue cron schedule
-- drops queue table
-- does not explicitly drop `clicutcl_events` table
-
+- removes plugin options (including legacy, tracking v2, and readiness keys)
+- clears queue and daily cleanup cron schedules
+- drops queue and events tables by default
+- allows data preservation override through `clicutcl_preserve_data_on_uninstall` filter

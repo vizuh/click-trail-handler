@@ -9,6 +9,45 @@
     const DEBUG_ENABLED = !!CONFIG.debug;
     const CLICK_ID_KEYS = ['gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid'];
 
+    function sanitizeKey(key) {
+        if (key === null || key === undefined) return '';
+        const cleaned = String(key).toLowerCase().replace(/[^a-z0-9_]/g, '');
+        return cleaned.slice(0, 64);
+    }
+
+    function sanitizeValue(value, maxLen = 256) {
+        if (value === null || value === undefined) return '';
+        let s = String(value);
+        s = s.replace(/[\u0000-\u001F\u007F]/g, ' ').trim();
+        if (!s) return '';
+        if (s.length > maxLen) s = s.slice(0, maxLen);
+        return s;
+    }
+
+    function sanitizeAttributionData(input) {
+        if (!input || typeof input !== 'object') return {};
+        const out = {};
+        Object.keys(input).forEach((rawKey) => {
+            const key = sanitizeKey(rawKey);
+            if (!key) return;
+
+            const rawValue = input[rawKey];
+            if (typeof rawValue === 'boolean') {
+                out[key] = rawValue;
+                return;
+            }
+            if (typeof rawValue === 'number' && Number.isFinite(rawValue)) {
+                out[key] = rawValue;
+                return;
+            }
+            if (typeof rawValue === 'string' || typeof rawValue === 'number') {
+                const v = sanitizeValue(rawValue, 256);
+                if (v !== '') out[key] = v;
+            }
+        });
+        return out;
+    }
+
     function pickClickId(raw, key) {
         if (!raw || typeof raw !== 'object') return '';
         return raw[key] || raw[`lt_${key}`] || raw[`ft_${key}`] || '';
@@ -50,7 +89,19 @@
             const regex = /([^&=]+)=([^&]*)/g;
             let m;
             while (m = regex.exec(queryString)) {
-                params[decodeURIComponent(m[1])] = decodeURIComponent(m[2]);
+                let rawKey = '';
+                let rawValue = '';
+                try {
+                    rawKey = decodeURIComponent(m[1] || '');
+                    rawValue = decodeURIComponent(m[2] || '');
+                } catch (e) {
+                    continue;
+                }
+                const key = sanitizeKey(rawKey);
+                const value = sanitizeValue(rawValue, 256);
+                if (key && value !== '') {
+                    params[key] = value;
+                }
             }
             return params;
         },
@@ -84,11 +135,12 @@
             } catch (e) { }
 
             // 3. Merge (Cookie takes precedence over LS, but current logic usually keeps them in sync)
-            return Object.assign({}, lsObj || {}, cookieObj || {});
+            return sanitizeAttributionData(Object.assign({}, lsObj || {}, cookieObj || {}));
         },
 
         saveData: function (data) {
-            const dataStr = JSON.stringify(data);
+            const sanitized = sanitizeAttributionData(data);
+            const dataStr = JSON.stringify(sanitized);
             this.setCookie(CONFIG.cookieName, dataStr, CONFIG.cookieDays);
             try {
                 localStorage.setItem(CONFIG.cookieName, dataStr);
@@ -128,7 +180,7 @@
             const maxAge = maxDays * 24 * 60 * 60;
             const age = Math.floor(Date.now() / 1000) - parseInt(obj.ts, 10);
             if (age < 0 || age > maxAge) return null;
-            return obj.data;
+            return sanitizeAttributionData(obj.data);
         }
     };
 
@@ -606,17 +658,17 @@
         mapFields(params, referrer) {
             // Standardize params to internal keys
             const out = {
-                source: params.utm_source || '',
-                medium: params.utm_medium || '',
-                campaign: params.utm_campaign || '',
-                term: params.utm_term || '',
-                content: params.utm_content || '',
-                gclid: params.gclid,
-                fbclid: params.fbclid,
-                msclkid: params.msclkid,
-                ttclid: params.ttclid,
-                wbraid: params.wbraid,
-                gbraid: params.gbraid
+                source: sanitizeValue(params.utm_source || '', 128),
+                medium: sanitizeValue(params.utm_medium || '', 128),
+                campaign: sanitizeValue(params.utm_campaign || '', 128),
+                term: sanitizeValue(params.utm_term || '', 128),
+                content: sanitizeValue(params.utm_content || '', 128),
+                gclid: sanitizeValue(params.gclid || '', 128),
+                fbclid: sanitizeValue(params.fbclid || '', 128),
+                msclkid: sanitizeValue(params.msclkid || '', 128),
+                ttclid: sanitizeValue(params.ttclid || '', 128),
+                wbraid: sanitizeValue(params.wbraid || '', 128),
+                gbraid: sanitizeValue(params.gbraid || '', 128)
             };
 
             // Referrer logic
@@ -624,7 +676,7 @@
                 if (!out.source) {
                     // Simple referrer parsing could go here (e.g. google.com -> source=google, medium=organic)
                     // For now just store raw referrer
-                    out.referrer = referrer;
+                    out.referrer = sanitizeValue(referrer, 256);
                 }
             }
             return out;

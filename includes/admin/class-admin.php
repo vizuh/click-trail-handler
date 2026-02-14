@@ -10,6 +10,7 @@ namespace CLICUTCL\Admin;
 use CLICUTCL\Modules\Consent_Mode\Consent_Mode_Settings;
 use CLICUTCL\Modules\GTM\GTM_Settings;
 use CLICUTCL\Server_Side\Dispatcher;
+use CLICUTCL\Server_Side\Queue;
 use CLICUTCL\Server_Side\Settings;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -51,6 +52,7 @@ class Admin {
 		add_action( 'wp_ajax_clicutcl_log_pii_risk', array( $this, 'ajax_log_pii_risk' ) );
 		add_action( 'wp_ajax_clicutcl_test_endpoint', array( $this, 'ajax_test_endpoint' ) );
 		add_action( 'wp_ajax_clicutcl_toggle_debug', array( $this, 'ajax_toggle_debug' ) );
+		add_action( 'wp_ajax_clicutcl_purge_tracking_data', array( $this, 'ajax_purge_tracking_data' ) );
 		add_action( 'wp_ajax_clicutcl_get_tracking_v2_settings', array( $this, 'ajax_get_tracking_v2_settings' ) );
 		add_action( 'wp_ajax_clicutcl_save_tracking_v2_settings', array( $this, 'ajax_save_tracking_v2_settings' ) );
 
@@ -749,8 +751,9 @@ class Admin {
 	public function ajax_log_pii_risk() {
 		check_ajax_referer( 'clicutcl_pii_nonce', 'nonce' );
 
-		// Removed capability check - this is meant to be a public feature
-		// Non-admin users can log PII risks detected on public pages
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => 'forbidden' ), 403 );
+		}
 		
 		// OPTIMIZATION: Check if already detected to save DB writes
 		if ( get_option( 'clicutcl_pii_risk_detected' ) ) {
@@ -1129,6 +1132,8 @@ class Admin {
 			$dispatches = array();
 		}
 		$failure_telemetry = Dispatcher::get_failure_telemetry();
+		$v2_intake         = class_exists( 'CLICUTCL\\Api\\Tracking_Controller' ) ? \CLICUTCL\Api\Tracking_Controller::get_debug_event_buffer() : array();
+		$queue_stats       = class_exists( 'CLICUTCL\\Server_Side\\Queue' ) ? Queue::get_stats() : array();
 
 		$debug_until = get_transient( 'clicutcl_debug_until' );
 		$debug_active = $debug_until && (int) $debug_until > time();
@@ -1223,6 +1228,84 @@ class Admin {
 			<p class="description">
 				<?php esc_html_e( 'Dispatch entries are captured only while Debug Logging is enabled.', 'click-trail-handler' ); ?>
 			</p>
+
+			<h2><?php esc_html_e( 'Queue Backlog', 'click-trail-handler' ); ?></h2>
+			<table class="widefat striped" style="max-width:900px;">
+				<tbody>
+					<tr>
+						<th><?php esc_html_e( 'Queue Ready', 'click-trail-handler' ); ?></th>
+						<td><?php echo ! empty( $queue_stats['ready'] ) ? esc_html__( 'Yes', 'click-trail-handler' ) : esc_html__( 'No', 'click-trail-handler' ); ?></td>
+					</tr>
+					<tr>
+						<th><?php esc_html_e( 'Pending Events', 'click-trail-handler' ); ?></th>
+						<td><?php echo esc_html( (string) absint( $queue_stats['pending'] ?? 0 ) ); ?></td>
+					</tr>
+					<tr>
+						<th><?php esc_html_e( 'Due Now', 'click-trail-handler' ); ?></th>
+						<td><?php echo esc_html( (string) absint( $queue_stats['due_now'] ?? 0 ) ); ?></td>
+					</tr>
+					<tr>
+						<th><?php esc_html_e( 'Max Attempts in Queue', 'click-trail-handler' ); ?></th>
+						<td><?php echo esc_html( (string) absint( $queue_stats['max_attempts'] ?? 0 ) ); ?></td>
+					</tr>
+					<tr>
+						<th><?php esc_html_e( 'Oldest Next Attempt', 'click-trail-handler' ); ?></th>
+						<td><?php echo ! empty( $queue_stats['oldest_next'] ) ? esc_html( $queue_stats['oldest_next'] ) : '-'; ?></td>
+					</tr>
+				</tbody>
+			</table>
+
+			<h2><?php esc_html_e( 'Data Management', 'click-trail-handler' ); ?></h2>
+			<p class="description"><?php esc_html_e( 'Purge local tracking data (events, queue, diagnostics transients). This action cannot be undone.', 'click-trail-handler' ); ?></p>
+			<p>
+				<button class="button button-secondary" id="clicutcl-purge-data"><?php esc_html_e( 'Purge Tracking Data', 'click-trail-handler' ); ?></button>
+				<span id="clicutcl-purge-data-status" style="margin-left:10px;"></span>
+			</p>
+
+			<h2><?php esc_html_e( 'Recent v2 Intake Events', 'click-trail-handler' ); ?></h2>
+			<p class="description"><?php esc_html_e( 'Last normalized v2 intake events (admin-only, debug-window-only).', 'click-trail-handler' ); ?></p>
+			<table class="widefat striped">
+				<thead>
+					<tr>
+						<th><?php esc_html_e( 'Time', 'click-trail-handler' ); ?></th>
+						<th><?php esc_html_e( 'Kind', 'click-trail-handler' ); ?></th>
+						<th><?php esc_html_e( 'Event', 'click-trail-handler' ); ?></th>
+						<th><?php esc_html_e( 'Status', 'click-trail-handler' ); ?></th>
+						<th><?php esc_html_e( 'Reason', 'click-trail-handler' ); ?></th>
+						<th><?php esc_html_e( 'Consent', 'click-trail-handler' ); ?></th>
+						<th><?php esc_html_e( 'Attribution Keys', 'click-trail-handler' ); ?></th>
+						<th><?php esc_html_e( 'Identity Keys', 'click-trail-handler' ); ?></th>
+					</tr>
+				</thead>
+				<tbody>
+				<?php if ( ! empty( $v2_intake ) ) : ?>
+					<?php foreach ( $v2_intake as $entry ) : ?>
+						<?php
+						$consent   = isset( $entry['consent'] ) && is_array( $entry['consent'] ) ? $entry['consent'] : array();
+						$cons_text = 'm:' . ( ! empty( $consent['marketing'] ) ? '1' : '0' ) . ' a:' . ( ! empty( $consent['analytics'] ) ? '1' : '0' );
+						$attr_keys = isset( $entry['attribution_keys'] ) && is_array( $entry['attribution_keys'] ) ? implode( ',', $entry['attribution_keys'] ) : '';
+						$id_keys   = isset( $entry['identity_keys'] ) && is_array( $entry['identity_keys'] ) ? implode( ',', $entry['identity_keys'] ) : '';
+						$event_col = trim( (string) ( $entry['event_name'] ?? '' ) . ' ' . (string) ( $entry['event_id'] ?? '' ) );
+						?>
+						<tr>
+							<td><?php echo esc_html( date_i18n( 'Y-m-d H:i:s', (int) ( $entry['time'] ?? 0 ) ) ); ?></td>
+							<td><?php echo esc_html( (string) ( $entry['kind'] ?? '' ) ); ?></td>
+							<td><?php echo esc_html( $event_col ); ?></td>
+							<td><?php echo esc_html( (string) ( $entry['status'] ?? '' ) ); ?></td>
+							<td><?php echo esc_html( (string) ( $entry['reason'] ?? '' ) ); ?></td>
+							<td><?php echo esc_html( $cons_text ); ?></td>
+							<td><?php echo esc_html( $attr_keys ); ?></td>
+							<td><?php echo esc_html( $id_keys ); ?></td>
+						</tr>
+					<?php endforeach; ?>
+				<?php else : ?>
+					<tr>
+						<td colspan="8"><?php esc_html_e( 'No v2 intake entries recorded yet. Enable Debug Logging and reproduce an event.', 'click-trail-handler' ); ?></td>
+					</tr>
+				<?php endif; ?>
+				</tbody>
+			</table>
+
 			<table class="widefat striped">
 				<thead>
 					<tr>
@@ -1309,6 +1392,72 @@ class Admin {
 		$until = time() + ( 15 * MINUTE_IN_SECONDS );
 		set_transient( 'clicutcl_debug_until', $until, 15 * MINUTE_IN_SECONDS );
 		wp_send_json_success( array( 'message' => __( 'Debug enabled for 15 minutes.', 'click-trail-handler' ) ) );
+	}
+
+	/**
+	 * Purge local tracking data (events, queue, diagnostics transients).
+	 *
+	 * @return void
+	 */
+	public function ajax_purge_tracking_data() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => 'forbidden' ), 403 );
+		}
+		check_ajax_referer( 'clicutcl_diag', 'nonce' );
+
+		global $wpdb;
+
+		$events_table = $wpdb->prefix . 'clicutcl_events';
+		$queue_table  = $wpdb->prefix . 'clicutcl_queue';
+		$errors       = array();
+
+		// Clear plugin-owned event and retry tables if present.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$events_ready = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $events_table ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$queue_ready = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $queue_table ) );
+		if ( $events_ready === $events_table ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$result = $wpdb->query( "TRUNCATE TABLE {$events_table}" );
+			if ( false === $result ) {
+				$errors[] = 'events_truncate_failed';
+			}
+		}
+		if ( $queue_ready === $queue_table ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			$result = $wpdb->query( "TRUNCATE TABLE {$queue_table}" );
+			if ( false === $result ) {
+				$errors[] = 'queue_truncate_failed';
+			}
+		}
+
+		delete_transient( 'clicutcl_last_error' );
+		delete_transient( 'clicutcl_dispatch_buffer' );
+		delete_transient( 'clicutcl_failure_telemetry' );
+		delete_transient( 'clicutcl_failure_flush_lock' );
+		delete_transient( 'clicutcl_v2_dedup_stats' );
+		delete_transient( 'clicutcl_v2_events_buffer' );
+
+		// Remove legacy fallback options if present.
+		delete_option( 'clicutcl_last_error' );
+		delete_option( 'clicutcl_dispatch_log' );
+		delete_option( 'clicutcl_attempts' );
+
+		if ( ! empty( $errors ) ) {
+			wp_send_json_error(
+				array(
+					'message' => __( 'Could not purge all tracking tables.', 'click-trail-handler' ),
+					'errors'  => $errors,
+				),
+				500
+			);
+		}
+
+		wp_send_json_success(
+			array(
+				'message' => __( 'Tracking data purged.', 'click-trail-handler' ),
+			)
+		);
 	}
 
 	/**

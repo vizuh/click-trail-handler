@@ -13,6 +13,7 @@ Core controls:
 - trusted-proxy-aware IP resolution for rate limiting
 - rate limiting with per-scope transients
 - dedup keys to reduce replay and duplicate writes
+- admin AJAX endpoints gated by capability + nonce checks
 
 ## v2 Batch Token Auth
 
@@ -100,6 +101,7 @@ Debug logs:
 
 - gated by transient debug window
 - stored in bounded ring buffers
+- includes normalized v2 intake debug ring buffer (admin-only diagnostics use)
 
 Always-on telemetry:
 
@@ -112,6 +114,15 @@ Remote telemetry:
 - opt-in only
 - action-based extensibility
 
+## Admin Action Protection
+
+Admin-side AJAX actions in `includes/admin/class-admin.php` use:
+
+- `current_user_can( 'manage_options' )`
+- `check_ajax_referer(...)`
+
+This applies to diagnostics, debug toggle, tracking v2 settings save/load, and data purge actions.
+
 ## Data Minimization Notes
 
 Attribution payload allowlisting is applied at several boundaries:
@@ -119,6 +130,7 @@ Attribution payload allowlisting is applied at several boundaries:
 - canonical event normalization
 - legacy attribution subset sanitizer (v1 class)
 - settings sanitizers with allowlist+merge patterns
+- client-side normalization/sanitization before attribution persistence and form field injection
 
 Cookies and local storage are first-party and used for attribution/identity continuity.
 
@@ -126,3 +138,6 @@ Cookies and local storage are first-party and used for attribution/identity cont
 
 `includes/api/class-log-controller.php` contains additional auth and ingestion logic for v1 WA routes. In current bootstrap, this controller is not registered by default, but the class remains in the repository.
 
+Legacy v1 class loading is additionally disabled by default behind:
+
+- `CLICUTCL_ENABLE_LEGACY_V1_API` (default `false`)

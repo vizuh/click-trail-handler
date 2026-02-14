@@ -26,6 +26,7 @@ define( 'CLICUTCL_URL', plugin_dir_url( __FILE__ ) );
 define( 'CLICUTCL_BASENAME', plugin_basename( __FILE__ ) );
 define( 'CLICUTCL_PLUGIN_MAIN_FILE', __FILE__ );
 define( 'CLICUTCL_PII_NONCE_ACTION', 'clicutcl_pii_nonce' );
+define( 'CLICUTCL_ENABLE_LEGACY_V1_API', false );
 
 /**
  * Build script enqueue args with backward compatibility for pre-6.3 WordPress.

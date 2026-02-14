@@ -190,6 +190,8 @@ array(
     'token_ttl_seconds' => 7 * DAY_IN_SECONDS,
     'token_nonce_limit' => 0,
     'webhook_replay_window' => 300,
+    'rate_limit_window' => 60,
+    'rate_limit_limit' => 60,
     'trusted_proxies' => array(),
     'allowed_token_hosts' => array(),
   ),

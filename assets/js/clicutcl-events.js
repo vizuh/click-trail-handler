@@ -144,9 +144,27 @@
         getAttributionPayload() {
             if (window.ClickTrail && typeof window.ClickTrail.getData === 'function') {
                 const data = window.ClickTrail.getData();
-                if (data && typeof data === 'object') return data;
+                if (data && typeof data === 'object') return this.sanitizeAttribution(data);
             }
             return {};
+        }
+
+        sanitizeAttribution(data) {
+            const allow = [
+                'ft_source', 'ft_medium', 'ft_campaign', 'ft_term', 'ft_content',
+                'lt_source', 'lt_medium', 'lt_campaign', 'lt_term', 'lt_content',
+                'ft_gclid', 'ft_fbclid', 'ft_msclkid', 'ft_ttclid', 'ft_wbraid', 'ft_gbraid',
+                'lt_gclid', 'lt_fbclid', 'lt_msclkid', 'lt_ttclid', 'lt_wbraid', 'lt_gbraid',
+                'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid'
+            ];
+
+            const out = {};
+            allow.forEach((key) => {
+                if (!Object.prototype.hasOwnProperty.call(data, key)) return;
+                const v = this.safeText(data[key], 128);
+                if (v) out[key] = v;
+            });
+            return out;
         }
 
         getConsentState() {

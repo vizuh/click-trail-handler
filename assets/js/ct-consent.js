@@ -1,6 +1,9 @@
 (function () {
     'use strict';
 
+    // Deprecated compatibility script.
+    // Core plugin runtime enqueues `assets/js/clicutcl-consent.js`.
+
     const CONSENT_COOKIE = 'ct_consent';
     const CONSENT_DAYS = 365;
 

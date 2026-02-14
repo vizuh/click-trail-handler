@@ -160,4 +160,4 @@ Legacy surface in repository:
 - `includes/api/class-log-controller.php` defines v1 WA logging routes and auth logic
 - current core bootstrap registers only `Tracking_Controller` (v2)
 - v1 controller exists in code but is not wired by default
-
+- v1 class loading is explicitly disabled unless `CLICUTCL_ENABLE_LEGACY_V1_API` is set to `true`

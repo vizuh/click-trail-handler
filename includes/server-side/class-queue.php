@@ -427,4 +427,51 @@ class Queue {
 		$delay   = (int) min( 3600, 60 * pow( 2, $attempt ) );
 		return max( 60, $delay );
 	}
+
+	/**
+	 * Return queue diagnostics stats.
+	 *
+	 * @return array
+	 */
+	public static function get_stats() {
+		global $wpdb;
+
+		$stats = array(
+			'ready'       => false,
+			'pending'     => 0,
+			'due_now'     => 0,
+			'max_attempts'=> 0,
+			'oldest_next' => '',
+		);
+
+		if ( ! self::table_exists() ) {
+			return $stats;
+		}
+
+		$table_name = self::get_table_name();
+		$now        = current_time( 'mysql', true );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$pending = (int) $wpdb->get_var( "SELECT COUNT(id) FROM {$table_name}" );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$max_attempts = (int) $wpdb->get_var( "SELECT MAX(attempts) FROM {$table_name}" );
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$oldest_next = (string) $wpdb->get_var( "SELECT MIN(next_attempt_at) FROM {$table_name}" );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$due_now = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT COUNT(id) FROM {$table_name} WHERE next_attempt_at <= %s",
+				$now
+			)
+		);
+
+		$stats['ready']        = true;
+		$stats['pending']      = max( 0, $pending );
+		$stats['due_now']      = max( 0, $due_now );
+		$stats['max_attempts'] = max( 0, $max_attempts );
+		$stats['oldest_next']  = sanitize_text_field( $oldest_next );
+
+		return $stats;
+	}
 }
