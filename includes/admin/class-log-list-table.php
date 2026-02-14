@@ -136,7 +136,7 @@ class Log_List_Table extends \WP_List_Table {
 	 * @return string
 	 */
 	protected function column_created_at( $item ) {
-		return $item['created_at'];
+		return esc_html( (string) $item['created_at'] );
 	}
 
 	/**

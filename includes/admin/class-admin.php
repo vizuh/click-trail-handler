@@ -40,9 +40,6 @@ class Admin {
 	/**
 	 * Initialize hooks.
 	 */
-	/**
-	 * Initialize hooks.
-	 */
 	public function init() {
 		// Run early so the parent menu exists before CPT submenus attach.
 		add_action( 'admin_menu', array( $this, 'admin_menu' ), 1 );
@@ -160,22 +157,34 @@ class Admin {
 	 * @param string $hook Current admin page hook.
 	 */
 	public function enqueue_admin_assets( $hook ) {
-		// Ping Site Health on all admin pages to confirm JS execution
-		wp_register_script(
-			'clicutcl-admin-sitehealth',
-			CLICUTCL_URL . 'assets/js/admin-sitehealth.js',
-			array(),
-			CLICUTCL_VERSION,
-			\clicutcl_script_args( true, 'defer' )
-		);
-		wp_enqueue_script( 'clicutcl-admin-sitehealth' );
-		wp_localize_script( 'clicutcl-admin-sitehealth', 'clicutclSiteHealth', array(
-			'ajaxUrl' => admin_url( 'admin-ajax.php' ),
-			'nonce'   => wp_create_nonce( 'clicutcl_sitehealth' )
-		) );
+		$is_plugin_screen      = strpos( (string) $hook, 'clicutcl' ) !== false;
+		$is_site_health_screen = ( 'site-health.php' === $hook );
+		$debug_until           = get_transient( 'clicutcl_debug_until' );
+		$debug_active          = $debug_until && (int) $debug_until > time();
 
-		// Only load CSS on our plugin pages
-		if ( strpos( $hook, 'clicutcl' ) === false ) {
+		// SiteHealth ping script should only run on plugin screens and Site Health.
+		if ( ( $is_plugin_screen || $is_site_health_screen ) && current_user_can( 'manage_options' ) ) {
+			wp_register_script(
+				'clicutcl-admin-sitehealth',
+				CLICUTCL_URL . 'assets/js/admin-sitehealth.js',
+				array(),
+				CLICUTCL_VERSION,
+				\clicutcl_script_args( true, 'defer' )
+			);
+			wp_enqueue_script( 'clicutcl-admin-sitehealth' );
+			wp_localize_script(
+				'clicutcl-admin-sitehealth',
+				'clicutclSiteHealth',
+				array(
+					'ajaxUrl' => admin_url( 'admin-ajax.php' ),
+					'nonce'   => wp_create_nonce( 'clicutcl_sitehealth' ),
+					'debug'   => (bool) $debug_active,
+				)
+			);
+		}
+
+		// Only load plugin admin CSS/diagnostics on plugin screens.
+		if ( ! $is_plugin_screen ) {
 			return;
 		}
 
@@ -379,19 +388,6 @@ class Admin {
 			)
 		);
 
-		add_settings_field(
-			'whatsapp_log_clicks',
-			__( 'Log Clicks (Custom Post Type)', 'click-trail-handler' ),
-			array( $this, 'render_checkbox_field' ),
-			'clicutcl_whatsapp_tab',
-			'clicutcl_whatsapp_section',
-			array( 
-				'label_for' => 'whatsapp_log_clicks', 
-				'option_name' => 'clicutcl_attribution_settings',
-				'tooltip' => __( 'Save each WhatsApp click as a "WhatsApp Click" post in WordPress.', 'click-trail-handler' )
-			)
-		);
-
 		// 2. Consent Mode Settings
 		add_settings_section(
 			'clicutcl_consent_section',
@@ -497,6 +493,20 @@ class Admin {
 			array(
 				'label_for'   => 'timeout',
 				'option_name' => 'clicutcl_server_side',
+			)
+		);
+
+		add_settings_field(
+			'remote_failure_telemetry',
+			__( 'Remote Failure Telemetry (Opt-in)', 'click-trail-handler' ),
+			array( $this, 'render_checkbox_field' ),
+			'clicutcl_server_side_tab',
+			'clicutcl_server_side_section',
+			array(
+				'label_for'   => 'remote_failure_telemetry',
+				'option_name' => 'clicutcl_server_side',
+				'tooltip'     => __( 'Off by default. When enabled, only aggregated failure counts are emitted via hook for external reporting.', 'click-trail-handler' ),
+				'description' => __( 'No payloads or PII are included in remote failure telemetry.', 'click-trail-handler' ),
 			)
 		);
 
@@ -682,8 +692,8 @@ class Admin {
 			$regions = implode( ', ', $regions );
 		}
 		?>
-		<input type="text" name="clicutcl_consent_mode[regions]" value="<?php echo esc_attr($regions); ?>" class="regular-text" placeholder="EU, EE, UK" />
-		<p class="description"><?php esc_html_e( 'Comma-separated list of region codes.', 'click-trail-handler' ); ?></p>
+		<input type="text" name="clicutcl_consent_mode[regions]" value="<?php echo esc_attr($regions); ?>" class="regular-text" placeholder="EEA, UK, US-CA" />
+		<p class="description"><?php esc_html_e( 'Comma-separated region tokens (EEA, UK, US, US-CA, BR, DE...).', 'click-trail-handler' ); ?></p>
 		<?php
 	}
 
@@ -808,10 +818,6 @@ class Admin {
 				'default'  => 0,
 				'sanitize' => array( $this, 'sanitize_toggle' ),
 			),
-			'whatsapp_log_clicks'        => array(
-				'default'  => 0,
-				'sanitize' => array( $this, 'sanitize_toggle' ),
-			),
 			// Backward compatibility for legacy keys still read in some installs.
 			'enable_consent_banner'      => array(
 				'default'  => 0,
@@ -921,11 +927,26 @@ class Admin {
 	}
 
 	public function sanitize_server_side_settings( $input ) {
-		$new_input = array();
+		$current = is_network_admin() ? Settings::get_network() : get_option( 'clicutcl_server_side', array() );
+		$current = is_array( $current ) ? $current : array();
+		$input   = is_array( $input ) ? wp_unslash( $input ) : array();
+
+		$new_input = array_merge(
+			array(
+				'enabled'                  => 0,
+				'endpoint_url'             => '',
+				'adapter'                  => 'generic',
+				'timeout'                  => 5,
+				'use_network'              => 0,
+				'remote_failure_telemetry' => 0,
+			),
+			$current
+		);
+
 		$new_input['enabled'] = isset( $input['enabled'] ) ? absint( $input['enabled'] ) : 0;
 
 		if ( isset( $input['endpoint_url'] ) ) {
-			$new_input['endpoint_url'] = esc_url_raw( trim( $input['endpoint_url'] ) );
+			$new_input['endpoint_url'] = esc_url_raw( trim( (string) $input['endpoint_url'] ) );
 		}
 
 		if ( isset( $input['adapter'] ) ) {
@@ -942,6 +963,8 @@ class Admin {
 		if ( isset( $input['use_network'] ) ) {
 			$new_input['use_network'] = absint( $input['use_network'] );
 		}
+
+		$new_input['remote_failure_telemetry'] = isset( $input['remote_failure_telemetry'] ) ? absint( $input['remote_failure_telemetry'] ) : 0;
 
 		return $new_input;
 	}
@@ -1011,6 +1034,16 @@ class Admin {
 							<input type="number" min="1" max="15" name="clicutcl_server_side_network[timeout]" value="<?php echo esc_attr( $options['timeout'] ?? 5 ); ?>" />
 						</td>
 					</tr>
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Remote Failure Telemetry (Opt-in)', 'click-trail-handler' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox" name="clicutcl_server_side_network[remote_failure_telemetry]" value="1" <?php checked( 1, $options['remote_failure_telemetry'] ?? 0 ); ?> />
+								<?php esc_html_e( 'Enable aggregated remote failure reporting hook', 'click-trail-handler' ); ?>
+							</label>
+							<p class="description"><?php esc_html_e( 'Disabled by default. Sends only aggregated failure counts (no payloads, no PII).', 'click-trail-handler' ); ?></p>
+						</td>
+					</tr>
 				</table>
 				<?php submit_button(); ?>
 			</form>
@@ -1037,53 +1070,27 @@ class Admin {
 	}
 
 	public function diagnostics_page() {
-		global $wpdb;
-
-		$table_name = $wpdb->prefix . 'clicutcl_events';
-		$cache_key  = 'clicutcl_diag_wa_clicks';
-
-		$rows = wp_cache_get( $cache_key, 'clicutcl' );
-		if ( false === $rows ) {
-			$query = $wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-				"SELECT * FROM {$table_name} WHERE event_type = %s ORDER BY created_at DESC LIMIT 20",
-				'wa_click'
-			);
-			$rows = $wpdb->get_results( $query, ARRAY_A ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-			wp_cache_set( $cache_key, $rows, 'clicutcl', 60 );
+		$last_error = get_transient( 'clicutcl_last_error' );
+		if ( ! is_array( $last_error ) ) {
+			$last_error = get_option( 'clicutcl_last_error', array() );
 		}
-
-		$last_error = get_option( 'clicutcl_last_error', array() );
 		$last_error_time = '';
 		if ( isset( $last_error['time'] ) ) {
 			$last_error_time = date_i18n( 'Y-m-d H:i:s', (int) $last_error['time'] );
 		}
 
-		$attempts = get_option( 'clicutcl_attempts', array() );
-		if ( ! is_array( $attempts ) ) {
-			$attempts = array();
+		$dispatches = get_transient( 'clicutcl_dispatch_buffer' );
+		if ( ! is_array( $dispatches ) ) {
+			$dispatches = get_option( 'clicutcl_dispatch_log', array() );
 		}
-
-		$dispatches = get_option( 'clicutcl_dispatch_log', array() );
 		if ( ! is_array( $dispatches ) ) {
 			$dispatches = array();
 		}
+		$failure_telemetry = Dispatcher::get_failure_telemetry();
 
 		$debug_until = get_transient( 'clicutcl_debug_until' );
 		$debug_active = $debug_until && (int) $debug_until > time();
 		$debug_until_str = $debug_active ? date_i18n( 'Y-m-d H:i:s', (int) $debug_until ) : '';
-
-		$sample_payload = array();
-		if ( ! empty( $attempts ) ) {
-			$first = $attempts[0];
-			$sample_payload = array(
-				'event_id'       => $first['event_id'] ?? '',
-				'ts'             => $first['time'] ?? '',
-				'page_path'      => $first['page_path'] ?? '',
-				'wa_target_type' => $first['wa_target_type'] ?? '',
-				'wa_target_path' => $first['wa_target_path'] ?? '',
-			);
-		}
 		?>
 		<div class="wrap">
 			<h1><?php esc_html_e( 'ClickTrail Diagnostics', 'click-trail-handler' ); ?></h1>
@@ -1126,33 +1133,45 @@ class Admin {
 				<span id="clicutcl-debug-status" style="margin-left:10px;"></span>
 			</p>
 
-			<h2><?php esc_html_e( 'Recent Attempts', 'click-trail-handler' ); ?></h2>
+			<h2><?php esc_html_e( 'Failure Telemetry (Always On)', 'click-trail-handler' ); ?></h2>
+			<p class="description">
+				<?php esc_html_e( 'Failure-only aggregated counters. No payload bodies and no PII are stored.', 'click-trail-handler' ); ?>
+			</p>
 			<table class="widefat striped">
 				<thead>
 					<tr>
-						<th><?php esc_html_e( 'Time', 'click-trail-handler' ); ?></th>
-						<th><?php esc_html_e( 'Status', 'click-trail-handler' ); ?></th>
-						<th><?php esc_html_e( 'Reason', 'click-trail-handler' ); ?></th>
-						<th><?php esc_html_e( 'Target', 'click-trail-handler' ); ?></th>
-						<th><?php esc_html_e( 'Page', 'click-trail-handler' ); ?></th>
-						<th><?php esc_html_e( 'Event ID', 'click-trail-handler' ); ?></th>
+						<th><?php esc_html_e( 'Hour Bucket', 'click-trail-handler' ); ?></th>
+						<th><?php esc_html_e( 'Total Failures', 'click-trail-handler' ); ?></th>
+						<th><?php esc_html_e( 'Codes', 'click-trail-handler' ); ?></th>
 					</tr>
 				</thead>
 				<tbody>
-				<?php if ( ! empty( $attempts ) ) : ?>
-					<?php foreach ( $attempts as $attempt ) : ?>
+				<?php if ( ! empty( $failure_telemetry ) ) : ?>
+					<?php foreach ( $failure_telemetry as $bucket_key => $bucket ) : ?>
+						<?php
+						$bucket_start = isset( $bucket['bucket_start'] ) ? absint( $bucket['bucket_start'] ) : 0;
+						if ( ! $bucket_start && preg_match( '/^\d{10}$/', (string) $bucket_key ) ) {
+							$year        = (int) substr( (string) $bucket_key, 0, 4 );
+							$month       = (int) substr( (string) $bucket_key, 4, 2 );
+							$day         = (int) substr( (string) $bucket_key, 6, 2 );
+							$hour        = (int) substr( (string) $bucket_key, 8, 2 );
+							$bucket_start = gmmktime( $hour, 0, 0, $month, $day, $year );
+						}
+						$codes      = isset( $bucket['codes'] ) && is_array( $bucket['codes'] ) ? $bucket['codes'] : array();
+						$code_parts = array();
+						foreach ( $codes as $code => $count ) {
+							$code_parts[] = sanitize_key( (string) $code ) . ': ' . absint( $count );
+						}
+						?>
 						<tr>
-							<td><?php echo esc_html( date_i18n( 'Y-m-d H:i:s', (int) ( $attempt['time'] ?? 0 ) ) ); ?></td>
-							<td><?php echo esc_html( $attempt['status'] ?? '' ); ?></td>
-							<td><?php echo esc_html( $attempt['reason'] ?? '' ); ?></td>
-							<td><?php echo esc_html( ( $attempt['wa_target_type'] ?? '' ) . ( $attempt['wa_target_path'] ?? '' ) ); ?></td>
-							<td><?php echo esc_html( $attempt['page_path'] ?? '' ); ?></td>
-							<td><?php echo esc_html( $attempt['event_id'] ?? '' ); ?></td>
+							<td><?php echo esc_html( $bucket_start ? date_i18n( 'Y-m-d H:00', $bucket_start ) : (string) $bucket_key ); ?></td>
+							<td><?php echo esc_html( (string) absint( $bucket['total'] ?? 0 ) ); ?></td>
+							<td><?php echo esc_html( $code_parts ? implode( ' | ', $code_parts ) : '-' ); ?></td>
 						</tr>
 					<?php endforeach; ?>
 				<?php else : ?>
 					<tr>
-						<td colspan="6"><?php esc_html_e( 'No attempts recorded.', 'click-trail-handler' ); ?></td>
+						<td colspan="3"><?php esc_html_e( 'No failures recorded yet.', 'click-trail-handler' ); ?></td>
 					</tr>
 				<?php endif; ?>
 				</tbody>
@@ -1160,7 +1179,7 @@ class Admin {
 
 			<h2><?php esc_html_e( 'Recent Dispatches', 'click-trail-handler' ); ?></h2>
 			<p class="description">
-				<?php esc_html_e( 'Successful dispatches are recorded while Debug Logging is enabled. Failures are always recorded.', 'click-trail-handler' ); ?>
+				<?php esc_html_e( 'Dispatch entries are captured only while Debug Logging is enabled.', 'click-trail-handler' ); ?>
 			</p>
 			<table class="widefat striped">
 				<thead>
@@ -1192,59 +1211,6 @@ class Admin {
 				<?php else : ?>
 					<tr>
 						<td colspan="8"><?php esc_html_e( 'No dispatches recorded yet.', 'click-trail-handler' ); ?></td>
-					</tr>
-				<?php endif; ?>
-				</tbody>
-			</table>
-
-			<h2><?php esc_html_e( 'Sanitized Payload Sample', 'click-trail-handler' ); ?></h2>
-			<?php if ( ! empty( $sample_payload ) ) : ?>
-				<p>
-					<button class="button" id="clicutcl-copy-payload"><?php esc_html_e( 'Copy Sample', 'click-trail-handler' ); ?></button>
-					<span id="clicutcl-copy-payload-status" style="margin-left:10px;"></span>
-				</p>
-				<pre id="clicutcl-payload-sample" style="max-width:900px;white-space:pre-wrap;"><?php echo esc_html( wp_json_encode( $sample_payload, JSON_PRETTY_PRINT ) ); ?></pre>
-			<?php else : ?>
-				<p><?php esc_html_e( 'No sample available yet.', 'click-trail-handler' ); ?></p>
-			<?php endif; ?>
-
-			<h2><?php esc_html_e( 'Recent WhatsApp Clicks', 'click-trail-handler' ); ?></h2>
-			<table class="widefat striped">
-				<thead>
-					<tr>
-						<th><?php esc_html_e( 'Date', 'click-trail-handler' ); ?></th>
-						<th><?php esc_html_e( 'Target', 'click-trail-handler' ); ?></th>
-						<th><?php esc_html_e( 'Page Path', 'click-trail-handler' ); ?></th>
-						<th><?php esc_html_e( 'Attribution', 'click-trail-handler' ); ?></th>
-					</tr>
-				</thead>
-				<tbody>
-				<?php if ( ! empty( $rows ) ) : ?>
-					<?php foreach ( $rows as $row ) : ?>
-						<?php
-						$data = json_decode( $row['event_data'], true );
-						$wa_target_type = isset( $data['wa_target_type'] ) ? $data['wa_target_type'] : '';
-						$wa_target_path = isset( $data['wa_target_path'] ) ? $data['wa_target_path'] : '';
-						$page_path = isset( $data['page_path'] ) ? $data['page_path'] : '';
-						$attr = isset( $data['attribution'] ) && is_array( $data['attribution'] ) ? $data['attribution'] : array();
-						$attr_keys = array( 'ft_source', 'ft_medium', 'ft_campaign', 'lt_source', 'lt_medium', 'lt_campaign', 'gclid', 'fbclid', 'msclkid', 'ttclid' );
-						$attr_parts = array();
-						foreach ( $attr_keys as $key ) {
-							if ( ! empty( $attr[ $key ] ) ) {
-								$attr_parts[] = $key . ': ' . $attr[ $key ];
-							}
-						}
-						?>
-						<tr>
-							<td><?php echo esc_html( $row['created_at'] ); ?></td>
-							<td><?php echo esc_html( $wa_target_type . $wa_target_path ); ?></td>
-							<td><?php echo esc_html( $page_path ); ?></td>
-							<td><?php echo esc_html( $attr_parts ? implode( ' | ', $attr_parts ) : '-' ); ?></td>
-						</tr>
-					<?php endforeach; ?>
-				<?php else : ?>
-					<tr>
-						<td colspan="4"><?php esc_html_e( 'No WhatsApp clicks found.', 'click-trail-handler' ); ?></td>
 					</tr>
 				<?php endif; ?>
 				</tbody>

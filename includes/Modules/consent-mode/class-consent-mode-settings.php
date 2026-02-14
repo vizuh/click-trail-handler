@@ -48,20 +48,43 @@ class Consent_Mode_Settings extends Setting {
 	protected function get_sanitize_callback() {
 		return function ( $value ) {
 			$new_value = $this->get();
+			$value     = is_array( $value ) ? wp_unslash( $value ) : array();
 
 			if ( isset( $value['enabled'] ) ) {
 				$new_value['enabled'] = (bool) $value['enabled'];
 			}
 
-			if ( ! empty( $value['regions'] ) && is_array( $value['regions'] ) ) {
+			$raw_regions = array();
+			if ( isset( $value['regions'] ) ) {
+				if ( is_array( $value['regions'] ) ) {
+					$raw_regions = $value['regions'];
+				} else {
+					$raw_regions = preg_split( '/[\s,]+/', (string) $value['regions'] );
+				}
+			}
+
+			if ( ! empty( $raw_regions ) && is_array( $raw_regions ) ) {
 				$region_codes = array_reduce(
-					$value['regions'],
+					$raw_regions,
 					static function ( $regions, $region_code ) {
-						$region_code = strtoupper( $region_code );
-						// Match ISO 3166-2 (`AB` or `CD-EF`).
-						if ( ! preg_match( '#^[A-Z]{2}(-[A-Z]{2})?$#', $region_code ) ) {
+						$region_code = strtoupper( trim( (string) $region_code ) );
+						if ( '' === $region_code ) {
 							return $regions;
 						}
+
+						$aliases = array(
+							'EU' => 'EEA',
+							'GB' => 'UK',
+						);
+						if ( isset( $aliases[ $region_code ] ) ) {
+							$region_code = $aliases[ $region_code ];
+						}
+
+						// Accept broad region labels plus ISO country/state-like tokens.
+						if ( ! preg_match( '#^(EEA|UK|US|US-[A-Z]{2}|[A-Z]{2}(-[A-Z]{2})?)$#', $region_code ) ) {
+							return $regions;
+						}
+
 						// Store as keys to remove duplicates.
 						$regions[ $region_code ] = true;
 						return $regions;

@@ -17,6 +17,26 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Installer {
 
 	/**
+	 * Events table readiness option key.
+	 */
+	private const EVENTS_READY_OPTION = 'clicutcl_events_table_ready';
+
+	/**
+	 * Events table readiness checked timestamp option key.
+	 */
+	private const EVENTS_READY_CHECKED_AT_OPTION = 'clicutcl_events_table_checked_at';
+
+	/**
+	 * Queue table readiness option key.
+	 */
+	private const QUEUE_READY_OPTION = 'clicutcl_queue_table_ready';
+
+	/**
+	 * Queue table readiness checked timestamp option key.
+	 */
+	private const QUEUE_READY_CHECKED_AT_OPTION = 'clicutcl_queue_table_checked_at';
+
+	/**
 	 * Run the installer.
 	 */
 	public static function run() {
@@ -61,5 +81,31 @@ class Installer {
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 		dbDelta( $queue_sql );
+
+		$events_ready = self::table_exists( $table_name );
+		$queue_ready  = self::table_exists( $queue_table );
+		$checked_at   = time();
+
+		update_option( self::EVENTS_READY_OPTION, $events_ready ? 1 : 0, false );
+		update_option( self::EVENTS_READY_CHECKED_AT_OPTION, $checked_at, false );
+		update_option( self::QUEUE_READY_OPTION, $queue_ready ? 1 : 0, false );
+		update_option( self::QUEUE_READY_CHECKED_AT_OPTION, $checked_at, false );
+
+		// Backward-compatible aggregate readiness flags.
+		update_option( 'clicutcl_db_ready', ( $events_ready && $queue_ready ) ? 1 : 0, false );
+		update_option( 'clicutcl_db_ready_checked_at', $checked_at, false );
+	}
+
+	/**
+	 * Fast table existence check.
+	 *
+	 * @param string $table_name Table name.
+	 * @return bool
+	 */
+	private static function table_exists( $table_name ) {
+		global $wpdb;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$found = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) );
+		return is_string( $found ) && $found === $table_name;
 	}
 }

@@ -31,6 +31,23 @@ class Queue {
 	const MAX_ATTEMPTS = 5;
 
 	/**
+	 * DB readiness option key.
+	 */
+	private const DB_READY_OPTION = 'clicutcl_queue_table_ready';
+
+	/**
+	 * DB readiness checked timestamp option key.
+	 */
+	private const DB_READY_CHECKED_AT_OPTION = 'clicutcl_queue_table_checked_at';
+
+	/**
+	 * In-request memoized table readiness.
+	 *
+	 * @var bool|null
+	 */
+	private static $table_exists_mem = null;
+
+	/**
 	 * Register hooks.
 	 *
 	 * @return void
@@ -235,10 +252,12 @@ class Queue {
 		global $wpdb;
 
 		$attempts = isset( $row['attempts'] ) ? absint( $row['attempts'] ) + 1 : 1;
+		Dispatcher::record_failure( 'queue_retry_failed' );
 
 		if ( $attempts >= self::MAX_ATTEMPTS ) {
 			self::delete_row( (int) $row['id'] );
 			Dispatcher::record_last_error( 'queue_failed', $message );
+			Dispatcher::record_failure( 'queue_dropped' );
 			return;
 		}
 
@@ -279,11 +298,60 @@ class Queue {
 	 * @return bool
 	 */
 	private static function table_exists() {
+		if ( null !== self::$table_exists_mem ) {
+			return self::$table_exists_mem;
+		}
+
+		$stored = get_option( self::DB_READY_OPTION, null );
+		if ( null === $stored ) {
+			$stored = get_option( 'clicutcl_db_ready', null );
+		}
+		$now    = time();
+
+		if ( null === $stored ) {
+			$ready = self::table_exists_fast();
+			self::persist_db_ready( $ready, $now );
+			self::$table_exists_mem = $ready;
+			return $ready;
+		}
+
+		$ready      = (int) $stored === 1;
+		$checked_at = (int) get_option( self::DB_READY_CHECKED_AT_OPTION, 0 );
+		if ( ! $checked_at ) {
+			$checked_at = (int) get_option( 'clicutcl_db_ready_checked_at', 0 );
+		}
+		if ( ( $now - $checked_at ) > DAY_IN_SECONDS ) {
+			$ready = self::table_exists_fast();
+			self::persist_db_ready( $ready, $now );
+		}
+
+		self::$table_exists_mem = $ready;
+		return $ready;
+	}
+
+	/**
+	 * Fast queue table existence check.
+	 *
+	 * @return bool
+	 */
+	private static function table_exists_fast() {
 		global $wpdb;
 
 		$table_name = self::get_table_name();
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		return $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) === $table_name;
+	}
+
+	/**
+	 * Persist DB readiness flags.
+	 *
+	 * @param bool $ready DB readiness.
+	 * @param int  $checked_at Checked timestamp.
+	 * @return void
+	 */
+	private static function persist_db_ready( $ready, $checked_at ) {
+		update_option( self::DB_READY_OPTION, $ready ? 1 : 0, false );
+		update_option( self::DB_READY_CHECKED_AT_OPTION, absint( $checked_at ), false );
 	}
 
 	/**
@@ -297,6 +365,7 @@ class Queue {
 		}
 
 		\CLICUTCL\Database\Installer::run();
+		self::$table_exists_mem = null;
 	}
 
 	/**

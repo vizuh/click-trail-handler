@@ -88,7 +88,8 @@ class Attribution_Settings {
 	 * @return bool
 	 */
 	public function log_whatsapp_clicks() {
-		return isset( $this->settings['whatsapp_log_clicks'] ) ? (bool) $this->settings['whatsapp_log_clicks'] : false;
+		// WA click persistence was removed; keep method for backward compatibility.
+		return false;
 	}
 
 	/**

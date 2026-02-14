@@ -6,6 +6,22 @@
         cookieDays: 90,
         requireConsent: true
     };
+    const DEBUG_ENABLED = !!CONFIG.debug;
+    const CLICK_ID_KEYS = ['gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid'];
+
+    function pickClickId(raw, key) {
+        if (!raw || typeof raw !== 'object') return '';
+        return raw[key] || raw[`lt_${key}`] || raw[`ft_${key}`] || '';
+    }
+
+    function withCanonicalClickIds(raw) {
+        const out = Object.assign({}, raw || {});
+        CLICK_ID_KEYS.forEach((key) => {
+            const value = pickClickId(raw, key);
+            if (value && !out[key]) out[key] = String(value);
+        });
+        return out;
+    }
 
     // --- 1. STORE & UTILS ---
     const Store = {
@@ -80,15 +96,16 @@
         },
 
         buildToken: function (data) {
+            const normalized = withCanonicalClickIds(data || {});
             const allow = [
                 'ft_source', 'ft_medium', 'ft_campaign',
                 'lt_source', 'lt_medium', 'lt_campaign',
-                'gclid', 'fbclid', 'msclkid', 'ttclid'
+                'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid'
             ];
             const out = {};
             allow.forEach((k) => {
-                if (data && data[k]) {
-                    const v = String(data[k]);
+                if (normalized && normalized[k]) {
+                    const v = String(normalized[k]);
                     out[k] = v.length > 128 ? v.slice(0, 128) : v;
                 }
             });
@@ -326,7 +343,7 @@
 
             const keys = [
                 "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content",
-                "gclid", "fbclid", "msclkid", "ttclid"
+                "gclid", "fbclid", "msclkid", "ttclid", "wbraid", "gbraid"
             ];
 
             let changed = false;
@@ -335,7 +352,7 @@
                 if (!val) val = data[k]; // Try direct (if stored)
 
                 // For Click IDs, they are just ids
-                if (['gclid', 'fbclid', 'msclkid', 'ttclid'].includes(k)) {
+                if (['gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid'].includes(k)) {
                     val = data[k] || data['lt_' + k] || data['ft_' + k];
                 }
 
@@ -385,7 +402,9 @@
         constructor() {
             // Anti-Bot Protection
             if (BotDetector.isBot()) {
-                console.log("ClickTrail: Bot detected, attribution paused.");
+                if (DEBUG_ENABLED) {
+                    console.log('[ClickTrail] Bot detected, attribution paused.');
+                }
                 return;
             }
             this.init();
@@ -492,7 +511,7 @@
         }
 
         checkSignal(params, referrer) {
-            const keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid', 'msclkid', 'ttclid'];
+            const keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid'];
             if (keys.some(k => params[k])) return true;
 
             // Check referrer (if external)
@@ -502,7 +521,17 @@
         }
 
         hasFirstTouch(data) {
-            return !!(data && (data.ft_source || data.ft_medium || data.ft_campaign || data.ft_gclid));
+            return !!(data && (
+                data.ft_source ||
+                data.ft_medium ||
+                data.ft_campaign ||
+                data.ft_gclid ||
+                data.ft_fbclid ||
+                data.ft_msclkid ||
+                data.ft_ttclid ||
+                data.ft_wbraid ||
+                data.ft_gbraid
+            ));
         }
 
         applyTouch(prefix, data, fields, timestamp) {
@@ -529,7 +558,9 @@
                 gclid: params.gclid,
                 fbclid: params.fbclid,
                 msclkid: params.msclkid,
-                ttclid: params.ttclid
+                ttclid: params.ttclid,
+                wbraid: params.wbraid,
+                gbraid: params.gbraid
             };
 
             // Referrer logic
@@ -571,36 +602,15 @@
                 }
             }
 
-            const logClicks = CONFIG.whatsappLogClicks === true || CONFIG.whatsappLogClicks === '1';
             const appendAttr = CONFIG.whatsappAppendAttribution === true || CONFIG.whatsappAppendAttribution === '1';
             const allowedHosts = ['wa.me', 'whatsapp.com', 'api.whatsapp.com', 'web.whatsapp.com'];
 
-            const sendLog = async (payload) => {
-                if (!CONFIG.publicLogUrl) return;
-
-                const body = JSON.stringify(payload);
-                if (navigator.sendBeacon) {
-                    const blob = new Blob([body], { type: 'application/json' });
-                    navigator.sendBeacon(CONFIG.publicLogUrl, blob);
-                    return;
-                }
-
-                try {
-                    await fetch(CONFIG.publicLogUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body,
-                        keepalive: true
-                    });
-                } catch (e) { }
-            };
-
             const getSafeAttribution = () => {
-                const raw = Store.getData() || {};
+                const raw = withCanonicalClickIds(Store.getData() || {});
                 const allowed = [
                     'ft_source', 'ft_medium', 'ft_campaign',
                     'lt_source', 'lt_medium', 'lt_campaign',
-                    'gclid', 'fbclid', 'msclkid', 'ttclid'
+                    'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid'
                 ];
                 const out = {};
                 allowed.forEach((key) => {
@@ -621,7 +631,7 @@
                 };
             };
 
-            const shouldLog = (key) => {
+            const shouldEmit = (key) => {
                 try {
                     const last = sessionStorage.getItem('ct_wa_last');
                     if (last) {
@@ -663,26 +673,19 @@
                     }
                 }
 
-                if (logClicks) {
-                    const eventId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('ct_' + Math.random().toString(36).slice(2));
-                    const ts = Math.floor(Date.now() / 1000);
-                    const target = normalizeTarget(url);
-                    const pagePath = window.location.pathname || '/';
-                    const dedupeKey = target.type + '|' + target.path;
+                const target = normalizeTarget(url);
+                const dedupeKey = target.type + '|' + target.path;
 
-                    if (!shouldLog(dedupeKey)) return;
+                if (!shouldEmit(dedupeKey)) return;
 
-                    const payload = {
-                        event: 'wa_click',
-                        event_id: eventId,
-                        ts: ts,
-                        page_path: pagePath,
-                        wa_target_type: target.type,
-                        wa_target_path: target.path,
-                        attribution: getSafeAttribution()
-                    };
-                    sendLog(payload);
-                }
+                window.dataLayer = window.dataLayer || [];
+                window.dataLayer.push({
+                    event: 'wa_click',
+                    page_path: window.location.pathname || '/',
+                    wa_target_type: target.type,
+                    wa_target_path: target.path,
+                    attribution: getSafeAttribution()
+                });
             };
 
             document.addEventListener('click', handler, true);
