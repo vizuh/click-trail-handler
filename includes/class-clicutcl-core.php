@@ -320,8 +320,4 @@ class CLICUTCL_Core {
 		// but for now we just rely on the constructor adding hooks.
 	}
 
-	/**
-	 * AJAX handler for logging WhatsApp clicks
-	 */
-
 }

@@ -20,7 +20,7 @@ class Auth {
 	/**
 	 * Default token TTL in seconds.
 	 */
-	private const TOKEN_TTL = 43200;
+	private const TOKEN_TTL = 7 * DAY_IN_SECONDS;
 
 	/**
 	 * Mint short-lived client token for same-site event intake.
@@ -157,6 +157,28 @@ class Auth {
 		// Accept both directions for subdomain/root host sharing.
 		if ( str_ends_with( $token_host, '.' . $current_host ) || str_ends_with( $current_host, '.' . $token_host ) ) {
 			return true;
+		}
+
+		$allowed_hosts = apply_filters( 'clicutcl_v2_allowed_token_hosts', array(), $current_host );
+		if ( class_exists( 'CLICUTCL\\Tracking\\Settings' ) ) {
+			$settings_allowed = Settings::get()['security']['allowed_token_hosts'] ?? array();
+			if ( is_array( $settings_allowed ) ) {
+				$allowed_hosts = array_merge( $settings_allowed, is_array( $allowed_hosts ) ? $allowed_hosts : array() );
+			}
+		}
+		if ( is_string( $allowed_hosts ) ) {
+			$allowed_hosts = preg_split( '/[\r\n,\s]+/', $allowed_hosts );
+		}
+		if ( is_array( $allowed_hosts ) ) {
+			foreach ( $allowed_hosts as $host ) {
+				$host = strtolower( trim( sanitize_text_field( (string) $host ) ) );
+				if ( '' === $host ) {
+					continue;
+				}
+				if ( $token_host === $host ) {
+					return true;
+				}
+			}
 		}
 
 		return false;

@@ -659,67 +659,9 @@
             }
 
             const appendAttr = CONFIG.whatsappAppendAttribution === true || CONFIG.whatsappAppendAttribution === '1';
+            if (!appendAttr) return;
+
             const allowedHosts = ['wa.me', 'whatsapp.com', 'api.whatsapp.com', 'web.whatsapp.com'];
-
-            const sendBatch = (eventPayload) => {
-                if (!CONFIG.eventsBatchUrl || !CONFIG.eventsToken) return;
-
-                fetch(CONFIG.eventsBatchUrl, {
-                    method: 'POST',
-                    credentials: 'same-origin',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Clicutcl-Token': CONFIG.eventsToken
-                    },
-                    body: JSON.stringify({
-                        token: CONFIG.eventsToken,
-                        events: [eventPayload]
-                    }),
-                    keepalive: true
-                }).catch(() => { });
-            };
-
-            const getSafeAttribution = () => {
-                const raw = withCanonicalClickIds(Store.getData() || {});
-                const allowed = [
-                    'ft_source', 'ft_medium', 'ft_campaign',
-                    'lt_source', 'lt_medium', 'lt_campaign',
-                    'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid'
-                ];
-                const out = {};
-                allowed.forEach((key) => {
-                    if (raw[key]) {
-                        const val = String(raw[key]);
-                        out[key] = val.length > 128 ? val.slice(0, 128) : val;
-                    }
-                });
-                return out;
-            };
-
-            const normalizeTarget = (url) => {
-                const host = url.hostname;
-                const path = (url.pathname || '/').replace(/\d+/g, 'redacted');
-                return {
-                    type: host,
-                    path: path.startsWith('/') ? path : '/' + path
-                };
-            };
-
-            const shouldEmit = (key) => {
-                try {
-                    const last = sessionStorage.getItem('ct_wa_last');
-                    if (last) {
-                        const parts = last.split('|');
-                        const lastTs = parseInt(parts[0], 10) || 0;
-                        const lastKey = parts[1] || '';
-                        if (lastKey === key && (Date.now() - lastTs) < 1500) {
-                            return false;
-                        }
-                    }
-                    sessionStorage.setItem('ct_wa_last', String(Date.now()) + '|' + key);
-                } catch (e) { }
-                return true;
-            };
 
             const handler = (evt) => {
                 const a = evt.target.closest('a');
@@ -746,49 +688,6 @@
                         a.href = url.toString();
                     }
                 }
-
-                const target = normalizeTarget(url);
-                const dedupeKey = target.type + '|' + target.path;
-
-                if (!shouldEmit(dedupeKey)) return;
-
-                const identity = Identity.get();
-                const eventId = Identity.eventId('wa');
-                window.dataLayer = window.dataLayer || [];
-                window.dataLayer.push({
-                    event: 'wa_click',
-                    event_id: eventId,
-                    session_id: identity.session_id,
-                    visitor_id: identity.visitor_id,
-                    page_path: window.location.pathname || '/',
-                    wa_target_type: target.type,
-                    wa_target_path: target.path,
-                    attribution: getSafeAttribution()
-                });
-
-                sendBatch({
-                    event_name: 'contact_whatsapp_start',
-                    event_id: eventId,
-                    event_time: Math.floor(Date.now() / 1000),
-                    funnel_stage: 'mid',
-                    session_id: identity.session_id,
-                    source_channel: 'web',
-                    page_context: {
-                        path: window.location.pathname || '/',
-                        title: document.title || ''
-                    },
-                    attribution: getSafeAttribution(),
-                    consent: this.getConsent() || {},
-                    lead_context: {
-                        provider: 'whatsapp',
-                        submit_status: 'captured',
-                        target_type: target.type,
-                        target_path: target.path
-                    },
-                    meta: {
-                        schema_version: 2
-                    }
-                });
             };
 
             document.addEventListener('click', handler, true);

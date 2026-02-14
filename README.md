@@ -75,10 +75,10 @@ Captures click IDs from all major advertising platforms:
 - **GA4 Purchase Events**: Enriched, GA4-ready purchase events with campaign data and line items
 - **Duplicate Prevention**: Prevents duplicate events on page refresh
 
-#### 💬 **WhatsApp Tracking**
-- Automatically tracks clicks on WhatsApp links (`wa.me`, `whatsapp.com`, `api.whatsapp.com`)
-- Pushes `wa_click` events to dataLayer with full attribution details
-- Perfect for GTM integration
+#### 💬 **WhatsApp Support**
+- Supports attribution append on WhatsApp links (`wa.me`, `whatsapp.com`, `api.whatsapp.com`)
+- Keeps messaging attribution continuity without click-event logging
+- Works with optional encoded context in prefilled messages
 
 ### 🚀 Installation
 
@@ -175,10 +175,10 @@ Captura click IDs de todas as principais plataformas de publicidade:
 - **Eventos de Compra GA4**: Eventos de compra enriquecidos e prontos para GA4 com dados de campanha e itens de linha
 - **Prevenção de Duplicatas**: Previne eventos duplicados ao atualizar a página
 
-#### 💬 **Rastreamento WhatsApp**
-- Rastreia automaticamente cliques em links do WhatsApp (`wa.me`, `whatsapp.com`, `api.whatsapp.com`)
-- Envia eventos `wa_click` para dataLayer com detalhes completos de atribuição
-- Perfeito para integração com GTM
+#### 💬 **Suporte ao WhatsApp**
+- Suporta anexar contexto de atribuição em links do WhatsApp (`wa.me`, `whatsapp.com`, `api.whatsapp.com`)
+- Mantém continuidade de atribuição sem registrar eventos de clique
+- Funciona com contexto codificado em mensagens pré-preenchidas
 
 ### 🚀 Installation
 
@@ -270,10 +270,10 @@ Captura click IDs de todas as principais plataformas de publicidade:
 - **Eventos de Compra GA4**: Eventos de compra enriquecidos e prontos para GA4 com dados de campanha e itens de linha
 - **Prevenção de Duplicatas**: Previne eventos duplicados ao atualizar a página
 
-#### 💬 **Rastreamento WhatsApp**
-- Rastreia automaticamente cliques em links do WhatsApp (`wa.me`, `whatsapp.com`, `api.whatsapp.com`)
-- Envia eventos `wa_click` para dataLayer com detalhes completos de atribuição
-- Perfeito para integração com GTM
+#### 💬 **Suporte ao WhatsApp**
+- Suporta anexar contexto de atribuição em links do WhatsApp (`wa.me`, `whatsapp.com`, `api.whatsapp.com`)
+- Mantém continuidade de atribuição sem registrar eventos de clique
+- Funciona com contexto codificado em mensagens pré-preenchidas
 
 ### 🚀 Instalação
 

@@ -51,6 +51,8 @@ class Admin {
 		add_action( 'wp_ajax_clicutcl_log_pii_risk', array( $this, 'ajax_log_pii_risk' ) );
 		add_action( 'wp_ajax_clicutcl_test_endpoint', array( $this, 'ajax_test_endpoint' ) );
 		add_action( 'wp_ajax_clicutcl_toggle_debug', array( $this, 'ajax_toggle_debug' ) );
+		add_action( 'wp_ajax_clicutcl_get_tracking_v2_settings', array( $this, 'ajax_get_tracking_v2_settings' ) );
+		add_action( 'wp_ajax_clicutcl_save_tracking_v2_settings', array( $this, 'ajax_save_tracking_v2_settings' ) );
 
 		if ( is_multisite() ) {
 			add_action( 'network_admin_menu', array( $this, 'network_admin_menu' ) );
@@ -213,6 +215,36 @@ class Admin {
 				)
 			);
 		}
+
+		// Tracking v2 screen (Gutenberg-native UI).
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only routing context.
+		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only routing context.
+		$tab  = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : '';
+		if ( 'clicutcl-settings' === $page && 'trackingv2' === $tab && current_user_can( 'manage_options' ) ) {
+			wp_register_script(
+				'clicutcl-admin-tracking-v2',
+				CLICUTCL_URL . 'assets/js/admin-tracking-v2.js',
+				array( 'wp-element', 'wp-components', 'wp-i18n' ),
+				CLICUTCL_VERSION,
+				\clicutcl_script_args( true, 'defer' )
+			);
+			wp_enqueue_script( 'clicutcl-admin-tracking-v2' );
+
+			$settings = class_exists( 'CLICUTCL\\Tracking\\Settings' )
+				? \CLICUTCL\Tracking\Settings::get()
+				: array();
+
+			wp_localize_script(
+				'clicutcl-admin-tracking-v2',
+				'clicutclTrackingV2Config',
+				array(
+					'ajaxUrl'   => admin_url( 'admin-ajax.php' ),
+					'nonce'     => wp_create_nonce( 'clicutcl_tracking_v2' ),
+					'settings'  => $settings,
+				)
+			);
+		}
 	}
 
 	/**
@@ -221,6 +253,7 @@ class Admin {
 	public function register_settings() {
 		// 1. Attribution Settings (General & WhatsApp)
 		register_setting( 'clicutcl_attribution_settings', 'clicutcl_attribution_settings', array( $this, 'sanitize_settings' ) );
+		register_setting( 'clicutcl_tracking_v2', 'clicutcl_tracking_v2', array( 'CLICUTCL\\Tracking\\Settings', 'sanitize' ) );
 
 		// General Section
 		add_settings_section(
@@ -569,9 +602,6 @@ class Admin {
 
 	/**
 	 * Render settings page with tabs.
-
-	/**
-	 * Render settings page with tabs.
 	 */
 	public function render_settings_page() {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page navigation does not require nonce.
@@ -601,30 +631,38 @@ class Admin {
 					<span class="dashicons dashicons-cloud"></span>
 					<?php esc_html_e( 'Server-side', 'click-trail-handler' ); ?>
 				</a>
+				<a href="?page=clicutcl-settings&tab=trackingv2" class="nav-tab <?php echo esc_attr( 'trackingv2' === $active_tab ? 'nav-tab-active' : '' ); ?>">
+					<span class="dashicons dashicons-admin-tools"></span>
+					<?php esc_html_e( 'Tracking v2', 'click-trail-handler' ); ?>
+				</a>
 			</h2>
 
-			<form action="options.php" method="post">
-				<?php
-				if ( $active_tab == 'general' ) {
-					settings_fields( 'clicutcl_attribution_settings' );
-					do_settings_sections( 'clicutcl_general_tab' );
-				} elseif ( $active_tab == 'whatsapp' ) {
-					settings_fields( 'clicutcl_attribution_settings' );
-					do_settings_sections( 'clicutcl_whatsapp_tab' );
-				} elseif ( $active_tab == 'consent' ) {
-					settings_fields( 'clicutcl_consent_mode' );
-					do_settings_sections( 'clicutcl_consent_mode' );
-				} elseif ( $active_tab == 'gtm' ) {
-					settings_fields( 'clicutcl_gtm' );
-					do_settings_sections( 'clicutcl_gtm' );
-				} elseif ( $active_tab == 'server' ) {
-					settings_fields( 'clicutcl_server_side' );
-					do_settings_sections( 'clicutcl_server_side_tab' );
-				}
-				
-				submit_button();
-				?>
-			</form>
+			<?php if ( 'trackingv2' === $active_tab ) : ?>
+				<div id="clicutcl-tracking-v2-root"></div>
+			<?php else : ?>
+				<form action="options.php" method="post">
+					<?php
+					if ( $active_tab == 'general' ) {
+						settings_fields( 'clicutcl_attribution_settings' );
+						do_settings_sections( 'clicutcl_general_tab' );
+					} elseif ( $active_tab == 'whatsapp' ) {
+						settings_fields( 'clicutcl_attribution_settings' );
+						do_settings_sections( 'clicutcl_whatsapp_tab' );
+					} elseif ( $active_tab == 'consent' ) {
+						settings_fields( 'clicutcl_consent_mode' );
+						do_settings_sections( 'clicutcl_consent_mode' );
+					} elseif ( $active_tab == 'gtm' ) {
+						settings_fields( 'clicutcl_gtm' );
+						do_settings_sections( 'clicutcl_gtm' );
+					} elseif ( $active_tab == 'server' ) {
+						settings_fields( 'clicutcl_server_side' );
+						do_settings_sections( 'clicutcl_server_side_tab' );
+					}
+					
+					submit_button();
+					?>
+				</form>
+			<?php endif; ?>
 		</div>
 		<?php
 	}
@@ -1271,6 +1309,65 @@ class Admin {
 		$until = time() + ( 15 * MINUTE_IN_SECONDS );
 		set_transient( 'clicutcl_debug_until', $until, 15 * MINUTE_IN_SECONDS );
 		wp_send_json_success( array( 'message' => __( 'Debug enabled for 15 minutes.', 'click-trail-handler' ) ) );
+	}
+
+	/**
+	 * Return tracking v2 settings via AJAX.
+	 *
+	 * @return void
+	 */
+	public function ajax_get_tracking_v2_settings() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => 'forbidden' ), 403 );
+		}
+		check_ajax_referer( 'clicutcl_tracking_v2', 'nonce' );
+
+		if ( ! class_exists( 'CLICUTCL\\Tracking\\Settings' ) ) {
+			wp_send_json_error( array( 'message' => 'tracking_settings_class_missing' ), 500 );
+		}
+
+		wp_send_json_success(
+			array(
+				'settings' => \CLICUTCL\Tracking\Settings::get(),
+			)
+		);
+	}
+
+	/**
+	 * Save tracking v2 settings via AJAX.
+	 *
+	 * @return void
+	 */
+	public function ajax_save_tracking_v2_settings() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => 'forbidden' ), 403 );
+		}
+		check_ajax_referer( 'clicutcl_tracking_v2', 'nonce' );
+
+		if ( ! class_exists( 'CLICUTCL\\Tracking\\Settings' ) ) {
+			wp_send_json_error( array( 'message' => 'tracking_settings_class_missing' ), 500 );
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above.
+		$raw = isset( $_POST['settings'] ) ? wp_unslash( $_POST['settings'] ) : '';
+		if ( is_string( $raw ) ) {
+			$decoded = json_decode( $raw, true );
+			$raw     = is_array( $decoded ) ? $decoded : array();
+		}
+
+		if ( ! is_array( $raw ) ) {
+			$raw = array();
+		}
+
+		$clean = \CLICUTCL\Tracking\Settings::sanitize( $raw );
+		update_option( \CLICUTCL\Tracking\Settings::OPTION, $clean, false );
+
+		wp_send_json_success(
+			array(
+				'message'  => __( 'Tracking v2 settings saved.', 'click-trail-handler' ),
+				'settings' => $clean,
+			)
+		);
 	}
 
 	public function logs_page() {
