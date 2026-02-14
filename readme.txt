@@ -51,14 +51,14 @@ Without this type of persistence, that purchase often shows up as “Direct” o
 = GA4 & Analytics Integrations =
 
 * GA4-ready purchase event with campaign data and line items.
-* dataLayer events for WooCommerce, WhatsApp (wa_click), and engagement tracking (client/server-side).
+* dataLayer events for WooCommerce and engagement tracking (client/server-side).
 * Manual Google Tag Manager container ID injection for sites without a theme-level GTM snippet.
 
 = Supported Platforms =
 
 * **Forms**: Contact Form 7 (hidden fields auto-populated), Fluent Forms, and Gravity Forms scaffolding for dynamic population.
 * **Commerce**: WooCommerce attribution metadata, session count, and admin UI enhancements.
-* **Messaging**: WhatsApp click detection for wa.me, whatsapp.com, and api.whatsapp.com links.
+* **Messaging**: Optional attribution append for WhatsApp links (`wa.me`, `whatsapp.com`, `api.whatsapp.com`) without click logging.
 
 = References (optional, for credibility) =
 
@@ -98,9 +98,9 @@ The plugin captures gclid, wbraid, gbraid (Google Ads), fbclid (Facebook), ttcli
 
 If you enable **Require Consent for Tracking**, ClickTrail will defer storing attribution until the visitor accepts. Strict, Relaxed, and Geo-based presets control whether tracking is granted or denied by default.
 
-= How does WhatsApp click tracking work? =
+= How does WhatsApp support work? =
 
-Clicks on `wa.me`, `whatsapp.com`, and `api.whatsapp.com` links trigger a `wa_click` dataLayer event with full UTM and click ID context so you can build GTM tags to measure WhatsApp conversions.
+When enabled, ClickTrail can append encoded attribution context to WhatsApp message links. It no longer logs WhatsApp click events by default.
 
 = How do I enable GA4 purchase events? =
 

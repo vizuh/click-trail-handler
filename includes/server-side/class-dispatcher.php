@@ -376,7 +376,8 @@ class Dispatcher {
 		$deltas = self::$failure_deltas;
 		self::$failure_deltas = array();
 
-		$flush_interval = (int) apply_filters( 'clicutcl_failure_telemetry_flush_interval', 10 );
+		$flush_interval_default = self::get_tracking_diagnostics_value( 'failure_flush_interval', 10 );
+		$flush_interval = (int) apply_filters( 'clicutcl_failure_telemetry_flush_interval', $flush_interval_default );
 		$flush_interval = max( 0, $flush_interval );
 
 		if ( $flush_interval > 0 && get_transient( self::FAILURE_TELEMETRY_FLUSH_LOCK ) ) {
@@ -416,7 +417,8 @@ class Dispatcher {
 		$telemetry[ $bucket_key ]['updated_at'] = time();
 
 		krsort( $telemetry, SORT_STRING );
-		$bucket_limit = (int) apply_filters( 'clicutcl_failure_telemetry_bucket_limit', 72 );
+		$bucket_limit_default = self::get_tracking_diagnostics_value( 'failure_bucket_retention', 72 );
+		$bucket_limit = (int) apply_filters( 'clicutcl_failure_telemetry_bucket_limit', $bucket_limit_default );
 		$bucket_limit = max( 1, min( 720, $bucket_limit ) );
 		$telemetry    = array_slice( $telemetry, 0, $bucket_limit, true );
 
@@ -536,7 +538,8 @@ class Dispatcher {
 			$dispatches = is_array( $legacy ) ? $legacy : array();
 		}
 
-		$max = (int) apply_filters( 'clicutcl_diag_dispatch_buffer_size', 20 );
+		$max_default = self::get_tracking_diagnostics_value( 'dispatch_buffer_size', 20 );
+		$max = (int) apply_filters( 'clicutcl_diag_dispatch_buffer_size', $max_default );
 		$max = max( 1, min( 200, $max ) );
 
 		array_unshift( $dispatches, $entry );
@@ -594,6 +597,33 @@ class Dispatcher {
 	private static function is_remote_failure_telemetry_enabled() {
 		$options = Settings::get();
 		return ! empty( $options['remote_failure_telemetry'] );
+	}
+
+	/**
+	 * Resolve diagnostics defaults from tracking v2 settings when available.
+	 *
+	 * @param string $key     Diagnostic key.
+	 * @param int    $default Default value.
+	 * @return int
+	 */
+	private static function get_tracking_diagnostics_value( $key, $default ) {
+		$key     = sanitize_key( (string) $key );
+		$default = (int) $default;
+
+		if ( ! class_exists( 'CLICUTCL\\Tracking\\Settings' ) ) {
+			return $default;
+		}
+
+		$settings = \CLICUTCL\Tracking\Settings::get();
+		if ( ! isset( $settings['diagnostics'] ) || ! is_array( $settings['diagnostics'] ) ) {
+			return $default;
+		}
+
+		if ( ! isset( $settings['diagnostics'][ $key ] ) ) {
+			return $default;
+		}
+
+		return (int) $settings['diagnostics'][ $key ];
 	}
 
 	/**

@@ -63,6 +63,15 @@ class Webhook_Auth {
 			return new WP_Error( 'webhook_signature_invalid', 'Invalid webhook signature', array( 'status' => 401 ) );
 		}
 
+		$enforce_replay = (bool) apply_filters( 'clicutcl_webhook_replay_protection', true, $request );
+		if ( $enforce_replay ) {
+			$replay_key = 'clicutcl_wh_replay_' . md5( $timestamp . '|' . $signature . '|' . $request->get_route() );
+			if ( get_transient( $replay_key ) ) {
+				return new WP_Error( 'webhook_replay_detected', 'Webhook replay detected', array( 'status' => 409 ) );
+			}
+			set_transient( $replay_key, 1, $max );
+		}
+
 		return true;
 	}
 }
