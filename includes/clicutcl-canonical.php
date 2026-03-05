@@ -34,11 +34,12 @@ function clicutcl_strip_tracking_params_from_url( $url ) {
 
         parse_str( $parts['query'], $query_vars );
 
-        $tracking_keys = array(
-                'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
-                'gclid', 'fbclid', 'msclkid', 'wbraid', 'gbraid',
-                'campaign_id', 'adgroup_id', 'ad_id', 'target_id',
-        );
+		$tracking_keys = array(
+				'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+				'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid',
+				'twclid', 'li_fat_id', 'ScCid', 'sccid', 'sc_click_id', 'epik',
+				'campaign_id', 'adgroup_id', 'ad_id', 'target_id',
+		);
 
         foreach ( $tracking_keys as $key ) {
                 unset( $query_vars[ $key ] );

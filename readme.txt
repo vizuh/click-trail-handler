@@ -18,7 +18,7 @@ Most WordPress sites lose campaign data the moment a visitor clicks away from th
 
 ClickTrail fixes that.
 
-It captures first-touch and last-touch UTMs + click IDs (gclid, fbclid, ttclid, msclkid, and more), stores them in first-party cookies (with consent), and automatically injects that attribution into supported form submissions and WooCommerce orders — even when the buyer journey takes multiple pages or multiple sessions.
+It captures first-touch and last-touch UTMs + click IDs (gclid, fbclid, msclkid, ttclid, wbraid, gbraid, twclid, li_fat_id, sccid/ScCid, epik), stores them in first-party cookies (with consent), and automatically injects that attribution into supported form submissions and WooCommerce orders — even when the buyer journey takes multiple pages or multiple sessions.
 
 = Why this matters (ROI, not just tracking) =
 
@@ -37,14 +37,15 @@ Without this type of persistence, that purchase often shows up as “Direct” o
 * **Accurate attribution (first + last touch)**: Persist first-touch and last-touch UTMs and click IDs for up to 90 days, then inject them into supported forms and WooCommerce orders automatically.
 * **WooCommerce insights**: View a "Source" column in orders and a detailed attribution meta box on each order edit screen.
 * **GA4-ready purchase events**: Push enriched purchase events from WooCommerce thank-you pages, including campaign data and line items, while preventing duplicate firing.
-* **Broad click ID coverage**: Capture IDs from Google (gclid, wbraid, gbraid), Meta (fbclid), TikTok (ttclid), Microsoft (msclkid), Twitter/X (twclid), LinkedIn (li_fat_id), Snapchat (ScCid), and Pinterest (epik).
+* **Supported click IDs (current release)**: Google (gclid, wbraid, gbraid), Meta (fbclid), TikTok (ttclid), Microsoft (msclkid), Twitter/X (twclid), LinkedIn (li_fat_id), Snapchat (sccid; `ScCid`/`sc_click_id` aliases), and Pinterest (epik).
 * **Event tracking built-in**: Track searches, file downloads, scroll depth (25%, 50%, 75%, 90%), time on page, logins, signups, and comments with dataLayer pushes.
-* **Privacy-aware by default**: Built-in consent banner + Google Consent Mode defaults, with Strict, Relaxed, or Geo-based modes.
+* **Privacy-aware by default**: Built-in consent banner + Google Consent Mode defaults, with explicit `strict`, `relaxed`, and `geo` consent behavior modes.
 
 = Consent Options =
 
 * Built-in consent banner with Google Consent Mode defaults injected in the <head>.
-* Configure strict, relaxed, or geo-based consent behavior to align with your region and policies.
+* Configure `strict`, `relaxed`, or `geo` consent behavior to align with your region and policies.
+* In `geo` mode, strict defaults apply only to configured regions; relaxed defaults apply outside those regions.
 * Control cookie duration and whether consent is required before storing attribution.
 * Optional admin warnings help you avoid accidentally storing personal data inside UTMs/campaign parameters.
 
@@ -72,7 +73,7 @@ Without this type of persistence, that purchase often shows up as “Direct” o
 
 1.  Install via **Plugins  Add New** (search "ClickTrail") or upload to /wp-content/plugins/click-trail-handler.
 2.  Activate the plugin through the **Plugins** screen in WordPress.
-3.  Navigate to **ClickTrail  Attribution & Consent Settings** to configure cookie duration, consent mode (Strict, Relaxed, or Geo-based), and GA4/GTM options.
+3.  Navigate to **ClickTrail  Attribution & Consent Settings** to configure cookie duration, consent mode enablement, consent behavior (`strict` / `relaxed` / `geo`), regions, and GA4/GTM options.
 4.  Test it: Submit a form or complete a purchase with UTM parameters in the URL to verify attribution is captured.
 5.  Optional: Enable the consent banner and review Google Consent Mode defaults to stay compliant with privacy regulations.
 
@@ -92,11 +93,11 @@ ClickTrail stores attribution data (UTMs, click IDs, landing page, and session c
 
 = Which click IDs and parameters are supported? =
 
-The plugin captures gclid, wbraid, gbraid (Google Ads), fbclid (Facebook), ttclid (TikTok), msclkid (Microsoft), twclid (Twitter/X), li_fat_id (LinkedIn), ScCid (Snapchat), and epik (Pinterest) alongside your standard UTM parameters.
+The plugin captures gclid, wbraid, gbraid (Google Ads), fbclid (Facebook), ttclid (TikTok), msclkid (Microsoft), twclid (Twitter/X), li_fat_id (LinkedIn), sccid (Snapchat; also accepts `ScCid` and `sc_click_id`), and epik (Pinterest) alongside your standard UTM parameters.
 
 = Does the consent banner block tracking until approval? =
 
-If you enable **Require Consent for Tracking**, ClickTrail will defer storing attribution until the visitor accepts. Strict, Relaxed, and Geo-based presets control whether tracking is granted or denied by default.
+If you enable **Require Consent for Tracking**, ClickTrail defers storing attribution until consent is granted. With Consent Mode enabled: `strict` requires consent by default, `relaxed` allows by default, and `geo` requires consent only for configured regions.
 
 = How does WhatsApp support work? =
 

@@ -21,6 +21,16 @@ class Settings {
 	const OPTION = 'clicutcl_tracking_v2';
 
 	/**
+	 * Placeholder returned to admin clients for write-only secret fields.
+	 */
+	private const SECRET_MASK = '********';
+
+	/**
+	 * Prefix used for encrypted secret payloads.
+	 */
+	private const ENCRYPTED_PREFIX = 'ctenc:v1:';
+
+	/**
 	 * Return full settings with defaults.
 	 *
 	 * @return array
@@ -28,8 +38,19 @@ class Settings {
 	public static function get(): array {
 		$stored = get_option( self::OPTION, array() );
 		$stored = is_array( $stored ) ? $stored : array();
+		$stored = self::decode_secret_fields_from_storage( $stored );
 
 		return self::merge_defaults( $stored, self::defaults() );
+	}
+
+	/**
+	 * Return settings safe for admin clients (masked write-only secrets).
+	 *
+	 * @return array
+	 */
+	public static function get_for_admin(): array {
+		$settings = self::get();
+		return self::mask_secret_fields_for_admin( $settings );
 	}
 
 	/**
@@ -77,6 +98,7 @@ class Settings {
 				'rate_limit_limit'      => 60,
 				'trusted_proxies'       => array(),
 				'allowed_token_hosts'   => array(),
+				'encrypt_secrets_at_rest' => 0,
 			),
 			'diagnostics' => array(
 				'dispatch_buffer_size'    => 20,
@@ -98,6 +120,7 @@ class Settings {
 	public static function sanitize( $input ): array {
 		$current = get_option( self::OPTION, array() );
 		$current = is_array( $current ) ? $current : array();
+		$current = self::decode_secret_fields_from_storage( $current );
 
 		$defaults = self::defaults();
 		$merged   = self::merge_defaults( $current, $defaults );
@@ -124,7 +147,9 @@ class Settings {
 					$merged['destinations'][ $destination ]['enabled'] = ! empty( $row['enabled'] ) ? 1 : 0;
 				}
 				if ( isset( $row['credentials'] ) && is_array( $row['credentials'] ) ) {
-					$merged['destinations'][ $destination ]['credentials'] = self::sanitize_scalar_map( $row['credentials'] );
+					$current_credentials = $merged['destinations'][ $destination ]['credentials'];
+					$current_credentials = is_array( $current_credentials ) ? $current_credentials : array();
+					$merged['destinations'][ $destination ]['credentials'] = self::sanitize_credentials_update( $row['credentials'], $current_credentials );
 				}
 			}
 		}
@@ -148,8 +173,8 @@ class Settings {
 					$merged['external_forms']['providers'][ $provider ]['enabled'] = ! empty( $row['enabled'] ) ? 1 : 0;
 				}
 				if ( array_key_exists( 'secret', $row ) ) {
-					$secret = sanitize_text_field( (string) $row['secret'] );
-					$merged['external_forms']['providers'][ $provider ]['secret'] = substr( $secret, 0, 255 );
+					$current_secret = isset( $merged['external_forms']['providers'][ $provider ]['secret'] ) ? (string) $merged['external_forms']['providers'][ $provider ]['secret'] : '';
+					$merged['external_forms']['providers'][ $provider ]['secret'] = self::sanitize_secret_update( $row['secret'], $current_secret );
 				}
 			}
 		}
@@ -161,8 +186,8 @@ class Settings {
 				$merged['lifecycle']['crm_ingestion']['enabled'] = ! empty( $crm['enabled'] ) ? 1 : 0;
 			}
 			if ( array_key_exists( 'token', $crm ) ) {
-				$token = sanitize_text_field( (string) $crm['token'] );
-				$merged['lifecycle']['crm_ingestion']['token'] = substr( $token, 0, 255 );
+				$current_token = isset( $merged['lifecycle']['crm_ingestion']['token'] ) ? (string) $merged['lifecycle']['crm_ingestion']['token'] : '';
+				$merged['lifecycle']['crm_ingestion']['token'] = self::sanitize_secret_update( $crm['token'], $current_token );
 			}
 		}
 
@@ -195,6 +220,9 @@ class Settings {
 			if ( array_key_exists( 'allowed_token_hosts', $security ) ) {
 				$merged['security']['allowed_token_hosts'] = self::sanitize_hosts_list( $security['allowed_token_hosts'] );
 			}
+			if ( array_key_exists( 'encrypt_secrets_at_rest', $security ) ) {
+				$merged['security']['encrypt_secrets_at_rest'] = ! empty( $security['encrypt_secrets_at_rest'] ) ? 1 : 0;
+			}
 		}
 
 		// Diagnostics.
@@ -220,7 +248,7 @@ class Settings {
 			$merged['dedup']['ttl_seconds'] = max( DAY_IN_SECONDS, min( 30 * DAY_IN_SECONDS, $ttl ) );
 		}
 
-		return $merged;
+		return self::encode_secret_fields_for_storage( $merged );
 	}
 
 	/**
@@ -294,6 +322,455 @@ class Settings {
 	}
 
 	/**
+	 * Mask secret fields for admin responses.
+	 *
+	 * @param array $settings Raw settings.
+	 * @return array
+	 */
+	private static function mask_secret_fields_for_admin( array $settings ): array {
+		$masked = $settings;
+
+		if ( isset( $masked['external_forms']['providers'] ) && is_array( $masked['external_forms']['providers'] ) ) {
+			foreach ( $masked['external_forms']['providers'] as $provider => $row ) {
+				if ( ! is_array( $row ) ) {
+					continue;
+				}
+
+				if ( ! empty( $row['secret'] ) ) {
+					$masked['external_forms']['providers'][ $provider ]['secret'] = self::SECRET_MASK;
+				}
+			}
+		}
+
+		if ( ! empty( $masked['lifecycle']['crm_ingestion']['token'] ) ) {
+			$masked['lifecycle']['crm_ingestion']['token'] = self::SECRET_MASK;
+		}
+
+		if ( isset( $masked['destinations'] ) && is_array( $masked['destinations'] ) ) {
+			foreach ( $masked['destinations'] as $destination => $row ) {
+				if ( ! is_array( $row ) || ! isset( $row['credentials'] ) || ! is_array( $row['credentials'] ) ) {
+					continue;
+				}
+
+				$masked['destinations'][ $destination ]['credentials'] = self::mask_credentials_map( $row['credentials'] );
+			}
+		}
+
+		return $masked;
+	}
+
+	/**
+	 * Mask secret-like fields in credentials map.
+	 *
+	 * @param array $credentials Credentials.
+	 * @return array
+	 */
+	private static function mask_credentials_map( array $credentials ): array {
+		$out = array();
+		foreach ( $credentials as $key => $value ) {
+			$key = sanitize_key( (string) $key );
+			if ( '' === $key ) {
+				continue;
+			}
+
+			if ( is_array( $value ) ) {
+				$out[ $key ] = self::mask_credentials_map( $value );
+				continue;
+			}
+
+			if ( self::looks_like_secret_key( $key ) && '' !== trim( (string) $value ) ) {
+				$out[ $key ] = self::SECRET_MASK;
+				continue;
+			}
+
+			$out[ $key ] = $value;
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Sanitize a write-only secret update.
+	 *
+	 * Empty values and mask placeholders preserve the existing secret.
+	 * Use "__clear__" to explicitly clear a secret.
+	 *
+	 * @param mixed  $value         Submitted value.
+	 * @param string $existing      Existing stored secret.
+	 * @param int    $max_length    Max length.
+	 * @return string
+	 */
+	private static function sanitize_secret_update( $value, string $existing, int $max_length = 255 ): string {
+		if ( is_array( $value ) || is_object( $value ) ) {
+			return $existing;
+		}
+
+		$secret = sanitize_text_field( (string) $value );
+		if ( '' === $secret || self::is_secret_mask_value( $secret ) ) {
+			return $existing;
+		}
+
+		if ( '__clear__' === strtolower( $secret ) ) {
+			return '';
+		}
+
+		return substr( $secret, 0, $max_length );
+	}
+
+	/**
+	 * Merge credential updates while preserving hidden secret values.
+	 *
+	 * @param array $incoming Incoming credentials map.
+	 * @param array $current  Current credentials map.
+	 * @return array
+	 */
+	private static function sanitize_credentials_update( array $incoming, array $current ): array {
+		$out = $current;
+		foreach ( $incoming as $raw_key => $item ) {
+			$key = sanitize_key( (string) $raw_key );
+			if ( '' === $key ) {
+				continue;
+			}
+
+			if ( is_array( $item ) ) {
+				$current_child = isset( $current[ $key ] ) && is_array( $current[ $key ] ) ? $current[ $key ] : array();
+				$out[ $key ]   = self::sanitize_credentials_update( $item, $current_child );
+				continue;
+			}
+
+			if ( is_bool( $item ) ) {
+				$out[ $key ] = (bool) $item;
+				continue;
+			}
+
+			if ( is_numeric( $item ) ) {
+				$out[ $key ] = $item + 0;
+				continue;
+			}
+
+			$value = sanitize_text_field( (string) $item );
+			if ( self::looks_like_secret_key( $key ) ) {
+				$existing = isset( $current[ $key ] ) && ( is_scalar( $current[ $key ] ) || null === $current[ $key ] )
+					? (string) $current[ $key ]
+					: '';
+				$out[ $key ] = self::sanitize_secret_update( $value, $existing );
+				continue;
+			}
+
+			$out[ $key ] = $value;
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Check whether a field key likely contains secret material.
+	 *
+	 * @param string $key Field key.
+	 * @return bool
+	 */
+	private static function looks_like_secret_key( string $key ): bool {
+		$key = strtolower( trim( $key ) );
+		if ( '' === $key ) {
+			return false;
+		}
+
+		$normalized = str_replace( array( '_', '-' ), '', $key );
+		$needles    = array(
+			'secret',
+			'token',
+			'password',
+			'apikey',
+			'clientsecret',
+			'accesstoken',
+			'refreshtoken',
+			'privatekey',
+		);
+
+		foreach ( $needles as $needle ) {
+			if ( false !== strpos( $normalized, $needle ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Check whether value is a masked placeholder from admin UI.
+	 *
+	 * @param string $value Value.
+	 * @return bool
+	 */
+	private static function is_secret_mask_value( string $value ): bool {
+		$value = trim( $value );
+		if ( self::SECRET_MASK === $value ) {
+			return true;
+		}
+
+		return (bool) preg_match( '/^\*{6,}$/', $value );
+	}
+
+	/**
+	 * Encode secret fields for storage when encryption is enabled.
+	 *
+	 * @param array $settings Settings.
+	 * @return array
+	 */
+	private static function encode_secret_fields_for_storage( array $settings ): array {
+		if ( ! self::should_encrypt_secrets( $settings ) ) {
+			return $settings;
+		}
+
+		$out = $settings;
+
+		if ( isset( $out['external_forms']['providers'] ) && is_array( $out['external_forms']['providers'] ) ) {
+			foreach ( $out['external_forms']['providers'] as $provider => $row ) {
+				if ( ! is_array( $row ) || ! isset( $row['secret'] ) ) {
+					continue;
+				}
+				$out['external_forms']['providers'][ $provider ]['secret'] = self::encrypt_secret_value( (string) $row['secret'] );
+			}
+		}
+
+		if ( isset( $out['lifecycle']['crm_ingestion']['token'] ) ) {
+			$out['lifecycle']['crm_ingestion']['token'] = self::encrypt_secret_value( (string) $out['lifecycle']['crm_ingestion']['token'] );
+		}
+
+		if ( isset( $out['destinations'] ) && is_array( $out['destinations'] ) ) {
+			foreach ( $out['destinations'] as $destination => $row ) {
+				if ( ! is_array( $row ) || ! isset( $row['credentials'] ) || ! is_array( $row['credentials'] ) ) {
+					continue;
+				}
+
+				$out['destinations'][ $destination ]['credentials'] = self::encode_credentials_secret_map( $row['credentials'] );
+			}
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Decode secret fields from stored settings.
+	 *
+	 * @param array $settings Stored settings.
+	 * @return array
+	 */
+	private static function decode_secret_fields_from_storage( array $settings ): array {
+		$out = $settings;
+
+		if ( isset( $out['external_forms']['providers'] ) && is_array( $out['external_forms']['providers'] ) ) {
+			foreach ( $out['external_forms']['providers'] as $provider => $row ) {
+				if ( ! is_array( $row ) || ! isset( $row['secret'] ) ) {
+					continue;
+				}
+				$out['external_forms']['providers'][ $provider ]['secret'] = self::decrypt_secret_value( (string) $row['secret'] );
+			}
+		}
+
+		if ( isset( $out['lifecycle']['crm_ingestion']['token'] ) ) {
+			$out['lifecycle']['crm_ingestion']['token'] = self::decrypt_secret_value( (string) $out['lifecycle']['crm_ingestion']['token'] );
+		}
+
+		if ( isset( $out['destinations'] ) && is_array( $out['destinations'] ) ) {
+			foreach ( $out['destinations'] as $destination => $row ) {
+				if ( ! is_array( $row ) || ! isset( $row['credentials'] ) || ! is_array( $row['credentials'] ) ) {
+					continue;
+				}
+
+				$out['destinations'][ $destination ]['credentials'] = self::decode_credentials_secret_map( $row['credentials'] );
+			}
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Encrypt secret-like values inside credentials map.
+	 *
+	 * @param array $credentials Credentials.
+	 * @return array
+	 */
+	private static function encode_credentials_secret_map( array $credentials ): array {
+		$out = array();
+		foreach ( $credentials as $raw_key => $item ) {
+			$key = sanitize_key( (string) $raw_key );
+			if ( '' === $key ) {
+				continue;
+			}
+
+			if ( is_array( $item ) ) {
+				$out[ $key ] = self::encode_credentials_secret_map( $item );
+				continue;
+			}
+
+			if ( self::looks_like_secret_key( $key ) ) {
+				$out[ $key ] = self::encrypt_secret_value( (string) $item );
+				continue;
+			}
+
+			$out[ $key ] = $item;
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Decrypt secret-like values inside credentials map.
+	 *
+	 * @param array $credentials Credentials.
+	 * @return array
+	 */
+	private static function decode_credentials_secret_map( array $credentials ): array {
+		$out = array();
+		foreach ( $credentials as $raw_key => $item ) {
+			$key = sanitize_key( (string) $raw_key );
+			if ( '' === $key ) {
+				continue;
+			}
+
+			if ( is_array( $item ) ) {
+				$out[ $key ] = self::decode_credentials_secret_map( $item );
+				continue;
+			}
+
+			if ( self::looks_like_secret_key( $key ) ) {
+				$out[ $key ] = self::decrypt_secret_value( (string) $item );
+				continue;
+			}
+
+			$out[ $key ] = $item;
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Whether secret-at-rest encryption should be applied.
+	 *
+	 * @param array $settings Full settings.
+	 * @return bool
+	 */
+	private static function should_encrypt_secrets( array $settings ): bool {
+		$enabled = ! empty( $settings['security']['encrypt_secrets_at_rest'] );
+		$enabled = (bool) apply_filters( 'clicutcl_encrypt_settings_secrets', $enabled, $settings );
+		if ( ! $enabled ) {
+			return false;
+		}
+
+		if ( ! function_exists( 'openssl_encrypt' ) || ! function_exists( 'openssl_decrypt' ) ) {
+			return false;
+		}
+
+		$ciphers = openssl_get_cipher_methods();
+		if ( ! is_array( $ciphers ) ) {
+			return false;
+		}
+
+		return in_array( 'aes-256-gcm', $ciphers, true );
+	}
+
+	/**
+	 * Encrypt a single secret value.
+	 *
+	 * @param string $value Plain value.
+	 * @return string
+	 */
+	private static function encrypt_secret_value( string $value ): string {
+		if ( '' === $value || self::is_encrypted_value( $value ) ) {
+			return $value;
+		}
+		if ( ! function_exists( 'openssl_encrypt' ) ) {
+			return $value;
+		}
+
+		try {
+			$iv = random_bytes( 12 );
+		} catch ( \Throwable $e ) {
+			return $value;
+		}
+
+		$tag        = '';
+		$ciphertext = openssl_encrypt(
+			$value,
+			'aes-256-gcm',
+			self::encryption_key(),
+			OPENSSL_RAW_DATA,
+			$iv,
+			$tag,
+			'',
+			16
+		);
+
+		if ( false === $ciphertext || ! is_string( $ciphertext ) || '' === $tag ) {
+			return $value;
+		}
+
+		$payload = base64_encode( $iv . $tag . $ciphertext );
+		if ( ! is_string( $payload ) || '' === $payload ) {
+			return $value;
+		}
+
+		return self::ENCRYPTED_PREFIX . $payload;
+	}
+
+	/**
+	 * Decrypt a single secret value.
+	 *
+	 * @param string $value Stored value.
+	 * @return string
+	 */
+	private static function decrypt_secret_value( string $value ): string {
+		if ( ! self::is_encrypted_value( $value ) ) {
+			return $value;
+		}
+
+		if ( ! function_exists( 'openssl_decrypt' ) ) {
+			return $value;
+		}
+
+		$payload = substr( $value, strlen( self::ENCRYPTED_PREFIX ) );
+		$raw     = base64_decode( $payload, true );
+		if ( false === $raw || strlen( $raw ) < 29 ) {
+			return $value;
+		}
+
+		$iv         = substr( $raw, 0, 12 );
+		$tag        = substr( $raw, 12, 16 );
+		$ciphertext = substr( $raw, 28 );
+
+		$plain = openssl_decrypt(
+			$ciphertext,
+			'aes-256-gcm',
+			self::encryption_key(),
+			OPENSSL_RAW_DATA,
+			$iv,
+			$tag
+		);
+
+		return false === $plain ? $value : (string) $plain;
+	}
+
+	/**
+	 * Check if a value looks like an encrypted payload.
+	 *
+	 * @param string $value Value.
+	 * @return bool
+	 */
+	private static function is_encrypted_value( string $value ): bool {
+		return str_starts_with( $value, self::ENCRYPTED_PREFIX );
+	}
+
+	/**
+	 * Derive stable encryption key for settings-at-rest.
+	 *
+	 * @return string
+	 */
+	private static function encryption_key(): string {
+		return hash( 'sha256', wp_salt( 'auth' ) . '|' . wp_salt( 'secure_auth' ) . '|' . self::OPTION, true );
+	}
+
+	/**
 	 * Recursive defaults merge (stored values win).
 	 *
 	 * @param array $stored   Stored value.
@@ -313,41 +790,6 @@ class Settings {
 		}
 
 		return $stored;
-	}
-
-	/**
-	 * Sanitize key/value scalar map recursively.
-	 *
-	 * @param array $value Raw value.
-	 * @return array
-	 */
-	private static function sanitize_scalar_map( array $value ): array {
-		$out = array();
-		foreach ( $value as $key => $item ) {
-			$key = sanitize_key( (string) $key );
-			if ( '' === $key ) {
-				continue;
-			}
-
-			if ( is_array( $item ) ) {
-				$out[ $key ] = self::sanitize_scalar_map( $item );
-				continue;
-			}
-
-			if ( is_bool( $item ) ) {
-				$out[ $key ] = (bool) $item;
-				continue;
-			}
-
-			if ( is_numeric( $item ) ) {
-				$out[ $key ] = $item + 0;
-				continue;
-			}
-
-			$out[ $key ] = sanitize_text_field( (string) $item );
-		}
-
-		return $out;
 	}
 
 	/**

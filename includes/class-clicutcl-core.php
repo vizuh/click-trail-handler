@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 /**
  * The core plugin class.
  *
@@ -16,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use CLICUTCL\Admin\Admin;
 use CLICUTCL\Api\Tracking_Controller;
 use CLICUTCL\Integrations\WooCommerce;
+use CLICUTCL\Privacy\Privacy_Handler;
 use CLICUTCL\Server_Side\Queue;
 use CLICUTCL\Utils\Cleanup;
 
@@ -125,6 +124,9 @@ class CLICUTCL_Core {
 		$events_logger = new CLICUTCL\Modules\Events\Events_Logger( $this->context );
 		$events_logger->register();
 
+		$privacy_handler = new Privacy_Handler();
+		$privacy_handler->register_hooks();
+
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 
 		Queue::register();
@@ -162,29 +164,67 @@ class CLICUTCL_Core {
 		if ( $events_transport_enabled && class_exists( 'CLICUTCL\\Server_Side\\Dispatcher' ) ) {
 			$events_transport_enabled = \CLICUTCL\Server_Side\Dispatcher::is_enabled();
 		}
+		$enable_cross_domain_token = isset( $options['enable_cross_domain_token'] ) ? (bool) $options['enable_cross_domain_token'] : false;
 		$events_batch_url   = $events_transport_enabled ? rest_url( 'clicutcl/v2/events/batch' ) : '';
-		$events_token       = ( $events_transport_enabled && class_exists( 'CLICUTCL\\Tracking\\Auth' ) ) ? \CLICUTCL\Tracking\Auth::mint_client_token() : '';
-		
-		// Use new Consent Mode settings
-		$consent_settings = new CLICUTCL\Modules\Consent_Mode\Consent_Mode_Settings();
-		$enable_consent   = $consent_settings->is_consent_mode_enabled();
-		
-		$require_consent = isset( $options['require_consent'] ) ? (bool) $options['require_consent'] : 1;
+		$events_token       = ( class_exists( 'CLICUTCL\\Tracking\\Auth' ) && ( $events_transport_enabled || $enable_cross_domain_token ) )
+			? \CLICUTCL\Tracking\Auth::mint_client_token()
+			: '';
+		$attribution_token_sign_url   = rest_url( 'clicutcl/v2/attribution-token/sign' );
+		$attribution_token_verify_url = rest_url( 'clicutcl/v2/attribution-token/verify' );
 
-		// Attribution Script
-		// Strategies:
-		// 1. Attribution JS loads in HEAD to ensure immediate capture of UTMs/GCLIDs before any redirects or other scripts run.
-		// 2. It also handles link decoration reliably before user interaction.
-		// 3. Heavier scripts (Consent, Events) are correctly deferred to the footer for performance.
+		$consent_settings_obj = new CLICUTCL\Modules\Consent_Mode\Consent_Mode_Settings();
+		$consent_settings     = $consent_settings_obj->get();
+		$enable_consent       = $consent_settings_obj->is_consent_mode_enabled();
+		$consent_mode         = $consent_settings_obj->get_mode();
+		$allowed_cmp_sources  = array( 'auto', 'plugin', 'cookiebot', 'onetrust', 'complianz', 'gtm', 'custom' );
+		$cmp_source           = isset( $consent_settings['cmp_source'] ) ? sanitize_key( (string) $consent_settings['cmp_source'] ) : 'auto';
+		$cmp_source           = in_array( $cmp_source, $allowed_cmp_sources, true ) ? $cmp_source : 'auto';
+		$cmp_timeout          = isset( $consent_settings['cmp_timeout_ms'] ) ? absint( $consent_settings['cmp_timeout_ms'] ) : 3000;
+		$cmp_timeout          = min( 10000, max( 500, $cmp_timeout ) );
+		$cookie_name          = isset( $consent_settings['cookie_name'] ) ? sanitize_key( (string) $consent_settings['cookie_name'] ) : 'ct_consent';
+		$cookie_name          = '' !== $cookie_name ? $cookie_name : 'ct_consent';
+		$gcm_analytics_key    = isset( $consent_settings['gcm_analytics_key'] ) ? sanitize_key( (string) $consent_settings['gcm_analytics_key'] ) : 'analytics_storage';
+		$gcm_analytics_key    = '' !== $gcm_analytics_key ? $gcm_analytics_key : 'analytics_storage';
+		$bridge_debug         = (bool) $debug_active || ( defined( 'WP_DEBUG' ) && WP_DEBUG );
+		$require_consent      = isset( $options['require_consent'] ) ? (bool) $options['require_consent'] : true;
+		if ( $enable_consent ) {
+			$require_consent = $consent_settings_obj->is_consent_required_for_request();
+		}
+		$fallback_granted = ! $require_consent;
+
+		// Consent bridge loads first and stays independent from GTM boot.
+		wp_register_script(
+			'clicutcl-consent-bridge-js',
+			CLICUTCL_URL . 'assets/js/clicutcl-consent-bridge.js',
+			array(),
+			CLICUTCL_VERSION,
+			\clicutcl_script_args( false )
+		);
+		wp_enqueue_script( 'clicutcl-consent-bridge-js' );
+		wp_localize_script(
+			'clicutcl-consent-bridge-js',
+			'ctConsentBridgeConfig',
+			array(
+				'cookieName'    => $cookie_name,
+				'cmpSource'     => $cmp_source,
+				'gtmConsentKey' => $gcm_analytics_key,
+				'timeout'       => $cmp_timeout,
+				'mode'          => $consent_mode,
+				'fallbackGranted' => $fallback_granted,
+				'debug'         => $bridge_debug,
+			)
+		);
+
+		// Attribution script does not gate GTM. It depends on bridge for shared state.
 		if ( $enable_attribution ) {
 			wp_register_script(
 				'clicutcl-attribution-js',
 				CLICUTCL_URL . 'assets/js/clicutcl-attribution.js',
-				array(),
+				array( 'clicutcl-consent-bridge-js' ),
 				CLICUTCL_VERSION,
-				\clicutcl_script_args( false )
+				\clicutcl_script_args( true, 'defer' )
 			);
-			wp_enqueue_script( 'clicutcl-attribution-js' ); // Load in Head: Essential for immediate UTM/GCLID capture before redirects and link decoration.
+			wp_enqueue_script( 'clicutcl-attribution-js' );
 
 			wp_localize_script(
 				'clicutcl-attribution-js',
@@ -198,7 +238,7 @@ class CLICUTCL_Core {
 					'debug'                     => (bool) $debug_active,
 					'eventsBatchUrl'            => esc_url_raw( $events_batch_url ),
 					'eventsToken'               => $events_token,
-					
+
 					// JS Injection Config
 					'injectEnabled'             => isset( $options['enable_js_injection'] ) ? (bool) $options['enable_js_injection'] : true,
 					'injectOverwrite'           => isset( $options['inject_overwrite'] ) ? (bool) $options['inject_overwrite'] : false,
@@ -210,16 +250,20 @@ class CLICUTCL_Core {
 					'linkDecorateEnabled'       => isset( $options['enable_link_decoration'] ) ? (bool) $options['enable_link_decoration'] : false,
 					'linkAllowedDomains'        => isset( $options['link_allowed_domains'] ) ? array_map('trim', explode(',', $options['link_allowed_domains'])) : [],
 					'linkSkipSigned'            => isset( $options['link_skip_signed'] ) ? (bool) $options['link_skip_signed'] : true,
-					'linkAppendToken'           => isset( $options['enable_cross_domain_token'] ) ? (bool) $options['enable_cross_domain_token'] : false,
+					'linkAppendToken'           => $enable_cross_domain_token,
 					'tokenParam'                => 'ct_token',
 					'tokenMaxAgeDays'           => $cookie_days,
+					'tokenSignUrl'              => esc_url_raw( $attribution_token_sign_url ),
+					'tokenVerifyUrl'            => esc_url_raw( $attribution_token_verify_url ),
 					'linkAppendBlob'            => false, // Reserved for future use
 				)
 			);
 		}
 
-		// Consent Script & Style (Only if enabled in new settings)
-		if ( $enable_consent ) {
+		$use_plugin_banner = $enable_consent && in_array( $cmp_source, array( 'auto', 'plugin' ), true );
+
+		// Built-in banner script is optional and depends on bridge.
+		if ( $use_plugin_banner ) {
 			wp_enqueue_style(
 				'clicutcl-consent-css',
 				CLICUTCL_URL . 'assets/css/clicutcl-consent.css',
@@ -231,9 +275,9 @@ class CLICUTCL_Core {
 			wp_register_script(
 				'clicutcl-consent-js',
 				CLICUTCL_URL . 'assets/js/clicutcl-consent.js',
-				array(),
+				array( 'clicutcl-consent-bridge-js' ),
 				CLICUTCL_VERSION,
-				\clicutcl_script_args( true, 'defer' ) // Footer
+				\clicutcl_script_args( false )
 			);
 			wp_enqueue_script( 'clicutcl-consent-js' );
 
@@ -246,6 +290,7 @@ class CLICUTCL_Core {
 					'acceptAll'       => __( 'Accept All', 'click-trail-handler' ),
 					'rejectEssential' => __( 'Reject Non-Essential', 'click-trail-handler' ),
 					'privacyUrl'      => get_privacy_policy_url() ?: '#',
+					'cookieName'      => $cookie_name,
 				)
 			);
 		}
@@ -273,10 +318,15 @@ class CLICUTCL_Core {
 		 * @param bool $should_load_events Whether to load the script.
 		 */
 		if ( apply_filters( 'clicutcl_should_load_events_js', $should_load_events ) ) {
+			$events_deps = array( 'clicutcl-consent-bridge-js' );
+			if ( $enable_attribution ) {
+				$events_deps[] = 'clicutcl-attribution-js';
+			}
+
 			wp_register_script(
 				'clicutcl-events-js',
 				CLICUTCL_URL . 'assets/js/clicutcl-events.js',
-				array(),
+				$events_deps,
 				CLICUTCL_VERSION,
 				\clicutcl_script_args( true, 'defer' ) // Footer
 			);

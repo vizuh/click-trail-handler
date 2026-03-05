@@ -36,6 +36,12 @@
         }
 
         pushEvent(eventName, params = {}) {
+            const consentBridge = window.ClickTrailConsent;
+            if (typeof consentBridge === 'undefined' || !consentBridge.isGranted()) {
+                this.debugLog('Event blocked (no consent):', eventName);
+                return;
+            }
+
             window.dataLayer = window.dataLayer || [];
             const eventId = this.generateEventId(eventName);
             const eventData = {
@@ -155,7 +161,10 @@
                 'lt_source', 'lt_medium', 'lt_campaign', 'lt_term', 'lt_content',
                 'ft_gclid', 'ft_fbclid', 'ft_msclkid', 'ft_ttclid', 'ft_wbraid', 'ft_gbraid',
                 'lt_gclid', 'lt_fbclid', 'lt_msclkid', 'lt_ttclid', 'lt_wbraid', 'lt_gbraid',
-                'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid'
+                'ft_twclid', 'ft_li_fat_id', 'ft_sccid', 'ft_sc_click_id', 'ft_epik',
+                'lt_twclid', 'lt_li_fat_id', 'lt_sccid', 'lt_sc_click_id', 'lt_epik',
+                'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid',
+                'twclid', 'li_fat_id', 'sccid', 'sc_click_id', 'epik'
             ];
 
             const out = {};
@@ -168,6 +177,20 @@
         }
 
         getConsentState() {
+            const consentBridge = window.ClickTrailConsent;
+            if (
+                typeof consentBridge !== 'undefined' &&
+                typeof consentBridge.isResolved === 'function' &&
+                typeof consentBridge.isGranted === 'function' &&
+                consentBridge.isResolved()
+            ) {
+                const bridgeGranted = !!consentBridge.isGranted();
+                return {
+                    marketing: bridgeGranted,
+                    analytics: bridgeGranted
+                };
+            }
+
             const raw = this.getCookie('ct_consent');
             if (!raw) return {};
 
@@ -178,6 +201,13 @@
                     analytics: !!(parsed && parsed.analytics)
                 };
             } catch (e) {
+                const lowered = String(raw || '').trim().toLowerCase();
+                if (lowered === 'granted' || lowered === '1' || lowered === 'true') {
+                    return { marketing: true, analytics: true };
+                }
+                if (lowered === 'denied' || lowered === '0' || lowered === 'false') {
+                    return { marketing: false, analytics: false };
+                }
                 return {};
             }
         }
@@ -604,11 +634,58 @@
         }
     }
 
-    // Initialize
+    let trackerInstance = null;
+
+    function initTracking() {
+        if (trackerInstance) return;
+
+        if (
+            typeof window.ClickTrailConsent !== 'undefined' &&
+            !window.ClickTrailConsent.isGranted()
+        ) {
+            return;
+        }
+
+        trackerInstance = new ClickTrailEvents();
+    }
+
+    function boot() {
+        const consent = window.ClickTrailConsent;
+
+        // Bridge missing should fail safe.
+        if (
+            typeof consent === 'undefined' ||
+            typeof consent.isResolved !== 'function' ||
+            typeof consent.isGranted !== 'function'
+        ) {
+            if (window.clicutclEventsConfig && window.clicutclEventsConfig.debug) {
+                console.warn('[ClickTrail] Consent bridge not found. Tracking disabled.');
+            }
+            return;
+        }
+
+        // Consent already resolved (cookie or fast CMP).
+        if (consent.isResolved()) {
+            if (consent.isGranted()) {
+                initTracking();
+                return;
+            }
+        }
+
+        // Wait for async CMP/user interaction or later consent changes.
+        const onConsentResolved = function (e) {
+            if (e && e.detail && e.detail.granted) {
+                initTracking();
+                document.removeEventListener('ct:consentResolved', onConsentResolved);
+            }
+        };
+        document.addEventListener('ct:consentResolved', onConsentResolved);
+    }
+
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => new ClickTrailEvents());
+        document.addEventListener('DOMContentLoaded', boot, { once: true });
     } else {
-        new ClickTrailEvents();
+        boot();
     }
 
 })();

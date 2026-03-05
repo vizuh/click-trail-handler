@@ -55,9 +55,9 @@ class Events_Logger {
 		$this->set_event_cookie(
 			'ct_event_login',
 			array(
-				'event'   => 'login',
-				'user_id' => $user->ID,
-				'method'  => 'wordpress',
+				'event'     => 'login',
+				'user_hash' => hash( 'sha256', (string) $user->ID . wp_salt( 'auth' ) ),
+				'method'    => 'wordpress',
 			)
 		);
 	}
@@ -71,9 +71,9 @@ class Events_Logger {
 		$this->set_event_cookie(
 			'ct_event_signup',
 			array(
-				'event'   => 'sign_up',
-				'user_id' => $user_id,
-				'method'  => 'wordpress',
+				'event'     => 'sign_up',
+				'user_hash' => hash( 'sha256', (string) $user_id . wp_salt( 'auth' ) ),
+				'method'    => 'wordpress',
 			)
 		);
 	}

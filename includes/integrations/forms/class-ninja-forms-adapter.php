@@ -137,7 +137,7 @@ class Ninja_Forms_Adapter extends Abstract_Form_Adapter {
 				window.dataLayer.push({
 					event: 'ninja_form_submit',
 					form_id: response.data.form_id,
-					ct_attribution: window.clickTrail || {}
+					ct_attribution: (window.ClickTrail && window.ClickTrail.getData) ? window.ClickTrail.getData() : {}
 				});
 			});
 		});

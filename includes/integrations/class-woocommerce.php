@@ -45,7 +45,8 @@ class WooCommerce {
 		$fields = array(
 			'ct_ft_source', 'ct_ft_medium', 'ct_ft_campaign', 'ct_ft_term', 'ct_ft_content',
 			'ct_lt_source', 'ct_lt_medium', 'ct_lt_campaign', 'ct_lt_term', 'ct_lt_content',
-			'ct_gclid', 'ct_fbclid', 'ct_msclkid', 'ct_ttclid'
+			'ct_gclid', 'ct_fbclid', 'ct_msclkid', 'ct_ttclid', 'ct_wbraid', 'ct_gbraid',
+			'ct_twclid', 'ct_li_fat_id', 'ct_sccid', 'ct_sc_click_id', 'ct_epik'
 		);
 		
 		echo '<div class="clicutcl-checkout-fields" style="display:none;">';
@@ -112,7 +113,11 @@ class WooCommerce {
 		
 		// Helper to extract
 		$extract = function( $prefix, $store_prefix ) use ( $data, &$attr ) {
-			$map = ['source', 'medium', 'campaign', 'term', 'content', 'gclid', 'fbclid', 'msclkid', 'ttclid'];
+			$map = array(
+				'source', 'medium', 'campaign', 'term', 'content',
+				'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid',
+				'twclid', 'li_fat_id', 'sccid', 'sc_click_id', 'epik',
+			);
 			$found = false;
 			foreach ( $map as $key ) {
 				$input_name = "ct_{$prefix}_{$key}";
@@ -132,12 +137,18 @@ class WooCommerce {
 		$extract('lt', 'lt');
 		
 		// ID fallbacks if not prefixed (legacy)
-		$ids = ['gclid', 'fbclid', 'msclkid', 'ttclid'];
+		$ids = array( 'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid', 'twclid', 'li_fat_id', 'sccid', 'sc_click_id', 'epik' );
 		foreach($ids as $id) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in parent function collect_from_post_data.
 			if (!empty($_POST['ct_'.$id]) && empty($attr['lt_'.$id])) {
 				$attr['lt_'.$id] = sanitize_text_field( wp_unslash( $_POST['ct_'.$id] ) );
 			}
+		}
+		if ( ! empty( $attr['lt_sc_click_id'] ) && empty( $attr['lt_sccid'] ) ) {
+			$attr['lt_sccid'] = $attr['lt_sc_click_id'];
+		}
+		if ( ! empty( $attr['ft_sc_click_id'] ) && empty( $attr['ft_sccid'] ) ) {
+			$attr['ft_sccid'] = $attr['ft_sc_click_id'];
 		}
 
 		return !empty($attr) ? $attr : null;
@@ -245,7 +256,7 @@ class WooCommerce {
 			}
 		}
 
-		return $attribution;
+		return $this->normalize_attribution_structure( $attribution );
 	}
 
 	/**
@@ -256,6 +267,8 @@ class WooCommerce {
 	 * @return array
 	 */
 	private function flatten_attribution_for_event( $attribution ) {
+		$attribution = $this->normalize_attribution_structure( $attribution );
+
 		$flat = array(
 			'ft_source'      => '',
 			'ft_medium'      => '',
@@ -270,7 +283,7 @@ class WooCommerce {
 			'ft_ttclid'      => '',
 			'ft_twclid'      => '',
 			'ft_li_fat_id'   => '',
-			'ft_ScCid'       => '',
+			'ft_sccid'       => '',
 			'ft_sc_click_id' => '',
 			'ft_epik'        => '',
 			'lt_source'      => '',
@@ -286,7 +299,7 @@ class WooCommerce {
 			'lt_ttclid'      => '',
 			'lt_twclid'      => '',
 			'lt_li_fat_id'   => '',
-			'lt_ScCid'       => '',
+			'lt_sccid'       => '',
 			'lt_sc_click_id' => '',
 			'lt_epik'        => '',
 		);
@@ -316,6 +329,57 @@ class WooCommerce {
 		$assign_touch( 'last_touch', 'lt_' );
 
 		return $flat;
+	}
+
+	/**
+	 * Normalize mixed attribution payloads into first_touch/last_touch shape.
+	 *
+	 * Accepts nested shape (first_touch/last_touch) and flat ft_*/lt_* keys.
+	 *
+	 * @param array $attribution Raw attribution payload.
+	 * @return array
+	 */
+	private function normalize_attribution_structure( $attribution ) {
+		$normalized = array(
+			'first_touch' => array(),
+			'last_touch'  => array(),
+		);
+
+		if ( ! is_array( $attribution ) ) {
+			return $normalized;
+		}
+
+		if ( isset( $attribution['first_touch'] ) && is_array( $attribution['first_touch'] ) ) {
+			$normalized['first_touch'] = $attribution['first_touch'];
+		}
+		if ( isset( $attribution['last_touch'] ) && is_array( $attribution['last_touch'] ) ) {
+			$normalized['last_touch'] = $attribution['last_touch'];
+		}
+
+		foreach ( $attribution as $key => $value ) {
+			if ( ! is_scalar( $value ) && null !== $value ) {
+				continue;
+			}
+
+			$key = (string) $key;
+			if ( 0 === strpos( $key, 'ft_' ) ) {
+				$touch_key = substr( $key, 3 );
+				if ( 'sc_click_id' === $touch_key || 'sccid' === $touch_key || 'ScCid' === $touch_key ) {
+					$touch_key = 'sccid';
+				}
+				$normalized['first_touch'][ $touch_key ] = (string) $value;
+				continue;
+			}
+			if ( 0 === strpos( $key, 'lt_' ) ) {
+				$touch_key = substr( $key, 3 );
+				if ( 'sc_click_id' === $touch_key || 'sccid' === $touch_key || 'ScCid' === $touch_key ) {
+					$touch_key = 'sccid';
+				}
+				$normalized['last_touch'][ $touch_key ] = (string) $value;
+			}
+		}
+
+		return $normalized;
 	}
 
 }
