@@ -52,9 +52,10 @@ class Web_Tag {
 		$container_id = $this->gtm_settings->get_container_id();
 
 		if ( ! empty( $container_id ) ) {
-			add_action( 'wp_head', array( $this, 'render' ) );
-			add_action( 'wp_body_open', array( $this, 'render_no_js' ), -9999 );
-			add_action( 'wp_footer', array( $this, 'render_no_js' ) ); // Fallback
+			// GTM snippet must stay outside any consent gate and load as early as possible.
+			add_action( 'wp_head', array( $this, 'render' ), 1 );
+			add_action( 'wp_body_open', array( $this, 'render_no_js' ), 1 );
+			add_action( 'wp_footer', array( $this, 'render_no_js' ), 1 ); // Fallback
 		}
 	}
 

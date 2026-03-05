@@ -58,15 +58,31 @@ class Attribution_Provider {
 	public static function should_populate() {
 		$options         = get_option( 'clicutcl_attribution_settings', array() );
 		$require_consent = isset( $options['require_consent'] ) ? (bool) $options['require_consent'] : true; // Default to true for safety
+		$cookie_name     = 'ct_consent';
+
+		if ( class_exists( 'CLICUTCL\\Modules\\Consent_Mode\\Consent_Mode_Settings' ) ) {
+			$consent_settings = new \CLICUTCL\Modules\Consent_Mode\Consent_Mode_Settings();
+			if ( $consent_settings->is_consent_mode_enabled() ) {
+				$require_consent = $consent_settings->is_consent_required_for_request();
+				$cookie_name     = $consent_settings->get_cookie_name();
+			}
+		}
 
 		if ( ! $require_consent ) {
 			return true;
 		}
 
 		// Check consent cookie
-		if ( isset( $_COOKIE['ct_consent'] ) ) {
+		if ( isset( $_COOKIE[ $cookie_name ] ) ) {
 			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-			$consent_json = wp_unslash( $_COOKIE['ct_consent'] );
+			$consent_json = wp_unslash( $_COOKIE[ $cookie_name ] );
+			$normalized   = strtolower( trim( (string) $consent_json ) );
+			if ( in_array( $normalized, array( 'granted', '1', 'true', 'yes' ), true ) ) {
+				return true;
+			}
+			if ( in_array( $normalized, array( 'denied', '0', 'false', 'no' ), true ) ) {
+				return false;
+			}
 			$consent      = json_decode( $consent_json, true );
 
 			return isset( $consent['marketing'] ) && $consent['marketing'];
@@ -121,9 +137,9 @@ class Attribution_Provider {
 			
 			// Click IDs
 			'ft_gclid', 'ft_wbraid', 'ft_gbraid', 'ft_fbclid', 'ft_msclkid',
-			'ft_ttclid', 'ft_twclid', 'ft_li_fat_id', 'ft_ScCid', 'ft_epik',
+			'ft_ttclid', 'ft_twclid', 'ft_li_fat_id', 'ft_sccid', 'ft_sc_click_id', 'ft_epik',
 			'lt_gclid', 'lt_wbraid', 'lt_gbraid', 'lt_fbclid', 'lt_msclkid',
-			'lt_ttclid', 'lt_twclid', 'lt_li_fat_id', 'lt_ScCid', 'lt_epik',
+			'lt_ttclid', 'lt_twclid', 'lt_li_fat_id', 'lt_sccid', 'lt_sc_click_id', 'lt_epik',
 			
 			// Metadata
 			'ft_landing_page', 'lt_landing_page',

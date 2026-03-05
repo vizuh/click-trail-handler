@@ -7,7 +7,22 @@
         requireConsent: true
     };
     const DEBUG_ENABLED = !!CONFIG.debug;
-    const CLICK_ID_KEYS = ['gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid'];
+    const CLICK_ID_KEYS = [
+        'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid',
+        'twclid', 'li_fat_id', 'sccid', 'epik'
+    ];
+    const CLICK_ID_ALIASES = {
+        gclid: ['gclid'],
+        fbclid: ['fbclid'],
+        msclkid: ['msclkid'],
+        ttclid: ['ttclid'],
+        wbraid: ['wbraid'],
+        gbraid: ['gbraid'],
+        twclid: ['twclid'],
+        li_fat_id: ['li_fat_id'],
+        sccid: ['sccid', 'sc_click_id'],
+        epik: ['epik']
+    };
 
     function sanitizeKey(key) {
         if (key === null || key === undefined) return '';
@@ -50,7 +65,16 @@
 
     function pickClickId(raw, key) {
         if (!raw || typeof raw !== 'object') return '';
-        return raw[key] || raw[`lt_${key}`] || raw[`ft_${key}`] || '';
+        const aliases = CLICK_ID_ALIASES[key] || [key];
+
+        for (let i = 0; i < aliases.length; i++) {
+            const alias = aliases[i];
+            if (raw[alias]) return raw[alias];
+            if (raw[`lt_${alias}`]) return raw[`lt_${alias}`];
+            if (raw[`ft_${alias}`]) return raw[`ft_${alias}`];
+        }
+
+        return '';
     }
 
     function withCanonicalClickIds(raw) {
@@ -58,6 +82,8 @@
         CLICK_ID_KEYS.forEach((key) => {
             const value = pickClickId(raw, key);
             if (value && !out[key]) out[key] = String(value);
+            // Keep backward compatibility with legacy Snapchat key.
+            if (key === 'sccid' && value && !out.sc_click_id) out.sc_click_id = String(value);
         });
         return out;
     }
@@ -147,12 +173,17 @@
             } catch (e) { }
         },
 
+        signedTokenCache: '',
+        signedTokenPayloadHash: '',
+        signedTokenInFlight: false,
+
         buildToken: function (data) {
             const normalized = withCanonicalClickIds(data || {});
             const allow = [
                 'ft_source', 'ft_medium', 'ft_campaign',
                 'lt_source', 'lt_medium', 'lt_campaign',
-                'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid'
+                'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid',
+                'twclid', 'li_fat_id', 'sccid', 'epik'
             ];
             const out = {};
             allow.forEach((k) => {
@@ -165,22 +196,99 @@
             return { v: 1, ts: Math.floor(Date.now() / 1000), data: out };
         },
 
-        encodeToken: function (data) {
-            const token = this.buildToken(data);
-            if (!token) return '';
-            return this.base64UrlEncode(JSON.stringify(token));
+        isSignedTokenFormat: function (token) {
+            const raw = String(token || '').trim();
+            return /^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(raw);
         },
 
-        decodeToken: function (token) {
-            const raw = this.base64UrlDecode(token);
-            if (!raw) return null;
-            const obj = this.safeJsonParse(raw);
-            if (!obj || !obj.data || !obj.ts) return null;
-            const maxDays = parseInt(CONFIG.tokenMaxAgeDays || CONFIG.cookieDays || 90, 10);
-            const maxAge = maxDays * 24 * 60 * 60;
-            const age = Math.floor(Date.now() / 1000) - parseInt(obj.ts, 10);
-            if (age < 0 || age > maxAge) return null;
-            return sanitizeAttributionData(obj.data);
+        getSignedToken: function () {
+            return this.signedTokenCache || '';
+        },
+
+        prepareSignedToken: function (data) {
+            if (!CONFIG.linkAppendToken) return;
+            if (!window.fetch) return;
+
+            const signUrl = String(CONFIG.tokenSignUrl || '');
+            const eventsToken = String(CONFIG.eventsToken || '');
+            if (!signUrl || !eventsToken) return;
+
+            const payload = this.buildToken(data);
+            if (!payload || !payload.data) {
+                this.signedTokenCache = '';
+                this.signedTokenPayloadHash = '';
+                return;
+            }
+
+            const payloadHash = JSON.stringify(payload.data);
+            if (this.signedTokenPayloadHash === payloadHash && this.signedTokenCache) {
+                return;
+            }
+            if (this.signedTokenInFlight) {
+                return;
+            }
+
+            this.signedTokenInFlight = true;
+            fetch(signUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Clicutcl-Token': eventsToken
+                },
+                body: JSON.stringify({
+                    token: eventsToken,
+                    data: payload.data
+                }),
+                keepalive: true
+            })
+                .then((response) => {
+                    if (!response.ok) return null;
+                    return response.json();
+                })
+                .then((json) => {
+                    const signed = json && json.token ? String(json.token) : '';
+                    if (!this.isSignedTokenFormat(signed)) return;
+                    this.signedTokenCache = signed;
+                    this.signedTokenPayloadHash = payloadHash;
+                })
+                .catch(() => { })
+                .finally(() => {
+                    this.signedTokenInFlight = false;
+                });
+        },
+
+        verifySignedToken: function (token) {
+            const rawToken = sanitizeValue(token || '', 2048);
+            if (!this.isSignedTokenFormat(rawToken)) {
+                return Promise.resolve(null);
+            }
+
+            const verifyUrl = String(CONFIG.tokenVerifyUrl || '');
+            if (!verifyUrl || !window.fetch) {
+                return Promise.resolve(null);
+            }
+
+            return fetch(verifyUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ token: rawToken }),
+                keepalive: true
+            })
+                .then((response) => {
+                    if (!response.ok) return null;
+                    return response.json();
+                })
+                .then((json) => {
+                    if (!json || !json.data || typeof json.data !== 'object') {
+                        return null;
+                    }
+                    return sanitizeAttributionData(withCanonicalClickIds(json.data));
+                })
+                .catch(() => null);
         }
     };
 
@@ -253,6 +361,10 @@
                 ["fbclid", ["ct_fbclid", "fbclid"]],
                 ["msclkid", ["ct_msclkid", "msclkid"]],
                 ["ttclid", ["ct_ttclid", "ttclid"]],
+                ["twclid", ["ct_twclid", "twclid"]],
+                ["li_fat_id", ["ct_li_fat_id", "li_fat_id"]],
+                ["sccid", ["ct_sccid", "ScCid", "sccid", "sc_click_id"]],
+                ["epik", ["ct_epik", "epik"]],
                 // Meta
                 ["referrer", ["ct_referrer"]],
                 ["first_landing_page", ["ct_landing"]]
@@ -396,17 +508,23 @@
 
             const keys = [
                 "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content",
-                "gclid", "fbclid", "msclkid", "ttclid", "wbraid", "gbraid"
+                "gclid", "fbclid", "msclkid", "ttclid", "wbraid", "gbraid",
+                "twclid", "li_fat_id", "ScCid", "epik"
             ];
 
             let changed = false;
             keys.forEach(k => {
+                const isSnapchatKey = k === 'ScCid';
+                const canonicalKey = isSnapchatKey ? 'sccid' : k;
                 let val = data['lt_' + k.replace('utm_', '')]; // Try lt_source for utm_source
                 if (!val) val = data[k]; // Try direct (if stored)
 
                 // For Click IDs, they are just ids
-                if (['gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid'].includes(k)) {
-                    val = data[k] || data['lt_' + k] || data['ft_' + k];
+                if (['gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid', 'twclid', 'li_fat_id', 'ScCid', 'epik'].includes(k)) {
+                    val = data[canonicalKey] || data[k] || data['lt_' + canonicalKey] || data['ft_' + canonicalKey];
+                    if (!val && canonicalKey === 'sccid') {
+                        val = data.sc_click_id || data.lt_sc_click_id || data.ft_sc_click_id;
+                    }
                 }
 
                 if (val && !url.searchParams.has(k)) {
@@ -418,7 +536,8 @@
             if (CONFIG.linkAppendToken) {
                 const tokenParam = CONFIG.tokenParam || 'ct_token';
                 if (!url.searchParams.has(tokenParam)) {
-                    const token = Store.encodeToken(data);
+                    Store.prepareSignedToken(data);
+                    const token = Store.getSignedToken();
                     if (token) {
                         url.searchParams.set(tokenParam, token);
                         changed = true;
@@ -557,18 +676,24 @@
                 const tokenParam = CONFIG.tokenParam || 'ct_token';
                 const tokenValue = currentParams[tokenParam];
                 if (tokenValue) {
-                    const tokenData = Store.decodeToken(tokenValue);
-                    if (tokenData) {
+                    Store.verifySignedToken(tokenValue).then((tokenData) => {
+                        if (!tokenData) {
+                            return;
+                        }
+
                         let stored = Store.getData() || {};
                         const now = new Date().toISOString();
-                        // Merge token data without overwriting existing values
+
+                        // Merge token data without overwriting existing values.
                         Object.keys(tokenData).forEach((k) => {
                             if (!stored[k]) stored[k] = tokenData[k];
                         });
                         stored.lt_touch_timestamp = now;
                         stored.lt_landing_page = window.location.href;
                         Store.saveData(stored);
-                    }
+                        API.install();
+                        Store.prepareSignedToken(stored);
+                    });
                 }
             }
 
@@ -616,10 +741,15 @@
 
             this.initFormListeners(storedData);
             this.initWhatsAppListener(storedData);
+            Store.prepareSignedToken(storedData);
         }
 
         checkSignal(params, referrer) {
-            const keys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid'];
+            const keys = [
+                'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+                'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid',
+                'twclid', 'li_fat_id', 'sccid', 'sc_click_id', 'epik'
+            ];
             if (keys.some(k => params[k])) return true;
 
             // Check referrer (if external)
@@ -638,7 +768,12 @@
                 data.ft_msclkid ||
                 data.ft_ttclid ||
                 data.ft_wbraid ||
-                data.ft_gbraid
+                data.ft_gbraid ||
+                data.ft_twclid ||
+                data.ft_li_fat_id ||
+                data.ft_sccid ||
+                data.ft_sc_click_id ||
+                data.ft_epik
             ));
         }
 
@@ -668,7 +803,12 @@
                 msclkid: sanitizeValue(params.msclkid || '', 128),
                 ttclid: sanitizeValue(params.ttclid || '', 128),
                 wbraid: sanitizeValue(params.wbraid || '', 128),
-                gbraid: sanitizeValue(params.gbraid || '', 128)
+                gbraid: sanitizeValue(params.gbraid || '', 128),
+                twclid: sanitizeValue(params.twclid || '', 128),
+                li_fat_id: sanitizeValue(params.li_fat_id || '', 128),
+                sccid: sanitizeValue(params.sccid || params.sc_click_id || '', 128),
+                sc_click_id: sanitizeValue(params.sccid || params.sc_click_id || '', 128),
+                epik: sanitizeValue(params.epik || '', 128)
             };
 
             // Referrer logic

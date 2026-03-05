@@ -1,7 +1,15 @@
 (function () {
     'use strict';
 
-    const CONSENT_COOKIE = 'ct_consent';
+    const CONSENT_COOKIE = (
+        window.clicutclConsentL10n && window.clicutclConsentL10n.cookieName
+            ? String(window.clicutclConsentL10n.cookieName)
+            : (
+                window.ctConsentBridgeConfig && window.ctConsentBridgeConfig.cookieName
+                    ? String(window.ctConsentBridgeConfig.cookieName)
+                    : 'ct_consent'
+            )
+    );
     const CONSENT_DAYS = 365;
 
     class ClickTrailConsent {
@@ -13,7 +21,9 @@
             if (!this.hasConsentDecision()) {
                 this.showBanner();
             } else {
-                this.pushConsentToDataLayer(this.getConsent());
+                const consent = this.getConsent();
+                this.pushConsentToDataLayer(consent);
+                this.syncBridgeFromConsent(consent, 'plugin-cookie');
             }
         }
 
@@ -42,32 +52,46 @@
                 privacyUrl: '/privacy-policy'
             };
 
-            // Create Banner HTML
             const banner = document.createElement('div');
             banner.id = 'ct-consent-banner';
-            banner.innerHTML = `
-                <div class="ct-consent-content">
-                    <p>${l10n.bannerText}
-                       <a href="${l10n.privacyUrl}">${l10n.readMore}</a>.
-                    </p>
-                    <div class="ct-consent-actions">
-                        <button id="ct-accept-all" class="ct-btn-primary">${l10n.acceptAll}</button>
-                        <button id="ct-reject-all" class="ct-btn-secondary">${l10n.rejectEssential}</button>
-                    </div>
-                </div>
-            `;
+            banner.setAttribute('role', 'dialog');
+            banner.setAttribute('aria-live', 'polite');
+
+            const content = document.createElement('div');
+            content.className = 'ct-consent-content';
+
+            const paragraph = document.createElement('p');
+            paragraph.textContent = String(l10n.bannerText || '') + ' ';
+
+            const link = document.createElement('a');
+            link.textContent = String(l10n.readMore || '');
+            const rawUrl = String(l10n.privacyUrl || '#');
+            link.href = /^https?:\/\//i.test(rawUrl) ? rawUrl : '#';
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            paragraph.appendChild(link);
+
+            const actions = document.createElement('div');
+            actions.className = 'ct-consent-actions';
+
+            const acceptBtn = document.createElement('button');
+            acceptBtn.id = 'ct-accept-all';
+            acceptBtn.className = 'ct-btn-primary';
+            acceptBtn.textContent = String(l10n.acceptAll || '');
+            acceptBtn.addEventListener('click', () => this.handleAccept());
+
+            const rejectBtn = document.createElement('button');
+            rejectBtn.id = 'ct-reject-all';
+            rejectBtn.className = 'ct-btn-secondary';
+            rejectBtn.textContent = String(l10n.rejectEssential || '');
+            rejectBtn.addEventListener('click', () => this.handleReject());
+
+            actions.appendChild(acceptBtn);
+            actions.appendChild(rejectBtn);
+            content.appendChild(paragraph);
+            content.appendChild(actions);
+            banner.appendChild(content);
             document.body.appendChild(banner);
-
-            // Bind Events
-            document.getElementById('ct-accept-all').addEventListener('click', () => {
-                this.setConsent({ analytics: true, marketing: true });
-                this.hideBanner();
-            });
-
-            document.getElementById('ct-reject-all').addEventListener('click', () => {
-                this.setConsent({ analytics: false, marketing: false });
-                this.hideBanner();
-            });
         }
 
         hideBanner() {
@@ -82,6 +106,42 @@
 
             // Dispatch event for other scripts
             window.dispatchEvent(new CustomEvent('ct_consent_updated', { detail: preferences }));
+            if (preferences && (preferences.analytics || preferences.marketing)) {
+                window.dispatchEvent(new CustomEvent('consent_granted', { detail: preferences }));
+            }
+        }
+
+        handleAccept() {
+            const prefs = { analytics: true, marketing: true };
+            this.setConsent(prefs);
+            this.hideBanner();
+
+            if (typeof window.ClickTrailConsent !== 'undefined') {
+                window.ClickTrailConsent.grant('plugin-banner');
+            }
+        }
+
+        handleReject() {
+            const prefs = { analytics: false, marketing: false };
+            this.setConsent(prefs);
+            this.hideBanner();
+
+            if (typeof window.ClickTrailConsent !== 'undefined') {
+                window.ClickTrailConsent.deny('plugin-banner');
+            }
+        }
+
+        syncBridgeFromConsent(preferences, source) {
+            if (typeof window.ClickTrailConsent === 'undefined') {
+                return;
+            }
+
+            const granted = !!(preferences && (preferences.analytics || preferences.marketing));
+            if (granted) {
+                window.ClickTrailConsent.grant(source || 'plugin-cookie');
+            } else {
+                window.ClickTrailConsent.deny(source || 'plugin-cookie');
+            }
         }
 
         pushConsentToDataLayer(preferences) {
@@ -108,6 +168,7 @@
             };
 
             gtag('consent', 'update', consentMode);
+            document.dispatchEvent(new CustomEvent('ct:gtmConsentUpdate', { detail: consentMode }));
         }
 
         setCookie(name, value, days) {

@@ -306,6 +306,12 @@ class Dispatcher {
 	private static function consent_allows() {
 		$attr_options    = get_option( 'clicutcl_attribution_settings', array() );
 		$require_consent = ! empty( $attr_options['require_consent'] );
+		if ( class_exists( 'CLICUTCL\\Modules\\Consent_Mode\\Consent_Mode_Settings' ) ) {
+			$consent_settings = new \CLICUTCL\Modules\Consent_Mode\Consent_Mode_Settings();
+			if ( $consent_settings->is_consent_mode_enabled() ) {
+				$require_consent = $consent_settings->is_consent_required_for_request();
+			}
+		}
 
 		if ( ! $require_consent ) {
 			return true;

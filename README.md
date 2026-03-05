@@ -225,101 +225,6 @@ Visit us at [vizuh.com](https://vizuh.com)
 
 ---
 
-## Português
-
-### 🎯 O que é o ClickTrail?
-
-**ClickTrail** é um plugin WordPress completo que conecta **conformidade com privacidade do usuário** e **atribuição de marketing precisa**. Combina gerenciamento robusto de consentimento com rastreamento poderoso de atribuição para ajudá-lo a entender quais campanhas geram resultados—respeitando a privacidade do usuário.
-
-O plugin captura UTMs de primeiro e último toque e click IDs, armazena em cookies (com consentimento do usuário quando necessário), e anexa automaticamente esses dados às suas entradas de formulários e pedidos WooCommerce. O banner de consentimento integrado com Google Consent Mode garante que seu rastreamento permaneça em conformidade com GDPR e outras regulamentações de privacidade.
-
-### ✨ Recursos Principais
-
-#### 🎯 **Atribuição de Marketing**
-- **Atribuição Multi-Touch**: Captura parâmetros UTM e click IDs de primeiro e último toque
-- **Persistência de 90 Dias**: Mantém dados de atribuição por até 90 dias
-- **Integração Automática com Formulários**: Injeta dados de atribuição em Contact Form 7, Fluent Forms e Gravity Forms
-- **Atribuição WooCommerce**: Salva automaticamente metadados de atribuição em pedidos no checkout
-- **Resiliência a Cache**: Injeção de campos via JS garante que a atribuição funcione mesmo em sites com cache agressivo (WP Rocket, Cloudflare)
-- **Rastreamento Transdomínio**: Decoração segura de links para passar atribuição para subdomínios e sites externos permitidos
-- **Proteção Avançada contra Bots**: Previne poluição de dados por robôs e navegadores headless
-- **Saúde do Site e Diagnóstico**: Alertas proativos para conflitos de cache e bloqueio de cookies
-
-#### 🔒 **Privacidade & Consentimento**
-- **Banner de Consentimento Integrado**: Interface personalizável de gerenciamento de consentimento
-- **Google Consent Mode**: Integração completa com Google Consent Mode v2
-- **Regras de Consentimento Flexíveis**:
-  - **Modo Restrito**: Tudo negado por padrão
-  - **Modo Relaxado**: Tudo concedido por padrão
-  - **Modo Geográfico**: Regras customizadas para visitantes da UE/UK/CH vs. resto do mundo
-- **Compatível com GDPR**: Desenvolvido pensando em regulamentações de privacidade
-
-#### 📊 **Suporte Multi-Plataforma para Click IDs**
-Captura click IDs de todas as principais plataformas de publicidade:
-- **Google**: `gclid`, `wbraid`, `gbraid`
-- **Meta/Facebook**: `fbclid`
-- **TikTok**: `ttclid`
-- **Microsoft**: `msclkid`
-- **Twitter**: `twclid`
-- **LinkedIn**: `li_fat_id`
-- **Snapchat**: `ScCid`
-- **Pinterest**: `epik`
-
-#### 🛒 **Integração Profunda com WooCommerce**
-- **Coluna de Origem**: Nova coluna administrativa mostrando atribuição de primeiro toque
-- **Meta Box de Atribuição**: Dados completos de primeiro e último toque nas páginas de pedidos
-- **Eventos de Compra GA4**: Eventos de compra enriquecidos e prontos para GA4 com dados de campanha e itens de linha
-- **Prevenção de Duplicatas**: Previne eventos duplicados ao atualizar a página
-
-#### 💬 **Suporte ao WhatsApp**
-- Suporta anexar contexto de atribuição em links do WhatsApp (`wa.me`, `whatsapp.com`, `api.whatsapp.com`)
-- Mantém continuidade de atribuição sem registrar eventos de clique
-- Funciona com contexto codificado em mensagens pré-preenchidas
-
-### 🚀 Instalação
-
-1. Baixe o plugin da [página de releases](https://github.com/vizuh/click-trail/releases)
-2. Faça upload para o diretório `/wp-content/plugins/click-trail-handler/`
-3. Ative através do menu 'Plugins' do WordPress
-4. Vá para **ClickTrail** no menu administrativo para configurar as definições
-
-### ⚙️ Configuração
-
-Acesse a página **Configurações de Atribuição & Consentimento** no menu administrativo do ClickTrail:
-
-- **Ativar/Desativar Atribuição**: Habilita ou desabilita captura de atribuição
-- **Duração do Cookie**: Define tempo de persistência (padrão: 90 dias)
-- **Requisitos de Consentimento**: Escolha se deseja exigir consentimento do usuário
-- **Modo de Consentimento**: Selecione modo Restrito, Relaxado ou baseado em Geolocalização
-- **Configurações de Integração**: Configure integrações com formulários e WooCommerce
-
-### 🧪 Testando Sua Configuração
-
-1. **Teste a Captura de Atribuição**: Visite seu site com parâmetros UTM (ex: `?utm_source=teste&utm_medium=cpc`)
-2. **Verifique Armazenamento de Cookie**: Cheque os cookies do navegador por `ct_attribution` ou `attribution`
-3. **Teste Envio de Formulário**: Envie um formulário e verifique se os dados de atribuição são capturados
-4. **Teste WooCommerce**: Complete um pedido de teste e confira a coluna "Origem" e meta do pedido
-
-### 📖 Documentação
-
-Para documentação detalhada, visite [vizuh.com/clicktrail-docs](https://vizuh.com)
-
-### 🤝 Suporte
-
-Precisa de ajuda? Entre em contato conosco em [support@vizuh.com](mailto:support@vizuh.com)
-
-### 📄 Licença
-
-Este plugin está licenciado sob [GPLv2 ou posterior](https://www.gnu.org/licenses/gpl-2.0.html).
-
-### 🌟 Sobre a Vizuh
-
-**Vizuh** desenvolve soluções digitais de ponta para WordPress e WooCommerce. Somos especializados em atribuição de marketing, analytics e soluções de rastreamento em conformidade com privacidade.
-
-Visite-nos em [vizuh.com](https://vizuh.com)
-
----
-
 <div align="center">
 
 ![Vizuh Logo](assets/vizuh-logo.png)
@@ -331,3 +236,4 @@ Visite-nos em [vizuh.com](https://vizuh.com)
 [![Support](https://img.shields.io/badge/Support-support%40vizuh.com-blue)](mailto:support@vizuh.com)
 
 </div>
+

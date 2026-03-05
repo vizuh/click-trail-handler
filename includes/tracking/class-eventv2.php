@@ -204,7 +204,7 @@ class EventV2 implements CanonicalEventInterfaceV2 {
 	 * @return array
 	 */
 	private static function normalize_click_ids( array $attribution ): array {
-		$keys = array( 'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid' );
+		$keys = array( 'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid', 'twclid', 'li_fat_id', 'sccid', 'epik' );
 		foreach ( $keys as $key ) {
 			if ( empty( $attribution[ $key ] ) ) {
 				if ( ! empty( $attribution[ 'lt_' . $key ] ) ) {
@@ -212,6 +212,15 @@ class EventV2 implements CanonicalEventInterfaceV2 {
 				} elseif ( ! empty( $attribution[ 'ft_' . $key ] ) ) {
 					$attribution[ $key ] = $attribution[ 'ft_' . $key ];
 				}
+			}
+		}
+		if ( empty( $attribution['sccid'] ) ) {
+			if ( ! empty( $attribution['sc_click_id'] ) ) {
+				$attribution['sccid'] = $attribution['sc_click_id'];
+			} elseif ( ! empty( $attribution['lt_sc_click_id'] ) ) {
+				$attribution['sccid'] = $attribution['lt_sc_click_id'];
+			} elseif ( ! empty( $attribution['ft_sc_click_id'] ) ) {
+				$attribution['sccid'] = $attribution['ft_sc_click_id'];
 			}
 		}
 
