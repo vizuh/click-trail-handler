@@ -66,8 +66,8 @@ if ( ! $clicutcl_preserve_data ) {
 	$clicutcl_queue_table  = $wpdb->prefix . 'clicutcl_queue';
 	$clicutcl_events_table = $wpdb->prefix . 'clicutcl_events';
 
-	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Uninstall cleanup.
-	$wpdb->query( "DROP TABLE IF EXISTS {$clicutcl_queue_table}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
-	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Uninstall cleanup.
-	$wpdb->query( "DROP TABLE IF EXISTS {$clicutcl_events_table}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Uninstall cleanup.
+	$wpdb->query( "DROP TABLE IF EXISTS {$clicutcl_queue_table}" );
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Uninstall cleanup.
+	$wpdb->query( "DROP TABLE IF EXISTS {$clicutcl_events_table}" );
 }
