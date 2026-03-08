@@ -108,16 +108,14 @@ class Privacy_Handler {
 		$where   = $this->build_event_match_where( $email, $user_id );
 		$offset  = ( $page - 1 ) * self::PAGE_SIZE;
 
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name and WHERE clause are plugin-owned.
+		$query = "SELECT id, event_type, event_data, created_at FROM {$table} WHERE {$where['sql']} ORDER BY created_at DESC LIMIT %d OFFSET %d";
+
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Required for privacy export callbacks.
 		$rows = $wpdb->get_results(
-			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- Params merged dynamically via array_merge.
+			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQL.NotPrepared -- Params merged dynamically via array_merge; $query built above.
 			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name and WHERE clause are plugin-owned.
-				"SELECT id, event_type, event_data, created_at
-				FROM {$table}
-				WHERE {$where['sql']}
-				ORDER BY created_at DESC
-				LIMIT %d OFFSET %d",
+				$query,
 				array_merge( $where['params'], array( self::PAGE_SIZE, $offset ) )
 			),
 			ARRAY_A
@@ -195,15 +193,14 @@ class Privacy_Handler {
 		$where   = $this->build_event_match_where( $email, $user_id );
 
 		// Always read first page for erasure to avoid offset skipping after deletions.
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name and WHERE clause are plugin-owned.
+		$query = "SELECT id FROM {$table} WHERE {$where['sql']} ORDER BY id ASC LIMIT %d";
+
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Required for privacy erasure callbacks.
 		$rows = $wpdb->get_results(
+			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $query built above.
 			$wpdb->prepare(
-				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name and WHERE clause are plugin-owned.
-				"SELECT id
-				FROM {$table}
-				WHERE {$where['sql']}
-				ORDER BY id ASC
-				LIMIT %d",
+				$query,
 				array_merge( $where['params'], array( self::PAGE_SIZE ) )
 			),
 			ARRAY_A
