@@ -664,6 +664,7 @@
     align-items: center;
     gap: 12px;
     min-width: 0;
+    overflow: hidden;
 }
 
 .clicktrail-card__icon {
@@ -784,6 +785,8 @@
     width: 14px;
     height: 14px;
     left: 3px;
+    top: 3px;
+    bottom: auto;
     bottom: 3px;
     transition: transform 120ms ease;
 }

@@ -863,8 +863,7 @@
                     variant: 'secondary',
                     disabled: saving || loading,
                     onClick: reload
-                }, __('Reload Saved Settings', 'click-trail-handler')),
-                el('span', { key: 'hint', className: 'clicktrail-save-bar__hint' }, __('Settings are grouped by capability, but saved to the existing ClickTrail option stores for backward compatibility.', 'click-trail-handler'))
+                }, __('Reload Saved Settings', 'click-trail-handler'))
             ])
         ]);
     }
