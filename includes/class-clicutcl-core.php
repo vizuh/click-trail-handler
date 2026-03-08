@@ -184,12 +184,10 @@ class Plugin {
 		$options            = get_option( 'clicutcl_attribution_settings', array() );
 		$enable_attribution = isset( $options['enable_attribution'] ) ? (bool) $options['enable_attribution'] : true;
 		$cookie_days        = isset( $options['cookie_days'] ) ? absint( $options['cookie_days'] ) : 90;
-		$debug_until        = get_transient( 'clicutcl_debug_until' );
-		$debug_active       = $debug_until && (int) $debug_until > time();
-		$events_transport_enabled = class_exists( 'CLICUTCL\\Tracking\\Settings' ) && \CLICUTCL\Tracking\Settings::feature_enabled( 'event_v2' );
-		if ( $events_transport_enabled && class_exists( 'CLICUTCL\\Server_Side\\Dispatcher' ) ) {
-			$events_transport_enabled = \CLICUTCL\Server_Side\Dispatcher::is_enabled();
-		}
+		$debug_until            = get_transient( 'clicutcl_debug_until' );
+		$debug_active           = $debug_until && (int) $debug_until > time();
+		$browser_events_enabled = class_exists( 'CLICUTCL\\Tracking\\Settings' ) && \CLICUTCL\Tracking\Settings::browser_event_collection_enabled();
+		$events_transport_enabled = class_exists( 'CLICUTCL\\Tracking\\Settings' ) && \CLICUTCL\Tracking\Settings::browser_event_transport_enabled();
 		$enable_cross_domain_token = isset( $options['enable_cross_domain_token'] ) ? (bool) $options['enable_cross_domain_token'] : false;
 		$events_batch_url   = $events_transport_enabled ? rest_url( 'clicutcl/v2/events/batch' ) : '';
 		$events_token       = ( class_exists( 'CLICUTCL\\Tracking\\Auth' ) && ( $events_transport_enabled || $enable_cross_domain_token ) )
@@ -255,6 +253,7 @@ class Plugin {
 				array(
 					'cookieName'                => 'attribution',
 					'cookieDays'                => $cookie_days,
+					'consentCookieName'         => $cookie_name,
 					'requireConsent'            => $require_consent,
 					'enableWhatsapp'            => isset( $options['enable_whatsapp'] ) ? (bool) $options['enable_whatsapp'] : true,
 					'whatsappAppendAttribution' => isset( $options['whatsapp_append_attribution'] ) ? (bool) $options['whatsapp_append_attribution'] : false,
@@ -313,7 +312,7 @@ class Plugin {
 			);
 		}
 
-		$should_load_events = ! is_admin() && ! is_feed() && ! is_robots() && ! is_trackback() && $enable_attribution;
+		$should_load_events = ! is_admin() && ! is_feed() && ! is_robots() && ! is_trackback() && $browser_events_enabled;
 
 		/**
 		 * Filter whether the events tracking script should be loaded.
@@ -340,6 +339,8 @@ class Plugin {
 				'clicutcl-events-js',
 				'clicutclEventsConfig',
 				array(
+					'enabled'          => (bool) $browser_events_enabled,
+					'transportEnabled' => (bool) $events_transport_enabled,
 					'debug'            => ! empty( $debug_active ),
 					'eventsBatchUrl'   => esc_url_raw( $events_batch_url ),
 					'eventsToken'      => $events_token,

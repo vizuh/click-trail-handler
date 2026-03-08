@@ -322,6 +322,39 @@ class Settings {
 	}
 
 	/**
+	 * Check whether browser-side event collection is enabled.
+	 *
+	 * This is the single capability gate for loading and booting the
+	 * browser event collection runtime.
+	 *
+	 * @return bool
+	 */
+	public static function browser_event_collection_enabled(): bool {
+		return self::feature_enabled( 'event_v2' );
+	}
+
+	/**
+	 * Check whether browser events can also use REST delivery transport.
+	 *
+	 * Collection and transport are intentionally separate concerns:
+	 * browser events may still push to dataLayer when collection is enabled
+	 * even if server-side delivery is currently off.
+	 *
+	 * @return bool
+	 */
+	public static function browser_event_transport_enabled(): bool {
+		if ( ! self::browser_event_collection_enabled() ) {
+			return false;
+		}
+
+		if ( ! class_exists( 'CLICUTCL\\Server_Side\\Dispatcher' ) ) {
+			return false;
+		}
+
+		return \CLICUTCL\Server_Side\Dispatcher::is_enabled();
+	}
+
+	/**
 	 * Mask secret fields for admin responses.
 	 *
 	 * @param array $settings Raw settings.

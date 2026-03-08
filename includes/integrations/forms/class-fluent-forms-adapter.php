@@ -155,6 +155,6 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 
 		// 2. Log to ClickTrail
 		$form_id_val = isset( $form->id ) ? $form->id : 0;
-		$this->log_submission( 'fluentform', $form_id_val, $attribution );
+		$this->log_submission( 'fluentform', $form_id_val, $attribution, is_array( $form_data ) ? $form_data : array() );
 	}
 }

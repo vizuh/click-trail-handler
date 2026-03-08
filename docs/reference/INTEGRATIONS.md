@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, reviewers, and solution engineers
 - **Canonical for**: supported integrations, providers, CMP sources, webhook sources, and delivery adapters
 - **Update when**: integration support level, adapter list, provider list, or capability messaging changes
-- **Last verified against version**: `1.3.5`
+- **Last verified against version**: `1.3.6`
 
 This document lists the active integrations and external-facing connection points in the current codebase.
 
@@ -18,6 +18,7 @@ Managed by:
 Supported form adapters:
 
 - Contact Form 7
+- Elementor Forms (Pro)
 - Fluent Forms
 - Gravity Forms
 - Ninja Forms
@@ -28,6 +29,7 @@ What ClickTrail does:
 - inject or populate attribution fields
 - keep attribution attached to submissions
 - dispatch form-related events when applicable
+- for Elementor Forms, log submissions through Elementor Pro's official `elementor_pro/forms/new_record` hook and read matching `ct_*` hidden fields when they are present, with cookie fallback when they are not
 
 ## WooCommerce
 

@@ -23,7 +23,7 @@ Keep attribution attached to forms, WooCommerce orders, and event flows across c
 
 ## Core Capabilities
 
-- **Capture**: first-touch and last-touch attribution, referrers, click IDs, retention, and cross-domain continuity.
+- **Capture**: first-touch and last-touch attribution, referrers, classic and extended UTMs, click IDs, browser identifiers, retention, and cross-domain continuity.
 - **Forms**: supported form enrichment, cached-page fallback, dynamic-content support, and WhatsApp continuity.
 - **Events**: browser collection, `dataLayer` pushes, webhook intake, and lifecycle updates.
 - **Delivery**: optional server-side transport, retries, diagnostics, and consent-aware dispatch.

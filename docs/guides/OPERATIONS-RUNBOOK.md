@@ -3,7 +3,7 @@
 - **Audience**: maintainers, support engineers, and reviewers
 - **Canonical for**: activation checks, queue behavior, diagnostics, and common failure handling
 - **Update when**: operational troubleshooting, queue behavior, diagnostics surfaces, or recovery steps change
-- **Last verified against version**: `1.3.5`
+- **Last verified against version**: `1.3.6`
 
 ## Activation and Boot
 
@@ -125,7 +125,21 @@ Typical explanation:
 
 - browser collection and `dataLayer` usage can work even when delivery transport is off
 
-## 4. Queue backlog grows and does not drain
+## 4. Browser event collection is off, but attribution still works
+
+Symptoms:
+
+- attribution capture still works
+- forms still receive attribution
+- no browser event listeners are active
+- no browser-generated events appear in `dataLayer`
+
+Explanation:
+
+- the browser event collection toggle only controls `assets/js/clicutcl-events.js`
+- attribution capture remains a separate capability
+
+## 5. Queue backlog grows and does not drain
 
 Symptoms:
 
@@ -145,7 +159,7 @@ Typical fixes:
 - correct endpoint or adapter mismatch
 - clear stale locks in staging if a worker crashed
 
-## 5. Historical failures remain visible after server-side is disabled
+## 6. Historical failures remain visible after server-side is disabled
 
 Symptoms:
 

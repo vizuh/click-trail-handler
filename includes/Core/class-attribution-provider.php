@@ -19,6 +19,83 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Attribution_Provider {
 
 	/**
+	 * Legacy-to-canonical attribution field aliases.
+	 *
+	 * @var array<string,string>
+	 */
+	private const FIELD_ALIASES = array(
+		'_fbc'                 => 'fbc',
+		'_fbp'                 => 'fbp',
+		'_ttp'                 => 'ttp',
+		'sc_click_id'          => 'sccid',
+		'ft_sc_click_id'       => 'ft_sccid',
+		'lt_sc_click_id'       => 'lt_sccid',
+		'first_touch_timestamp' => 'ft_touch_timestamp',
+		'last_touch_timestamp'  => 'lt_touch_timestamp',
+		'first_landing_page'    => 'ft_landing_page',
+		'last_landing_page'     => 'lt_landing_page',
+	);
+
+	/**
+	 * Touch-level campaign fields.
+	 *
+	 * @var string[]
+	 */
+	private const TOUCH_FIELDS = array(
+		'source',
+		'medium',
+		'campaign',
+		'term',
+		'content',
+		'utm_id',
+		'utm_source_platform',
+		'utm_creative_format',
+		'utm_marketing_tactic',
+	);
+
+	/**
+	 * Canonical click ID fields.
+	 *
+	 * @var string[]
+	 */
+	private const CLICK_ID_FIELDS = array(
+		'gclid',
+		'fbclid',
+		'msclkid',
+		'ttclid',
+		'wbraid',
+		'gbraid',
+		'twclid',
+		'li_fat_id',
+		'sccid',
+		'epik',
+	);
+
+	/**
+	 * Legacy click ID aliases that we still read and populate.
+	 *
+	 * @var string[]
+	 */
+	private const CLICK_ID_FIELD_ALIASES = array(
+		'sc_click_id',
+	);
+
+	/**
+	 * Browser-side platform identifiers kept at the top level.
+	 *
+	 * @var string[]
+	 */
+	private const BROWSER_IDENTIFIER_FIELDS = array(
+		'fbc',
+		'fbp',
+		'ttp',
+		'li_gc',
+		'ga_client_id',
+		'ga_session_id',
+		'ga_session_number',
+	);
+
+	/**
 	 * Retrieve the current attribution payload (flattened).
 	 *
 	 * @return array The attribution data array, empty if none or no consent.
@@ -105,8 +182,12 @@ class Attribution_Provider {
 		$sanitized = array();
 
 		foreach ( $data as $key => $value ) {
-			$meta_key = sanitize_key( $key );
+			$meta_key = self::canonicalize_field_key( $key );
 			if ( '' === $meta_key ) {
+				continue;
+			}
+
+			if ( array_key_exists( $meta_key, $sanitized ) && $meta_key !== sanitize_key( $key ) ) {
 				continue;
 			}
 
@@ -121,6 +202,18 @@ class Attribution_Provider {
 			}
 		}
 
+		$sanitized = self::normalize_click_ids( $sanitized );
+
+		if ( ! empty( $sanitized['sccid'] ) ) {
+			$sanitized['sc_click_id'] = $sanitized['sccid'];
+		}
+		if ( ! empty( $sanitized['ft_sccid'] ) ) {
+			$sanitized['ft_sc_click_id'] = $sanitized['ft_sccid'];
+		}
+		if ( ! empty( $sanitized['lt_sccid'] ) ) {
+			$sanitized['lt_sc_click_id'] = $sanitized['lt_sccid'];
+		}
+
 		return $sanitized;
 	}
 
@@ -130,22 +223,108 @@ class Attribution_Provider {
 	 * @return array Array of field keys to look for.
 	 */
 	public static function get_field_mapping() {
-		return array(
-			// UTMs
-			'ft_source', 'ft_medium', 'ft_campaign', 'ft_term', 'ft_content',
-			'lt_source', 'lt_medium', 'lt_campaign', 'lt_term', 'lt_content',
-			
-			// Click IDs
-			'ft_gclid', 'ft_wbraid', 'ft_gbraid', 'ft_fbclid', 'ft_msclkid',
-			'ft_ttclid', 'ft_twclid', 'ft_li_fat_id', 'ft_sccid', 'ft_sc_click_id', 'ft_epik',
-			'lt_gclid', 'lt_wbraid', 'lt_gbraid', 'lt_fbclid', 'lt_msclkid',
-			'lt_ttclid', 'lt_twclid', 'lt_li_fat_id', 'lt_sccid', 'lt_sc_click_id', 'lt_epik',
-			
-			// Metadata
-			'ft_landing_page', 'lt_landing_page',
-			'first_touch_timestamp', 'last_touch_timestamp',
-			'ft_referrer', 'lt_referrer',
-			'session_count'
+		$fields = array();
+
+		foreach ( self::TOUCH_FIELDS as $field ) {
+			$fields[] = 'ft_' . $field;
+			$fields[] = 'lt_' . $field;
+		}
+
+		foreach ( self::CLICK_ID_FIELDS as $field ) {
+			$fields[] = 'ft_' . $field;
+			$fields[] = 'lt_' . $field;
+		}
+
+		foreach ( self::CLICK_ID_FIELD_ALIASES as $field ) {
+			$fields[] = 'ft_' . $field;
+			$fields[] = 'lt_' . $field;
+		}
+
+		return array_merge(
+			$fields,
+			self::CLICK_ID_FIELDS,
+			self::CLICK_ID_FIELD_ALIASES,
+			self::BROWSER_IDENTIFIER_FIELDS,
+			array(
+				'ft_landing_page',
+				'lt_landing_page',
+				'ft_touch_timestamp',
+				'lt_touch_timestamp',
+				'ft_referrer',
+				'lt_referrer',
+				'session_count',
+			)
 		);
+	}
+
+	/**
+	 * Get touch-level campaign fields without prefixes.
+	 *
+	 * @return string[]
+	 */
+	public static function get_touch_fields() {
+		return self::TOUCH_FIELDS;
+	}
+
+	/**
+	 * Get canonical click ID fields without prefixes.
+	 *
+	 * @return string[]
+	 */
+	public static function get_click_id_fields() {
+		return self::CLICK_ID_FIELDS;
+	}
+
+	/**
+	 * Get browser identifier fields that stay at the top level.
+	 *
+	 * @return string[]
+	 */
+	public static function get_browser_identifier_fields() {
+		return self::BROWSER_IDENTIFIER_FIELDS;
+	}
+
+	/**
+	 * Get field alias mapping for legacy compatibility.
+	 *
+	 * @return array<string,string>
+	 */
+	public static function get_field_alias_mapping() {
+		return self::FIELD_ALIASES;
+	}
+
+	/**
+	 * Normalize a raw field key to the canonical attribution schema.
+	 *
+	 * @param string $key Raw field key.
+	 * @return string
+	 */
+	private static function canonicalize_field_key( $key ) {
+		$meta_key = sanitize_key( $key );
+		if ( '' === $meta_key ) {
+			return '';
+		}
+
+		return self::FIELD_ALIASES[ $meta_key ] ?? $meta_key;
+	}
+
+	/**
+	 * Fill canonical top-level click IDs from last-touch / first-touch copies.
+	 *
+	 * @param array $data Sanitized attribution data.
+	 * @return array
+	 */
+	private static function normalize_click_ids( array $data ) {
+		foreach ( self::CLICK_ID_FIELDS as $field ) {
+			if ( empty( $data[ $field ] ) ) {
+				if ( ! empty( $data[ 'lt_' . $field ] ) ) {
+					$data[ $field ] = $data[ 'lt_' . $field ];
+				} elseif ( ! empty( $data[ 'ft_' . $field ] ) ) {
+					$data[ $field ] = $data[ 'ft_' . $field ];
+				}
+			}
+		}
+
+		return $data;
 	}
 }

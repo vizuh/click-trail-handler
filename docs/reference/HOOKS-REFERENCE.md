@@ -3,7 +3,7 @@
 - **Audience**: contributors, integrators, and maintainers
 - **Canonical for**: public filters and actions exposed by the plugin
 - **Update when**: a public hook is added, removed, renamed, or changes contract
-- **Last verified against version**: `1.3.5`
+- **Last verified against version**: `1.3.6`
 
 This document lists the public custom hooks currently exposed by the active codebase.
 
@@ -18,6 +18,11 @@ Type:
 Purpose:
 
 - override whether `assets/js/clicutcl-events.js` should load
+
+Notes:
+
+- this filter only affects asset loading
+- the browser event collection capability gate still applies at runtime, so forcing the asset to load does not re-enable browser event listeners when collection is disabled in settings
 
 Arguments:
 

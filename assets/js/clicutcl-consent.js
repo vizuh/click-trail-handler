@@ -99,36 +99,23 @@
             if (banner) banner.remove();
         }
 
-        setConsent(preferences) {
+        setConsent(preferences, source = 'plugin-banner') {
             const value = JSON.stringify(preferences);
             this.setCookie(CONSENT_COOKIE, value, CONSENT_DAYS);
             this.pushConsentToDataLayer(preferences);
-
-            // Dispatch event for other scripts
-            window.dispatchEvent(new CustomEvent('ct_consent_updated', { detail: preferences }));
-            if (preferences && (preferences.analytics || preferences.marketing)) {
-                window.dispatchEvent(new CustomEvent('consent_granted', { detail: preferences }));
-            }
+            this.syncBridgeFromConsent(preferences, source);
         }
 
         handleAccept() {
             const prefs = { analytics: true, marketing: true };
-            this.setConsent(prefs);
+            this.setConsent(prefs, 'plugin-banner');
             this.hideBanner();
-
-            if (typeof window.ClickTrailConsent !== 'undefined') {
-                window.ClickTrailConsent.grant('plugin-banner');
-            }
         }
 
         handleReject() {
             const prefs = { analytics: false, marketing: false };
-            this.setConsent(prefs);
+            this.setConsent(prefs, 'plugin-banner');
             this.hideBanner();
-
-            if (typeof window.ClickTrailConsent !== 'undefined') {
-                window.ClickTrailConsent.deny('plugin-banner');
-            }
         }
 
         syncBridgeFromConsent(preferences, source) {

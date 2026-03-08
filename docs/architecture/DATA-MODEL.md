@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, and reviewers
 - **Canonical for**: option keys, cookies, tables, transients, cron hooks, and persistence surfaces
 - **Update when**: stored keys, retention behavior, queue schema, or cookie/storage usage changes
-- **Last verified against version**: `1.3.5`
+- **Last verified against version**: `1.3.6`
 
 This document summarizes the active storage surfaces used by ClickTrail.
 
@@ -85,6 +85,23 @@ Stores advanced runtime state for:
 - diagnostics tuning
 - dedup tuning
 
+## Client-Side Attribution Storage
+
+Cookie key:
+
+- `attribution` (or `ct_attribution` on older installs still carrying the legacy name)
+
+Browser storage behavior:
+
+- attribution is stored in a first-party cookie for server-readable integrations
+- localStorage keeps a TTL-bound mirror of the attribution payload for cached or dynamic-page resilience
+- the localStorage mirror now carries explicit expiry metadata tied to `cookie_days`
+- legacy localStorage copies without expiry metadata are discarded instead of being revived indefinitely
+- when consent resolves to denied, both the attribution cookie and the localStorage mirror are cleared
+- attribution metadata fields use the same `ft_` / `lt_` key convention as the rest of the schema, and legacy `first_*` / `last_*` aliases are normalized back to the canonical keys on read
+- campaign attribution now includes the extended GA-style query fields `utm_id`, `utm_source_platform`, `utm_creative_format`, and `utm_marketing_tactic` under `ft_*` / `lt_*` keys
+- browser-level identifiers such as `fbc`, `fbp`, `ttp`, `li_gc`, `ga_client_id`, and `ga_session_id` are stored at the top level of the attribution payload when available and permitted by consent
+
 ## Custom Database Tables
 
 Created by:
@@ -96,6 +113,7 @@ Created by:
 Purpose:
 
 - store event log rows for the admin Logs screen
+- store form submission event payloads including resolved attribution and, when available, consent-aware identity fields
 
 Columns:
 
@@ -176,6 +194,12 @@ Secrets stored inside `clicutcl_tracking_v2` are:
 - masked in admin responses
 - treated as write-only updates
 - optionally encrypted at rest when supported and enabled
+
+## Server-Side Event Shape Notes
+
+Legacy server-side event payloads now carry identity as a first-class top-level `identity` object.
+
+For backward compatibility during the transition, that resolved identity is also mirrored into `meta.identity` when present.
 
 ## Uninstall Behavior
 

@@ -7,8 +7,11 @@
 
 namespace CLICUTCL\Integrations;
 
+use CLICUTCL\Core\Attribution_Provider;
 use CLICUTCL\Utils\Attribution;
 use CLICUTCL\Server_Side\Dispatcher;
+use CLICUTCL\Server_Side\Consent;
+use CLICUTCL\Tracking\Identity_Resolver;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -42,13 +45,13 @@ class WooCommerce {
 	 * @param \WC_Checkout $checkout Checkout object.
 	 */
 	public function output_hidden_checkout_fields( $checkout ) {
-		$fields = array(
-			'ct_ft_source', 'ct_ft_medium', 'ct_ft_campaign', 'ct_ft_term', 'ct_ft_content',
-			'ct_lt_source', 'ct_lt_medium', 'ct_lt_campaign', 'ct_lt_term', 'ct_lt_content',
-			'ct_gclid', 'ct_fbclid', 'ct_msclkid', 'ct_ttclid', 'ct_wbraid', 'ct_gbraid',
-			'ct_twclid', 'ct_li_fat_id', 'ct_sccid', 'ct_sc_click_id', 'ct_epik'
+		$fields = array_map(
+			static function( $key ) {
+				return 'ct_' . $key;
+			},
+			Attribution_Provider::get_field_mapping()
 		);
-		
+
 		echo '<div class="clicutcl-checkout-fields" style="display:none;">';
 		foreach ( $fields as $field ) {
 			// Output empty inputs; JS Injector will fill them
@@ -110,48 +113,23 @@ class WooCommerce {
 		}
 
 		$attr = array();
-		
-		// Helper to extract
-		$extract = function( $prefix, $store_prefix ) use ( $data, &$attr ) {
-			$map = array(
-				'source', 'medium', 'campaign', 'term', 'content',
-				'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid',
-				'twclid', 'li_fat_id', 'sccid', 'sc_click_id', 'epik',
-			);
-			$found = false;
-			foreach ( $map as $key ) {
-				$input_name = "ct_{$prefix}_{$key}";
-				// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in parent function collect_from_post_data.
-				if ( ! empty( $_POST[ $input_name ] ) ) {
-					// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in parent function collect_from_post_data.
-					$attr["{$store_prefix}_{$key}"] = sanitize_text_field( wp_unslash( $_POST[ $input_name ] ) );
-					$found = true;
-				}
-			}
-			return $found;
-		};
 
-		// First Touch
-		$extract('ft', 'ft');
-		// Last Touch
-		$extract('lt', 'lt');
-		
-		// ID fallbacks if not prefixed (legacy)
-		$ids = array( 'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid', 'twclid', 'li_fat_id', 'sccid', 'sc_click_id', 'epik' );
-		foreach($ids as $id) {
+		foreach ( Attribution_Provider::get_field_mapping() as $key ) {
+			$input_name = 'ct_' . $key;
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in parent function collect_from_post_data.
-			if (!empty($_POST['ct_'.$id]) && empty($attr['lt_'.$id])) {
-				$attr['lt_'.$id] = sanitize_text_field( wp_unslash( $_POST['ct_'.$id] ) );
+			if ( empty( $_POST[ $input_name ] ) ) {
+				continue;
 			}
-		}
-		if ( ! empty( $attr['lt_sc_click_id'] ) && empty( $attr['lt_sccid'] ) ) {
-			$attr['lt_sccid'] = $attr['lt_sc_click_id'];
-		}
-		if ( ! empty( $attr['ft_sc_click_id'] ) && empty( $attr['ft_sccid'] ) ) {
-			$attr['ft_sccid'] = $attr['ft_sc_click_id'];
+
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified in parent function collect_from_post_data.
+			$attr[ $key ] = sanitize_text_field( wp_unslash( $_POST[ $input_name ] ) );
 		}
 
-		return !empty($attr) ? $attr : null;
+		if ( empty( $attr ) ) {
+			return null;
+		}
+
+		return Attribution_Provider::sanitize( $attr );
 	}
 
 	/**
@@ -176,6 +154,7 @@ class WooCommerce {
 
 		$attribution = $this->collect_order_attribution( $order );
 		$flat_attr   = $this->flatten_attribution_for_event( $attribution );
+		$identity    = $this->resolve_purchase_identity( $order );
 
 		$items_js = array();
 		foreach ( $order->get_items() as $item_id => $item ) {
@@ -210,6 +189,7 @@ class WooCommerce {
 				'currency'       => $order->get_currency(),
 				'items'          => $items_js,
 				'attribution'    => $attribution,
+				'identity'       => $identity,
 			)
 		);
 		?>
@@ -242,10 +222,19 @@ class WooCommerce {
 
 			if ( 0 === strpos( $key, '_clicutcl_ft_' ) ) {
 				$attribution['first_touch'][ substr( $key, 13 ) ] = $value;
+				continue;
 			}
 
 			if ( 0 === strpos( $key, '_clicutcl_lt_' ) ) {
 				$attribution['last_touch'][ substr( $key, 13 ) ] = $value;
+				continue;
+			}
+
+			if ( 0 === strpos( $key, '_clicutcl_' ) ) {
+				$meta_key = substr( $key, 10 );
+				if ( '' !== $meta_key && ! in_array( $meta_key, array( 'tracking_sent' ), true ) ) {
+					$attribution[ $meta_key ] = $value;
+				}
 			}
 		}
 
@@ -260,6 +249,56 @@ class WooCommerce {
 	}
 
 	/**
+	 * Resolve purchase identity for server-side delivery.
+	 *
+	 * @param \WC_Order $order Order instance.
+	 * @return array
+	 */
+	private function resolve_purchase_identity( $order ) {
+		$input = array(
+			'email' => sanitize_email( (string) $order->get_billing_email() ),
+			'phone' => sanitize_text_field( (string) $order->get_billing_phone() ),
+		);
+
+		$ip = '';
+		if ( method_exists( $order, 'get_customer_ip_address' ) ) {
+			$ip = (string) $order->get_customer_ip_address();
+		}
+		if ( '' === $ip && isset( $_SERVER['REMOTE_ADDR'] ) ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Validated by Identity_Resolver.
+			$ip = wp_unslash( $_SERVER['REMOTE_ADDR'] );
+		}
+		if ( '' !== $ip ) {
+			$input['ip'] = $ip;
+		}
+
+		$user_agent = '';
+		if ( method_exists( $order, 'get_customer_user_agent' ) ) {
+			$user_agent = (string) $order->get_customer_user_agent();
+		}
+		if ( '' === $user_agent ) {
+			$user_agent = (string) $order->get_meta( '_customer_user_agent', true );
+		}
+		if ( '' === $user_agent && isset( $_SERVER['HTTP_USER_AGENT'] ) ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized by Identity_Resolver.
+			$user_agent = wp_unslash( $_SERVER['HTTP_USER_AGENT'] );
+		}
+		if ( '' !== $user_agent ) {
+			$input['user_agent'] = $user_agent;
+		}
+
+		$resolver = new Identity_Resolver();
+
+		return $resolver->resolve(
+			$input,
+			array(
+				'marketing_allowed' => Consent::marketing_allowed(),
+				'include_ip_ua'     => true,
+			)
+		);
+	}
+
+	/**
 	 * Flatten attribution data to ft_* / lt_* fields for GA4.
 	 *
 	 * @param array $attribution Nested attribution.
@@ -267,41 +306,17 @@ class WooCommerce {
 	 * @return array
 	 */
 	private function flatten_attribution_for_event( $attribution ) {
-		$attribution = $this->normalize_attribution_structure( $attribution );
+		$raw_attribution = Attribution_Provider::sanitize( is_array( $attribution ) ? $attribution : array() );
+		$attribution     = $this->normalize_attribution_structure( $raw_attribution );
 
-		$flat = array(
-			'ft_source'      => '',
-			'ft_medium'      => '',
-			'ft_campaign'    => '',
-			'ft_term'        => '',
-			'ft_content'     => '',
-			'ft_gclid'       => '',
-			'ft_fbclid'      => '',
-			'ft_wbraid'      => '',
-			'ft_gbraid'      => '',
-			'ft_msclkid'     => '',
-			'ft_ttclid'      => '',
-			'ft_twclid'      => '',
-			'ft_li_fat_id'   => '',
-			'ft_sccid'       => '',
-			'ft_sc_click_id' => '',
-			'ft_epik'        => '',
-			'lt_source'      => '',
-			'lt_medium'      => '',
-			'lt_campaign'    => '',
-			'lt_term'        => '',
-			'lt_content'     => '',
-			'lt_gclid'       => '',
-			'lt_fbclid'      => '',
-			'lt_wbraid'      => '',
-			'lt_gbraid'      => '',
-			'lt_msclkid'     => '',
-			'lt_ttclid'      => '',
-			'lt_twclid'      => '',
-			'lt_li_fat_id'   => '',
-			'lt_sccid'       => '',
-			'lt_sc_click_id' => '',
-			'lt_epik'        => '',
+		$flat = array_fill_keys(
+			array_filter(
+				Attribution_Provider::get_field_mapping(),
+				static function( $key ) {
+					return 0 === strpos( $key, 'ft_' ) || 0 === strpos( $key, 'lt_' );
+				}
+			),
+			''
 		);
 
 		$map_key = function( $key ) {
@@ -327,6 +342,12 @@ class WooCommerce {
 
 		$assign_touch( 'first_touch', 'ft_' );
 		$assign_touch( 'last_touch', 'lt_' );
+
+		foreach ( array_merge( Attribution_Provider::get_click_id_fields(), Attribution_Provider::get_browser_identifier_fields() ) as $key ) {
+			if ( isset( $raw_attribution[ $key ] ) && '' !== (string) $raw_attribution[ $key ] ) {
+				$flat[ $key ] = $raw_attribution[ $key ];
+			}
+		}
 
 		return $flat;
 	}
@@ -376,6 +397,11 @@ class WooCommerce {
 					$touch_key = 'sccid';
 				}
 				$normalized['last_touch'][ $touch_key ] = (string) $value;
+				continue;
+			}
+
+			if ( ! in_array( $key, array( 'first_touch', 'last_touch' ), true ) ) {
+				$normalized[ $key ] = (string) $value;
 			}
 		}
 

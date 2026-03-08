@@ -112,7 +112,7 @@ class Ninja_Forms_Adapter extends Abstract_Form_Adapter {
 			$attribution = $form_data['extra']['clicktrail_attribution'];
 			$form_id     = isset( $form_data['form_id'] ) ? $form_data['form_id'] : ( isset( $form_data['id'] ) ? $form_data['id'] : 0 );
 			
-			$this->log_submission( 'ninjaforms', $form_id, $attribution );
+			$this->log_submission( 'ninjaforms', $form_id, $attribution, is_array( $form_data ) ? $form_data : array() );
 		}
 	}
 

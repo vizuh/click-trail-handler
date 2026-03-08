@@ -148,6 +148,49 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 		}
 
 		// Log to ClickTrail
-		$this->log_submission( 'wpforms', $form_id, $payload );
+		$this->log_submission( 'wpforms', $form_id, $payload, $this->extract_identity_from_fields( $fields ) );
+	}
+
+	/**
+	 * Extract email/phone candidates from sanitized WPForms field data.
+	 *
+	 * @param mixed $fields Sanitized field data.
+	 * @return array
+	 */
+	private function extract_identity_from_fields( $fields ) {
+		if ( ! is_array( $fields ) ) {
+			return array();
+		}
+
+		$identity = array();
+
+		foreach ( $fields as $field ) {
+			if ( ! is_array( $field ) ) {
+				continue;
+			}
+
+			$value = isset( $field['value'] ) && is_scalar( $field['value'] ) ? trim( (string) $field['value'] ) : '';
+			if ( '' === $value ) {
+				continue;
+			}
+
+			$type  = isset( $field['type'] ) ? sanitize_key( (string) $field['type'] ) : '';
+			$label = '';
+			if ( isset( $field['name'] ) && is_scalar( $field['name'] ) ) {
+				$label = strtolower( (string) $field['name'] );
+			} elseif ( isset( $field['label'] ) && is_scalar( $field['label'] ) ) {
+				$label = strtolower( (string) $field['label'] );
+			}
+
+			if ( empty( $identity['email'] ) && ( 'email' === $type || false !== strpos( $label, 'email' ) ) && is_email( $value ) ) {
+				$identity['email'] = sanitize_email( $value );
+			}
+
+			if ( empty( $identity['phone'] ) && ( 'phone' === $type || $this->is_phone_candidate( $label, $value ) ) ) {
+				$identity['phone'] = sanitize_text_field( $value );
+			}
+		}
+
+		return $identity;
 	}
 }

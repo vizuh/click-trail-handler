@@ -36,6 +36,7 @@ function clicutcl_strip_tracking_params_from_url( $url ) {
 
 		$tracking_keys = array(
 				'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+				'utm_id', 'utm_source_platform', 'utm_creative_format', 'utm_marketing_tactic',
 				'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid',
 				'twclid', 'li_fat_id', 'ScCid', 'sccid', 'sc_click_id', 'epik',
 				'campaign_id', 'adgroup_id', 'ad_id', 'target_id',
