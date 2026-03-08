@@ -38,12 +38,20 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 
 	/**
 	 * Register hooks.
+	 *
+	 * Fluent Forms v5+ uses slash-style hooks (fluentform/form_element_start).
+	 * v4 and earlier used underscore-style (fluentform_form_element_start).
+	 * Both sets are registered so the adapter works regardless of installed version.
+	 * on_submission carries a static dedup guard so it never logs the same entry twice
+	 * even when both aliases fire on an installation that preserves both.
 	 */
 	public function register_hooks() {
-		// Echo hidden fields
+		// Slash-style (Fluent Forms v5+, current docs)
+		add_action( 'fluentform/form_element_start', array( $this, 'add_hidden_fields' ), 10, 1 );
+		add_action( 'fluentform/submission_inserted', array( $this, 'on_submission' ), 10, 3 );
+
+		// Underscore-style (legacy aliases, v4 and below)
 		add_action( 'fluentform_form_element_start', array( $this, 'add_hidden_fields' ), 10, 1 );
-		
-		// Submission persistence
 		add_action( 'fluentform_submission_inserted', array( $this, 'on_submission' ), 10, 3 );
 	}
 
@@ -89,7 +97,13 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 	 * @param object $arg3 Form object (optional).
 	 */
 	public function on_submission( $arg1, $arg2, $arg3 = null ) {
-		$entry_id = $arg1;
+		static $logged = array();
+		$entry_id = (int) $arg1;
+		if ( isset( $logged[ $entry_id ] ) ) {
+			return;
+		}
+		$logged[ $entry_id ] = true;
+
 		$form_data = $arg2;
 		$form = $arg3;
 		// Use payload from cookie or form_data?
@@ -114,16 +128,31 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 			return;
 		}
 
-		// 1. Persist to Fluent Forms Meta (if available)
-		if ( function_exists( 'fluentFormApi' ) ) {
-			// fluentFormApi('submissions')->updateMeta($entry_id, $key, $value);
-			// But helper function usually usage:
-			// No direct helper exposed simply?
-			// Let's use internal legacy helper if exists or just skip if too complex.
-			// Ideally we want to see these columns in Fluent view. Fluent requires fields to be mapped for columns in UI.
-			// But saving to meta allows programmatic access.
+		// 1. Persist to Fluent Forms submission meta so attribution values are
+		//    accessible in the Fluent Forms entry detail view and via its API.
+		//    wpFluent() is Fluent's own DB wrapper and is always available when the
+		//    plugin is active. The table is created by Fluent on activation.
+		if ( function_exists( 'wpFluent' ) ) {
+			$now = current_time( 'mysql' );
+			foreach ( $attribution as $key => $value ) {
+				try {
+					wpFluent()
+						->table( 'fluentform_submission_meta' )
+						->insert(
+							array(
+								'submission_id' => $entry_id,
+								'meta_key'      => $this->get_field_name( $key ),
+								'value'         => (string) $value,
+								'created_at'    => $now,
+								'updated_at'    => $now,
+							)
+						);
+				} catch ( \Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
+					// Non-fatal: ClickTrail logging below still proceeds.
+				}
+			}
 		}
-		
+
 		// 2. Log to ClickTrail
 		$form_id_val = isset( $form->id ) ? $form->id : 0;
 		$this->log_submission( 'fluentform', $form_id_val, $attribution );

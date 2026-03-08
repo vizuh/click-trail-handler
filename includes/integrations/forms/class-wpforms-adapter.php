@@ -120,18 +120,25 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 			return;
 		}
 
-		// Save to Entry Meta implies storing it in WPForms entry table.
-		// WPForms (Lite) doesn't have entries.
-		// WPForms (Pro) has entries.
-		// We can try to add meta if function exists.
-		
-		if ( function_exists( 'wpforms' ) && isset( wpforms()->entry_meta ) ) {
+		$form_id  = isset( $form_data['id'] ) ? absint( $form_data['id'] ) : 0;
+		$entry_id = absint( $entry_id );
+
+		// Save to WPForms entry meta only when a real entry exists.
+		// Lite installs and some processing paths may not provide one.
+		if (
+			$entry_id > 0 &&
+			$form_id > 0 &&
+			function_exists( 'wpforms' ) &&
+			isset( wpforms()->entry_meta ) &&
+			is_object( wpforms()->entry_meta ) &&
+			method_exists( wpforms()->entry_meta, 'add' )
+		) {
 			foreach ( $payload as $key => $value ) {
 				$meta_key = $this->get_field_name( $key );
 				wpforms()->entry_meta->add(
 					array(
 						'entry_id' => $entry_id,
-						'form_id'  => $form_data['id'],
+						'form_id'  => $form_id,
 						'user_id'  => get_current_user_id(),
 						'type'     => $meta_key,
 						'data'     => $value,
@@ -141,6 +148,6 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 		}
 
 		// Log to ClickTrail
-		$this->log_submission( 'wpforms', $form_data['id'], $payload );
+		$this->log_submission( 'wpforms', $form_id, $payload );
 	}
 }

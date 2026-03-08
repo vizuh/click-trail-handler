@@ -40,11 +40,39 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 	 * Register hooks.
 	 */
 	public function register_hooks() {
+		// Register attribution keys as first-class Gravity Forms entry meta so they
+		// appear in the entry detail view, list columns, exports, and merge tags.
+		add_filter( 'gform_entry_meta', array( $this, 'register_entry_meta' ), 10, 2 );
+
 		// Dynamic population
 		add_filter( 'gform_field_value', array( $this, 'populate_fields_dynamic' ), 10, 3 );
-		
+
 		// Submission persistence
 		add_action( 'gform_after_submission', array( $this, 'on_submission' ), 10, 2 );
+	}
+
+	/**
+	 * Declare ClickTrail attribution keys as Gravity Forms entry meta.
+	 *
+	 * This makes the values visible in the entry detail screen, exportable via
+	 * the Gravity Forms export tool, and searchable in the entries list.
+	 *
+	 * @param array $entry_meta Existing entry meta definitions.
+	 * @param int   $form_id    Current form ID (unused; we register for all forms).
+	 * @return array
+	 */
+	public function register_entry_meta( $entry_meta, $form_id ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
+		$keys = \CLICUTCL\Core\Attribution_Provider::get_field_mapping();
+		foreach ( $keys as $key ) {
+			$meta_key              = $this->get_field_name( $key );
+			$label                 = 'ClickTrail: ' . ucwords( str_replace( '_', ' ', $key ) );
+			$entry_meta[ $meta_key ] = array(
+				'label'             => $label,
+				'is_numeric'        => false,
+				'is_default_column' => false,
+			);
+		}
+		return $entry_meta;
 	}
 
 	/**
