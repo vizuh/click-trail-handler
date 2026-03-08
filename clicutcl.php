@@ -139,10 +139,10 @@ function clicutcl_init() {
 	}
 
 	// Preflight: never fatal the site if a required class is missing.
-	if ( ! class_exists( 'CLICUTCL\\Core\\Context' ) 
-		|| ! class_exists( 'CLICUTCL\\Modules\\Consent_Mode\\Consent_Mode' ) 
+	if ( ! class_exists( 'CLICUTCL\\Core\\Context' )
+		|| ! class_exists( 'CLICUTCL\\Modules\\Consent_Mode\\Consent_Mode' )
 		|| ! class_exists( 'CLICUTCL\\Modules\\GTM\\Web_Tag' )
-		|| ! class_exists( 'CLICUTCL_Core' ) 
+		|| ! class_exists( 'CLICUTCL\\Plugin' )
 	) {
 		add_action( 'admin_notices', function() {
 			if ( ! current_user_can( 'activate_plugins' ) ) {
@@ -158,7 +158,7 @@ function clicutcl_init() {
 		return;
 	}
 
-	$plugin = new CLICUTCL_Core();
+	$plugin = new CLICUTCL\Plugin();
 	$plugin->run();
 }
 add_action( 'init', 'clicutcl_init', 20 );

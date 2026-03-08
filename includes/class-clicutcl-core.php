@@ -3,9 +3,14 @@
 /**
  * The core plugin class.
  *
- * This is used to define internationalization, admin-specific hooks, and
- * public-facing site hooks.
+ * Handles dependency loading and module instantiation. Hook registration
+ * is intentionally deferred to run() so that instantiating this class does
+ * not immediately register any WordPress hooks, keeping it unit-testable.
+ *
+ * @package ClickTrail
  */
+
+namespace CLICUTCL;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -18,26 +23,32 @@ use CLICUTCL\Privacy\Privacy_Handler;
 use CLICUTCL\Server_Side\Queue;
 use CLICUTCL\Utils\Cleanup;
 
-class CLICUTCL_Core {
+/**
+ * Class Plugin
+ *
+ * Core bootstrap class for ClickTrail. Instantiation only loads
+ * dependencies and constructs module objects. Call run() to register hooks.
+ */
+class Plugin {
 
 	/**
 	 * Plugin context.
 	 *
-	 * @var CLICUTCL\Core\Context
+	 * @var Core\Context
 	 */
 	protected $context;
 
 	/**
 	 * Consent Mode module.
 	 *
-	 * @var CLICUTCL\Modules\Consent_Mode\Consent_Mode
+	 * @var Modules\Consent_Mode\Consent_Mode
 	 */
 	protected $consent_mode;
 
 	/**
 	 * GTM module.
 	 *
-	 * @var CLICUTCL\Modules\GTM\Web_Tag
+	 * @var Modules\GTM\Web_Tag
 	 */
 	protected $gtm;
 
@@ -49,79 +60,95 @@ class CLICUTCL_Core {
 	protected $booted = false;
 
 	/**
-	 * Define the core functionality of the plugin.
+	 * Constructor — loads dependencies and builds module objects only.
+	 * Does NOT register any WordPress hooks.
 	 */
 	public function __construct() {
 		$this->load_dependencies();
 
 		if ( ! class_exists( 'CLICUTCL\\Core\\Context' ) ) {
-			add_action( 'admin_notices', function() {
-				if ( ! current_user_can( 'activate_plugins' ) ) {
-					return;
+			add_action(
+				'admin_notices',
+				function() {
+					if ( ! current_user_can( 'activate_plugins' ) ) {
+						return;
+					}
+					echo '<div class="notice notice-error"><p>';
+					echo esc_html__(
+						'ClickTrail Handler failed to boot: missing class CLICUTCL\\Core\\Context. Check your autoloader mapping and release ZIP contents.',
+						'click-trail-handler'
+					);
+					echo '</p></div>';
 				}
-				echo '<div class="notice notice-error"><p>';
-				echo esc_html__(
-					'ClickTrail Handler failed to boot: missing class CLICUTCL\\Core\\Context. Check your autoloader mapping and release ZIP contents.',
-					'click-trail-handler'
-				);
-				echo '</p></div>';
-			} );
+			);
 			return;
 		}
 
-		$this->context = new CLICUTCL\Core\Context( CLICUTCL_PLUGIN_MAIN_FILE );
-		
-		// Initialize Modules
-		$this->consent_mode = new CLICUTCL\Modules\Consent_Mode\Consent_Mode( $this->context );
-		$this->gtm          = new CLICUTCL\Modules\GTM\Web_Tag( $this->context );
+		$this->context      = new Core\Context( CLICUTCL_PLUGIN_MAIN_FILE );
+		$this->consent_mode = new Modules\Consent_Mode\Consent_Mode( $this->context );
+		$this->gtm          = new Modules\GTM\Web_Tag( $this->context );
+		$this->booted       = true;
+	}
 
+	/**
+	 * Register all hooks and start the plugin.
+	 *
+	 * Called explicitly after instantiation so that hook registration
+	 * is decoupled from object construction.
+	 *
+	 * @return void
+	 */
+	public function run() {
+		if ( ! $this->booted ) {
+			return;
+		}
 
 		$this->define_admin_hooks();
 		$this->define_public_hooks();
-		
+
 		$cleanup = new Cleanup();
 		$cleanup->register();
-		$this->booted = true;
 	}
 
 	/**
 	 * Load the required dependencies for this plugin.
+	 *
+	 * @return void
 	 */
 	private function load_dependencies() {
-		// Autoloader handled in bootstrap
+		// Autoloader handled in bootstrap.
 
-		// WooCommerce Admin (if WooCommerce is active)
+		// WooCommerce Admin (if WooCommerce is active).
 		if ( class_exists( 'WooCommerce' ) ) {
-			require_once CLICUTCL_DIR . 'includes/admin/class-clicutcl-woocommerce-admin.php'; // CLICUTCL_WooCommerce_Admin (Not namespaced)
+			require_once CLICUTCL_DIR . 'includes/admin/class-clicutcl-woocommerce-admin.php';
 		}
 	}
 
 	/**
-	 * Register all of the hooks related to the admin area functionality
-	 * of the plugin.
+	 * Register all hooks related to the admin area.
+	 *
+	 * @return void
 	 */
 	private function define_admin_hooks() {
 		$plugin_admin = new Admin( $this->context );
 		$plugin_admin->init();
 
-		// Initialize WooCommerce Admin features
 		if ( class_exists( 'WooCommerce' ) && class_exists( 'CLICUTCL_WooCommerce_Admin' ) ) {
-			$wc_admin = new CLICUTCL_WooCommerce_Admin();
+			$wc_admin = new \CLICUTCL_WooCommerce_Admin();
 			$wc_admin->init();
 		}
 	}
 
 	/**
-	 * Register all of the hooks related to the public-facing functionality
-	 * of the plugin.
+	 * Register all hooks related to the public-facing functionality.
+	 *
+	 * @return void
 	 */
 	private function define_public_hooks() {
-		// Register Modules
 		$this->consent_mode->register();
 		$this->gtm->register();
 
-		// Register Events Logger
-		$events_logger = new CLICUTCL\Modules\Events\Events_Logger( $this->context );
+		$events_logger = new Modules\Events\Events_Logger( $this->context );
 		$events_logger->register();
 
 		$privacy_handler = new Privacy_Handler();
@@ -138,21 +165,20 @@ class CLICUTCL_Core {
 				$controller->register_routes();
 			}
 		);
-		
-		// Initialize Integrations
-		$form_integrations = new CLICUTCL\Integrations\Form_Integration_Manager();
-		$form_integrations->init();
 
+		$form_integrations = new Integrations\Form_Integration_Manager();
+		$form_integrations->init();
 
 		if ( class_exists( 'WooCommerce' ) ) {
 			$woocommerce_integration = new WooCommerce();
 			$woocommerce_integration->init();
 		}
-
 	}
 
 	/**
 	 * Enqueue the public-facing scripts and styles.
+	 *
+	 * @return void
 	 */
 	public function enqueue_scripts() {
 		$options            = get_option( 'clicutcl_attribution_settings', array() );
@@ -172,7 +198,7 @@ class CLICUTCL_Core {
 		$attribution_token_sign_url   = rest_url( 'clicutcl/v2/attribution-token/sign' );
 		$attribution_token_verify_url = rest_url( 'clicutcl/v2/attribution-token/verify' );
 
-		$consent_settings_obj = new CLICUTCL\Modules\Consent_Mode\Consent_Mode_Settings();
+		$consent_settings_obj = new Modules\Consent_Mode\Consent_Mode_Settings();
 		$consent_settings     = $consent_settings_obj->get();
 		$enable_consent       = $consent_settings_obj->is_consent_mode_enabled();
 		$consent_mode         = $consent_settings_obj->get_mode();
@@ -192,7 +218,6 @@ class CLICUTCL_Core {
 		}
 		$fallback_granted = ! $require_consent;
 
-		// Consent bridge loads first and stays independent from GTM boot.
 		wp_register_script(
 			'clicutcl-consent-bridge-js',
 			CLICUTCL_URL . 'assets/js/clicutcl-consent-bridge.js',
@@ -205,17 +230,16 @@ class CLICUTCL_Core {
 			'clicutcl-consent-bridge-js',
 			'ctConsentBridgeConfig',
 			array(
-				'cookieName'    => $cookie_name,
-				'cmpSource'     => $cmp_source,
-				'gtmConsentKey' => $gcm_analytics_key,
-				'timeout'       => $cmp_timeout,
-				'mode'          => $consent_mode,
+				'cookieName'      => $cookie_name,
+				'cmpSource'       => $cmp_source,
+				'gtmConsentKey'   => $gcm_analytics_key,
+				'timeout'         => $cmp_timeout,
+				'mode'            => $consent_mode,
 				'fallbackGranted' => $fallback_granted,
-				'debug'         => $bridge_debug,
+				'debug'           => $bridge_debug,
 			)
 		);
 
-		// Attribution script does not gate GTM. It depends on bridge for shared state.
 		if ( $enable_attribution ) {
 			wp_register_script(
 				'clicutcl-attribution-js',
@@ -238,31 +262,26 @@ class CLICUTCL_Core {
 					'debug'                     => (bool) $debug_active,
 					'eventsBatchUrl'            => esc_url_raw( $events_batch_url ),
 					'eventsToken'               => $events_token,
-
-					// JS Injection Config
 					'injectEnabled'             => isset( $options['enable_js_injection'] ) ? (bool) $options['enable_js_injection'] : true,
 					'injectOverwrite'           => isset( $options['inject_overwrite'] ) ? (bool) $options['inject_overwrite'] : false,
 					'injectMutationObserver'    => isset( $options['inject_mutation_observer'] ) ? (bool) $options['inject_mutation_observer'] : true,
-					'injectObserverTarget'      => isset( $options['inject_observer_target'] ) ? (string) $options['inject_observer_target'] : 'body', // Default: body, user can override via filter/option
-					'injectFullBlob'            => false, // Reserved for future use
-
-					// Link Decoration Config
+					'injectObserverTarget'      => isset( $options['inject_observer_target'] ) ? (string) $options['inject_observer_target'] : 'body',
+					'injectFullBlob'            => false,
 					'linkDecorateEnabled'       => isset( $options['enable_link_decoration'] ) ? (bool) $options['enable_link_decoration'] : false,
-					'linkAllowedDomains'        => isset( $options['link_allowed_domains'] ) ? array_map('trim', explode(',', $options['link_allowed_domains'])) : [],
+					'linkAllowedDomains'        => isset( $options['link_allowed_domains'] ) ? array_map( 'trim', explode( ',', $options['link_allowed_domains'] ) ) : array(),
 					'linkSkipSigned'            => isset( $options['link_skip_signed'] ) ? (bool) $options['link_skip_signed'] : true,
 					'linkAppendToken'           => $enable_cross_domain_token,
 					'tokenParam'                => 'ct_token',
 					'tokenMaxAgeDays'           => $cookie_days,
 					'tokenSignUrl'              => esc_url_raw( $attribution_token_sign_url ),
 					'tokenVerifyUrl'            => esc_url_raw( $attribution_token_verify_url ),
-					'linkAppendBlob'            => false, // Reserved for future use
+					'linkAppendBlob'            => false,
 				)
 			);
 		}
 
 		$use_plugin_banner = $enable_consent && in_array( $cmp_source, array( 'auto', 'plugin' ), true );
 
-		// Built-in banner script is optional and depends on bridge.
 		if ( $use_plugin_banner ) {
 			wp_enqueue_style(
 				'clicutcl-consent-css',
@@ -295,23 +314,10 @@ class CLICUTCL_Core {
 			);
 		}
 
-		// Events Tracking Script
-		// Conditional loading: Front-end only, not feeds/robots, and respects attribution setting/filter.
-		$should_load_events = ! is_admin() && ! is_feed() && ! is_robots() && ! is_trackback();
-		
-		if ( $enable_attribution ) {
-			// If attribution is on, we generally want events.
-			// But allow filter to override.
-		} else {
-			// If attribution is off, maybe we don't want events? 
-			// The request said "Always-on... could be seen as avoidable...".
-			// Let's assume if attribution is disabled, this might be too. 
-			// However, localizing it to the same option seems safest for "state".
-			$should_load_events = false; 
-		}
+		$should_load_events = ! is_admin() && ! is_feed() && ! is_robots() && ! is_trackback() && $enable_attribution;
 
 		/**
-		 * Filter to determine if the events tracking script should be loaded.
+		 * Filter whether the events tracking script should be loaded.
 		 *
 		 * @since 1.3.0
 		 *
@@ -328,23 +334,20 @@ class CLICUTCL_Core {
 				CLICUTCL_URL . 'assets/js/clicutcl-events.js',
 				$events_deps,
 				CLICUTCL_VERSION,
-				\clicutcl_script_args( true, 'defer' ) // Footer
+				\clicutcl_script_args( true, 'defer' )
 			);
 			wp_enqueue_script( 'clicutcl-events-js' );
 			wp_localize_script(
 				'clicutcl-events-js',
 				'clicutclEventsConfig',
 				array(
-					'debug'         => ! empty( $debug_active ),
-					'eventsBatchUrl'=> esc_url_raw( $events_batch_url ),
-					'eventsToken'   => $events_token,
+					'debug'            => ! empty( $debug_active ),
+					'eventsBatchUrl'   => esc_url_raw( $events_batch_url ),
+					'eventsToken'      => $events_token,
 					'thankYouMatchers' => array_values(
-						(array) apply_filters(
-							'clicutcl_thank_you_matchers',
-							array()
-						)
+						(array) apply_filters( 'clicutcl_thank_you_matchers', array() )
 					),
-					'iframeOrigins' => array_values(
+					'iframeOrigins'    => array_values(
 						(array) apply_filters(
 							'clicutcl_iframe_origin_allowlist',
 							array(
@@ -358,16 +361,4 @@ class CLICUTCL_Core {
 			);
 		}
 	}
-
-	/**
-	 * Run the loader to execute all of the hooks with WordPress.
-	 */
-	public function run() {
-		if ( ! $this->booted ) {
-			return;
-		}
-		// In a more complex setup we might use a Loader class, 
-		// but for now we just rely on the constructor adding hooks.
-	}
-
 }

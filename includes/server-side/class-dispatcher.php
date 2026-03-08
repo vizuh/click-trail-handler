@@ -186,11 +186,26 @@ class Dispatcher {
 	}
 
 	/**
+	 * Transient key for health-check result cache.
+	 */
+	private const HEALTH_CHECK_TRANSIENT = 'clicutcl_health_check_result';
+
+	/**
+	 * How long (seconds) to cache a successful health-check result.
+	 * Prevents hammering the remote endpoint on repeated admin AJAX clicks.
+	 */
+	private const HEALTH_CHECK_TTL = 30;
+
+	/**
 	 * Health check for current adapter.
 	 *
+	 * Results are cached for HEALTH_CHECK_TTL seconds to avoid repeated
+	 * remote requests on rapid admin AJAX calls.
+	 *
+	 * @param bool $force_refresh Skip the cache and re-check immediately.
 	 * @return Adapter_Result
 	 */
-	public static function health_check() {
+	public static function health_check( $force_refresh = false ) {
 		if ( ! self::is_enabled() ) {
 			return Adapter_Result::skipped( 'disabled' );
 		}
@@ -205,7 +220,17 @@ class Dispatcher {
 			return Adapter_Result::error( 0, 'missing_adapter' );
 		}
 
-		return $adapter->health_check();
+		$cache_key = self::HEALTH_CHECK_TRANSIENT . '_' . md5( $endpoint );
+		$cached    = get_transient( $cache_key );
+
+		if ( false !== $cached && ! $force_refresh && $cached instanceof Adapter_Result ) {
+			return $cached;
+		}
+
+		$result = $adapter->health_check();
+		set_transient( $cache_key, $result, self::HEALTH_CHECK_TTL );
+
+		return $result;
 	}
 
 	/**

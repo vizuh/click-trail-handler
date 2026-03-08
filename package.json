@@ -1,0 +1,7 @@
+{
+  "name": "click-trail-handler-build",
+  "private": true,
+  "scripts": {
+    "make-zip": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/release/make-zip.ps1"
+  }
+}

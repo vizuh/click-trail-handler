@@ -49,7 +49,17 @@ abstract class Setting {
 	 * @return bool True on success, false on failure.
 	 */
 	public function set( $value ) {
-		return update_option( static::OPTION, $value );
+		return update_option( static::OPTION, $value, $this->get_autoload() );
+	}
+
+	/**
+	 * Whether the option should be autoloaded on every page load.
+	 * Override in a sub-class to return true only when the value is needed on every request.
+	 *
+	 * @return bool
+	 */
+	protected function get_autoload() {
+		return false;
 	}
 
 	/**
