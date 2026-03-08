@@ -1,22 +1,6 @@
 (function () {
     'use strict';
 
-    function setToggleLabel(checkbox) {
-        if (!checkbox) {
-            return;
-        }
-
-        var wrapper = checkbox.closest('.clicktrail-toggle-wrapper');
-        var label = wrapper ? wrapper.querySelector('[data-clicktrail-toggle-label]') : null;
-        if (!label) {
-            return;
-        }
-
-        var enabledLabel = label.getAttribute('data-enabled-label') || 'Enabled';
-        var disabledLabel = label.getAttribute('data-disabled-label') || 'Disabled';
-        label.textContent = checkbox.checked ? enabledLabel : disabledLabel;
-    }
-
     function setRowDimmed(row, dimmed) {
         if (!row) {
             return;
@@ -24,6 +8,15 @@
 
         row.classList.toggle('clicktrail-row-dimmed', !!dimmed);
         row.setAttribute('aria-disabled', dimmed ? 'true' : 'false');
+
+        row.querySelectorAll('input, select, textarea, button').forEach(function (control) {
+            if (!control.hasAttribute('data-clicktrail-initial-disabled')) {
+                control.setAttribute('data-clicktrail-initial-disabled', control.disabled ? '1' : '0');
+            }
+
+            var initiallyDisabled = control.getAttribute('data-clicktrail-initial-disabled') === '1';
+            control.disabled = initiallyDisabled || !!dimmed;
+        });
     }
 
     function bindDependency(controllerSelector, targetSelectors) {
@@ -62,15 +55,6 @@
                 var expanded = button.getAttribute('aria-expanded') === 'true';
                 button.setAttribute('aria-expanded', expanded ? 'false' : 'true');
                 card.classList.toggle('is-collapsed', expanded);
-            });
-        });
-    }
-
-    function initToggleLabels() {
-        document.querySelectorAll('.clicktrail-toggle input[type="checkbox"]').forEach(function (checkbox) {
-            setToggleLabel(checkbox);
-            checkbox.addEventListener('change', function () {
-                setToggleLabel(checkbox);
             });
         });
     }
@@ -117,7 +101,6 @@
         }
 
         initCards();
-        initToggleLabels();
         initDependencies();
     }
 

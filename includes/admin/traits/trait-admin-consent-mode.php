@@ -26,14 +26,6 @@ trait Admin_Consent_Mode_Trait {
 				<input type="checkbox" name="clicutcl_consent_mode[enabled]" value="1" <?php checked( 1, $enabled ); ?> />
 				<span class="clicktrail-toggle-slider"></span>
 			</label>
-			<span
-				class="clicktrail-toggle-label"
-				data-clicktrail-toggle-label
-				data-enabled-label="<?php echo esc_attr__( 'Enabled', 'click-trail-handler' ); ?>"
-				data-disabled-label="<?php echo esc_attr__( 'Disabled', 'click-trail-handler' ); ?>"
-			>
-				<?php echo $enabled ? esc_html__( 'Enabled', 'click-trail-handler' ) : esc_html__( 'Disabled', 'click-trail-handler' ); ?>
-			</span>
 		</div>
 		<?php
 	}
@@ -43,9 +35,9 @@ trait Admin_Consent_Mode_Trait {
 		$value    = $settings->get();
 		$mode     = isset( $value['mode'] ) ? sanitize_key( (string) $value['mode'] ) : 'strict';
 		$options  = array(
-			'strict'  => __( 'Strict (deny until consent)', 'click-trail-handler' ),
-			'relaxed' => __( 'Relaxed (allow by default)', 'click-trail-handler' ),
-			'geo'     => __( 'Geo-based (region dependent)', 'click-trail-handler' ),
+			'strict'  => __( 'Wait for consent', 'click-trail-handler' ),
+			'relaxed' => __( 'Allow until denied', 'click-trail-handler' ),
+			'geo'     => __( 'Require consent by region', 'click-trail-handler' ),
 		);
 		?>
 		<select id="clicutcl_consent_mode_behavior" name="clicutcl_consent_mode[mode]" class="clicktrail-field-select">
@@ -56,7 +48,7 @@ trait Admin_Consent_Mode_Trait {
 			<?php endforeach; ?>
 		</select>
 		<p class="description">
-			<?php esc_html_e( 'Strict always requires consent. Relaxed allows tracking by default. Geo-based requires consent only for configured regions.', 'click-trail-handler' ); ?>
+			<?php esc_html_e( 'Choose when attribution is allowed to start for a visitor.', 'click-trail-handler' ); ?>
 		</p>
 		<?php
 	}
@@ -70,7 +62,7 @@ trait Admin_Consent_Mode_Trait {
 		}
 		?>
 		<input type="text" name="clicutcl_consent_mode[regions]" value="<?php echo esc_attr( $regions ); ?>" class="regular-text clicktrail-field-input" placeholder="EEA, UK, US-CA" />
-		<p class="description"><?php esc_html_e( 'Comma-separated region tokens (EEA, UK, US, US-CA, BR, DE...).', 'click-trail-handler' ); ?></p>
+		<p class="description"><?php esc_html_e( 'Use region codes such as EEA, UK, US, or US-CA.', 'click-trail-handler' ); ?></p>
 		<?php
 	}
 
@@ -79,13 +71,13 @@ trait Admin_Consent_Mode_Trait {
 		$value      = $settings->get();
 		$cmp_source = isset( $value['cmp_source'] ) ? sanitize_key( (string) $value['cmp_source'] ) : 'auto';
 		$options    = array(
-			'auto'      => __( 'Auto-detect (try all known CMPs)', 'click-trail-handler' ),
+			'auto'      => __( 'Auto-detect', 'click-trail-handler' ),
 			'plugin'    => __( 'ClickTrail built-in banner', 'click-trail-handler' ),
 			'cookiebot' => __( 'Cookiebot / Usercentrics', 'click-trail-handler' ),
 			'onetrust'  => __( 'OneTrust', 'click-trail-handler' ),
 			'complianz' => __( 'Complianz', 'click-trail-handler' ),
-			'gtm'       => __( 'Google Consent Mode via GTM (no banner)', 'click-trail-handler' ),
-			'custom'    => __( 'Custom (manual ClickTrailConsent.grant())', 'click-trail-handler' ),
+			'gtm'       => __( 'Google Consent Mode via GTM', 'click-trail-handler' ),
+			'custom'    => __( 'Custom integration', 'click-trail-handler' ),
 		);
 		?>
 		<select id="clicutcl_cmp_source" name="clicutcl_consent_mode[cmp_source]" class="clicktrail-field-select">
@@ -96,7 +88,7 @@ trait Admin_Consent_Mode_Trait {
 			<?php endforeach; ?>
 		</select>
 		<p class="description">
-			<?php esc_html_e( 'Select which consent source is active so event tracking waits for the right signal.', 'click-trail-handler' ); ?>
+			<?php esc_html_e( 'Select the consent platform ClickTrail should listen to.', 'click-trail-handler' ); ?>
 		</p>
 		<?php
 	}
@@ -118,7 +110,7 @@ trait Admin_Consent_Mode_Trait {
 			class="small-text clicktrail-field-input clicktrail-field-input--narrow"
 		/>
 		<p class="description">
-			<?php esc_html_e( 'How long to wait for async CMP responses before falling back to denied (default 3000ms).', 'click-trail-handler' ); ?>
+			<?php esc_html_e( 'How long to wait for a consent response before treating it as denied.', 'click-trail-handler' ); ?>
 		</p>
 		<?php
 	}

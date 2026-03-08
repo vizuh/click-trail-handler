@@ -128,11 +128,6 @@
     transform: translateX(20px);
 }
 
-.clicktrail-toggle-label {
-    font-weight: 500;
-    color: #50575e;
-}
-
 /* ========================================
    Status Indicators
    ======================================== */
@@ -437,15 +432,24 @@
 
 .clicktrail-page-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     margin: 0 0 18px;
 }
 
 .clicktrail-page-title {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.clicktrail-page-eyebrow {
+    color: var(--clicktrail-text-subtle);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
 }
 
 .clicktrail-page-title h1 {
@@ -454,6 +458,21 @@
     font-weight: 600;
     letter-spacing: -0.02em;
     color: var(--clicktrail-text);
+}
+
+.clicktrail-page-description {
+    max-width: 720px;
+    margin: 0;
+    color: var(--clicktrail-text-muted);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.clicktrail-page-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 2px;
 }
 
 .clicktrail-version-badge,
@@ -481,6 +500,16 @@
 }
 
 .clicktrail-card__tag {
+    color: var(--clicktrail-text-subtle);
+}
+
+.clicktrail-card__tag--recommended {
+    color: var(--clicktrail-success);
+    border-color: #b7e1c0;
+    background: var(--clicktrail-success-bg);
+}
+
+.clicktrail-card__tag--muted {
     color: var(--clicktrail-text-subtle);
 }
 
@@ -732,6 +761,10 @@
     opacity: 0.42;
 }
 
+.clicktrail-settings-wrap .clicktrail-card__table tr.clicktrail-row-dimmed:hover {
+    background: transparent;
+}
+
 .clicktrail-toggle-wrapper {
     gap: 8px;
 }
@@ -765,13 +798,6 @@
 
 .clicktrail-toggle input:checked + .clicktrail-toggle-slider:before {
     transform: translateX(18px);
-}
-
-.clicktrail-toggle-label {
-    min-width: 58px;
-    color: var(--clicktrail-text-muted);
-    font-size: 12px;
-    font-weight: 500;
 }
 
 .clicktrail-help-tip {
@@ -970,7 +996,6 @@
 
 @media (max-width: 782px) {
     .clicktrail-page-header,
-    .clicktrail-page-title,
     .clicktrail-save-bar,
     .clicktrail-action-row {
         flex-direction: column;
