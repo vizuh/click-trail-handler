@@ -355,7 +355,7 @@ class WooCommerce {
 	/**
 	 * Normalize mixed attribution payloads into first_touch/last_touch shape.
 	 *
-	 * Accepts nested shape (first_touch/last_touch) and flat ft_*/lt_* keys.
+	 * Accepts nested shape (first_touch / last_touch) and flat ft_/lt_ prefixed keys.
 	 *
 	 * @param array $attribution Raw attribution payload.
 	 * @return array
