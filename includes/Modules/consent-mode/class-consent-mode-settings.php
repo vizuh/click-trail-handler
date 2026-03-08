@@ -351,7 +351,7 @@ class Consent_Mode_Settings extends Setting {
 		$key   = strtoupper( sanitize_key( (string) $key ) );
 		$value = filter_input( INPUT_SERVER, $key, FILTER_UNSAFE_RAW );
 		if ( null === $value || false === $value ) {
-			$value = isset( $_SERVER[ $key ] ) ? $_SERVER[ $key ] : '';
+			$value = isset( $_SERVER[ $key ] ) ? wp_unslash( $_SERVER[ $key ] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized via sanitize_text_field() below.
 		}
 
 		return sanitize_text_field( (string) $value );

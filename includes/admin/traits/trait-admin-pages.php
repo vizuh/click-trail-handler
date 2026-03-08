@@ -196,7 +196,7 @@ trait Admin_Pages_Trait {
 						printf(
 							/* translators: %d: due now count. */
 							esc_html__( 'Due now: %d', 'click-trail-handler' ),
-							$queue_due_now
+							absint( $queue_due_now )
 						);
 						?>
 					</div>
@@ -300,7 +300,7 @@ trait Admin_Pages_Trait {
 								printf(
 									/* translators: %d: total failures. */
 									esc_html__( 'Failure-only aggregated counters. Total failures tracked: %d.', 'click-trail-handler' ),
-									$failure_total
+									absint( $failure_total )
 								);
 								?>
 							</span>

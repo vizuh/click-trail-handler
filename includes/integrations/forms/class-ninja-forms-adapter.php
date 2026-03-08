@@ -14,9 +14,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 if ( ! class_exists( 'CLICUTCL\Integrations\Forms\Ninja_Forms_Submission_Extra_Handler' ) ) {
-	$handler_file = __DIR__ . '/class-ninja-forms-submission-extra-handler.php';
-	if ( file_exists( $handler_file ) ) {
-		require_once $handler_file;
+	$clicutcl_nf_handler_file = __DIR__ . '/class-ninja-forms-submission-extra-handler.php';
+	if ( file_exists( $clicutcl_nf_handler_file ) ) {
+		require_once $clicutcl_nf_handler_file;
 	}
 }
 
@@ -110,15 +110,10 @@ class Ninja_Forms_Adapter extends Abstract_Form_Adapter {
 	 * Handle submission (log to DB).
 	 *
 	 * @param array $form_data The form data.
-	 * @param mixed $form_id Unused in this hook signature usually, embedded in data.
-	 */
-	/**
-	 * Handle submission (log to DB).
-	 *
-	 * @param array $form_data The form data.
+	 * @param mixed $arg2      Unused – required by interface.
 	 * @return void
 	 */
-	public function on_submission( $form_data ) {
+	public function on_submission( $form_data, $arg2 = null ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
 		if ( ! is_array( $form_data ) ) {
 			return;
 		}

@@ -513,7 +513,7 @@
                 const normalized = this.normalizeExternalMessage(data, event.origin);
                 if (!normalized) return;
 
-                const marker = `${normalized.event_name}|${normalized.external_id}`;
+                const marker = normalized.event_name + '|' + normalized.external_id;
                 if (this.externalMarkers.has(marker)) return;
                 this.externalMarkers.add(marker);
 
@@ -595,7 +595,7 @@
                 const pattern = String(entry || '').toLowerCase().trim();
                 if (!pattern) return false;
                 if (host === pattern) return true;
-                return host.endsWith(`.${pattern}`);
+                return host.endsWith('.' + pattern);
             });
         }
 

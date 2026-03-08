@@ -1,16 +1,16 @@
-=== ClickTrail - UTM, Click ID & Ad Tracking (with Consent) ===
+=== ClickTrail – UTM, Click ID & Ad Tracking (with Consent) ===
 Contributors: hugoc
 Author: Vizuh
 Author URI: https://vizuh.com
 Tags: attribution, utm, consent mode, woocommerce, server-side tracking
 Requires at least: 6.5
 Tested up to: 6.9
-Stable tag: 1.3.5
+Stable tag: 1.3.7
 Requires PHP: 8.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Consent-aware attribution for WordPress and WooCommerce. Keep UTMs and click IDs attached to forms, orders, and events across cached pages, dynamic forms, and multi-step journeys.
+Consent-aware marketing attribution for WordPress. Tracks UTMs, click IDs, forms, WooCommerce orders, and server-side events.
 
 == Description ==
 

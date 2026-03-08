@@ -126,8 +126,8 @@
         for (let i = 0; i < aliases.length; i++) {
             const alias = aliases[i];
             if (raw[alias]) return raw[alias];
-            if (raw[`lt_${alias}`]) return raw[`lt_${alias}`];
-            if (raw[`ft_${alias}`]) return raw[`ft_${alias}`];
+            if (raw['lt_' + alias]) return raw['lt_' + alias];
+            if (raw['ft_' + alias]) return raw['ft_' + alias];
         }
 
         return '';
@@ -149,7 +149,7 @@
     function getTouchStorageKey(queryKey, prefix) {
         const fieldKey = TOUCH_QUERY_FIELD_MAP[queryKey];
         if (!fieldKey) return '';
-        return `${prefix}_${fieldKey}`;
+        return prefix + '_' + fieldKey;
     }
 
     // --- 1. STORE & UTILS ---
@@ -455,7 +455,7 @@
                 const left = parts[parts.length - 2];
                 const right = parts[parts.length - 1];
                 if (/^\d+$/.test(left) && /^\d+$/.test(right)) {
-                    return `${left}.${right}`;
+                    return left + '.' + right;
                 }
             }
 
@@ -516,7 +516,7 @@
             if (!fbc) {
                 const fbclid = sanitizeValue(params.fbclid || '', 128);
                 if (fbclid) {
-                    fbc = `fb.1.${Date.now()}.${fbclid}`;
+                    fbc = 'fb.1.' + Date.now() + '.' + fbclid;
                 }
             }
             if (fbc) {
@@ -598,7 +598,7 @@
     // --- 3. FORM INJECTOR ---
     const Injector = {
         findInputs: function (names) {
-            const selectors = names.map(n => `input[name="${CSS.escape(n)}"], textarea[name="${CSS.escape(n)}"], select[name="${CSS.escape(n)}"]`);
+            const selectors = names.map(function (n) { var e = CSS.escape(n); return 'input[name="' + e + '"], textarea[name="' + e + '"], select[name="' + e + '"]'; });
             return Array.from(document.querySelectorAll(selectors.join(",")));
         },
 
@@ -607,14 +607,14 @@
 
             TOUCH_QUERY_KEYS.forEach((queryKey) => {
                 const fieldKey = TOUCH_QUERY_FIELD_MAP[queryKey];
-                mappings.push([`ft_${fieldKey}`, [`ct_ft_${fieldKey}`, queryKey]]);
-                mappings.push([`lt_${fieldKey}`, [`ct_lt_${fieldKey}`]]);
+                mappings.push(['ft_' + fieldKey, ['ct_ft_' + fieldKey, queryKey]]);
+                mappings.push(['lt_' + fieldKey, ['ct_lt_' + fieldKey]]);
             });
 
             CLICK_ID_KEYS.forEach((key) => {
-                const topLevelNames = [`ct_${key}`, key];
-                const firstTouchNames = [`ct_ft_${key}`];
-                const lastTouchNames = [`ct_lt_${key}`];
+                const topLevelNames = ['ct_' + key, key];
+                const firstTouchNames = ['ct_ft_' + key];
+                const lastTouchNames = ['ct_lt_' + key];
 
                 if (key === 'sccid') {
                     topLevelNames.push('ct_sc_click_id', 'ScCid', 'sccid', 'sc_click_id');
@@ -623,12 +623,12 @@
                 }
 
                 mappings.push([key, topLevelNames]);
-                mappings.push([`ft_${key}`, firstTouchNames]);
-                mappings.push([`lt_${key}`, lastTouchNames]);
+                mappings.push(['ft_' + key, firstTouchNames]);
+                mappings.push(['lt_' + key, lastTouchNames]);
             });
 
             BROWSER_IDENTIFIER_KEYS.forEach((key) => {
-                const names = [`ct_${key}`, key];
+                const names = ['ct_' + key, key];
                 if (key === 'ttp') {
                     names.push('_ttp');
                 }
@@ -1314,20 +1314,20 @@
                 return false;
             }
 
-            return TOUCH_FIELD_KEYS.some((key) => !!data[`ft_${key}`]) ||
-                CLICK_ID_KEYS.some((key) => !!data[`ft_${key}`]);
+            return TOUCH_FIELD_KEYS.some(function (key) { return !!data['ft_' + key]; }) ||
+                CLICK_ID_KEYS.some(function (key) { return !!data['ft_' + key]; });
         }
 
         applyTouch(prefix, data, fields, timestamp) {
             // Apply mapped fields to data with prefix
             for (const [key, val] of Object.entries(fields)) {
-                if (val) data[`${prefix}_${key}`] = val;
+                if (val) data[prefix + '_' + key] = val;
             }
-            data[`${prefix}_touch_timestamp`] = timestamp;
-            if (prefix === 'ft' && !data[`${prefix}_landing_page`]) {
-                data[`${prefix}_landing_page`] = window.location.href;
+            data[prefix + '_touch_timestamp'] = timestamp;
+            if (prefix === 'ft' && !data[prefix + '_landing_page']) {
+                data[prefix + '_landing_page'] = window.location.href;
             } else if (prefix === 'lt') {
-                data[`${prefix}_landing_page`] = window.location.href;
+                data[prefix + '_landing_page'] = window.location.href;
             }
         }
 
