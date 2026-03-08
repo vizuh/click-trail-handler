@@ -281,7 +281,7 @@ class Log_Controller extends WP_REST_Controller {
 			return new WP_Error( 'db_not_ready', 'Database is not ready', array( 'status' => 503 ) );
 		}
 
-		// Write to custom table.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Intentional insert into custom plugin table.
 		$inserted = $wpdb->insert(
 			$table_name,
 			array(

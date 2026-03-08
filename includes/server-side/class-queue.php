@@ -126,10 +126,10 @@ class Queue {
 		$table_name = self::get_table_name();
 
 		// Avoid duplicates.
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$existing = $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT id FROM {$table_name} WHERE event_name = %s AND event_id = %s LIMIT 1",
+				"SELECT id FROM {$table_name} WHERE event_name = %s AND event_id = %s LIMIT 1", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned.
 				$event_name,
 				$event_id
 			)
@@ -182,13 +182,12 @@ class Queue {
 
 		$now = current_time( 'mysql', true );
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
 		$query = $wpdb->prepare(
-			"SELECT * FROM {$table_name} WHERE next_attempt_at <= %s ORDER BY next_attempt_at ASC LIMIT 10",
+			"SELECT * FROM {$table_name} WHERE next_attempt_at <= %s ORDER BY next_attempt_at ASC LIMIT 10", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned.
 			$now
 		);
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared -- Query is prepared above; variable passed for readability.
 		$rows = $wpdb->get_results( $query, ARRAY_A );
 
 		foreach ( $rows as $row ) {
@@ -279,7 +278,7 @@ class Queue {
 		$next_attempt = gmdate( 'Y-m-d H:i:s', time() + self::get_backoff_seconds( $attempts ) );
 		$table_name   = self::get_table_name();
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table; no cache for queue mutation.
 		$wpdb->update(
 			$table_name,
 			array(
@@ -303,7 +302,7 @@ class Queue {
 		global $wpdb;
 
 		$table_name = self::get_table_name();
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table; no cache for queue mutation.
 		$wpdb->delete( $table_name, array( 'id' => absint( $id ) ), array( '%d' ) );
 	}
 
@@ -458,10 +457,10 @@ class Queue {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned; live stats query, caching would return stale counts.
 		$oldest_next = (string) $wpdb->get_var( "SELECT MIN(next_attempt_at) FROM {$table_name}" );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned; live stats query, caching would return stale counts.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live stats query, caching would return stale counts.
 		$due_now = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(id) FROM {$table_name} WHERE next_attempt_at <= %s",
+				"SELECT COUNT(id) FROM {$table_name} WHERE next_attempt_at <= %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned.
 				$now
 			)
 		);

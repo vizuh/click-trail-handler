@@ -202,7 +202,7 @@ trait Admin_Diagnostics_Ajax_Trait {
 		check_ajax_referer( 'clicutcl_admin_settings', 'nonce' );
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above.
-		$raw = isset( $_POST['settings'] ) ? wp_unslash( $_POST['settings'] ) : '';
+		$raw = isset( $_POST['settings'] ) ? sanitize_text_field( wp_unslash( $_POST['settings'] ) ) : '';
 		if ( is_string( $raw ) ) {
 			$decoded = json_decode( $raw, true );
 			$raw     = is_array( $decoded ) ? $decoded : array();
@@ -258,7 +258,7 @@ trait Admin_Diagnostics_Ajax_Trait {
 		}
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above.
-		$raw = isset( $_POST['settings'] ) ? wp_unslash( $_POST['settings'] ) : '';
+		$raw = isset( $_POST['settings'] ) ? sanitize_text_field( wp_unslash( $_POST['settings'] ) ) : '';
 		if ( is_string( $raw ) ) {
 			$decoded = json_decode( $raw, true );
 			$raw     = is_array( $decoded ) ? $decoded : array();

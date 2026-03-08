@@ -110,7 +110,9 @@ class Privacy_Handler {
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Required for privacy export callbacks.
 		$rows = $wpdb->get_results(
+			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- Params merged dynamically via array_merge.
 			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name and WHERE clause are plugin-owned.
 				"SELECT id, event_type, event_data, created_at
 				FROM {$table}
 				WHERE {$where['sql']}
@@ -196,6 +198,7 @@ class Privacy_Handler {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Required for privacy erasure callbacks.
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name and WHERE clause are plugin-owned.
 				"SELECT id
 				FROM {$table}
 				WHERE {$where['sql']}
@@ -216,7 +219,7 @@ class Privacy_Handler {
 				continue;
 			}
 
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Required for privacy erasure callbacks.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Required for privacy erasure callbacks.
 			$deleted = $wpdb->delete(
 				$table,
 				array( 'id' => $event_id ),
