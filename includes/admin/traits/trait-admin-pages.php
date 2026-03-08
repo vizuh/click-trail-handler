@@ -257,7 +257,7 @@ trait Admin_Pages_Trait {
 						<span class="clicktrail-card__icon dashicons dashicons-media-text" aria-hidden="true"></span>
 						<span class="clicktrail-card__heading">
 							<span class="clicktrail-card__title"><?php esc_html_e( 'Debug Logging', 'click-trail-handler' ); ?></span>
-							<span class="clicktrail-card__description"><?php esc_html_e( 'Capture temporary dispatch traces and v2 intake events for debugging.', 'click-trail-handler' ); ?></span>
+							<span class="clicktrail-card__description"><?php esc_html_e( 'Capture temporary dispatch traces and normalized event intake entries for debugging.', 'click-trail-handler' ); ?></span>
 						</span>
 					</span>
 				</div>
@@ -393,8 +393,8 @@ trait Admin_Pages_Trait {
 					<span class="clicktrail-card__header-main">
 						<span class="clicktrail-card__icon dashicons dashicons-randomize" aria-hidden="true"></span>
 						<span class="clicktrail-card__heading">
-							<span class="clicktrail-card__title"><?php esc_html_e( 'Recent v2 Intake Events', 'click-trail-handler' ); ?></span>
-							<span class="clicktrail-card__description"><?php esc_html_e( 'Last normalized v2 intake events captured during the debug window.', 'click-trail-handler' ); ?></span>
+							<span class="clicktrail-card__title"><?php esc_html_e( 'Recent Event Intake', 'click-trail-handler' ); ?></span>
+							<span class="clicktrail-card__description"><?php esc_html_e( 'Last normalized event intake entries captured during the debug window.', 'click-trail-handler' ); ?></span>
 						</span>
 					</span>
 				</div>
@@ -435,7 +435,7 @@ trait Admin_Pages_Trait {
 							<?php endforeach; ?>
 						<?php else : ?>
 							<tr>
-								<td colspan="8"><?php esc_html_e( 'No v2 intake entries recorded yet. Enable Debug Logging and reproduce an event.', 'click-trail-handler' ); ?></td>
+								<td colspan="8"><?php esc_html_e( 'No normalized intake entries recorded yet. Enable Debug Logging and reproduce an event.', 'click-trail-handler' ); ?></td>
 							</tr>
 						<?php endif; ?>
 						</tbody>

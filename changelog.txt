@@ -1,6 +1,31 @@
 Changelog
 ========
 
+= 1.3.5 =
+*   **Admin UX (unified identity)**: Replaced `wp.components` Card/CardBody/CardHeader in the Advanced tab React UI with the same `.clicktrail-card` shell used by all PHP-rendered settings tabs — eliminating the two-identity split.
+*   **Admin UX (tab consolidation)**: Reduced settings tabs from six to four — Attribution (core capture + JS fallback + cross-domain + WhatsApp), Consent, Destinations, and Advanced — each organized around a clear user intent rather than internal system names.
+*   **Admin UX (WhatsApp)**: Moved WhatsApp settings from a standalone tab into a collapsible card on the Attribution tab, where it belongs alongside the other capture settings it shares an option group with.
+*   **Admin UX (Destinations tab)**: Destinations tab now presents GTM, server-side delivery, and advertising platform toggles (Meta, Google, LinkedIn, Reddit, Pinterest) as a single unified configuration surface — two PHP forms followed by the React v2 destinations card.
+*   **Admin UX (humanized v2 notice)**: Replaced the generic "advanced tracking" notice with a plain-language explanation of why the Advanced tab exists and when it is needed, removing the term "v2" from user-facing copy.
+*   **Admin UX (tab icons)**: Updated tab icons to reflect each tab's purpose — chart-area for Attribution, privacy shield for Consent, share for Destinations, admin-tools for Advanced.
+*   **Admin JS (React card shell)**: Rewrote `admin-tracking-v2.js` to render cards using our `.clicktrail-card` / `.clicktrail-card__body--react` CSS classes, with icon + title + description in the header matching PHP-rendered cards exactly.
+*   **Admin JS (React controls)**: Gave each card a contextual icon, humanized title, and plain-English description. Feature flags card explains each flag inline via `help` text.
+*   **Admin CSS**: Added `.clicktrail-card__body--react` padding, row separators, and overrides for `wp.components` ToggleControl, TextControl, and TextareaControl to match our design tokens (border radius, border colour, blue focus ring, toggle pill sizing).
+
+= 1.3.4 =
+*   **Admin UX (tab navigation)**: Renamed all settings tabs to plain-English labels — Attribution, Consent, Channels, Destinations, Advanced, Diagnostics — replacing internal developer slugs.
+*   **Admin UX (tab consolidation)**: Merged GTM and Server-side tabs into a single Destinations tab, reducing tab count and grouping related delivery settings together.
+*   **Admin UX (card layout)**: Replaced flat settings sections with a card-based layout — each card carries an icon, title, and description, with a hairline border and white background matching WP admin conventions.
+*   **Admin UX (status bar)**: Added a summary status bar on the Attribution tab showing live pills for Attribution, Consent Mode, JS Capture, Cross-domain, and Server-side states.
+*   **Admin UX (sticky save)**: Added a sticky save bar that remains visible at the bottom of the viewport while scrolling through long settings pages.
+*   **Admin UX (collapsible cards)**: Advanced sections (Cross-domain, Channels) can be collapsed to reduce visual noise; collapsed state driven by `aria-expanded` and a CSS `is-collapsed` toggle.
+*   **Admin UX (conditional dimming)**: Dependent fields dim and disable when their parent toggle is off — JS injection controls mutation observer and field overwrite rows; link decoration controls allowed domains, skip-signed, and cross-domain token; WhatsApp controls the append-attribution row; consent toggle controls all consent sub-fields.
+*   **Admin UX (diagnostics)**: Redesigned Diagnostics page with a stats-first grid (Queue Backlog, Last Dispatch, Last Error, Debug Logging) followed by action cards for testing, logging, data management, and telemetry.
+*   **Admin UX (field labels)**: Rewrote all settings field labels in plain English throughout Attribution and Consent tabs.
+*   **Admin UX (destinations card)**: Tracking v2 Destinations card (Meta, Google, LinkedIn, Reddit, Pinterest) now renders on the Destinations tab in addition to the Advanced tab.
+*   **Admin JS**: Added `admin-settings.js` to handle collapsible card toggle behaviour and all conditional field dependency bindings on settings screens.
+*   **Admin CSS**: Comprehensive stylesheet additions covering cards, status pills, save bar, diagnostic stat tiles, dimmed rows, field inputs, and responsive breakpoints.
+
 = 1.3.3 =
 *   **Admin reliability**: Fixed `clicutcl_attribution_settings` persistence so checkbox/toggle values on the settings page now save correctly alongside scalar fields like `enable_attribution` and `cookie_days`.
 *   **Forms integration**: Fixed Fluent Forms hook registration for `fluentform_form_element_start` to accept the documented single argument, preventing fatal errors on form render.
