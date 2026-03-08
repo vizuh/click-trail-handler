@@ -191,7 +191,7 @@ class Attribution_Provider {
 				continue;
 			}
 
-			if ( 'session_count' === $meta_key ) {
+			if ( in_array( $meta_key, array( 'session_count', 'session_number' ), true ) ) {
 				$sanitized[ $meta_key ] = absint( $value );
 				continue;
 			}
@@ -253,8 +253,53 @@ class Attribution_Provider {
 				'ft_referrer',
 				'lt_referrer',
 				'session_count',
+				'session_number',
 			)
 		);
+	}
+
+	/**
+	 * Retrieve the current session state from the ct_session cookie.
+	 *
+	 * @return array Session data (session_id, session_number, session_started_at, last_activity_at), empty if unavailable.
+	 */
+	public static function get_session() {
+		if ( ! self::should_populate() ) {
+			return array();
+		}
+
+		if ( ! isset( $_COOKIE['ct_session'] ) ) {
+			return array();
+		}
+
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- JSON decoded and sanitized below.
+		$raw     = wp_unslash( $_COOKIE['ct_session'] );
+		$decoded = json_decode( $raw, true );
+
+		if ( ! is_array( $decoded ) || JSON_ERROR_NONE !== json_last_error() ) {
+			return array();
+		}
+
+		$sanitized = array();
+
+		if ( ! empty( $decoded['session_id'] ) && is_scalar( $decoded['session_id'] ) ) {
+			$sanitized['session_id'] = sanitize_text_field( (string) $decoded['session_id'] );
+		}
+
+		if ( isset( $decoded['session_number'] ) ) {
+			$sanitized['session_number'] = absint( $decoded['session_number'] );
+			$sanitized['session_count']  = $sanitized['session_number']; // backward compat
+		}
+
+		if ( isset( $decoded['session_started_at'] ) && is_numeric( $decoded['session_started_at'] ) ) {
+			$sanitized['session_started_at'] = absint( $decoded['session_started_at'] );
+		}
+
+		if ( isset( $decoded['last_activity_at'] ) && is_numeric( $decoded['last_activity_at'] ) ) {
+			$sanitized['last_activity_at'] = absint( $decoded['last_activity_at'] );
+		}
+
+		return $sanitized;
 	}
 
 	/**

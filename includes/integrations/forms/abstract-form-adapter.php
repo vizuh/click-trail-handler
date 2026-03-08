@@ -87,14 +87,21 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 			)
 		);
 
+		$context = array(
+			'event_id' => $event_id,
+			'identity' => $identity,
+		);
+
+		$session = Attribution_Provider::get_session();
+		if ( ! empty( $session['session_id'] ) ) {
+			$context['session_id'] = $session['session_id'];
+		}
+
 		Dispatcher::dispatch_form_submission(
 			$platform,
 			$form_id,
 			$attribution,
-			array(
-				'event_id' => $event_id,
-				'identity' => $identity,
-			)
+			$context
 		);
 	}
 

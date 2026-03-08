@@ -36,7 +36,7 @@ O ClickTrail mantem a trilha da origem disponivel em formularios, checkout e pay
 
 Muitos plugins de atribuicao dependem apenas de campos hidden renderizados no servidor. Isso falha quando a pagina esta em cache ou quando o formulario entra depois do carregamento.
 
-O ClickTrail inclui fallback client-side e observacao de conteudo dinamico para continuar preenchendo a atribuicao.
+O ClickTrail inclui fallback client-side e observacao de conteudo dinamico para continuar levando a atribuicao aos formularios suportados e aos campos hidden compativeis.
 
 ### 3. Pedidos do WooCommerce sem origem confiavel
 
@@ -91,7 +91,9 @@ Identificadores adicionais de browser incluem:
 
 ### Forms
 
-- enriquecimento de campos hidden em plugins de formulario suportados
+- enriquecimento automatico de campos hidden no Contact Form 7 e no Fluent Forms
+- preenchimento compativel de campos hidden ja existentes no Gravity Forms e no WPForms
+- recomendado para Gravity Forms e WPForms: adicione os campos hidden que deseja armazenar ou exportar, e o ClickTrail faz o preenchimento
 - fallback client-side para paginas com cache
 - deteccao de formularios dinamicos
 - opcao para substituir valores de atribuicao ja existentes
@@ -131,6 +133,13 @@ Identificadores adicionais de browser incluem:
 - Gravity Forms
 - Ninja Forms
 - WPForms
+
+Comportamento por plugin:
+
+- Contact Form 7 e Fluent Forms podem receber campos hidden de atribuicao automaticamente
+- Gravity Forms e WPForms podem preencher campos hidden compativeis que voce adiciona ao formulario
+- Elementor Forms (Pro) usam hooks de submissao e fallback de atribuicao, nao injecao automatica de campos hidden
+- Ninja Forms grava a atribuicao junto da submissao e mostra esses dados no detalhe do registro, em vez de injecao automatica de campos hidden
 
 ### Comercio
 

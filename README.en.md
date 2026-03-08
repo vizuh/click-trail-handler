@@ -36,7 +36,7 @@ ClickTrail keeps the source trail available through forms, checkout, and event p
 
 Many attribution plugins rely on server-rendered hidden fields only. That breaks when pages are cached or forms are injected after page load.
 
-ClickTrail includes a client-side capture fallback and dynamic-content watching so attribution still reaches the form.
+ClickTrail includes a client-side capture fallback and dynamic-content watching so attribution still reaches supported forms and matching hidden fields.
 
 ### 3. WooCommerce orders with weak or missing source data
 
@@ -91,7 +91,9 @@ Additional browser identifiers include:
 
 ### Forms
 
-- Hidden field enrichment for supported WordPress form plugins
+- Automatic hidden-field enrichment for Contact Form 7 and Fluent Forms
+- Compatible hidden-field population for Gravity Forms and WPForms when matching hidden fields are present
+- Recommended for Gravity Forms and WPForms: add the hidden fields you want stored or exported, and ClickTrail will fill them
 - Client-side fallback for cached pages
 - Dynamic form detection
 - Optional replacement of existing attribution values
@@ -131,6 +133,13 @@ Additional browser identifiers include:
 - Gravity Forms
 - Ninja Forms
 - WPForms
+
+Form behavior by plugin:
+
+- Contact Form 7 and Fluent Forms can receive hidden attribution fields automatically
+- Gravity Forms and WPForms can populate matching hidden fields you add to the form
+- Elementor Forms (Pro) use their submission hooks and attribution fallback instead of automatic hidden-field injection
+- Ninja Forms stores attribution with the submission record and surfaces it in the submission detail UI instead of automatic hidden-field injection
 
 ### Commerce
 
