@@ -108,7 +108,7 @@ class Privacy_Handler {
 		$where   = $this->build_event_match_where( $email, $user_id );
 		$offset  = ( $page - 1 ) * self::PAGE_SIZE;
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Required for privacy export callbacks.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Required for privacy export callbacks.
 		$rows = $wpdb->get_results(
 			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- Params merged dynamically via array_merge.
 			$wpdb->prepare(
@@ -195,7 +195,7 @@ class Privacy_Handler {
 		$where   = $this->build_event_match_where( $email, $user_id );
 
 		// Always read first page for erasure to avoid offset skipping after deletions.
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Required for privacy erasure callbacks.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Required for privacy erasure callbacks.
 		$rows = $wpdb->get_results(
 			$wpdb->prepare(
 				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name and WHERE clause are plugin-owned.

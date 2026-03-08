@@ -129,14 +129,14 @@ trait Admin_Diagnostics_Ajax_Trait {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$queue_ready = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $queue_table ) );
 		if ( $events_ready === $events_table ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name from $wpdb->prefix.
 			$result = $wpdb->query( "TRUNCATE TABLE {$events_table}" );
 			if ( false === $result ) {
 				$errors[] = 'events_truncate_failed';
 			}
 		}
 		if ( $queue_ready === $queue_table ) {
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name from $wpdb->prefix.
 			$result = $wpdb->query( "TRUNCATE TABLE {$queue_table}" );
 			if ( false === $result ) {
 				$errors[] = 'queue_truncate_failed';
