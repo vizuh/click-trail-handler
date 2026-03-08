@@ -407,3 +407,598 @@
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* ========================================
+   Refined WP Admin Surface
+   ======================================== */
+:root {
+    --clicktrail-blue: #2271b1;
+    --clicktrail-blue-soft: #f0f6fc;
+    --clicktrail-blue-line: #cfe2f3;
+    --clicktrail-border: #dcdcde;
+    --clicktrail-text: #1e1e1e;
+    --clicktrail-text-muted: #646970;
+    --clicktrail-text-subtle: #8c8f94;
+    --clicktrail-card: #fff;
+    --clicktrail-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --clicktrail-radius: 3px;
+    --clicktrail-success: #00a32a;
+    --clicktrail-success-bg: #edfaef;
+    --clicktrail-warning: #dba617;
+    --clicktrail-warning-bg: #fef8ee;
+    --clicktrail-danger: #d63638;
+    --clicktrail-danger-bg: #fef0f0;
+}
+
+.clicktrail-settings-wrap,
+.clicktrail-diagnostics-wrap {
+    max-width: 980px;
+}
+
+.clicktrail-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 0 0 18px;
+}
+
+.clicktrail-page-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.clicktrail-page-title h1 {
+    margin: 0;
+    font-size: 21px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--clicktrail-text);
+}
+
+.clicktrail-version-badge,
+.clicktrail-tab-badge,
+.clicktrail-card__tag {
+    display: inline-flex;
+    align-items: center;
+    min-height: 20px;
+    padding: 0 7px;
+    border: 1px solid var(--clicktrail-border);
+    border-radius: 2px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--clicktrail-text-muted);
+    background: #f6f7f7;
+}
+
+.clicktrail-tab-badge {
+    margin-left: 6px;
+    color: var(--clicktrail-blue);
+    border-color: var(--clicktrail-blue-line);
+    background: var(--clicktrail-blue-soft);
+}
+
+.clicktrail-card__tag {
+    color: var(--clicktrail-text-subtle);
+}
+
+.clicktrail-summary-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 18px;
+}
+
+.clicktrail-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 32px;
+    padding: 0 11px;
+    border: 1px solid var(--clicktrail-border);
+    border-radius: var(--clicktrail-radius);
+    background: var(--clicktrail-card);
+    box-shadow: var(--clicktrail-shadow);
+    color: var(--clicktrail-text-muted);
+    font-size: 12px;
+    line-height: 1;
+}
+
+.clicktrail-status-pill__dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--clicktrail-text-subtle);
+    flex: 0 0 auto;
+}
+
+.clicktrail-status-pill__text strong {
+    margin-right: 4px;
+    color: var(--clicktrail-text);
+    font-weight: 600;
+}
+
+.clicktrail-status-pill--success .clicktrail-status-pill__dot {
+    background: var(--clicktrail-success);
+}
+
+.clicktrail-status-pill--warning .clicktrail-status-pill__dot {
+    background: var(--clicktrail-warning);
+}
+
+.clicktrail-status-pill--info .clicktrail-status-pill__dot {
+    background: var(--clicktrail-blue);
+}
+
+.clicktrail-status-pill--neutral .clicktrail-status-pill__dot {
+    background: var(--clicktrail-text-subtle);
+}
+
+.clicktrail-settings-wrap .nav-tab-wrapper {
+    display: flex;
+    gap: 0;
+    margin: 0 0 18px;
+    border-bottom: 1px solid var(--clicktrail-border);
+}
+
+.clicktrail-settings-wrap .nav-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 6px -1px 0;
+    padding: 9px 14px;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: var(--clicktrail-radius) var(--clicktrail-radius) 0 0;
+    background: transparent;
+    color: var(--clicktrail-text-muted);
+    font-weight: 500;
+    transition: background-color 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+
+.clicktrail-settings-wrap .nav-tab:hover {
+    background: #f6f7f7;
+    color: var(--clicktrail-text);
+}
+
+.clicktrail-settings-wrap .nav-tab-active {
+    background: var(--clicktrail-card);
+    border-color: var(--clicktrail-border);
+    color: var(--clicktrail-text);
+}
+
+.clicktrail-inline-notice {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 16px;
+    padding: 10px 12px;
+    border-left: 3px solid var(--clicktrail-blue);
+    border-radius: 0 var(--clicktrail-radius) var(--clicktrail-radius) 0;
+    background: var(--clicktrail-blue-soft);
+    color: #1d4b78;
+    font-size: 12px;
+}
+
+.clicktrail-inline-notice--warning {
+    border-left-color: var(--clicktrail-warning);
+    background: var(--clicktrail-warning-bg);
+    color: #674800;
+}
+
+.clicktrail-settings-form {
+    margin: 0;
+}
+
+.clicktrail-card {
+    margin: 0 0 12px;
+    overflow: hidden;
+    border: 1px solid var(--clicktrail-border);
+    border-radius: var(--clicktrail-radius);
+    background: var(--clicktrail-card);
+    box-shadow: var(--clicktrail-shadow);
+}
+
+.clicktrail-card--danger {
+    border-color: #f0c0c0;
+}
+
+.clicktrail-card__header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 13px 16px;
+    border: 0;
+    border-bottom: 1px solid #f0f0f1;
+    background: transparent;
+    cursor: default;
+    text-align: left;
+    color: inherit;
+    font: inherit;
+}
+
+.clicktrail-card--collapsible .clicktrail-card__header {
+    cursor: pointer;
+}
+
+.clicktrail-card--collapsible .clicktrail-card__header:hover,
+.clicktrail-card__header--static {
+    background: #fafafa;
+}
+
+.clicktrail-card__header-main {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.clicktrail-card__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    background: var(--clicktrail-blue-soft);
+    color: var(--clicktrail-blue);
+    font-size: 15px;
+    flex: 0 0 auto;
+}
+
+.clicktrail-card--danger .clicktrail-card__icon {
+    background: var(--clicktrail-danger-bg);
+    color: var(--clicktrail-danger);
+}
+
+.clicktrail-card__heading {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.clicktrail-card__title {
+    color: var(--clicktrail-text);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.clicktrail-card__description {
+    color: var(--clicktrail-text-subtle);
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.clicktrail-card__meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+}
+
+.clicktrail-card__chevron {
+    color: var(--clicktrail-text-subtle);
+    font-size: 14px;
+    transition: transform 120ms ease;
+}
+
+.clicktrail-card.is-collapsed .clicktrail-card__chevron {
+    transform: rotate(-90deg);
+}
+
+.clicktrail-card__body {
+    padding: 0;
+}
+
+.clicktrail-card.is-collapsed .clicktrail-card__body {
+    display: none;
+}
+
+.clicktrail-settings-wrap .clicktrail-card__table {
+    margin: 0;
+}
+
+.clicktrail-settings-wrap .clicktrail-card__table th,
+.clicktrail-settings-wrap .clicktrail-card__table td {
+    padding-top: 11px;
+    padding-bottom: 11px;
+}
+
+.clicktrail-settings-wrap .clicktrail-card__table th {
+    width: 260px;
+    padding-left: 16px;
+    color: var(--clicktrail-text);
+    font-weight: 600;
+}
+
+.clicktrail-settings-wrap .clicktrail-card__table td {
+    padding-right: 16px;
+}
+
+.clicktrail-settings-wrap .clicktrail-card__table tr {
+    transition: background-color 120ms ease, opacity 120ms ease;
+}
+
+.clicktrail-settings-wrap .clicktrail-card__table tr:hover {
+    background: #fafafa;
+}
+
+.clicktrail-row-dimmed {
+    opacity: 0.42;
+}
+
+.clicktrail-toggle-wrapper {
+    gap: 8px;
+}
+
+.clicktrail-toggle {
+    width: 38px;
+    height: 20px;
+}
+
+.clicktrail-toggle-slider {
+    border-radius: 999px;
+    background-color: #dcdcde;
+    transition: background-color 120ms ease;
+}
+
+.clicktrail-toggle-slider:before {
+    width: 14px;
+    height: 14px;
+    left: 3px;
+    bottom: 3px;
+    transition: transform 120ms ease;
+}
+
+.clicktrail-toggle input:checked + .clicktrail-toggle-slider {
+    background-color: var(--clicktrail-blue);
+}
+
+.clicktrail-toggle input:focus + .clicktrail-toggle-slider {
+    box-shadow: 0 0 0 1px var(--clicktrail-blue);
+}
+
+.clicktrail-toggle input:checked + .clicktrail-toggle-slider:before {
+    transform: translateX(18px);
+}
+
+.clicktrail-toggle-label {
+    min-width: 58px;
+    color: var(--clicktrail-text-muted);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.clicktrail-help-tip {
+    width: 15px;
+    height: 15px;
+    line-height: 15px;
+    margin-left: 2px;
+    background: var(--clicktrail-blue);
+    font-size: 11px;
+}
+
+.clicktrail-help-tip:hover::after {
+    max-width: 240px;
+    white-space: normal;
+}
+
+.clicktrail-field-input,
+.clicktrail-field-select {
+    height: 30px;
+    border: 1px solid var(--clicktrail-border);
+    border-radius: var(--clicktrail-radius);
+    color: var(--clicktrail-text);
+    background: #fff;
+    box-shadow: none;
+}
+
+.clicktrail-field-input {
+    min-width: 220px;
+    padding: 0 8px;
+}
+
+.clicktrail-field-input--narrow {
+    min-width: 92px;
+    width: 92px;
+}
+
+.clicktrail-field-input--mono {
+    font-family: Consolas, Monaco, monospace;
+    font-size: 12px;
+}
+
+.clicktrail-field-select {
+    min-width: 220px;
+    padding: 0 30px 0 8px;
+}
+
+.clicktrail-field-input:focus,
+.clicktrail-field-select:focus {
+    border-color: var(--clicktrail-blue);
+    box-shadow: 0 0 0 1px var(--clicktrail-blue);
+    outline: none;
+}
+
+.clicktrail-settings-wrap .description,
+.clicktrail-description {
+    margin-top: 5px;
+    color: var(--clicktrail-text-subtle);
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.clicktrail-save-bar {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+    padding: 12px 16px;
+    border: 1px solid var(--clicktrail-border);
+    border-radius: var(--clicktrail-radius);
+    background: rgba(255, 255, 255, 0.96);
+    box-shadow: 0 -1px 6px rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(6px);
+}
+
+.clicktrail-save-bar__hint {
+    color: var(--clicktrail-text-subtle);
+    font-size: 12px;
+}
+
+.clicktrail-save-bar code {
+    padding: 2px 6px;
+    border-radius: 2px;
+    background: #f6f7f7;
+    font-size: 11px;
+}
+
+.clicktrail-diagnostics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.clicktrail-diagnostic-stat {
+    position: relative;
+    overflow: hidden;
+    padding: 14px 16px;
+    border: 1px solid var(--clicktrail-border);
+    border-radius: var(--clicktrail-radius);
+    background: var(--clicktrail-card);
+    box-shadow: var(--clicktrail-shadow);
+}
+
+.clicktrail-diagnostic-stat::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--clicktrail-blue);
+}
+
+.clicktrail-diagnostic-stat--ok::before {
+    background: var(--clicktrail-success);
+}
+
+.clicktrail-diagnostic-stat--warn::before {
+    background: var(--clicktrail-warning);
+}
+
+.clicktrail-diagnostic-stat--err::before {
+    background: var(--clicktrail-danger);
+}
+
+.clicktrail-diagnostic-stat--info::before {
+    background: var(--clicktrail-blue);
+}
+
+.clicktrail-diagnostic-stat--neutral::before {
+    background: var(--clicktrail-text-subtle);
+}
+
+.clicktrail-diagnostic-stat__label {
+    margin-bottom: 4px;
+    color: var(--clicktrail-text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.clicktrail-diagnostic-stat__value {
+    color: var(--clicktrail-text);
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+}
+
+.clicktrail-diagnostic-stat__sub {
+    margin-top: 3px;
+    color: var(--clicktrail-text-subtle);
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.clicktrail-action-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px;
+}
+
+.clicktrail-action-status {
+    color: var(--clicktrail-text-muted);
+    font-size: 12px;
+}
+
+.clicktrail-data-table {
+    margin: 0;
+    border: 0;
+    box-shadow: none;
+}
+
+.clicktrail-data-table thead th {
+    background: #f6f7f7;
+    color: var(--clicktrail-text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+}
+
+.clicktrail-data-table tbody td,
+.clicktrail-data-table tbody th {
+    color: var(--clicktrail-text);
+}
+
+.clicktrail-data-table tbody tr:hover td,
+.clicktrail-data-table tbody tr:hover th {
+    background: #fafafa;
+}
+
+@media (max-width: 782px) {
+    .clicktrail-page-header,
+    .clicktrail-page-title,
+    .clicktrail-save-bar,
+    .clicktrail-action-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .clicktrail-summary-bar,
+    .clicktrail-settings-wrap .nav-tab-wrapper {
+        overflow-x: auto;
+        white-space: nowrap;
+        flex-wrap: nowrap;
+        padding-bottom: 2px;
+    }
+
+    .clicktrail-diagnostics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .clicktrail-settings-wrap .clicktrail-card__table th,
+    .clicktrail-settings-wrap .clicktrail-card__table td {
+        display: block;
+        width: 100%;
+        padding-right: 16px;
+    }
+
+    .clicktrail-field-input,
+    .clicktrail-field-select {
+        width: 100%;
+        min-width: 0;
+    }
+}
