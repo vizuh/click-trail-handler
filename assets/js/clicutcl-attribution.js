@@ -579,10 +579,13 @@
                 },
                 clearData: () => {
                     Store.clearData();
+                    SessionManager.clear();
                     API.install({ withIdentity: false });
-                }
+                },
+                getSession: () => SessionManager.getPayload()
             };
             window.ClickTrailIdentity = withIdentity ? Identity.get() : null;
+            window.ClickTrailSession = withIdentity ? SessionManager.getPayload() : null;
 
             // Site Health Timestamp
             try { localStorage.setItem('clicutcl_js_last_seen', String(Date.now())); } catch (e) { }
@@ -916,9 +919,168 @@
         },
 
         get: function () {
-            return {
+            const base = {
                 session_id: this.sessionId(),
                 visitor_id: this.visitorId()
+            };
+            // Merge SessionManager state when available (provides richer session data)
+            const session = SessionManager.get();
+            if (session) {
+                base.session_id = session.session_id;
+                base.session_number = session.session_number;
+            }
+            return base;
+        }
+    };
+
+    // --- 4.5 SESSION MANAGER ---
+    // Decoupled from attribution: tracks sessions based on 30-minute inactivity
+    // timeout (Stape/GA4 model). Attribution signals no longer drive session count.
+    const SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes
+    const SESSION_STORAGE_KEY = 'ct_session';
+    const SESSION_COOKIE_NAME = 'ct_session';
+
+    const SessionManager = {
+        _state: null,
+
+        /**
+         * Read session state from cookie + localStorage.
+         * Returns null if nothing stored.
+         */
+        _read: function () {
+            // 1. Try cookie
+            const cookieRaw = Store.getCookie(SESSION_COOKIE_NAME);
+            const cookieObj = cookieRaw ? Store.safeJsonParse(cookieRaw) : null;
+
+            // 2. Try localStorage
+            let lsObj = null;
+            try {
+                const raw = localStorage.getItem(SESSION_STORAGE_KEY);
+                if (raw) lsObj = Store.safeJsonParse(raw);
+            } catch (e) { }
+
+            // Cookie takes precedence (first-party, server-readable)
+            const state = cookieObj || lsObj || null;
+            if (state && typeof state === 'object' && state.session_id) {
+                return state;
+            }
+            return null;
+        },
+
+        /**
+         * Persist session state to cookie + localStorage.
+         */
+        _write: function (state) {
+            if (!state || typeof state !== 'object') return;
+            const json = JSON.stringify(state);
+            // Session cookie: expires when browser closes OR after 24h (whichever first).
+            // The inactivity timeout is enforced in touch(), not via cookie expiry.
+            Store.setCookie(SESSION_COOKIE_NAME, json, 1);
+            try {
+                localStorage.setItem(SESSION_STORAGE_KEY, json);
+            } catch (e) { }
+            this._state = state;
+        },
+
+        /**
+         * Clear session state (consent denial).
+         */
+        clear: function () {
+            Store.removeCookie(SESSION_COOKIE_NAME);
+            try { localStorage.removeItem(SESSION_STORAGE_KEY); } catch (e) { }
+            try { sessionStorage.removeItem(SESSION_STORAGE_KEY); } catch (e) { }
+            this._state = null;
+        },
+
+        /**
+         * One-time migration: seed session_number from old attribution session_count.
+         */
+        _migrateSeed: function () {
+            const attribution = Store.getData();
+            if (attribution && typeof attribution.session_count === 'number' && attribution.session_count > 0) {
+                return attribution.session_count;
+            }
+            return 0;
+        },
+
+        /**
+         * Create a brand-new session, incrementing session_number.
+         */
+        _createSession: function (previousNumber) {
+            const now = Date.now();
+            const state = {
+                session_id: Identity.eventId('sess'),
+                session_number: (previousNumber || 0) + 1,
+                session_started_at: now,
+                last_activity_at: now
+            };
+            this._write(state);
+
+            if (DEBUG_ENABLED) {
+                console.log('[ClickTrail] New session created:', state.session_id, 'number:', state.session_number);
+            }
+
+            return state;
+        },
+
+        /**
+         * Core method: call on every page view / tracked event.
+         * - If no session exists → create one (migrate seed from old session_count).
+         * - If last_activity_at is older than 30 min → new session.
+         * - Otherwise → reuse current session, update last_activity_at.
+         */
+        touch: function () {
+            const now = Date.now();
+            let state = this._state || this._read();
+
+            if (!state) {
+                // First-ever session — try to seed from old attribution session_count
+                const seed = this._migrateSeed();
+                state = this._createSession(seed);
+                return state;
+            }
+
+            const lastActivity = Number(state.last_activity_at || 0);
+            const elapsed = now - lastActivity;
+
+            if (elapsed > SESSION_TIMEOUT_MS) {
+                // Inactivity timeout → new session
+                state = this._createSession(state.session_number || 0);
+                return state;
+            }
+
+            // Active session — update heartbeat
+            state.last_activity_at = now;
+            this._write(state);
+            return state;
+        },
+
+        /**
+         * Get current session state without side effects.
+         */
+        get: function () {
+            if (this._state) return this._state;
+            const stored = this._read();
+            if (stored) {
+                this._state = stored;
+                return stored;
+            }
+            return null;
+        },
+
+        /**
+         * Get session fields formatted for dataLayer / payloads.
+         * Keeps backward compat: session_count = session_number.
+         */
+        getPayload: function () {
+            const state = this.get();
+            if (!state) return {};
+            return {
+                session_id: state.session_id,
+                session_number: state.session_number,
+                session_count: state.session_number, // backward compat alias
+                session_started_at: state.session_started_at,
+                last_activity_at: state.last_activity_at
             };
         }
     };
@@ -1027,6 +1189,7 @@
         handleConsentDenied() {
             const existingData = Store.getData() || {};
             Store.clearData();
+            SessionManager.clear();
             Injector.clear();
             API.install({ withIdentity: false });
             this.hasRunAttribution = false;
@@ -1096,7 +1259,6 @@
                 // Last Touch (Always update on signal)
                 this.applyTouch('lt', storedData, fields, now);
 
-                storedData.session_count = (storedData.session_count || 0) + 1;
                 shouldPersist = true;
             }
 
@@ -1104,6 +1266,9 @@
                 Store.saveData(storedData);
                 storedData = Store.getData() || storedData;
             }
+
+            // Touch session (creates or resumes based on 30-min inactivity)
+            const session = SessionManager.touch();
 
             // Expose API
             API.install(); // Re-announce with fresh data
@@ -1120,7 +1285,8 @@
             window.dataLayer.push({
                 event: 'ct_page_view',
                 event_id: Identity.eventId('pv'),
-                session_id: identity.session_id,
+                session_id: session ? session.session_id : identity.session_id,
+                session_number: session ? session.session_number : undefined,
                 visitor_id: identity.visitor_id,
                 ct_attribution: storedData
             });

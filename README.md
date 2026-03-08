@@ -24,7 +24,7 @@ Keep attribution attached to forms, WooCommerce orders, and event flows across c
 ## Core Capabilities
 
 - **Capture**: first-touch and last-touch attribution, referrers, classic and extended UTMs, click IDs, browser identifiers, retention, and cross-domain continuity.
-- **Forms**: supported form enrichment, cached-page fallback, dynamic-content support, and WhatsApp continuity.
+- **Forms**: automatic hidden-field enrichment for Contact Form 7 and Fluent Forms, compatible hidden-field population for Gravity Forms and WPForms, cached-page fallback, dynamic-content support, and WhatsApp continuity.
 - **Events**: browser collection, `dataLayer` pushes, webhook intake, and lifecycle updates.
 - **Delivery**: optional server-side transport, retries, diagnostics, and consent-aware dispatch.
 

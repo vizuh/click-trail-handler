@@ -188,6 +188,15 @@ class Event {
 		$timestamp = isset( $context['timestamp'] ) ? absint( $context['timestamp'] ) : time();
 		$page_path = self::detect_page_path( $context );
 
+		$meta = array(
+			'site_id'        => function_exists( 'get_current_blog_id' ) ? (int) get_current_blog_id() : 0,
+			'plugin_version' => defined( 'CLICUTCL_VERSION' ) ? CLICUTCL_VERSION : '',
+		);
+
+		if ( isset( $context['session_id'] ) && is_scalar( $context['session_id'] ) ) {
+			$meta['session_id'] = sanitize_text_field( (string) $context['session_id'] );
+		}
+
 		$data = array(
 			'event_name' => 'form_submission',
 			'event_id'   => $event_id,
@@ -199,10 +208,7 @@ class Event {
 			),
 			'attribution' => is_array( $attribution ) ? $attribution : array(),
 			'identity'    => isset( $context['identity'] ) && is_array( $context['identity'] ) ? $context['identity'] : array(),
-			'meta'        => array(
-				'site_id'        => function_exists( 'get_current_blog_id' ) ? (int) get_current_blog_id() : 0,
-				'plugin_version' => defined( 'CLICUTCL_VERSION' ) ? CLICUTCL_VERSION : '',
-			),
+			'meta'        => $meta,
 		);
 
 		if ( $page_path ) {

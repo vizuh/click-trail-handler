@@ -26,10 +26,13 @@ Supported form adapters:
 
 What ClickTrail does:
 
-- inject or populate attribution fields
+- auto-add hidden attribution fields for Contact Form 7 and Fluent Forms
+- populate matching hidden fields already present in Gravity Forms and WPForms
+- recommend that Gravity Forms and WPForms users add the hidden fields they want stored or exported
 - keep attribution attached to submissions
 - dispatch form-related events when applicable
 - for Elementor Forms, log submissions through Elementor Pro's official `elementor_pro/forms/new_record` hook and read matching `ct_*` hidden fields when they are present, with cookie fallback when they are not
+- for Ninja Forms, store attribution in the submission extra data (`extra.clicktrail_attribution`), show it in the submission detail UI, and use the submission hooks rather than automatic hidden-field injection
 
 ## WooCommerce
 

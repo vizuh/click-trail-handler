@@ -34,7 +34,7 @@ It captures first-touch and last-touch source data, keeps it available during th
 = Core capabilities =
 
 * **Capture**: first-touch and last-touch UTMs, referrers, and major ad click IDs with configurable retention.
-* **Forms**: hidden field enrichment for supported form plugins, client-side fallback, dynamic form support, and WhatsApp attribution continuity.
+* **Forms**: automatic hidden-field enrichment for Contact Form 7 and Fluent Forms, compatible hidden-field population for Gravity Forms and WPForms, client-side fallback, dynamic form support, and WhatsApp attribution continuity.
 * **Events**: browser event collection with `dataLayer` pushes, canonical REST intake, webhook ingestion, and lifecycle updates.
 * **Delivery**: optional server-side transport, retry queue, diagnostics, consent-aware dispatch, and failure telemetry.
 
@@ -55,6 +55,14 @@ Operational screens stay separate:
 = Supported integrations =
 
 * **Forms**: Contact Form 7, Elementor Forms (Pro), Fluent Forms, Gravity Forms, Ninja Forms, WPForms
+
+= Forms behavior by plugin =
+
+* **Contact Form 7 and Fluent Forms**: ClickTrail can add hidden attribution fields automatically.
+* **Gravity Forms and WPForms**: ClickTrail can populate matching hidden fields you add to the form.
+* **Recommended for Gravity Forms and WPForms**: add the hidden fields you want to store or export, and ClickTrail will fill them.
+* **Elementor Forms (Pro)**: ClickTrail uses the available submission hooks and attribution fallback, not automatic hidden-field injection.
+* **Ninja Forms**: ClickTrail stores attribution with the submission and surfaces it in the submission record, not as automatic hidden-field injection.
 * **Commerce**: WooCommerce
 * **CMP sources**: ClickTrail banner, Cookiebot, OneTrust, Complianz, GTM, custom
 * **Webhook providers**: Calendly, HubSpot, Typeform
