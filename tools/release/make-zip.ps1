@@ -42,6 +42,8 @@ $excludeDirs = @(
     '.git',
     '.github',
     '.vscode',
+    '.claude',
+    '.claude-flow',
     'dist',
     'docs',
     'tools',
@@ -51,11 +53,22 @@ $excludeDirs = @(
 $excludeFiles = @(
     '.gitignore',
     '.gitattributes',
+    '.editorconfig',
+    '.mcp.json',
     'package.json',
     'package-lock.json',
+    'composer.json',
+    'composer.lock',
     'phpcs.xml.dist',
     'readme_header_update.txt',
-    'AGENTS.md'
+    'AGENTS.md',
+    'CLAUDE.md',
+    'CONTRIBUTING.md',
+    'CONTRIBUTING.pt-BR.md',
+    'INTEGRATIONS.md',
+    'README.md',
+    'README.en.md',
+    'README.pt-BR.md'
 )
 
 $robocopyArgs = @(
