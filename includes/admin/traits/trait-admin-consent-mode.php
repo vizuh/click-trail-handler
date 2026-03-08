@@ -26,7 +26,12 @@ trait Admin_Consent_Mode_Trait {
 				<input type="checkbox" name="clicutcl_consent_mode[enabled]" value="1" <?php checked( 1, $enabled ); ?> />
 				<span class="clicktrail-toggle-slider"></span>
 			</label>
-			<span class="clicktrail-toggle-label">
+			<span
+				class="clicktrail-toggle-label"
+				data-clicktrail-toggle-label
+				data-enabled-label="<?php echo esc_attr__( 'Enabled', 'click-trail-handler' ); ?>"
+				data-disabled-label="<?php echo esc_attr__( 'Disabled', 'click-trail-handler' ); ?>"
+			>
 				<?php echo $enabled ? esc_html__( 'Enabled', 'click-trail-handler' ) : esc_html__( 'Disabled', 'click-trail-handler' ); ?>
 			</span>
 		</div>
@@ -43,7 +48,7 @@ trait Admin_Consent_Mode_Trait {
 			'geo'     => __( 'Geo-based (region dependent)', 'click-trail-handler' ),
 		);
 		?>
-		<select id="clicutcl_consent_mode_behavior" name="clicutcl_consent_mode[mode]">
+		<select id="clicutcl_consent_mode_behavior" name="clicutcl_consent_mode[mode]" class="clicktrail-field-select">
 			<?php foreach ( $options as $option_value => $label ) : ?>
 				<option value="<?php echo esc_attr( $option_value ); ?>" <?php selected( $mode, $option_value ); ?>>
 					<?php echo esc_html( $label ); ?>
@@ -64,7 +69,7 @@ trait Admin_Consent_Mode_Trait {
 			$regions = implode( ', ', $regions );
 		}
 		?>
-		<input type="text" name="clicutcl_consent_mode[regions]" value="<?php echo esc_attr( $regions ); ?>" class="regular-text" placeholder="EEA, UK, US-CA" />
+		<input type="text" name="clicutcl_consent_mode[regions]" value="<?php echo esc_attr( $regions ); ?>" class="regular-text clicktrail-field-input" placeholder="EEA, UK, US-CA" />
 		<p class="description"><?php esc_html_e( 'Comma-separated region tokens (EEA, UK, US, US-CA, BR, DE...).', 'click-trail-handler' ); ?></p>
 		<?php
 	}
@@ -83,7 +88,7 @@ trait Admin_Consent_Mode_Trait {
 			'custom'    => __( 'Custom (manual ClickTrailConsent.grant())', 'click-trail-handler' ),
 		);
 		?>
-		<select id="clicutcl_cmp_source" name="clicutcl_consent_mode[cmp_source]">
+		<select id="clicutcl_cmp_source" name="clicutcl_consent_mode[cmp_source]" class="clicktrail-field-select">
 			<?php foreach ( $options as $option_value => $label ) : ?>
 				<option value="<?php echo esc_attr( $option_value ); ?>" <?php selected( $cmp_source, $option_value ); ?>>
 					<?php echo esc_html( $label ); ?>
@@ -110,7 +115,7 @@ trait Admin_Consent_Mode_Trait {
 			min="500"
 			max="10000"
 			step="100"
-			class="small-text"
+			class="small-text clicktrail-field-input clicktrail-field-input--narrow"
 		/>
 		<p class="description">
 			<?php esc_html_e( 'How long to wait for async CMP responses before falling back to denied (default 3000ms).', 'click-trail-handler' ); ?>
@@ -118,4 +123,3 @@ trait Admin_Consent_Mode_Trait {
 		<?php
 	}
 }
-

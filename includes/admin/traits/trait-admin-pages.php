@@ -142,208 +142,354 @@ trait Admin_Pages_Trait {
 		$debug_until     = get_transient( 'clicutcl_debug_until' );
 		$debug_active    = $debug_until && (int) $debug_until > time();
 		$debug_until_str = $debug_active ? date_i18n( 'Y-m-d H:i:s', (int) $debug_until ) : '';
+		$dispatch_rows   = is_array( $dispatches ) ? array_values( $dispatches ) : array();
+
+		if ( ! empty( $dispatch_rows ) ) {
+			usort(
+				$dispatch_rows,
+				static function ( $left, $right ) {
+					return (int) ( $right['time'] ?? 0 ) <=> (int) ( $left['time'] ?? 0 );
+				}
+			);
+		}
+
+		$latest_dispatch      = ! empty( $dispatch_rows ) ? $dispatch_rows[0] : array();
+		$latest_dispatch_time = isset( $latest_dispatch['time'] ) ? absint( $latest_dispatch['time'] ) : 0;
+		$latest_dispatch_http = isset( $latest_dispatch['http_status'] ) ? absint( $latest_dispatch['http_status'] ) : 0;
+		$latest_dispatch_ok   = $latest_dispatch_http >= 200 && $latest_dispatch_http < 300;
+		$latest_dispatch_tone = empty( $latest_dispatch ) ? 'neutral' : ( $latest_dispatch_ok ? 'ok' : 'warn' );
+		$latest_dispatch_text = empty( $latest_dispatch )
+			? __( 'No dispatches yet', 'click-trail-handler' )
+			: ( $latest_dispatch_http ? (string) $latest_dispatch_http : (string) ( $latest_dispatch['status'] ?? '' ) );
+		$latest_dispatch_sub  = $latest_dispatch_time
+			? sprintf(
+				/* translators: %s: relative time. */
+				__( '%s ago', 'click-trail-handler' ),
+				human_time_diff( $latest_dispatch_time, time() )
+			)
+			: __( 'No delivery attempts recorded.', 'click-trail-handler' );
+		$queue_pending        = absint( $queue_stats['pending'] ?? 0 );
+		$queue_due_now        = absint( $queue_stats['due_now'] ?? 0 );
+		$queue_tone           = $queue_pending > 0 ? 'warn' : 'ok';
+		$last_error_code      = isset( $last_error['code'] ) ? sanitize_key( (string) $last_error['code'] ) : '';
+		$last_error_message   = isset( $last_error['message'] ) ? sanitize_text_field( (string) $last_error['message'] ) : '';
+		$last_error_tone      = $last_error_code ? 'err' : 'ok';
+		$failure_total        = 0;
+
+		foreach ( $failure_telemetry as $bucket ) {
+			$failure_total += absint( $bucket['total'] ?? 0 );
+		}
 		?>
-		<div class="wrap">
-			<h1><?php esc_html_e( 'ClickTrail Diagnostics', 'click-trail-handler' ); ?></h1>
+		<div class="wrap clicktrail-diagnostics-wrap">
+			<div class="clicktrail-page-header">
+				<div class="clicktrail-page-title">
+					<h1><?php esc_html_e( 'ClickTrail Diagnostics', 'click-trail-handler' ); ?></h1>
+				</div>
+			</div>
 
-			<h2><?php esc_html_e( 'Endpoint Test', 'click-trail-handler' ); ?></h2>
-			<p>
-				<button class="button" id="clicutcl-test-endpoint"><?php esc_html_e( 'Test Endpoint', 'click-trail-handler' ); ?></button>
-				<span id="clicutcl-test-endpoint-status" style="margin-left:10px;"></span>
-			</p>
-			<p class="description">
-				<?php esc_html_e( 'Checks if your server-side endpoint is reachable.', 'click-trail-handler' ); ?>
-			</p>
+			<div class="clicktrail-diagnostics-grid">
+				<div class="clicktrail-diagnostic-stat clicktrail-diagnostic-stat--<?php echo esc_attr( $queue_tone ); ?>">
+					<div class="clicktrail-diagnostic-stat__label"><?php esc_html_e( 'Queue Backlog', 'click-trail-handler' ); ?></div>
+					<div class="clicktrail-diagnostic-stat__value"><?php echo esc_html( (string) $queue_pending ); ?></div>
+					<div class="clicktrail-diagnostic-stat__sub">
+						<?php
+						printf(
+							/* translators: %d: due now count. */
+							esc_html__( 'Due now: %d', 'click-trail-handler' ),
+							$queue_due_now
+						);
+						?>
+					</div>
+				</div>
 
-			<h2><?php esc_html_e( 'Last Error', 'click-trail-handler' ); ?></h2>
-			<?php if ( ! empty( $last_error ) ) : ?>
-				<p>
-					<strong><?php echo esc_html( $last_error['code'] ?? '' ); ?></strong>
-					<?php echo esc_html( $last_error['message'] ?? '' ); ?>
-					<?php if ( $last_error_time ) : ?>
-						<span style="margin-left:8px;color:#666;"><?php echo esc_html( $last_error_time ); ?></span>
-					<?php endif; ?>
-				</p>
-			<?php else : ?>
-				<p><?php esc_html_e( 'No errors recorded.', 'click-trail-handler' ); ?></p>
+				<div class="clicktrail-diagnostic-stat clicktrail-diagnostic-stat--<?php echo esc_attr( $latest_dispatch_tone ); ?>">
+					<div class="clicktrail-diagnostic-stat__label"><?php esc_html_e( 'Last Dispatch', 'click-trail-handler' ); ?></div>
+					<div class="clicktrail-diagnostic-stat__value"><?php echo esc_html( $latest_dispatch_text ); ?></div>
+					<div class="clicktrail-diagnostic-stat__sub"><?php echo esc_html( $latest_dispatch_sub ); ?></div>
+				</div>
+
+				<div class="clicktrail-diagnostic-stat clicktrail-diagnostic-stat--<?php echo esc_attr( $last_error_tone ); ?>">
+					<div class="clicktrail-diagnostic-stat__label"><?php esc_html_e( 'Last Error', 'click-trail-handler' ); ?></div>
+					<div class="clicktrail-diagnostic-stat__value"><?php echo esc_html( $last_error_code ? $last_error_code : __( 'None', 'click-trail-handler' ) ); ?></div>
+					<div class="clicktrail-diagnostic-stat__sub"><?php echo esc_html( $last_error_time ? $last_error_time : __( 'No errors recorded.', 'click-trail-handler' ) ); ?></div>
+				</div>
+
+				<div class="clicktrail-diagnostic-stat clicktrail-diagnostic-stat--info">
+					<div class="clicktrail-diagnostic-stat__label"><?php esc_html_e( 'Debug Logging', 'click-trail-handler' ); ?></div>
+					<div class="clicktrail-diagnostic-stat__value"><?php echo esc_html( $debug_active ? __( 'Enabled', 'click-trail-handler' ) : __( 'Disabled', 'click-trail-handler' ) ); ?></div>
+					<div class="clicktrail-diagnostic-stat__sub">
+						<?php echo esc_html( $debug_active ? $debug_until_str : __( '15 minute window when enabled.', 'click-trail-handler' ) ); ?>
+					</div>
+				</div>
+			</div>
+
+			<?php if ( $last_error_code || $last_error_message ) : ?>
+				<div class="clicktrail-inline-notice clicktrail-inline-notice--warning">
+					<span class="dashicons dashicons-warning" aria-hidden="true"></span>
+					<span>
+						<strong><?php echo esc_html( $last_error_code ); ?></strong>
+						<?php echo esc_html( $last_error_message ); ?>
+					</span>
+				</div>
 			<?php endif; ?>
 
-			<h2><?php esc_html_e( 'Debug Logging', 'click-trail-handler' ); ?></h2>
-			<p>
-				<?php if ( $debug_active ) : ?>
-					<strong><?php esc_html_e( 'Enabled', 'click-trail-handler' ); ?></strong>
-					<span style="margin-left:8px;color:#666;"><?php echo esc_html( $debug_until_str ); ?></span>
-				<?php else : ?>
-					<strong><?php esc_html_e( 'Disabled', 'click-trail-handler' ); ?></strong>
-				<?php endif; ?>
-			</p>
-			<p>
-				<button class="button" id="clicutcl-debug-toggle" data-mode="<?php echo esc_attr( $debug_active ? 'off' : 'on' ); ?>">
-					<?php echo esc_html( $debug_active ? __( 'Disable Debug', 'click-trail-handler' ) : __( 'Enable 15 Minutes', 'click-trail-handler' ) ); ?>
-				</button>
-				<span id="clicutcl-debug-status" style="margin-left:10px;"></span>
-			</p>
+			<section class="clicktrail-card">
+				<div class="clicktrail-card__header clicktrail-card__header--static">
+					<span class="clicktrail-card__header-main">
+						<span class="clicktrail-card__icon dashicons dashicons-admin-site-alt3" aria-hidden="true"></span>
+						<span class="clicktrail-card__heading">
+							<span class="clicktrail-card__title"><?php esc_html_e( 'Endpoint Test', 'click-trail-handler' ); ?></span>
+							<span class="clicktrail-card__description"><?php esc_html_e( 'Validate connectivity to the configured server-side endpoint.', 'click-trail-handler' ); ?></span>
+						</span>
+					</span>
+				</div>
+				<div class="clicktrail-card__body">
+					<div class="clicktrail-action-row">
+						<button class="button button-primary" id="clicutcl-test-endpoint"><?php esc_html_e( 'Test Endpoint', 'click-trail-handler' ); ?></button>
+						<span id="clicutcl-test-endpoint-status" class="clicktrail-action-status"></span>
+					</div>
+				</div>
+			</section>
 
-			<h2><?php esc_html_e( 'Failure Telemetry (Always On)', 'click-trail-handler' ); ?></h2>
-			<p class="description">
-				<?php esc_html_e( 'Failure-only aggregated counters. No payload bodies and no PII are stored.', 'click-trail-handler' ); ?>
-			</p>
-			<table class="widefat striped">
-				<thead>
-					<tr>
-						<th><?php esc_html_e( 'Hour Bucket', 'click-trail-handler' ); ?></th>
-						<th><?php esc_html_e( 'Total Failures', 'click-trail-handler' ); ?></th>
-						<th><?php esc_html_e( 'Codes', 'click-trail-handler' ); ?></th>
-					</tr>
-				</thead>
-				<tbody>
-				<?php if ( ! empty( $failure_telemetry ) ) : ?>
-					<?php foreach ( $failure_telemetry as $bucket_key => $bucket ) : ?>
-						<?php
-						$bucket_start = isset( $bucket['bucket_start'] ) ? absint( $bucket['bucket_start'] ) : 0;
-						if ( ! $bucket_start && preg_match( '/^\d{10}$/', (string) $bucket_key ) ) {
-							$year         = (int) substr( (string) $bucket_key, 0, 4 );
-							$month        = (int) substr( (string) $bucket_key, 4, 2 );
-							$day          = (int) substr( (string) $bucket_key, 6, 2 );
-							$hour         = (int) substr( (string) $bucket_key, 8, 2 );
-							$bucket_start = gmmktime( $hour, 0, 0, $month, $day, $year );
-						}
-						$codes      = isset( $bucket['codes'] ) && is_array( $bucket['codes'] ) ? $bucket['codes'] : array();
-						$code_parts = array();
-						foreach ( $codes as $code => $count ) {
-							$code_parts[] = sanitize_key( (string) $code ) . ': ' . absint( $count );
-						}
-						?>
-						<tr>
-							<td><?php echo esc_html( $bucket_start ? date_i18n( 'Y-m-d H:00', $bucket_start ) : (string) $bucket_key ); ?></td>
-							<td><?php echo esc_html( (string) absint( $bucket['total'] ?? 0 ) ); ?></td>
-							<td><?php echo esc_html( $code_parts ? implode( ' | ', $code_parts ) : '-' ); ?></td>
-						</tr>
-					<?php endforeach; ?>
-				<?php else : ?>
-					<tr>
-						<td colspan="3"><?php esc_html_e( 'No failures recorded yet.', 'click-trail-handler' ); ?></td>
-					</tr>
-				<?php endif; ?>
-				</tbody>
-			</table>
+			<section class="clicktrail-card">
+				<div class="clicktrail-card__header clicktrail-card__header--static">
+					<span class="clicktrail-card__header-main">
+						<span class="clicktrail-card__icon dashicons dashicons-media-text" aria-hidden="true"></span>
+						<span class="clicktrail-card__heading">
+							<span class="clicktrail-card__title"><?php esc_html_e( 'Debug Logging', 'click-trail-handler' ); ?></span>
+							<span class="clicktrail-card__description"><?php esc_html_e( 'Capture temporary dispatch traces and v2 intake events for debugging.', 'click-trail-handler' ); ?></span>
+						</span>
+					</span>
+				</div>
+				<div class="clicktrail-card__body">
+					<div class="clicktrail-action-row">
+						<button class="button" id="clicutcl-debug-toggle" data-mode="<?php echo esc_attr( $debug_active ? 'off' : 'on' ); ?>">
+							<?php echo esc_html( $debug_active ? __( 'Disable Debug', 'click-trail-handler' ) : __( 'Enable 15 Minutes', 'click-trail-handler' ) ); ?>
+						</button>
+						<span id="clicutcl-debug-status" class="clicktrail-action-status"></span>
+					</div>
+				</div>
+			</section>
 
-			<h2><?php esc_html_e( 'Recent Dispatches', 'click-trail-handler' ); ?></h2>
-			<p class="description">
-				<?php esc_html_e( 'Dispatch entries are captured only while Debug Logging is enabled.', 'click-trail-handler' ); ?>
-			</p>
+			<section class="clicktrail-card clicktrail-card--danger">
+				<div class="clicktrail-card__header clicktrail-card__header--static">
+					<span class="clicktrail-card__header-main">
+						<span class="clicktrail-card__icon dashicons dashicons-trash" aria-hidden="true"></span>
+						<span class="clicktrail-card__heading">
+							<span class="clicktrail-card__title"><?php esc_html_e( 'Data Management', 'click-trail-handler' ); ?></span>
+							<span class="clicktrail-card__description"><?php esc_html_e( 'Purge local tracking data, including events, queue rows, and diagnostic buffers. This cannot be undone.', 'click-trail-handler' ); ?></span>
+						</span>
+					</span>
+				</div>
+				<div class="clicktrail-card__body">
+					<div class="clicktrail-action-row">
+						<button class="button button-secondary" id="clicutcl-purge-data"><?php esc_html_e( 'Purge Tracking Data', 'click-trail-handler' ); ?></button>
+						<span id="clicutcl-purge-data-status" class="clicktrail-action-status"></span>
+					</div>
+				</div>
+			</section>
 
-			<h2><?php esc_html_e( 'Queue Backlog', 'click-trail-handler' ); ?></h2>
-			<table class="widefat striped" style="max-width:900px;">
-				<tbody>
-					<tr>
-						<th><?php esc_html_e( 'Queue Ready', 'click-trail-handler' ); ?></th>
-						<td><?php echo ! empty( $queue_stats['ready'] ) ? esc_html__( 'Yes', 'click-trail-handler' ) : esc_html__( 'No', 'click-trail-handler' ); ?></td>
-					</tr>
-					<tr>
-						<th><?php esc_html_e( 'Pending Events', 'click-trail-handler' ); ?></th>
-						<td><?php echo esc_html( (string) absint( $queue_stats['pending'] ?? 0 ) ); ?></td>
-					</tr>
-					<tr>
-						<th><?php esc_html_e( 'Due Now', 'click-trail-handler' ); ?></th>
-						<td><?php echo esc_html( (string) absint( $queue_stats['due_now'] ?? 0 ) ); ?></td>
-					</tr>
-					<tr>
-						<th><?php esc_html_e( 'Max Attempts in Queue', 'click-trail-handler' ); ?></th>
-						<td><?php echo esc_html( (string) absint( $queue_stats['max_attempts'] ?? 0 ) ); ?></td>
-					</tr>
-					<tr>
-						<th><?php esc_html_e( 'Oldest Next Attempt', 'click-trail-handler' ); ?></th>
-						<td><?php echo ! empty( $queue_stats['oldest_next'] ) ? esc_html( $queue_stats['oldest_next'] ) : '-'; ?></td>
-					</tr>
-				</tbody>
-			</table>
+			<section class="clicktrail-card">
+				<div class="clicktrail-card__header clicktrail-card__header--static">
+					<span class="clicktrail-card__header-main">
+						<span class="clicktrail-card__icon dashicons dashicons-warning" aria-hidden="true"></span>
+						<span class="clicktrail-card__heading">
+							<span class="clicktrail-card__title"><?php esc_html_e( 'Failure Telemetry', 'click-trail-handler' ); ?></span>
+							<span class="clicktrail-card__description">
+								<?php
+								printf(
+									/* translators: %d: total failures. */
+									esc_html__( 'Failure-only aggregated counters. Total failures tracked: %d.', 'click-trail-handler' ),
+									$failure_total
+								);
+								?>
+							</span>
+						</span>
+					</span>
+				</div>
+				<div class="clicktrail-card__body">
+					<table class="widefat striped clicktrail-data-table">
+						<thead>
+							<tr>
+								<th><?php esc_html_e( 'Hour Bucket', 'click-trail-handler' ); ?></th>
+								<th><?php esc_html_e( 'Total Failures', 'click-trail-handler' ); ?></th>
+								<th><?php esc_html_e( 'Codes', 'click-trail-handler' ); ?></th>
+							</tr>
+						</thead>
+						<tbody>
+						<?php if ( ! empty( $failure_telemetry ) ) : ?>
+							<?php foreach ( $failure_telemetry as $bucket_key => $bucket ) : ?>
+								<?php
+								$bucket_start = isset( $bucket['bucket_start'] ) ? absint( $bucket['bucket_start'] ) : 0;
+								if ( ! $bucket_start && preg_match( '/^\d{10}$/', (string) $bucket_key ) ) {
+									$year         = (int) substr( (string) $bucket_key, 0, 4 );
+									$month        = (int) substr( (string) $bucket_key, 4, 2 );
+									$day          = (int) substr( (string) $bucket_key, 6, 2 );
+									$hour         = (int) substr( (string) $bucket_key, 8, 2 );
+									$bucket_start = gmmktime( $hour, 0, 0, $month, $day, $year );
+								}
+								$codes      = isset( $bucket['codes'] ) && is_array( $bucket['codes'] ) ? $bucket['codes'] : array();
+								$code_parts = array();
+								foreach ( $codes as $code => $count ) {
+									$code_parts[] = sanitize_key( (string) $code ) . ': ' . absint( $count );
+								}
+								?>
+								<tr>
+									<td><?php echo esc_html( $bucket_start ? date_i18n( 'Y-m-d H:00', $bucket_start ) : (string) $bucket_key ); ?></td>
+									<td><?php echo esc_html( (string) absint( $bucket['total'] ?? 0 ) ); ?></td>
+									<td><?php echo esc_html( $code_parts ? implode( ' | ', $code_parts ) : '-' ); ?></td>
+								</tr>
+							<?php endforeach; ?>
+						<?php else : ?>
+							<tr>
+								<td colspan="3"><?php esc_html_e( 'No failures recorded yet.', 'click-trail-handler' ); ?></td>
+							</tr>
+						<?php endif; ?>
+						</tbody>
+					</table>
+				</div>
+			</section>
 
-			<h2><?php esc_html_e( 'Data Management', 'click-trail-handler' ); ?></h2>
-			<p class="description"><?php esc_html_e( 'Purge local tracking data (events, queue, diagnostics transients). This action cannot be undone.', 'click-trail-handler' ); ?></p>
-			<p>
-				<button class="button button-secondary" id="clicutcl-purge-data"><?php esc_html_e( 'Purge Tracking Data', 'click-trail-handler' ); ?></button>
-				<span id="clicutcl-purge-data-status" style="margin-left:10px;"></span>
-			</p>
+			<section class="clicktrail-card">
+				<div class="clicktrail-card__header clicktrail-card__header--static">
+					<span class="clicktrail-card__header-main">
+						<span class="clicktrail-card__icon dashicons dashicons-clock" aria-hidden="true"></span>
+						<span class="clicktrail-card__heading">
+							<span class="clicktrail-card__title"><?php esc_html_e( 'Queue Backlog Details', 'click-trail-handler' ); ?></span>
+							<span class="clicktrail-card__description"><?php esc_html_e( 'Current state of the retry queue used for failed dispatch attempts.', 'click-trail-handler' ); ?></span>
+						</span>
+					</span>
+				</div>
+				<div class="clicktrail-card__body">
+					<table class="widefat striped clicktrail-data-table">
+						<tbody>
+							<tr>
+								<th><?php esc_html_e( 'Queue Ready', 'click-trail-handler' ); ?></th>
+								<td><?php echo ! empty( $queue_stats['ready'] ) ? esc_html__( 'Yes', 'click-trail-handler' ) : esc_html__( 'No', 'click-trail-handler' ); ?></td>
+							</tr>
+							<tr>
+								<th><?php esc_html_e( 'Pending Events', 'click-trail-handler' ); ?></th>
+								<td><?php echo esc_html( (string) $queue_pending ); ?></td>
+							</tr>
+							<tr>
+								<th><?php esc_html_e( 'Due Now', 'click-trail-handler' ); ?></th>
+								<td><?php echo esc_html( (string) $queue_due_now ); ?></td>
+							</tr>
+							<tr>
+								<th><?php esc_html_e( 'Max Attempts in Queue', 'click-trail-handler' ); ?></th>
+								<td><?php echo esc_html( (string) absint( $queue_stats['max_attempts'] ?? 0 ) ); ?></td>
+							</tr>
+							<tr>
+								<th><?php esc_html_e( 'Oldest Next Attempt', 'click-trail-handler' ); ?></th>
+								<td><?php echo ! empty( $queue_stats['oldest_next'] ) ? esc_html( $queue_stats['oldest_next'] ) : '-'; ?></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</section>
 
-			<h2><?php esc_html_e( 'Recent v2 Intake Events', 'click-trail-handler' ); ?></h2>
-			<p class="description"><?php esc_html_e( 'Last normalized v2 intake events (admin-only, debug-window-only).', 'click-trail-handler' ); ?></p>
-			<table class="widefat striped">
-				<thead>
-					<tr>
-						<th><?php esc_html_e( 'Time', 'click-trail-handler' ); ?></th>
-						<th><?php esc_html_e( 'Kind', 'click-trail-handler' ); ?></th>
-						<th><?php esc_html_e( 'Event', 'click-trail-handler' ); ?></th>
-						<th><?php esc_html_e( 'Status', 'click-trail-handler' ); ?></th>
-						<th><?php esc_html_e( 'Reason', 'click-trail-handler' ); ?></th>
-						<th><?php esc_html_e( 'Consent', 'click-trail-handler' ); ?></th>
-						<th><?php esc_html_e( 'Attribution Keys', 'click-trail-handler' ); ?></th>
-						<th><?php esc_html_e( 'Identity Keys', 'click-trail-handler' ); ?></th>
-					</tr>
-				</thead>
-				<tbody>
-				<?php if ( ! empty( $v2_intake ) ) : ?>
-					<?php foreach ( $v2_intake as $entry ) : ?>
-						<?php
-						$consent   = isset( $entry['consent'] ) && is_array( $entry['consent'] ) ? $entry['consent'] : array();
-						$cons_text = 'm:' . ( ! empty( $consent['marketing'] ) ? '1' : '0' ) . ' a:' . ( ! empty( $consent['analytics'] ) ? '1' : '0' );
-						$attr_keys = isset( $entry['attribution_keys'] ) && is_array( $entry['attribution_keys'] ) ? implode( ',', $entry['attribution_keys'] ) : '';
-						$id_keys   = isset( $entry['identity_keys'] ) && is_array( $entry['identity_keys'] ) ? implode( ',', $entry['identity_keys'] ) : '';
-						$event_col = trim( (string) ( $entry['event_name'] ?? '' ) . ' ' . (string) ( $entry['event_id'] ?? '' ) );
-						?>
-						<tr>
-							<td><?php echo esc_html( date_i18n( 'Y-m-d H:i:s', (int) ( $entry['time'] ?? 0 ) ) ); ?></td>
-							<td><?php echo esc_html( (string) ( $entry['kind'] ?? '' ) ); ?></td>
-							<td><?php echo esc_html( $event_col ); ?></td>
-							<td><?php echo esc_html( (string) ( $entry['status'] ?? '' ) ); ?></td>
-							<td><?php echo esc_html( (string) ( $entry['reason'] ?? '' ) ); ?></td>
-							<td><?php echo esc_html( $cons_text ); ?></td>
-							<td><?php echo esc_html( $attr_keys ); ?></td>
-							<td><?php echo esc_html( $id_keys ); ?></td>
-						</tr>
-					<?php endforeach; ?>
-				<?php else : ?>
-					<tr>
-						<td colspan="8"><?php esc_html_e( 'No v2 intake entries recorded yet. Enable Debug Logging and reproduce an event.', 'click-trail-handler' ); ?></td>
-					</tr>
-				<?php endif; ?>
-				</tbody>
-			</table>
+			<section class="clicktrail-card">
+				<div class="clicktrail-card__header clicktrail-card__header--static">
+					<span class="clicktrail-card__header-main">
+						<span class="clicktrail-card__icon dashicons dashicons-randomize" aria-hidden="true"></span>
+						<span class="clicktrail-card__heading">
+							<span class="clicktrail-card__title"><?php esc_html_e( 'Recent v2 Intake Events', 'click-trail-handler' ); ?></span>
+							<span class="clicktrail-card__description"><?php esc_html_e( 'Last normalized v2 intake events captured during the debug window.', 'click-trail-handler' ); ?></span>
+						</span>
+					</span>
+				</div>
+				<div class="clicktrail-card__body">
+					<table class="widefat striped clicktrail-data-table">
+						<thead>
+							<tr>
+								<th><?php esc_html_e( 'Time', 'click-trail-handler' ); ?></th>
+								<th><?php esc_html_e( 'Kind', 'click-trail-handler' ); ?></th>
+								<th><?php esc_html_e( 'Event', 'click-trail-handler' ); ?></th>
+								<th><?php esc_html_e( 'Status', 'click-trail-handler' ); ?></th>
+								<th><?php esc_html_e( 'Reason', 'click-trail-handler' ); ?></th>
+								<th><?php esc_html_e( 'Consent', 'click-trail-handler' ); ?></th>
+								<th><?php esc_html_e( 'Attribution Keys', 'click-trail-handler' ); ?></th>
+								<th><?php esc_html_e( 'Identity Keys', 'click-trail-handler' ); ?></th>
+							</tr>
+						</thead>
+						<tbody>
+						<?php if ( ! empty( $v2_intake ) ) : ?>
+							<?php foreach ( $v2_intake as $entry ) : ?>
+								<?php
+								$consent   = isset( $entry['consent'] ) && is_array( $entry['consent'] ) ? $entry['consent'] : array();
+								$cons_text = 'm:' . ( ! empty( $consent['marketing'] ) ? '1' : '0' ) . ' a:' . ( ! empty( $consent['analytics'] ) ? '1' : '0' );
+								$attr_keys = isset( $entry['attribution_keys'] ) && is_array( $entry['attribution_keys'] ) ? implode( ',', $entry['attribution_keys'] ) : '';
+								$id_keys   = isset( $entry['identity_keys'] ) && is_array( $entry['identity_keys'] ) ? implode( ',', $entry['identity_keys'] ) : '';
+								$event_col = trim( (string) ( $entry['event_name'] ?? '' ) . ' ' . (string) ( $entry['event_id'] ?? '' ) );
+								?>
+								<tr>
+									<td><?php echo esc_html( date_i18n( 'Y-m-d H:i:s', (int) ( $entry['time'] ?? 0 ) ) ); ?></td>
+									<td><?php echo esc_html( (string) ( $entry['kind'] ?? '' ) ); ?></td>
+									<td><?php echo esc_html( $event_col ); ?></td>
+									<td><?php echo esc_html( (string) ( $entry['status'] ?? '' ) ); ?></td>
+									<td><?php echo esc_html( (string) ( $entry['reason'] ?? '' ) ); ?></td>
+									<td><?php echo esc_html( $cons_text ); ?></td>
+									<td><?php echo esc_html( $attr_keys ); ?></td>
+									<td><?php echo esc_html( $id_keys ); ?></td>
+								</tr>
+							<?php endforeach; ?>
+						<?php else : ?>
+							<tr>
+								<td colspan="8"><?php esc_html_e( 'No v2 intake entries recorded yet. Enable Debug Logging and reproduce an event.', 'click-trail-handler' ); ?></td>
+							</tr>
+						<?php endif; ?>
+						</tbody>
+					</table>
+				</div>
+			</section>
 
-			<table class="widefat striped">
-				<thead>
-					<tr>
-						<th><?php esc_html_e( 'Time', 'click-trail-handler' ); ?></th>
-						<th><?php esc_html_e( 'Event', 'click-trail-handler' ); ?></th>
-						<th><?php esc_html_e( 'Event ID', 'click-trail-handler' ); ?></th>
-						<th><?php esc_html_e( 'Adapter', 'click-trail-handler' ); ?></th>
-						<th><?php esc_html_e( 'Status', 'click-trail-handler' ); ?></th>
-						<th><?php esc_html_e( 'HTTP', 'click-trail-handler' ); ?></th>
-						<th><?php esc_html_e( 'Endpoint', 'click-trail-handler' ); ?></th>
-						<th><?php esc_html_e( 'Message', 'click-trail-handler' ); ?></th>
-					</tr>
-				</thead>
-				<tbody>
-				<?php if ( ! empty( $dispatches ) ) : ?>
-					<?php foreach ( $dispatches as $dispatch ) : ?>
-						<tr>
-							<td><?php echo esc_html( date_i18n( 'Y-m-d H:i:s', (int) ( $dispatch['time'] ?? 0 ) ) ); ?></td>
-							<td><?php echo esc_html( $dispatch['event_name'] ?? '' ); ?></td>
-							<td><?php echo esc_html( $dispatch['event_id'] ?? '' ); ?></td>
-							<td><?php echo esc_html( $dispatch['adapter'] ?? '' ); ?></td>
-							<td><?php echo esc_html( $dispatch['status'] ?? '' ); ?></td>
-							<td><?php echo esc_html( $dispatch['http_status'] ?? '' ); ?></td>
-							<td><?php echo esc_html( $dispatch['endpoint_host'] ?? '' ); ?></td>
-							<td><?php echo esc_html( $dispatch['message'] ?? '' ); ?></td>
-						</tr>
-					<?php endforeach; ?>
-				<?php else : ?>
-					<tr>
-						<td colspan="8"><?php esc_html_e( 'No dispatches recorded yet.', 'click-trail-handler' ); ?></td>
-					</tr>
-				<?php endif; ?>
-				</tbody>
-			</table>
+			<section class="clicktrail-card">
+				<div class="clicktrail-card__header clicktrail-card__header--static">
+					<span class="clicktrail-card__header-main">
+						<span class="clicktrail-card__icon dashicons dashicons-update" aria-hidden="true"></span>
+						<span class="clicktrail-card__heading">
+							<span class="clicktrail-card__title"><?php esc_html_e( 'Recent Dispatches', 'click-trail-handler' ); ?></span>
+							<span class="clicktrail-card__description"><?php esc_html_e( 'Dispatch entries are captured only while Debug Logging is enabled.', 'click-trail-handler' ); ?></span>
+						</span>
+					</span>
+				</div>
+				<div class="clicktrail-card__body">
+					<table class="widefat striped clicktrail-data-table">
+						<thead>
+							<tr>
+								<th><?php esc_html_e( 'Time', 'click-trail-handler' ); ?></th>
+								<th><?php esc_html_e( 'Event', 'click-trail-handler' ); ?></th>
+								<th><?php esc_html_e( 'Event ID', 'click-trail-handler' ); ?></th>
+								<th><?php esc_html_e( 'Adapter', 'click-trail-handler' ); ?></th>
+								<th><?php esc_html_e( 'Status', 'click-trail-handler' ); ?></th>
+								<th><?php esc_html_e( 'HTTP', 'click-trail-handler' ); ?></th>
+								<th><?php esc_html_e( 'Endpoint', 'click-trail-handler' ); ?></th>
+								<th><?php esc_html_e( 'Message', 'click-trail-handler' ); ?></th>
+							</tr>
+						</thead>
+						<tbody>
+						<?php if ( ! empty( $dispatch_rows ) ) : ?>
+							<?php foreach ( $dispatch_rows as $dispatch ) : ?>
+								<tr>
+									<td><?php echo esc_html( date_i18n( 'Y-m-d H:i:s', (int) ( $dispatch['time'] ?? 0 ) ) ); ?></td>
+									<td><?php echo esc_html( $dispatch['event_name'] ?? '' ); ?></td>
+									<td><?php echo esc_html( $dispatch['event_id'] ?? '' ); ?></td>
+									<td><?php echo esc_html( $dispatch['adapter'] ?? '' ); ?></td>
+									<td><?php echo esc_html( $dispatch['status'] ?? '' ); ?></td>
+									<td><?php echo esc_html( $dispatch['http_status'] ?? '' ); ?></td>
+									<td><?php echo esc_html( $dispatch['endpoint_host'] ?? '' ); ?></td>
+									<td><?php echo esc_html( $dispatch['message'] ?? '' ); ?></td>
+								</tr>
+							<?php endforeach; ?>
+						<?php else : ?>
+							<tr>
+								<td colspan="8"><?php esc_html_e( 'No dispatches recorded yet.', 'click-trail-handler' ); ?></td>
+							</tr>
+						<?php endif; ?>
+						</tbody>
+					</table>
+				</div>
+			</section>
 		</div>
 		<?php
 	}
@@ -353,13 +499,21 @@ trait Admin_Pages_Trait {
 		$table = new Log_List_Table();
 		$table->prepare_items();
 		?>
-		<div class="wrap">
-			<h1><?php esc_html_e( 'ClickTrail Logs', 'click-trail-handler' ); ?></h1>
-			<form method="post">
-				<?php
-				$table->display();
-				?>
-			</form>
+		<div class="wrap clicktrail-logs-wrap">
+			<div class="clicktrail-page-header">
+				<div class="clicktrail-page-title">
+					<h1><?php esc_html_e( 'ClickTrail Logs', 'click-trail-handler' ); ?></h1>
+				</div>
+			</div>
+			<div class="clicktrail-card">
+				<div class="clicktrail-card__body">
+					<form method="post">
+						<?php
+						$table->display();
+						?>
+					</form>
+				</div>
+			</div>
 		</div>
 		<?php
 	}
