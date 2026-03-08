@@ -1027,3 +1027,134 @@
         min-width: 0;
     }
 }
+
+/* ========================================
+   Unified Settings App
+   ======================================== */
+.clicktrail-card__body--react {
+    padding: 8px 16px 16px;
+}
+
+/* Normalize wp.components controls to match our card table row rhythm */
+.clicktrail-card__body--react .components-base-control {
+    margin-bottom: 0;
+}
+
+.clicktrail-card__body--react .components-toggle-control {
+    padding: 11px 0;
+    border-bottom: 1px solid #f0f0f1;
+    margin-bottom: 0;
+}
+
+.clicktrail-card__body--react .components-toggle-control:last-of-type,
+.clicktrail-card__body--react .clicktrail-provider-block:last-of-type .components-toggle-control {
+    border-bottom: none;
+}
+
+.clicktrail-card__body--react .components-toggle-control .components-base-control__label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--clicktrail-text);
+    margin-bottom: 0;
+}
+
+.clicktrail-card__body--react .components-toggle-control .components-base-control__help {
+    margin-top: 3px;
+    color: var(--clicktrail-text-subtle);
+    font-size: 11px;
+}
+
+/* Form toggle pill — match our .clicktrail-toggle dimensions */
+.clicktrail-card__body--react .components-form-toggle {
+    width: 38px;
+    height: 20px;
+    min-width: 38px;
+    border-radius: 999px;
+}
+
+.clicktrail-card__body--react .components-form-toggle__track {
+    border-radius: 999px;
+    background: #dcdcde;
+}
+
+.clicktrail-card__body--react .components-form-toggle.is-checked .components-form-toggle__track {
+    background: var(--clicktrail-blue);
+}
+
+.clicktrail-card__body--react .components-form-toggle__thumb {
+    width: 14px;
+    height: 14px;
+    top: 3px;
+    left: 3px;
+}
+
+.clicktrail-card__body--react .components-form-toggle.is-checked .components-form-toggle__thumb {
+    transform: translateX(18px);
+}
+
+/* Text and textarea controls */
+.clicktrail-card__body--react .components-text-control__input,
+.clicktrail-card__body--react .components-textarea-control__input,
+.clicktrail-card__body--react .components-select-control__input {
+    border: 1px solid var(--clicktrail-border);
+    border-radius: var(--clicktrail-radius);
+    color: var(--clicktrail-text);
+    box-shadow: none;
+}
+
+.clicktrail-card__body--react .components-text-control__input:focus,
+.clicktrail-card__body--react .components-textarea-control__input:focus,
+.clicktrail-card__body--react .components-select-control__input:focus {
+    border-color: var(--clicktrail-blue);
+    box-shadow: 0 0 0 1px var(--clicktrail-blue);
+    outline: none;
+}
+
+.clicktrail-card__body--react .components-base-control__label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--clicktrail-text-muted);
+    margin-bottom: 4px;
+}
+
+.clicktrail-setting-block.is-disabled {
+    opacity: 0.45;
+}
+
+.clicktrail-setting-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+/* Provider blocks */
+.clicktrail-provider-block {
+    padding: 8px 0;
+    border-bottom: 1px solid #f0f0f1;
+}
+
+.clicktrail-provider-block:last-child {
+    border-bottom: none;
+}
+
+.clicktrail-provider-block .components-toggle-control {
+    border-bottom: none;
+    padding-bottom: 4px;
+}
+
+.clicktrail-ops-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 16px 16px;
+}
+
+.clicktrail-diagnostics-grid--compact {
+    margin: 0;
+    padding: 16px;
+}
+
+.clicktrail-settings-app .clicktrail-save-bar {
+    margin-top: 12px;
+}

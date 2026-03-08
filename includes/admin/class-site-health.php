@@ -71,10 +71,10 @@ class SiteHealth {
 
 		return array(
 			'status'      => 'recommended',
-			'label'       => __( 'Caching/optimization detected (JS injection recommended)', 'click-trail-handler' ),
+			'label'       => __( 'Caching/optimization detected (client-side capture recommended)', 'click-trail-handler' ),
 			'description' => sprintf(
 				/* translators: %s: List of detected caching or conflict plugins. */
-				__( 'Detected: %s. Full-page caching can make server-side hidden fields stale. Enable ClickTrail’s JS Field Injector.', 'click-trail-handler' ),
+				__( 'Detected: %s. Full-page caching can make hidden field values stale. Enable ClickTrail\'s client-side capture fallback.', 'click-trail-handler' ),
 				esc_html( implode( ', ', $found ) )
 			),
 		);

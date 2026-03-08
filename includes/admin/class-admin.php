@@ -9,7 +9,10 @@ namespace CLICUTCL\Admin;
 
 use CLICUTCL\Modules\Consent_Mode\Consent_Mode_Settings;
 use CLICUTCL\Modules\GTM\GTM_Settings;
+use CLICUTCL\Server_Side\Dispatcher;
+use CLICUTCL\Server_Side\Queue;
 use CLICUTCL\Server_Side\Settings;
+use CLICUTCL\Tracking\Settings as Tracking_Settings;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -58,6 +61,8 @@ class Admin {
 		add_action( 'wp_ajax_clicutcl_test_endpoint', array( $this, 'ajax_test_endpoint' ) );
 		add_action( 'wp_ajax_clicutcl_toggle_debug', array( $this, 'ajax_toggle_debug' ) );
 		add_action( 'wp_ajax_clicutcl_purge_tracking_data', array( $this, 'ajax_purge_tracking_data' ) );
+		add_action( 'wp_ajax_clicutcl_get_admin_settings', array( $this, 'ajax_get_admin_settings' ) );
+		add_action( 'wp_ajax_clicutcl_save_admin_settings', array( $this, 'ajax_save_admin_settings' ) );
 		add_action( 'wp_ajax_clicutcl_get_tracking_v2_settings', array( $this, 'ajax_get_tracking_v2_settings' ) );
 		add_action( 'wp_ajax_clicutcl_save_tracking_v2_settings', array( $this, 'ajax_save_tracking_v2_settings' ) );
 
@@ -110,8 +115,8 @@ class Admin {
 		echo '<table class="widefat" style="border:0;box-shadow:none;">';
 		echo '<tr><td><strong>' . esc_html__( 'Attribution Cookie', 'click-trail-handler' ) . '</strong></td><td>' . esc_html( $cookie_status ) . '</td></tr>';
 		echo '<tr><td><strong>' . esc_html__( 'Caching Status', 'click-trail-handler' ) . '</strong></td><td>' . esc_html( $caching ) . '</td></tr>';
-		echo '<tr><td><strong>' . esc_html__( 'JS Injection', 'click-trail-handler' ) . '</strong></td><td>' . ( $js_enabled ? '✅ On' : '❌ Off' ) . '</td></tr>';
-		echo '<tr><td><strong>' . esc_html__( 'Link Decoration', 'click-trail-handler' ) . '</strong></td><td>' . ( $link_decor ? '✅ On (' . intval( $domain_count ) . ' domains)' : '❌ Off' ) . '</td></tr>';
+		echo '<tr><td><strong>' . esc_html__( 'Form Capture Fallback', 'click-trail-handler' ) . '</strong></td><td>' . ( $js_enabled ? '✅ On' : '❌ Off' ) . '</td></tr>';
+		echo '<tr><td><strong>' . esc_html__( 'Cross-domain Links', 'click-trail-handler' ) . '</strong></td><td>' . ( $link_decor ? '✅ On (' . intval( $domain_count ) . ' domains)' : '❌ Off' ) . '</td></tr>';
 		echo '</table>';
 		echo '<p style="text-align:right;margin-top:10px;"><a href="' . esc_url( admin_url( 'site-health.php?tab=status' ) ) . '">' . esc_html__( 'Run Full Diagnostics', 'click-trail-handler' ) . ' &rarr;</a></p>';
 		echo '</div>';
@@ -126,7 +131,7 @@ class Admin {
 			__( 'ClickTrail', 'click-trail-handler' ),
 			'manage_options',
 			'clicutcl-settings',
-			array( $this, 'render_settings_page' ),
+			array( $this, 'render_settings_app_page' ),
 			'dashicons-chart-area', // Attribution friendly icon
 			56 // Analytics plugin zone (after Plugins, near Yoast/MonsterInsights)
 		);
@@ -138,7 +143,7 @@ class Admin {
 			__( 'Settings', 'click-trail-handler' ),
 			'manage_options',
 			'clicutcl-settings',
-			array( $this, 'render_settings_page' )
+			array( $this, 'render_settings_app_page' )
 		);
 
 		add_submenu_page(
@@ -206,19 +211,6 @@ class Admin {
 
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only routing context.
 		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
-		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only routing context.
-		$tab  = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : '';
-
-		if ( 'clicutcl-settings' === $page && current_user_can( 'manage_options' ) ) {
-			wp_register_script(
-				'clicutcl-admin-settings',
-				CLICUTCL_URL . 'assets/js/admin-settings.js',
-				array(),
-				CLICUTCL_VERSION,
-				\clicutcl_script_args( true, 'defer' )
-			);
-			wp_enqueue_script( 'clicutcl-admin-settings' );
-		}
 
 		if ( strpos( $hook, 'clicutcl-diagnostics' ) !== false ) {
 			wp_register_script(
@@ -239,33 +231,21 @@ class Admin {
 			);
 		}
 
-		// Tracking v2 screen (Gutenberg-native UI).
-		$tab_aliases = array( 'advanced' => 'trackingv2' );
-		if ( isset( $tab_aliases[ $tab ] ) ) {
-			$tab = $tab_aliases[ $tab ];
-		}
-		if ( 'clicutcl-settings' === $page && 'trackingv2' === $tab && current_user_can( 'manage_options' ) ) {
+		// Unified settings app.
+		if ( 'clicutcl-settings' === $page && current_user_can( 'manage_options' ) ) {
 			wp_register_script(
-				'clicutcl-admin-tracking-v2',
-				CLICUTCL_URL . 'assets/js/admin-tracking-v2.js',
+				'clicutcl-admin-settings-app',
+				CLICUTCL_URL . 'assets/js/admin-settings-app.js',
 				array( 'wp-element', 'wp-components', 'wp-i18n' ),
 				CLICUTCL_VERSION,
 				\clicutcl_script_args( true, 'defer' )
 			);
-			wp_enqueue_script( 'clicutcl-admin-tracking-v2' );
-
-			$settings = class_exists( 'CLICUTCL\\Tracking\\Settings' )
-				? \CLICUTCL\Tracking\Settings::get_for_admin()
-				: array();
+			wp_enqueue_script( 'clicutcl-admin-settings-app' );
 
 			wp_localize_script(
-				'clicutcl-admin-tracking-v2',
-				'clicutclTrackingV2Config',
-				array(
-					'ajaxUrl'   => admin_url( 'admin-ajax.php' ),
-					'nonce'     => wp_create_nonce( 'clicutcl_tracking_v2' ),
-					'settings'  => $settings,
-				)
+				'clicutcl-admin-settings-app',
+				'clicutclAdminSettingsConfig',
+				$this->get_settings_app_config()
 			);
 		}
 	}
@@ -444,19 +424,19 @@ class Admin {
 		);
 
 
-		// WhatsApp Section
+		// WhatsApp Section (on Attribution tab, same option group)
 		add_settings_section(
 			'clicutcl_whatsapp_section',
-			__( 'WhatsApp Tracking', 'click-trail-handler' ),
+			__( 'WhatsApp', 'click-trail-handler' ),
 			null,
-			'clicutcl_whatsapp_tab'
+			'clicutcl_general_tab'
 		);
 
 		add_settings_field(
 			'enable_whatsapp',
 			__( 'Enable WhatsApp tracking', 'click-trail-handler' ),
 			array( $this, 'render_checkbox_field' ),
-			'clicutcl_whatsapp_tab',
+			'clicutcl_general_tab',
 			'clicutcl_whatsapp_section',
 			array(
 				'label_for' => 'enable_whatsapp',
@@ -470,7 +450,7 @@ class Admin {
 			'whatsapp_append_attribution',
 			__( 'Append attribution to message', 'click-trail-handler' ),
 			array( $this, 'render_checkbox_field' ),
-			'clicutcl_whatsapp_tab',
+			'clicutcl_general_tab',
 			'clicutcl_whatsapp_section',
 			array(
 				'label_for' => 'whatsapp_append_attribution',
@@ -711,6 +691,495 @@ class Admin {
 	}
 
 	/**
+	 * Render the unified settings app shell.
+	 *
+	 * @return void
+	 */
+	public function render_settings_app_page() {
+		?>
+		<div class="wrap clicktrail-settings-wrap">
+			<div id="clicutcl-admin-settings-root"></div>
+			<noscript>
+				<div class="notice notice-warning">
+					<p><?php esc_html_e( 'ClickTrail settings require JavaScript in wp-admin.', 'click-trail-handler' ); ?></p>
+				</div>
+			</noscript>
+		</div>
+		<?php
+	}
+
+	/**
+	 * Return tab definitions for the unified settings app.
+	 *
+	 * @return array<string, array<string, string>>
+	 */
+	private function get_settings_app_tabs() {
+		return array(
+			'capture'  => array(
+				'label'       => __( 'Capture', 'click-trail-handler' ),
+				'title'       => __( 'Capture', 'click-trail-handler' ),
+				'description' => __( 'Capture and preserve source data from campaigns, referrals, and ad clicks.', 'click-trail-handler' ),
+				'icon'        => 'dashicons-chart-area',
+			),
+			'forms'    => array(
+				'label'       => __( 'Forms', 'click-trail-handler' ),
+				'title'       => __( 'Forms', 'click-trail-handler' ),
+				'description' => __( 'Keep attribution attached to forms, lead sources, and messaging touchpoints.', 'click-trail-handler' ),
+				'icon'        => 'dashicons-feedback',
+			),
+			'events'   => array(
+				'label'       => __( 'Events', 'click-trail-handler' ),
+				'title'       => __( 'Events', 'click-trail-handler' ),
+				'description' => __( 'Configure browser event collection, destinations, and the unified event pipeline.', 'click-trail-handler' ),
+				'icon'        => 'dashicons-share',
+			),
+			'delivery' => array(
+				'label'       => __( 'Delivery', 'click-trail-handler' ),
+				'title'       => __( 'Delivery', 'click-trail-handler' ),
+				'description' => __( 'Control privacy, server-side transport, and operational safeguards.', 'click-trail-handler' ),
+				'icon'        => 'dashicons-cloud',
+			),
+		);
+	}
+
+	/**
+	 * Resolve the active tab while preserving legacy URLs.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function resolve_settings_app_tab() {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page navigation does not require nonce.
+		$raw_tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'capture';
+		$aliases = array(
+			'general'      => 'capture',
+			'attribution'  => 'capture',
+			'whatsapp'     => 'forms',
+			'channels'     => 'forms',
+			'gtm'          => 'events',
+			'integrations' => 'events',
+			'tracking'     => 'events',
+			'trackingv2'   => 'events',
+			'advanced'     => 'events',
+			'server'       => 'delivery',
+			'server-side'  => 'delivery',
+			'consent'      => 'delivery',
+			'privacy'      => 'delivery',
+			'destinations' => 'delivery',
+		);
+		$tabs    = $this->get_settings_app_tabs();
+		$active  = isset( $aliases[ $raw_tab ] ) ? $aliases[ $raw_tab ] : $raw_tab;
+
+		if ( ! isset( $tabs[ $active ] ) ) {
+			$active = 'capture';
+		}
+
+		return array(
+			'raw_tab'      => $raw_tab,
+			'active_tab'   => $active,
+			'used_legacy'  => isset( $aliases[ $raw_tab ] ),
+			'migration_ui' => 'trackingv2' === $raw_tab,
+		);
+	}
+
+	/**
+	 * Build the localized config for the unified settings app.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function get_settings_app_config() {
+		$resolved = $this->resolve_settings_app_tab();
+
+		return array(
+			'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
+			'nonce'           => wp_create_nonce( 'clicutcl_admin_settings' ),
+			'pageTitle'       => __( 'ClickTrail', 'click-trail-handler' ),
+			'activeTab'       => $resolved['active_tab'],
+			'legacyTab'       => $resolved['raw_tab'],
+			'migrationNotice' => $resolved['migration_ui']
+				? __( 'These settings are now organized by capability. Browser events and destinations live under Events, while transport and privacy controls live under Delivery.', 'click-trail-handler' )
+				: '',
+			'tabs'            => $this->get_settings_app_tabs(),
+			'settings'        => $this->get_unified_admin_settings(),
+		);
+	}
+
+	/**
+	 * Return grouped settings data for the unified admin app.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function get_unified_admin_settings() {
+		$attr_defaults     = $this->get_attribution_settings_defaults();
+		$attr_options      = get_option( 'clicutcl_attribution_settings', array() );
+		$attr_options      = is_array( $attr_options ) ? array_merge( $attr_defaults, $attr_options ) : $attr_defaults;
+		$consent_settings  = ( new Consent_Mode_Settings() )->get();
+		$gtm_settings      = ( new GTM_Settings() )->get();
+		$tracking_settings = class_exists( 'CLICUTCL\\Tracking\\Settings' ) ? Tracking_Settings::get_for_admin() : Tracking_Settings::defaults();
+		$server_effective  = Settings::get();
+		$server_site       = get_option( Settings::OPTION_SITE, array() );
+		$server_site       = is_array( $server_site ) ? $server_site : array();
+		$server_network    = Settings::get_network();
+		$has_network       = is_multisite() && ! empty( $server_network );
+		$use_network       = $has_network ? ( ! isset( $server_site['use_network'] ) || 1 === (int) $server_site['use_network'] ) : false;
+		$feature_flags     = isset( $tracking_settings['feature_flags'] ) && is_array( $tracking_settings['feature_flags'] ) ? $tracking_settings['feature_flags'] : array();
+		$destinations      = isset( $tracking_settings['destinations'] ) && is_array( $tracking_settings['destinations'] ) ? $tracking_settings['destinations'] : array();
+		$providers         = isset( $tracking_settings['external_forms']['providers'] ) && is_array( $tracking_settings['external_forms']['providers'] ) ? $tracking_settings['external_forms']['providers'] : array();
+		$lifecycle         = isset( $tracking_settings['lifecycle']['crm_ingestion'] ) && is_array( $tracking_settings['lifecycle']['crm_ingestion'] ) ? $tracking_settings['lifecycle']['crm_ingestion'] : array();
+		$security          = isset( $tracking_settings['security'] ) && is_array( $tracking_settings['security'] ) ? $tracking_settings['security'] : array();
+		$diagnostics       = isset( $tracking_settings['diagnostics'] ) && is_array( $tracking_settings['diagnostics'] ) ? $tracking_settings['diagnostics'] : array();
+		$dedup             = isset( $tracking_settings['dedup'] ) && is_array( $tracking_settings['dedup'] ) ? $tracking_settings['dedup'] : array();
+		$cross_domain_on   = ! empty( $attr_options['enable_link_decoration'] ) || ! empty( $attr_options['enable_cross_domain_token'] );
+		$providers_active  = false;
+
+		foreach ( $providers as $provider_row ) {
+			if ( ! empty( $provider_row['enabled'] ) ) {
+				$providers_active = true;
+				break;
+			}
+		}
+
+		$forms_active  = ! empty( $attr_options['enable_js_injection'] ) || ! empty( $attr_options['enable_whatsapp'] ) || $providers_active;
+		$events_active = ! empty( $feature_flags['event_v2'] );
+
+		return array(
+			'capture'  => array(
+				'enabled'          => ! empty( $attr_options['enable_attribution'] ) ? 1 : 0,
+				'retention_days'   => absint( $attr_options['cookie_days'] ?? 90 ),
+				'decorate_links'   => ! empty( $attr_options['enable_link_decoration'] ) ? 1 : 0,
+				'allowed_domains'  => $this->format_multiline_setting( $attr_options['link_allowed_domains'] ?? '' ),
+				'skip_signed_urls' => ! empty( $attr_options['link_skip_signed'] ) ? 1 : 0,
+				'pass_token'       => ! empty( $attr_options['enable_cross_domain_token'] ) ? 1 : 0,
+			),
+			'forms'    => array(
+				'client_fallback'         => ! empty( $attr_options['enable_js_injection'] ) ? 1 : 0,
+				'watch_dynamic_content'   => ! empty( $attr_options['inject_mutation_observer'] ) ? 1 : 0,
+				'replace_existing_values' => ! empty( $attr_options['inject_overwrite'] ) ? 1 : 0,
+				'observer_target'         => (string) ( $attr_options['inject_observer_target'] ?? 'body' ),
+				'webhook_sources_enabled' => ! empty( $feature_flags['external_webhooks'] ) ? 1 : 0,
+				'whatsapp'                => array(
+					'enabled'            => ! empty( $attr_options['enable_whatsapp'] ) ? 1 : 0,
+					'append_attribution' => ! empty( $attr_options['whatsapp_append_attribution'] ) ? 1 : 0,
+				),
+				'providers'               => array(
+					'calendly' => array(
+						'enabled' => ! empty( $providers['calendly']['enabled'] ) ? 1 : 0,
+						'secret'  => isset( $providers['calendly']['secret'] ) ? (string) $providers['calendly']['secret'] : '',
+					),
+					'hubspot'  => array(
+						'enabled' => ! empty( $providers['hubspot']['enabled'] ) ? 1 : 0,
+						'secret'  => isset( $providers['hubspot']['secret'] ) ? (string) $providers['hubspot']['secret'] : '',
+					),
+					'typeform' => array(
+						'enabled' => ! empty( $providers['typeform']['enabled'] ) ? 1 : 0,
+						'secret'  => isset( $providers['typeform']['secret'] ) ? (string) $providers['typeform']['secret'] : '',
+					),
+				),
+			),
+			'events'   => array(
+				'browser_pipeline' => ! empty( $feature_flags['event_v2'] ) ? 1 : 0,
+				'gtm_container_id' => isset( $gtm_settings['container_id'] ) ? (string) $gtm_settings['container_id'] : '',
+				'destinations'     => array(
+					'meta'      => ! empty( $destinations['meta']['enabled'] ) ? 1 : 0,
+					'google'    => ! empty( $destinations['google']['enabled'] ) ? 1 : 0,
+					'linkedin'  => ! empty( $destinations['linkedin']['enabled'] ) ? 1 : 0,
+					'reddit'    => ! empty( $destinations['reddit']['enabled'] ) ? 1 : 0,
+					'pinterest' => ! empty( $destinations['pinterest']['enabled'] ) ? 1 : 0,
+				),
+				'lifecycle'        => array(
+					'accept_updates'   => ! empty( $feature_flags['lifecycle_ingestion'] ) ? 1 : 0,
+					'endpoint_enabled' => ! empty( $lifecycle['enabled'] ) ? 1 : 0,
+					'token'            => isset( $lifecycle['token'] ) ? (string) $lifecycle['token'] : '',
+				),
+			),
+			'delivery' => array(
+				'server'     => array(
+					'enabled'                  => ! empty( $server_effective['enabled'] ) ? 1 : 0,
+					'endpoint_url'             => isset( $server_effective['endpoint_url'] ) ? (string) $server_effective['endpoint_url'] : '',
+					'adapter'                  => isset( $server_effective['adapter'] ) ? (string) $server_effective['adapter'] : 'generic',
+					'timeout'                  => absint( $server_effective['timeout'] ?? 5 ),
+					'remote_failure_telemetry' => ! empty( $server_effective['remote_failure_telemetry'] ) ? 1 : 0,
+					'use_network'              => $use_network ? 1 : 0,
+					'has_network_defaults'     => $has_network ? 1 : 0,
+				),
+				'privacy'    => array(
+					'enabled'        => ! empty( $consent_settings['enabled'] ) ? 1 : 0,
+					'mode'           => isset( $consent_settings['mode'] ) ? (string) $consent_settings['mode'] : 'strict',
+					'regions'        => $this->format_multiline_setting( $consent_settings['regions'] ?? array() ),
+					'cmp_source'     => isset( $consent_settings['cmp_source'] ) ? (string) $consent_settings['cmp_source'] : 'auto',
+					'cmp_timeout_ms' => absint( $consent_settings['cmp_timeout_ms'] ?? 3000 ),
+				),
+				'advanced'   => array(
+					'use_native_adapters'      => ! empty( $feature_flags['connector_native'] ) ? 1 : 0,
+					'store_event_diagnostics'  => ! empty( $feature_flags['diagnostics_v2'] ) ? 1 : 0,
+					'encrypt_saved_secrets'    => ! empty( $security['encrypt_secrets_at_rest'] ) ? 1 : 0,
+					'token_ttl_seconds'        => absint( $security['token_ttl_seconds'] ?? 0 ),
+					'token_nonce_limit'        => absint( $security['token_nonce_limit'] ?? 0 ),
+					'webhook_replay_window'    => absint( $security['webhook_replay_window'] ?? 0 ),
+					'rate_limit_window'        => absint( $security['rate_limit_window'] ?? 0 ),
+					'rate_limit_limit'         => absint( $security['rate_limit_limit'] ?? 0 ),
+					'trusted_proxies'          => $this->format_multiline_setting( $security['trusted_proxies'] ?? array() ),
+					'allowed_token_hosts'      => $this->format_multiline_setting( $security['allowed_token_hosts'] ?? array() ),
+					'dispatch_buffer_size'     => absint( $diagnostics['dispatch_buffer_size'] ?? 20 ),
+					'failure_flush_interval'   => absint( $diagnostics['failure_flush_interval'] ?? 10 ),
+					'failure_bucket_retention' => absint( $diagnostics['failure_bucket_retention'] ?? 72 ),
+					'dedup_ttl_seconds'        => absint( $dedup['ttl_seconds'] ?? 0 ),
+				),
+				'operations' => $this->get_delivery_operations_summary(),
+			),
+			'status'   => array(
+				array(
+					'key'   => 'capture',
+					'label' => __( 'Capture', 'click-trail-handler' ),
+					'value' => ! empty( $attr_options['enable_attribution'] ) ? __( 'On', 'click-trail-handler' ) : __( 'Off', 'click-trail-handler' ),
+					'tone'  => ! empty( $attr_options['enable_attribution'] ) ? 'success' : 'neutral',
+				),
+				array(
+					'key'   => 'forms',
+					'label' => __( 'Forms', 'click-trail-handler' ),
+					'value' => $forms_active ? __( 'On', 'click-trail-handler' ) : __( 'Off', 'click-trail-handler' ),
+					'tone'  => $forms_active ? 'success' : 'neutral',
+				),
+				array(
+					'key'   => 'events',
+					'label' => __( 'Events', 'click-trail-handler' ),
+					'value' => $events_active ? __( 'On', 'click-trail-handler' ) : __( 'Off', 'click-trail-handler' ),
+					'tone'  => $events_active ? 'success' : 'neutral',
+				),
+				array(
+					'key'   => 'cross_domain',
+					'label' => __( 'Cross-domain', 'click-trail-handler' ),
+					'value' => $cross_domain_on ? __( 'On', 'click-trail-handler' ) : __( 'Off', 'click-trail-handler' ),
+					'tone'  => $cross_domain_on ? 'info' : 'neutral',
+				),
+				array(
+					'key'   => 'delivery',
+					'label' => __( 'Delivery', 'click-trail-handler' ),
+					'value' => ! empty( $server_effective['enabled'] ) ? __( 'On', 'click-trail-handler' ) : __( 'Off', 'click-trail-handler' ),
+					'tone'  => ! empty( $server_effective['enabled'] ) ? 'success' : 'neutral',
+				),
+				array(
+					'key'   => 'consent',
+					'label' => __( 'Consent', 'click-trail-handler' ),
+					'value' => ! empty( $consent_settings['enabled'] ) ? __( 'On', 'click-trail-handler' ) : __( 'Off', 'click-trail-handler' ),
+					'tone'  => ! empty( $consent_settings['enabled'] ) ? 'success' : 'neutral',
+				),
+			),
+			'urls'     => array(
+				'logs'        => admin_url( 'admin.php?page=clicutcl-logs' ),
+				'diagnostics' => admin_url( 'admin.php?page=clicutcl-diagnostics' ),
+				'settings'    => admin_url( 'admin.php?page=clicutcl-settings' ),
+			),
+		);
+	}
+
+	/**
+	 * Return a lightweight delivery operations snapshot for the Delivery tab.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function get_delivery_operations_summary() {
+		$last_error = get_transient( 'clicutcl_last_error' );
+		if ( ! is_array( $last_error ) ) {
+			$last_error = get_option( 'clicutcl_last_error', array() );
+		}
+
+		$dispatches = get_transient( 'clicutcl_dispatch_buffer' );
+		if ( ! is_array( $dispatches ) ) {
+			$dispatches = get_option( 'clicutcl_dispatch_log', array() );
+		}
+		$dispatches = is_array( $dispatches ) ? array_values( $dispatches ) : array();
+
+		if ( ! empty( $dispatches ) ) {
+			usort(
+				$dispatches,
+				static function ( $left, $right ) {
+					return (int) ( $right['time'] ?? 0 ) <=> (int) ( $left['time'] ?? 0 );
+				}
+			);
+		}
+
+		$latest_dispatch = ! empty( $dispatches ) ? $dispatches[0] : array();
+		$latest_time     = isset( $latest_dispatch['time'] ) ? absint( $latest_dispatch['time'] ) : 0;
+		$latest_http     = isset( $latest_dispatch['http_status'] ) ? absint( $latest_dispatch['http_status'] ) : 0;
+		$queue_stats     = class_exists( 'CLICUTCL\\Server_Side\\Queue' ) ? Queue::get_stats() : array();
+		$failure_buckets = Dispatcher::get_failure_telemetry();
+		$failure_total   = 0;
+		$debug_until     = get_transient( 'clicutcl_debug_until' );
+		$debug_active    = $debug_until && (int) $debug_until > time();
+
+		foreach ( $failure_buckets as $bucket ) {
+			$failure_total += absint( $bucket['total'] ?? 0 );
+		}
+
+		return array(
+			'queue_pending'        => absint( $queue_stats['pending'] ?? 0 ),
+			'queue_due_now'        => absint( $queue_stats['due_now'] ?? 0 ),
+			'last_error_code'      => isset( $last_error['code'] ) ? sanitize_key( (string) $last_error['code'] ) : '',
+			'last_error_message'   => isset( $last_error['message'] ) ? sanitize_text_field( (string) $last_error['message'] ) : '',
+			'last_error_time'      => isset( $last_error['time'] ) ? date_i18n( 'Y-m-d H:i:s', (int) $last_error['time'] ) : '',
+			'latest_dispatch'      => $latest_http ? sprintf( 'HTTP %d', $latest_http ) : ( $latest_dispatch['status'] ?? __( 'No attempts yet', 'click-trail-handler' ) ),
+			'latest_dispatch_time' => $latest_time
+				? sprintf(
+					/* translators: %s: relative time. */
+					__( '%s ago', 'click-trail-handler' ),
+					human_time_diff( $latest_time, time() )
+				)
+				: __( 'No delivery attempts recorded.', 'click-trail-handler' ),
+			'failure_total'        => $failure_total,
+			'debug_active'         => $debug_active ? 1 : 0,
+			'debug_until'          => $debug_active ? date_i18n( 'Y-m-d H:i:s', (int) $debug_until ) : '',
+		);
+	}
+
+	/**
+	 * Normalize list-style settings into newline separated strings.
+	 *
+	 * @param mixed $value Raw list value.
+	 * @return string
+	 */
+	private function format_multiline_setting( $value ) {
+		if ( is_array( $value ) ) {
+			$value = implode( "\n", array_filter( array_map( 'trim', array_map( 'strval', $value ) ) ) );
+		}
+
+		$value = str_replace( ',', "\n", (string) $value );
+		$lines = preg_split( '/[\r\n]+/', $value );
+		$lines = is_array( $lines ) ? array_filter( array_map( 'trim', $lines ) ) : array();
+
+		return implode( "\n", $lines );
+	}
+
+	/**
+	 * Save the grouped admin settings payload back into the existing option stores.
+	 *
+	 * @param array $payload Settings payload.
+	 * @return array<string, mixed>
+	 */
+	private function save_unified_admin_settings( $payload ) {
+		$payload              = is_array( $payload ) ? wp_unslash( $payload ) : array();
+		$capture              = isset( $payload['capture'] ) && is_array( $payload['capture'] ) ? $payload['capture'] : array();
+		$forms                = isset( $payload['forms'] ) && is_array( $payload['forms'] ) ? $payload['forms'] : array();
+		$events               = isset( $payload['events'] ) && is_array( $payload['events'] ) ? $payload['events'] : array();
+		$delivery             = isset( $payload['delivery'] ) && is_array( $payload['delivery'] ) ? $payload['delivery'] : array();
+		$delivery_server      = isset( $delivery['server'] ) && is_array( $delivery['server'] ) ? $delivery['server'] : array();
+		$delivery_privacy     = isset( $delivery['privacy'] ) && is_array( $delivery['privacy'] ) ? $delivery['privacy'] : array();
+		$delivery_advanced    = isset( $delivery['advanced'] ) && is_array( $delivery['advanced'] ) ? $delivery['advanced'] : array();
+		$forms_whatsapp       = isset( $forms['whatsapp'] ) && is_array( $forms['whatsapp'] ) ? $forms['whatsapp'] : array();
+		$forms_providers      = isset( $forms['providers'] ) && is_array( $forms['providers'] ) ? $forms['providers'] : array();
+		$events_destinations  = isset( $events['destinations'] ) && is_array( $events['destinations'] ) ? $events['destinations'] : array();
+		$events_lifecycle     = isset( $events['lifecycle'] ) && is_array( $events['lifecycle'] ) ? $events['lifecycle'] : array();
+
+		$attr_input = array(
+			'enable_attribution'          => ! empty( $capture['enabled'] ) ? 1 : 0,
+			'cookie_days'                 => $capture['retention_days'] ?? 90,
+			'enable_link_decoration'      => ! empty( $capture['decorate_links'] ) ? 1 : 0,
+			'link_allowed_domains'        => $capture['allowed_domains'] ?? '',
+			'link_skip_signed'            => ! empty( $capture['skip_signed_urls'] ) ? 1 : 0,
+			'enable_cross_domain_token'   => ! empty( $capture['pass_token'] ) ? 1 : 0,
+			'enable_js_injection'         => ! empty( $forms['client_fallback'] ) ? 1 : 0,
+			'inject_mutation_observer'    => ! empty( $forms['watch_dynamic_content'] ) ? 1 : 0,
+			'inject_overwrite'            => ! empty( $forms['replace_existing_values'] ) ? 1 : 0,
+			'inject_observer_target'      => $forms['observer_target'] ?? 'body',
+			'enable_whatsapp'             => ! empty( $forms_whatsapp['enabled'] ) ? 1 : 0,
+			'whatsapp_append_attribution' => ! empty( $forms_whatsapp['append_attribution'] ) ? 1 : 0,
+		);
+		update_option( 'clicutcl_attribution_settings', $this->sanitize_settings( $attr_input ), false );
+
+		$consent_input = array(
+			'enabled'        => ! empty( $delivery_privacy['enabled'] ) ? 1 : 0,
+			'mode'           => $delivery_privacy['mode'] ?? 'strict',
+			'regions'        => $delivery_privacy['regions'] ?? '',
+			'cmp_source'     => $delivery_privacy['cmp_source'] ?? 'auto',
+			'cmp_timeout_ms' => $delivery_privacy['cmp_timeout_ms'] ?? 3000,
+		);
+		update_option( Consent_Mode_Settings::OPTION, sanitize_option( Consent_Mode_Settings::OPTION, $consent_input ), false );
+
+		$gtm_input = array(
+			'container_id' => isset( $events['gtm_container_id'] ) ? (string) $events['gtm_container_id'] : '',
+		);
+		update_option( GTM_Settings::OPTION, sanitize_option( GTM_Settings::OPTION, $gtm_input ), false );
+
+		$server_current = get_option( Settings::OPTION_SITE, array() );
+		$server_current = is_array( $server_current ) ? $server_current : array();
+		$server_network = Settings::get_network();
+		$use_network    = is_multisite() && ! empty( $server_network ) && ! empty( $delivery_server['use_network'] );
+		if ( $use_network ) {
+			$server_input = $server_current;
+			$server_input['use_network'] = 1;
+		} else {
+			$server_input = array(
+				'enabled'                  => ! empty( $delivery_server['enabled'] ) ? 1 : 0,
+				'endpoint_url'             => isset( $delivery_server['endpoint_url'] ) ? (string) $delivery_server['endpoint_url'] : '',
+				'adapter'                  => isset( $delivery_server['adapter'] ) ? (string) $delivery_server['adapter'] : 'generic',
+				'timeout'                  => $delivery_server['timeout'] ?? 5,
+				'remote_failure_telemetry' => ! empty( $delivery_server['remote_failure_telemetry'] ) ? 1 : 0,
+				'use_network'              => ! empty( $delivery_server['use_network'] ) ? 1 : 0,
+			);
+		}
+		update_option( Settings::OPTION_SITE, $this->sanitize_server_side_settings( $server_input ), false );
+
+		$tracking_input = array(
+			'feature_flags'  => array(
+				'event_v2'            => ! empty( $events['browser_pipeline'] ) ? 1 : 0,
+				'external_webhooks'   => ! empty( $forms['webhook_sources_enabled'] ) ? 1 : 0,
+				'connector_native'    => ! empty( $delivery_advanced['use_native_adapters'] ) ? 1 : 0,
+				'diagnostics_v2'      => ! empty( $delivery_advanced['store_event_diagnostics'] ) ? 1 : 0,
+				'lifecycle_ingestion' => ! empty( $events_lifecycle['accept_updates'] ) ? 1 : 0,
+			),
+			'destinations'   => array(
+				'meta'      => array( 'enabled' => ! empty( $events_destinations['meta'] ) ? 1 : 0 ),
+				'google'    => array( 'enabled' => ! empty( $events_destinations['google'] ) ? 1 : 0 ),
+				'linkedin'  => array( 'enabled' => ! empty( $events_destinations['linkedin'] ) ? 1 : 0 ),
+				'reddit'    => array( 'enabled' => ! empty( $events_destinations['reddit'] ) ? 1 : 0 ),
+				'pinterest' => array( 'enabled' => ! empty( $events_destinations['pinterest'] ) ? 1 : 0 ),
+			),
+			'external_forms' => array(
+				'providers' => array(
+					'calendly' => array(
+						'enabled' => ! empty( $forms_providers['calendly']['enabled'] ) ? 1 : 0,
+						'secret'  => isset( $forms_providers['calendly']['secret'] ) ? (string) $forms_providers['calendly']['secret'] : '',
+					),
+					'hubspot'  => array(
+						'enabled' => ! empty( $forms_providers['hubspot']['enabled'] ) ? 1 : 0,
+						'secret'  => isset( $forms_providers['hubspot']['secret'] ) ? (string) $forms_providers['hubspot']['secret'] : '',
+					),
+					'typeform' => array(
+						'enabled' => ! empty( $forms_providers['typeform']['enabled'] ) ? 1 : 0,
+						'secret'  => isset( $forms_providers['typeform']['secret'] ) ? (string) $forms_providers['typeform']['secret'] : '',
+					),
+				),
+			),
+			'lifecycle'      => array(
+				'crm_ingestion' => array(
+					'enabled' => ! empty( $events_lifecycle['endpoint_enabled'] ) ? 1 : 0,
+					'token'   => isset( $events_lifecycle['token'] ) ? (string) $events_lifecycle['token'] : '',
+				),
+			),
+			'security'       => array(
+				'token_ttl_seconds'       => $delivery_advanced['token_ttl_seconds'] ?? 0,
+				'token_nonce_limit'       => $delivery_advanced['token_nonce_limit'] ?? 0,
+				'webhook_replay_window'   => $delivery_advanced['webhook_replay_window'] ?? 0,
+				'rate_limit_window'       => $delivery_advanced['rate_limit_window'] ?? 0,
+				'rate_limit_limit'        => $delivery_advanced['rate_limit_limit'] ?? 0,
+				'trusted_proxies'         => $delivery_advanced['trusted_proxies'] ?? '',
+				'allowed_token_hosts'     => $delivery_advanced['allowed_token_hosts'] ?? '',
+				'encrypt_secrets_at_rest' => ! empty( $delivery_advanced['encrypt_saved_secrets'] ) ? 1 : 0,
+			),
+			'diagnostics'    => array(
+				'dispatch_buffer_size'     => $delivery_advanced['dispatch_buffer_size'] ?? 20,
+				'failure_flush_interval'   => $delivery_advanced['failure_flush_interval'] ?? 10,
+				'failure_bucket_retention' => $delivery_advanced['failure_bucket_retention'] ?? 72,
+			),
+			'dedup'          => array(
+				'ttl_seconds' => $delivery_advanced['dedup_ttl_seconds'] ?? ( 7 * DAY_IN_SECONDS ),
+			),
+		);
+		update_option( Tracking_Settings::OPTION, Tracking_Settings::sanitize( $tracking_input ), false );
+
+		return $this->get_unified_admin_settings();
+	}
+
+	/**
 	 * Render settings page with tabs.
 	 */
 	public function render_settings_page() {
@@ -718,9 +1187,12 @@ class Admin {
 		$active_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : 'general';
 
 		$legacy_map = array(
-			'channels'     => 'whatsapp',
-			'destinations' => 'server',
-			'advanced'     => 'trackingv2',
+			'general'    => 'attribution',
+			'whatsapp'   => 'attribution',
+			'channels'   => 'attribution',
+			'gtm'        => 'destinations',
+			'server'     => 'destinations',
+			'trackingv2' => 'advanced',
 		);
 		if ( isset( $legacy_map[ $active_tab ] ) ) {
 			$active_tab = $legacy_map[ $active_tab ];
@@ -728,7 +1200,7 @@ class Admin {
 
 		$tabs = $this->get_settings_tabs();
 		if ( ! isset( $tabs[ $active_tab ] ) ) {
-			$active_tab = 'general';
+			$active_tab = 'attribution';
 		}
 		$tab_meta = $tabs[ $active_tab ];
 		?>
@@ -746,7 +1218,7 @@ class Admin {
 				</div>
 			</div>
 
-			<?php if ( 'general' === $active_tab ) : ?>
+			<?php if ( 'attribution' === $active_tab ) : ?>
 				<?php $this->render_settings_status_bar(); ?>
 			<?php endif; ?>
 			<?php settings_errors(); ?>
@@ -763,12 +1235,54 @@ class Admin {
 				<?php endforeach; ?>
 			</h2>
 
-			<?php if ( 'trackingv2' === $active_tab ) : ?>
+			<?php if ( 'advanced' === $active_tab ) : ?>
 				<div class="clicktrail-inline-notice">
 					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
-					<span><?php esc_html_e( 'Advanced tracking configuration is managed in its dedicated editor. The rest of the settings screen uses the standard WordPress save flow.', 'click-trail-handler' ); ?></span>
+					<span>
+						<?php esc_html_e( "ClickTrail's core engine handles attribution capture. The sections below configure how captured events are packaged and delivered — each platform receives its own tailored payload, with consent signals already applied. You only need to configure the platforms you actively use. If you only run a single GTM container, you don't need anything here.", 'click-trail-handler' ); ?>
+					</span>
 				</div>
 				<div id="clicutcl-tracking-v2-root"></div>
+
+			<?php elseif ( 'destinations' === $active_tab ) : ?>
+				<form action="options.php" method="post" class="clicktrail-settings-form">
+					<?php
+					settings_fields( 'clicutcl_gtm' );
+					$this->render_settings_card(
+						array(
+							'id'          => 'gtm',
+							'page'        => 'clicutcl_gtm',
+							'section'     => 'clicutcl_gtm_section',
+							'title'       => __( 'Google Tag Manager', 'click-trail-handler' ),
+							'description' => __( 'Inject GTM on this site — only if GTM is not already loaded elsewhere.', 'click-trail-handler' ),
+							'icon'        => 'dashicons-chart-bar',
+						)
+					);
+					$this->render_settings_save_bar();
+					?>
+				</form>
+				<form action="options.php" method="post" class="clicktrail-settings-form">
+					<?php
+					settings_fields( 'clicutcl_server_side' );
+					$this->render_settings_card(
+						array(
+							'id'          => 'server',
+							'page'        => 'clicutcl_server_side_tab',
+							'section'     => 'clicutcl_server_side_section',
+							'title'       => __( 'Server-side delivery', 'click-trail-handler' ),
+							'description' => __( 'Route events through your own collector endpoint — bypasses browser ad-blockers and provides a reliable delivery path.', 'click-trail-handler' ),
+							'icon'        => 'dashicons-cloud',
+						)
+					);
+					$this->render_settings_save_bar();
+					?>
+				</form>
+				<div class="clicktrail-inline-notice" style="margin-top:4px;">
+					<span class="dashicons dashicons-share" aria-hidden="true"></span>
+					<span><?php esc_html_e( 'Advertising platform destinations below are managed through the v2 delivery pipeline. Each platform receives its own payload format independently.', 'click-trail-handler' ); ?></span>
+				</div>
+				<div id="clicutcl-destinations-v2-root"></div>
+
 			<?php else : ?>
 				<?php $form_config = $this->get_settings_form_config( $active_tab ); ?>
 				<form action="options.php" method="post" class="clicktrail-settings-form">
@@ -792,42 +1306,29 @@ class Admin {
 	 */
 	private function get_settings_tabs() {
 		return array(
-			'general'    => array(
+			'attribution'  => array(
 				'label'       => __( 'Attribution', 'click-trail-handler' ),
 				'title'       => __( 'Attribution', 'click-trail-handler' ),
-				'description' => __( 'Capture and preserve source data such as UTM, referrer, and click identifiers.', 'click-trail-handler' ),
-				'icon'        => 'dashicons-admin-generic',
+				'description' => __( 'Capture UTM parameters, click IDs, and referrers — and keep them through forms, caching, and navigation.', 'click-trail-handler' ),
+				'icon'        => 'dashicons-chart-area',
 			),
-			'whatsapp'   => array(
-				'label'       => __( 'WhatsApp', 'click-trail-handler' ),
-				'title'       => __( 'WhatsApp', 'click-trail-handler' ),
-				'description' => __( 'Control how attribution is carried into WhatsApp clicks and pre-filled messages.', 'click-trail-handler' ),
-				'icon'        => 'dashicons-format-chat',
-			),
-			'consent'    => array(
+			'consent'      => array(
 				'label'       => __( 'Consent', 'click-trail-handler' ),
 				'title'       => __( 'Consent', 'click-trail-handler' ),
-				'description' => __( 'Control when attribution begins based on user consent and your CMP setup.', 'click-trail-handler' ),
+				'description' => __( "Control when tracking is allowed to start, which regions require explicit opt-in, and which consent platform ClickTrail should listen to.", 'click-trail-handler' ),
 				'icon'        => 'dashicons-privacy',
 			),
-			'gtm'        => array(
-				'label'       => __( 'Integrations', 'click-trail-handler' ),
-				'title'       => __( 'Integrations', 'click-trail-handler' ),
-				'description' => __( 'Connect ClickTrail to external tools when your site needs them.', 'click-trail-handler' ),
-				'icon'        => 'dashicons-chart-bar',
+			'destinations' => array(
+				'label'       => __( 'Destinations', 'click-trail-handler' ),
+				'title'       => __( 'Destinations', 'click-trail-handler' ),
+				'description' => __( 'Configure where events are sent — your own server-side endpoint, GTM, and advertising platforms.', 'click-trail-handler' ),
+				'icon'        => 'dashicons-share',
 			),
-			'server'     => array(
-				'label'       => __( 'Server-side', 'click-trail-handler' ),
-				'title'       => __( 'Server-side', 'click-trail-handler' ),
-				'description' => __( 'Send events through your own endpoint when you need delivery outside the browser.', 'click-trail-handler' ),
-				'icon'        => 'dashicons-cloud',
-			),
-			'trackingv2' => array(
-				'label'       => __( 'Tracking', 'click-trail-handler' ),
-				'title'       => __( 'Tracking', 'click-trail-handler' ),
-				'description' => __( 'Manage advanced event delivery, destinations, and lifecycle controls.', 'click-trail-handler' ),
+			'advanced'     => array(
+				'label'       => __( 'Advanced', 'click-trail-handler' ),
+				'title'       => __( 'Advanced', 'click-trail-handler' ),
+				'description' => __( 'Platform-level controls — feature flags, security, deduplication, lifecycle ingestion, and external form providers.', 'click-trail-handler' ),
 				'icon'        => 'dashicons-admin-tools',
-				'badge'       => 'v2',
 			),
 		);
 	}
@@ -840,8 +1341,7 @@ class Admin {
 	 */
 	private function get_settings_form_config( $active_tab ) {
 		switch ( $active_tab ) {
-			case 'general':
-			case 'whatsapp':
+			case 'attribution':
 				return array(
 					'group' => 'clicutcl_attribution_settings',
 				);
@@ -849,14 +1349,9 @@ class Admin {
 				return array(
 					'group' => 'clicutcl_consent_mode',
 				);
-			case 'gtm':
-				return array(
-					'group' => 'clicutcl_gtm',
-				);
-			case 'server':
 			default:
 				return array(
-					'group' => 'clicutcl_server_side',
+					'group' => 'clicutcl_attribution_settings',
 				);
 		}
 	}
@@ -869,56 +1364,55 @@ class Admin {
 	 */
 	private function get_settings_cards( $active_tab ) {
 		switch ( $active_tab ) {
-			case 'general':
+			case 'attribution':
 				return array(
 					array(
-						'id'          => 'general-core',
+						'id'          => 'attr-core',
 						'page'        => 'clicutcl_general_tab',
 						'section'     => 'clicutcl_core_section',
-						'title'       => __( 'Core', 'click-trail-handler' ),
-						'description' => __( 'High-confidence settings used on every site.', 'click-trail-handler' ),
+						'title'       => __( 'Capture', 'click-trail-handler' ),
+						'description' => __( 'Enable attribution tracking and set how long source data is stored.', 'click-trail-handler' ),
 						'icon'        => 'dashicons-chart-area',
 					),
 					array(
-						'id'          => 'general-reliability',
+						'id'          => 'attr-reliability',
 						'page'        => 'clicutcl_general_tab',
 						'section'     => 'clicutcl_reliability_section',
-						'title'       => __( 'Reliability', 'click-trail-handler' ),
-						'description' => __( 'Recommended settings to keep attribution working on cached pages and dynamic sites.', 'click-trail-handler' ),
+						'title'       => __( 'Cached pages', 'click-trail-handler' ),
+						'description' => __( 'Ensures attribution still reaches hidden form fields when pages are served from cache. Recommended for most sites.', 'click-trail-handler' ),
 						'icon'        => 'dashicons-shield-alt',
 						'tag'         => __( 'Recommended', 'click-trail-handler' ),
 						'tag_tone'    => 'recommended',
 					),
 					array(
-						'id'          => 'general-cross-domain',
+						'id'          => 'attr-cross-domain',
 						'page'        => 'clicutcl_general_tab',
 						'section'     => 'clicutcl_cross_domain_section',
-						'title'       => __( 'Cross-domain', 'click-trail-handler' ),
-						'description' => __( 'Preserve attribution when visitors move between your domains or subdomains.', 'click-trail-handler' ),
+						'title'       => __( 'Cross-domain links', 'click-trail-handler' ),
+						'description' => __( 'Preserve attribution when visitors follow links to your other domains or subdomains.', 'click-trail-handler' ),
 						'icon'        => 'dashicons-admin-links',
 					),
 					array(
-						'id'          => 'general-advanced',
+						'id'          => 'attr-whatsapp',
+						'page'        => 'clicutcl_general_tab',
+						'section'     => 'clicutcl_whatsapp_section',
+						'title'       => __( 'WhatsApp', 'click-trail-handler' ),
+						'description' => __( 'Carry attribution into outbound WhatsApp clicks and pre-filled messages.', 'click-trail-handler' ),
+						'icon'        => 'dashicons-format-chat',
+						'collapsible' => true,
+						'collapsed'   => true,
+					),
+					array(
+						'id'          => 'attr-advanced',
 						'page'        => 'clicutcl_general_tab',
 						'section'     => 'clicutcl_advanced_section',
-						'title'       => __( 'Advanced technical options', 'click-trail-handler' ),
-						'description' => __( 'Low-level behavior that most sites can leave unchanged.', 'click-trail-handler' ),
+						'title'       => __( 'Advanced', 'click-trail-handler' ),
+						'description' => __( 'Low-level capture behavior. Most sites can leave these unchanged.', 'click-trail-handler' ),
 						'icon'        => 'dashicons-admin-tools',
 						'collapsible' => true,
 						'collapsed'   => true,
 						'tag'         => __( 'Advanced', 'click-trail-handler' ),
 						'tag_tone'    => 'muted',
-					),
-				);
-			case 'whatsapp':
-				return array(
-					array(
-						'id'          => 'whatsapp',
-						'page'        => 'clicutcl_whatsapp_tab',
-						'section'     => 'clicutcl_whatsapp_section',
-						'title'       => __( 'WhatsApp attribution', 'click-trail-handler' ),
-						'description' => __( 'Carry attribution into outbound WhatsApp entry points when you need it.', 'click-trail-handler' ),
-						'icon'        => 'dashicons-format-chat',
 					),
 				);
 			case 'consent':
@@ -932,29 +1426,8 @@ class Admin {
 						'icon'        => 'dashicons-shield-alt',
 					),
 				);
-			case 'gtm':
-				return array(
-					array(
-						'id'          => 'gtm',
-						'page'        => 'clicutcl_gtm',
-						'section'     => 'clicutcl_gtm_section',
-						'title'       => __( 'Google Tag Manager', 'click-trail-handler' ),
-						'description' => __( 'Use this only if your site does not already load GTM elsewhere.', 'click-trail-handler' ),
-						'icon'        => 'dashicons-chart-bar',
-					),
-				);
-			case 'server':
 			default:
-				return array(
-					array(
-						'id'          => 'server',
-						'page'        => 'clicutcl_server_side_tab',
-						'section'     => 'clicutcl_server_side_section',
-						'title'       => __( 'Server-side delivery', 'click-trail-handler' ),
-						'description' => __( 'Configure the endpoint and delivery behavior for server-side dispatch.', 'click-trail-handler' ),
-						'icon'        => 'dashicons-cloud',
-					),
-				);
+				return array();
 		}
 	}
 

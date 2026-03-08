@@ -39,7 +39,7 @@ trait Admin_Diagnostics_Ajax_Trait {
 	public function display_pii_warning() {
 		if ( get_option( 'clicutcl_pii_risk_detected' ) ) {
 			$diagnostics_url = admin_url( 'admin.php?page=clicutcl-diagnostics' );
-			$settings_url    = admin_url( 'admin.php?page=clicutcl-settings&tab=general' );
+			$settings_url    = admin_url( 'admin.php?page=clicutcl-settings&tab=capture' );
 			?>
 			<div class="notice notice-error is-dismissible">
 				<p><strong><?php esc_html_e( 'ClickTrail Audit detected PII risk on your Thank You page. Your tracking may be deactivated by Google.', 'click-trail-handler' ); ?></strong></p>
@@ -173,6 +173,54 @@ trait Admin_Diagnostics_Ajax_Trait {
 	}
 
 	/**
+	 * Return unified admin settings via AJAX.
+	 *
+	 * @return void
+	 */
+	public function ajax_get_admin_settings() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Forbidden', 'click-trail-handler' ) ), 403 );
+		}
+		check_ajax_referer( 'clicutcl_admin_settings', 'nonce' );
+
+		wp_send_json_success(
+			array(
+				'settings' => $this->get_unified_admin_settings(),
+			)
+		);
+	}
+
+	/**
+	 * Save unified admin settings via AJAX.
+	 *
+	 * @return void
+	 */
+	public function ajax_save_admin_settings() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Forbidden', 'click-trail-handler' ) ), 403 );
+		}
+		check_ajax_referer( 'clicutcl_admin_settings', 'nonce' );
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above.
+		$raw = isset( $_POST['settings'] ) ? wp_unslash( $_POST['settings'] ) : '';
+		if ( is_string( $raw ) ) {
+			$decoded = json_decode( $raw, true );
+			$raw     = is_array( $decoded ) ? $decoded : array();
+		}
+
+		if ( ! is_array( $raw ) ) {
+			$raw = array();
+		}
+
+		wp_send_json_success(
+			array(
+				'message'  => __( 'Settings saved.', 'click-trail-handler' ),
+				'settings' => $this->save_unified_admin_settings( $raw ),
+			)
+		);
+	}
+
+	/**
 	 * Return tracking v2 settings via AJAX.
 	 *
 	 * @return void
@@ -225,7 +273,7 @@ trait Admin_Diagnostics_Ajax_Trait {
 
 		wp_send_json_success(
 			array(
-				'message'  => __( 'Tracking v2 settings saved.', 'click-trail-handler' ),
+				'message'  => __( 'Advanced event settings saved.', 'click-trail-handler' ),
 				'settings' => \CLICUTCL\Tracking\Settings::get_for_admin(),
 			)
 		);
