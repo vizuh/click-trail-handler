@@ -1,0 +1,27 @@
+{
+  "name": "vizuh/click-trail-handler",
+  "description": "Complete consent management and marketing attribution solution for WordPress.",
+  "type": "wordpress-plugin",
+  "license": "GPL-2.0-or-later",
+  "require": {
+    "php": ">=8.1"
+  },
+  "require-dev": {
+    "squizlabs/php_codesniffer": "^3.9",
+    "wp-coding-standards/wpcs": "^3.1",
+    "phpcompatibility/phpcompatibility-wp": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "CLICUTCL\\": "includes/"
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
+  },
+  "scripts": {
+    "phpcs": "phpcs --standard=phpcs.xml.dist"
+  }
+}

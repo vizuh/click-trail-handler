@@ -112,8 +112,13 @@ trait Log_Controller_Public_WA_Trait {
 			$wa_target_path = $normalized['wa_target_path'];
 		}
 
-		$allowed_hosts = array( 'wa.me', 'whatsapp.com', 'api.whatsapp.com', 'web.whatsapp.com' );
-		if ( ! in_array( $wa_target_type, $allowed_hosts, true ) ) {
+		$allowed_hosts = array(
+			'wa.me'             => true,
+			'whatsapp.com'      => true,
+			'api.whatsapp.com'  => true,
+			'web.whatsapp.com'  => true,
+		);
+		if ( ! isset( $allowed_hosts[ $wa_target_type ] ) ) {
 			return new WP_Error( 'invalid_target', 'Invalid WhatsApp target', array( 'status' => 400 ) );
 		}
 

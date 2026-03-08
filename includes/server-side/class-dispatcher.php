@@ -38,6 +38,21 @@ class Dispatcher {
 	private const FAILURE_TELEMETRY_FLUSH_LOCK = 'clicutcl_failure_flush_lock';
 
 	/**
+	 * Registered adapter keys mapped to their class names.
+	 * Used for allowlist validation and as the single source of truth for
+	 * which adapters exist — avoids duplicating this list across Admin and Dispatcher.
+	 *
+	 * @var array<string,true>
+	 */
+	public const ALLOWED_ADAPTERS = array(
+		'generic'      => true,
+		'sgtm'         => true,
+		'meta_capi'    => true,
+		'google_ads'   => true,
+		'linkedin_capi' => true,
+	);
+
+	/**
 	 * In-request failure counters waiting for flush.
 	 *
 	 * @var array<string,int>
@@ -96,6 +111,23 @@ class Dispatcher {
 	public static function dispatch( Event $event ) {
 		if ( ! self::is_enabled() ) {
 			return Adapter_Result::skipped( 'disabled' );
+		}
+
+		/**
+		 * Block real API calls in local and development environments.
+		 * This prevents accidentally firing conversion events against production
+		 * APIs when a production database is cloned to a dev environment.
+		 * Override via the 'clicutcl_dispatch_in_environment' filter if needed.
+		 *
+		 * @param bool   $allow Whether to allow dispatching. Default false for local/development.
+		 * @param string $env   Current environment type (local|development|staging|production).
+		 */
+		$env = wp_get_environment_type();
+		if ( in_array( $env, array( 'local', 'development' ), true ) ) {
+			$allow = (bool) apply_filters( 'clicutcl_dispatch_in_environment', false, $env );
+			if ( ! $allow ) {
+				return Adapter_Result::skipped( 'non_production_environment' );
+			}
 		}
 
 		$endpoint = self::get_endpoint();
@@ -290,6 +322,11 @@ class Dispatcher {
 
 		$timeout = max( 1, absint( $timeout ) );
 		$adapter = sanitize_key( (string) $adapter );
+
+		// Fallback to generic for any unrecognised adapter key.
+		if ( ! isset( self::ALLOWED_ADAPTERS[ $adapter ] ) ) {
+			$adapter = 'generic';
+		}
 
 		switch ( $adapter ) {
 			case 'sgtm':

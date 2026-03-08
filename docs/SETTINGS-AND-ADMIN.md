@@ -38,7 +38,7 @@ From `enqueue_admin_assets($hook)`:
   - Site Health screen
 - `admin.css` only on ClickTrail screens
 - `admin-diagnostics.js` only on diagnostics page
-- `admin-tracking-v2.js` only on `page=clicutcl-settings&tab=trackingv2`
+- `admin-tracking-v2.js` only on `page=clicutcl-settings&tab=advanced`
 
 Tracking v2 admin script dependencies:
 

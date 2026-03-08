@@ -202,9 +202,8 @@ class Plugin {
 		$consent_settings     = $consent_settings_obj->get();
 		$enable_consent       = $consent_settings_obj->is_consent_mode_enabled();
 		$consent_mode         = $consent_settings_obj->get_mode();
-		$allowed_cmp_sources  = array( 'auto', 'plugin', 'cookiebot', 'onetrust', 'complianz', 'gtm', 'custom' );
-		$cmp_source           = isset( $consent_settings['cmp_source'] ) ? sanitize_key( (string) $consent_settings['cmp_source'] ) : 'auto';
-		$cmp_source           = in_array( $cmp_source, $allowed_cmp_sources, true ) ? $cmp_source : 'auto';
+		$cmp_source = isset( $consent_settings['cmp_source'] ) ? sanitize_key( (string) $consent_settings['cmp_source'] ) : 'auto';
+		$cmp_source = isset( Modules\Consent_Mode\Consent_Mode_Settings::ALLOWED_CMP_SOURCES[ $cmp_source ] ) ? $cmp_source : 'auto';
 		$cmp_timeout          = isset( $consent_settings['cmp_timeout_ms'] ) ? absint( $consent_settings['cmp_timeout_ms'] ) : 3000;
 		$cmp_timeout          = min( 10000, max( 500, $cmp_timeout ) );
 		$cookie_name          = isset( $consent_settings['cookie_name'] ) ? sanitize_key( (string) $consent_settings['cookie_name'] ) : 'ct_consent';
@@ -280,7 +279,7 @@ class Plugin {
 			);
 		}
 
-		$use_plugin_banner = $enable_consent && in_array( $cmp_source, array( 'auto', 'plugin' ), true );
+		$use_plugin_banner = $enable_consent && ( 'auto' === $cmp_source || 'plugin' === $cmp_source );
 
 		if ( $use_plugin_banner ) {
 			wp_enqueue_style(

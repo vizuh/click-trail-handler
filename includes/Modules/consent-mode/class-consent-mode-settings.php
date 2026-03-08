@@ -20,6 +20,36 @@ class Consent_Mode_Settings extends Setting {
 	const OPTION = 'clicutcl_consent_mode';
 
 	/**
+	 * Valid consent behavior modes.
+	 * Keyed by value for O(1) isset() validation — single source of truth
+	 * shared with Admin and Plugin bootstrap.
+	 *
+	 * @var array<string,true>
+	 */
+	public const ALLOWED_MODES = array(
+		'strict'  => true,
+		'relaxed' => true,
+		'geo'     => true,
+	);
+
+	/**
+	 * Valid CMP (Consent Management Platform) source identifiers.
+	 * Keyed by value for O(1) isset() validation — single source of truth
+	 * shared with Admin and Plugin bootstrap.
+	 *
+	 * @var array<string,true>
+	 */
+	public const ALLOWED_CMP_SOURCES = array(
+		'auto'      => true,
+		'plugin'    => true,
+		'cookiebot' => true,
+		'onetrust'  => true,
+		'complianz' => true,
+		'gtm'       => true,
+		'custom'    => true,
+	);
+
+	/**
 	 * Gets the expected value type.
 	 *
 	 * @return string The type name.
@@ -56,9 +86,8 @@ class Consent_Mode_Settings extends Setting {
 			$value     = is_array( $value ) ? wp_unslash( $value ) : array();
 
 			$new_value['enabled'] = ! empty( $value['enabled'] );
-			$allowed_modes        = array( 'strict', 'relaxed', 'geo' );
 			$mode                 = isset( $value['mode'] ) ? sanitize_key( (string) $value['mode'] ) : 'strict';
-			$new_value['mode']    = in_array( $mode, $allowed_modes, true ) ? $mode : 'strict';
+			$new_value['mode']    = isset( self::ALLOWED_MODES[ $mode ] ) ? $mode : 'strict';
 
 			$raw_regions = array();
 			if ( isset( $value['regions'] ) ) {
@@ -101,17 +130,8 @@ class Consent_Mode_Settings extends Setting {
 				$new_value['regions'] = array_keys( $region_codes );
 			}
 
-			$allowed_cmp_sources = array(
-				'auto',
-				'plugin',
-				'cookiebot',
-				'onetrust',
-				'complianz',
-				'gtm',
-				'custom',
-			);
 			$cmp_source = isset( $value['cmp_source'] ) ? sanitize_key( (string) $value['cmp_source'] ) : 'auto';
-			$new_value['cmp_source'] = in_array( $cmp_source, $allowed_cmp_sources, true ) ? $cmp_source : 'auto';
+			$new_value['cmp_source'] = isset( self::ALLOWED_CMP_SOURCES[ $cmp_source ] ) ? $cmp_source : 'auto';
 
 			$cmp_timeout_ms = isset( $value['cmp_timeout_ms'] ) ? absint( $value['cmp_timeout_ms'] ) : 3000;
 			$new_value['cmp_timeout_ms'] = min( 10000, max( 500, $cmp_timeout_ms ) );
@@ -143,9 +163,8 @@ class Consent_Mode_Settings extends Setting {
 	 */
 	public function get_mode() {
 		$settings = $this->get();
-		$mode     = isset( $settings['mode'] ) ? sanitize_key( (string) $settings['mode'] ) : 'strict';
-		$allowed  = array( 'strict', 'relaxed', 'geo' );
-		return in_array( $mode, $allowed, true ) ? $mode : 'strict';
+		$mode = isset( $settings['mode'] ) ? sanitize_key( (string) $settings['mode'] ) : 'strict';
+		return isset( self::ALLOWED_MODES[ $mode ] ) ? $mode : 'strict';
 	}
 
 	/**
