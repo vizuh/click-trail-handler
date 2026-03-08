@@ -201,7 +201,7 @@ class Dispatcher {
 			$legacy['commerce'] = $event_v2['commerce_context'];
 		}
 		if ( isset( $event_v2['identity'] ) && is_array( $event_v2['identity'] ) ) {
-			$legacy['meta']['identity'] = $event_v2['identity'];
+			$legacy['identity'] = $event_v2['identity'];
 		}
 		if ( isset( $event_v2['delivery_context'] ) && is_array( $event_v2['delivery_context'] ) ) {
 			$legacy['meta']['delivery_context'] = $event_v2['delivery_context'];

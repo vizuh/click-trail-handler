@@ -45,8 +45,10 @@ trait Tracking_Controller_Attribution_Token_Trait {
 	 */
 	private function sanitize_attribution_token_data( array $data ): array {
 		$allowed_keys = array(
-			'ft_source', 'ft_medium', 'ft_campaign',
-			'lt_source', 'lt_medium', 'lt_campaign',
+			'ft_source', 'ft_medium', 'ft_campaign', 'ft_term', 'ft_content',
+			'ft_utm_id', 'ft_utm_source_platform', 'ft_utm_creative_format', 'ft_utm_marketing_tactic',
+			'lt_source', 'lt_medium', 'lt_campaign', 'lt_term', 'lt_content',
+			'lt_utm_id', 'lt_utm_source_platform', 'lt_utm_creative_format', 'lt_utm_marketing_tactic',
 			'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid',
 			'twclid', 'li_fat_id', 'sccid', 'sc_click_id', 'ScCid', 'epik',
 			'ft_gclid', 'ft_fbclid', 'ft_msclkid', 'ft_ttclid', 'ft_wbraid', 'ft_gbraid',
@@ -322,4 +324,3 @@ trait Tracking_Controller_Attribution_Token_Trait {
 		return false === $decoded ? '' : $decoded;
 	}
 }
-

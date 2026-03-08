@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, integrators, and reviewers
 - **Canonical for**: active routes, auth model, diagnostics endpoints, and REST-side constraints
 - **Update when**: routes, auth headers, body limits, or intake behavior changes
-- **Last verified against version**: `1.3.5`
+- **Last verified against version**: `1.3.6`
 
 Active REST namespace:
 
@@ -32,15 +32,15 @@ Auth model:
 
 Important constraints:
 
-- feature flag `event_v2` must be enabled
+- browser event collection must be enabled
 - request body size is capped
 - request rate limiting is enforced
 - token nonce replay limits can be enforced
 
 Notes:
 
-- browser-side REST transport is only configured when the event pipeline is available for delivery
-- events still push to `window.dataLayer` even when REST transport is not active
+- browser-side REST transport is only configured when browser event collection is enabled and delivery transport is available
+- browser events can still push to `window.dataLayer` when collection is enabled even if REST transport is not active
 
 ## `POST /clicutcl/v2/attribution-token/sign`
 

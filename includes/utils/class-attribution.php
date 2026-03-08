@@ -7,6 +7,8 @@
 
 namespace CLICUTCL\Utils;
 
+use CLICUTCL\Core\Attribution_Provider;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -46,27 +48,7 @@ class Attribution {
 	 * @return array Sanitized attribution data.
 	 */
 	public static function sanitize( $data ) {
-		if ( ! is_array( $data ) ) {
-			return array();
-		}
-
-		$sanitized = array();
-
-		foreach ( $data as $key => $value ) {
-			$meta_key = sanitize_key( $key );
-			if ( '' === $meta_key ) {
-				continue;
-			}
-
-			if ( 'session_count' === $meta_key ) {
-				$sanitized[ $meta_key ] = absint( $value );
-				continue;
-			}
-
-			$sanitized[ $meta_key ] = sanitize_text_field( $value );
-		}
-
-		return $sanitized;
+		return Attribution_Provider::sanitize( $data );
 	}
 
 	/**

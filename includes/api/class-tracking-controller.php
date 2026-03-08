@@ -187,7 +187,7 @@ class Tracking_Controller extends WP_REST_Controller {
 	 * @return true|WP_Error
 	 */
 	public function batch_events_permissions_check( WP_REST_Request $request ) {
-		if ( ! Tracking_Settings::feature_enabled( 'event_v2' ) ) {
+		if ( ! Tracking_Settings::browser_event_collection_enabled() ) {
 			$this->record_gate_debug( 'rejected', 'event_v2_disabled', array() );
 			return new WP_Error( 'event_v2_disabled', 'Event v2 intake is disabled', array( 'status' => 403 ) );
 		}
@@ -668,4 +668,3 @@ class Tracking_Controller extends WP_REST_Controller {
 		}
 	}
 }
-

@@ -3,18 +3,19 @@
 - **Audience**: contributors, maintainers, and reviewers
 - **Canonical for**: browser-to-REST intake, webhook intake, lifecycle ingestion, dedup, and delivery flow
 - **Update when**: intake stages, canonical event flow, dedup behavior, or delivery stages change
-- **Last verified against version**: `1.3.5`
+- **Last verified against version**: `1.3.6`
 
 ClickTrail uses one unified event pipeline behind the admin UI, even though the data can enter the system from different sources.
 
 ## Intake Sources
 
-There are four main intake paths:
+There are five main intake paths:
 
 1. browser attribution and browser events
-2. WooCommerce purchase dispatch
-3. external provider webhooks
-4. lifecycle updates from CRM or backend systems
+2. form submission integrations
+3. WooCommerce purchase dispatch
+4. external provider webhooks
+5. lifecycle updates from CRM or backend systems
 
 ## 1. Browser Attribution Flow
 
@@ -82,7 +83,20 @@ What happens:
 - consent and identity rules are applied
 - payloads are translated into the delivery event shape when needed
 
-## 4. External Webhook Intake
+## 4. Form Submission Flow
+
+Integrations:
+
+- `includes/integrations/forms/*`
+
+Flow:
+
+1. ClickTrail injects or populates attribution where the form integration supports it
+2. submitted attribution is logged to ClickTrail's form event table
+3. consent-aware identity is resolved from submitted form fields plus request context
+4. the enriched server-side form event is dispatched through the shared delivery pipeline
+
+## 5. External Webhook Intake
 
 Providers:
 
@@ -98,7 +112,7 @@ Flow:
 4. provider payload is mapped into canonical lead or booking events
 5. event enters the same dispatcher path as browser-originated events
 
-## 5. Lifecycle Update Intake
+## 6. Lifecycle Update Intake
 
 Route:
 
@@ -115,7 +129,7 @@ Flow:
 3. canonical event is created
 4. event enters dispatcher
 
-## 6. WooCommerce Purchase Flow
+## 7. WooCommerce Purchase Flow
 
 Integration:
 
@@ -125,10 +139,11 @@ Flow:
 
 1. attribution is saved on checkout
 2. thank-you page pushes purchase event into `dataLayer`
-3. purchase payload is sent into dispatcher as a server-side event
-4. duplicate purchase sends are prevented with order meta
+3. purchase identity is resolved from WooCommerce order data plus request context
+4. purchase payload is sent into dispatcher as a server-side event
+5. duplicate purchase sends are prevented with order meta
 
-## 7. Dispatch and Queue
+## 8. Dispatch and Queue
 
 Dispatcher:
 
@@ -155,7 +170,7 @@ Queue behavior:
 - max attempts: 5
 - exponential backoff capped at 1 hour
 
-## 8. Diagnostics and Debugging
+## 9. Diagnostics and Debugging
 
 Delivery diagnostics:
 
@@ -175,5 +190,5 @@ If server-side delivery is disabled:
 - attribution capture still works
 - form enrichment still works
 - WooCommerce order attribution still works
-- browser events can still push to `dataLayer`
+- browser events can still push to `dataLayer` when browser event collection is enabled
 - queue processing and delivery dispatch do not run

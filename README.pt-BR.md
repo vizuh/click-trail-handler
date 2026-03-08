@@ -60,9 +60,9 @@ O ClickTrail junta consentimento, intake de eventos e configuracao de entrega no
 
 ### Capture
 
-- UTMs de primeiro toque e ultimo toque
+- UTMs de primeiro toque e ultimo toque, incluindo `utm_id`, `utm_source_platform`, `utm_creative_format` e `utm_marketing_tactic`
 - captura de referrer
-- captura dos principais click IDs de anuncios
+- captura dos principais click IDs de anuncios e identificadores first-party de browser/plataforma
 - retencao configuravel da atribuicao
 - decoracao de links cross-domain
 - continuidade opcional com token de atribuicao
@@ -79,6 +79,15 @@ Click IDs suportados:
 - `li_fat_id`
 - `sccid`
 - `epik`
+
+Identificadores adicionais de browser incluem:
+
+- `fbc`
+- `fbp`
+- `_ttp`
+- `li_gc`
+- `ga_client_id`
+- `ga_session_id`
 
 ### Forms
 
@@ -117,6 +126,7 @@ Click IDs suportados:
 ### Formularios
 
 - Contact Form 7
+- Elementor Forms (Pro)
 - Fluent Forms
 - Gravity Forms
 - Ninja Forms

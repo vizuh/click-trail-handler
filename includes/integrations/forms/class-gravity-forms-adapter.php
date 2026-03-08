@@ -150,6 +150,62 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 		}
 
 		// 2. Log to ClickTrail events
-		$this->log_submission( 'gravityforms', $form['id'], $payload );
+		$this->log_submission( 'gravityforms', $form['id'], $payload, $this->extract_identity_from_entry( $entry, $form ) );
+	}
+
+	/**
+	 * Extract email/phone candidates from a Gravity entry using field metadata.
+	 *
+	 * @param array $entry Entry data.
+	 * @param array $form  Form object.
+	 * @return array
+	 */
+	private function extract_identity_from_entry( $entry, $form ) {
+		if ( ! is_array( $entry ) || ! is_array( $form ) || empty( $form['fields'] ) || ! is_array( $form['fields'] ) ) {
+			return array();
+		}
+
+		$identity = array();
+
+		foreach ( $form['fields'] as $field ) {
+			if ( ! is_object( $field ) ) {
+				continue;
+			}
+
+			$field_id = isset( $field->id ) ? (string) $field->id : '';
+			if ( '' === $field_id || ! isset( $entry[ $field_id ] ) || ! is_scalar( $entry[ $field_id ] ) ) {
+				continue;
+			}
+
+			$value = trim( (string) $entry[ $field_id ] );
+			if ( '' === $value ) {
+				continue;
+			}
+
+			$type = '';
+			if ( method_exists( $field, 'get_input_type' ) ) {
+				$type = sanitize_key( (string) $field->get_input_type() );
+			}
+			if ( '' === $type && isset( $field->type ) ) {
+				$type = sanitize_key( (string) $field->type );
+			}
+
+			$label = '';
+			if ( isset( $field->adminLabel ) && is_scalar( $field->adminLabel ) ) {
+				$label = strtolower( (string) $field->adminLabel );
+			} elseif ( isset( $field->label ) && is_scalar( $field->label ) ) {
+				$label = strtolower( (string) $field->label );
+			}
+
+			if ( empty( $identity['email'] ) && ( 'email' === $type || false !== strpos( $label, 'email' ) ) && is_email( $value ) ) {
+				$identity['email'] = sanitize_email( $value );
+			}
+
+			if ( empty( $identity['phone'] ) && ( 'phone' === $type || $this->is_phone_candidate( $label, $value ) ) ) {
+				$identity['phone'] = sanitize_text_field( $value );
+			}
+		}
+
+		return $identity;
 	}
 }

@@ -7,8 +7,10 @@
      */
     class ClickTrailEvents {
         constructor() {
+            this.collectionEnabled = !!(window.clicutclEventsConfig && window.clicutclEventsConfig.enabled);
             this.debugEnabled = !!(window.clicutclEventsConfig && window.clicutclEventsConfig.debug);
             this.transport = {
+                enabled: !!(window.clicutclEventsConfig && window.clicutclEventsConfig.transportEnabled),
                 url: window.clicutclEventsConfig && window.clicutclEventsConfig.eventsBatchUrl ? String(window.clicutclEventsConfig.eventsBatchUrl) : '',
                 token: window.clicutclEventsConfig && window.clicutclEventsConfig.eventsToken ? String(window.clicutclEventsConfig.eventsToken) : ''
             };
@@ -26,6 +28,11 @@
         }
 
         init() {
+            if (!this.collectionEnabled) {
+                this.debugLog('Browser event collection disabled.');
+                return;
+            }
+
             this.trackSearch();
             this.trackDownloads();
             this.trackScroll();
@@ -36,6 +43,10 @@
         }
 
         pushEvent(eventName, params = {}) {
+            if (!this.collectionEnabled) {
+                return;
+            }
+
             const consentBridge = window.ClickTrailConsent;
             if (typeof consentBridge === 'undefined' || !consentBridge.isGranted()) {
                 this.debugLog('Event blocked (no consent):', eventName);
@@ -64,7 +75,7 @@
         }
 
         sendServerEvent(eventName, eventData, eventId) {
-            if (!this.transport.url || !this.transport.token) return;
+            if (!this.transport.enabled || !this.transport.url || !this.transport.token) return;
 
             const canonical = this.buildCanonicalEvent(eventName, eventData, eventId);
             if (!canonical) return;
@@ -158,13 +169,16 @@
         sanitizeAttribution(data) {
             const allow = [
                 'ft_source', 'ft_medium', 'ft_campaign', 'ft_term', 'ft_content',
+                'ft_utm_id', 'ft_utm_source_platform', 'ft_utm_creative_format', 'ft_utm_marketing_tactic',
                 'lt_source', 'lt_medium', 'lt_campaign', 'lt_term', 'lt_content',
+                'lt_utm_id', 'lt_utm_source_platform', 'lt_utm_creative_format', 'lt_utm_marketing_tactic',
                 'ft_gclid', 'ft_fbclid', 'ft_msclkid', 'ft_ttclid', 'ft_wbraid', 'ft_gbraid',
                 'lt_gclid', 'lt_fbclid', 'lt_msclkid', 'lt_ttclid', 'lt_wbraid', 'lt_gbraid',
                 'ft_twclid', 'ft_li_fat_id', 'ft_sccid', 'ft_sc_click_id', 'ft_epik',
                 'lt_twclid', 'lt_li_fat_id', 'lt_sccid', 'lt_sc_click_id', 'lt_epik',
                 'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid',
-                'twclid', 'li_fat_id', 'sccid', 'sc_click_id', 'epik'
+                'twclid', 'li_fat_id', 'sccid', 'sc_click_id', 'epik',
+                'fbc', 'fbp', 'ttp', 'li_gc', 'ga_client_id', 'ga_session_id', 'ga_session_number'
             ];
 
             const out = {};
@@ -191,7 +205,12 @@
                 };
             }
 
-            const raw = this.getCookie('ct_consent');
+            const cookieName = (
+                window.ctConsentBridgeConfig && window.ctConsentBridgeConfig.cookieName
+                    ? String(window.ctConsentBridgeConfig.cookieName)
+                    : 'ct_consent'
+            );
+            const raw = this.getCookie(cookieName);
             if (!raw) return {};
 
             try {
@@ -639,6 +658,10 @@
     function initTracking() {
         if (trackerInstance) return;
 
+        if (!window.clicutclEventsConfig || !window.clicutclEventsConfig.enabled) {
+            return;
+        }
+
         if (
             typeof window.ClickTrailConsent !== 'undefined' &&
             !window.ClickTrailConsent.isGranted()
@@ -650,6 +673,13 @@
     }
 
     function boot() {
+        if (!window.clicutclEventsConfig || !window.clicutclEventsConfig.enabled) {
+            if (window.clicutclEventsConfig && window.clicutclEventsConfig.debug) {
+                console.log('[ClickTrail] Browser event collection disabled.');
+            }
+            return;
+        }
+
         const consent = window.ClickTrailConsent;
 
         // Bridge missing should fail safe.

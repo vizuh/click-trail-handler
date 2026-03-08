@@ -31,6 +31,24 @@
     var granted = false;
     var resolvedBy = 'unknown';
 
+    function dispatchLegacyEvents() {
+        var detail = {
+            marketing: !!granted,
+            analytics: !!granted,
+            source: resolvedBy
+        };
+
+        window.dispatchEvent(new CustomEvent('ct_consent_updated', {
+            detail: detail
+        }));
+
+        if (granted) {
+            window.dispatchEvent(new CustomEvent('consent_granted', {
+                detail: detail
+            }));
+        }
+    }
+
     function debugLog() {
         if (!window.ctDebug) return;
         try {
@@ -50,6 +68,7 @@
             },
             bubbles: false
         }));
+        dispatchLegacyEvents();
         debugLog('Consent resolved:', granted, 'via', resolvedBy);
     }
 
@@ -317,6 +336,13 @@
         },
         isResolved: function () {
             return !!resolved;
+        },
+        getState: function () {
+            return {
+                resolved: !!resolved,
+                granted: !!granted,
+                source: resolvedBy
+            };
         },
         grant: function (source) {
             resolve(true, source || 'manual', true);

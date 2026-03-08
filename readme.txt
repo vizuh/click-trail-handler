@@ -54,7 +54,7 @@ Operational screens stay separate:
 
 = Supported integrations =
 
-* **Forms**: Contact Form 7, Fluent Forms, Gravity Forms, Ninja Forms, WPForms
+* **Forms**: Contact Form 7, Elementor Forms (Pro), Fluent Forms, Gravity Forms, Ninja Forms, WPForms
 * **Commerce**: WooCommerce
 * **CMP sources**: ClickTrail banner, Cookiebot, OneTrust, Complianz, GTM, custom
 * **Webhook providers**: Calendly, HubSpot, Typeform
@@ -70,6 +70,11 @@ Operational screens stay separate:
 * LinkedIn: `li_fat_id`
 * Snapchat: `sccid`
 * Pinterest: `epik`
+
+= Additional capture fields =
+
+* Extended UTMs: `utm_id`, `utm_source_platform`, `utm_creative_format`, `utm_marketing_tactic`
+* Browser/platform identifiers: `fbc`, `fbp`, `_ttp`, `li_gc`, `ga_client_id`, `ga_session_id`
 
 == Installation ==
 

@@ -4,12 +4,30 @@
     const CONFIG = window.clicutcl_config || {
         cookieName: 'attribution',
         cookieDays: 90,
+        consentCookieName: 'ct_consent',
         requireConsent: true
     };
     const DEBUG_ENABLED = !!CONFIG.debug;
+    const STORAGE_ENVELOPE_VERSION = 1;
+    const TOUCH_QUERY_FIELD_MAP = Object.freeze({
+        utm_source: 'source',
+        utm_medium: 'medium',
+        utm_campaign: 'campaign',
+        utm_term: 'term',
+        utm_content: 'content',
+        utm_id: 'utm_id',
+        utm_source_platform: 'utm_source_platform',
+        utm_creative_format: 'utm_creative_format',
+        utm_marketing_tactic: 'utm_marketing_tactic'
+    });
+    const TOUCH_QUERY_KEYS = Object.keys(TOUCH_QUERY_FIELD_MAP);
+    const TOUCH_FIELD_KEYS = Array.from(new Set(Object.values(TOUCH_QUERY_FIELD_MAP)));
     const CLICK_ID_KEYS = [
         'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid',
         'twclid', 'li_fat_id', 'sccid', 'epik'
+    ];
+    const BROWSER_IDENTIFIER_KEYS = [
+        'fbc', 'fbp', 'ttp', 'li_gc', 'ga_client_id', 'ga_session_id', 'ga_session_number'
     ];
     const CLICK_ID_ALIASES = {
         gclid: ['gclid'],
@@ -23,11 +41,29 @@
         sccid: ['sccid', 'sc_click_id'],
         epik: ['epik']
     };
+    const ATTRIBUTION_KEY_ALIASES = {
+        _fbc: 'fbc',
+        _fbp: 'fbp',
+        _ttp: 'ttp',
+        sc_click_id: 'sccid',
+        ft_sc_click_id: 'ft_sccid',
+        lt_sc_click_id: 'lt_sccid',
+        first_touch_timestamp: 'ft_touch_timestamp',
+        last_touch_timestamp: 'lt_touch_timestamp',
+        first_landing_page: 'ft_landing_page',
+        last_landing_page: 'lt_landing_page'
+    };
 
     function sanitizeKey(key) {
         if (key === null || key === undefined) return '';
         const cleaned = String(key).toLowerCase().replace(/[^a-z0-9_]/g, '');
         return cleaned.slice(0, 64);
+    }
+
+    function canonicalizeAttributionKey(key) {
+        const cleaned = sanitizeKey(key);
+        if (!cleaned) return '';
+        return ATTRIBUTION_KEY_ALIASES[cleaned] || cleaned;
     }
 
     function sanitizeValue(value, maxLen = 256) {
@@ -43,8 +79,13 @@
         if (!input || typeof input !== 'object') return {};
         const out = {};
         Object.keys(input).forEach((rawKey) => {
-            const key = sanitizeKey(rawKey);
+            const rawSanitizedKey = sanitizeKey(rawKey);
+            const key = canonicalizeAttributionKey(rawKey);
             if (!key) return;
+
+            if (key !== rawSanitizedKey && Object.prototype.hasOwnProperty.call(out, key)) {
+                return;
+            }
 
             const rawValue = input[rawKey];
             if (typeof rawValue === 'boolean') {
@@ -61,6 +102,21 @@
             }
         });
         return out;
+    }
+
+    function getConsentCookieName() {
+        const configured = String(
+            CONFIG.consentCookieName ||
+            (window.ctConsentBridgeConfig && window.ctConsentBridgeConfig.cookieName) ||
+            'ct_consent'
+        ).toLowerCase().replace(/[^a-z0-9_-]/g, '');
+        return configured || 'ct_consent';
+    }
+
+    function getRetentionMs() {
+        const days = Number(CONFIG.cookieDays);
+        if (!Number.isFinite(days) || days <= 0) return 0;
+        return days * 24 * 60 * 60 * 1000;
     }
 
     function pickClickId(raw, key) {
@@ -82,10 +138,18 @@
         CLICK_ID_KEYS.forEach((key) => {
             const value = pickClickId(raw, key);
             if (value && !out[key]) out[key] = String(value);
-            // Keep backward compatibility with legacy Snapchat key.
-            if (key === 'sccid' && value && !out.sc_click_id) out.sc_click_id = String(value);
         });
         return out;
+    }
+
+    function normalizeStoredAttribution(raw) {
+        return sanitizeAttributionData(withCanonicalClickIds(raw || {}));
+    }
+
+    function getTouchStorageKey(queryKey, prefix) {
+        const fieldKey = TOUCH_QUERY_FIELD_MAP[queryKey];
+        if (!fieldKey) return '';
+        return `${prefix}_${fieldKey}`;
     }
 
     // --- 1. STORE & UTILS ---
@@ -148,29 +212,97 @@
             document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax" + secureFlag;
         },
 
+        removeCookie: function (name) {
+            const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
+            document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; path=/; SameSite=Lax" + secureFlag;
+        },
+
+        getLocalData: function () {
+            try {
+                const raw = localStorage.getItem(CONFIG.cookieName);
+                if (!raw) return null;
+
+                const parsed = this.safeJsonParse(raw);
+                if (!parsed || typeof parsed !== 'object') {
+                    localStorage.removeItem(CONFIG.cookieName);
+                    return null;
+                }
+
+                if (
+                    parsed.v === STORAGE_ENVELOPE_VERSION &&
+                    parsed.data &&
+                    typeof parsed.data === 'object'
+                ) {
+                    const expiresAt = Number(parsed.expiresAt || 0);
+                    if (expiresAt > 0 && expiresAt <= Date.now()) {
+                        localStorage.removeItem(CONFIG.cookieName);
+                        return null;
+                    }
+                    return normalizeStoredAttribution(parsed.data);
+                }
+
+                // Legacy localStorage copies had no retention metadata. Drop them
+                // so they cannot outlive the configured cookie retention window.
+                localStorage.removeItem(CONFIG.cookieName);
+            } catch (e) { }
+
+            return null;
+        },
+
+        setLocalData: function (data) {
+            const retentionMs = getRetentionMs();
+            if (retentionMs <= 0) {
+                try { localStorage.removeItem(CONFIG.cookieName); } catch (e) { }
+                return;
+            }
+
+            try {
+                localStorage.setItem(CONFIG.cookieName, JSON.stringify({
+                    v: STORAGE_ENVELOPE_VERSION,
+                    savedAt: Date.now(),
+                    expiresAt: Date.now() + retentionMs,
+                    data: sanitizeAttributionData(data)
+                }));
+            } catch (e) { }
+        },
+
+        clearData: function () {
+            this.removeCookie(CONFIG.cookieName);
+            if (CONFIG.cookieName !== 'ct_attribution') {
+                this.removeCookie('ct_attribution');
+            }
+            try { localStorage.removeItem(CONFIG.cookieName); } catch (e) { }
+            this.signedTokenCache = '';
+            this.signedTokenPayloadHash = '';
+        },
+
         getData: function () {
             // 1. Try Cookie
-            const cookieRaw = this.getCookie(CONFIG.cookieName);
+            const cookieRaw = this.getCookie(CONFIG.cookieName) || (
+                CONFIG.cookieName !== 'ct_attribution' ? this.getCookie('ct_attribution') : null
+            );
             const cookieObj = cookieRaw ? this.safeJsonParse(cookieRaw) : null;
 
             // 2. Try LocalStorage
-            let lsObj = null;
-            try {
-                const lsRaw = localStorage.getItem(CONFIG.cookieName);
-                lsObj = lsRaw ? this.safeJsonParse(lsRaw) : null;
-            } catch (e) { }
+            const lsObj = this.getLocalData();
+
+            if (cookieObj && typeof cookieObj === 'object' && !lsObj) {
+                this.setLocalData(cookieObj);
+            }
 
             // 3. Merge (Cookie takes precedence over LS, but current logic usually keeps them in sync)
-            return sanitizeAttributionData(Object.assign({}, lsObj || {}, cookieObj || {}));
+            return normalizeStoredAttribution(Object.assign({}, lsObj || {}, cookieObj || {}));
         },
 
         saveData: function (data) {
             const sanitized = sanitizeAttributionData(data);
+            if (!Object.keys(sanitized).length) {
+                this.clearData();
+                return;
+            }
             const dataStr = JSON.stringify(sanitized);
             this.setCookie(CONFIG.cookieName, dataStr, CONFIG.cookieDays);
-            try {
-                localStorage.setItem(CONFIG.cookieName, dataStr);
-            } catch (e) { }
+            this.setLocalData(sanitized);
         },
 
         signedTokenCache: '',
@@ -180,8 +312,10 @@
         buildToken: function (data) {
             const normalized = withCanonicalClickIds(data || {});
             const allow = [
-                'ft_source', 'ft_medium', 'ft_campaign',
-                'lt_source', 'lt_medium', 'lt_campaign',
+                'ft_source', 'ft_medium', 'ft_campaign', 'ft_term', 'ft_content',
+                'ft_utm_id', 'ft_utm_source_platform', 'ft_utm_creative_format', 'ft_utm_marketing_tactic',
+                'lt_source', 'lt_medium', 'lt_campaign', 'lt_term', 'lt_content',
+                'lt_utm_id', 'lt_utm_source_platform', 'lt_utm_creative_format', 'lt_utm_marketing_tactic',
                 'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid',
                 'twclid', 'li_fat_id', 'sccid', 'epik'
             ];
@@ -292,9 +426,147 @@
         }
     };
 
+    const BrowserIdentifiers = {
+        getCookieMap: function () {
+            return String(document.cookie || '')
+                .split(';')
+                .map((part) => part.trim())
+                .filter(Boolean)
+                .reduce((acc, part) => {
+                    const separator = part.indexOf('=');
+                    if (separator === -1) return acc;
+                    const name = sanitizeKey(part.slice(0, separator));
+                    if (!name) return acc;
+                    let value = part.slice(separator + 1);
+                    try {
+                        value = decodeURIComponent(value);
+                    } catch (e) { }
+                    acc[name] = value;
+                    return acc;
+                }, {});
+        },
+
+        parseGaClientId: function (rawValue) {
+            const value = sanitizeValue(rawValue || '', 128);
+            if (!value) return '';
+
+            const parts = value.split('.');
+            if (parts.length >= 4) {
+                const left = parts[parts.length - 2];
+                const right = parts[parts.length - 1];
+                if (/^\d+$/.test(left) && /^\d+$/.test(right)) {
+                    return `${left}.${right}`;
+                }
+            }
+
+            return '';
+        },
+
+        parseGaSessionData: function (rawValue) {
+            const value = sanitizeValue(rawValue || '', 256);
+            if (!value) return {};
+
+            const out = {};
+            const gs2SessionId = value.match(/(?:^|\$)s(\d{6,})(?:\$|$)/);
+            const gs2SessionNumber = value.match(/(?:^|\$)o(\d+)(?:\$|$)/);
+            if (gs2SessionId) {
+                out.ga_session_id = gs2SessionId[1];
+            }
+            if (gs2SessionNumber) {
+                out.ga_session_number = gs2SessionNumber[1];
+            }
+            if (Object.keys(out).length) {
+                return out;
+            }
+
+            if (value.indexOf('GS1.') === 0) {
+                const parts = value.split('.');
+                if (parts[2]) {
+                    out.ga_session_id = sanitizeValue(parts[2], 32);
+                }
+                if (parts[3]) {
+                    out.ga_session_number = sanitizeValue(parts[3], 16);
+                }
+                if (Object.keys(out).length) {
+                    return out;
+                }
+            }
+
+            const numericTokens = value.match(/\d+/g) || [];
+            if (numericTokens[0]) {
+                out.ga_session_id = numericTokens[0];
+            }
+            if (numericTokens[1]) {
+                out.ga_session_number = numericTokens[1];
+            }
+
+            return out;
+        },
+
+        collect: function (params) {
+            const cookies = this.getCookieMap();
+            const out = {};
+
+            const fbp = sanitizeValue(cookies._fbp || cookies.fbp || params.fbp || params._fbp || '', 128);
+            if (fbp) {
+                out.fbp = fbp;
+            }
+
+            let fbc = sanitizeValue(cookies._fbc || cookies.fbc || params.fbc || params._fbc || '', 128);
+            if (!fbc) {
+                const fbclid = sanitizeValue(params.fbclid || '', 128);
+                if (fbclid) {
+                    fbc = `fb.1.${Date.now()}.${fbclid}`;
+                }
+            }
+            if (fbc) {
+                out.fbc = fbc;
+            }
+
+            const ttp = sanitizeValue(cookies._ttp || cookies.ttp || params._ttp || params.ttp || '', 128);
+            if (ttp) {
+                out.ttp = ttp;
+            }
+
+            const linkedInCookie = sanitizeValue(cookies.li_gc || params.li_gc || '', 128);
+            if (linkedInCookie) {
+                out.li_gc = linkedInCookie;
+            }
+
+            const gaClientId = this.parseGaClientId(cookies._ga || params.ga_client_id || '');
+            if (gaClientId) {
+                out.ga_client_id = gaClientId;
+            }
+
+            Object.keys(cookies).some((name) => {
+                if (name === '_ga' || name.indexOf('_ga_') !== 0) {
+                    return false;
+                }
+
+                const gaSession = this.parseGaSessionData(cookies[name]);
+                if (!gaSession.ga_session_id && !gaSession.ga_session_number) {
+                    return false;
+                }
+
+                Object.assign(out, gaSession);
+                return true;
+            });
+
+            if (!out.ga_session_id && params.ga_session_id) {
+                out.ga_session_id = sanitizeValue(params.ga_session_id, 32);
+            }
+            if (!out.ga_session_number && params.ga_session_number) {
+                out.ga_session_number = sanitizeValue(params.ga_session_number, 16);
+            }
+
+            return sanitizeAttributionData(out);
+        }
+    };
+
     // --- 2. PUBLIC API ---
     const API = {
-        install: function () {
+        install: function (options = {}) {
+            const withIdentity = options.withIdentity !== false;
             window.ClickTrail = {
                 getData: () => Store.getData(),
                 getField: (key) => {
@@ -304,9 +576,13 @@
                 getEncoded: () => {
                     const d = Store.getData();
                     return Store.base64UrlEncode(JSON.stringify(d || {}));
+                },
+                clearData: () => {
+                    Store.clearData();
+                    API.install({ withIdentity: false });
                 }
             };
-            window.ClickTrailIdentity = Identity.get();
+            window.ClickTrailIdentity = withIdentity ? Identity.get() : null;
 
             // Site Health Timestamp
             try { localStorage.setItem('clicutcl_js_last_seen', String(Date.now())); } catch (e) { }
@@ -321,6 +597,52 @@
         findInputs: function (names) {
             const selectors = names.map(n => `input[name="${CSS.escape(n)}"], textarea[name="${CSS.escape(n)}"], select[name="${CSS.escape(n)}"]`);
             return Array.from(document.querySelectorAll(selectors.join(",")));
+        },
+
+        map: function () {
+            const mappings = [];
+
+            TOUCH_QUERY_KEYS.forEach((queryKey) => {
+                const fieldKey = TOUCH_QUERY_FIELD_MAP[queryKey];
+                mappings.push([`ft_${fieldKey}`, [`ct_ft_${fieldKey}`, queryKey]]);
+                mappings.push([`lt_${fieldKey}`, [`ct_lt_${fieldKey}`]]);
+            });
+
+            CLICK_ID_KEYS.forEach((key) => {
+                const topLevelNames = [`ct_${key}`, key];
+                const firstTouchNames = [`ct_ft_${key}`];
+                const lastTouchNames = [`ct_lt_${key}`];
+
+                if (key === 'sccid') {
+                    topLevelNames.push('ct_sc_click_id', 'ScCid', 'sccid', 'sc_click_id');
+                    firstTouchNames.push('ct_ft_sc_click_id');
+                    lastTouchNames.push('ct_lt_sc_click_id');
+                }
+
+                mappings.push([key, topLevelNames]);
+                mappings.push([`ft_${key}`, firstTouchNames]);
+                mappings.push([`lt_${key}`, lastTouchNames]);
+            });
+
+            BROWSER_IDENTIFIER_KEYS.forEach((key) => {
+                const names = [`ct_${key}`, key];
+                if (key === 'ttp') {
+                    names.push('_ttp');
+                }
+                mappings.push([key, names]);
+            });
+
+            mappings.push(
+                ['ft_referrer', ['ct_ft_referrer']],
+                ['lt_referrer', ['ct_lt_referrer', 'ct_referrer']],
+                ['ft_landing_page', ['ct_ft_landing_page', 'ct_first_landing_page', 'ct_landing']],
+                ['lt_landing_page', ['ct_lt_landing_page', 'ct_last_landing_page']],
+                ['ft_touch_timestamp', ['ct_ft_touch_timestamp', 'ct_first_touch_timestamp']],
+                ['lt_touch_timestamp', ['ct_lt_touch_timestamp', 'ct_last_touch_timestamp']],
+                ['session_count', ['ct_session_count']]
+            );
+
+            return mappings;
         },
 
         setIfEmpty: function (input, value) {
@@ -342,39 +664,23 @@
             const data = Store.getData();
             if (!data || Object.keys(data).length === 0) return;
 
-            // Mapping: Attribution Key -> Field Names
-            const map = [
-                // First Touch
-                ["ft_source", ["ct_ft_source", "utm_source"]],
-                ["ft_medium", ["ct_ft_medium", "utm_medium"]],
-                ["ft_campaign", ["ct_ft_campaign", "utm_campaign"]],
-                ["ft_term", ["ct_ft_term", "utm_term"]],
-                ["ft_content", ["ct_ft_content", "utm_content"]],
-                // Last Touch
-                ["lt_source", ["ct_lt_source"]],
-                ["lt_medium", ["ct_lt_medium"]],
-                ["lt_campaign", ["ct_lt_campaign"]],
-                ["lt_term", ["ct_lt_term"]],
-                ["lt_content", ["ct_lt_content"]],
-                // IDs
-                ["gclid", ["ct_gclid", "gclid"]],
-                ["fbclid", ["ct_fbclid", "fbclid"]],
-                ["msclkid", ["ct_msclkid", "msclkid"]],
-                ["ttclid", ["ct_ttclid", "ttclid"]],
-                ["twclid", ["ct_twclid", "twclid"]],
-                ["li_fat_id", ["ct_li_fat_id", "li_fat_id"]],
-                ["sccid", ["ct_sccid", "ScCid", "sccid", "sc_click_id"]],
-                ["epik", ["ct_epik", "epik"]],
-                // Meta
-                ["referrer", ["ct_referrer"]],
-                ["first_landing_page", ["ct_landing"]]
-            ];
-
-            map.forEach(([key, fieldNames]) => {
+            this.map().forEach(([key, fieldNames]) => {
                 const val = data[key];
                 if (val == null || val === "") return;
                 const inputs = this.findInputs(fieldNames);
                 inputs.forEach(inp => this.setIfEmpty(inp, String(val)));
+            });
+        },
+
+        clear: function () {
+            this.map().forEach(([, fieldNames]) => {
+                const inputs = this.findInputs(fieldNames);
+                inputs.forEach((input) => {
+                    if (!input || input.value === '') return;
+                    input.value = '';
+                    input.dispatchEvent(new Event("input", { bubbles: true }));
+                    input.dispatchEvent(new Event("change", { bubbles: true }));
+                });
             });
         },
 
@@ -507,24 +813,22 @@
             if (!data) return null;
 
             const keys = [
-                "utm_source", "utm_medium", "utm_campaign", "utm_term", "utm_content",
-                "gclid", "fbclid", "msclkid", "ttclid", "wbraid", "gbraid",
-                "twclid", "li_fat_id", "ScCid", "epik"
+                'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+                'utm_id', 'utm_source_platform', 'utm_creative_format', 'utm_marketing_tactic',
+                'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid',
+                'twclid', 'li_fat_id', 'ScCid', 'epik'
             ];
 
             let changed = false;
             keys.forEach(k => {
                 const isSnapchatKey = k === 'ScCid';
                 const canonicalKey = isSnapchatKey ? 'sccid' : k;
-                let val = data['lt_' + k.replace('utm_', '')]; // Try lt_source for utm_source
+                let val = data[getTouchStorageKey(k, 'lt')];
                 if (!val) val = data[k]; // Try direct (if stored)
 
                 // For Click IDs, they are just ids
                 if (['gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid', 'twclid', 'li_fat_id', 'ScCid', 'epik'].includes(k)) {
                     val = data[canonicalKey] || data[k] || data['lt_' + canonicalKey] || data['ft_' + canonicalKey];
-                    if (!val && canonicalKey === 'sccid') {
-                        val = data.sc_click_id || data.lt_sc_click_id || data.ft_sc_click_id;
-                    }
                 }
 
                 if (val && !url.searchParams.has(k)) {
@@ -630,44 +934,114 @@
                 }
                 return;
             }
+            this.hasRunAttribution = false;
             this.init();
         }
 
         init() {
             const requiresConsent = CONFIG.requireConsent === true || CONFIG.requireConsent === '1';
+            this.bindConsentListener();
+            const consent = this.getConsent();
 
-            if (requiresConsent) {
-                const consent = this.getConsent();
-                if (consent && consent.marketing) {
+            if (consent && consent.resolved) {
+                if (consent.marketing) {
                     this.runAttribution();
                     return;
                 }
 
-                const maybeRun = (event) => {
-                    const preferences = event.detail || {};
-                    if (preferences.marketing) {
-                        this.runAttribution();
-                        window.removeEventListener('ct_consent_updated', maybeRun);
-                        window.removeEventListener('consent_granted', maybeRun);
-                    }
-                };
+                this.handleConsentDenied();
+                return;
+            }
 
-                window.addEventListener('ct_consent_updated', maybeRun);
-                window.addEventListener('consent_granted', maybeRun);
+            if (requiresConsent) {
                 return;
             }
 
             this.runAttribution();
         }
 
+        bindConsentListener() {
+            document.addEventListener('ct:consentResolved', (event) => {
+                const detail = event && event.detail ? event.detail : {};
+                if (detail.granted) {
+                    if (!this.hasRunAttribution) {
+                        this.runAttribution();
+                    }
+                    return;
+                }
+
+                this.handleConsentDenied();
+            });
+        }
+
         getConsent() {
+            const bridge = window.ClickTrailConsent;
+            if (
+                bridge &&
+                typeof bridge.isResolved === 'function' &&
+                typeof bridge.isGranted === 'function' &&
+                bridge.isResolved()
+            ) {
+                const granted = !!bridge.isGranted();
+                return {
+                    resolved: true,
+                    marketing: granted,
+                    analytics: granted
+                };
+            }
+
             try {
-                const c = Store.getCookie('ct_consent');
-                return c ? JSON.parse(c) : null;
-            } catch (e) { return null; }
+                const c = Store.getCookie(getConsentCookieName());
+                if (!c) return null;
+
+                const parsed = JSON.parse(c);
+                return {
+                    resolved: true,
+                    marketing: !!(parsed && parsed.marketing),
+                    analytics: !!(parsed && parsed.analytics)
+                };
+            } catch (e) {
+                const raw = Store.getCookie(getConsentCookieName());
+                const lowered = String(raw || '').trim().toLowerCase();
+                if (lowered === 'granted' || lowered === '1' || lowered === 'true' || lowered === 'yes') {
+                    return { resolved: true, marketing: true, analytics: true };
+                }
+                if (lowered === 'denied' || lowered === '0' || lowered === 'false' || lowered === 'no') {
+                    return { resolved: true, marketing: false, analytics: false };
+                }
+                return null;
+            }
+        }
+
+        canCapture() {
+            const requiresConsent = CONFIG.requireConsent === true || CONFIG.requireConsent === '1';
+            const consent = this.getConsent();
+
+            if (consent && consent.resolved) {
+                return !!consent.marketing;
+            }
+
+            return !requiresConsent;
+        }
+
+        handleConsentDenied() {
+            const existingData = Store.getData() || {};
+            Store.clearData();
+            Injector.clear();
+            API.install({ withIdentity: false });
+            this.hasRunAttribution = false;
+
+            if (DEBUG_ENABLED && Object.keys(existingData).length) {
+                console.log('[ClickTrail] Attribution cleared after consent denial.');
+            }
         }
 
         runAttribution() {
+            if (!this.canCapture()) {
+                this.handleConsentDenied();
+                return;
+            }
+            this.hasRunAttribution = true;
             const currentParams = Store.getQueryParams();
             const referrer = document.referrer;
 
@@ -677,6 +1051,9 @@
                 const tokenValue = currentParams[tokenParam];
                 if (tokenValue) {
                     Store.verifySignedToken(tokenValue).then((tokenData) => {
+                        if (!this.canCapture()) {
+                            return;
+                        }
                         if (!tokenData) {
                             return;
                         }
@@ -701,6 +1078,11 @@
             const hasAttributionSignal = this.checkSignal(currentParams, referrer);
 
             let storedData = Store.getData() || {};
+            let shouldPersist = false;
+
+            if (this.mergeTopLevelIdentifiers(storedData, BrowserIdentifiers.collect(currentParams))) {
+                shouldPersist = true;
+            }
 
             if (hasAttributionSignal) {
                 const fields = this.mapFields(currentParams, referrer);
@@ -715,8 +1097,12 @@
                 this.applyTouch('lt', storedData, fields, now);
 
                 storedData.session_count = (storedData.session_count || 0) + 1;
+                shouldPersist = true;
+            }
 
+            if (shouldPersist) {
                 Store.saveData(storedData);
+                storedData = Store.getData() || storedData;
             }
 
             // Expose API
@@ -745,11 +1131,10 @@
         }
 
         checkSignal(params, referrer) {
-            const keys = [
-                'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
+            const keys = TOUCH_QUERY_KEYS.concat([
                 'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid',
                 'twclid', 'li_fat_id', 'sccid', 'sc_click_id', 'epik'
-            ];
+            ]);
             if (keys.some(k => params[k])) return true;
 
             // Check referrer (if external)
@@ -759,22 +1144,12 @@
         }
 
         hasFirstTouch(data) {
-            return !!(data && (
-                data.ft_source ||
-                data.ft_medium ||
-                data.ft_campaign ||
-                data.ft_gclid ||
-                data.ft_fbclid ||
-                data.ft_msclkid ||
-                data.ft_ttclid ||
-                data.ft_wbraid ||
-                data.ft_gbraid ||
-                data.ft_twclid ||
-                data.ft_li_fat_id ||
-                data.ft_sccid ||
-                data.ft_sc_click_id ||
-                data.ft_epik
-            ));
+            if (!data || typeof data !== 'object') {
+                return false;
+            }
+
+            return TOUCH_FIELD_KEYS.some((key) => !!data[`ft_${key}`]) ||
+                CLICK_ID_KEYS.some((key) => !!data[`ft_${key}`]);
         }
 
         applyTouch(prefix, data, fields, timestamp) {
@@ -790,26 +1165,44 @@
             }
         }
 
+        mergeTopLevelIdentifiers(data, identifiers) {
+            if (!data || typeof data !== 'object' || !identifiers || typeof identifiers !== 'object') {
+                return false;
+            }
+
+            let changed = false;
+            Object.entries(identifiers).forEach(([key, value]) => {
+                if (!value) return;
+                if (data[key] === value) return;
+                data[key] = value;
+                changed = true;
+            });
+
+            return changed;
+        }
+
         mapFields(params, referrer) {
-            // Standardize params to internal keys
-            const out = {
-                source: sanitizeValue(params.utm_source || '', 128),
-                medium: sanitizeValue(params.utm_medium || '', 128),
-                campaign: sanitizeValue(params.utm_campaign || '', 128),
-                term: sanitizeValue(params.utm_term || '', 128),
-                content: sanitizeValue(params.utm_content || '', 128),
-                gclid: sanitizeValue(params.gclid || '', 128),
-                fbclid: sanitizeValue(params.fbclid || '', 128),
-                msclkid: sanitizeValue(params.msclkid || '', 128),
-                ttclid: sanitizeValue(params.ttclid || '', 128),
-                wbraid: sanitizeValue(params.wbraid || '', 128),
-                gbraid: sanitizeValue(params.gbraid || '', 128),
-                twclid: sanitizeValue(params.twclid || '', 128),
-                li_fat_id: sanitizeValue(params.li_fat_id || '', 128),
-                sccid: sanitizeValue(params.sccid || params.sc_click_id || '', 128),
-                sc_click_id: sanitizeValue(params.sccid || params.sc_click_id || '', 128),
-                epik: sanitizeValue(params.epik || '', 128)
-            };
+            const out = {};
+
+            TOUCH_QUERY_KEYS.forEach((queryKey) => {
+                const fieldKey = TOUCH_QUERY_FIELD_MAP[queryKey];
+                const value = sanitizeValue(params[queryKey] || '', 128);
+                if (value) {
+                    out[fieldKey] = value;
+                }
+            });
+
+            CLICK_ID_KEYS.forEach((key) => {
+                const value = sanitizeValue(
+                    key === 'sccid'
+                        ? (params.sccid || params.sc_click_id || '')
+                        : (params[key] || ''),
+                    128
+                );
+                if (value) {
+                    out[key] = value;
+                }
+            });
 
             // Referrer logic
             if (referrer && referrer.indexOf(window.location.hostname) === -1) {
@@ -843,8 +1236,11 @@
             if (!CONFIG.enableWhatsapp) return;
 
             const requiresConsent = CONFIG.requireConsent === true || CONFIG.requireConsent === '1';
+            const consent = this.getConsent();
+            if (consent && consent.resolved && !consent.marketing) {
+                return;
+            }
             if (requiresConsent) {
-                const consent = this.getConsent();
                 if (!consent || !consent.marketing) {
                     return;
                 }

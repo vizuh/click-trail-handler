@@ -125,6 +125,6 @@ class CF7_Adapter extends Abstract_Form_Adapter {
 		}
 
 		$form_id = $contact_form->id();
-		$this->log_submission( 'contact-form-7', $form_id, $attribution );
+		$this->log_submission( 'contact-form-7', $form_id, $attribution, is_array( $posted_data ) ? $posted_data : array() );
 	}
 }

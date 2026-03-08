@@ -79,8 +79,17 @@ class Event {
 		$event['form']        = isset( $data['form'] ) && is_array( $data['form'] ) ? $data['form'] : array();
 		$event['commerce']    = isset( $data['commerce'] ) && is_array( $data['commerce'] ) ? $data['commerce'] : array();
 		$event['attribution'] = isset( $data['attribution'] ) && is_array( $data['attribution'] ) ? $data['attribution'] : array();
+		$event['identity']    = isset( $data['identity'] ) && is_array( $data['identity'] ) ? $data['identity'] : array();
 		$event['consent']     = isset( $data['consent'] ) && is_array( $data['consent'] ) ? $data['consent'] : array();
 		$event['meta']        = isset( $data['meta'] ) && is_array( $data['meta'] ) ? $data['meta'] : array();
+
+		if ( empty( $event['identity'] ) && ! empty( $event['meta']['identity'] ) && is_array( $event['meta']['identity'] ) ) {
+			$event['identity'] = $event['meta']['identity'];
+		}
+
+		if ( ! empty( $event['identity'] ) && empty( $event['meta']['identity'] ) ) {
+			$event['meta']['identity'] = $event['identity'];
+		}
 
 		$event['meta']['schema_version'] = self::VERSION;
 
@@ -95,7 +104,7 @@ class Event {
 	public static function schema() {
 		return array(
 			'required' => array( 'event_name', 'event_id', 'timestamp', 'source' ),
-			'optional' => array( 'page', 'wa', 'form', 'commerce', 'attribution', 'consent', 'meta' ),
+			'optional' => array( 'page', 'wa', 'form', 'commerce', 'attribution', 'identity', 'consent', 'meta' ),
 			'version'  => self::VERSION,
 		);
 	}
@@ -189,6 +198,7 @@ class Event {
 				'id'       => $form_id,
 			),
 			'attribution' => is_array( $attribution ) ? $attribution : array(),
+			'identity'    => isset( $context['identity'] ) && is_array( $context['identity'] ) ? $context['identity'] : array(),
 			'meta'        => array(
 				'site_id'        => function_exists( 'get_current_blog_id' ) ? (int) get_current_blog_id() : 0,
 				'plugin_version' => defined( 'CLICUTCL_VERSION' ) ? CLICUTCL_VERSION : '',
@@ -251,6 +261,7 @@ class Event {
 				'items'          => $items,
 			),
 			'attribution' => isset( $payload['attribution'] ) && is_array( $payload['attribution'] ) ? $payload['attribution'] : array(),
+			'identity'    => isset( $payload['identity'] ) && is_array( $payload['identity'] ) ? $payload['identity'] : array(),
 			'meta'        => array(
 				'order_id'       => $order_id,
 				'site_id'        => function_exists( 'get_current_blog_id' ) ? (int) get_current_blog_id() : 0,

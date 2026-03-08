@@ -60,9 +60,9 @@ ClickTrail keeps consent, event intake, and delivery configuration in the same p
 
 ### Capture
 
-- First-touch and last-touch UTMs
+- First-touch and last-touch UTMs, including `utm_id`, `utm_source_platform`, `utm_creative_format`, and `utm_marketing_tactic`
 - Referrer capture
-- Major ad click ID capture
+- Major ad click ID and first-party ad/browser identifier capture
 - Configurable attribution retention
 - Cross-domain link decoration
 - Optional attribution token continuity
@@ -79,6 +79,15 @@ Supported click IDs include:
 - `li_fat_id`
 - `sccid`
 - `epik`
+
+Additional browser identifiers include:
+
+- `fbc`
+- `fbp`
+- `_ttp`
+- `li_gc`
+- `ga_client_id`
+- `ga_session_id`
 
 ### Forms
 
@@ -117,6 +126,7 @@ Supported click IDs include:
 ### Forms
 
 - Contact Form 7
+- Elementor Forms (Pro)
 - Fluent Forms
 - Gravity Forms
 - Ninja Forms

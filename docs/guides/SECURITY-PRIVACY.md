@@ -21,6 +21,9 @@ Runtime behavior:
 
 - if consent mode is disabled, attribution uses the legacy required-consent fallback logic
 - if consent mode is enabled, the runtime asks `Consent_Mode_Settings` whether the current request requires consent
+- frontend attribution now consumes the consent bridge as its primary runtime contract instead of hardcoding the legacy plugin cookie path
+- consent resolution is normalized through `ct:consentResolved`, with compatibility events still emitted for older listeners
+- when consent resolves to denied, client-side attribution storage is cleared so previously captured values are not reused
 - browser event collection checks consent before pushing tracked events
 - server-side dispatch checks consent before sending events
 
