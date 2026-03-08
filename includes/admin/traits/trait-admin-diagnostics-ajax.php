@@ -30,7 +30,7 @@ trait Admin_Diagnostics_Ajax_Trait {
 		$pii_found = isset( $_POST['pii_found'] ) ? filter_var( wp_unslash( $_POST['pii_found'] ), FILTER_VALIDATE_BOOLEAN ) : false;
 
 		if ( $pii_found ) {
-			update_option( 'clicutcl_pii_risk_detected', true );
+			update_option( 'clicutcl_pii_risk_detected', true, false );
 			wp_send_json_success();
 		}
 		wp_send_json_error();

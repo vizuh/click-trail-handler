@@ -259,7 +259,15 @@ class Admin {
 	 */
 	public function register_settings() {
 		// 1. Attribution Settings (General & WhatsApp)
-		register_setting( 'clicutcl_attribution_settings', 'clicutcl_attribution_settings', array( $this, 'sanitize_settings' ) );
+		register_setting(
+			'clicutcl_attribution_settings',
+			'clicutcl_attribution_settings',
+			array(
+				'type'              => 'array',
+				'sanitize_callback' => array( $this, 'sanitize_settings' ),
+				'default'           => $this->get_attribution_settings_defaults(),
+			)
+		);
 		register_setting( 'clicutcl_tracking_v2', 'clicutcl_tracking_v2', array( 'CLICUTCL\\Tracking\\Settings', 'sanitize' ) );
 
 		// General Section
@@ -751,16 +759,16 @@ class Admin {
 	}
 
 	public function sanitize_settings( $input ) {
-		$current = get_option( 'clicutcl_attribution_settings', array() );
+		$current  = get_option( 'clicutcl_attribution_settings', array() );
+		$defaults = $this->get_attribution_settings_defaults();
 		if ( ! current_user_can( 'manage_options' ) ) {
-			return is_array( $current ) ? $current : array();
+			return is_array( $current ) ? array_merge( $defaults, $current ) : $defaults;
 		}
 
-		$input = is_array( $input ) ? wp_unslash( $input ) : array();
-
-		$schema = $this->get_attribution_settings_schema();
+		$input   = $this->normalize_settings_input( $input );
+		$schema  = $this->get_attribution_settings_schema();
 		$current = is_array( $current ) ? $current : array();
-		$merged = $this->apply_settings_defaults( $current, $schema );
+		$merged  = array_merge( $defaults, $current );
 
 		foreach ( $schema as $key => $rule ) {
 			if ( ! array_key_exists( $key, $input ) ) {
@@ -848,21 +856,45 @@ class Admin {
 	}
 
 	/**
-	 * Ensure all known settings have stable defaults without dropping unknown keys.
+	 * Return the canonical defaults for clicutcl_attribution_settings.
 	 *
-	 * @param array $existing Existing stored settings.
-	 * @param array $schema   Settings schema.
-	 * @return array
+	 * @return array<string, mixed>
 	 */
-	private function apply_settings_defaults( $existing, $schema ) {
-		$existing = is_array( $existing ) ? $existing : array();
+	private function get_attribution_settings_defaults() {
+		$defaults = array();
+		$schema   = $this->get_attribution_settings_schema();
+
 		foreach ( $schema as $key => $rule ) {
-			if ( ! array_key_exists( $key, $existing ) ) {
-				$existing[ $key ] = isset( $rule['default'] ) ? $rule['default'] : '';
-			}
+			$defaults[ $key ] = isset( $rule['default'] ) ? $rule['default'] : '';
 		}
 
-		return $existing;
+		return $defaults;
+	}
+
+	/**
+	 * Normalize posted settings payload into scalar values the schema expects.
+	 *
+	 * @param mixed $input Raw input.
+	 * @return array<string, mixed>
+	 */
+	private function normalize_settings_input( $input ) {
+		if ( ! is_array( $input ) ) {
+			return array();
+		}
+
+		$input      = wp_unslash( $input );
+		$normalized = array();
+
+		foreach ( $input as $key => $value ) {
+			if ( is_array( $value ) ) {
+				$candidate = end( $value );
+				$value     = false !== $candidate ? $candidate : '';
+			}
+
+			$normalized[ $key ] = $value;
+		}
+
+		return $normalized;
 	}
 
 	/**

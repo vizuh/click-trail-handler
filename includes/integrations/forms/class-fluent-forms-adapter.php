@@ -41,7 +41,7 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 	 */
 	public function register_hooks() {
 		// Echo hidden fields
-		add_action( 'fluentform_form_element_start', array( $this, 'add_hidden_fields' ), 10, 2 );
+		add_action( 'fluentform_form_element_start', array( $this, 'add_hidden_fields' ), 10, 1 );
 		
 		// Submission persistence
 		add_action( 'fluentform_submission_inserted', array( $this, 'on_submission' ), 10, 3 );
@@ -51,9 +51,8 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 	 * Add hidden fields to Fluent Form.
 	 *
 	 * @param object $form Form object.
-	 * @param array  $data Form data.
 	 */
-	public function add_hidden_fields( $form, $data ) {
+	public function add_hidden_fields( $form ) {
 		if ( ! $this->should_populate() ) {
 			return;
 		}

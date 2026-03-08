@@ -451,14 +451,14 @@ class Queue {
 		$table_name = self::get_table_name();
 		$now        = current_time( 'mysql', true );
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned; live stats query, caching would return stale counts.
 		$pending = (int) $wpdb->get_var( "SELECT COUNT(id) FROM {$table_name}" );
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned; live stats query, caching would return stale counts.
 		$max_attempts = (int) $wpdb->get_var( "SELECT MAX(attempts) FROM {$table_name}" );
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned; live stats query, caching would return stale counts.
 		$oldest_next = (string) $wpdb->get_var( "SELECT MIN(next_attempt_at) FROM {$table_name}" );
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned; live stats query, caching would return stale counts.
 		$due_now = (int) $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT COUNT(id) FROM {$table_name} WHERE next_attempt_at <= %s",

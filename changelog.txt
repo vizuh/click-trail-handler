@@ -1,6 +1,33 @@
 Changelog
 ========
 
+= 1.3.3 =
+*   **Security (API hardening)**: Added request body-size guards (128KB) on public webhook and lifecycle endpoints to prevent oversized payload abuse (HTTP 413 on overflow).
+*   **Security (authz)**: Closed batch endpoint nonce bypass by requiring `manage_options` capability on the wp_rest nonce path.
+*   **Security (XSS)**: Replaced consent-banner `innerHTML` rendering with safe DOM API construction to eliminate DOM XSS sinks in active consent UI.
+*   **Security (legacy exposure)**: Removed deprecated `assets/js/ct-consent.js` from runtime and added ignore rules to prevent accidental reintroduction.
+*   **Security (secrets hygiene)**: Implemented masked admin reads and write-only secret updates for tracking v2 settings (`secret`/`token` fields are no longer exposed back to admin clients).
+*   **Security (optional at-rest protection)**: Added optional secret encryption-at-rest for tracking settings (`security.encrypt_secrets_at_rest`) with transparent decrypt-on-read.
+*   **Privacy (data minimization)**: Replaced raw WordPress user IDs in dataLayer payloads with salted one-way SHA-256 hashes.
+*   **Privacy (WP compliance)**: Added personal data exporter/eraser integration for ClickTrail tracking data via WordPress privacy APIs.
+*   **Consent (runtime architecture)**: Added consent bridge layer (`clicutcl-consent-bridge.js`) to normalize consent resolution across built-in banner, CMPs, GTM Consent Mode, and custom implementations.
+*   **Consent (event gating)**: Updated event initialization to wait for resolved consent and added dispatch-time guard to block event pushes when consent is denied/unresolved.
+*   **Consent (admin controls)**: Added consent source and CMP timeout settings, with sanitization and localized runtime bridge configuration.
+*   **GTM behavior**: Preserved unconditional GTM snippet loading while aligning ClickTrail event initialization with resolved consent signals.
+*   **Attribution integrity**: Hardened attribution token flows and canonical click-ID normalization (including Snapchat aliases to canonical `sccid` handling).
+*   **Attribution coverage**: Aligned click-ID handling across parsing/mapping paths for Google, Meta, TikTok, Microsoft, Twitter/X, LinkedIn, Snapchat aliases, and Pinterest identifiers.
+*   **WooCommerce logic**: Fixed fallback attribution path so flat-cookie attribution is normalized into first/last touch before purchase payload flattening.
+*   **Forms integration**: Corrected Ninja Forms attribution global usage to `window.ClickTrail` API.
+*   **Admin UX**: Replaced dead PII warning CTA with actionable links to diagnostics/settings.
+*   **Internationalization**: Replaced hardcoded admin error strings with translatable strings for consistency with WP i18n conventions.
+*   **Technical debt (modularization)**: Reduced blast radius by splitting oversized classes into bounded-context traits (admin pages/diagnostics, tracking controller security/debug/token internals, log controller WA/runtime internals).
+*   **Technical debt (legacy cleanup)**: Removed deprecated runtime integration class (`includes/integrations/class-form-integrations.php`) and updated ignore policy for archived artifacts.
+*   **Standards (boolean coercion fix)**: Fixed toggle sanitization so string values like `"false"` no longer coerce to enabled.
+*   **Standards (style consistency)**: Refactored `class-site-health.php` to consistent WordPress/PSR-friendly formatting and safer input handling patterns.
+*   **Standards (enforcement)**: Added `phpcs.xml.dist`, typing policy documentation, and QA script to enforce consistent repository typing policy.
+*   **Docs hygiene**: Removed duplicated Portuguese section in `README.md` to prevent documentation drift.
+*   **Docs truth-alignment**: Updated `readme.txt` claims to match shipped click-ID and consent-mode behavior exactly.
+
 = 1.3.2 =
 *   **Security**: Enforced signed-token authorization for WA click ingestion, removed Origin/Referer as a security control, and added trusted-proxy-aware client IP handling.
 *   **Security**: Closed WA ingestion bypass paths and aligned authorization checks across endpoints.
