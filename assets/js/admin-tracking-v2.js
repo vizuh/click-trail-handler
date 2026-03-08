@@ -88,7 +88,8 @@
         }).then((res) => res.json());
     }
 
-    function App() {
+    function App(props) {
+        var mode = (props && props.mode) || 'full';
         const [settings, setSettings] = useState(deepClone(config.settings || {}));
         const [loading, setLoading] = useState(false);
         const [saving, setSaving] = useState(false);
@@ -317,6 +318,11 @@
             ])
         ];
 
+        // Filter cards based on render mode.
+        var visibleCards = mode === 'destinations'
+            ? cards.filter(function (c) { return c.key === 'destinations'; })
+            : cards.filter(function (c) { return c.key !== 'destinations'; });
+
         return el('div', { className: 'clicutcl-tracking-v2', style: { maxWidth: '980px', marginTop: '12px' } }, [
             notice ? el(Notice, {
                 key: 'notice',
@@ -325,7 +331,7 @@
                 onRemove: function () { setNotice(null); }
             }, notice.message || '') : null,
             loading ? el('div', { key: 'loading', style: { marginBottom: '12px' } }, el(Spinner)) : null,
-            ...cards,
+            ...visibleCards,
             el('div', { key: 'actions', style: { marginTop: '16px', display: 'flex', gap: '8px' } }, [
                 el(Button, {
                     key: 'save',
@@ -333,7 +339,7 @@
                     isBusy: saving,
                     disabled: saving || loading,
                     onClick: save
-                }, __('Save Tracking v2 Settings', 'click-trail-handler')),
+                }, __('Save Settings', 'click-trail-handler')),
                 el(Button, {
                     key: 'reload',
                     variant: 'secondary',
@@ -344,20 +350,20 @@
         ]);
     }
 
-    function boot() {
-        const root = document.getElementById('clicutcl-tracking-v2-root');
-        if (!root) {
-            return;
-        }
-
-        const app = el(App);
+    function mount(id, mode) {
+        var root = document.getElementById(id);
+        if (!root) { return; }
+        var app = el(App, { mode: mode });
         if (typeof wp.element.createRoot === 'function') {
             wp.element.createRoot(root).render(app);
-            return;
-        }
-        if (typeof wp.element.render === 'function') {
+        } else if (typeof wp.element.render === 'function') {
             wp.element.render(app, root);
         }
+    }
+
+    function boot() {
+        mount('clicutcl-tracking-v2-root', 'full');
+        mount('clicutcl-destinations-v2-root', 'destinations');
     }
 
     if (document.readyState === 'loading') {

@@ -69,6 +69,19 @@ class Tracking_Controller extends WP_REST_Controller {
 	private const RATE_WINDOW_DEFAULT = 60;
 
 	/**
+	 * Valid lifecycle stage values for the /lifecycle-update endpoint.
+	 * Keyed by value for O(1) isset() validation.
+	 *
+	 * @var array<string,true>
+	 */
+	private const ALLOWED_LIFECYCLE_STAGES = array(
+		'lead'             => true,
+		'book_appointment' => true,
+		'qualified_lead'   => true,
+		'client_won'       => true,
+	);
+
+	/**
 	 * Constructor.
 	 */
 	public function __construct() {
@@ -561,8 +574,7 @@ class Tracking_Controller extends WP_REST_Controller {
 		$payload = is_array( $payload ) ? $payload : array();
 
 		$stage = isset( $payload['stage'] ) ? sanitize_key( (string) $payload['stage'] ) : '';
-		$allow = array( 'lead', 'book_appointment', 'qualified_lead', 'client_won' );
-		if ( ! in_array( $stage, $allow, true ) ) {
+		if ( ! isset( self::ALLOWED_LIFECYCLE_STAGES[ $stage ] ) ) {
 			return new WP_Error( 'invalid_stage', 'Invalid lifecycle stage', array( 'status' => 400 ) );
 		}
 

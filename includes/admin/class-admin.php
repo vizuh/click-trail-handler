@@ -228,7 +228,13 @@ class Admin {
 		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only routing context.
 		$tab  = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : '';
-		if ( 'clicutcl-settings' === $page && 'trackingv2' === $tab && current_user_can( 'manage_options' ) ) {
+		// Normalise legacy tab slugs for asset loading.
+		$tab_aliases = array( 'trackingv2' => 'advanced', 'server' => 'destinations', 'gtm' => 'destinations' );
+		if ( isset( $tab_aliases[ $tab ] ) ) {
+			$tab = $tab_aliases[ $tab ];
+		}
+		$needs_v2_js = in_array( $tab, array( 'advanced', 'destinations' ), true );
+		if ( 'clicutcl-settings' === $page && $needs_v2_js && current_user_can( 'manage_options' ) ) {
 			wp_register_script(
 				'clicutcl-admin-tracking-v2',
 				CLICUTCL_URL . 'assets/js/admin-tracking-v2.js',
@@ -648,59 +654,120 @@ class Admin {
 	public function render_settings_page() {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page navigation does not require nonce.
 		$active_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : 'general';
+
+		// Redirect legacy tab slugs so old bookmarks keep working.
+		$legacy_map = array(
+			'whatsapp'   => 'channels',
+			'gtm'        => 'destinations',
+			'server'     => 'destinations',
+			'trackingv2' => 'advanced',
+		);
+		if ( isset( $legacy_map[ $active_tab ] ) ) {
+			$active_tab = $legacy_map[ $active_tab ];
+		}
 		?>
 		<div class="wrap clicktrail-settings-wrap">
 			<h1><?php echo esc_html( get_admin_page_title() ); ?></h1>
-			
+
 			<h2 class="nav-tab-wrapper">
 				<a href="?page=clicutcl-settings&tab=general" class="nav-tab <?php echo esc_attr( 'general' === $active_tab ? 'nav-tab-active' : '' ); ?>">
 					<span class="dashicons dashicons-admin-generic"></span>
 					<?php esc_html_e( 'Attribution', 'click-trail-handler' ); ?>
 				</a>
-				<a href="?page=clicutcl-settings&tab=whatsapp" class="nav-tab <?php echo esc_attr( 'whatsapp' === $active_tab ? 'nav-tab-active' : '' ); ?>">
+				<a href="?page=clicutcl-settings&tab=channels" class="nav-tab <?php echo esc_attr( 'channels' === $active_tab ? 'nav-tab-active' : '' ); ?>">
 					<span class="dashicons dashicons-format-chat"></span>
-					<?php esc_html_e( 'WhatsApp', 'click-trail-handler' ); ?>
+					<?php esc_html_e( 'Channels', 'click-trail-handler' ); ?>
+				</a>
+				<a href="?page=clicutcl-settings&tab=destinations" class="nav-tab <?php echo esc_attr( 'destinations' === $active_tab ? 'nav-tab-active' : '' ); ?>">
+					<span class="dashicons dashicons-cloud"></span>
+					<?php esc_html_e( 'Destinations', 'click-trail-handler' ); ?>
 				</a>
 				<a href="?page=clicutcl-settings&tab=consent" class="nav-tab <?php echo esc_attr( 'consent' === $active_tab ? 'nav-tab-active' : '' ); ?>">
 					<span class="dashicons dashicons-privacy"></span>
 					<?php esc_html_e( 'Privacy & Consent', 'click-trail-handler' ); ?>
 				</a>
-				<a href="?page=clicutcl-settings&tab=gtm" class="nav-tab <?php echo esc_attr( 'gtm' === $active_tab ? 'nav-tab-active' : '' ); ?>">
-					<span class="dashicons dashicons-chart-bar"></span>
-					<?php esc_html_e( 'Integrations', 'click-trail-handler' ); ?>
-				</a>
-				<a href="?page=clicutcl-settings&tab=server" class="nav-tab <?php echo esc_attr( 'server' === $active_tab ? 'nav-tab-active' : '' ); ?>">
-					<span class="dashicons dashicons-cloud"></span>
-					<?php esc_html_e( 'Server-side', 'click-trail-handler' ); ?>
-				</a>
-				<a href="?page=clicutcl-settings&tab=trackingv2" class="nav-tab <?php echo esc_attr( 'trackingv2' === $active_tab ? 'nav-tab-active' : '' ); ?>">
+				<a href="?page=clicutcl-settings&tab=advanced" class="nav-tab <?php echo esc_attr( 'advanced' === $active_tab ? 'nav-tab-active' : '' ); ?>">
 					<span class="dashicons dashicons-admin-tools"></span>
-					<?php esc_html_e( 'Tracking v2', 'click-trail-handler' ); ?>
+					<?php esc_html_e( 'Advanced', 'click-trail-handler' ); ?>
 				</a>
 			</h2>
 
-			<?php if ( 'trackingv2' === $active_tab ) : ?>
+			<?php if ( 'advanced' === $active_tab ) : ?>
 				<div id="clicutcl-tracking-v2-root"></div>
+			<?php elseif ( 'destinations' === $active_tab ) : ?>
+				<form action="options.php" method="post">
+					<?php
+					settings_fields( 'clicutcl_gtm' );
+					do_settings_sections( 'clicutcl_gtm' );
+					submit_button( __( 'Save GTM Settings', 'click-trail-handler' ) );
+					?>
+				</form>
+				<hr />
+				<form action="options.php" method="post">
+					<?php
+					settings_fields( 'clicutcl_server_side' );
+					do_settings_sections( 'clicutcl_server_side_tab' );
+					submit_button( __( 'Save Server-side Settings', 'click-trail-handler' ) );
+					?>
+				</form>
+				<hr />
+				<div id="clicutcl-destinations-v2-root"></div>
+			<?php elseif ( 'consent' === $active_tab ) : ?>
+				<?php
+				$consent_obj     = new Consent_Mode_Settings();
+				$consent_enabled = $consent_obj->is_consent_mode_enabled();
+				$gtm_obj         = new GTM_Settings();
+				$gtm_val         = $gtm_obj->get();
+				$has_gtm         = ! empty( $gtm_val['container_id'] );
+				?>
+				<div id="clicutcl-consent-off-notice" class="notice notice-info inline" style="<?php echo $consent_enabled ? 'display:none;' : ''; ?>margin-top:15px;">
+					<p>
+					<?php if ( $has_gtm ) : ?>
+						<?php esc_html_e( 'Plugin consent management is disabled. Your GTM container handles consent signals directly — no additional setup needed here.', 'click-trail-handler' ); ?>
+					<?php else : ?>
+						<?php esc_html_e( 'Plugin consent management is disabled. Tracking data will be collected without requiring user consent. Enable this if you need GDPR, LGPD, or CCPA compliance.', 'click-trail-handler' ); ?>
+					<?php endif; ?>
+					</p>
+				</div>
+				<form action="options.php" method="post">
+					<?php
+					settings_fields( 'clicutcl_consent_mode' );
+					do_settings_sections( 'clicutcl_consent_mode' );
+					submit_button();
+					?>
+				</form>
+				<script>
+				(function() {
+					var cb = document.querySelector( 'input[name="clicutcl_consent_mode[enabled]"][type="checkbox"]' );
+					if ( ! cb ) { return; }
+					var row = cb.closest( 'tr' );
+					if ( ! row ) { return; }
+					var deps = [];
+					var el = row.nextElementSibling;
+					while ( el ) { deps.push( el ); el = el.nextElementSibling; }
+					var notice = document.getElementById( 'clicutcl-consent-off-notice' );
+					function sync() {
+						var on = cb.checked;
+						for ( var i = 0; i < deps.length; i++ ) {
+							deps[i].style.display = on ? '' : 'none';
+						}
+						if ( notice ) { notice.style.display = on ? 'none' : ''; }
+					}
+					sync();
+					cb.addEventListener( 'change', sync );
+				})();
+				</script>
 			<?php else : ?>
 				<form action="options.php" method="post">
 					<?php
-					if ( $active_tab == 'general' ) {
+					if ( 'general' === $active_tab ) {
 						settings_fields( 'clicutcl_attribution_settings' );
 						do_settings_sections( 'clicutcl_general_tab' );
-					} elseif ( $active_tab == 'whatsapp' ) {
+					} elseif ( 'channels' === $active_tab ) {
 						settings_fields( 'clicutcl_attribution_settings' );
 						do_settings_sections( 'clicutcl_whatsapp_tab' );
-					} elseif ( $active_tab == 'consent' ) {
-						settings_fields( 'clicutcl_consent_mode' );
-						do_settings_sections( 'clicutcl_consent_mode' );
-					} elseif ( $active_tab == 'gtm' ) {
-						settings_fields( 'clicutcl_gtm' );
-						do_settings_sections( 'clicutcl_gtm' );
-					} elseif ( $active_tab == 'server' ) {
-						settings_fields( 'clicutcl_server_side' );
-						do_settings_sections( 'clicutcl_server_side_tab' );
 					}
-					
+
 					submit_button();
 					?>
 				</form>
@@ -1002,8 +1069,7 @@ class Admin {
 
 		if ( isset( $input['adapter'] ) ) {
 			$adapter = sanitize_key( $input['adapter'] );
-			$allowed = array( 'generic', 'sgtm', 'meta_capi', 'google_ads', 'linkedin_capi' );
-			$new_input['adapter'] = in_array( $adapter, $allowed, true ) ? $adapter : 'generic';
+			$new_input['adapter'] = isset( \CLICUTCL\Server_Side\Dispatcher::ALLOWED_ADAPTERS[ $adapter ] ) ? $adapter : 'generic';
 		}
 
 		if ( isset( $input['timeout'] ) ) {
