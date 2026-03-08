@@ -1,7 +1,20 @@
 Changelog
 ========
 
+= 1.3.6 =
+*   **Forms (Fluent Forms — hooks)**: Registered both slash-style (`fluentform/form_element_start`, `fluentform/submission_inserted`) and underscore-style legacy hooks so the adapter fires on Fluent Forms v5+ and on installations still running v4 or below. A static dedup guard in `on_submission` ensures the entry is logged exactly once even if both aliases fire.
+*   **Forms (Fluent Forms — meta persistence)**: Implemented the previously commented-out Fluent Forms entry meta write. Attribution values are now inserted into `fluentform_submission_meta` via `wpFluent()` on each submission, making them accessible from the Fluent Forms entry detail view and its API. The insert is wrapped in a try/catch so a table-level error does not block ClickTrail's own event log.
+*   **Forms (Gravity Forms — entry meta registration)**: Added `gform_entry_meta` filter registration in the Gravity Forms adapter. Each attribution key (prefixed `ct_`) is now declared as a named meta entry, making attribution values visible in the Gravity Forms entry detail screen, exportable via the CSV/XLSX export tool, and searchable in the entries list — matching the behaviour of first-class Gravity Forms fields.
+*   **Admin (Diagnostics — copy)**: Renamed "Recent v2 Intake Events" card to "Recent Event Intake" and updated its description and empty-state text to remove internal "v2" terminology from user-facing diagnostic output.
+*   **Admin CSS (settings app utilities)**: Added `.clicktrail-setting-block` (with `.is-disabled` opacity state), `.clicktrail-setting-label` (inline-flex label layout), `.clicktrail-provider-block` (provider row separator), `.clicktrail-ops-links` (action link row), and `.clicktrail-diagnostics-grid--compact` (inset grid variant) to support the unified settings app layout.
+
 = 1.3.5 =
+*   **Admin UX (final unified settings app)**: Replaced the split Settings API + separate advanced tracking UI with one modern WordPress-native settings shell for the main ClickTrail settings screen.
+*   **Admin IA (capability tabs)**: Reorganized settings into four capability-based tabs -- `Capture`, `Forms`, `Events`, and `Delivery` -- so users can configure ClickTrail by use case instead of internal implementation layers.
+*   **Admin copy (humanized language)**: Removed user-facing `Tracking v2` terminology from the main settings flow and translated developer-first labels into product-facing language.
+*   **Admin compatibility (legacy URLs)**: Added alias routing for old admin tabs so `general`, `whatsapp`, `trackingv2`, `advanced`, `server`, and `destinations` continue to land in the correct new capability tab.
+*   **Admin persistence (grouped save layer)**: Added unified admin AJAX load/save endpoints that group settings by capability in the UI while still writing back to the existing option stores.
+*   **Admin UX (delivery summary)**: Added a lightweight Delivery health summary inside Settings with queue backlog, last dispatch, last error, debug state, and direct links to Logs and Diagnostics.
 *   **Admin UX (unified identity)**: Replaced `wp.components` Card/CardBody/CardHeader in the Advanced tab React UI with the same `.clicktrail-card` shell used by all PHP-rendered settings tabs — eliminating the two-identity split.
 *   **Admin UX (tab consolidation)**: Reduced settings tabs from six to four — Attribution (core capture + JS fallback + cross-domain + WhatsApp), Consent, Destinations, and Advanced — each organized around a clear user intent rather than internal system names.
 *   **Admin UX (WhatsApp)**: Moved WhatsApp settings from a standalone tab into a collapsible card on the Attribution tab, where it belongs alongside the other capture settings it shares an option group with.
