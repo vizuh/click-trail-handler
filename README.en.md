@@ -28,7 +28,7 @@ It combines:
 
 ### 1. Lost campaign attribution in WordPress
 
-Users land with UTMs or ad click IDs, browse a few pages, and convert later. Without persistence, the conversion record loses the original source.
+Users land with UTMs or ad click IDs, browse a few pages, and convert later. Other visitors arrive from organic search or social referrals with no tags at all. Without persistence, the conversion record loses the original source.
 
 ClickTrail keeps the source trail available through forms, checkout, and event payloads.
 
@@ -61,7 +61,7 @@ ClickTrail keeps consent, event intake, and delivery configuration in the same p
 ### Capture
 
 - First-touch and last-touch UTMs, including `utm_id`, `utm_source_platform`, `utm_creative_format`, and `utm_marketing_tactic`
-- Referrer capture
+- Referrer capture with automatic organic, social, and referral fallback when UTMs are absent
 - Major ad click ID and first-party ad/browser identifier capture
 - Configurable attribution retention
 - Cross-domain link decoration

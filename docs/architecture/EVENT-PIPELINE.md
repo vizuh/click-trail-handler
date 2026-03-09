@@ -25,8 +25,9 @@ Primary script:
 
 Responsibilities:
 
-- read UTMs, referrer, and supported click IDs from the URL
+- read UTMs and supported click IDs from the URL plus referrer context from the pageview
 - normalize attribution values
+- infer organic, social, or referral source/medium from external referrers when tagged campaign signals are absent
 - store first-touch and last-touch context
 - populate supported form fields
 - decorate approved outbound links
