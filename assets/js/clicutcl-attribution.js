@@ -26,6 +26,7 @@
         'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid',
         'twclid', 'li_fat_id', 'sccid', 'epik'
     ];
+    const CLICK_ID_SIGNAL_KEYS = CLICK_ID_KEYS.concat(['sc_click_id']);
     const BROWSER_IDENTIFIER_KEYS = [
         'fbc', 'fbp', 'ttp', 'li_gc', 'ga_client_id', 'ga_session_id', 'ga_session_number'
     ];
@@ -53,6 +54,25 @@
         first_landing_page: 'ft_landing_page',
         last_landing_page: 'lt_landing_page'
     };
+    const SEARCH_REFERRER_RULES = Object.freeze([
+        { source: 'google', labels: ['google'] },
+        { source: 'bing', domains: ['bing.com'] },
+        { source: 'yahoo', labels: ['yahoo'] },
+        { source: 'duckduckgo', domains: ['duckduckgo.com'] },
+        { source: 'ecosia', domains: ['ecosia.org'] },
+        { source: 'yandex', labels: ['yandex'] },
+        { source: 'baidu', domains: ['baidu.com'] }
+    ]);
+    const SOCIAL_REFERRER_RULES = Object.freeze([
+        { source: 'facebook', domains: ['facebook.com'] },
+        { source: 'instagram', domains: ['instagram.com'] },
+        { source: 'linkedin', domains: ['linkedin.com', 'lnkd.in'] },
+        { source: 'twitter', domains: ['twitter.com', 't.co', 'x.com'] },
+        { source: 'reddit', domains: ['reddit.com'] },
+        { source: 'pinterest', domains: ['pinterest.com'] },
+        { source: 'youtube', domains: ['youtube.com', 'youtu.be'] },
+        { source: 'tiktok', domains: ['tiktok.com'] }
+    ]);
 
     function sanitizeKey(key) {
         if (key === null || key === undefined) return '';
@@ -73,6 +93,10 @@
         if (!s) return '';
         if (s.length > maxLen) s = s.slice(0, maxLen);
         return s;
+    }
+
+    function escapeRegExp(value) {
+        return String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
 
     function sanitizeAttributionData(input) {
@@ -150,6 +174,114 @@
         const fieldKey = TOUCH_QUERY_FIELD_MAP[queryKey];
         if (!fieldKey) return '';
         return prefix + '_' + fieldKey;
+    }
+
+    function normalizeHostname(host) {
+        return String(host || '')
+            .trim()
+            .toLowerCase()
+            .replace(/\.+$/, '')
+            .replace(/^www\./, '');
+    }
+
+    function parseUrlSafely(rawUrl, baseUrl) {
+        try {
+            return new URL(rawUrl, baseUrl || window.location.href);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function areRelatedHosts(firstHost, secondHost) {
+        const first = normalizeHostname(firstHost);
+        const second = normalizeHostname(secondHost);
+
+        if (!first || !second) return false;
+
+        return first === second || first.endsWith('.' + second) || second.endsWith('.' + first);
+    }
+
+    function hostMatchesDomain(host, domain) {
+        const normalizedHost = normalizeHostname(host);
+        const normalizedDomain = normalizeHostname(domain);
+
+        if (!normalizedHost || !normalizedDomain) return false;
+
+        return normalizedHost === normalizedDomain || normalizedHost.endsWith('.' + normalizedDomain);
+    }
+
+    function hostMatchesLabel(host, label) {
+        const normalizedHost = normalizeHostname(host);
+        const normalizedLabel = sanitizeValue(label, 64).toLowerCase();
+
+        if (!normalizedHost || !normalizedLabel) return false;
+
+        return new RegExp('(^|\\.)' + escapeRegExp(normalizedLabel) + '\\.').test(normalizedHost);
+    }
+
+    function matchReferrerRule(host, rules) {
+        const normalizedHost = normalizeHostname(host);
+
+        if (!normalizedHost || !Array.isArray(rules)) {
+            return null;
+        }
+
+        for (let i = 0; i < rules.length; i++) {
+            const rule = rules[i];
+            if (Array.isArray(rule.domains) && rule.domains.some((domain) => hostMatchesDomain(normalizedHost, domain))) {
+                return rule;
+            }
+            if (Array.isArray(rule.labels) && rule.labels.some((label) => hostMatchesLabel(normalizedHost, label))) {
+                return rule;
+            }
+        }
+
+        return null;
+    }
+
+    function classifyReferrerHost(host) {
+        const normalizedHost = normalizeHostname(host);
+        if (!normalizedHost) return null;
+
+        const searchRule = matchReferrerRule(normalizedHost, SEARCH_REFERRER_RULES);
+        if (searchRule) {
+            return {
+                source: searchRule.source,
+                medium: 'organic'
+            };
+        }
+
+        const socialRule = matchReferrerRule(normalizedHost, SOCIAL_REFERRER_RULES);
+        if (socialRule) {
+            return {
+                source: socialRule.source,
+                medium: 'social'
+            };
+        }
+
+        return {
+            source: normalizedHost,
+            medium: 'referral'
+        };
+    }
+
+    function getExternalReferrerDetails(rawReferrer) {
+        const referrerUrl = parseUrlSafely(rawReferrer, window.location.href);
+        if (!referrerUrl || !/^https?:$/i.test(referrerUrl.protocol)) {
+            return null;
+        }
+
+        const referrerHost = normalizeHostname(referrerUrl.hostname);
+        const currentHost = normalizeHostname(window.location.hostname);
+
+        if (!referrerHost || !currentHost || areRelatedHosts(referrerHost, currentHost)) {
+            return null;
+        }
+
+        return {
+            host: referrerHost,
+            referrer: sanitizeValue(referrerUrl.toString(), 256)
+        };
     }
 
     // --- 1. STORE & UTILS ---
@@ -1237,8 +1369,8 @@
                 }
             }
 
-            // Logic to determine if we have new attribution
-            const hasAttributionSignal = this.checkSignal(currentParams, referrer);
+            const touch = this.resolveTouch(currentParams, referrer);
+            const hasAttributionSignal = touch.hasSignal;
 
             let storedData = Store.getData() || {};
             let shouldPersist = false;
@@ -1248,7 +1380,7 @@
             }
 
             if (hasAttributionSignal) {
-                const fields = this.mapFields(currentParams, referrer);
+                const fields = touch.fields;
                 const now = new Date().toISOString();
 
                 // First Touch
@@ -1296,17 +1428,25 @@
             Store.prepareSignedToken(storedData);
         }
 
-        checkSignal(params, referrer) {
-            const keys = TOUCH_QUERY_KEYS.concat([
-                'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid',
-                'twclid', 'li_fat_id', 'sccid', 'sc_click_id', 'epik'
-            ]);
-            if (keys.some(k => params[k])) return true;
+        hasTouchQuerySignal(params) {
+            return TOUCH_QUERY_KEYS.some((key) => !!params[key]) ||
+                CLICK_ID_SIGNAL_KEYS.some((key) => !!params[key]);
+        }
 
-            // Check referrer (if external)
-            if (referrer && referrer.indexOf(window.location.hostname) === -1) return true;
+        resolveTouch(params, referrer) {
+            if (this.hasTouchQuerySignal(params)) {
+                const fields = this.mapQueryFields(params);
+                return {
+                    hasSignal: Object.keys(fields).length > 0,
+                    fields: fields
+                };
+            }
 
-            return false;
+            const fields = this.mapReferrerFields(referrer);
+            return {
+                hasSignal: Object.keys(fields).length > 0,
+                fields: fields
+            };
         }
 
         hasFirstTouch(data) {
@@ -1347,7 +1487,7 @@
             return changed;
         }
 
-        mapFields(params, referrer) {
+        mapQueryFields(params) {
             const out = {};
 
             TOUCH_QUERY_KEYS.forEach((queryKey) => {
@@ -1370,15 +1510,25 @@
                 }
             });
 
-            // Referrer logic
-            if (referrer && referrer.indexOf(window.location.hostname) === -1) {
-                if (!out.source) {
-                    // Simple referrer parsing could go here (e.g. google.com -> source=google, medium=organic)
-                    // For now just store raw referrer
-                    out.referrer = sanitizeValue(referrer, 256);
-                }
-            }
             return out;
+        }
+
+        mapReferrerFields(referrer) {
+            const externalReferrer = getExternalReferrerDetails(referrer);
+            if (!externalReferrer) {
+                return {};
+            }
+
+            const classification = classifyReferrerHost(externalReferrer.host);
+            if (!classification) {
+                return {};
+            }
+
+            return {
+                source: sanitizeValue(classification.source, 128),
+                medium: sanitizeValue(classification.medium, 128),
+                referrer: externalReferrer.referrer
+            };
         }
 
         initFormListeners(data) {

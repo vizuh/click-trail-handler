@@ -25,7 +25,7 @@ It captures first-touch and last-touch source data, keeps it available during th
 
 = What problems it solves =
 
-* **Lost UTMs and click IDs**: Visitors arrive from paid traffic, browse a few pages, and convert later. ClickTrail preserves attribution instead of letting the conversion fall back to "Direct".
+* **Lost UTMs and click IDs**: Visitors arrive from paid traffic, browse a few pages, and convert later. Other visitors arrive from search or social referrals without tags. ClickTrail preserves attribution instead of letting the conversion fall back to "Direct".
 * **Cached or dynamic forms**: Hidden fields often break on cached pages or AJAX-rendered forms. ClickTrail includes client-side fallback and dynamic-content support.
 * **Weak WooCommerce source data**: Orders can retain attribution metadata and purchase events can be enriched with campaign context.
 * **Cross-domain breaks**: Approved link decoration and attribution tokens help keep continuity between domains or subdomains.
@@ -33,7 +33,7 @@ It captures first-touch and last-touch source data, keeps it available during th
 
 = Core capabilities =
 
-* **Capture**: first-touch and last-touch UTMs, referrers, and major ad click IDs with configurable retention.
+* **Capture**: first-touch and last-touch UTMs, major ad click IDs, and referrers with automatic organic/social/referral fallback when UTMs are absent.
 * **Forms**: automatic hidden-field enrichment for Contact Form 7 and Fluent Forms, compatible hidden-field population for Gravity Forms and WPForms, client-side fallback, dynamic form support, and WhatsApp attribution continuity.
 * **Events**: browser event collection with `dataLayer` pushes, canonical REST intake, webhook ingestion, and lifecycle updates.
 * **Delivery**: optional server-side transport, retry queue, diagnostics, consent-aware dispatch, and failure telemetry.

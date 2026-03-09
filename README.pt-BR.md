@@ -28,7 +28,7 @@ Ele combina:
 
 ### 1. Perda de atribuicao dentro do WordPress
 
-O usuario entra com UTMs ou click IDs, navega algumas paginas e converte depois. Sem persistencia, o formulario ou pedido perde a origem original.
+O usuario entra com UTMs ou click IDs, navega algumas paginas e converte depois. Outros visitantes chegam por busca organica ou redes sociais sem tags. Sem persistencia, o formulario ou pedido perde a origem original.
 
 O ClickTrail mantem a trilha da origem disponivel em formularios, checkout e payloads de evento.
 
@@ -61,7 +61,7 @@ O ClickTrail junta consentimento, intake de eventos e configuracao de entrega no
 ### Capture
 
 - UTMs de primeiro toque e ultimo toque, incluindo `utm_id`, `utm_source_platform`, `utm_creative_format` e `utm_marketing_tactic`
-- captura de referrer
+- captura de referrer com inferencia automatica de origem organica, social ou referral quando nao existem UTMs
 - captura dos principais click IDs de anuncios e identificadores first-party de browser/plataforma
 - retencao configuravel da atribuicao
 - decoracao de links cross-domain

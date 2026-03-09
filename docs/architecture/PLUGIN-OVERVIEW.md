@@ -80,7 +80,7 @@ Responsibilities:
 
 Responsibilities:
 
-- capture UTMs, referrers, and click IDs
+- capture UTMs, click IDs, and referrers, including organic/social/referral fallback when tagged campaign signals are absent
 - persist attribution in first-party client storage
 - populate supported form fields
 - decorate approved cross-domain links
