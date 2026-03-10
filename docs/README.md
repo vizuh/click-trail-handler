@@ -31,6 +31,10 @@ Use this file to find the correct technical document by task. Do not treat redir
 - [docs/guides/SECURITY-PRIVACY.md](guides/SECURITY-PRIVACY.md): consent, token auth, replay protection, and secret handling
 - [docs/architecture/DATA-MODEL.md](architecture/DATA-MODEL.md): cookies, queue tables, and stored state
 
+## Reuse In Other Projects
+
+- [docs/guides/TRACKING-ATTRIBUTION-PORTABLE-PROMPT.md](guides/TRACKING-ATTRIBUTION-PORTABLE-PROMPT.md): copy-paste prompt for porting the tracking, attribution, privacy, and settings model into another codebase
+
 ## Prepare a Pull Request
 
 - [../CONTRIBUTING.md](../CONTRIBUTING.md): contributor workflow and docs update matrix
