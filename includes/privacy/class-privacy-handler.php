@@ -113,9 +113,9 @@ class Privacy_Handler {
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Required for privacy export callbacks.
 		$rows = $wpdb->get_results(
-			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, WordPress.DB.PreparedSQL.NotPrepared -- Params merged dynamically via array_merge; $query built above.
+			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- Params merged dynamically via array_merge.
 			$wpdb->prepare(
-				$query,
+				$query, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $query built above.
 				array_merge( $where['params'], array( self::PAGE_SIZE, $offset ) )
 			),
 			ARRAY_A
@@ -198,9 +198,8 @@ class Privacy_Handler {
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Required for privacy erasure callbacks.
 		$rows = $wpdb->get_results(
-			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $query built above.
 			$wpdb->prepare(
-				$query,
+				$query, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $query built above.
 				array_merge( $where['params'], array( self::PAGE_SIZE ) )
 			),
 			ARRAY_A
