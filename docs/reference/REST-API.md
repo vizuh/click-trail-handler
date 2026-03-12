@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, integrators, and reviewers
 - **Canonical for**: active routes, auth model, diagnostics endpoints, and REST-side constraints
 - **Update when**: routes, auth headers, body limits, or intake behavior changes
-- **Last verified against version**: `1.3.6`
+- **Last verified against version**: `1.3.9`
 
 Active REST namespace:
 
