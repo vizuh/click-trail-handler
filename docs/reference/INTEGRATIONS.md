@@ -3,9 +3,26 @@
 - **Audience**: contributors, maintainers, reviewers, and solution engineers
 - **Canonical for**: supported integrations, providers, CMP sources, webhook sources, and delivery adapters
 - **Update when**: integration support level, adapter list, provider list, or capability messaging changes
-- **Last verified against version**: `1.3.6`
+- **Last verified against version**: `1.3.9`
 
 This document lists the active integrations and external-facing connection points in the current codebase.
+
+Use this file when a team needs to answer two questions:
+
+1. "Is this platform or provider supported?"
+2. "How does ClickTrail attach value to it in practice?"
+
+For rollout guidance by site type, see [../guides/IMPLEMENTATION-PLAYBOOK.md](../guides/IMPLEMENTATION-PLAYBOOK.md).
+
+## Integration Pattern Cheatsheet
+
+Form integrations fall into three patterns:
+
+- automatic hidden-field injection: Contact Form 7 and Fluent Forms
+- compatible hidden-field population: Gravity Forms and WPForms
+- submission-hook and stored-attribution path: Elementor Forms (Pro) and Ninja Forms
+
+That distinction matters operationally because teams should not expect every form plugin to receive fields the same way.
 
 ## WordPress Integrations
 
@@ -34,6 +51,12 @@ What ClickTrail does:
 - for Elementor Forms, log submissions through Elementor Pro's official `elementor_pro/forms/new_record` hook and read matching `ct_*` hidden fields when they are present, with cookie fallback when they are not
 - for Ninja Forms, store attribution in the submission extra data (`extra.clicktrail_attribution`), show it in the submission detail UI, and use the submission hooks rather than automatic hidden-field injection
 
+Where teams see value:
+
+- campaign context becomes visible in form entries or submission records
+- cached or dynamic form rendering stops breaking attribution as easily
+- the same attribution context can feed browser events and optional delivery flows
+
 ## WooCommerce
 
 Managed by:
@@ -47,6 +70,11 @@ What ClickTrail does:
 - push purchase event to `dataLayer`
 - optionally dispatch purchase events into the server-side delivery pipeline
 
+Where teams see value:
+
+- order review stays tied to campaign context
+- purchase events can align browser and server-side reporting paths
+
 ## Consent and CMP Sources
 
 Supported consent sources:
@@ -57,6 +85,10 @@ Supported consent sources:
 - Complianz
 - GTM
 - custom bridge
+
+Implementation note:
+
+- teams should choose one consent source of truth and wire ClickTrail to that source, rather than trying to let multiple CMP paths compete at runtime
 
 Consent bridge assets:
 
@@ -76,6 +108,10 @@ What ClickTrail does:
 
 - optionally inject a GTM container
 - push browser and purchase events to `window.dataLayer`
+
+Important note:
+
+- if the site already injects GTM elsewhere, do not configure GTM injection again in ClickTrail
 
 ## External Form Source Webhooks
 
@@ -105,6 +141,10 @@ Purpose:
 
 - allow backend or CRM systems to report lifecycle progress into the same canonical pipeline
 
+Where teams see value:
+
+- lifecycle stages such as `qualified_lead` or `client_won` can re-enter the same event model used by browser and form-originated events
+
 ## Server-Side Delivery Adapters
 
 Dispatcher:
@@ -124,6 +164,10 @@ Current role of adapters:
 - send canonical delivery events to the configured endpoint shape
 - share queueing, retry, diagnostics, and consent gates
 
+Operational note:
+
+- `Delivery` is most useful when a real downstream endpoint already exists; it is not required for base attribution capture, form enrichment, or WooCommerce order storage
+
 ## Cross-Domain Attribution Helpers
 
 Routes:
@@ -134,6 +178,12 @@ Routes:
 Purpose:
 
 - continue attribution across approved domains or subdomains
+
+Best fit:
+
+- marketing site -> app
+- marketing site -> scheduler
+- marketing site -> checkout
 
 ## WhatsApp
 
@@ -148,6 +198,10 @@ What ClickTrail does:
 
 - preserve attribution continuity in WhatsApp links
 - optionally append attribution context to pre-filled messages
+
+Best fit:
+
+- campaigns that drive users into WhatsApp as the main lead handoff path
 
 ## Geo and Region Inputs
 

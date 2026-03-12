@@ -3,7 +3,7 @@
 - **Audience**: maintainers, support engineers, and reviewers
 - **Canonical for**: activation checks, queue behavior, diagnostics, and common failure handling
 - **Update when**: operational troubleshooting, queue behavior, diagnostics surfaces, or recovery steps change
-- **Last verified against version**: `1.3.6`
+- **Last verified against version**: `1.3.9`
 
 ## Activation and Boot
 

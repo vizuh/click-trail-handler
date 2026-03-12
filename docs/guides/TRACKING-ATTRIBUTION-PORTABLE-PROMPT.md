@@ -10,7 +10,7 @@
   - `docs/guides/SECURITY-PRIVACY.md`
   - `docs/reference/REST-API.md`
   - `docs/reference/INTEGRATIONS.md`
-- **Last derived from version**: `1.3.6`
+- **Last derived from version**: `1.3.9`
 
 Use the prompt below when you want another project or AI agent to reproduce the tracking, attribution, privacy, and settings model behind ClickTrail without copying the WordPress-specific implementation literally.
 
@@ -198,6 +198,7 @@ Identity and session rules:
 - maintain session identity separately from attribution
 - use a 30-minute inactivity timeout to roll a new session
 - expose `session_id`, `session_number`, and `visitor_id` to browser events and downstream payloads
+- `session_id` must always originate from the browser that owns the session; never derive it from a server-side cookie when processing incoming event payloads — if the payload omits `session_id`, generate a synthetic ID from the event's own identifier rather than falling back to an ambient server cookie that may belong to a different visitor
 
 Cross-domain continuity:
 - support link decoration only for approved domains
@@ -231,11 +232,17 @@ Browser event collection:
 - browser event collection must remain a separate switch from attribution capture
 - telemetry must be attached to the host project's actual UI affordances, route changes, and server-side transitions
 - map each event to existing components, templates, pages, handlers, or jobs so the event contract matches what the product really exposes
+- include richer page context in every event: page path, page title, document referrer (the page that navigated here), and viewport dimensions (`viewport_w`, `viewport_h`) so downstream systems can perform content and device analysis without a separate session lookup
+- derive device type (`mobile`, `tablet`, `desktop`) from screen width and touch capability at event time and attach it to event metadata; do not rely on server-side UA parsing
+- for scroll depth events, record the exact percentage at the moment the threshold is crossed alongside the threshold bucket; this allows downstream funnels to use precise depth values rather than coarse buckets
+- for form events, record the elapsed time from `form_start` to `form_submit_attempt` in milliseconds (`time_to_submit_ms`) keyed per form so multi-form pages report correct timing independently
 
 Canonical event pipeline:
 - normalize incoming events into one canonical event schema
 - support intake from browser events, form submissions, commerce conversions, provider webhooks, and backend lifecycle updates
 - apply auth, request limits, consent rules, identity resolution, normalization, and translation before delivery
+- browser events emitted by the client SDK must already carry all required canonical fields (`event_name`, `event_id`, `event_time`, `funnel_stage`, `session_id`, `source_channel`, `page_context`, `attribution`, `consent`, `meta`); the intake endpoint should normalize them directly without a translation pass so native payloads are never re-interpreted as legacy inputs
+- reserve the legacy translation layer for minimal external payloads such as provider webhooks and backend lifecycle updates that cannot include the full canonical shape at the point of origin
 
 Lifecycle and webhook intake:
 - support lifecycle updates from backend or CRM systems for stages equivalent to `lead`, `book_appointment`, `qualified_lead`, and `client_won`
@@ -270,10 +277,12 @@ Security controls:
 - use signed client tokens for browser-to-backend event intake when needed
 - enforce request size limits and rate limits
 - support nonce or replay protection for signed browser tokens
+- when the attribution payload changes while a token sign request is in flight, queue exactly one re-sign for after the current request completes rather than dropping the update silently; this prevents stale tokens from being used against a changed payload
 - support trusted proxy configuration for source IP and rate-limit correctness
 - treat provider and lifecycle secrets as masked, write-only values in admin responses
-- optionally support encryption at rest for stored secrets
+- optionally support encryption at rest for stored secrets; if decryption fails at runtime, log the failure and treat the value as empty rather than passing the encrypted blob to the adapter as if it were plaintext
 - block server-side dispatch by default in local or development environments unless explicitly overridden
+- when consent is overridden programmatically by a trusted internal caller, log the override with the caller identity in debug output so the decision is traceable during audits
 
 Diagnostics and operations:
 - keep Logs and Diagnostics as separate operational surfaces rather than burying them inside the main settings flow

@@ -21,6 +21,34 @@ Before changing code or docs, find the canonical reference for the area you are 
 3. Keep user-facing copy aligned across `README.en.md`, `README.pt-BR.md`, and `readme.txt` when the product message changes.
 4. Update `changelog.txt` when the change is release-note worthy.
 
+## Local Setup and Checks
+
+Prerequisites:
+
+- PHP `8.1+`
+- Composer
+- npm
+- a local WordPress install where this repo is available as a plugin
+
+Recommended bootstrap:
+
+1. Clone or symlink the repository into your local WordPress `wp-content/plugins/` directory.
+2. Run `composer install` from the repo root to install coding standards and contributor tooling.
+3. Activate the plugin in WordPress and confirm the admin screens load without fatal errors.
+4. Use `docs/README.md` to find the canonical docs for the subsystem you plan to change before editing code.
+
+Recommended checks before opening a PR:
+
+- Run `composer phpcs` for the repository baseline coding-standard check.
+- Run the affected flow manually in WordPress because the repo does not currently ship an automated PHP or JS test suite.
+- Run `npm run make-zip` when your change affects packaging, release prep, or you want to validate the distributable plugin build. This command wraps `tools/release/make-zip.ps1`.
+
+Manual validation examples:
+
+- attribution or consent change: visit a URL with UTMs, confirm the plugin captures attribution, and verify consent-dependent behavior
+- form integration change: submit a supported form and confirm the mapped attribution fields or event logs look correct
+- server-side delivery change: inspect queue behavior, retry behavior, and diagnostics/log output for the affected adapter or endpoint
+
 ## Expectations for Pull Requests
 
 - Explain the problem and the chosen approach.
@@ -49,6 +77,7 @@ Before changing code or docs, find the canonical reference for the area you are 
 ## Practical Review Checklist
 
 - Does the code match the current docs?
+- Can a fresh contributor follow the setup and checks above without guessing hidden prerequisites?
 - Does the PR template have every section filled meaningfully?
 - Are any screenshots or gifs needed for admin changes?
 - Did the change create or remove a maintenance hotspot that should be reflected in `CODE-QUALITY.md`?

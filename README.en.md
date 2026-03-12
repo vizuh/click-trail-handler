@@ -1,8 +1,8 @@
 # ClickTrail
 
-ClickTrail is a WordPress attribution and tracking plugin for sites that need reliable marketing source data inside forms, WooCommerce orders, and event pipelines.
+ClickTrail is a WordPress attribution plugin for sites that need reliable marketing source data to survive real-world user journeys, not just the landing page.
 
-It is built for the problems that usually break attribution in real projects:
+It is built for the problems that usually break attribution in production:
 
 - cached pages
 - dynamic or AJAX-loaded forms
@@ -11,9 +11,11 @@ It is built for the problems that usually break attribution in real projects:
 - consent-aware tracking requirements
 - optional server-side delivery
 
+Instead of capturing a UTM once and hoping it survives, ClickTrail keeps first-touch and last-touch context available until forms, WooCommerce orders, browser events, or downstream delivery flows actually need it.
+
 ## What ClickTrail Does
 
-ClickTrail captures first-touch and last-touch attribution, keeps it available across the visit lifecycle, and makes that data usable where conversions actually happen.
+ClickTrail captures first-touch and last-touch attribution, keeps it available across the visit lifecycle, and makes that data usable where conversions actually happen inside WordPress.
 
 It combines:
 
@@ -23,6 +25,21 @@ It combines:
 - browser event collection
 - consent-aware tracking controls
 - optional server-side transport with retries and diagnostics
+
+That means you can start with form or WooCommerce attribution first, then add browser events, consent integrations, or server-side delivery when your setup actually needs them.
+
+## Latest Release Notes (1.3.9)
+
+Version `1.3.9` is a maintenance-heavy release aimed at three things: safer privacy workflows, lower runtime overhead, and clearer troubleshooting.
+
+- **Safer privacy matching**: WordPress privacy export and erasure requests now escape `user_id` fragments before they are used in `LIKE`-based event matching. In plain English: a personal-data request is less likely to accidentally match unrelated rows because of wildcard-sensitive characters.
+- **Faster privacy cleanup**: matching event rows are now deleted in batches during erasure requests instead of one database delete per row. This matters most on sites with larger event tables, higher traffic, or long data-retention windows.
+- **Less repeated option churn**: frequently read plugin settings now go through a lightweight cache layer. Attribution checks, consent checks, token TTL lookups, tracking settings, and server-side delivery settings no longer need to keep reloading the same option values during one request.
+- **Lower frontend overhead**: the consent bridge script now loads only when the page actually needs attribution capture, consent handling, or browser events. Pages that do not use those frontend runtime features avoid one extra script.
+- **Less bootstrap path scanning**: the fallback loader that looks for `CLICUTCL\Core\Context` now remembers the successful file path instead of probing the same candidate paths on every request.
+- **Better debugging clues**: invalid attribution-token payloads can emit a debug-only diagnostic message, and privacy erasure can surface the real `$wpdb->last_error` value when deletion fails in debug mode.
+
+For the full release history, see [changelog.txt](changelog.txt). The same public release notes are mirrored in [readme.txt](readme.txt) for the WordPress.org plugin page.
 
 ## Problems It Solves
 
@@ -190,15 +207,37 @@ ClickTrail helps with privacy-aware implementation, but compliance still depends
 
 ## Installation
 
-1. Upload the plugin to `/wp-content/plugins/click-trail-handler/` or install it through WordPress.
-2. Activate the plugin.
-3. Open `ClickTrail > Settings`.
-4. Configure the areas you use:
-   - `Capture` for attribution basics
-   - `Forms` for form enrichment
-   - `Events` for browser events and destinations
-   - `Delivery` for server-side transport and privacy
-5. Validate the setup from `ClickTrail > Diagnostics`.
+### Before you start
+
+ClickTrail does not need to be fully enabled on day one. A basic forms or WooCommerce attribution setup can work without server-side delivery.
+
+- If you only need attribution inside forms or WooCommerce, leave server-side delivery off for now.
+- If your site already injects Google Tag Manager, do not enter the GTM container ID again in ClickTrail.
+- If you use Gravity Forms or WPForms, add the `ct_*` hidden fields you want stored or exported before testing.
+- If your site has consent requirements, decide whether ClickTrail or your existing CMP should be the source of truth.
+
+### Recommended first setup
+
+1. Install the plugin through WordPress or upload it to `/wp-content/plugins/click-trail-handler/`.
+2. Activate the plugin and open `ClickTrail > Settings`.
+3. In `Capture`, keep attribution enabled, choose a retention window that matches your sales cycle, and enable cross-domain continuity only when visitors actually move between approved domains or subdomains.
+4. In `Forms`, enable only the integrations you use. Contact Form 7 and Fluent Forms can receive hidden attribution fields automatically. Gravity Forms and WPForms should have the matching `ct_*` hidden fields you want to preserve, such as `ct_ft_source`, `ct_lt_source`, or `ct_gclid`.
+5. In `Events`, leave browser events enabled only if you want `dataLayer` pushes and on-site event capture. Add a GTM container ID only if your site does not already inject GTM elsewhere.
+6. In `Delivery`, leave server-side delivery off unless you already have a collector, sGTM, or advertising endpoint ready. If consent is required, choose the correct consent source and mode before going live.
+7. Open `ClickTrail > Diagnostics` and run the relevant checks.
+
+### How to confirm it is working
+
+1. Visit your site with a test URL such as `?utm_source=test&utm_medium=cpc&utm_campaign=clicktrail-install-check`.
+2. Browse to another page, then submit a supported form or place a test WooCommerce order.
+3. Confirm the result you expect:
+   - the form entry or WooCommerce order contains attribution values
+   - browser events appear in your GTM preview or `dataLayer` if `Events` is enabled
+   - Diagnostics and Logs show event intake or delivery activity if `Delivery` is enabled
+
+### Good default rollout
+
+Start with `Capture` and the integrations you already use. Add `Events` next if you want browser analytics signals. Add `Delivery` only when you are ready to send data to a collector or advertising endpoint.
 
 ## Typical Use Cases
 
@@ -210,9 +249,11 @@ ClickTrail helps with privacy-aware implementation, but compliance still depends
 
 ## Repository Docs
 
+- [Implementation playbook](docs/guides/IMPLEMENTATION-PLAYBOOK.md)
 - [Technical documentation index](docs/README.md)
 - [Contributor guide](CONTRIBUTING.md)
 - [Integrations reference](docs/reference/INTEGRATIONS.md)
+- [Full changelog](changelog.txt)
 - [WordPress.org readme](readme.txt)
 
 ## Notes on Current Architecture
