@@ -321,6 +321,12 @@ trait Tracking_Controller_Attribution_Token_Trait {
 			$data .= str_repeat( '=', 4 - $remainder );
 		}
 		$decoded = base64_decode( strtr( $data, '-_', '+/' ), true );
-		return false === $decoded ? '' : $decoded;
+		if ( false === $decoded ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'ClickTrail: base64url_decode failed for attribution token payload.' );
+			}
+			return '';
+		}
+		return $decoded;
 	}
 }
