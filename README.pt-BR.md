@@ -1,8 +1,8 @@
 # ClickTrail
 
-ClickTrail e um plugin de atribuicao e tracking para WordPress feito para sites que precisam manter a origem real das conversoes em formularios, pedidos do WooCommerce e pipelines de eventos.
+ClickTrail e um plugin de atribuicao para WordPress feito para sites que precisam manter a origem real das conversoes ao longo da jornada completa, nao apenas na landing page.
 
-Ele foi pensado para os problemas que normalmente quebram a atribuicao em projetos reais:
+Ele foi pensado para os problemas que normalmente quebram a atribuicao em producao:
 
 - paginas com cache
 - formularios dinamicos ou carregados via AJAX
@@ -11,9 +11,11 @@ Ele foi pensado para os problemas que normalmente quebram a atribuicao em projet
 - necessidade de tracking com consentimento
 - entrega opcional server-side
 
+Em vez de capturar uma UTM uma vez e torcer para que ela sobreviva, o ClickTrail mantem o contexto de primeiro toque e ultimo toque disponivel ate o momento em que formularios, pedidos do WooCommerce, eventos no navegador ou fluxos de entrega realmente precisam dele.
+
 ## O Que o ClickTrail Faz
 
-O ClickTrail captura atribuicao de primeiro toque e ultimo toque, mantem esses dados disponiveis durante a jornada do visitante e faz com que essa informacao chegue ao ponto em que a conversao realmente acontece.
+O ClickTrail captura atribuicao de primeiro toque e ultimo toque, mantem esses dados disponiveis durante a jornada do visitante e faz com que essa informacao chegue ao ponto em que a conversao realmente acontece dentro do WordPress.
 
 Ele combina:
 
@@ -23,6 +25,8 @@ Ele combina:
 - coleta de eventos no navegador
 - controles de consentimento
 - transporte server-side opcional com fila e diagnosticos
+
+Isso permite comecar por formularios ou WooCommerce e adicionar eventos no navegador, integracoes de consentimento ou entrega server-side depois, quando a operacao realmente precisar.
 
 ## Problemas Que Ele Resolve
 
@@ -190,15 +194,37 @@ O plugin ajuda numa implementacao orientada a privacidade, mas a conformidade fi
 
 ## Instalacao
 
-1. Envie o plugin para `/wp-content/plugins/click-trail-handler/` ou instale pelo WordPress.
-2. Ative o plugin.
-3. Abra `ClickTrail > Settings`.
-4. Configure as areas que voce realmente usa:
-   - `Capture` para atribuicao
-   - `Forms` para formularios
-   - `Events` para eventos e destinos
-   - `Delivery` para transporte e privacidade
-5. Valide o ambiente em `ClickTrail > Diagnostics`.
+### Antes de configurar
+
+O ClickTrail pode ser adotado por partes. Uma configuracao basica para formularios ou WooCommerce nao exige entrega server-side logo no primeiro dia.
+
+- Se voce so precisa da atribuicao dentro de formularios ou do WooCommerce, deixe a entrega server-side desligada por enquanto.
+- Se o seu site ja injeta Google Tag Manager, nao preencha o container ID novamente dentro do ClickTrail.
+- Se voce usa Gravity Forms ou WPForms, adicione antes os campos hidden `ct_*` que deseja armazenar ou exportar.
+- Se o site exige consentimento, defina antes se a fonte principal sera o ClickTrail ou o CMP que voce ja usa.
+
+### Configuracao inicial recomendada
+
+1. Instale o plugin pelo WordPress ou envie-o para `/wp-content/plugins/click-trail-handler/`.
+2. Ative o plugin e abra `ClickTrail > Settings`.
+3. Em `Capture`, mantenha a atribuicao ligada, escolha uma janela de retencao compativel com o seu ciclo de venda e ative a continuidade cross-domain apenas se o visitante realmente passar por dominios ou subdominios aprovados.
+4. Em `Forms`, ligue apenas as integracoes que voce usa. Contact Form 7 e Fluent Forms podem receber os campos de atribuicao automaticamente. Gravity Forms e WPForms devem ter os campos hidden `ct_*` que voce quer preservar, como `ct_ft_source`, `ct_lt_source` ou `ct_gclid`.
+5. Em `Events`, deixe a coleta no navegador ligada apenas se voce quiser pushes para o `dataLayer` e captura de eventos no site. Preencha o container ID do GTM apenas se o site ainda nao injeta GTM em outro lugar.
+6. Em `Delivery`, deixe o server-side desligado se voce ainda nao tem collector, sGTM ou endpoint de destino pronto. Se houver exigencia de consentimento, escolha aqui a fonte e o modo corretos antes de colocar em producao.
+7. Abra `ClickTrail > Diagnostics` e rode as verificacoes relevantes.
+
+### Como validar que esta funcionando
+
+1. Acesse o site com uma URL de teste, como `?utm_source=test&utm_medium=cpc&utm_campaign=clicktrail-install-check`.
+2. Navegue para outra pagina e depois envie um formulario suportado ou faca um pedido de teste no WooCommerce.
+3. Confirme o resultado esperado:
+   - a entrada do formulario ou o pedido do WooCommerce contem os valores de atribuicao
+   - os eventos aparecem no preview do GTM ou no `dataLayer` se `Events` estiver ligado
+   - Diagnostics e Logs mostram atividade de intake ou delivery se `Delivery` estiver ligado
+
+### Rollout padrao recomendado
+
+Comece por `Capture` e pelas integracoes que ja estao em uso. Adicione `Events` depois, se quiser sinais de analytics no navegador. Adicione `Delivery` apenas quando estiver pronto para enviar dados para um collector ou endpoint de publicidade.
 
 ## Casos de Uso Comuns
 
@@ -210,6 +236,7 @@ O plugin ajuda numa implementacao orientada a privacidade, mas a conformidade fi
 
 ## Documentacao do Repositorio
 
+- [Playbook de implementacao](docs/guides/IMPLEMENTATION-PLAYBOOK.md)
 - [Indice da documentacao tecnica](docs/README.md)
 - [Guia de contribuicao](CONTRIBUTING.pt-BR.md)
 - [Referencia de integracoes](docs/reference/INTEGRATIONS.md)

@@ -61,6 +61,8 @@ function clicutcl_script_args( $in_footer = false, $strategy = '' ) {
  * Bootstrap autoloading safely (Composer if present, then plugin autoloader).
  */
 function clicutcl_bootstrap(): void {
+	static $context_fallback_file = null;
+
 	// Composer autoloader (if you ship /vendor in releases)
 	$composer = CLICUTCL_DIR . 'vendor/autoload.php';
 	if ( file_exists( $composer ) ) {
@@ -79,6 +81,22 @@ function clicutcl_bootstrap(): void {
 	// Hard fallback: ensure Context is loadable even if autoloader mapping is wrong.
 	// This guards against "missing class" errors in production if the ZIP structure varies.
 	if ( ! class_exists( 'CLICUTCL\\Core\\Context' ) ) {
+		$cache_group = 'clicutcl_bootstrap';
+		$cache_key   = 'context_fallback_file';
+
+		if ( null === $context_fallback_file ) {
+			$cache_hit = false;
+			$cached    = wp_cache_get( $cache_key, $cache_group, false, $cache_hit );
+			$context_fallback_file = ( $cache_hit && is_string( $cached ) ) ? $cached : '';
+		}
+
+		if ( '' !== $context_fallback_file && file_exists( $context_fallback_file ) ) {
+			require_once $context_fallback_file;
+		} elseif ( '' !== $context_fallback_file ) {
+			$context_fallback_file = '';
+			wp_cache_delete( $cache_key, $cache_group );
+		}
+
 		$candidates = array(
 			CLICUTCL_DIR . 'includes/core/class-context.php',
 			CLICUTCL_DIR . 'includes/Core/class-context.php',
@@ -86,11 +104,15 @@ function clicutcl_bootstrap(): void {
 			CLICUTCL_DIR . 'includes/Core/Context.php',
 			CLICUTCL_DIR . 'includes/class-context.php',
 		);
-		foreach ( $candidates as $file ) {
-			if ( file_exists( $file ) ) {
-				require_once $file;
-				if ( class_exists( 'CLICUTCL\\Core\\Context' ) ) {
-					break;
+		if ( ! class_exists( 'CLICUTCL\\Core\\Context', false ) ) {
+			foreach ( $candidates as $file ) {
+				if ( file_exists( $file ) ) {
+					require_once $file;
+					if ( class_exists( 'CLICUTCL\\Core\\Context', false ) ) {
+						$context_fallback_file = $file;
+						wp_cache_set( $cache_key, $context_fallback_file, $cache_group );
+						break;
+					}
 				}
 			}
 		}
@@ -98,6 +120,10 @@ function clicutcl_bootstrap(): void {
 }
 
 clicutcl_bootstrap();
+
+if ( class_exists( 'CLICUTCL\\Core\\Storage\\Option_Cache' ) ) {
+	CLICUTCL\Core\Storage\Option_Cache::register_hooks();
+}
 
 // Include Core Class
 require_once CLICUTCL_DIR . 'includes/class-clicutcl-core.php';
