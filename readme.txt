@@ -5,7 +5,7 @@ Author URI: https://vizuh.com
 Tags: attribution, utm, consent mode, woocommerce, server-side tracking
 Requires at least: 6.5
 Tested up to: 6.9
-Stable tag: 1.3.8
+Stable tag: 1.4.0
 Requires PHP: 8.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -135,6 +135,12 @@ No user-facing screen uses that label anymore. The current admin UI is organized
 
 == Changelog ==
 
+= 1.4.0 =
+* Prepared the release for WordPress.org deployment by aligning plugin metadata and packaging version references.
+* Hardened the privacy-data export and erasure query flow used by WordPress privacy tools.
+* Added better WP_DEBUG diagnostics for invalid attribution tokens and privacy-erasure database failures.
+* Continued internal cleanup in the consent/events code paths to keep maintenance risk lower.
+
 = 1.3.5 =
 * Unified the main settings experience into capability-based tabs: Capture, Forms, Events, and Delivery.
 * Removed user-facing "Tracking v2" terminology from the main admin flow while keeping backward-compatible internal storage.
@@ -161,5 +167,5 @@ Older release notes remain available in `changelog.txt`.
 
 == Upgrade Notice ==
 
-= 1.3.5 =
-Recommended update. The admin experience is now organized by capability, old user-facing "Tracking v2" language is gone, grouped settings saves are more reliable, and the Fluent Forms adapter hook was corrected.
+= 1.4.0 =
+Recommended update. This release packages the latest privacy and diagnostics fixes into a clean WordPress.org-ready build, with aligned version metadata for deployment and lower maintenance risk in the privacy/export flow.

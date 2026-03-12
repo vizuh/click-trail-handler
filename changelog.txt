@@ -1,6 +1,11 @@
 Changelog
 ========
 
+= 1.4.0 =
+*   **WordPress.org deployment**: Aligned plugin version metadata and release packaging for the next WordPress.org / SVN deployment, including the main plugin header and canonical release references.
+*   **Standards compliance (privacy handler)**: Adjusted the `phpcs:ignore` placement around the privacy export and erasure prepared queries so WordPress coding standards checks no longer flag the known-safe dynamically assembled SQL template.
+*   **Privacy hardening**: Includes the recent privacy export/erasure safeguards, debug visibility improvements, and maintenance refactors from the current quality pass in a single release line for WordPress.org users.
+
 = 1.3.9 =
 *   **Security (privacy handler)**: Fixed a LIKE wildcard injection in the GDPR erasure query. `user_id` values used in `LIKE` patterns are now escaped through `esc_like()`, preventing accidental over-matching during personal-data deletion.
 *   **Debug (token parsing)**: `base64url_decode()` now logs a diagnostic message to `error_log` when it receives an invalid base64 payload (WP_DEBUG only), making token decode failures visible without silent empty-string returns.
