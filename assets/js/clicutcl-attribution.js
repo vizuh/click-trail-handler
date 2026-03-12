@@ -491,6 +491,10 @@
                 return;
             }
             if (this.signedTokenInFlight) {
+                // If payload changed while a request is in flight, queue one re-sign for after it completes.
+                if (this.signedTokenPayloadHash !== payloadHash) {
+                    this.pendingResign = data;
+                }
                 return;
             }
 
@@ -521,6 +525,11 @@
                 .catch(() => { })
                 .finally(() => {
                     this.signedTokenInFlight = false;
+                    if (this.pendingResign) {
+                        const pendingData = this.pendingResign;
+                        this.pendingResign = null;
+                        this.prepareSignedToken(pendingData);
+                    }
                 });
         },
 

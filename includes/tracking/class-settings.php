@@ -781,7 +781,13 @@ class Settings {
 			$tag
 		);
 
-		return false === $plain ? $value : (string) $plain;
+		if ( false === $plain ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				error_log( 'ClickTrail: failed to decrypt secret value — key mismatch or corrupted payload.' );
+			}
+			return '';
+		}
+		return (string) $plain;
 	}
 
 	/**
