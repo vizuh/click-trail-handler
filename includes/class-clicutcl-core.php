@@ -193,27 +193,8 @@ class Plugin {
 		$events_token       = ( class_exists( 'CLICUTCL\\Tracking\\Auth' ) && ( $events_transport_enabled || $enable_cross_domain_token ) )
 			? \CLICUTCL\Tracking\Auth::mint_client_token()
 			: '';
-		$attribution_token_sign_url   = rest_url( 'clicutcl/v2/attribution-token/sign' );
-		$attribution_token_verify_url = rest_url( 'clicutcl/v2/attribution-token/verify' );
 
-		$consent_settings_obj = new Modules\Consent_Mode\Consent_Mode_Settings();
-		$consent_settings     = $consent_settings_obj->get();
-		$enable_consent       = $consent_settings_obj->is_consent_mode_enabled();
-		$consent_mode         = $consent_settings_obj->get_mode();
-		$cmp_source = isset( $consent_settings['cmp_source'] ) ? sanitize_key( (string) $consent_settings['cmp_source'] ) : 'auto';
-		$cmp_source = isset( Modules\Consent_Mode\Consent_Mode_Settings::ALLOWED_CMP_SOURCES[ $cmp_source ] ) ? $cmp_source : 'auto';
-		$cmp_timeout          = isset( $consent_settings['cmp_timeout_ms'] ) ? absint( $consent_settings['cmp_timeout_ms'] ) : 3000;
-		$cmp_timeout          = min( 10000, max( 500, $cmp_timeout ) );
-		$cookie_name          = isset( $consent_settings['cookie_name'] ) ? sanitize_key( (string) $consent_settings['cookie_name'] ) : 'ct_consent';
-		$cookie_name          = '' !== $cookie_name ? $cookie_name : 'ct_consent';
-		$gcm_analytics_key    = isset( $consent_settings['gcm_analytics_key'] ) ? sanitize_key( (string) $consent_settings['gcm_analytics_key'] ) : 'analytics_storage';
-		$gcm_analytics_key    = '' !== $gcm_analytics_key ? $gcm_analytics_key : 'analytics_storage';
-		$bridge_debug         = (bool) $debug_active || ( defined( 'WP_DEBUG' ) && WP_DEBUG );
-		$require_consent      = isset( $options['require_consent'] ) ? (bool) $options['require_consent'] : true;
-		if ( $enable_consent ) {
-			$require_consent = $consent_settings_obj->is_consent_required_for_request();
-		}
-		$fallback_granted = ! $require_consent;
+		$consent_config = $this->build_consent_bridge_config( $options, $debug_active );
 
 		wp_register_script(
 			'clicutcl-consent-bridge-js',
@@ -223,19 +204,7 @@ class Plugin {
 			\clicutcl_script_args( false )
 		);
 		wp_enqueue_script( 'clicutcl-consent-bridge-js' );
-		wp_localize_script(
-			'clicutcl-consent-bridge-js',
-			'ctConsentBridgeConfig',
-			array(
-				'cookieName'      => $cookie_name,
-				'cmpSource'       => $cmp_source,
-				'gtmConsentKey'   => $gcm_analytics_key,
-				'timeout'         => $cmp_timeout,
-				'mode'            => $consent_mode,
-				'fallbackGranted' => $fallback_granted,
-				'debug'           => $bridge_debug,
-			)
-		);
+		wp_localize_script( 'clicutcl-consent-bridge-js', 'ctConsentBridgeConfig', $consent_config['bridge'] );
 
 		if ( $enable_attribution ) {
 			wp_register_script(
@@ -250,35 +219,11 @@ class Plugin {
 			wp_localize_script(
 				'clicutcl-attribution-js',
 				'clicutcl_config',
-				array(
-					'cookieName'                => 'attribution',
-					'cookieDays'                => $cookie_days,
-					'consentCookieName'         => $cookie_name,
-					'requireConsent'            => $require_consent,
-					'enableWhatsapp'            => isset( $options['enable_whatsapp'] ) ? (bool) $options['enable_whatsapp'] : true,
-					'whatsappAppendAttribution' => isset( $options['whatsapp_append_attribution'] ) ? (bool) $options['whatsapp_append_attribution'] : false,
-					'debug'                     => (bool) $debug_active,
-					'eventsBatchUrl'            => esc_url_raw( $events_batch_url ),
-					'eventsToken'               => $events_token,
-					'injectEnabled'             => isset( $options['enable_js_injection'] ) ? (bool) $options['enable_js_injection'] : true,
-					'injectOverwrite'           => isset( $options['inject_overwrite'] ) ? (bool) $options['inject_overwrite'] : false,
-					'injectMutationObserver'    => isset( $options['inject_mutation_observer'] ) ? (bool) $options['inject_mutation_observer'] : true,
-					'injectObserverTarget'      => isset( $options['inject_observer_target'] ) ? (string) $options['inject_observer_target'] : 'body',
-					'injectFullBlob'            => false,
-					'linkDecorateEnabled'       => isset( $options['enable_link_decoration'] ) ? (bool) $options['enable_link_decoration'] : false,
-					'linkAllowedDomains'        => isset( $options['link_allowed_domains'] ) ? array_map( 'trim', explode( ',', $options['link_allowed_domains'] ) ) : array(),
-					'linkSkipSigned'            => isset( $options['link_skip_signed'] ) ? (bool) $options['link_skip_signed'] : true,
-					'linkAppendToken'           => $enable_cross_domain_token,
-					'tokenParam'                => 'ct_token',
-					'tokenMaxAgeDays'           => $cookie_days,
-					'tokenSignUrl'              => esc_url_raw( $attribution_token_sign_url ),
-					'tokenVerifyUrl'            => esc_url_raw( $attribution_token_verify_url ),
-					'linkAppendBlob'            => false,
-				)
+				$this->build_attribution_config( $options, $consent_config, $cookie_days, $debug_active, $events_batch_url, $events_token, $enable_cross_domain_token )
 			);
 		}
 
-		$use_plugin_banner = $enable_consent && ( 'auto' === $cmp_source || 'plugin' === $cmp_source );
+		$use_plugin_banner = $consent_config['enable_consent'] && ( 'auto' === $consent_config['cmp_source'] || 'plugin' === $consent_config['cmp_source'] );
 
 		if ( $use_plugin_banner ) {
 			wp_enqueue_style(
@@ -307,7 +252,7 @@ class Plugin {
 					'acceptAll'       => __( 'Accept All', 'click-trail-handler' ),
 					'rejectEssential' => __( 'Reject Non-Essential', 'click-trail-handler' ),
 					'privacyUrl'      => get_privacy_policy_url() ?: '#',
-					'cookieName'      => $cookie_name,
+					'cookieName'      => $consent_config['cookie_name'],
 				)
 			);
 		}
@@ -360,5 +305,88 @@ class Plugin {
 				)
 			);
 		}
+	}
+
+	/**
+	 * Build consent bridge configuration array.
+	 *
+	 * @param array $options      Attribution settings.
+	 * @param bool  $debug_active Whether debug mode is active.
+	 * @return array Contains 'bridge' config, 'cookie_name', 'require_consent', 'enable_consent', 'cmp_source'.
+	 */
+	private function build_consent_bridge_config( array $options, bool $debug_active ): array {
+		$consent_settings_obj = new Modules\Consent_Mode\Consent_Mode_Settings();
+		$consent_settings     = $consent_settings_obj->get();
+		$enable_consent       = $consent_settings_obj->is_consent_mode_enabled();
+		$consent_mode         = $consent_settings_obj->get_mode();
+		$cmp_source = isset( $consent_settings['cmp_source'] ) ? sanitize_key( (string) $consent_settings['cmp_source'] ) : 'auto';
+		$cmp_source = isset( Modules\Consent_Mode\Consent_Mode_Settings::ALLOWED_CMP_SOURCES[ $cmp_source ] ) ? $cmp_source : 'auto';
+		$cmp_timeout          = isset( $consent_settings['cmp_timeout_ms'] ) ? absint( $consent_settings['cmp_timeout_ms'] ) : 3000;
+		$cmp_timeout          = min( 10000, max( 500, $cmp_timeout ) );
+		$cookie_name          = isset( $consent_settings['cookie_name'] ) ? sanitize_key( (string) $consent_settings['cookie_name'] ) : 'ct_consent';
+		$cookie_name          = '' !== $cookie_name ? $cookie_name : 'ct_consent';
+		$gcm_analytics_key    = isset( $consent_settings['gcm_analytics_key'] ) ? sanitize_key( (string) $consent_settings['gcm_analytics_key'] ) : 'analytics_storage';
+		$gcm_analytics_key    = '' !== $gcm_analytics_key ? $gcm_analytics_key : 'analytics_storage';
+		$bridge_debug         = (bool) $debug_active || ( defined( 'WP_DEBUG' ) && WP_DEBUG );
+		$require_consent      = isset( $options['require_consent'] ) ? (bool) $options['require_consent'] : true;
+		if ( $enable_consent ) {
+			$require_consent = $consent_settings_obj->is_consent_required_for_request();
+		}
+
+		return array(
+			'bridge'          => array(
+				'cookieName'      => $cookie_name,
+				'cmpSource'       => $cmp_source,
+				'gtmConsentKey'   => $gcm_analytics_key,
+				'timeout'         => $cmp_timeout,
+				'mode'            => $consent_mode,
+				'fallbackGranted' => ! $require_consent,
+				'debug'           => $bridge_debug,
+			),
+			'cookie_name'     => $cookie_name,
+			'require_consent' => $require_consent,
+			'enable_consent'  => $enable_consent,
+			'cmp_source'      => $cmp_source,
+		);
+	}
+
+	/**
+	 * Build attribution script configuration array.
+	 *
+	 * @param array  $options                    Attribution settings.
+	 * @param array  $consent_config             Consent config from build_consent_bridge_config().
+	 * @param int    $cookie_days                Cookie retention days.
+	 * @param bool   $debug_active               Whether debug mode is active.
+	 * @param string $events_batch_url           Batch events REST URL.
+	 * @param string $events_token               Client auth token.
+	 * @param bool   $enable_cross_domain_token  Whether cross-domain token is enabled.
+	 * @return array
+	 */
+	private function build_attribution_config( array $options, array $consent_config, int $cookie_days, bool $debug_active, string $events_batch_url, string $events_token, bool $enable_cross_domain_token ): array {
+		return array(
+			'cookieName'                => 'attribution',
+			'cookieDays'                => $cookie_days,
+			'consentCookieName'         => $consent_config['cookie_name'],
+			'requireConsent'            => $consent_config['require_consent'],
+			'enableWhatsapp'            => isset( $options['enable_whatsapp'] ) ? (bool) $options['enable_whatsapp'] : true,
+			'whatsappAppendAttribution' => isset( $options['whatsapp_append_attribution'] ) ? (bool) $options['whatsapp_append_attribution'] : false,
+			'debug'                     => (bool) $debug_active,
+			'eventsBatchUrl'            => esc_url_raw( $events_batch_url ),
+			'eventsToken'               => $events_token,
+			'injectEnabled'             => isset( $options['enable_js_injection'] ) ? (bool) $options['enable_js_injection'] : true,
+			'injectOverwrite'           => isset( $options['inject_overwrite'] ) ? (bool) $options['inject_overwrite'] : false,
+			'injectMutationObserver'    => isset( $options['inject_mutation_observer'] ) ? (bool) $options['inject_mutation_observer'] : true,
+			'injectObserverTarget'      => isset( $options['inject_observer_target'] ) ? (string) $options['inject_observer_target'] : 'body',
+			'injectFullBlob'            => false,
+			'linkDecorateEnabled'       => isset( $options['enable_link_decoration'] ) ? (bool) $options['enable_link_decoration'] : false,
+			'linkAllowedDomains'        => isset( $options['link_allowed_domains'] ) ? array_map( 'trim', explode( ',', $options['link_allowed_domains'] ) ) : array(),
+			'linkSkipSigned'            => isset( $options['link_skip_signed'] ) ? (bool) $options['link_skip_signed'] : true,
+			'linkAppendToken'           => $enable_cross_domain_token,
+			'tokenParam'                => 'ct_token',
+			'tokenMaxAgeDays'           => $cookie_days,
+			'tokenSignUrl'              => esc_url_raw( rest_url( 'clicutcl/v2/attribution-token/sign' ) ),
+			'tokenVerifyUrl'            => esc_url_raw( rest_url( 'clicutcl/v2/attribution-token/verify' ) ),
+			'linkAppendBlob'            => false,
+		);
 	}
 }

@@ -260,68 +260,21 @@ class Tracking_Controller extends WP_REST_Controller {
 		$errors     = array();
 
 		foreach ( $events as $index => $raw_event ) {
-			if ( ! is_array( $raw_event ) ) {
-				$errors[] = array(
-					'index'  => $index,
-					'code'   => 'invalid_event',
-					'detail' => 'Event must be an object',
-				);
-				$this->record_intake_debug(
-					array(
-						'event_name' => '',
-						'event_id'   => '',
-						'consent'    => array(),
-					),
-					'error',
-					'invalid_event'
-				);
-				continue;
+			$result = $this->process_single_event( $raw_event, $index );
+			switch ( $result['status'] ) {
+				case 'accepted':
+					$accepted++;
+					break;
+				case 'duplicate':
+					$duplicates++;
+					break;
+				case 'skipped':
+					$skipped++;
+					break;
+				case 'error':
+					$errors[] = $result['error'];
+					break;
 			}
-
-			$canonical = Event_Translator_V1_To_V2::translate( $raw_event );
-			if ( ! EventV2::validate( $canonical ) ) {
-				$errors[] = array(
-					'index'  => $index,
-					'code'   => 'invalid_schema',
-					'detail' => 'Event does not satisfy canonical schema',
-				);
-				$this->record_intake_debug( $canonical, 'error', 'invalid_schema' );
-				continue;
-			}
-
-			if ( Dedup_Store::is_duplicate( 'ingest', (string) $canonical['event_name'], (string) $canonical['event_id'] ) ) {
-				$duplicates++;
-				$this->record_intake_debug( $canonical, 'duplicate', 'duplicate_ingest' );
-				continue;
-			}
-
-			$resolver             = new Identity_Resolver();
-			$canonical['identity'] = $resolver->resolve(
-				$raw_event['identity'] ?? array(),
-				array(
-					'marketing_allowed' => ! empty( $canonical['consent']['marketing'] ),
-				)
-			);
-
-			$dispatch = Dispatcher::dispatch_from_v2( $canonical );
-			if ( $dispatch->skipped ) {
-				$skipped++;
-				$this->record_intake_debug( $canonical, 'skipped', sanitize_key( (string) $dispatch->message ) );
-				continue;
-			}
-			if ( ! $dispatch->success ) {
-				$errors[] = array(
-					'index'  => $index,
-					'code'   => 'dispatch_failed',
-					'detail' => sanitize_text_field( (string) $dispatch->message ),
-				);
-				$this->record_intake_debug( $canonical, 'error', 'dispatch_failed' );
-				continue;
-			}
-
-			Dedup_Store::mark( 'ingest', (string) $canonical['event_name'], (string) $canonical['event_id'] );
-			$accepted++;
-			$this->record_intake_debug( $canonical, 'accepted', 'ok' );
 		}
 
 		return array(
@@ -331,6 +284,82 @@ class Tracking_Controller extends WP_REST_Controller {
 			'skipped'    => $skipped,
 			'errors'     => $errors,
 		);
+	}
+
+	/**
+	 * Validate, deduplicate, resolve identity, and dispatch a single event.
+	 *
+	 * @param mixed $raw_event Raw event data.
+	 * @param int   $index     Event index in the batch.
+	 * @return array{status: string, error?: array} Result with 'status' key (accepted|duplicate|skipped|error).
+	 */
+	private function process_single_event( $raw_event, int $index ): array {
+		if ( ! is_array( $raw_event ) ) {
+			$this->record_intake_debug(
+				array(
+					'event_name' => '',
+					'event_id'   => '',
+					'consent'    => array(),
+				),
+				'error',
+				'invalid_event'
+			);
+			return array(
+				'status' => 'error',
+				'error'  => array(
+					'index'  => $index,
+					'code'   => 'invalid_event',
+					'detail' => 'Event must be an object',
+				),
+			);
+		}
+
+		$canonical = Event_Translator_V1_To_V2::translate( $raw_event );
+		if ( ! EventV2::validate( $canonical ) ) {
+			$this->record_intake_debug( $canonical, 'error', 'invalid_schema' );
+			return array(
+				'status' => 'error',
+				'error'  => array(
+					'index'  => $index,
+					'code'   => 'invalid_schema',
+					'detail' => 'Event does not satisfy canonical schema',
+				),
+			);
+		}
+
+		if ( Dedup_Store::is_duplicate( 'ingest', (string) $canonical['event_name'], (string) $canonical['event_id'] ) ) {
+			$this->record_intake_debug( $canonical, 'duplicate', 'duplicate_ingest' );
+			return array( 'status' => 'duplicate' );
+		}
+
+		$resolver              = new Identity_Resolver();
+		$canonical['identity'] = $resolver->resolve(
+			$raw_event['identity'] ?? array(),
+			array(
+				'marketing_allowed' => ! empty( $canonical['consent']['marketing'] ),
+			)
+		);
+
+		$dispatch = Dispatcher::dispatch_from_v2( $canonical );
+		if ( $dispatch->skipped ) {
+			$this->record_intake_debug( $canonical, 'skipped', sanitize_key( (string) $dispatch->message ) );
+			return array( 'status' => 'skipped' );
+		}
+		if ( ! $dispatch->success ) {
+			$this->record_intake_debug( $canonical, 'error', 'dispatch_failed' );
+			return array(
+				'status' => 'error',
+				'error'  => array(
+					'index'  => $index,
+					'code'   => 'dispatch_failed',
+					'detail' => sanitize_text_field( (string) $dispatch->message ),
+				),
+			);
+		}
+
+		Dedup_Store::mark( 'ingest', (string) $canonical['event_name'], (string) $canonical['event_id'] );
+		$this->record_intake_debug( $canonical, 'accepted', 'ok' );
+		return array( 'status' => 'accepted' );
 	}
 
 	/**
