@@ -9,6 +9,8 @@
 
 namespace CLICUTCL\Core;
 
+use CLICUTCL\Settings\Attribution_Settings;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -133,7 +135,7 @@ class Attribution_Provider {
 	 * @return bool
 	 */
 	public static function should_populate() {
-		$options         = get_option( 'clicutcl_attribution_settings', array() );
+		$options         = Attribution_Settings::get_all();
 		$require_consent = isset( $options['require_consent'] ) ? (bool) $options['require_consent'] : true; // Default to true for safety
 		$cookie_name     = 'ct_consent';
 

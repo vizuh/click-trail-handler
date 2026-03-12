@@ -7,6 +7,7 @@
 
 namespace CLICUTCL\Api;
 
+use CLICUTCL\Settings\Attribution_Settings;
 use CLICUTCL\Tracking\Settings as Tracking_Settings;
 use WP_Error;
 use WP_REST_Request;
@@ -221,7 +222,7 @@ trait Tracking_Controller_Attribution_Token_Trait {
 	 * @return int
 	 */
 	private function get_attribution_token_ttl(): int {
-		$options = get_option( 'clicutcl_attribution_settings', array() );
+		$options = Attribution_Settings::get_all();
 		$days    = isset( $options['cookie_days'] ) ? absint( $options['cookie_days'] ) : 90;
 		$days    = max( 1, min( 90, $days ) );
 		$ttl     = $days * DAY_IN_SECONDS;

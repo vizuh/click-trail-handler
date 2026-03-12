@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, and reviewers
 - **Canonical for**: runtime scope, bootstrap flow, subsystem ownership, and active vs compatibility paths
 - **Update when**: boot flow, module boundaries, or major runtime responsibilities change
-- **Last verified against version**: `1.3.5`
+- **Last verified against version**: `1.3.9`
 
 ## Product Summary
 
@@ -17,7 +17,7 @@ The plugin is designed to solve practical attribution failures:
 - cross-domain journeys losing continuity
 - consent-aware sites needing attribution and delivery to agree
 
-Current codebase version: `1.3.5`.
+Current codebase version: `1.3.9`.
 
 Runtime requirements:
 
@@ -35,6 +35,26 @@ The current admin and documentation model uses four capability areas:
 
 The runtime still stores part of the advanced settings in `clicutcl_tracking_v2`, but that is an internal compatibility detail, not a public product concept.
 
+## Where Teams Usually Get Value
+
+ClickTrail is most useful when a team needs attribution to become operational, not just analytical.
+
+Common value surfaces:
+
+- form submissions carry source context into lead review workflows
+- WooCommerce orders retain campaign context inside WordPress
+- browser events push consistent signals into GTM and related analytics tooling
+- server-side delivery adds retries, queueing, and diagnostics when a downstream endpoint exists
+
+The plugin is intentionally layered so teams can adopt it progressively:
+
+1. preserve attribution
+2. expose it in forms or WooCommerce
+3. add browser events if needed
+4. add server-side delivery when the operational endpoint is ready
+
+See [../guides/IMPLEMENTATION-PLAYBOOK.md](../guides/IMPLEMENTATION-PLAYBOOK.md) for the practical rollout patterns behind that sequence.
+
 ## Bootstrap and Lifecycle
 
 Main entry point: `clicutcl.php`
@@ -43,10 +63,11 @@ Bootstrap sequence:
 
 1. Define plugin constants and compatibility helpers.
 2. Load Composer autoloader when present.
-3. Load the plugin autoloader.
-4. Instantiate `CLICUTCL\Plugin`.
-5. Register activation and deactivation hooks.
-6. Run admin and public hooks.
+3. Load the plugin autoloader plus bootstrap fallbacks.
+4. Register activation and deactivation hooks.
+5. Hook `clicutcl_init()` into WordPress `init`.
+6. Instantiate `CLICUTCL\Plugin` during `init` after preflight checks.
+7. Run admin and public hooks.
 
 Activation:
 
@@ -70,7 +91,7 @@ Deactivation:
 Responsibilities:
 
 - boot admin surfaces
-- register public scripts
+- register public scripts conditionally
 - register REST routes
 - initialize consent, GTM, cleanup, queue, form integrations, and WooCommerce integration
 
@@ -192,3 +213,13 @@ Legacy or compatibility-only:
 - `includes/api/class-log-controller.php`
 - internal `clicutcl_tracking_v2` option name
 - some older admin assets still present in the repository but not used by the active settings screen
+
+## Recommended Reading Order
+
+If you are trying to understand the plugin end-to-end:
+
+1. this document
+2. [EVENT-PIPELINE.md](EVENT-PIPELINE.md)
+3. [DATA-MODEL.md](DATA-MODEL.md)
+4. [../guides/IMPLEMENTATION-PLAYBOOK.md](../guides/IMPLEMENTATION-PLAYBOOK.md)
+5. [../reference/INTEGRATIONS.md](../reference/INTEGRATIONS.md)
