@@ -130,14 +130,24 @@
                 source_channel: 'web',
                 page_context: {
                     path: window.location.pathname || '/',
-                    title: document.title || ''
+                    title: document.title || '',
+                    referrer: document.referrer || '',
+                    viewport_w: window.innerWidth || 0,
+                    viewport_h: window.innerHeight || 0
                 },
                 attribution,
                 consent,
                 lead_context: leadContext,
                 meta: {
                     schema_version: 2,
-                    source_event: eventName
+                    source_event: eventName,
+                    device_type: (function () {
+                        const w = window.innerWidth || 0;
+                        const touch = navigator.maxTouchPoints > 0;
+                        if (touch && w < 768) return 'mobile';
+                        if (touch && w < 1200) return 'tablet';
+                        return 'desktop';
+                    }())
                 }
             };
         }
@@ -155,6 +165,17 @@
                     ? Number(fromEvent.validation_error_count)
                     : 0
             };
+            // Scroll depth: pass through exact value when present
+            if (Number.isFinite(eventData.scroll_pct)) {
+                out.scroll_pct = Math.round(eventData.scroll_pct);
+            }
+            if (Number.isFinite(eventData.scroll_threshold)) {
+                out.scroll_threshold = parseInt(eventData.scroll_threshold);
+            }
+            // Form timing: pass through elapsed time when present
+            if (Number.isFinite(eventData.time_to_submit_ms)) {
+                out.time_to_submit_ms = Math.round(eventData.time_to_submit_ms);
+            }
             return out;
         }
 
@@ -350,7 +371,10 @@
                             'gtm.scrollUnits': 'percent',
                             'gtm.scrollDirection': 'vertical',
                             // GA4 Enhanced Measurement compatibility
-                            'percent_scrolled': parseInt(mark)
+                            'percent_scrolled': parseInt(mark),
+                            // Exact depth at the moment of threshold crossing
+                            'scroll_pct': Math.round(percent),
+                            'scroll_threshold': parseInt(mark)
                         });
                     }
                 });
@@ -404,6 +428,9 @@
 
                 this.formStarts.add(form);
                 const ctx = this.getFormContext(form);
+                // Record start time keyed by form_id for completion timing (T4)
+                if (!this._formStartTimes) this._formStartTimes = {};
+                this._formStartTimes[ctx.form_id || '_default'] = Date.now();
                 this.pushEvent('form_start', {
                     form_id: ctx.form_id,
                     form_name: ctx.form_name,
@@ -419,9 +446,14 @@
                 if (!form) return;
 
                 const ctx = this.getFormContext(form);
+                const startKey = ctx.form_id || '_default';
+                const timeToSubmit = (this._formStartTimes && this._formStartTimes[startKey])
+                    ? Date.now() - this._formStartTimes[startKey]
+                    : 0;
                 this.pushEvent('form_submit_attempt', {
                     form_id: ctx.form_id,
                     form_name: ctx.form_name,
+                    time_to_submit_ms: timeToSubmit,
                     lead_context: {
                         ...ctx,
                         submit_status: 'attempt'
