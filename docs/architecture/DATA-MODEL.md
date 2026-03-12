@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, and reviewers
 - **Canonical for**: option keys, cookies, tables, transients, cron hooks, and persistence surfaces
 - **Update when**: stored keys, retention behavior, queue schema, or cookie/storage usage changes
-- **Last verified against version**: `1.3.6`
+- **Last verified against version**: `1.3.9`
 
 This document summarizes the active storage surfaces used by ClickTrail.
 
@@ -147,13 +147,21 @@ Cookies:
 
 - attribution cookie: `attribution`
 - consent cookie: default `ct_consent`
-- session cookie fallback: `ct_session_id`
-- visitor cookie fallback: `ct_visitor_id`
+- lightweight session ID fallback: `ct_session_id`
+- lightweight visitor ID fallback: `ct_visitor_id`
+- canonical session state cookie: `ct_session`
 
 Browser storage:
 
 - `sessionStorage['ct_session_id']`
 - `localStorage['ct_visitor_id']`
+- `localStorage['ct_session']`
+
+Notes:
+
+- `ct_session` stores the structured session object used by the current session manager and server-side readers
+- `ct_session_id` and `ct_visitor_id` remain lightweight browser identity fallbacks used by event helpers and compatibility paths
+- the richer session object is not stored in `sessionStorage['ct_session_id']`
 
 ## Diagnostics and Queue Transients
 

@@ -21,6 +21,34 @@ Antes de alterar codigo ou docs, encontre a referencia canonica da area afetada.
 3. Mantenha a copy alinhada entre `README.en.md`, `README.pt-BR.md` e `readme.txt` quando a mensagem do produto mudar.
 4. Atualize `changelog.txt` quando a mudanca merecer nota de release.
 
+## Setup Local e Checks
+
+Pre-requisitos:
+
+- PHP `8.1+`
+- Composer
+- npm
+- uma instalacao local do WordPress onde este repositorio esteja disponivel como plugin
+
+Bootstrap recomendado:
+
+1. Clone ou crie um symlink do repositorio dentro de `wp-content/plugins/` no seu WordPress local.
+2. Execute `composer install` na raiz do repositorio para instalar os padroes de codigo e as ferramentas de contribuicao.
+3. Ative o plugin no WordPress e confirme que as telas do admin abrem sem erros fatais.
+4. Use `docs/README.md` para localizar a documentacao canonica do subsistema que voce pretende alterar antes de editar codigo.
+
+Checks recomendados antes de abrir um PR:
+
+- Execute `composer phpcs` como baseline de padrao de codigo do repositorio.
+- Valide manualmente o fluxo afetado no WordPress, porque o repositorio ainda nao publica uma suite automatizada de testes PHP ou JS.
+- Execute `npm run make-zip` quando a mudanca afetar empacotamento, preparacao de release ou quando voce quiser validar o build distribuivel do plugin. Esse comando encapsula `tools/release/make-zip.ps1`.
+
+Exemplos de validacao manual:
+
+- mudanca de atribuicao ou consentimento: visite uma URL com UTMs, confirme a captura de atribuicao e verifique o comportamento condicionado por consentimento
+- mudanca em integracao de formulario: envie um formulario suportado e confirme que os campos de atribuicao mapeados ou os logs de evento estao corretos
+- mudanca na entrega server-side: inspecione o comportamento da fila, as tentativas de retry e os logs/diagnosticos do adapter ou endpoint afetado
+
 ## Expectativas Para Pull Requests
 
 - Explique o problema e a abordagem escolhida.
@@ -49,6 +77,7 @@ Antes de alterar codigo ou docs, encontre a referencia canonica da area afetada.
 ## Checklist Pratico de Revisao
 
 - O codigo bate com a documentacao atual?
+- Um contribuidor novo consegue seguir o setup e os checks acima sem adivinhar pre-requisitos escondidos?
 - O template de PR foi preenchido com informacao relevante?
 - Sao necessarios screenshots ou gifs para mudancas no admin?
 - A mudanca criou ou removeu algum hotspot de manutencao que precisa aparecer em `CODE-QUALITY.md`?
