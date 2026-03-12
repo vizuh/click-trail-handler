@@ -7,6 +7,7 @@
 
 namespace CLICUTCL\Server_Side;
 
+use CLICUTCL\Settings\Attribution_Settings;
 use CLICUTCL\Tracking\Dedup_Store;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -366,7 +367,7 @@ class Dispatcher {
 	 * @return bool
 	 */
 	private static function consent_allows() {
-		$attr_options    = get_option( 'clicutcl_attribution_settings', array() );
+		$attr_options    = Attribution_Settings::get_all();
 		$require_consent = ! empty( $attr_options['require_consent'] );
 		if ( class_exists( 'CLICUTCL\\Modules\\Consent_Mode\\Consent_Mode_Settings' ) ) {
 			$consent_settings = new \CLICUTCL\Modules\Consent_Mode\Consent_Mode_Settings();

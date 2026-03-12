@@ -210,28 +210,43 @@ class Privacy_Handler {
 		$retained    = false;
 		$messages    = array();
 
-		foreach ( $rows as $row ) {
-			$event_id = absint( $row['id'] ?? 0 );
-			if ( $event_id <= 0 ) {
-				continue;
-			}
+		$event_ids = array_values(
+			array_filter(
+				array_map(
+					static function ( array $row ): int {
+						return absint( $row['id'] ?? 0 );
+					},
+					$rows
+				)
+			)
+		);
+
+		if ( ! empty( $event_ids ) ) {
+			$placeholders = implode( ', ', array_fill( 0, count( $event_ids ), '%d' ) );
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name and placeholder count are plugin-owned.
+			$delete_query = "DELETE FROM {$table} WHERE id IN ({$placeholders})";
 
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Required for privacy erasure callbacks.
-			$deleted = $wpdb->delete(
-				$table,
-				array( 'id' => $event_id ),
-				array( '%d' )
+			$deleted = $wpdb->query(
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- Placeholder list assembled to match the selected IDs.
+				$wpdb->prepare( $delete_query, $event_ids )
 			);
 
 			if ( false !== $deleted && $deleted > 0 ) {
 				$removed_any = true;
-			} else {
+				if ( $deleted < count( $event_ids ) ) {
+					$retained   = true;
+					$messages[] = __( 'Some ClickTrail event records could not be deleted.', 'click-trail-handler' );
+				}
+			} elseif ( ! empty( $rows ) ) {
 				$retained   = true;
 				$messages[] = __( 'Some ClickTrail event records could not be deleted.', 'click-trail-handler' );
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG && ! empty( $wpdb->last_error ) ) {
-					// translators: %s: database error message.
-					$messages[] = sprintf( __( 'Database error: %s', 'click-trail-handler' ), sanitize_text_field( $wpdb->last_error ) );
-				}
+			}
+
+			if ( $retained && defined( 'WP_DEBUG' ) && WP_DEBUG && ! empty( $wpdb->last_error ) ) {
+				// translators: %s: database error message.
+				$messages[] = sprintf( __( 'Database error: %s', 'click-trail-handler' ), sanitize_text_field( $wpdb->last_error ) );
 			}
 		}
 

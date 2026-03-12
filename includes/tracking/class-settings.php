@@ -7,6 +7,8 @@
 
 namespace CLICUTCL\Tracking;
 
+use CLICUTCL\Core\Storage\Option_Cache;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -36,7 +38,7 @@ class Settings {
 	 * @return array
 	 */
 	public static function get(): array {
-		$stored = get_option( self::OPTION, array() );
+		$stored = Option_Cache::get( self::OPTION, array() );
 		$stored = is_array( $stored ) ? $stored : array();
 		$stored = self::decode_secret_fields_from_storage( $stored );
 
@@ -118,7 +120,7 @@ class Settings {
 	 * @return array
 	 */
 	public static function sanitize( $input ): array {
-		$current = get_option( self::OPTION, array() );
+		$current = Option_Cache::get( self::OPTION, array() );
 		$current = is_array( $current ) ? $current : array();
 		$current = self::decode_secret_fields_from_storage( $current );
 
