@@ -228,6 +228,10 @@ class Privacy_Handler {
 			} else {
 				$retained   = true;
 				$messages[] = __( 'Some ClickTrail event records could not be deleted.', 'click-trail-handler' );
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG && ! empty( $wpdb->last_error ) ) {
+					// translators: %s: database error message.
+					$messages[] = sprintf( __( 'Database error: %s', 'click-trail-handler' ), sanitize_text_field( $wpdb->last_error ) );
+				}
 			}
 		}
 
@@ -297,10 +301,10 @@ class Privacy_Handler {
 		);
 
 		if ( $user_id > 0 ) {
-			$user_id_raw   = '%"user_id":' . $user_id . '%';
-			$user_id_str   = '%"user_id":"' . $user_id . '"%';
+			$user_id_raw   = '%' . $this->escape_like( '"user_id":' . $user_id ) . '%';
+			$user_id_str   = '%' . $this->escape_like( '"user_id":"' . $user_id . '"' ) . '%';
 			$user_hash     = hash( 'sha256', (string) $user_id . wp_salt( 'auth' ) );
-			$user_hash_raw = '%"user_hash":"' . $user_hash . '"%';
+			$user_hash_raw = '%' . $this->escape_like( '"user_hash":"' . $user_hash . '"' ) . '%';
 
 			$clauses[] = 'event_data LIKE %s';
 			$clauses[] = 'event_data LIKE %s';
