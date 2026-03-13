@@ -1,6 +1,6 @@
 # ClickTrail
 
-ClickTrail e um plugin de atribuicao para WordPress feito para sites que precisam manter a origem real das conversoes ao longo da jornada completa, nao apenas na landing page.
+ClickTrail e um plugin de atribuicao para WordPress feito para sites que precisam manter a origem real das conversoes ao longo da jornada completa, especialmente quando pedidos do WooCommerce ou formularios acontecem varias paginas depois da landing page.
 
 Ele foi pensado para os problemas que normalmente quebram a atribuicao em producao:
 
@@ -11,7 +11,7 @@ Ele foi pensado para os problemas que normalmente quebram a atribuicao em produc
 - necessidade de tracking com consentimento
 - entrega opcional server-side
 
-Em vez de capturar uma UTM uma vez e torcer para que ela sobreviva, o ClickTrail mantem o contexto de primeiro toque e ultimo toque disponivel ate o momento em que formularios, pedidos do WooCommerce, eventos no navegador ou fluxos de entrega realmente precisam dele.
+Em vez de capturar uma UTM uma vez e torcer para que ela sobreviva, o ClickTrail mantem o contexto de primeiro toque e ultimo toque disponivel ate o momento em que pedidos do WooCommerce, formularios, eventos no navegador ou fluxos de entrega realmente precisam dele.
 
 ## O Que o ClickTrail Faz
 
@@ -20,13 +20,13 @@ O ClickTrail captura atribuicao de primeiro toque e ultimo toque, mantem esses d
 Ele combina:
 
 - captura de atribuicao
+- atribuicao em pedidos do WooCommerce com payload de compra enriquecido
 - enriquecimento de formularios
-- atribuicao em pedidos do WooCommerce
 - coleta de eventos no navegador
 - controles de consentimento
 - transporte server-side opcional com fila e diagnosticos
 
-Isso permite comecar por formularios ou WooCommerce e adicionar eventos no navegador, integracoes de consentimento ou entrega server-side depois, quando a operacao realmente precisar.
+Isso permite comecar por pedidos do WooCommerce com atribuicao confiavel ou por formularios, e adicionar eventos no navegador, integracoes de consentimento ou entrega server-side depois, quando a operacao realmente precisar.
 
 ## Problemas Que Ele Resolve
 
@@ -46,7 +46,7 @@ O ClickTrail inclui fallback client-side e observacao de conteudo dinamico para 
 
 Trafego pago frequentemente acaba aparecendo como direto dentro dos pedidos.
 
-O ClickTrail grava a atribuicao no pedido e envia o evento de compra para o `dataLayer`, com dispatch server-side opcional.
+O ClickTrail grava a atribuicao no pedido, envia um evento de compra enriquecido para o `dataLayer` e pode estender a mesma jornada Woo para `view_item`, `add_to_cart`, `remove_from_cart`, `begin_checkout` e dispatch server-side opcional.
 
 ### 4. Jornadas entre dominios perdendo continuidade
 
@@ -108,7 +108,7 @@ Identificadores adicionais de browser incluem:
 
 - coleta de eventos no navegador
 - pushes para `dataLayer` em formato amigavel para GA4
-- eventos de busca, download, scroll, tempo na pagina e interacoes de lead gen
+- eventos de busca, download, scroll, tempo na pagina, interacoes de lead gen e eventos pontuais do WordPress como `login`, `sign_up` e `comment_submit`
 - intake de atualizacoes de lifecycle para CRM ou backend
 - pipeline canonico unificado por tras da interface
 
@@ -148,8 +148,10 @@ Comportamento por plugin:
 ### Comercio
 
 - atribuicao em pedidos do WooCommerce
-- push do evento de compra para o `dataLayer`
+- push enriquecido do evento de compra para o `dataLayer`
+- eventos opcionais de storefront para `view_item`, `add_to_cart`, `remove_from_cart` e `begin_checkout`
 - dispatch server-side opcional para compras
+- declaracao de compatibilidade com WooCommerce HPOS para armazenamento/rastreamento de pedidos
 
 ### Provedores externos
 
@@ -209,7 +211,7 @@ O ClickTrail pode ser adotado por partes. Uma configuracao basica para formulari
 2. Ative o plugin e abra `ClickTrail > Settings`.
 3. Em `Capture`, mantenha a atribuicao ligada, escolha uma janela de retencao compativel com o seu ciclo de venda e ative a continuidade cross-domain apenas se o visitante realmente passar por dominios ou subdominios aprovados.
 4. Em `Forms`, ligue apenas as integracoes que voce usa. Contact Form 7 e Fluent Forms podem receber os campos de atribuicao automaticamente. Gravity Forms e WPForms devem ter os campos hidden `ct_*` que voce quer preservar, como `ct_ft_source`, `ct_lt_source` ou `ct_gclid`.
-5. Em `Events`, deixe a coleta no navegador ligada apenas se voce quiser pushes para o `dataLayer` e captura de eventos no site. Preencha o container ID do GTM apenas se o site ainda nao injeta GTM em outro lugar.
+5. Em `Events`, deixe a coleta no navegador ligada apenas se voce quiser pushes para o `dataLayer` e captura de eventos no site. Ative os eventos de storefront do Woo apenas se quiser `view_item`, `add_to_cart`, `remove_from_cart` e `begin_checkout`. Preencha o container ID do GTM apenas se o site ainda nao injeta GTM em outro lugar.
 6. Em `Delivery`, deixe o server-side desligado se voce ainda nao tem collector, sGTM ou endpoint de destino pronto. Se houver exigencia de consentimento, escolha aqui a fonte e o modo corretos antes de colocar em producao.
 7. Abra `ClickTrail > Diagnostics` e rode as verificacoes relevantes.
 
@@ -230,6 +232,7 @@ Comece por `Capture` e pelas integracoes que ja estao em uso. Adicione `Events` 
 
 - agencias que precisam da origem dentro dos leads
 - lojas WooCommerce que querem pedidos com atribuicao confiavel
+- lojas WooCommerce que querem payloads de compra mais ricos sem trocar toda a stack de tracking
 - sites com cache agressivo ou formularios dinamicos
 - negocios com funis em multiplos dominios
 - equipes que querem tracking browser + server-side no mesmo plugin

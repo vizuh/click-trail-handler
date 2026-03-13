@@ -3,9 +3,9 @@
 - **Audience**: implementers, contributors, maintainers, support teams, reviewers, and AI agents
 - **Canonical for**: engineering navigation, adoption guidance, and source-of-truth lookup
 - **Update when**: docs move, ownership changes, or a new subsystem or rollout pattern needs a canonical reference
-- **Last verified against version**: `1.3.9`
+- **Last verified against version**: `1.4.0`
 
-This is the docs home for GitHub readers. Use it to find the right document by role, task, or rollout goal. Redirect stubs in the root of `docs/` are compatibility links only; the canonical docs live under `docs/architecture`, `docs/guides`, and `docs/reference`.
+This is the docs home for GitHub readers. Use it to find the right document by role, task, or rollout goal. Canonical docs live under `docs/architecture`, `docs/guides`, and `docs/reference`.
 
 ## Start Here
 

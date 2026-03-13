@@ -1,9 +1,9 @@
 # Code Map
 
 - **Audience**: contributors, maintainers, and AI agents
-- **Canonical for**: active file layout and compatibility leftovers in the repository
+- **Canonical for**: active file layout and remaining compatibility surfaces in the repository
 - **Update when**: files move, new subsystems are added, or active/legacy status changes
-- **Last verified against version**: `1.3.9`
+- **Last verified against version**: `1.4.0`
 
 This map is organized around the active code paths first, then compatibility and maintenance notes.
 
@@ -17,9 +17,15 @@ This map is organized around the active code paths first, then compatibility and
 - `CONTRIBUTING.pt-BR.md`: contributor workflow in Brazilian Portuguese
 - `AGENTS.md`: neutral AI-agent guidance for the repository
 - `readme.txt`: WordPress.org readme
-- `INTEGRATIONS.md`: temporary redirect stub to `docs/reference/INTEGRATIONS.md`
 - `changelog.txt`: repository release notes
 - `uninstall.php`: uninstall cleanup
+
+## `docs/`
+
+- `docs/README.md`: engineering entry point and ownership map
+- `docs/architecture/`: runtime, storage, event flow, and file layout
+- `docs/guides/`: admin, operations, privacy, rollout, and quality guidance
+- `docs/reference/`: REST routes, hooks, and integrations
 
 ## Active Runtime Directories
 
@@ -127,8 +133,5 @@ This map is organized around the active code paths first, then compatibility and
 ## Compatibility and Legacy Surfaces
 
 - `includes/api/class-log-controller.php`: legacy controller present in repo, not bootstrapped by default
-- `assets/js/admin-tracking-v2.js`: legacy admin asset still present in repo
-- `assets/js/admin-settings.js`: earlier admin helper asset still present in repo
-- `assets/css/ct-consent.css`: duplicate consent stylesheet currently present in repo
 
-These files are useful context during maintenance, but they are not the primary active user-facing surfaces.
+This file remains as an opt-in compatibility path and is not part of the default runtime.

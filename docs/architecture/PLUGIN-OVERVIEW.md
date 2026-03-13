@@ -115,7 +115,8 @@ Responsibilities:
 Responsibilities:
 
 - push events to `window.dataLayer`
-- collect search, file download, scroll, engagement, and lead-gen signals
+- collect search, file download, scroll, engagement, lead-gen, and one-time WordPress auth/comment signals
+- emit WooCommerce storefront events such as `view_item`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` when enabled
 - build canonical payloads for REST intake
 - send batch events only when event transport is available
 

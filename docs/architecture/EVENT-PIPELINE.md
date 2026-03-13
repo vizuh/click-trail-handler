@@ -50,9 +50,11 @@ Browser events currently include:
 - file download
 - scroll depth
 - user engagement time thresholds
+- one-time WordPress follow-up events such as `login`, `sign_up`, and `comment_submit`
 - form start
 - form submit attempt
 - selected lead-gen CTA interactions
+- WooCommerce storefront signals including `view_item`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` when the storefront-events flag is enabled
 - thank-you page lead detection
 - external message bridge events for supported embedded providers
 

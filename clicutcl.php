@@ -28,6 +28,17 @@ define( 'CLICUTCL_PLUGIN_MAIN_FILE', __FILE__ );
 define( 'CLICUTCL_PII_NONCE_ACTION', 'clicutcl_pii_nonce' );
 define( 'CLICUTCL_ENABLE_LEGACY_V1_API', false );
 
+add_action(
+	'before_woocommerce_init',
+	function() {
+		if ( ! class_exists( 'Automattic\\WooCommerce\\Utilities\\FeaturesUtil' ) ) {
+			return;
+		}
+
+		\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+	}
+);
+
 /**
  * Build script enqueue args with backward compatibility for pre-6.3 WordPress.
  *

@@ -1,6 +1,6 @@
 # ClickTrail
 
-Keep attribution attached to forms, WooCommerce orders, and event flows across cached pages, dynamic forms, cross-domain journeys, repeat visits, and consent-aware sites.
+Keep campaign context attached to WooCommerce orders, WordPress forms, and event flows across cached pages, dynamic forms, cross-domain journeys, repeat visits, and consent-aware sites.
 
 <p>
   <img src="assets/vizuh-logo.png" alt="Vizuh logo" width="120">
@@ -15,29 +15,31 @@ Keep attribution attached to forms, WooCommerce orders, and event flows across c
 
 ## What ClickTrail Solves
 
+- WooCommerce orders lose campaign context before revenue is reported.
 - UTMs and click IDs disappear after the landing page.
 - Cached or dynamic forms submit without attribution.
-- WooCommerce orders lose campaign context.
 - Cross-domain flows reset the source trail.
 - Teams need consent-aware capture and optional server-side delivery in one plugin.
 
-ClickTrail is designed to keep first-touch and last-touch context alive until the point where WordPress actually needs it: form submissions, WooCommerce orders, browser events, and optional downstream delivery.
+ClickTrail is designed to keep first-touch and last-touch context alive until the point where WordPress actually needs it: WooCommerce orders, form submissions, browser events, and optional downstream delivery.
 
 ## Core Capabilities
 
 - **Capture**: first-touch and last-touch attribution, referrers, classic and extended UTMs, click IDs, browser identifiers, retention, and cross-domain continuity.
+- **WooCommerce**: order attribution, enriched purchase payloads, thank-you page purchase pushes, and optional opt-in storefront events including cart removal.
 - **Forms**: automatic hidden-field enrichment for Contact Form 7 and Fluent Forms, compatible hidden-field population for Gravity Forms and WPForms, cached-page fallback, dynamic-content support, and WhatsApp continuity.
-- **Events**: browser collection, `dataLayer` pushes, webhook intake, and lifecycle updates.
+- **Events**: browser collection, `dataLayer` pushes, webhook intake, lifecycle updates, and optional Woo storefront signals.
 - **Delivery**: optional server-side transport, retries, diagnostics, and consent-aware dispatch.
 
-## Latest Release: 1.3.9
+## Latest Release: 1.4.0
 
-This release is mainly about making ClickTrail easier to trust on production sites.
+This release makes ClickTrail more WooCommerce-focused without changing the broader plugin architecture.
 
-- WordPress privacy export and erasure flows now match personal data more carefully, so cleanup requests are less likely to over-match unrelated event rows.
-- Large privacy erasure jobs now delete events in batches instead of one row at a time, which reduces database overhead on larger sites.
-- Frequently read settings are cached, the consent bridge only loads when the page actually needs it, and the bootstrap fallback no longer re-checks the same file paths every request.
-- Debugging is clearer when something breaks: invalid attribution-token payloads and privacy-erasure database failures now leave better clues in debug mode.
+- WooCommerce HPOS compatibility is declared during bootstrap.
+- Purchase payloads now carry richer commerce fields such as subtotal, tax, shipping, discounts, coupon codes, item quantity, SKU, variant, and categories.
+- Woo storefront events can be enabled explicitly for `view_item`, `add_to_cart`, `remove_from_cart`, and `begin_checkout`.
+- The Events tab now explains Woo order attribution, purchase pushes, storefront events, and where to verify them.
+- The release also includes the recent WordPress.org deployment cleanup and privacy/query hardening work.
 - Full release notes are available in [changelog.txt](changelog.txt) and the public WordPress listing in [readme.txt](readme.txt).
 
 ## Documentation By Audience

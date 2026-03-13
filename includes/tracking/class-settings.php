@@ -63,11 +63,12 @@ class Settings {
 	public static function defaults(): array {
 		return array(
 			'feature_flags' => array(
-				'event_v2'           => 1,
-				'external_webhooks'  => 1,
-				'connector_native'   => 1,
-				'diagnostics_v2'     => 1,
-				'lifecycle_ingestion'=> 1,
+				'event_v2'                     => 1,
+				'woocommerce_storefront_events' => 0,
+				'external_webhooks'            => 1,
+				'connector_native'             => 1,
+				'diagnostics_v2'               => 1,
+				'lifecycle_ingestion'          => 1,
 			),
 			'destinations'  => array(
 				'meta'      => array( 'enabled' => 0, 'credentials' => array() ),
@@ -333,6 +334,19 @@ class Settings {
 	 */
 	public static function browser_event_collection_enabled(): bool {
 		return self::feature_enabled( 'event_v2' );
+	}
+
+	/**
+	 * Check whether WooCommerce storefront events are enabled.
+	 *
+	 * @return bool
+	 */
+	public static function woocommerce_storefront_events_enabled(): bool {
+		if ( ! self::browser_event_collection_enabled() ) {
+			return false;
+		}
+
+		return self::feature_enabled( 'woocommerce_storefront_events' );
 	}
 
 	/**

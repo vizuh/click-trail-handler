@@ -234,24 +234,65 @@ class Event {
 	public static function from_purchase( $payload ) {
 		$payload = is_array( $payload ) ? $payload : array();
 
+		$commerce_source = isset( $payload['commerce'] ) && is_array( $payload['commerce'] ) ? $payload['commerce'] : array();
 		$order_id       = isset( $payload['order_id'] ) ? absint( $payload['order_id'] ) : 0;
-		$transaction_id = isset( $payload['transaction_id'] ) ? sanitize_text_field( (string) $payload['transaction_id'] ) : '';
+		$transaction_id = isset( $commerce_source['transaction_id'] )
+			? sanitize_text_field( (string) $commerce_source['transaction_id'] )
+			: ( isset( $payload['transaction_id'] ) ? sanitize_text_field( (string) $payload['transaction_id'] ) : '' );
 		$event_id       = isset( $payload['event_id'] ) ? sanitize_text_field( (string) $payload['event_id'] ) : '';
 		$event_id       = $event_id ? $event_id : ( $transaction_id ? 'purchase_' . $transaction_id : ( $order_id ? 'purchase_' . $order_id : self::generate_id( 'purchase' ) ) );
 		$timestamp      = isset( $payload['timestamp'] ) ? absint( $payload['timestamp'] ) : time();
 
-		$items = array();
-		if ( isset( $payload['items'] ) && is_array( $payload['items'] ) ) {
-			foreach ( $payload['items'] as $item ) {
-				if ( ! is_array( $item ) ) {
-					continue;
-				}
-				$items[] = array(
-					'item_id'   => isset( $item['item_id'] ) ? sanitize_text_field( (string) $item['item_id'] ) : '',
-					'item_name' => isset( $item['item_name'] ) ? sanitize_text_field( (string) $item['item_name'] ) : '',
-					'price'     => isset( $item['price'] ) ? (float) $item['price'] : 0.0,
-					'quantity'  => isset( $item['quantity'] ) ? absint( $item['quantity'] ) : 0,
-				);
+		$items_source = isset( $commerce_source['items'] ) && is_array( $commerce_source['items'] )
+			? $commerce_source['items']
+			: ( isset( $payload['items'] ) && is_array( $payload['items'] ) ? $payload['items'] : array() );
+		$items        = self::sanitize_purchase_items( $items_source );
+		$commerce     = self::sanitize_nested_array( $commerce_source );
+		$meta         = isset( $payload['meta'] ) && is_array( $payload['meta'] ) ? self::sanitize_nested_array( $payload['meta'] ) : array();
+
+		$commerce['transaction_id'] = $transaction_id;
+		$commerce['value']          = isset( $commerce_source['value'] ) ? (float) $commerce_source['value'] : ( isset( $payload['value'] ) ? (float) $payload['value'] : 0.0 );
+		$commerce['currency']       = isset( $commerce_source['currency'] ) ? sanitize_text_field( (string) $commerce_source['currency'] ) : ( isset( $payload['currency'] ) ? sanitize_text_field( (string) $payload['currency'] ) : '' );
+		$commerce['items']          = $items;
+
+		foreach ( array( 'subtotal', 'tax_total', 'shipping_total', 'discount_total' ) as $field ) {
+			if ( isset( $commerce_source[ $field ] ) ) {
+				$commerce[ $field ] = (float) $commerce_source[ $field ];
+				continue;
+			}
+			if ( isset( $payload[ $field ] ) ) {
+				$commerce[ $field ] = (float) $payload[ $field ];
+			}
+		}
+
+		if ( isset( $commerce_source['discount_codes'] ) && is_array( $commerce_source['discount_codes'] ) ) {
+			$commerce['discount_codes'] = self::sanitize_string_array( $commerce_source['discount_codes'] );
+		} elseif ( isset( $payload['discount_codes'] ) && is_array( $payload['discount_codes'] ) ) {
+			$commerce['discount_codes'] = self::sanitize_string_array( $payload['discount_codes'] );
+		}
+
+		foreach ( array( 'status', 'order_currency' ) as $field ) {
+			if ( isset( $commerce_source[ $field ] ) ) {
+				$commerce[ $field ] = sanitize_text_field( (string) $commerce_source[ $field ] );
+				continue;
+			}
+			if ( isset( $payload[ $field ] ) ) {
+				$commerce[ $field ] = sanitize_text_field( (string) $payload[ $field ] );
+			}
+		}
+
+		if ( isset( $commerce_source['item_quantity'] ) ) {
+			$commerce['item_quantity'] = absint( $commerce_source['item_quantity'] );
+		} elseif ( isset( $payload['item_quantity'] ) ) {
+			$commerce['item_quantity'] = absint( $payload['item_quantity'] );
+		}
+
+		if ( isset( $payload['customer_id'] ) && ! isset( $meta['customer_id'] ) ) {
+			$meta['customer_id'] = absint( $payload['customer_id'] );
+		}
+		foreach ( array( 'customer_created_at', 'order_created_at' ) as $field ) {
+			if ( isset( $payload[ $field ] ) && ! isset( $meta[ $field ] ) ) {
+				$meta[ $field ] = sanitize_text_field( (string) $payload[ $field ] );
 			}
 		}
 
@@ -260,18 +301,16 @@ class Event {
 			'event_id'   => $event_id,
 			'timestamp'  => $timestamp,
 			'source'     => 'server',
-			'commerce'   => array(
-				'transaction_id' => $transaction_id,
-				'value'          => isset( $payload['value'] ) ? (float) $payload['value'] : 0.0,
-				'currency'       => isset( $payload['currency'] ) ? sanitize_text_field( (string) $payload['currency'] ) : '',
-				'items'          => $items,
-			),
-			'attribution' => isset( $payload['attribution'] ) && is_array( $payload['attribution'] ) ? $payload['attribution'] : array(),
-			'identity'    => isset( $payload['identity'] ) && is_array( $payload['identity'] ) ? $payload['identity'] : array(),
-			'meta'        => array(
-				'order_id'       => $order_id,
-				'site_id'        => function_exists( 'get_current_blog_id' ) ? (int) get_current_blog_id() : 0,
-				'plugin_version' => defined( 'CLICUTCL_VERSION' ) ? CLICUTCL_VERSION : '',
+			'commerce'   => $commerce,
+			'attribution' => isset( $payload['attribution'] ) && is_array( $payload['attribution'] ) ? self::sanitize_nested_array( $payload['attribution'] ) : array(),
+			'identity'    => isset( $payload['identity'] ) && is_array( $payload['identity'] ) ? self::sanitize_nested_array( $payload['identity'] ) : array(),
+			'meta'        => array_merge(
+				$meta,
+				array(
+					'order_id'       => $order_id,
+					'site_id'        => function_exists( 'get_current_blog_id' ) ? (int) get_current_blog_id() : 0,
+					'plugin_version' => defined( 'CLICUTCL_VERSION' ) ? CLICUTCL_VERSION : '',
+				)
 			),
 		);
 
@@ -288,6 +327,103 @@ class Event {
 		}
 
 		return new self( $data );
+	}
+
+	/**
+	 * Sanitize nested scalar arrays while preserving additive custom keys.
+	 *
+	 * @param mixed $value Raw payload value.
+	 * @return array
+	 */
+	private static function sanitize_nested_array( $value ) {
+		if ( ! is_array( $value ) ) {
+			return array();
+		}
+
+		$out = array();
+		foreach ( $value as $key => $item ) {
+			$key = sanitize_key( (string) $key );
+			if ( '' === $key ) {
+				continue;
+			}
+
+			if ( is_array( $item ) ) {
+				$out[ $key ] = self::sanitize_nested_array( $item );
+				continue;
+			}
+
+			if ( is_bool( $item ) ) {
+				$out[ $key ] = $item;
+				continue;
+			}
+
+			if ( is_numeric( $item ) ) {
+				$out[ $key ] = $item + 0;
+				continue;
+			}
+
+			$out[ $key ] = sanitize_text_field( (string) $item );
+		}
+
+		return $out;
+	}
+
+	/**
+	 * Sanitize purchase items while preserving the additive WooCommerce keys.
+	 *
+	 * @param array $items Raw item list.
+	 * @return array<int, array<string, mixed>>
+	 */
+	private static function sanitize_purchase_items( array $items ) {
+		$sanitized = array();
+
+		foreach ( $items as $item ) {
+			if ( ! is_array( $item ) ) {
+				continue;
+			}
+
+			$row = self::sanitize_nested_array( $item );
+			$row['item_id'] = isset( $item['item_id'] ) ? sanitize_text_field( (string) $item['item_id'] ) : '';
+			$row['item_name'] = isset( $item['item_name'] ) ? sanitize_text_field( (string) $item['item_name'] ) : '';
+			$row['price'] = isset( $item['price'] ) ? (float) $item['price'] : 0.0;
+			$row['quantity'] = isset( $item['quantity'] ) ? absint( $item['quantity'] ) : 0;
+
+			if ( isset( $item['product_id'] ) ) {
+				$row['product_id'] = absint( $item['product_id'] );
+			}
+			if ( isset( $item['sku'] ) ) {
+				$row['sku'] = sanitize_text_field( (string) $item['sku'] );
+			}
+			if ( isset( $item['variant'] ) ) {
+				$row['variant'] = sanitize_text_field( (string) $item['variant'] );
+			}
+			if ( isset( $item['categories'] ) && is_array( $item['categories'] ) ) {
+				$row['categories'] = self::sanitize_string_array( $item['categories'] );
+			}
+
+			$sanitized[] = $row;
+		}
+
+		return $sanitized;
+	}
+
+	/**
+	 * Sanitize an array of string values.
+	 *
+	 * @param array $values Raw values.
+	 * @return array<int, string>
+	 */
+	private static function sanitize_string_array( array $values ) {
+		return array_values(
+			array_filter(
+				array_map(
+					static function( $value ) {
+						return sanitize_text_field( (string) $value );
+					},
+					$values
+				)
+			)
+		);
 	}
 
 	/**

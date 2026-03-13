@@ -79,7 +79,6 @@ $excludeFiles = @(
     'CLAUDE.md',
     'CONTRIBUTING.md',
     'CONTRIBUTING.pt-BR.md',
-    'INTEGRATIONS.md',
     'README.md',
     'README.en.md',
     'README.pt-BR.md'

@@ -876,9 +876,10 @@ class Admin {
 				),
 			),
 			'events'   => array(
-				'browser_pipeline' => ! empty( $feature_flags['event_v2'] ) ? 1 : 0,
-				'gtm_container_id' => isset( $gtm_settings['container_id'] ) ? (string) $gtm_settings['container_id'] : '',
-				'destinations'     => array(
+				'browser_pipeline'              => ! empty( $feature_flags['event_v2'] ) ? 1 : 0,
+				'woocommerce_storefront_events' => ! empty( $feature_flags['woocommerce_storefront_events'] ) ? 1 : 0,
+				'gtm_container_id'              => isset( $gtm_settings['container_id'] ) ? (string) $gtm_settings['container_id'] : '',
+				'destinations'                  => array(
 					'meta'      => ! empty( $destinations['meta']['enabled'] ) ? 1 : 0,
 					'google'    => ! empty( $destinations['google']['enabled'] ) ? 1 : 0,
 					'linkedin'  => ! empty( $destinations['linkedin']['enabled'] ) ? 1 : 0,
@@ -1120,11 +1121,12 @@ class Admin {
 
 		$tracking_input = array(
 			'feature_flags'  => array(
-				'event_v2'            => ! empty( $events['browser_pipeline'] ) ? 1 : 0,
-				'external_webhooks'   => ! empty( $forms['webhook_sources_enabled'] ) ? 1 : 0,
-				'connector_native'    => ! empty( $delivery_advanced['use_native_adapters'] ) ? 1 : 0,
-				'diagnostics_v2'      => ! empty( $delivery_advanced['store_event_diagnostics'] ) ? 1 : 0,
-				'lifecycle_ingestion' => ! empty( $events_lifecycle['accept_updates'] ) ? 1 : 0,
+				'event_v2'                     => ! empty( $events['browser_pipeline'] ) ? 1 : 0,
+				'woocommerce_storefront_events' => ! empty( $events['woocommerce_storefront_events'] ) ? 1 : 0,
+				'external_webhooks'            => ! empty( $forms['webhook_sources_enabled'] ) ? 1 : 0,
+				'connector_native'             => ! empty( $delivery_advanced['use_native_adapters'] ) ? 1 : 0,
+				'diagnostics_v2'               => ! empty( $delivery_advanced['store_event_diagnostics'] ) ? 1 : 0,
+				'lifecycle_ingestion'          => ! empty( $events_lifecycle['accept_updates'] ) ? 1 : 0,
 			),
 			'destinations'   => array(
 				'meta'      => array( 'enabled' => ! empty( $events_destinations['meta'] ) ? 1 : 0 ),

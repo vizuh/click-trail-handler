@@ -1,6 +1,6 @@
 # ClickTrail
 
-ClickTrail is a WordPress attribution plugin for sites that need reliable marketing source data to survive real-world user journeys, not just the landing page.
+ClickTrail is a WordPress attribution plugin for sites that need reliable marketing source data to survive real-world user journeys, especially when WooCommerce orders or lead forms happen several pages after the landing page.
 
 It is built for the problems that usually break attribution in production:
 
@@ -11,7 +11,7 @@ It is built for the problems that usually break attribution in production:
 - consent-aware tracking requirements
 - optional server-side delivery
 
-Instead of capturing a UTM once and hoping it survives, ClickTrail keeps first-touch and last-touch context available until forms, WooCommerce orders, browser events, or downstream delivery flows actually need it.
+Instead of capturing a UTM once and hoping it survives, ClickTrail keeps first-touch and last-touch context available until WooCommerce orders, forms, browser events, or downstream delivery flows actually need it.
 
 ## What ClickTrail Does
 
@@ -20,24 +20,23 @@ ClickTrail captures first-touch and last-touch attribution, keeps it available a
 It combines:
 
 - attribution capture
+- WooCommerce order attribution and purchase enrichment
 - form enrichment
-- WooCommerce order attribution
 - browser event collection
 - consent-aware tracking controls
 - optional server-side transport with retries and diagnostics
 
-That means you can start with form or WooCommerce attribution first, then add browser events, consent integrations, or server-side delivery when your setup actually needs them.
+That means you can start with campaign-aware WooCommerce orders or reliable form attribution first, then add browser events, consent integrations, or server-side delivery when your setup actually needs them.
 
-## Latest Release Notes (1.3.9)
+## Latest Release Notes (1.4.0)
 
-Version `1.3.9` is a maintenance-heavy release aimed at three things: safer privacy workflows, lower runtime overhead, and clearer troubleshooting.
+Version `1.4.0` strengthens the WooCommerce layer while keeping ClickTrail's broader attribution and delivery architecture intact.
 
-- **Safer privacy matching**: WordPress privacy export and erasure requests now escape `user_id` fragments before they are used in `LIKE`-based event matching. In plain English: a personal-data request is less likely to accidentally match unrelated rows because of wildcard-sensitive characters.
-- **Faster privacy cleanup**: matching event rows are now deleted in batches during erasure requests instead of one database delete per row. This matters most on sites with larger event tables, higher traffic, or long data-retention windows.
-- **Less repeated option churn**: frequently read plugin settings now go through a lightweight cache layer. Attribution checks, consent checks, token TTL lookups, tracking settings, and server-side delivery settings no longer need to keep reloading the same option values during one request.
-- **Lower frontend overhead**: the consent bridge script now loads only when the page actually needs attribution capture, consent handling, or browser events. Pages that do not use those frontend runtime features avoid one extra script.
-- **Less bootstrap path scanning**: the fallback loader that looks for `CLICUTCL\Core\Context` now remembers the successful file path instead of probing the same candidate paths on every request.
-- **Better debugging clues**: invalid attribution-token payloads can emit a debug-only diagnostic message, and privacy erasure can surface the real `$wpdb->last_error` value when deletion fails in debug mode.
+- **WooCommerce HPOS declaration**: ClickTrail now declares compatibility with WooCommerce custom order tables during bootstrap and keeps order-tracking state on Woo order APIs.
+- **Richer purchase payloads**: Woo purchase events now keep the old keys while adding `subtotal`, `tax_total`, `shipping_total`, `discount_total`, `discount_codes`, `status`, `order_currency`, `item_quantity`, plus richer item detail such as `product_id`, `sku`, `variant`, and `categories`.
+- **Opt-in storefront events**: Woo storefront `view_item`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` events can now be enabled explicitly through the existing ClickTrail browser event layer.
+- **Clearer admin guidance**: the Events tab now includes a WooCommerce card that explains order attribution storage, purchase event pushes, optional storefront events, and where to verify them.
+- **Recent hardening included**: the release also carries the WordPress.org deployment cleanup, Plugin Check/privacy-query fixes, and debug visibility improvements from the current maintenance pass.
 
 For the full release history, see [changelog.txt](changelog.txt). The same public release notes are mirrored in [readme.txt](readme.txt) for the WordPress.org plugin page.
 
@@ -59,7 +58,7 @@ ClickTrail includes a client-side capture fallback and dynamic-content watching 
 
 Paid traffic often ends up looking like direct traffic in order records.
 
-ClickTrail stores attribution on the order and pushes purchase data to the dataLayer, with optional server-side dispatch.
+ClickTrail stores attribution on the order, pushes enriched purchase data to the dataLayer, and can optionally extend the same Woo journey into `view_item`, `add_to_cart`, `remove_from_cart`, `begin_checkout`, and server-side dispatch.
 
 ### 4. Cross-domain journeys losing continuity
 
@@ -121,7 +120,7 @@ Additional browser identifiers include:
 
 - Browser event collection
 - GA4-friendly `dataLayer` pushes
-- Search, file download, scroll depth, time-on-page, and lead-gen interaction events
+- Search, file download, scroll depth, time-on-page, lead-gen interaction events, and one-time WordPress follow-up events such as `login`, `sign_up`, and `comment_submit`
 - Lifecycle update intake for downstream CRM / backend workflows
 - Unified canonical event pipeline behind the scenes
 
@@ -161,8 +160,10 @@ Form behavior by plugin:
 ### Commerce
 
 - WooCommerce order attribution
-- WooCommerce purchase event push to `dataLayer`
+- WooCommerce enriched purchase event push to `dataLayer`
+- Optional Woo storefront events for `view_item`, `add_to_cart`, `remove_from_cart`, and `begin_checkout`
 - Optional server-side purchase dispatch
+- WooCommerce HPOS compatibility declaration for order storage/tracking
 
 ### External providers
 
@@ -222,7 +223,7 @@ ClickTrail does not need to be fully enabled on day one. A basic forms or WooCom
 2. Activate the plugin and open `ClickTrail > Settings`.
 3. In `Capture`, keep attribution enabled, choose a retention window that matches your sales cycle, and enable cross-domain continuity only when visitors actually move between approved domains or subdomains.
 4. In `Forms`, enable only the integrations you use. Contact Form 7 and Fluent Forms can receive hidden attribution fields automatically. Gravity Forms and WPForms should have the matching `ct_*` hidden fields you want to preserve, such as `ct_ft_source`, `ct_lt_source`, or `ct_gclid`.
-5. In `Events`, leave browser events enabled only if you want `dataLayer` pushes and on-site event capture. Add a GTM container ID only if your site does not already inject GTM elsewhere.
+5. In `Events`, leave browser events enabled only if you want `dataLayer` pushes and on-site event capture. Enable Woo storefront events only if you want `view_item`, `add_to_cart`, `remove_from_cart`, and `begin_checkout`. Add a GTM container ID only if your site does not already inject GTM elsewhere.
 6. In `Delivery`, leave server-side delivery off unless you already have a collector, sGTM, or advertising endpoint ready. If consent is required, choose the correct consent source and mode before going live.
 7. Open `ClickTrail > Diagnostics` and run the relevant checks.
 
@@ -243,6 +244,7 @@ Start with `Capture` and the integrations you already use. Add `Events` next if 
 
 - Agencies that need attribution inside lead forms
 - WooCommerce stores that want campaign-aware order data
+- WooCommerce stores that want richer purchase payloads without replacing their existing tracking stack
 - Sites with aggressive caching or dynamic form rendering
 - Businesses running multi-domain funnels
 - Teams that need browser and server-side tracking in one WordPress plugin

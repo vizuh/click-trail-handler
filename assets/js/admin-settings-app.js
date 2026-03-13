@@ -239,6 +239,7 @@
         var serverLocked = !!getIn(settings, 'delivery.server.has_network_defaults', false) && !!getIn(settings, 'delivery.server.use_network', false);
         var serverEnabled = !!getIn(settings, 'delivery.server.enabled', false);
         var consentEnabled = !!getIn(settings, 'delivery.privacy.enabled', false);
+        var browserPipelineEnabled = !!getIn(settings, 'events.browser_pipeline', false);
         var lifecycleEnabled = !!getIn(settings, 'events.lifecycle.accept_updates', false);
         var lifecycleEndpointEnabled = lifecycleEnabled && !!getIn(settings, 'events.lifecycle.endpoint_enabled', false);
         var formFallbackEnabled = !!getIn(settings, 'forms.client_fallback', false);
@@ -591,6 +592,28 @@
                     renderToggle('events.browser_pipeline', __('Enable browser event collection', 'click-trail-handler'), __('Collect page, click, and form events through ClickTrail\'s unified event layer.', 'click-trail-handler')),
                     renderText('events.gtm_container_id', __('Google Tag Manager container ID', 'click-trail-handler'), __('Use only if your site does not already load Google Tag Manager.', 'click-trail-handler'), {
                         placeholder: 'GTM-XXXXXXX'
+                    })
+                ]),
+                el(AppCard, {
+                    key: 'events-woocommerce',
+                    icon: 'dashicons-cart',
+                    title: __('WooCommerce', 'click-trail-handler'),
+                    description: __('Keep campaign context visible on WooCommerce orders and extend the same event pipeline into the storefront when you need it.', 'click-trail-handler')
+                }, [
+                    el(InlineNotice, {
+                        key: 'events-woo-orders',
+                        text: __('Order attribution is stored on WooCommerce orders during checkout, so campaign context remains available after the visitor leaves the landing page.', 'click-trail-handler')
+                    }),
+                    el(InlineNotice, {
+                        key: 'events-woo-purchase',
+                        text: __('Purchase events are pushed automatically on the thank-you page and can also flow into ClickTrail\'s server-side delivery adapters when Delivery is enabled.', 'click-trail-handler')
+                    }),
+                    renderToggle('events.woocommerce_storefront_events', __('Enable WooCommerce storefront events', 'click-trail-handler'), __('Emit GA4-style `view_item`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` events through ClickTrail\'s browser event layer. Existing installs keep this off until you enable it.', 'click-trail-handler'), {
+                        disabled: !browserPipelineEnabled
+                    }),
+                    el(InlineNotice, {
+                        key: 'events-woo-verify',
+                        text: __('Verify WooCommerce order attribution in the order screen, and verify storefront/browser events with GTM Preview, the dataLayer, or ClickTrail > Diagnostics when Delivery is enabled.', 'click-trail-handler')
                     })
                 ]),
                 el(AppCard, {
