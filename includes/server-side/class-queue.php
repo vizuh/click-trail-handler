@@ -473,4 +473,33 @@ class Queue {
 
 		return $stats;
 	}
+
+	/**
+	 * Return a queued row for a specific event, if present.
+	 *
+	 * @param string $event_name Event name.
+	 * @param string $event_id Event ID.
+	 * @return array<string,mixed>
+	 */
+	public static function find_event_row( string $event_name, string $event_id ): array {
+		global $wpdb;
+
+		$event_name = sanitize_key( $event_name );
+		$event_id   = sanitize_text_field( $event_id );
+		if ( '' === $event_name || '' === $event_id || ! self::table_exists() ) {
+			return array();
+		}
+
+		$table_name = self::get_table_name();
+		$row        = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT event_name, event_id, adapter, attempts, next_attempt_at, last_error FROM {$table_name} WHERE event_name = %s AND event_id = %s LIMIT 1", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table.
+				$event_name,
+				$event_id
+			),
+			ARRAY_A
+		); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live queue lookup for diagnostics.
+
+		return is_array( $row ) ? $row : array();
+	}
 }

@@ -8,6 +8,7 @@
 namespace CLICUTCL\Tracking;
 
 use CLICUTCL\Core\Storage\Option_Cache;
+use CLICUTCL\Support\Feature_Registry;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -70,13 +71,7 @@ class Settings {
 				'diagnostics_v2'               => 1,
 				'lifecycle_ingestion'          => 1,
 			),
-			'destinations'  => array(
-				'meta'      => array( 'enabled' => 0, 'credentials' => array() ),
-				'google'    => array( 'enabled' => 0, 'credentials' => array() ),
-				'linkedin'  => array( 'enabled' => 0, 'credentials' => array() ),
-				'reddit'    => array( 'enabled' => 0, 'credentials' => array() ),
-				'pinterest' => array( 'enabled' => 0, 'credentials' => array() ),
-			),
+			'destinations'  => Feature_Registry::destination_defaults(),
 			'identity_policy' => array(
 				'mode' => 'consent_gated_minimal',
 			),

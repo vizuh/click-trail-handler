@@ -11,6 +11,7 @@ use CLICUTCL\Core\Attribution_Provider;
 use CLICUTCL\Utils\Attribution;
 use CLICUTCL\Server_Side\Dispatcher;
 use CLICUTCL\Server_Side\Consent;
+use CLICUTCL\Tracking\Event_Translator_V1_To_V2;
 use CLICUTCL\Tracking\Identity_Resolver;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -21,6 +22,15 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Class WooCommerce
  */
 class WooCommerce {
+	/**
+	 * Order meta key used for persisted Woo trace snapshots.
+	 */
+	public const TRACE_META_KEY = '_clicutcl_woo_trace_snapshot';
+
+	/**
+	 * Prefix for per-milestone sent markers.
+	 */
+	public const MILESTONE_META_PREFIX = '_clicutcl_woo_milestone_sent_';
 
 	/**
 	 * Initialize hooks.
@@ -33,6 +43,10 @@ class WooCommerce {
 		
 		add_action( 'woocommerce_checkout_create_order', array( $this, 'save_order_attribution' ), 10, 2 );
 		add_action( 'woocommerce_thankyou', array( $this, 'push_purchase_event' ), 20, 1 );
+		add_action( 'woocommerce_payment_complete', array( $this, 'track_paid_milestone' ), 20, 1 );
+		add_action( 'woocommerce_order_status_changed', array( $this, 'track_paid_milestone_from_status_change' ), 20, 4 );
+		add_action( 'woocommerce_order_status_refunded', array( $this, 'track_refunded_milestone' ), 20, 2 );
+		add_action( 'woocommerce_order_status_cancelled', array( $this, 'track_cancelled_milestone' ), 20, 2 );
 		
 		// Output hidden fields for JS Injection (Cache Resilience)
 		add_action( 'woocommerce_after_order_notes', array( $this, 'output_hidden_checkout_fields' ) );
@@ -168,7 +182,7 @@ class WooCommerce {
 		$payload   = is_array( $payload ) ? wp_parse_args( $payload, $defaults ) : $defaults;
 		$datalayer   = $this->build_purchase_datalayer_payload( $payload, $flat_attr );
 
-		Dispatcher::dispatch_purchase( $payload );
+		$result = $this->dispatch_order_payload( $order, $payload, 'purchase', 'woocommerce_thankyou' );
 		?>
 		<script>
 			window.dataLayer = window.dataLayer || [];
@@ -176,8 +190,93 @@ class WooCommerce {
 		</script>
 		<?php
 
-		$order->update_meta_data( '_clicutcl_tracking_sent', 'yes' );
+		if ( $this->should_mark_milestone_sent( $result ) ) {
+			$order->update_meta_data( '_clicutcl_tracking_sent', 'yes' );
+		}
 		$order->save();
+	}
+
+	/**
+	 * Track a paid-order milestone from the payment-complete hook.
+	 *
+	 * @param int $order_id Order ID.
+	 * @return void
+	 */
+	public function track_paid_milestone( $order_id ): void {
+		$order = wc_get_order( $order_id );
+		if ( ! $order ) {
+			return;
+		}
+
+		$this->maybe_dispatch_order_milestone( $order, 'order_paid', 'woocommerce_payment_complete' );
+	}
+
+	/**
+	 * Track a paid-order milestone from a status change fallback.
+	 *
+	 * @param int              $order_id Order ID.
+	 * @param string           $from_status Previous status.
+	 * @param string           $to_status Current status.
+	 * @param \WC_Order|mixed  $order Order instance.
+	 * @return void
+	 */
+	public function track_paid_milestone_from_status_change( $order_id, $from_status, $to_status, $order ): void {
+		$order = $order instanceof \WC_Order ? $order : wc_get_order( $order_id );
+		if ( ! $order ) {
+			return;
+		}
+
+		$paid_statuses = function_exists( 'wc_get_is_paid_statuses' ) ? array_map( 'sanitize_key', (array) wc_get_is_paid_statuses() ) : array( 'processing', 'completed' );
+		$to_status     = sanitize_key( (string) $to_status );
+		if ( ! in_array( $to_status, $paid_statuses, true ) ) {
+			return;
+		}
+
+		if ( $this->has_milestone_marker( $order, 'order_paid' ) ) {
+			return;
+		}
+
+		$this->maybe_dispatch_order_milestone(
+			$order,
+			'order_paid',
+			'woocommerce_order_status_changed',
+			array(
+				'previous_status' => sanitize_key( (string) $from_status ),
+				'current_status'  => $to_status,
+			)
+		);
+	}
+
+	/**
+	 * Track a refunded-order milestone.
+	 *
+	 * @param int             $order_id Order ID.
+	 * @param \WC_Order|mixed $order Order instance.
+	 * @return void
+	 */
+	public function track_refunded_milestone( $order_id, $order = null ): void {
+		$order = $order instanceof \WC_Order ? $order : wc_get_order( $order_id );
+		if ( ! $order ) {
+			return;
+		}
+
+		$this->maybe_dispatch_order_milestone( $order, 'order_refunded', 'woocommerce_order_status_refunded' );
+	}
+
+	/**
+	 * Track a cancelled-order milestone.
+	 *
+	 * @param int             $order_id Order ID.
+	 * @param \WC_Order|mixed $order Order instance.
+	 * @return void
+	 */
+	public function track_cancelled_milestone( $order_id, $order = null ): void {
+		$order = $order instanceof \WC_Order ? $order : wc_get_order( $order_id );
+		if ( ! $order ) {
+			return;
+		}
+
+		$this->maybe_dispatch_order_milestone( $order, 'order_cancelled', 'woocommerce_order_status_cancelled' );
 	}
 
 	/**
@@ -296,6 +395,181 @@ class WooCommerce {
 			'customer_created_at' => sanitize_text_field( (string) $customer_created_at ),
 			'order_created_at'    => sanitize_text_field( (string) $created_at ),
 		);
+	}
+
+	/**
+	 * Dispatch a Woo order payload and persist a trace snapshot.
+	 *
+	 * @param \WC_Order $order Order instance.
+	 * @param array     $payload Order payload.
+	 * @param string    $event_name Event name.
+	 * @param string    $source_hook Source hook name.
+	 * @return \CLICUTCL\Server_Side\Adapter_Result
+	 */
+	private function dispatch_order_payload( $order, array $payload, string $event_name, string $source_hook ) {
+		$payload['event_name'] = sanitize_key( $event_name );
+		if ( empty( $payload['event_id'] ) && ! empty( $payload['order_id'] ) ) {
+			$payload['event_id'] = sanitize_key( $event_name ) . '_' . absint( $payload['order_id'] );
+		}
+
+		$snapshot = $this->build_trace_snapshot( $payload, $event_name, $source_hook );
+		$this->store_trace_snapshot( $order, $event_name, $snapshot );
+		$order->save();
+
+		$result   = Dispatcher::dispatch_commerce_event( $payload );
+		$dispatch = array(
+			'status'      => $result->skipped ? 'skipped' : ( $result->success ? 'sent' : 'error' ),
+			'message'     => sanitize_text_field( (string) $result->message ),
+			'http_status' => absint( $result->status ),
+			'adapter'     => Dispatcher::get_adapter_key(),
+		);
+		$this->store_trace_snapshot(
+			$order,
+			$event_name,
+			array_merge(
+				$snapshot,
+				array(
+					'dispatch' => $dispatch,
+				)
+			)
+		);
+
+		return $result;
+	}
+
+	/**
+	 * Dispatch a post-purchase milestone if it has not been recorded yet.
+	 *
+	 * @param \WC_Order $order Order instance.
+	 * @param string    $event_name Milestone event name.
+	 * @param string    $source_hook Source hook.
+	 * @param array     $extra_meta Extra metadata.
+	 * @return void
+	 */
+	private function maybe_dispatch_order_milestone( $order, string $event_name, string $source_hook, array $extra_meta = array() ): void {
+		if ( $this->has_milestone_marker( $order, $event_name ) ) {
+			return;
+		}
+
+		$attribution = $this->collect_order_attribution( $order );
+		$identity    = $this->resolve_purchase_identity( $order );
+		$payload     = $this->build_purchase_payload( $order, $attribution, $identity );
+		$payload['event_name'] = sanitize_key( $event_name );
+		$payload['event_id']   = sanitize_key( $event_name ) . '_' . absint( $order->get_id() );
+		$payload['meta']       = array_merge(
+			isset( $payload['meta'] ) && is_array( $payload['meta'] ) ? $payload['meta'] : array(),
+			array(
+				'previous_status' => sanitize_key( (string) ( $extra_meta['previous_status'] ?? '' ) ),
+				'current_status'  => sanitize_key( (string) ( $extra_meta['current_status'] ?? $order->get_status() ) ),
+				'source_hook'     => sanitize_key( $source_hook ),
+				'milestone'       => true,
+			)
+		);
+		if ( isset( $payload['commerce'] ) && is_array( $payload['commerce'] ) ) {
+			$payload['commerce']['status'] = sanitize_key( (string) $order->get_status() );
+		}
+
+		$defaults = $payload;
+		$payload  = apply_filters( 'clicutcl_woocommerce_order_milestone_payload', $payload, $order, $event_name, $source_hook );
+		$payload  = is_array( $payload ) ? wp_parse_args( $payload, $defaults ) : $defaults;
+		$result  = $this->dispatch_order_payload( $order, $payload, $event_name, $source_hook );
+
+		if ( $this->should_mark_milestone_sent( $result ) ) {
+			$order->update_meta_data( $this->get_milestone_marker_key( $event_name ), current_time( 'mysql' ) );
+			$order->save();
+		}
+	}
+
+	/**
+	 * Build a stored Woo trace snapshot.
+	 *
+	 * @param array  $payload Event payload.
+	 * @param string $event_name Event name.
+	 * @param string $source_hook Source hook.
+	 * @return array<string,mixed>
+	 */
+	private function build_trace_snapshot( array $payload, string $event_name, string $source_hook ): array {
+		return array(
+			'event_name'   => sanitize_key( $event_name ),
+			'event_id'     => isset( $payload['event_id'] ) ? sanitize_text_field( (string) $payload['event_id'] ) : '',
+			'source_hook'  => sanitize_key( $source_hook ),
+			'attempted_at' => current_time( 'mysql' ),
+			'payload'      => Event_Translator_V1_To_V2::translate(
+				array(
+					'event_name'   => sanitize_key( $event_name ),
+					'event_id'     => isset( $payload['event_id'] ) ? sanitize_text_field( (string) $payload['event_id'] ) : '',
+					'source'       => 'server',
+					'attribution'  => isset( $payload['attribution'] ) && is_array( $payload['attribution'] ) ? $payload['attribution'] : array(),
+					'identity'     => isset( $payload['identity'] ) && is_array( $payload['identity'] ) ? $payload['identity'] : array(),
+					'commerce'     => isset( $payload['commerce'] ) && is_array( $payload['commerce'] ) ? $payload['commerce'] : array(),
+					'meta'         => isset( $payload['meta'] ) && is_array( $payload['meta'] ) ? $payload['meta'] : array(),
+				)
+			),
+			'dispatch'     => array(
+				'status'      => 'pending',
+				'message'     => '',
+				'http_status' => 0,
+				'adapter'     => Dispatcher::get_adapter_key(),
+			),
+		);
+	}
+
+	/**
+	 * Persist a Woo trace snapshot on the order.
+	 *
+	 * @param \WC_Order $order Order instance.
+	 * @param string    $event_name Event name.
+	 * @param array     $snapshot Snapshot payload.
+	 * @return void
+	 */
+	private function store_trace_snapshot( $order, string $event_name, array $snapshot ): void {
+		$traces = $order->get_meta( self::TRACE_META_KEY, true );
+		$traces = is_array( $traces ) ? $traces : array();
+		$traces[ sanitize_key( $event_name ) ] = $snapshot;
+		$order->update_meta_data( self::TRACE_META_KEY, $traces );
+	}
+
+	/**
+	 * Check whether a milestone marker already exists.
+	 *
+	 * @param \WC_Order $order Order instance.
+	 * @param string    $event_name Event name.
+	 * @return bool
+	 */
+	private function has_milestone_marker( $order, string $event_name ): bool {
+		if ( 'purchase' === sanitize_key( $event_name ) ) {
+			return (bool) $order->get_meta( '_clicutcl_tracking_sent', true );
+		}
+
+		return (bool) $order->get_meta( $this->get_milestone_marker_key( $event_name ), true );
+	}
+
+	/**
+	 * Return the milestone marker meta key.
+	 *
+	 * @param string $event_name Event name.
+	 * @return string
+	 */
+	private function get_milestone_marker_key( string $event_name ): string {
+		return self::MILESTONE_META_PREFIX . sanitize_key( $event_name );
+	}
+
+	/**
+	 * Determine whether an attempted dispatch should mark the milestone as sent.
+	 *
+	 * @param \CLICUTCL\Server_Side\Adapter_Result $result Dispatch result.
+	 * @return bool
+	 */
+	private function should_mark_milestone_sent( $result ): bool {
+		if ( ! is_object( $result ) ) {
+			return false;
+		}
+
+		if ( ! empty( $result->success ) ) {
+			return true;
+		}
+
+		return ! empty( $result->skipped ) || ! empty( $result->message );
 	}
 
 	/**

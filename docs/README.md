@@ -33,13 +33,19 @@ If you are new to the plugin, read these in order:
 ## I want to change admin UI, settings, or UX behavior
 
 - [guides/SETTINGS-AND-ADMIN.md](guides/SETTINGS-AND-ADMIN.md): admin IA, tab responsibilities, option stores, and compatibility URLs
+- [guides/FEATURE-TEST-MATRIX.md](guides/FEATURE-TEST-MATRIX.md): smoke coverage map for admin, WooCommerce, delivery, and diagnostics capabilities
 - [guides/CODE-QUALITY.md](guides/CODE-QUALITY.md): maintenance hotspots and known cleanup risks
+
+## I want to benchmark ClickTrail against another tracking plugin
+
+- [guides/FULL-PICTURE-COMPARISON.md](guides/FULL-PICTURE-COMPARISON.md): attribution-first comparison of ClickTrail vs WP Full Picture, including feature matrix, architecture tradeoffs, and roadmap
 
 ## I want to extend routes, hooks, or integrations
 
 - [reference/REST-API.md](reference/REST-API.md): active routes, auth model, and diagnostics endpoints
 - [reference/HOOKS-REFERENCE.md](reference/HOOKS-REFERENCE.md): public actions and filters
 - [reference/INTEGRATIONS.md](reference/INTEGRATIONS.md): current support model and integration-specific implementation notes
+- [reference/FEATURE-REGISTRY.md](reference/FEATURE-REGISTRY.md): internal capability and destination registry used by admin, dispatcher, docs, and smoke coverage
 
 ## I need to operate, debug, or support a live install
 

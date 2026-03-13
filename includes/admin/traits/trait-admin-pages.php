@@ -10,6 +10,7 @@ namespace CLICUTCL\Admin;
 use CLICUTCL\Server_Side\Dispatcher;
 use CLICUTCL\Server_Side\Queue;
 use CLICUTCL\Server_Side\Settings;
+use CLICUTCL\Support\Feature_Registry;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -61,13 +62,9 @@ trait Admin_Pages_Trait {
 							<select name="clicutcl_server_side_network[adapter]">
 								<?php
 								$adapter = $options['adapter'] ?? 'generic';
-								$choices = array(
-									'generic'       => __( 'Generic Collector', 'click-trail-handler' ),
-									'sgtm'          => __( 'sGTM (Server GTM)', 'click-trail-handler' ),
-									'meta_capi'     => __( 'Meta CAPI', 'click-trail-handler' ),
-									'google_ads'    => __( 'Google Ads / GA4', 'click-trail-handler' ),
-									'linkedin_capi' => __( 'LinkedIn CAPI', 'click-trail-handler' ),
-								);
+								$choices = method_exists( $this, 'get_localized_adapter_options' )
+									? $this->get_localized_adapter_options()
+									: array();
 								foreach ( $choices as $value => $label ) :
 									?>
 									<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $adapter, $value ); ?>>
@@ -247,6 +244,72 @@ trait Admin_Pages_Trait {
 					<div class="clicktrail-action-row">
 						<button class="button button-primary" id="clicutcl-test-endpoint"><?php esc_html_e( 'Test Endpoint', 'click-trail-handler' ); ?></button>
 						<span id="clicutcl-test-endpoint-status" class="clicktrail-action-status"></span>
+					</div>
+				</div>
+			</section>
+
+			<section class="clicktrail-card">
+				<div class="clicktrail-card__header clicktrail-card__header--static">
+					<span class="clicktrail-card__header-main">
+						<span class="clicktrail-card__icon dashicons dashicons-search" aria-hidden="true"></span>
+						<span class="clicktrail-card__heading">
+							<span class="clicktrail-card__title"><?php esc_html_e( 'Conflict Scan', 'click-trail-handler' ); ?></span>
+							<span class="clicktrail-card__description"><?php esc_html_e( 'Run deterministic checks for caching, duplicate ownership, Woo gaps, and delivery mismatches.', 'click-trail-handler' ); ?></span>
+						</span>
+					</span>
+				</div>
+				<div class="clicktrail-card__body">
+					<div class="clicktrail-action-row">
+						<button class="button button-secondary" id="clicutcl-run-conflict-scan"><?php esc_html_e( 'Run Conflict Scan', 'click-trail-handler' ); ?></button>
+						<span id="clicutcl-conflict-scan-status" class="clicktrail-action-status"></span>
+					</div>
+					<div id="clicutcl-conflict-scan-results" class="clicktrail-diagnostics-results">
+						<?php echo wp_kses_post( $this->render_conflict_scan_results( array() ) ); ?>
+					</div>
+				</div>
+			</section>
+
+			<section class="clicktrail-card">
+				<div class="clicktrail-card__header clicktrail-card__header--static">
+					<span class="clicktrail-card__header-main">
+						<span class="clicktrail-card__icon dashicons dashicons-backup" aria-hidden="true"></span>
+						<span class="clicktrail-card__heading">
+							<span class="clicktrail-card__title"><?php esc_html_e( 'Backup Restore', 'click-trail-handler' ); ?></span>
+							<span class="clicktrail-card__description"><?php esc_html_e( 'Export or restore the five main ClickTrail option stores, including masked secrets through privileged server-side actions.', 'click-trail-handler' ); ?></span>
+						</span>
+					</span>
+				</div>
+				<div class="clicktrail-card__body">
+					<div class="clicktrail-action-row">
+						<button class="button button-secondary" id="clicutcl-settings-export"><?php esc_html_e( 'Export Backup', 'click-trail-handler' ); ?></button>
+						<span id="clicutcl-settings-export-status" class="clicktrail-action-status"></span>
+					</div>
+					<div class="clicktrail-action-row" style="margin-top:12px;">
+						<input type="file" id="clicutcl-settings-import-file" accept="application/json" />
+						<button class="button button-secondary" id="clicutcl-settings-import"><?php esc_html_e( 'Restore Backup', 'click-trail-handler' ); ?></button>
+						<span id="clicutcl-settings-import-status" class="clicktrail-action-status"></span>
+					</div>
+				</div>
+			</section>
+
+			<section class="clicktrail-card">
+				<div class="clicktrail-card__header clicktrail-card__header--static">
+					<span class="clicktrail-card__header-main">
+						<span class="clicktrail-card__icon dashicons dashicons-cart" aria-hidden="true"></span>
+						<span class="clicktrail-card__heading">
+							<span class="clicktrail-card__title"><?php esc_html_e( 'Woo Order Trace Lookup', 'click-trail-handler' ); ?></span>
+							<span class="clicktrail-card__description"><?php esc_html_e( 'Inspect the stored purchase and milestone payload snapshots for a WooCommerce order, even outside the debug window.', 'click-trail-handler' ); ?></span>
+						</span>
+					</span>
+				</div>
+				<div class="clicktrail-card__body">
+					<div class="clicktrail-action-row">
+						<input type="number" min="1" id="clicutcl-woo-order-id" class="regular-text" placeholder="<?php echo esc_attr__( 'Order ID', 'click-trail-handler' ); ?>" />
+						<button class="button button-secondary" id="clicutcl-woo-order-lookup"><?php esc_html_e( 'Lookup Order', 'click-trail-handler' ); ?></button>
+						<span id="clicutcl-woo-order-lookup-status" class="clicktrail-action-status"></span>
+					</div>
+					<div id="clicutcl-woo-order-lookup-results" class="clicktrail-diagnostics-results">
+						<?php echo wp_kses_post( $this->render_woo_order_lookup_results( array(), '' ) ); ?>
 					</div>
 				</div>
 			</section>
@@ -470,11 +533,12 @@ trait Admin_Pages_Trait {
 						<tbody>
 						<?php if ( ! empty( $dispatch_rows ) ) : ?>
 							<?php foreach ( $dispatch_rows as $dispatch ) : ?>
+								<?php $adapter_key = isset( $dispatch['adapter'] ) ? sanitize_key( (string) $dispatch['adapter'] ) : ''; ?>
 								<tr>
 									<td><?php echo esc_html( date_i18n( 'Y-m-d H:i:s', (int) ( $dispatch['time'] ?? 0 ) ) ); ?></td>
 									<td><?php echo esc_html( $dispatch['event_name'] ?? '' ); ?></td>
 									<td><?php echo esc_html( $dispatch['event_id'] ?? '' ); ?></td>
-									<td><?php echo esc_html( $dispatch['adapter'] ?? '' ); ?></td>
+									<td><?php echo esc_html( Feature_Registry::adapter_label( $adapter_key ) ); ?></td>
 									<td><?php echo esc_html( $dispatch['status'] ?? '' ); ?></td>
 									<td><?php echo esc_html( $dispatch['http_status'] ?? '' ); ?></td>
 									<td><?php echo esc_html( $dispatch['endpoint_host'] ?? '' ); ?></td>
@@ -516,5 +580,129 @@ trait Admin_Pages_Trait {
 			</div>
 		</div>
 		<?php
+	}
+
+	/**
+	 * Render conflict-scan results.
+	 *
+	 * @param array $report Conflict report.
+	 * @return string
+	 */
+	protected function render_conflict_scan_results( array $report ): string {
+		$findings = isset( $report['findings'] ) && is_array( $report['findings'] ) ? $report['findings'] : array();
+		$summary  = isset( $report['summary'] ) ? sanitize_text_field( (string) $report['summary'] ) : __( 'Run the scan to review likely setup conflicts.', 'click-trail-handler' );
+
+		ob_start();
+		?>
+		<div class="clicktrail-inline-notice">
+			<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
+			<span><?php echo esc_html( $summary ); ?></span>
+		</div>
+		<?php if ( ! empty( $findings ) ) : ?>
+			<ul class="clicktrail-plain-list">
+				<?php foreach ( $findings as $finding ) : ?>
+					<?php
+					$severity = isset( $finding['severity'] ) ? sanitize_key( (string) $finding['severity'] ) : 'info';
+					$title    = isset( $finding['title'] ) ? sanitize_text_field( (string) $finding['title'] ) : '';
+					$detail   = isset( $finding['detail'] ) ? sanitize_text_field( (string) $finding['detail'] ) : '';
+					?>
+					<li class="clicktrail-inline-notice <?php echo 'high' === $severity ? 'clicktrail-inline-notice--warning' : ''; ?>">
+						<span class="dashicons <?php echo 'high' === $severity ? 'dashicons-warning' : 'dashicons-info-outline'; ?>" aria-hidden="true"></span>
+						<span><strong><?php echo esc_html( $title ); ?></strong> <?php echo esc_html( $detail ); ?></span>
+					</li>
+				<?php endforeach; ?>
+			</ul>
+		<?php endif; ?>
+		<?php
+
+		return (string) ob_get_clean();
+	}
+
+	/**
+	 * Render Woo order trace lookup results.
+	 *
+	 * @param array  $lookup Lookup payload.
+	 * @param string $message Optional empty-state message.
+	 * @return string
+	 */
+	protected function render_woo_order_lookup_results( array $lookup, string $message = '' ): string {
+		$order_id = isset( $lookup['order_id'] ) ? absint( $lookup['order_id'] ) : 0;
+		$status   = isset( $lookup['status'] ) ? sanitize_key( (string) $lookup['status'] ) : '';
+		$traces   = isset( $lookup['traces'] ) && is_array( $lookup['traces'] ) ? $lookup['traces'] : array();
+		$message  = '' !== $message ? $message : __( 'Lookup an order to inspect stored purchase and milestone traces.', 'click-trail-handler' );
+
+		ob_start();
+		if ( ! $order_id ) {
+			?>
+			<div class="clicktrail-inline-notice">
+				<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
+				<span><?php echo esc_html( $message ); ?></span>
+			</div>
+			<?php
+			return (string) ob_get_clean();
+		}
+		?>
+		<div class="clicktrail-inline-notice">
+			<span class="dashicons dashicons-cart" aria-hidden="true"></span>
+			<span>
+				<strong><?php echo esc_html( sprintf( __( 'Order #%d', 'click-trail-handler' ), $order_id ) ); ?></strong>
+				<?php echo esc_html( $status ? ' · ' . $status : '' ); ?>
+			</span>
+		</div>
+		<?php foreach ( $traces as $trace ) : ?>
+			<?php
+			$event_name = isset( $trace['event_name'] ) ? sanitize_text_field( (string) $trace['event_name'] ) : '';
+			$event_id   = isset( $trace['event_id'] ) ? sanitize_text_field( (string) $trace['event_id'] ) : '';
+			$source_hook = isset( $trace['source_hook'] ) ? sanitize_text_field( (string) $trace['source_hook'] ) : '';
+			$attempted_at = isset( $trace['attempted_at'] ) ? sanitize_text_field( (string) $trace['attempted_at'] ) : '';
+			$dispatch = isset( $trace['dispatch'] ) && is_array( $trace['dispatch'] ) ? $trace['dispatch'] : array();
+			$queue    = isset( $trace['queue'] ) && is_array( $trace['queue'] ) ? $trace['queue'] : array();
+			$payload  = isset( $trace['payload'] ) && is_array( $trace['payload'] ) ? $trace['payload'] : array();
+			?>
+			<section class="clicktrail-card" style="margin-top:16px;">
+				<div class="clicktrail-card__header clicktrail-card__header--static">
+					<span class="clicktrail-card__header-main">
+						<span class="clicktrail-card__heading">
+							<span class="clicktrail-card__title"><?php echo esc_html( $event_name ? $event_name : __( 'Stored trace', 'click-trail-handler' ) ); ?></span>
+							<span class="clicktrail-card__description"><?php echo esc_html( $event_id ); ?></span>
+						</span>
+					</span>
+				</div>
+				<div class="clicktrail-card__body">
+					<table class="widefat striped clicktrail-data-table">
+						<tbody>
+							<tr>
+								<th><?php esc_html_e( 'Source Hook', 'click-trail-handler' ); ?></th>
+								<td><?php echo esc_html( $source_hook ? $source_hook : '-' ); ?></td>
+							</tr>
+							<tr>
+								<th><?php esc_html_e( 'Attempted At', 'click-trail-handler' ); ?></th>
+								<td><?php echo esc_html( $attempted_at ? $attempted_at : '-' ); ?></td>
+							</tr>
+							<tr>
+								<th><?php esc_html_e( 'Dispatch Result', 'click-trail-handler' ); ?></th>
+								<td><?php echo esc_html( sanitize_text_field( (string) ( $dispatch['status'] ?? '-' ) ) ); ?></td>
+							</tr>
+							<tr>
+								<th><?php esc_html_e( 'Dispatch Detail', 'click-trail-handler' ); ?></th>
+								<td><?php echo esc_html( sanitize_text_field( (string) ( $dispatch['message'] ?? '-' ) ) ); ?></td>
+							</tr>
+							<tr>
+								<th><?php esc_html_e( 'Queue State', 'click-trail-handler' ); ?></th>
+								<td><?php echo esc_html( sanitize_text_field( (string) ( $queue['state'] ?? '-' ) ) ); ?></td>
+							</tr>
+							<tr>
+								<th><?php esc_html_e( 'Queue Detail', 'click-trail-handler' ); ?></th>
+								<td><?php echo esc_html( sanitize_text_field( (string) ( $queue['detail'] ?? '-' ) ) ); ?></td>
+							</tr>
+						</tbody>
+					</table>
+					<pre class="clicktrail-json-preview"><?php echo esc_html( wp_json_encode( $payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES ) ); ?></pre>
+				</div>
+			</section>
+		<?php endforeach; ?>
+		<?php
+
+		return (string) ob_get_clean();
 	}
 }

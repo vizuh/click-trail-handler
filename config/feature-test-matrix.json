@@ -1,0 +1,779 @@
+{
+  "schema_version": 1,
+  "tests": {
+    "delivery-adapter-generic": {
+      "label": "Generic delivery adapter registry coverage",
+      "expected_behavior": "The generic collector remains selectable through the shared adapter registry and dispatcher allowlist.",
+      "prerequisites": [
+        "Server-side delivery is enabled."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Open Settings > Delivery and confirm Generic Collector appears in the adapter selector."
+      ],
+      "evidence": [
+        {
+          "file": "config/feature-registry.json",
+          "patterns": [
+            "\"generic\"",
+            "Generic Collector"
+          ]
+        },
+        {
+          "file": "includes/server-side/class-dispatcher.php",
+          "patterns": [
+            "dispatch_commerce_event",
+            "allowed_adapters"
+          ]
+        }
+      ]
+    },
+    "delivery-adapter-sgtm": {
+      "label": "sGTM adapter registry coverage",
+      "expected_behavior": "The sGTM adapter remains selectable through the shared adapter registry and dispatcher allowlist.",
+      "prerequisites": [
+        "Server-side delivery is enabled."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Open Settings > Delivery and confirm sGTM (Server GTM) appears in the adapter selector."
+      ],
+      "evidence": [
+        {
+          "file": "config/feature-registry.json",
+          "patterns": [
+            "\"sgtm\"",
+            "sGTM (Server GTM)"
+          ]
+        },
+        {
+          "file": "includes/server-side/class-dispatcher.php",
+          "patterns": [
+            "allowed_adapters",
+            "adapter_class"
+          ]
+        }
+      ]
+    },
+    "delivery-adapter-meta": {
+      "label": "Meta adapter registry coverage",
+      "expected_behavior": "Meta CAPI remains selectable through the shared adapter registry and dispatcher allowlist.",
+      "prerequisites": [
+        "Server-side delivery is enabled.",
+        "A Meta-compatible collector is available."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Open Settings > Delivery and confirm Meta CAPI appears in the adapter selector."
+      ],
+      "evidence": [
+        {
+          "file": "config/feature-registry.json",
+          "patterns": [
+            "\"meta_capi\"",
+            "\"destination\": \"meta\""
+          ]
+        },
+        {
+          "file": "includes/server-side/class-dispatcher.php",
+          "patterns": [
+            "allowed_adapters",
+            "adapter_class"
+          ]
+        }
+      ]
+    },
+    "delivery-adapter-google": {
+      "label": "Google adapter registry coverage",
+      "expected_behavior": "Google Ads / GA4 remains selectable through the shared adapter registry and dispatcher allowlist.",
+      "prerequisites": [
+        "Server-side delivery is enabled.",
+        "A Google-compatible collector is available."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Open Settings > Delivery and confirm Google Ads / GA4 appears in the adapter selector."
+      ],
+      "evidence": [
+        {
+          "file": "config/feature-registry.json",
+          "patterns": [
+            "\"google_ads\"",
+            "\"destination\": \"google\""
+          ]
+        },
+        {
+          "file": "includes/server-side/class-dispatcher.php",
+          "patterns": [
+            "allowed_adapters",
+            "adapter_class"
+          ]
+        }
+      ]
+    },
+    "delivery-adapter-linkedin": {
+      "label": "LinkedIn adapter registry coverage",
+      "expected_behavior": "LinkedIn CAPI remains selectable through the shared adapter registry and dispatcher allowlist.",
+      "prerequisites": [
+        "Server-side delivery is enabled.",
+        "A LinkedIn-compatible collector is available."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Open Settings > Delivery and confirm LinkedIn CAPI appears in the adapter selector."
+      ],
+      "evidence": [
+        {
+          "file": "config/feature-registry.json",
+          "patterns": [
+            "\"linkedin_capi\"",
+            "\"destination\": \"linkedin\""
+          ]
+        },
+        {
+          "file": "includes/server-side/class-dispatcher.php",
+          "patterns": [
+            "allowed_adapters",
+            "adapter_class"
+          ]
+        }
+      ]
+    },
+    "delivery-adapter-pinterest": {
+      "label": "Pinterest adapter registry coverage",
+      "expected_behavior": "Pinterest Conversions API is selectable through the shared adapter registry and dispatcher allowlist.",
+      "prerequisites": [
+        "Server-side delivery is enabled.",
+        "A Pinterest-compatible collector is available."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Open Settings > Delivery and confirm Pinterest Conversions API appears in the adapter selector."
+      ],
+      "evidence": [
+        {
+          "file": "config/feature-registry.json",
+          "patterns": [
+            "\"pinterest_capi\"",
+            "\"destination\": \"pinterest\""
+          ]
+        },
+        {
+          "file": "includes/server-side/class-pinterest-capi-adapter.php",
+          "patterns": [
+            "class Pinterest_Capi_Adapter",
+            "return 'pinterest_capi';"
+          ]
+        }
+      ]
+    },
+    "delivery-adapter-tiktok": {
+      "label": "TikTok adapter registry coverage",
+      "expected_behavior": "TikTok Events API is selectable through the shared adapter registry and dispatcher allowlist.",
+      "prerequisites": [
+        "Server-side delivery is enabled.",
+        "A TikTok-compatible collector is available."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Open Settings > Delivery and confirm TikTok Events API appears in the adapter selector."
+      ],
+      "evidence": [
+        {
+          "file": "config/feature-registry.json",
+          "patterns": [
+            "\"tiktok_events_api\"",
+            "\"destination\": \"tiktok\""
+          ]
+        },
+        {
+          "file": "includes/server-side/class-tiktok-events-api-adapter.php",
+          "patterns": [
+            "class TikTok_Events_Api_Adapter",
+            "return 'tiktok_events_api';"
+          ]
+        }
+      ]
+    },
+    "destination-meta-toggle": {
+      "label": "Meta destination toggle wiring",
+      "expected_behavior": "Meta appears in the Events tab through the shared destination registry.",
+      "prerequisites": [
+        "Open Settings > Events."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Enable Meta in Events and save. Reload the screen and confirm the toggle persists."
+      ],
+      "evidence": [
+        {
+          "file": "config/feature-registry.json",
+          "patterns": [
+            "\"meta\"",
+            "\"enablement_path\": \"events.destinations.meta\""
+          ]
+        },
+        {
+          "file": "assets/js/admin-settings-app.js",
+          "patterns": [
+            "destinationRegistry",
+            "events.destinations."
+          ]
+        }
+      ]
+    },
+    "destination-google-toggle": {
+      "label": "Google destination toggle wiring",
+      "expected_behavior": "Google appears in the Events tab through the shared destination registry.",
+      "prerequisites": [
+        "Open Settings > Events."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Enable Google in Events and save. Reload the screen and confirm the toggle persists."
+      ],
+      "evidence": [
+        {
+          "file": "config/feature-registry.json",
+          "patterns": [
+            "\"google\"",
+            "\"enablement_path\": \"events.destinations.google\""
+          ]
+        },
+        {
+          "file": "includes/admin/class-admin.php",
+          "patterns": [
+            "get_localized_destination_toggle_list",
+            "save_unified_admin_settings"
+          ]
+        }
+      ]
+    },
+    "destination-linkedin-toggle": {
+      "label": "LinkedIn destination toggle wiring",
+      "expected_behavior": "LinkedIn appears in the Events tab through the shared destination registry.",
+      "prerequisites": [
+        "Open Settings > Events."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Enable LinkedIn in Events and save. Reload the screen and confirm the toggle persists."
+      ],
+      "evidence": [
+        {
+          "file": "config/feature-registry.json",
+          "patterns": [
+            "\"linkedin\"",
+            "\"enablement_path\": \"events.destinations.linkedin\""
+          ]
+        },
+        {
+          "file": "includes/admin/class-admin.php",
+          "patterns": [
+            "get_localized_destination_toggle_list",
+            "save_unified_admin_settings"
+          ]
+        }
+      ]
+    },
+    "destination-reddit-toggle": {
+      "label": "Reddit destination toggle wiring",
+      "expected_behavior": "Reddit remains available as a relay-only destination toggle.",
+      "prerequisites": [
+        "Open Settings > Events."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Enable Reddit in Events and save. Reload the screen and confirm the toggle persists."
+      ],
+      "evidence": [
+        {
+          "file": "config/feature-registry.json",
+          "patterns": [
+            "\"reddit\"",
+            "\"support_level\": \"relay_only\""
+          ]
+        },
+        {
+          "file": "assets/js/admin-settings-app.js",
+          "patterns": [
+            "destinationHelp(entry)",
+            "relay_only"
+          ]
+        }
+      ]
+    },
+    "destination-pinterest-toggle": {
+      "label": "Pinterest destination toggle wiring",
+      "expected_behavior": "Pinterest appears in the Events tab through the shared destination registry.",
+      "prerequisites": [
+        "Open Settings > Events."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Enable Pinterest in Events and save. Reload the screen and confirm the toggle persists."
+      ],
+      "evidence": [
+        {
+          "file": "config/feature-registry.json",
+          "patterns": [
+            "\"pinterest\"",
+            "\"enablement_path\": \"events.destinations.pinterest\""
+          ]
+        },
+        {
+          "file": "assets/js/admin-settings-app.js",
+          "patterns": [
+            "Pinterest",
+            "events.destinations."
+          ]
+        }
+      ]
+    },
+    "destination-tiktok-toggle": {
+      "label": "TikTok destination toggle wiring",
+      "expected_behavior": "TikTok appears in the Events tab through the shared destination registry.",
+      "prerequisites": [
+        "Open Settings > Events."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Enable TikTok in Events and save. Reload the screen and confirm the toggle persists."
+      ],
+      "evidence": [
+        {
+          "file": "config/feature-registry.json",
+          "patterns": [
+            "\"tiktok\"",
+            "\"enablement_path\": \"events.destinations.tiktok\""
+          ]
+        },
+        {
+          "file": "assets/js/admin-settings-app.js",
+          "patterns": [
+            "TikTok",
+            "events.destinations."
+          ]
+        }
+      ]
+    },
+    "admin-save-capture": {
+      "label": "Grouped admin save/load mapping for Capture",
+      "expected_behavior": "Capture settings map cleanly between the unified admin app and clicutcl_attribution_settings.",
+      "prerequisites": [
+        "Open Settings > Capture."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Toggle attribution capture or retention values, save, reload, and confirm the values persist."
+      ],
+      "evidence": [
+        {
+          "file": "assets/js/admin-settings-app.js",
+          "patterns": [
+            "capture.enabled",
+            "capture.retention_days",
+            "capture.allowed_domains"
+          ]
+        },
+        {
+          "file": "includes/admin/class-admin.php",
+          "patterns": [
+            "'enable_attribution'",
+            "'cookie_days'",
+            "'enable_link_decoration'"
+          ]
+        }
+      ]
+    },
+    "admin-save-forms": {
+      "label": "Grouped admin save/load mapping for Forms",
+      "expected_behavior": "Forms settings map cleanly between the unified admin app and the stored option groups.",
+      "prerequisites": [
+        "Open Settings > Forms."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Toggle client fallback or provider settings, save, reload, and confirm the values persist."
+      ],
+      "evidence": [
+        {
+          "file": "assets/js/admin-settings-app.js",
+          "patterns": [
+            "forms.client_fallback",
+            "renderProvider('calendly', 'Calendly')",
+            "forms.whatsapp.enabled"
+          ]
+        },
+        {
+          "file": "includes/admin/class-admin.php",
+          "patterns": [
+            "'enable_js_injection'",
+            "'external_webhooks'",
+            "'whatsapp_append_attribution'"
+          ]
+        }
+      ]
+    },
+    "signed-intake-gate": {
+      "label": "Signed intake auth acceptance and rejection gates",
+      "expected_behavior": "Browser event intake remains protected by signed tokens, host checks, and nonce replay limits.",
+      "prerequisites": [
+        "Browser event transport is enabled."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Verify that valid signed tokens are accepted and invalid, expired, or replayed tokens are rejected with 401 or 429 responses."
+      ],
+      "evidence": [
+        {
+          "file": "includes/tracking/class-auth.php",
+          "patterns": [
+            "verify_client_token",
+            "token_site_mismatch",
+            "token_expired"
+          ]
+        },
+        {
+          "file": "includes/api/class-tracking-controller.php",
+          "patterns": [
+            "x-clicutcl-token",
+            "check_token_nonce_limit",
+            "batch_events_permissions_check"
+          ]
+        },
+        {
+          "file": "includes/api/traits/trait-tracking-controller-security.php",
+          "patterns": [
+            "nonce_replay_limited",
+            "rate_limit_limit"
+          ]
+        }
+      ]
+    },
+    "woo-view-item": {
+      "label": "WooCommerce product view browser event",
+      "expected_behavior": "Woo product pages emit view_item through the shared browser event layer.",
+      "prerequisites": [
+        "WooCommerce is active.",
+        "WooCommerce storefront events are enabled."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Open a product page and confirm a view_item event appears in dataLayer or debug output."
+      ],
+      "evidence": [
+        {
+          "file": "assets/js/clicutcl-events.js",
+          "patterns": [
+            "trackWooProductView()",
+            "this.pushEvent('view_item'",
+            "this.wooCommerce.pageType !== 'product'"
+          ]
+        }
+      ]
+    },
+    "woo-add-to-cart": {
+      "label": "WooCommerce add_to_cart browser event",
+      "expected_behavior": "Woo add-to-cart interactions emit add_to_cart through the shared browser event layer.",
+      "prerequisites": [
+        "WooCommerce is active.",
+        "WooCommerce storefront events are enabled."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Add a product to cart and confirm an add_to_cart event appears in dataLayer or debug output."
+      ],
+      "evidence": [
+        {
+          "file": "assets/js/clicutcl-events.js",
+          "patterns": [
+            "trackWooAddToCart()",
+            "added_to_cart",
+            "this.pushEvent('add_to_cart'"
+          ]
+        }
+      ]
+    },
+    "woo-remove-from-cart": {
+      "label": "WooCommerce remove_from_cart browser event",
+      "expected_behavior": "Classic and block cart removals emit remove_from_cart through the shared browser event layer.",
+      "prerequisites": [
+        "WooCommerce is active.",
+        "WooCommerce storefront events are enabled."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Remove an item from the classic cart or block cart and confirm a remove_from_cart event appears in dataLayer or debug output."
+      ],
+      "evidence": [
+        {
+          "file": "assets/js/clicutcl-events.js",
+          "patterns": [
+            "trackWooRemoveFromCart()",
+            "removed_from_cart",
+            "trackWooBlockCartRemoveFromCart"
+          ]
+        }
+      ]
+    },
+    "woo-begin-checkout": {
+      "label": "WooCommerce begin_checkout browser event",
+      "expected_behavior": "Woo checkout pages emit begin_checkout through the shared browser event layer.",
+      "prerequisites": [
+        "WooCommerce is active.",
+        "WooCommerce storefront events are enabled."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Open the checkout page and confirm a begin_checkout event appears in dataLayer or debug output."
+      ],
+      "evidence": [
+        {
+          "file": "assets/js/clicutcl-events.js",
+          "patterns": [
+            "trackWooBeginCheckout()",
+            "this.pushEvent('begin_checkout'",
+            "this.wooCommerce.pageType !== 'checkout'"
+          ]
+        }
+      ]
+    },
+    "woo-view-item-list": {
+      "label": "WooCommerce list-view browser event",
+      "expected_behavior": "Woo product lists emit view_item_list with list-name and list-index context through the shared browser event layer.",
+      "prerequisites": [
+        "WooCommerce is active.",
+        "WooCommerce storefront events are enabled."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Open a shop, category, related-products, or cross-sell surface and confirm a view_item_list event appears with item_list_name and item_list_index fields."
+      ],
+      "evidence": [
+        {
+          "file": "assets/js/clicutcl-events.js",
+          "patterns": [
+            "trackWooListViews()",
+            "this.pushEvent('view_item_list'",
+            "item_list_name",
+            "item_list_index",
+            "IntersectionObserver"
+          ]
+        },
+        {
+          "file": "includes/class-clicutcl-core.php",
+          "patterns": [
+            "catalogContext",
+            "build_woocommerce_catalog_context"
+          ]
+        }
+      ]
+    },
+    "woo-order-paid": {
+      "label": "WooCommerce order_paid milestone",
+      "expected_behavior": "Paid orders emit one server-side order_paid milestone with deterministic event IDs and order markers.",
+      "prerequisites": [
+        "WooCommerce is active.",
+        "Server-side delivery is enabled."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Complete payment for a test order and confirm order_paid appears once in Diagnostics > Woo Order Trace Lookup."
+      ],
+      "evidence": [
+        {
+          "file": "includes/integrations/class-woocommerce.php",
+          "patterns": [
+            "track_paid_milestone",
+            "'order_paid'",
+            "MILESTONE_META_PREFIX"
+          ]
+        }
+      ]
+    },
+    "woo-order-refunded": {
+      "label": "WooCommerce order_refunded milestone",
+      "expected_behavior": "Refunded orders emit one server-side order_refunded milestone with deterministic event IDs and order markers.",
+      "prerequisites": [
+        "WooCommerce is active.",
+        "Server-side delivery is enabled."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Refund a test order and confirm order_refunded appears once in Diagnostics > Woo Order Trace Lookup."
+      ],
+      "evidence": [
+        {
+          "file": "includes/integrations/class-woocommerce.php",
+          "patterns": [
+            "track_refunded_milestone",
+            "'order_refunded'",
+            "woocommerce_order_status_refunded"
+          ]
+        }
+      ]
+    },
+    "woo-order-cancelled": {
+      "label": "WooCommerce order_cancelled milestone",
+      "expected_behavior": "Cancelled orders emit one server-side order_cancelled milestone with deterministic event IDs and order markers.",
+      "prerequisites": [
+        "WooCommerce is active.",
+        "Server-side delivery is enabled."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Cancel a test order and confirm order_cancelled appears once in Diagnostics > Woo Order Trace Lookup."
+      ],
+      "evidence": [
+        {
+          "file": "includes/integrations/class-woocommerce.php",
+          "patterns": [
+            "track_cancelled_milestone",
+            "'order_cancelled'",
+            "woocommerce_order_status_cancelled"
+          ]
+        }
+      ]
+    },
+    "diagnostics-conflict-scan": {
+      "label": "Diagnostics conflict scan",
+      "expected_behavior": "Diagnostics exposes a deterministic conflict scan for caching, destination mismatches, and Woo gaps.",
+      "prerequisites": [
+        "Open ClickTrail > Diagnostics."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Run the conflict scan and confirm findings render inline when known mismatches exist."
+      ],
+      "evidence": [
+        {
+          "file": "includes/admin/traits/trait-admin-diagnostics-ajax.php",
+          "patterns": [
+            "ajax_conflict_scan",
+            "build_conflict_scan_report",
+            "detect_cache_conflict_labels"
+          ]
+        },
+        {
+          "file": "includes/admin/traits/trait-admin-pages.php",
+          "patterns": [
+            "Conflict Scan",
+            "clicutcl-run-conflict-scan"
+          ]
+        },
+        {
+          "file": "assets/js/admin-diagnostics.js",
+          "patterns": [
+            "clicutcl_conflict_scan",
+            "scanResults.innerHTML"
+          ]
+        }
+      ]
+    },
+    "diagnostics-woo-lookup": {
+      "label": "Diagnostics Woo order trace lookup",
+      "expected_behavior": "Diagnostics can load stored Woo purchase and milestone traces and enrich them with queue state.",
+      "prerequisites": [
+        "WooCommerce is active.",
+        "Open ClickTrail > Diagnostics."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Lookup a valid Woo order ID and confirm purchase or milestone trace snapshots render with queue details."
+      ],
+      "evidence": [
+        {
+          "file": "includes/admin/traits/trait-admin-diagnostics-ajax.php",
+          "patterns": [
+            "ajax_lookup_woo_order_trace",
+            "Queue::find_event_row",
+            "TRACE_META_KEY"
+          ]
+        },
+        {
+          "file": "includes/admin/traits/trait-admin-pages.php",
+          "patterns": [
+            "Woo Order Trace Lookup",
+            "render_woo_order_lookup_results"
+          ]
+        },
+        {
+          "file": "includes/integrations/class-woocommerce.php",
+          "patterns": [
+            "TRACE_META_KEY",
+            "store_trace_snapshot"
+          ]
+        }
+      ]
+    },
+    "settings-export-import": {
+      "label": "Settings backup export and restore",
+      "expected_behavior": "Diagnostics can export and restore the five main ClickTrail option stores through privileged admin actions.",
+      "prerequisites": [
+        "Open ClickTrail > Diagnostics."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Export a backup, inspect the JSON metadata, then import it and confirm settings are restored through the admin sanitizers."
+      ],
+      "evidence": [
+        {
+          "file": "includes/admin/traits/trait-admin-diagnostics-ajax.php",
+          "patterns": [
+            "ajax_export_settings_backup",
+            "ajax_import_settings_backup",
+            "build_settings_backup_snapshot",
+            "import_settings_backup_snapshot"
+          ]
+        },
+        {
+          "file": "includes/admin/traits/trait-admin-pages.php",
+          "patterns": [
+            "Backup Restore",
+            "clicutcl-settings-export",
+            "clicutcl-settings-import"
+          ]
+        },
+        {
+          "file": "assets/js/admin-diagnostics.js",
+          "patterns": [
+            "clicutcl_export_settings_backup",
+            "clicutcl_import_settings_backup"
+          ]
+        }
+      ]
+    },
+    "queue-retry-semantics": {
+      "label": "Queue retry and backoff semantics",
+      "expected_behavior": "Failed dispatches continue to enqueue, back off, and surface queue stats through the shared queue layer.",
+      "prerequisites": [
+        "Server-side delivery is enabled.",
+        "A failing test endpoint is available."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Force a failing dispatch and confirm the queue stores attempts, next_attempt_at, and last_error values that advance with retries."
+      ],
+      "evidence": [
+        {
+          "file": "includes/server-side/class-dispatcher.php",
+          "patterns": [
+            "Queue::enqueue",
+            "record_failure",
+            "dispatch_commerce_event"
+          ]
+        },
+        {
+          "file": "includes/server-side/class-queue.php",
+          "patterns": [
+            "get_backoff_seconds",
+            "next_attempt_at",
+            "get_stats",
+            "find_event_row"
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -25,6 +25,8 @@
             this.externalMarkers = new Set();
             this.sessionId = this.getOrCreateSessionId();
             this.visitorId = this.getOrCreateVisitorId();
+            this.wooListSeen = new Set();
+            this.wooListItemContext = {};
             this.init();
         }
 
@@ -109,6 +111,7 @@
             const map = {
                 view_search_results: { event_name: 'search', funnel_stage: 'top' },
                 view_item: { event_name: 'view_item', funnel_stage: 'top' },
+                view_item_list: { event_name: 'view_item_list', funnel_stage: 'top' },
                 file_download: { event_name: 'view_content', funnel_stage: 'mid' },
                 scroll: { event_name: 'scroll_depth', funnel_stage: 'top' },
                 user_engagement: { event_name: 'key_page_view', funnel_stage: 'top' },
@@ -346,6 +349,16 @@
                     out[key] = value;
                 }
             });
+
+            const listName = this.safeText(item.item_list_name || '', 160);
+            if (listName) {
+                out.item_list_name = listName;
+            }
+
+            const listIndex = Number(item.item_list_index);
+            if (Number.isFinite(listIndex) && listIndex > 0) {
+                out.item_list_index = Math.round(listIndex);
+            }
 
             if (Array.isArray(item.categories)) {
                 const categories = item.categories
@@ -701,10 +714,57 @@
                 return;
             }
 
+            this.trackWooListViews();
             this.trackWooProductView();
             this.trackWooBeginCheckout();
             this.trackWooAddToCart();
             this.trackWooRemoveFromCart();
+        }
+
+        trackWooListViews() {
+            const lists = this.getWooProductListContainers();
+            if (!lists.length) {
+                return;
+            }
+
+            const emitListView = (container, index) => {
+                const signature = this.getWooListSignature(container, index);
+                if (!signature || this.wooListSeen.has(signature)) {
+                    return;
+                }
+
+                const ecommerce = this.extractWooListEcommerce(container);
+                if (!ecommerce) {
+                    return;
+                }
+
+                this.wooListSeen.add(signature);
+                this.pushEvent('view_item_list', {
+                    ecommerce
+                });
+            };
+
+            if (typeof window.IntersectionObserver === 'function') {
+                const observer = new window.IntersectionObserver((entries) => {
+                    entries.forEach((entry) => {
+                        if (!entry.isIntersecting) {
+                            return;
+                        }
+
+                        const listIndex = lists.indexOf(entry.target);
+                        emitListView(entry.target, listIndex);
+                        observer.unobserve(entry.target);
+                    });
+                }, {
+                    threshold: 0.2,
+                    rootMargin: '0px 0px -10% 0px'
+                });
+
+                lists.forEach((container) => observer.observe(container));
+                return;
+            }
+
+            lists.forEach((container, index) => emitListView(container, index));
         }
 
         trackWooProductView() {
@@ -808,6 +868,7 @@
             );
             const name = this.pickWooProductName(buttonElement, fallbackItem);
             const price = this.extractWooProductPrice(buttonElement, fallbackItem);
+            const listContext = this.resolveWooListContext(buttonElement, productId || (fallbackItem ? fallbackItem.product_id : 0));
             const item = this.sanitizeCommerceItem({
                 item_id: productId || (fallbackItem ? fallbackItem.item_id : 0),
                 item_name: name || (fallbackItem ? fallbackItem.item_name : ''),
@@ -816,7 +877,9 @@
                 product_id: productId || (fallbackItem ? fallbackItem.product_id : 0),
                 sku: sku || (fallbackItem ? fallbackItem.sku : ''),
                 variant: fallbackItem ? fallbackItem.variant : '',
-                categories: fallbackItem && Array.isArray(fallbackItem.categories) ? fallbackItem.categories : []
+                categories: fallbackItem && Array.isArray(fallbackItem.categories) ? fallbackItem.categories : [],
+                item_list_name: listContext.item_list_name || '',
+                item_list_index: listContext.item_list_index || 0
             });
 
             return item || fallbackItem;
@@ -1026,6 +1089,242 @@
             return pools.find((item) => Number(item && (item.product_id || item.item_id || 0)) === resolvedId) || null;
         }
 
+        getWooProductListContainers() {
+            const selectors = [
+                '.related.products',
+                '.upsells.products',
+                '.up-sells.products',
+                '.cross-sells',
+                '.woocommerce-cart .cross-sells',
+                '.products',
+                'ul.products',
+                '.wc-block-grid',
+                '.wc-block-product-template',
+                '.widget .products',
+                '.wc-block-product-categories-list'
+            ];
+            const seen = new Set();
+
+            return Array.from(document.querySelectorAll(selectors.join(','))).filter((container) => {
+                if (!container || seen.has(container)) {
+                    return false;
+                }
+
+                const cards = this.getWooProductCards(container);
+                if (!cards.length) {
+                    return false;
+                }
+
+                seen.add(container);
+                return true;
+            });
+        }
+
+        getWooProductCards(container) {
+            if (!container || !container.querySelectorAll) {
+                return [];
+            }
+
+            return Array.from(container.querySelectorAll('.product, li.product, .wc-block-grid__product, .wc-block-product'))
+                .filter((card) => card && card.querySelector);
+        }
+
+        getWooListSignature(container, fallbackIndex) {
+            if (!container) {
+                return '';
+            }
+
+            const listName = this.resolveWooListName(container);
+            const firstCard = this.getWooProductCards(container)[0];
+            const firstProductId = this.extractWooProductIdFromElement(firstCard);
+            return [listName || 'list', firstProductId || 0, fallbackIndex || 0].join(':');
+        }
+
+        extractWooListEcommerce(container) {
+            const listName = this.resolveWooListName(container);
+            const items = this.getWooProductCards(container)
+                .map((card, index) => this.extractWooListItem(card, index + 1, listName))
+                .filter(Boolean);
+
+            if (!items.length) {
+                return null;
+            }
+
+            return {
+                currency: this.safeText(this.wooCommerce.currency || '', 16),
+                item_quantity: items.length,
+                value: items.reduce((total, item) => {
+                    const price = Number.isFinite(Number(item.price)) ? Number(item.price) : 0;
+                    return total + price;
+                }, 0),
+                items: items
+            };
+        }
+
+        extractWooListItem(card, listIndex, listName) {
+            if (!card || !card.querySelector) {
+                return null;
+            }
+
+            const productId = this.extractWooProductIdFromElement(card);
+            const fallbackItem = this.findWooCommerceConfigItem(productId);
+            const name = this.extractWooProductNameFromNode(card, fallbackItem);
+            const price = this.extractWooPriceFromNode(card, fallbackItem);
+            const item = this.sanitizeCommerceItem({
+                item_id: productId || (fallbackItem ? fallbackItem.item_id : 0),
+                item_name: name || (fallbackItem ? fallbackItem.item_name : ''),
+                price: price,
+                quantity: 1,
+                product_id: productId || (fallbackItem ? fallbackItem.product_id : 0),
+                sku: fallbackItem ? fallbackItem.sku : '',
+                variant: fallbackItem ? fallbackItem.variant : '',
+                categories: fallbackItem && Array.isArray(fallbackItem.categories) ? fallbackItem.categories : [],
+                item_list_name: listName,
+                item_list_index: listIndex
+            });
+
+            if (item && Number(item.product_id || item.item_id || 0) > 0) {
+                const itemKey = String(item.product_id || item.item_id);
+                this.wooListItemContext[itemKey] = {
+                    item_list_name: item.item_list_name || '',
+                    item_list_index: item.item_list_index || listIndex
+                };
+            }
+
+            return item;
+        }
+
+        resolveWooListContext(node, productId) {
+            const container = node && node.closest ? node.closest('.related.products, .upsells.products, .up-sells.products, .cross-sells, .products, ul.products, .wc-block-grid, .wc-block-product-template, .widget .products') : null;
+            if (container) {
+                const listName = this.resolveWooListName(container);
+                if (listName) {
+                    const cards = this.getWooProductCards(container);
+                    const itemIndex = cards.findIndex((card) => Number(this.extractWooProductIdFromElement(card)) === Number(productId));
+                    return {
+                        item_list_name: listName,
+                        item_list_index: itemIndex >= 0 ? itemIndex + 1 : 0
+                    };
+                }
+            }
+
+            const fallback = this.wooListItemContext[String(Number(productId || 0))];
+            return fallback && typeof fallback === 'object' ? fallback : {};
+        }
+
+        resolveWooListName(container) {
+            if (!container) {
+                return this.safeText(this.wooCommerce.catalogContext && this.wooCommerce.catalogContext.listName || '', 160);
+            }
+
+            const explicit = this.readWooListDataAttribute(container);
+            if (explicit) {
+                return explicit;
+            }
+
+            if (container.closest('.related, .related.products')) {
+                return 'Related Products';
+            }
+            if (container.closest('.upsells, .upsells.products, .up-sells, .up-sells.products')) {
+                return 'Upsells';
+            }
+            if (container.closest('.cross-sells')) {
+                return container.closest('.woocommerce-cart')
+                    ? 'Cart Cross-sells'
+                    : 'Cross-sells';
+            }
+
+            const widgetTitle = this.extractWooSectionHeading(container.closest('.widget, section, .wp-block-group, .woocommerce'));
+            if (widgetTitle) {
+                return widgetTitle;
+            }
+
+            return this.safeText(this.wooCommerce.catalogContext && this.wooCommerce.catalogContext.listName || '', 160);
+        }
+
+        readWooListDataAttribute(node) {
+            if (!node || !node.getAttribute) {
+                return '';
+            }
+
+            const attributes = ['data-clicutcl-list-name', 'data-clicktrail-list-name', 'data-list-name', 'data-list_name'];
+            for (let i = 0; i < attributes.length; i += 1) {
+                const value = this.safeText(node.getAttribute(attributes[i]) || '', 160);
+                if (value) {
+                    return value;
+                }
+            }
+
+            return '';
+        }
+
+        extractWooSectionHeading(container) {
+            if (!container || !container.querySelector) {
+                return '';
+            }
+
+            const heading = container.querySelector('h1, h2, h3, h4, .widget-title, .wc-block-grid__products-title, .wp-block-heading');
+            return heading ? this.safeText(heading.textContent || '', 160) : '';
+        }
+
+        extractWooProductIdFromElement(node) {
+            if (!node || !node.getAttribute) {
+                return 0;
+            }
+
+            const id = Number(
+                node.getAttribute('data-product_id') ||
+                node.getAttribute('data-product-id') ||
+                (node.dataset ? (node.dataset.productId || node.dataset.product_id || node.dataset.postId || node.dataset.product) : '') ||
+                (node.id || '').replace(/[^0-9]/g, '')
+            );
+            return Number.isFinite(id) ? id : 0;
+        }
+
+        extractWooProductNameFromNode(node, fallbackItem) {
+            if (!node || !node.querySelector) {
+                return fallbackItem ? this.safeText(fallbackItem.item_name || '', 160) : '';
+            }
+
+            const selectors = [
+                '[data-product_name]',
+                '.woocommerce-loop-product__title',
+                '.wc-block-grid__product-title',
+                '.wc-block-components-product-name',
+                '.product-title',
+                '.product-name',
+                'h2',
+                'h3'
+            ];
+            for (let i = 0; i < selectors.length; i += 1) {
+                const target = node.querySelector(selectors[i]);
+                if (!target) {
+                    continue;
+                }
+
+                const value = this.safeText(target.textContent || target.getAttribute('data-product_name') || '', 160);
+                if (value) {
+                    return value;
+                }
+            }
+
+            return fallbackItem ? this.safeText(fallbackItem.item_name || '', 160) : '';
+        }
+
+        extractWooPriceFromNode(node, fallbackItem) {
+            if (!node || !node.querySelector) {
+                return fallbackItem && Number.isFinite(Number(fallbackItem.price)) ? Number(fallbackItem.price) : 0;
+            }
+
+            const priceNode = node.querySelector('.price .amount, .woocommerce-Price-amount, .wc-block-components-product-price__value');
+            const parsed = this.parsePrice(priceNode ? priceNode.textContent : '');
+            if (parsed > 0) {
+                return parsed;
+            }
+
+            return fallbackItem && Number.isFinite(Number(fallbackItem.price)) ? Number(fallbackItem.price) : 0;
+        }
+
         getUrlParam(url, key) {
             if (!url) {
                 return '';
@@ -1074,7 +1373,13 @@
                 currency: this.safeText(source.currency || '', 16),
                 product: source.product && typeof source.product === 'object' ? source.product : {},
                 cart: source.cart && typeof source.cart === 'object' ? source.cart : {},
-                checkout: source.checkout && typeof source.checkout === 'object' ? source.checkout : {}
+                checkout: source.checkout && typeof source.checkout === 'object' ? source.checkout : {},
+                catalogContext: source.catalogContext && typeof source.catalogContext === 'object'
+                    ? {
+                        pageType: this.safeText(source.catalogContext.page_type || source.catalogContext.pageType || '', 32),
+                        listName: this.safeText(source.catalogContext.list_name || source.catalogContext.listName || '', 160)
+                    }
+                    : {}
             };
         }
 

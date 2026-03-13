@@ -26,10 +26,10 @@ ClickTrail is designed to keep first-touch and last-touch context alive until th
 ## Core Capabilities
 
 - **Capture**: first-touch and last-touch attribution, referrers, classic and extended UTMs, click IDs, browser identifiers, retention, and cross-domain continuity.
-- **WooCommerce**: order attribution, enriched purchase payloads, thank-you page purchase pushes, and optional opt-in storefront events including cart removal.
+- **WooCommerce**: order attribution, enriched purchase payloads, thank-you page purchase pushes, optional list-view storefront events, cart removal, and post-purchase milestones.
 - **Forms**: automatic hidden-field enrichment for Contact Form 7 and Fluent Forms, compatible hidden-field population for Gravity Forms and WPForms, cached-page fallback, dynamic-content support, and WhatsApp continuity.
 - **Events**: browser collection, `dataLayer` pushes, webhook intake, lifecycle updates, and optional Woo storefront signals.
-- **Delivery**: optional server-side transport, retries, diagnostics, and consent-aware dispatch.
+- **Delivery**: optional server-side transport, retries, diagnostics, conflict scanning, backup/restore, and consent-aware dispatch.
 
 ## Latest Release: 1.4.0
 
@@ -37,8 +37,9 @@ This release makes ClickTrail more WooCommerce-focused without changing the broa
 
 - WooCommerce HPOS compatibility is declared during bootstrap.
 - Purchase payloads now carry richer commerce fields such as subtotal, tax, shipping, discounts, coupon codes, item quantity, SKU, variant, and categories.
-- Woo storefront events can be enabled explicitly for `view_item`, `add_to_cart`, `remove_from_cart`, and `begin_checkout`.
-- The Events tab now explains Woo order attribution, purchase pushes, storefront events, and where to verify them.
+- Woo storefront events can be enabled explicitly for `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, and `begin_checkout`, with post-purchase milestones on the same delivery path.
+- Settings now includes a setup checklist, and Diagnostics now adds conflict scanning, backup restore, and Woo order trace lookup.
+- Native delivery adapter support now includes Pinterest Conversions API and TikTok Events API.
 - The release also includes the recent WordPress.org deployment cleanup and privacy/query hardening work.
 - Full release notes are available in [changelog.txt](changelog.txt) and the public WordPress listing in [readme.txt](readme.txt).
 

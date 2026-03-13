@@ -2,6 +2,7 @@
   "name": "click-trail-handler-build",
   "private": true,
   "scripts": {
+    "smoke": "node -e \"require('./tools/qa/smoke.js')\"",
     "make-zip": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/release/make-zip.ps1"
   }
 }

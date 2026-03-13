@@ -10,6 +10,8 @@ This map is organized around the active code paths first, then compatibility and
 ## Root Files
 
 - `clicutcl.php`: plugin header, constants, bootstrap, activation, deactivation
+- `config/feature-registry.json`: internal capability, destination, and adapter registry
+- `config/feature-test-matrix.json`: machine-readable smoke-test matrix tied to registry IDs
 - `README.md`: GitHub landing page
 - `README.en.md`: English product README
 - `README.pt-BR.md`: Brazilian Portuguese product README
@@ -25,7 +27,7 @@ This map is organized around the active code paths first, then compatibility and
 - `docs/README.md`: engineering entry point and ownership map
 - `docs/architecture/`: runtime, storage, event flow, and file layout
 - `docs/guides/`: admin, operations, privacy, rollout, and quality guidance
-- `docs/reference/`: REST routes, hooks, and integrations
+- `docs/reference/`: REST routes, hooks, integrations, and registry metadata
 
 ## Active Runtime Directories
 
@@ -67,6 +69,7 @@ This map is organized around the active code paths first, then compatibility and
 - `includes/tracking/class-dedup-store.php`
 - `includes/tracking/class-webhook-auth.php`
 - `includes/tracking/webhooks/`
+- `includes/support/class-feature-registry.php`
 
 ### Server-side delivery
 
@@ -74,6 +77,8 @@ This map is organized around the active code paths first, then compatibility and
 - `includes/server-side/class-queue.php`
 - `includes/server-side/class-event.php`
 - `includes/server-side/class-settings.php`
+- `includes/server-side/class-pinterest-capi-adapter.php`
+- `includes/server-side/class-tiktok-events-api-adapter.php`
 - adapter classes under `includes/server-side/`
 
 ### Integrations
@@ -116,6 +121,11 @@ This map is organized around the active code paths first, then compatibility and
 ### Branding
 
 - `assets/vizuh-logo.png`
+
+## `tools/`
+
+- `tools/qa/smoke.js`: structural smoke harness for registry-backed capabilities
+- `tools/qa/check-typing-policy.php`: repository typing policy check
 
 ## Active Data Surfaces
 

@@ -1,0 +1,1124 @@
+{
+  "translation-revision-date": "2026-03-13 00:00+0000",
+  "generator": "Codex",
+  "domain": "messages",
+  "locale_data": {
+    "messages": {
+      "": {
+        "domain": "messages",
+        "lang": "pt_BR",
+        "plural-forms": "nplurals=2; plural=(n > 1);"
+      },
+      "ClickTrail: Caching/conflicts detected": [
+        "ClickTrail: Cache/conflitos detectados"
+      ],
+      "ClickTrail: Frontend script running": [
+        "ClickTrail: Script de frontend em execução"
+      ],
+      "ClickTrail: Attribution cookie readable": [
+        "ClickTrail: Cookie de atribuição legível"
+      ],
+      "No common caching/conflict plugins detected": [
+        "Nenhum plugin comum de cache/conflito detectado"
+      ],
+      "ClickTrail will still work best with JS injection enabled.": [
+        "O ClickTrail ainda funcionará melhor com a injeção de JS ativada."
+      ],
+      "Caching/optimization detected (JS injection recommended)": [
+        "Cache/otimização detectados (injeção de JS recomendada)"
+      ],
+      "Detected: %s. Full-page caching can make server-side hidden fields stale. Enable ClickTrail’s JS Field Injector.": [
+        "Detectado: %s. O cache de página inteira pode tornar os campos ocultos do lado do servidor obsoletos. Ative o Injetor de Campo JS do ClickTrail."
+      ],
+      "Frontend script seen in the last 24h": [
+        "Script de frontend visto nas últimas 24h"
+      ],
+      "Your frontend script reported activity recently.": [
+        "Seu script de frontend reportou atividade recentemente."
+      ],
+      "Frontend script not seen recently": [
+        "Script de frontend não visto recentemente"
+      ],
+      "If you use caching/minification, confirm the ClickTrail JS is loaded on public pages.": [
+        "Se você usa cache/minificação, confirme se o JS do ClickTrail está carregado em páginas públicas."
+      ],
+      "Attribution cookie present in request": [
+        "Cookie de atribuição presente na requisição"
+      ],
+      "Server received the attribution cookie.": [
+        "O servidor recebeu o cookie de atribuição."
+      ],
+      "This may be normal if no UTM visit occurred.": [
+        "Isso pode ser normal se nenhuma visita UTM ocorreu."
+      ],
+      "Note: Consent Mode is enabled. If you have not granted consent, no cookie will be set.": [
+        "Nota: O Modo de Consentimento está ativado. Se você não concedeu consentimento, nenhum cookie será definido."
+      ],
+      "Test by visiting a page with ?utm_source=test.": [
+        "Teste visitando uma página com ?utm_source=test."
+      ],
+      "Attribution cookie not present in request": [
+        "Cookie de atribuição não presente na requisição"
+      ],
+      "Date": [
+        "Data"
+      ],
+      "Event Type": [
+        "Tipo de Evento"
+      ],
+      "Details": [
+        "Detalhes"
+      ],
+      "No logs found.": [
+        "Nenhum log encontrado."
+      ],
+      "Source": [
+        "Origem"
+      ],
+      "Direct": [
+        "Direto"
+      ],
+      "Marketing Attribution": [
+        "Atribuição de Marketing"
+      ],
+      "No attribution data available.": [
+        "Nenhum dado de atribuição disponível."
+      ],
+      "Medium": [
+        "Meio"
+      ],
+      "Campaign": [
+        "Campanha"
+      ],
+      "Term": [
+        "Termo"
+      ],
+      "Content": [
+        "Conteúdo"
+      ],
+      "Google Click ID": [
+        "Google Click ID"
+      ],
+      "Facebook Click ID": [
+        "Facebook Click ID"
+      ],
+      "LinkedIn Click ID": [
+        "LinkedIn Click ID"
+      ],
+      "Landing Page": [
+        "Página de Destino"
+      ],
+      "First Touch": [
+        "Primeiro Toque"
+      ],
+      "No first-touch data available": [
+        "Nenhum dado de primeiro toque disponível"
+      ],
+      "Last Touch": [
+        "Último Toque"
+      ],
+      "ClickTrail Status": [
+        "Status do ClickTrail"
+      ],
+      "Attribution Cookie": [
+        "Cookie de Atribuição"
+      ],
+      "Caching Status": [
+        "Status de Cache"
+      ],
+      "JS Injection": [
+        "Injeção de JS"
+      ],
+      "Link Decoration": [
+        "Decoração de Link"
+      ],
+      "Run Full Diagnostics": [
+        "Executar Diagnóstico Completo"
+      ],
+      "ClickTrail": [
+        "ClickTrail"
+      ],
+      "Settings": [
+        "Configurações"
+      ],
+      "Logs": [
+        "Logs"
+      ],
+      "General Attribution Settings": [
+        "Configurações Gerais de Atribuição"
+      ],
+      "Enable attribution tracking": [
+        "Ativar rastreamento de atribuição"
+      ],
+      "Automatically track UTM parameters and Click IDs from incoming traffic.": [
+        "Rastrear automaticamente parâmetros UTM e Click IDs do tráfego de entrada."
+      ],
+      "Cookie Expiration (Days)": [
+        "Expiração do Cookie (Dias)"
+      ],
+      "Reliability & Cross-Domain": [
+        "Confiabilidade & Domínio Cruzado"
+      ],
+      "Enable JS Field Injector": [
+        "Ativar Injetor de Campo JS"
+      ],
+      "CRITICAL: Fills hidden fields via JavaScript. Required for sites with caching (WP Rocket, WP Engine, Cloudflare).": [
+        "CRÍTICO: Preenche campos ocultos via JavaScript. Necessário para sites com cache (WP Rocket, WP Engine, Cloudflare)."
+      ],
+      "Keep this ON to ensure data is captured even when the page is cached.": [
+        "Mantenha isso ATIVADO para garantir que os dados sejam capturados mesmo quando a página estiver em cache."
+      ],
+      "Overwrite Existing Values": [
+        "Sobrescrever Valores Existentes"
+      ],
+      "If checked, JS will overwrite fields that already have a value.": [
+        "Se marcado, o JS sobrescreverá os campos que já possuem um valor."
+      ],
+      "Use MutationObserver": [
+        "Usar MutationObserver"
+      ],
+      "Detects forms in popups or loaded via AJAX (Elementor, etc).": [
+        "Detecta formulários em popups ou carregados via AJAX (Elementor, etc)."
+      ],
+      "Enable Link Decoration": [
+        "Ativar Decoração de Link"
+      ],
+      "Appends UTMs/Click IDs to outbound links.": [
+        "Anexa UTMs/Click IDs a links externos."
+      ],
+      "Allowed Domains": [
+        "Domínios Permitidos"
+      ],
+      "Comma-separated list of domains to decorate (e.g., app.mysite.com, otherdomain.com).": [
+        "Lista separada por vírgulas de domínios para decorar (ex: app.meusite.com, outrodominio.com)."
+      ],
+      "Skip Signed URLs": [
+        "Pular URLs Assinadas"
+      ],
+      "Avoid decorating signed URLs (e.g. Amazon S3, secure tokens) to prevent breaking signatures.": [
+        "Evita decorar URLs assinadas (ex: Amazon S3, tokens seguros) para evitar quebra de assinaturas."
+      ],
+      "WhatsApp Tracking": [
+        "Rastreamento de WhatsApp"
+      ],
+      "Enable WhatsApp tracking": [
+        "Ativar rastreamento do WhatsApp"
+      ],
+      "Track clicks on WhatsApp links and buttons.": [
+        "Rastrear cliques em links e botões do WhatsApp."
+      ],
+      "Append attribution to message": [
+        "Acrescentar atribuição à mensagem"
+      ],
+      "Add attribution data to the pre-filled WhatsApp message.": [
+        "Adicionar dados de atribuição à mensagem pré-preenchida do WhatsApp."
+      ],
+      "Log Clicks (Custom Post Type)": [
+        "Logar Cliques (Custom Post Type)"
+      ],
+      "Save each WhatsApp click as a \"WhatsApp Click\" post in WordPress.": [
+        "Salvar cada clique do WhatsApp como um post de \"Clique do WhatsApp\" no WordPress."
+      ],
+      "Consent Mode Configuration": [
+        "Configuração do Modo de Consentimento"
+      ],
+      "Enable consent mode": [
+        "Ativar modo de consentimento"
+      ],
+      "Regions (e.g. EU)": [
+        "Regiões (ex: EU)"
+      ],
+      "Google Tag Manager": [
+        "Google Tag Manager"
+      ],
+      "Container ID (GTM-XXXXXX)": [
+        "ID do Contêiner (GTM-XXXXXX)"
+      ],
+      "WhatsApp": [
+        "WhatsApp"
+      ],
+      "Privacy & consent": [
+        "Privacidade e consentimento"
+      ],
+      "Integrations": [
+        "Integrações"
+      ],
+      "Enabled": [
+        "Ativado"
+      ],
+      "Disabled": [
+        "Desativado"
+      ],
+      "Comma-separated list of region codes.": [
+        "Lista separada por vírgulas de códigos de região."
+      ],
+      "ClickTrail Audit detected PII risk on your Thank You page. Your tracking may be deactivated by Google.": [
+        "A Auditoria do ClickTrail detectou risco de PII na sua página de Obrigado. Seu rastreamento pode ser desativado pelo Google."
+      ],
+      "Fix PII Issues Now": [
+        "Corrigir Problemas de PII Agora"
+      ],
+      "ClickTrail Logs": [
+        "Logs do ClickTrail"
+      ],
+      "ClickTrail failed to boot: missing class CLICUTCL\\Core\\Context. Check your autoloader mapping and release ZIP contents.": [
+        "O ClickTrail falhou ao iniciar: classe CLICUTCL\\Core\\Context ausente. Verifique o mapeamento do autoloader e o conteúdo do arquivo ZIP da versão."
+      ],
+      "ClickTrail could not start because a required class is missing. This usually means the release ZIP is missing files or the autoloader mapping is incorrect.": [
+        "O ClickTrail não pôde iniciar porque uma classe obrigatória está ausente. Isso geralmente significa que o arquivo ZIP da versão está sem arquivos ou o mapeamento do autoloader está incorreto."
+      ],
+      "Google Tag Manager snippet added by ClickTrail": [
+        "Snippet do Google Tag Manager adicionado pelo ClickTrail"
+      ],
+      "End Google Tag Manager snippet added by ClickTrail": [
+        "Fim do snippet do Google Tag Manager adicionado pelo ClickTrail"
+      ],
+      "Google Tag Manager (noscript) snippet added by ClickTrail": [
+        "Snippet do Google Tag Manager (noscript) adicionado pelo ClickTrail"
+      ],
+      "End Google Tag Manager (noscript) snippet added by ClickTrail": [
+        "Fim do snippet do Google Tag Manager (noscript) adicionado pelo ClickTrail"
+      ],
+      "Invalid GTM Container ID format. Should be GTM-XXXXXX": [
+        "Formato de ID de Contêiner do GTM inválido. Deve ser GTM-XXXXXX"
+      ],
+      "Google tag (gtag.js) consent mode dataLayer added by ClickTrail": [
+        "dataLayer do modo de consentimento do Google tag (gtag.js) adicionado pelo ClickTrail"
+      ],
+      "End Google tag (gtag.js) consent mode dataLayer added by ClickTrail": [
+        "Fim do dataLayer do modo de consentimento do Google tag (gtag.js) adicionado pelo ClickTrail"
+      ],
+      "We use cookies to improve your experience and analyze traffic.": [
+        "Usamos cookies para melhorar sua experiência e analisar o tráfego."
+      ],
+      "Read more": [
+        "Saiba mais"
+      ],
+      "Accept All": [
+        "Aceitar Todos"
+      ],
+      "Reject Non-Essential": [
+        "Rejeitar Não Essenciais"
+      ],
+      "ClickTrail settings require JavaScript in wp-admin.": [
+        "As configurações do ClickTrail exigem JavaScript no wp-admin."
+      ],
+      "Capture": [
+        "Captura"
+      ],
+      "Capture and preserve source data from campaigns, referrals, and ad clicks.": [
+        "Capture e preserve dados de origem de campanhas, referências e cliques em anúncios."
+      ],
+      "Keep attribution attached to forms, lead sources, and messaging touchpoints.": [
+        "Mantenha a atribuição associada a formulários, origens de leads e pontos de contato por mensagem."
+      ],
+      "Configure browser event collection, destinations, and the unified event pipeline.": [
+        "Configure a coleta de eventos no navegador, os destinos e o pipeline unificado de eventos."
+      ],
+      "Control privacy, server-side transport, and operational safeguards.": [
+        "Controle a privacidade, o transporte server-side e as proteções operacionais."
+      ],
+      "These settings are now organized by capability. Browser events and destinations live under Events, while transport and privacy controls live under Delivery.": [
+        "Estas configurações agora estão organizadas por capacidade. Eventos do navegador e destinos ficam em Eventos, enquanto os controles de transporte e privacidade ficam em Entrega."
+      ],
+      "%s ago": [
+        "há %s"
+      ],
+      "No delivery attempts recorded.": [
+        "Nenhuma tentativa de entrega registrada."
+      ],
+      "Attribution": [
+        "Atribuição"
+      ],
+      "Capture UTM parameters, click IDs, and referrers — and keep them through forms, caching, and navigation.": [
+        "Capture parâmetros UTM, IDs de clique e referenciadores — e mantenha esses dados ao longo de formulários, cache e navegação."
+      ],
+      "Consent mode": [
+        "Modo de consentimento"
+      ],
+      "Control when tracking is allowed to start, which regions require explicit opt-in, and which consent platform ClickTrail should listen to.": [
+        "Controle quando o rastreamento pode começar, quais regiões exigem opt-in explícito e qual plataforma de consentimento o ClickTrail deve ouvir."
+      ],
+      "Configure where events are sent — your own server-side endpoint, GTM, and advertising platforms.": [
+        "Configure para onde os eventos são enviados — seu próprio endpoint server-side, GTM e plataformas de anúncios."
+      ],
+      "Platform-level controls — feature flags, security, deduplication, lifecycle ingestion, and external form providers.": [
+        "Controles em nível de plataforma — feature flags, segurança, desduplicação, ingestão de ciclo de vida e provedores externos de formulários."
+      ],
+      "Enable attribution tracking and set how long source data is stored.": [
+        "Ative o rastreamento de atribuição e defina por quanto tempo os dados de origem serão armazenados."
+      ],
+      "Cached pages": [
+        "Páginas em cache"
+      ],
+      "Ensures attribution still reaches hidden form fields when pages are served from cache. Recommended for most sites.": [
+        "Garante que a atribuição continue chegando aos campos ocultos dos formulários quando as páginas são servidas do cache. Recomendado para a maioria dos sites."
+      ],
+      "Preserve attribution when visitors follow links to your other domains or subdomains.": [
+        "Preserve a atribuição quando visitantes seguirem links para seus outros domínios ou subdomínios."
+      ],
+      "Low-level capture behavior. Most sites can leave these unchanged.": [
+        "Comportamento de captura de baixo nível. A maioria dos sites pode deixar isso como está."
+      ],
+      "Settings reloaded.": [
+        "Configurações recarregadas."
+      ],
+      "Failed to reload settings.": [
+        "Falha ao recarregar as configurações."
+      ],
+      "Settings saved.": [
+        "Configurações salvas."
+      ],
+      "Failed to save settings.": [
+        "Falha ao salvar as configurações."
+      ],
+      "On": [
+        "Ativado"
+      ],
+      "Off": [
+        "Desativado"
+      ],
+      "Cross-domain": [
+        "Entre domínios"
+      ],
+      "Delivery": [
+        "Entrega"
+      ],
+      "Consent": [
+        "Consentimento"
+      ],
+      "Core tracking": [
+        "Rastreamento principal"
+      ],
+      "Enable attribution tracking and choose how long visit source data should be stored.": [
+        "Ative o rastreamento de atribuição e escolha por quanto tempo os dados de origem da visita devem ser armazenados."
+      ],
+      "Capture campaign and referral data for each visit.": [
+        "Capture dados de campanha e referência em cada visita."
+      ],
+      "Attribution retention (days)": [
+        "Retenção de atribuição (dias)"
+      ],
+      "How long attribution data should be stored.": [
+        "Por quanto tempo os dados de atribuição devem ser armazenados."
+      ],
+      "Cross-domain attribution": [
+        "Atribuição entre domínios"
+      ],
+      "Preserve attribution when visitors move between your domains or subdomains.": [
+        "Preserve a atribuição quando os visitantes se moverem entre seus domínios ou subdomínios."
+      ],
+      "Decorate outgoing links": [
+        "Decorar links de saída"
+      ],
+      "Append attribution parameters to approved links.": [
+        "Acrescente parâmetros de atribuição aos links aprovados."
+      ],
+      "Allowed cross-domain destinations": [
+        "Destinos permitidos entre domínios"
+      ],
+      "Domains where attribution parameters may be added.": [
+        "Domínios nos quais parâmetros de atribuição podem ser adicionados."
+      ],
+      "Do not modify signed URLs": [
+        "Não modificar URLs assinadas"
+      ],
+      "Recommended when links contain temporary signatures or protected access tokens.": [
+        "Recomendado quando os links contêm assinaturas temporárias ou tokens de acesso protegidos."
+      ],
+      "Recommended": [
+        "Recomendado"
+      ],
+      "Pass cross-domain attribution token": [
+        "Passar token de atribuição entre domínios"
+      ],
+      "Adds a temporary token to preserve attribution across approved domains. No personal data is included.": [
+        "Adiciona um token temporário para preservar a atribuição entre domínios aprovados. Nenhum dado pessoal é incluído."
+      ],
+      "Enable this source and accept signed webhook submissions.": [
+        "Ative esta fonte e aceite envios de webhook assinados."
+      ],
+      "Signing secret": [
+        "Segredo de assinatura"
+      ],
+      "Leave unchanged to keep the current secret.": [
+        "Deixe inalterado para manter o segredo atual."
+      ],
+      "On-site form capture": [
+        "Captura de formulários no site"
+      ],
+      "Recommended settings to keep attribution attached to forms on cached pages and dynamic sites.": [
+        "Configurações recomendadas para manter a atribuição associada aos formulários em páginas em cache e sites dinâmicos."
+      ],
+      "Client-side capture fallback": [
+        "Fallback de captura no cliente"
+      ],
+      "Recommended for cached or highly optimized pages.": [
+        "Recomendado para páginas em cache ou altamente otimizadas."
+      ],
+      "Watch dynamic content": [
+        "Observar conteúdo dinâmico"
+      ],
+      "Detect forms and links added after page load.": [
+        "Detecte formulários e links adicionados após o carregamento da página."
+      ],
+      "Replace existing attribution values": [
+        "Substituir valores de atribuição existentes"
+      ],
+      "Use newly detected values even if attribution was already stored.": [
+        "Use valores recém-detectados mesmo que a atribuição já tenha sido armazenada."
+      ],
+      "Carry attribution into outbound WhatsApp clicks and pre-filled messages.": [
+        "Leve a atribuição para cliques de saída do WhatsApp e mensagens pré-preenchidas."
+      ],
+      "Add attribution details to the pre-filled WhatsApp message.": [
+        "Adicione detalhes de atribuição à mensagem pré-preenchida do WhatsApp."
+      ],
+      "External form sources": [
+        "Fontes externas de formulários"
+      ],
+      "Accept attributed submissions from supported providers without exposing raw engineering controls.": [
+        "Aceite envios atribuídos de provedores compatíveis sem expor controles técnicos avançados."
+      ],
+      "Accept external form source webhooks": [
+        "Aceitar webhooks de fontes externas de formulários"
+      ],
+      "Enable signed inbound submissions from supported providers.": [
+        "Ative envios de entrada assinados de provedores compatíveis."
+      ],
+      "Advanced technical options": [
+        "Opções técnicas avançadas"
+      ],
+      "Only change these if you need more control over how the browser watches the page.": [
+        "Altere isto apenas se precisar de mais controle sobre como o navegador observa a página."
+      ],
+      "Advanced": [
+        "Avançado"
+      ],
+      "Dynamic content root selector": [
+        "Seletor raiz do conteúdo dinâmico"
+      ],
+      "Defaults to body. Narrow this only if you need to watch a specific part of the page.": [
+        "O padrão é body. Restrinja isso apenas se precisar observar uma parte específica da página."
+      ],
+      "ClickTrail uses one unified event pipeline behind the scenes for browser events, webhooks, and server delivery. Configure the capabilities you use without worrying about the internal pipeline.": [
+        "O ClickTrail usa um único pipeline de eventos nos bastidores para eventos do navegador, webhooks e entrega server-side. Configure os recursos que você usa sem se preocupar com o pipeline interno."
+      ],
+      "Event collection": [
+        "Coleta de eventos"
+      ],
+      "Control browser event collection and optional GTM loading for this site.": [
+        "Controle a coleta de eventos no navegador e o carregamento opcional do GTM neste site."
+      ],
+      "Enable browser event collection": [
+        "Ativar coleta de eventos no navegador"
+      ],
+      "Collect page, click, and form events through ClickTrail's unified event layer.": [
+        "Colete eventos de página, clique e formulário pela camada unificada de eventos do ClickTrail."
+      ],
+      "Google Tag Manager container ID": [
+        "ID do contêiner do Google Tag Manager"
+      ],
+      "Use only if your site does not already load Google Tag Manager.": [
+        "Use isto apenas se o seu site ainda não carregar o Google Tag Manager."
+      ],
+      "Keep campaign context visible on WooCommerce orders and extend the same event pipeline into the storefront when you need it.": [
+        "Mantenha o contexto de campanha visível nos pedidos do WooCommerce e estenda o mesmo pipeline de eventos para a storefront quando necessário."
+      ],
+      "Order attribution is stored on WooCommerce orders during checkout, so campaign context remains available after the visitor leaves the landing page.": [
+        "A atribuição do pedido é armazenada nos pedidos do WooCommerce durante o checkout, para que o contexto da campanha continue disponível depois que o visitante sair da landing page."
+      ],
+      "Purchase events are pushed automatically on the thank-you page and can also flow into ClickTrail's server-side delivery adapters when Delivery is enabled.": [
+        "Eventos de compra são enviados automaticamente na página de agradecimento e também podem fluir para os adaptadores de entrega server-side do ClickTrail quando a Entrega estiver ativada."
+      ],
+      "Enable WooCommerce storefront events": [
+        "Ativar eventos de storefront do WooCommerce"
+      ],
+      "Emit GA4-style `view_item`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` events through ClickTrail's browser event layer. Existing installs keep this off until you enable it.": [
+        "Emita eventos em estilo GA4 de `view_item`, `add_to_cart`, `remove_from_cart` e `begin_checkout` pela camada de eventos do navegador do ClickTrail. Instalações existentes mantêm isso desativado até você habilitar."
+      ],
+      "Verify WooCommerce order attribution in the order screen, and verify storefront/browser events with GTM Preview, the dataLayer, or ClickTrail > Diagnostics when Delivery is enabled.": [
+        "Verifique a atribuição do WooCommerce na tela do pedido e valide os eventos de storefront/navegador com o GTM Preview, a dataLayer ou ClickTrail > Diagnostics quando a Entrega estiver ativada."
+      ],
+      "Destinations": [
+        "Destinos"
+      ],
+      "Choose which advertising platforms should receive compatible event payloads.": [
+        "Escolha quais plataformas de anúncios devem receber payloads de eventos compatíveis."
+      ],
+      "Meta": [
+        "Meta"
+      ],
+      "Send eligible events to Meta-compatible delivery adapters when configured.": [
+        "Envie eventos elegíveis para adaptadores de entrega compatíveis com a Meta quando configurados."
+      ],
+      "Google": [
+        "Google"
+      ],
+      "Send eligible events to Google-compatible delivery adapters when configured.": [
+        "Envie eventos elegíveis para adaptadores de entrega compatíveis com Google quando configurados."
+      ],
+      "LinkedIn": [
+        "LinkedIn"
+      ],
+      "Send eligible events to LinkedIn-compatible delivery adapters when configured.": [
+        "Envie eventos elegíveis para adaptadores de entrega compatíveis com o LinkedIn quando configurados."
+      ],
+      "Reddit": [
+        "Reddit"
+      ],
+      "Send eligible events to Reddit-compatible delivery adapters when configured.": [
+        "Envie eventos elegíveis para adaptadores de entrega compatíveis com o Reddit quando configurados."
+      ],
+      "Pinterest": [
+        "Pinterest"
+      ],
+      "Send eligible events to Pinterest-compatible delivery adapters when configured.": [
+        "Envie eventos elegíveis para adaptadores de entrega compatíveis com o Pinterest quando configurados."
+      ],
+      "Lifecycle updates": [
+        "Atualizações de ciclo de vida"
+      ],
+      "Accept lifecycle updates from your CRM or backend and route them through the same event pipeline.": [
+        "Aceite atualizações de ciclo de vida do seu CRM ou backend e encaminhe-as pelo mesmo pipeline de eventos."
+      ],
+      "Accept lifecycle updates": [
+        "Aceitar atualizações de ciclo de vida"
+      ],
+      "Allow lifecycle events to enter the unified event pipeline.": [
+        "Permita que eventos de ciclo de vida entrem no pipeline unificado de eventos."
+      ],
+      "Enable lifecycle endpoint": [
+        "Ativar endpoint de ciclo de vida"
+      ],
+      "Turn on the REST endpoint used by your CRM or backend.": [
+        "Ative o endpoint REST usado pelo seu CRM ou backend."
+      ],
+      "Lifecycle endpoint token": [
+        "Token do endpoint de ciclo de vida"
+      ],
+      "Leave unchanged to keep the current token.": [
+        "Deixe inalterado para manter o token atual."
+      ],
+      "None": [
+        "Nenhum"
+      ],
+      "Delivery health": [
+        "Saúde da entrega"
+      ],
+      "Quick operational summary for queue health, recent delivery attempts, and debug state.": [
+        "Resumo operacional rápido da saúde da fila, tentativas recentes de entrega e estado da depuração."
+      ],
+      "Server-side delivery is currently off. Historical diagnostics can still appear until their retention window expires.": [
+        "A entrega server-side está desativada no momento. Diagnósticos históricos ainda podem aparecer até o fim da janela de retenção."
+      ],
+      "Queue Backlog": [
+        "Fila pendente"
+      ],
+      "Due now: ": [
+        "Vencendo agora: "
+      ],
+      "Last Dispatch": [
+        "Último envio"
+      ],
+      "No attempts yet": [
+        "Nenhuma tentativa ainda"
+      ],
+      "Last Error": [
+        "Último erro"
+      ],
+      "No errors recorded.": [
+        "Nenhum erro registrado."
+      ],
+      "Debug Logging": [
+        "Log de depuração"
+      ],
+      "Enable it from Diagnostics when you need a short trace window.": [
+        "Ative isso em Diagnósticos quando precisar de uma janela curta de rastreamento."
+      ],
+      "Open Diagnostics": [
+        "Abrir Diagnósticos"
+      ],
+      "Open Logs": [
+        "Abrir logs"
+      ],
+      "Delivery controls cover transport, consent, queue health, and the safeguards that keep outbound tracking reliable. Most sites only need the server-side transport card and privacy controls.": [
+        "Os controles de entrega cobrem transporte, consentimento, saúde da fila e as proteções que mantêm o rastreamento de saída confiável. A maioria dos sites só precisa do cartão de transporte server-side e dos controles de privacidade."
+      ],
+      "This site is currently using network defaults for server-side delivery. Disable the network toggle below to customize this site independently.": [
+        "Este site está usando no momento os padrões da rede para entrega server-side. Desative a chave de rede abaixo para personalizar este site de forma independente."
+      ],
+      "Server-side Transport": [
+        "Transporte server-side"
+      ],
+      "Route events through your own collector endpoint when you need a more durable delivery path.": [
+        "Encaminhe eventos pelo seu próprio endpoint coletor quando precisar de um caminho de entrega mais durável."
+      ],
+      "Use Network Defaults": [
+        "Usar padrões da rede"
+      ],
+      "Use the multisite network configuration for this site.": [
+        "Usar a configuração de rede do multisite para este site."
+      ],
+      "Enable server-side delivery": [
+        "Ativar entrega server-side"
+      ],
+      "Send events through your own collector endpoint.": [
+        "Envie eventos pelo seu próprio endpoint coletor."
+      ],
+      "Collector URL": [
+        "URL do coletor"
+      ],
+      "Endpoint that receives server-side events.": [
+        "Endpoint que recebe eventos server-side."
+      ],
+      "Delivery adapter": [
+        "Adaptador de entrega"
+      ],
+      "Choose the format best suited to your receiving endpoint.": [
+        "Escolha o formato mais adequado para o endpoint de destino."
+      ],
+      "Generic Collector": [
+        "Coletor genérico"
+      ],
+      "sGTM (Server GTM)": [
+        "sGTM (Server GTM)"
+      ],
+      "Meta CAPI": [
+        "Meta CAPI"
+      ],
+      "Google Ads / GA4": [
+        "Google Ads / GA4"
+      ],
+      "LinkedIn CAPI": [
+        "LinkedIn CAPI"
+      ],
+      "Request timeout (seconds)": [
+        "Tempo limite da requisição (segundos)"
+      ],
+      "How long ClickTrail should wait before treating a delivery attempt as failed.": [
+        "Por quanto tempo o ClickTrail deve esperar antes de considerar uma tentativa de entrega como falha."
+      ],
+      "Share anonymous failure counts": [
+        "Compartilhar contagens anônimas de falhas"
+      ],
+      "Only aggregated failure counts are shared. No payloads or personal data are included.": [
+        "Apenas contagens agregadas de falhas são compartilhadas. Nenhum payload ou dado pessoal é incluído."
+      ],
+      "Control when tracking is allowed to start and which consent signals ClickTrail should use.": [
+        "Controle quando o rastreamento pode começar e quais sinais de consentimento o ClickTrail deve usar."
+      ],
+      "Gate attribution and event collection until consent requirements are satisfied.": [
+        "Bloqueie a atribuição e a coleta de eventos até que os requisitos de consentimento sejam atendidos."
+      ],
+      "Consent behavior": [
+        "Comportamento de consentimento"
+      ],
+      "Choose whether consent is always required, never required, or region-based.": [
+        "Escolha se o consentimento será sempre exigido, nunca exigido ou baseado em região."
+      ],
+      "Strict": [
+        "Estrito"
+      ],
+      "Relaxed": [
+        "Flexível"
+      ],
+      "Region-based": [
+        "Baseado em região"
+      ],
+      "Regions requiring consent": [
+        "Regiões que exigem consentimento"
+      ],
+      "One region per line. Examples: EEA, UK, CA, US-CA.": [
+        "Uma região por linha. Exemplos: EEA, UK, CA, US-CA."
+      ],
+      "Consent source": [
+        "Origem do consentimento"
+      ],
+      "Which consent platform ClickTrail should listen to.": [
+        "Qual plataforma de consentimento o ClickTrail deve ouvir."
+      ],
+      "Auto-detect": [
+        "Detectar automaticamente"
+      ],
+      "ClickTrail plugin": [
+        "plugin ClickTrail"
+      ],
+      "Cookiebot": [
+        "Cookiebot"
+      ],
+      "OneTrust": [
+        "OneTrust"
+      ],
+      "Complianz": [
+        "Complianz"
+      ],
+      "Custom": [
+        "Personalizado"
+      ],
+      "Consent wait time (ms)": [
+        "Tempo de espera pelo consentimento (ms)"
+      ],
+      "How long ClickTrail should wait for a consent signal before continuing.": [
+        "Por quanto tempo o ClickTrail deve esperar por um sinal de consentimento antes de continuar."
+      ],
+      "Advanced delivery controls": [
+        "Controles avançados de entrega"
+      ],
+      "Security, buffering, deduplication, and low-level transport controls for technical users.": [
+        "Controles de segurança, buffering, desduplicação e transporte de baixo nível para usuários técnicos."
+      ],
+      "Use native platform adapters": [
+        "Usar adaptadores nativos de plataforma"
+      ],
+      "Prefer ClickTrail's built-in platform adapters when available.": [
+        "Prefira os adaptadores nativos do ClickTrail quando estiverem disponíveis."
+      ],
+      "Store structured event diagnostics": [
+        "Armazenar diagnósticos estruturados de eventos"
+      ],
+      "Keep a structured intake buffer for troubleshooting and validation.": [
+        "Mantenha um buffer estruturado de entrada para diagnóstico e validação."
+      ],
+      "Encrypt saved secrets": [
+        "Criptografar segredos salvos"
+      ],
+      "Encrypt stored secrets at rest when supported by the host environment.": [
+        "Criptografe os segredos armazenados em repouso quando houver suporte no ambiente de hospedagem."
+      ],
+      "Attribution token lifetime (seconds)": [
+        "Vida útil do token de atribuição (segundos)"
+      ],
+      "Controls how long attribution tokens remain valid.": [
+        "Controla por quanto tempo os tokens de atribuição permanecem válidos."
+      ],
+      "Maximum token replays (0 to disable)": [
+        "Máximo de repetições do token (0 para desativar)"
+      ],
+      "Cap how many times the same token nonce can be used.": [
+        "Limite quantas vezes o mesmo nonce de token pode ser usado."
+      ],
+      "Webhook replay protection window (seconds)": [
+        "Janela de proteção contra repetição de webhook (segundos)"
+      ],
+      "Reject webhook signatures that fall outside this replay window.": [
+        "Rejeite assinaturas de webhook que estejam fora desta janela de repetição."
+      ],
+      "API rate limit window (seconds)": [
+        "Janela de limite de taxa da API (segundos)"
+      ],
+      "The time window used by intake rate limiting.": [
+        "A janela de tempo usada pelo limite de taxa da entrada."
+      ],
+      "API requests allowed per window": [
+        "Requisições de API permitidas por janela"
+      ],
+      "Maximum requests allowed within the configured rate limit window.": [
+        "Máximo de requisições permitidas dentro da janela configurada de limite de taxa."
+      ],
+      "Trusted proxy IPs or CIDR ranges": [
+        "IPs de proxy confiáveis ou faixas CIDR"
+      ],
+      "One proxy per line. Only add proxies you control.": [
+        "Um proxy por linha. Adicione apenas proxies sob seu controle."
+      ],
+      "Allowed token hosts": [
+        "Hosts permitidos para tokens"
+      ],
+      "Hosts allowed to mint or receive attribution tokens. One host per line.": [
+        "Hosts permitidos para emitir ou receber tokens de atribuição. Um host por linha."
+      ],
+      "Recent dispatch records kept": [
+        "Registros recentes de envio mantidos"
+      ],
+      "How many recent dispatch attempts should be kept for diagnostics.": [
+        "Quantas tentativas de envio recentes devem ser mantidas para diagnóstico."
+      ],
+      "Failure summary flush interval (seconds)": [
+        "Intervalo de consolidação do resumo de falhas (segundos)"
+      ],
+      "How often failure counters are flushed into hourly telemetry buckets.": [
+        "Com que frequência os contadores de falha são consolidados em buckets horários de telemetria."
+      ],
+      "Failure summary retention (hours)": [
+        "Retenção do resumo de falhas (horas)"
+      ],
+      "How long failure telemetry buckets should be retained.": [
+        "Por quanto tempo os buckets de telemetria de falhas devem ser mantidos."
+      ],
+      "Event deduplication window (seconds)": [
+        "Janela de desduplicação de eventos (segundos)"
+      ],
+      "How long dispatch deduplication markers should be kept.": [
+        "Por quanto tempo os marcadores de desduplicação de envio devem ser mantidos."
+      ],
+      "Save Changes": [
+        "Salvar alterações"
+      ],
+      "Reload Saved Settings": [
+        "Recarregar configurações salvas"
+      ],
+      "Forms": [
+        "Formulários"
+      ],
+      "Events": [
+        "Eventos"
+      ],
+      "WooCommerce": [
+        "WooCommerce"
+      ],
+      "Core Attribution Settings": [
+        "Configurações principais de atribuição"
+      ],
+      "Reliability Settings": [
+        "Configurações de confiabilidade"
+      ],
+      "Form Capture Fallback": [
+        "Fallback de captura de formulários"
+      ],
+      "Cross-domain Settings": [
+        "Configurações entre domínios"
+      ],
+      "Container ID": [
+        "ID do contêiner"
+      ],
+      "Inject GTM on this site — only if GTM is not already loaded elsewhere.": [
+        "Injete o GTM neste site — apenas se ele ainda não estiver carregado em outro lugar."
+      ],
+      "Route events through your own collector endpoint — bypasses browser ad-blockers and provides a reliable delivery path.": [
+        "Encaminhe eventos pelo seu próprio endpoint coletor — isso contorna bloqueadores de anúncios do navegador e fornece um caminho de entrega mais confiável."
+      ],
+      "Recommended when forms or links appear after page load.": [
+        "Recomendado quando formulários ou links aparecem após o carregamento da página."
+      ],
+      "JS Capture": [
+        "Captura via JS"
+      ],
+      "Server-side": [
+        "Server-side"
+      ],
+      "Decide when attribution and event collection are allowed to start.": [
+        "Decida quando a atribuição e a coleta de eventos podem começar."
+      ],
+      "Cross-domain links": [
+        "Links entre domínios"
+      ],
+      "Diagnostics": [
+        "Diagnósticos"
+      ],
+      "Server-side delivery": [
+        "Entrega server-side"
+      ],
+      "Use network-level server-side settings for this site.": [
+        "Usar as configurações server-side do nível da rede para este site."
+      ],
+      "Advanced Settings": [
+        "Configurações avançadas"
+      ],
+      "Setup Checklist": [
+        "Checklist de configuração"
+      ],
+      "Read-only readiness checks for rollout, delivery, and WooCommerce coverage.": [
+        "Verificações somente leitura de prontidão para rollout, entrega e cobertura do WooCommerce."
+      ],
+      "Ready": [
+        "Pronto"
+      ],
+      "Needs Review": [
+        "Requer revisão"
+      ],
+      "Unavailable": [
+        "Indisponível"
+      ],
+      "Optional": [
+        "Opcional"
+      ],
+      "Mark this destination when another relay or downstream collector owns final delivery.": [
+        "Marque este destino quando outro relay ou coletor downstream for responsável pela entrega final."
+      ],
+      "Send eligible events to this destination when the matching delivery adapter or downstream collector is configured.": [
+        "Envie eventos elegíveis para este destino quando o adaptador de entrega correspondente ou o coletor downstream estiver configurado."
+      ],
+      "Emit GA4-style `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` events through ClickTrail's browser event layer. Existing installs keep this off until you enable it.": [
+        "Emita eventos em estilo GA4 de `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart` e `begin_checkout` pela camada de eventos do navegador do ClickTrail. Instalações existentes mantêm isso desativado até você habilitar."
+      ],
+      "Verify WooCommerce order attribution in the order screen, storefront/browser events with GTM Preview or the dataLayer, and server-side traces from ClickTrail > Diagnostics.": [
+        "Verifique a atribuição do WooCommerce na tela do pedido, os eventos de storefront/navegador com o GTM Preview ou a dataLayer, e os rastros server-side em ClickTrail > Diagnostics."
+      ],
+      "Pinterest Conversions API": [
+        "API de Conversões do Pinterest"
+      ],
+      "TikTok Events API": [
+        "API de Eventos do TikTok"
+      ],
+      "Preparing backup...": [
+        "Preparando backup..."
+      ],
+      "Importing backup...": [
+        "Importando backup..."
+      ],
+      "Choose a ClickTrail backup file first.": [
+        "Escolha primeiro um arquivo de backup do ClickTrail."
+      ],
+      "Restore this ClickTrail backup now? Current settings will be replaced.": [
+        "Restaurar este backup do ClickTrail agora? As configurações atuais serão substituídas."
+      ],
+      "Looking up order...": [
+        "Consultando pedido..."
+      ],
+      "Order lookup failed.": [
+        "A consulta do pedido falhou."
+      ],
+      "Attribution capture is enabled.": [
+        "A captura de atribuição está ativada."
+      ],
+      "Turn on attribution capture before testing source continuity.": [
+        "Ative a captura de atribuição antes de testar a continuidade da origem."
+      ],
+      "Consent Guidance": [
+        "Orientação de consentimento"
+      ],
+      "Consent mode is configured. Verify the selected CMP source before rollout.": [
+        "O modo de consentimento está configurado. Verifique a fonte de CMP selecionada antes do rollout."
+      ],
+      "Consent mode is off. Confirm this matches your regional rollout requirements.": [
+        "O modo de consentimento está desativado. Confirme se isso corresponde aos requisitos regionais do seu rollout."
+      ],
+      "Form capture helpers or providers are active.": [
+        "Os auxiliares de captura de formulários ou provedores estão ativos."
+      ],
+      "Enable client fallback, WhatsApp, or provider hooks if forms are part of your attribution path.": [
+        "Ative o fallback client-side, o WhatsApp ou hooks de provedores se os formulários fizerem parte do seu caminho de atribuição."
+      ],
+      "Browser events are active. Enabled destinations: %d.": [
+        "Os eventos do navegador estão ativos. Destinos ativados: %d."
+      ],
+      "Enable the browser event pipeline before relying on dataLayer and canonical intake.": [
+        "Ative o pipeline de eventos do navegador antes de depender da dataLayer e do intake canônico."
+      ],
+      "Server-side delivery has an endpoint and is ready for endpoint tests.": [
+        "A entrega server-side tem um endpoint configurado e está pronta para testes de endpoint."
+      ],
+      "Server-side delivery is on, but the collector URL still needs review.": [
+        "A entrega server-side está ativada, mas a URL do coletor ainda precisa de revisão."
+      ],
+      "Server-side delivery is off. Logs and Diagnostics still work for local checks.": [
+        "A entrega server-side está desativada. Logs e Diagnósticos ainda funcionam para verificações locais."
+      ],
+      "WooCommerce storefront events and order delivery helpers are ready.": [
+        "Os eventos de storefront do WooCommerce e os auxiliares de entrega de pedidos estão prontos."
+      ],
+      "WooCommerce is active. Enable storefront events when you want list, product, cart, and checkout signals.": [
+        "O WooCommerce está ativo. Ative os eventos de storefront quando quiser sinais de lista, produto, carrinho e checkout."
+      ],
+      "WooCommerce is not active on this site.": [
+        "O WooCommerce não está ativo neste site."
+      ],
+      "Conflict Scan": [
+        "Verificação de conflitos"
+      ],
+      "Run deterministic checks for caching, duplicate ownership, Woo gaps, and delivery mismatches.": [
+        "Execute verificações determinísticas para cache, propriedade duplicada, lacunas do Woo e incompatibilidades de entrega."
+      ],
+      "Run Conflict Scan": [
+        "Executar verificação de conflitos"
+      ],
+      "Backup Restore": [
+        "Backup e restauração"
+      ],
+      "Export or restore the five main ClickTrail option stores, including masked secrets through privileged server-side actions.": [
+        "Exporte ou restaure os cinco principais armazenamentos de opções do ClickTrail, incluindo segredos mascarados por meio de ações server-side privilegiadas."
+      ],
+      "Export Backup": [
+        "Exportar backup"
+      ],
+      "Restore Backup": [
+        "Restaurar backup"
+      ],
+      "Woo Order Trace Lookup": [
+        "Consulta de rastros de pedidos do Woo"
+      ],
+      "Inspect the stored purchase and milestone payload snapshots for a WooCommerce order, even outside the debug window.": [
+        "Inspecione os snapshots armazenados de payloads de compra e marcos de um pedido do WooCommerce, mesmo fora da janela de depuração."
+      ],
+      "Order ID": [
+        "ID do pedido"
+      ],
+      "Lookup Order": [
+        "Consultar pedido"
+      ],
+      "Conflict scan failed.": [
+        "A verificação de conflitos falhou."
+      ],
+      "Backup export failed.": [
+        "A exportação do backup falhou."
+      ],
+      "Backup import failed.": [
+        "A importação do backup falhou."
+      ],
+      "No ClickTrail traces stored for this order yet.": [
+        "Ainda não há rastros do ClickTrail armazenados para este pedido."
+      ],
+      "not_queued": [
+        "não na fila"
+      ],
+      "queued": [
+        "na fila"
+      ],
+      "No pending retry row found.": [
+        "Nenhuma linha de nova tentativa pendente foi encontrada."
+      ],
+      "Attempts: %1$d. Next attempt: %2$s.": [
+        "Tentativas: %1$d. Próxima tentativa: %2$s."
+      ],
+      "Order trace loaded.": [
+        "Rastro do pedido carregado."
+      ],
+      "Caching or script optimization detected": [
+        "Cache ou otimização de scripts detectados"
+      ],
+      "Detected: %s. Turn on the client-side capture fallback to reduce stale attribution and delayed event issues.": [
+        "Detectado: %s. Ative o fallback de captura client-side para reduzir problemas de atribuição obsoleta e eventos atrasados."
+      ],
+      "Server-side delivery has no endpoint": [
+        "A entrega server-side não tem endpoint"
+      ],
+      "Delivery is enabled, but the collector URL is empty.": [
+        "A entrega está ativada, mas a URL do coletor está vazia."
+      ],
+      "Woo storefront events enabled without WooCommerce": [
+        "Eventos de storefront do Woo ativados sem WooCommerce"
+      ],
+      "Disable Woo storefront events or activate WooCommerce on this site.": [
+        "Desative os eventos de storefront do Woo ou ative o WooCommerce neste site."
+      ],
+      "Adapter selected without matching destination toggle": [
+        "Adaptador selecionado sem a chave de destino correspondente"
+      ],
+      "%1$s is selected as the delivery adapter, but %2$s is off in Events.": [
+        "%1$s está selecionado como adaptador de entrega, mas %2$s está desativado em Eventos."
+      ],
+      "Destination toggle does not match the active adapter": [
+        "A chave de destino não corresponde ao adaptador ativo"
+      ],
+      "%1$s is enabled in Events, but Delivery currently uses %2$s.": [
+        "%1$s está ativado em Eventos, mas a Entrega usa atualmente %2$s."
+      ],
+      "Review duplicate destination ownership": [
+        "Revise a propriedade duplicada de destinos"
+      ],
+      "GTM is configured alongside native destination toggles. Confirm each platform is owned by only one runtime path.": [
+        "O GTM está configurado junto com chaves nativas de destino. Confirme que cada plataforma é controlada por apenas um caminho de runtime."
+      ],
+      "No common conflicts detected in the current ClickTrail configuration.": [
+        "Nenhum conflito comum foi detectado na configuração atual do ClickTrail."
+      ],
+      "Conflict scan found %d item worth reviewing.": [
+        "A verificação de conflitos encontrou %d item que merece revisão."
+      ],
+      "Conflict scan found %d items worth reviewing.": [
+        "A verificação de conflitos encontrou %d itens que merecem revisão."
+      ]
+    }
+  }
+}

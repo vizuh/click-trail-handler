@@ -109,9 +109,9 @@ class Event_Translator_V1_To_V2 {
 	private static function infer_funnel_stage( string $event_name ): string {
 		$event_name = sanitize_key( $event_name );
 
-		$top = array( 'page_view', 'key_page_view', 'view_content', 'search', 'video_view', 'scroll_depth' );
-		$mid = array( 'cta_click', 'form_start', 'form_submit_attempt', 'contact_call_click', 'contact_whatsapp_start', 'contact_chat_start' );
-		$bot = array( 'lead', 'book_appointment', 'qualified_lead', 'client_won', 'purchase' );
+		$top = array( 'page_view', 'key_page_view', 'view_content', 'search', 'video_view', 'scroll_depth', 'view_item', 'view_item_list' );
+		$mid = array( 'cta_click', 'form_start', 'form_submit_attempt', 'contact_call_click', 'contact_whatsapp_start', 'contact_chat_start', 'add_to_cart', 'remove_from_cart' );
+		$bot = array( 'lead', 'book_appointment', 'qualified_lead', 'client_won', 'purchase', 'begin_checkout', 'order_paid', 'order_refunded', 'order_cancelled', 'login', 'sign_up' );
 
 		if ( in_array( $event_name, $top, true ) ) {
 			return 'top';
@@ -137,10 +137,10 @@ class Event_Translator_V1_To_V2 {
 		$event_name = sanitize_key( $event_name );
 		$funnel_stage = sanitize_key( $funnel_stage );
 
-		if ( in_array( $event_name, array( 'lead', 'book_appointment', 'qualified_lead', 'client_won', 'purchase' ), true ) ) {
+		if ( in_array( $event_name, array( 'lead', 'book_appointment', 'qualified_lead', 'client_won', 'purchase', 'order_paid', 'order_refunded', 'order_cancelled', 'login', 'sign_up' ), true ) ) {
 			return 'converted';
 		}
-		if ( in_array( $event_name, array( 'cta_click', 'form_start', 'form_submit_attempt', 'contact_call_click', 'contact_whatsapp_start', 'contact_chat_start' ), true ) ) {
+		if ( in_array( $event_name, array( 'cta_click', 'form_start', 'form_submit_attempt', 'contact_call_click', 'contact_whatsapp_start', 'contact_chat_start', 'add_to_cart', 'remove_from_cart', 'begin_checkout' ), true ) ) {
 			return 'high';
 		}
 		if ( 'mid' === $funnel_stage ) {

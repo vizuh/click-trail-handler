@@ -1,16 +1,18 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: ClickTrail 1.3.0\n"
+"Project-Id-Version: ClickTrail 1.4.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-12-26 21:55+0000\n"
-"PO-Revision-Date: 2025-12-26 21:55+0000\n"
-"Last-Translator: ClickTrail AI\n"
+"PO-Revision-Date: 2026-03-13 00:00+0000\n"
+"Last-Translator: ClickTrail Team\n"
 "Language-Team: pt_BR\n"
 "Language: pt_BR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"X-Generator: ClickTrail AI\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Domain: click-trail-handler\n"
+"X-Generator: Codex\n"
 
 #: includes/admin/class-site-health.php:17
 msgid "ClickTrail: Caching/conflicts detected"
@@ -361,12 +363,12 @@ msgid "ClickTrail Logs"
 msgstr "Logs do ClickTrail"
 
 #: includes/class-clicutcl-core.php:65
-msgid "ClickTrail Handler failed to boot: missing class CLICUTCL\\Core\\Context. Check your autoloader mapping and release ZIP contents."
-msgstr "O ClickTrail Handler falhou ao iniciar: classe CLICUTCL\\Core\\Context ausente. Verifique o mapeamento do autoloader e o conteúdo do arquivo ZIP da versão."
+msgid "ClickTrail failed to boot: missing class CLICUTCL\\Core\\Context. Check your autoloader mapping and release ZIP contents."
+msgstr "O ClickTrail falhou ao iniciar: classe CLICUTCL\\Core\\Context ausente. Verifique o mapeamento do autoloader e o conteúdo do arquivo ZIP da versão."
 
 #: clicutcl.php:115
-msgid "ClickTrail Handler could not start because a required class is missing. This usually means the release ZIP is missing files or the autoloader mapping is incorrect."
-msgstr "O ClickTrail Handler não pôde iniciar porque uma classe obrigatória está ausente. Isso geralmente significa que o arquivo ZIP da versão está sem arquivos ou o mapeamento do autoloader está incorreto."
+msgid "ClickTrail could not start because a required class is missing. This usually means the release ZIP is missing files or the autoloader mapping is incorrect."
+msgstr "O ClickTrail não pôde iniciar porque uma classe obrigatória está ausente. Isso geralmente significa que o arquivo ZIP da versão está sem arquivos ou o mapeamento do autoloader está incorreto."
 
 #: includes/modules/GTM/class-web-tag.php:78
 msgid "Google Tag Manager snippet added by ClickTrail"
@@ -411,3 +413,1180 @@ msgstr "Aceitar Todos"
 #: includes/class-clicutcl-core.php:219
 msgid "Reject Non-Essential"
 msgstr "Rejeitar Não Essenciais"
+
+#: includes/admin/class-admin.php:705
+msgid "ClickTrail settings require JavaScript in wp-admin."
+msgstr "As configurações do ClickTrail exigem JavaScript no wp-admin."
+
+#: includes/admin/class-admin.php:719
+#: assets/js/admin-settings-app.js:344
+msgid "Capture"
+msgstr "Captura"
+
+#: includes/admin/class-admin.php:721
+msgid "Capture and preserve source data from campaigns, referrals, and ad clicks."
+msgstr "Capture e preserve dados de origem de campanhas, referências e cliques em anúncios."
+
+#: includes/admin/class-admin.php:727
+msgid "Keep attribution attached to forms, lead sources, and messaging touchpoints."
+msgstr "Mantenha a atribuição associada a formulários, origens de leads e pontos de contato por mensagem."
+
+#: includes/admin/class-admin.php:733
+msgid "Configure browser event collection, destinations, and the unified event pipeline."
+msgstr "Configure a coleta de eventos no navegador, os destinos e o pipeline unificado de eventos."
+
+#: includes/admin/class-admin.php:739
+msgid "Control privacy, server-side transport, and operational safeguards."
+msgstr "Controle a privacidade, o transporte server-side e as proteções operacionais."
+
+#: includes/admin/class-admin.php:800
+msgid "These settings are now organized by capability. Browser events and destinations live under Events, while transport and privacy controls live under Delivery."
+msgstr "Estas configurações agora estão organizadas por capacidade. Eventos do navegador e destinos ficam em Eventos, enquanto os controles de transporte e privacidade ficam em Entrega."
+
+#: includes/admin/class-admin.php:1026
+#, php-format
+msgid "%s ago"
+msgstr "há %s"
+
+#: includes/admin/class-admin.php:1029
+msgid "No delivery attempts recorded."
+msgstr "Nenhuma tentativa de entrega registrada."
+
+#: includes/admin/class-admin.php:1312
+msgid "Attribution"
+msgstr "Atribuição"
+
+#: includes/admin/class-admin.php:1314
+msgid "Capture UTM parameters, click IDs, and referrers — and keep them through forms, caching, and navigation."
+msgstr "Capture parâmetros UTM, IDs de clique e referenciadores — e mantenha esses dados ao longo de formulários, cache e navegação."
+
+#: includes/admin/class-admin.php:1319
+msgid "Consent Mode"
+msgstr "Modo de consentimento"
+
+#: includes/admin/class-admin.php:1320
+msgid "Control when tracking is allowed to start, which regions require explicit opt-in, and which consent platform ClickTrail should listen to."
+msgstr "Controle quando o rastreamento pode começar, quais regiões exigem opt-in explícito e qual plataforma de consentimento o ClickTrail deve ouvir."
+
+#: includes/admin/class-admin.php:1326
+msgid "Configure where events are sent — your own server-side endpoint, GTM, and advertising platforms."
+msgstr "Configure para onde os eventos são enviados — seu próprio endpoint server-side, GTM e plataformas de anúncios."
+
+#: includes/admin/class-admin.php:1332
+msgid "Platform-level controls — feature flags, security, deduplication, lifecycle ingestion, and external form providers."
+msgstr "Controles em nível de plataforma — feature flags, segurança, desduplicação, ingestão de ciclo de vida e provedores externos de formulários."
+
+#: includes/admin/class-admin.php:1376
+msgid "Enable attribution tracking and set how long source data is stored."
+msgstr "Ative o rastreamento de atribuição e defina por quanto tempo os dados de origem serão armazenados."
+
+#: includes/admin/class-admin.php:1383
+msgid "Cached pages"
+msgstr "Páginas em cache"
+
+#: includes/admin/class-admin.php:1384
+msgid "Ensures attribution still reaches hidden form fields when pages are served from cache. Recommended for most sites."
+msgstr "Garante que a atribuição continue chegando aos campos ocultos dos formulários quando as páginas são servidas do cache. Recomendado para a maioria dos sites."
+
+#: includes/admin/class-admin.php:1394
+msgid "Preserve attribution when visitors follow links to your other domains or subdomains."
+msgstr "Preserve a atribuição quando visitantes seguirem links para seus outros domínios ou subdomínios."
+
+#: includes/admin/class-admin.php:1412
+msgid "Low-level capture behavior. Most sites can leave these unchanged."
+msgstr "Comportamento de captura de baixo nível. A maioria dos sites pode deixar isso como está."
+
+#: assets/js/admin-settings-app.js:289
+msgid "Settings reloaded."
+msgstr "Configurações recarregadas."
+
+#: assets/js/admin-settings-app.js:295
+msgid "Failed to reload settings."
+msgstr "Falha ao recarregar as configurações."
+
+#: assets/js/admin-settings-app.js:316
+msgid "Settings saved."
+msgstr "Configurações salvas."
+
+#: assets/js/admin-settings-app.js:322
+msgid "Failed to save settings."
+msgstr "Falha ao salvar as configurações."
+
+#: assets/js/admin-settings-app.js:345
+#: includes/admin/class-admin.php:1454
+msgid "On"
+msgstr "Ativado"
+
+#: assets/js/admin-settings-app.js:345
+#: includes/admin/class-admin.php:1454
+msgid "Off"
+msgstr "Desativado"
+
+#: assets/js/admin-settings-app.js:362
+#: includes/admin/class-admin.php:952
+#: includes/admin/class-admin.php:1469
+msgid "Cross-domain"
+msgstr "Entre domínios"
+
+#: assets/js/admin-settings-app.js:368
+msgid "Delivery"
+msgstr "Entrega"
+
+#: assets/js/admin-settings-app.js:374
+msgid "Consent"
+msgstr "Consentimento"
+
+#: assets/js/admin-settings-app.js:459
+msgid "Core tracking"
+msgstr "Rastreamento principal"
+
+#: assets/js/admin-settings-app.js:460
+msgid "Enable attribution tracking and choose how long visit source data should be stored."
+msgstr "Ative o rastreamento de atribuição e escolha por quanto tempo os dados de origem da visita devem ser armazenados."
+
+#: assets/js/admin-settings-app.js:462
+msgid "Enable attribution tracking"
+msgstr "Ativar rastreamento de atribuição"
+
+#: assets/js/admin-settings-app.js:462
+msgid "Capture campaign and referral data for each visit."
+msgstr "Capture dados de campanha e referência em cada visita."
+
+#: assets/js/admin-settings-app.js:463
+msgid "Attribution retention (days)"
+msgstr "Retenção de atribuição (dias)"
+
+#: assets/js/admin-settings-app.js:463
+#: includes/admin/class-admin.php:299
+msgid "How long attribution data should be stored."
+msgstr "Por quanto tempo os dados de atribuição devem ser armazenados."
+
+#: assets/js/admin-settings-app.js:470
+msgid "Cross-domain attribution"
+msgstr "Atribuição entre domínios"
+
+#: assets/js/admin-settings-app.js:471
+msgid "Preserve attribution when visitors move between your domains or subdomains."
+msgstr "Preserve a atribuição quando os visitantes se moverem entre seus domínios ou subdomínios."
+
+#: assets/js/admin-settings-app.js:473
+msgid "Decorate outgoing links"
+msgstr "Decorar links de saída"
+
+#: assets/js/admin-settings-app.js:473
+#: includes/admin/class-admin.php:357
+msgid "Append attribution parameters to approved links."
+msgstr "Acrescente parâmetros de atribuição aos links aprovados."
+
+#: assets/js/admin-settings-app.js:474
+msgid "Allowed cross-domain destinations"
+msgstr "Destinos permitidos entre domínios"
+
+#: assets/js/admin-settings-app.js:474
+#: includes/admin/class-admin.php:371
+msgid "Domains where attribution parameters may be added."
+msgstr "Domínios nos quais parâmetros de atribuição podem ser adicionados."
+
+#: assets/js/admin-settings-app.js:478
+msgid "Do not modify signed URLs"
+msgstr "Não modificar URLs assinadas"
+
+#: assets/js/admin-settings-app.js:478
+#: includes/admin/class-admin.php:386
+msgid "Recommended when links contain temporary signatures or protected access tokens."
+msgstr "Recomendado quando os links contêm assinaturas temporárias ou tokens de acesso protegidos."
+
+#: assets/js/admin-settings-app.js:480
+#: assets/js/admin-settings-app.js:524
+#: assets/js/admin-settings-app.js:528
+#: assets/js/admin-settings-app.js:532
+#: includes/admin/class-admin.php:1386
+msgid "Recommended"
+msgstr "Recomendado"
+
+#: assets/js/admin-settings-app.js:482
+#: includes/admin/class-admin.php:400
+msgid "Pass cross-domain attribution token"
+msgstr "Passar token de atribuição entre domínios"
+
+#: assets/js/admin-settings-app.js:482
+msgid "Adds a temporary token to preserve attribution across approved domains. No personal data is included."
+msgstr "Adiciona um token temporário para preservar a atribuição entre domínios aprovados. Nenhum dado pessoal é incluído."
+
+#: assets/js/admin-settings-app.js:497
+msgid "Enable this source and accept signed webhook submissions."
+msgstr "Ative esta fonte e aceite envios de webhook assinados."
+
+#: assets/js/admin-settings-app.js:506
+msgid "Signing secret"
+msgstr "Segredo de assinatura"
+
+#: assets/js/admin-settings-app.js:507
+msgid "Leave unchanged to keep the current secret."
+msgstr "Deixe inalterado para manter o segredo atual."
+
+#: assets/js/admin-settings-app.js:522
+msgid "On-site form capture"
+msgstr "Captura de formulários no site"
+
+#: assets/js/admin-settings-app.js:523
+msgid "Recommended settings to keep attribution attached to forms on cached pages and dynamic sites."
+msgstr "Configurações recomendadas para manter a atribuição associada aos formulários em páginas em cache e sites dinâmicos."
+
+#: assets/js/admin-settings-app.js:527
+#: includes/admin/class-admin.php:1384
+msgid "Client-side capture fallback"
+msgstr "Fallback de captura no cliente"
+
+#: assets/js/admin-settings-app.js:527
+#: includes/admin/class-admin.php:321
+#: includes/admin/class-admin.php:1384
+msgid "Recommended for cached or highly optimized pages."
+msgstr "Recomendado para páginas em cache ou altamente otimizadas."
+
+#: assets/js/admin-settings-app.js:530
+msgid "Watch dynamic content"
+msgstr "Observar conteúdo dinâmico"
+
+#: assets/js/admin-settings-app.js:530
+msgid "Detect forms and links added after page load."
+msgstr "Detecte formulários e links adicionados após o carregamento da página."
+
+#: assets/js/admin-settings-app.js:534
+#: includes/admin/class-admin.php:422
+msgid "Replace existing attribution values"
+msgstr "Substituir valores de atribuição existentes"
+
+#: assets/js/admin-settings-app.js:534
+#: includes/admin/class-admin.php:422
+msgid "Use newly detected values even if attribution was already stored."
+msgstr "Use valores recém-detectados mesmo que a atribuição já tenha sido armazenada."
+
+#: assets/js/admin-settings-app.js:542
+#: includes/admin/class-admin.php:1402
+msgid "Carry attribution into outbound WhatsApp clicks and pre-filled messages."
+msgstr "Leve a atribuição para cliques de saída do WhatsApp e mensagens pré-preenchidas."
+
+#: assets/js/admin-settings-app.js:546
+msgid "Enable WhatsApp tracking"
+msgstr "Ativar rastreamento do WhatsApp"
+
+#: assets/js/admin-settings-app.js:547
+msgid "Append attribution to message"
+msgstr "Acrescentar atribuição à mensagem"
+
+#: assets/js/admin-settings-app.js:547
+msgid "Add attribution details to the pre-filled WhatsApp message."
+msgstr "Adicione detalhes de atribuição à mensagem pré-preenchida do WhatsApp."
+
+#: assets/js/admin-settings-app.js:554
+msgid "External form sources"
+msgstr "Fontes externas de formulários"
+
+#: assets/js/admin-settings-app.js:555
+msgid "Accept attributed submissions from supported providers without exposing raw engineering controls."
+msgstr "Aceite envios atribuídos de provedores compatíveis sem expor controles técnicos avançados."
+
+#: assets/js/admin-settings-app.js:557
+msgid "Accept external form source webhooks"
+msgstr "Aceitar webhooks de fontes externas de formulários"
+
+#: assets/js/admin-settings-app.js:557
+msgid "Enable signed inbound submissions from supported providers."
+msgstr "Ative envios de entrada assinados de provedores compatíveis."
+
+#: assets/js/admin-settings-app.js:565
+msgid "Advanced technical options"
+msgstr "Opções técnicas avançadas"
+
+#: assets/js/admin-settings-app.js:566
+msgid "Only change these if you need more control over how the browser watches the page."
+msgstr "Altere isto apenas se precisar de mais controle sobre como o navegador observa a página."
+
+#: assets/js/admin-settings-app.js:569
+#: includes/admin/class-admin.php:1416
+msgid "Advanced"
+msgstr "Avançado"
+
+#: assets/js/admin-settings-app.js:572
+msgid "Dynamic content root selector"
+msgstr "Seletor raiz do conteúdo dinâmico"
+
+#: assets/js/admin-settings-app.js:572
+msgid "Defaults to body. Narrow this only if you need to watch a specific part of the page."
+msgstr "O padrão é body. Restrinja isso apenas se precisar observar uma parte específica da página."
+
+#: assets/js/admin-settings-app.js:584
+msgid "ClickTrail uses one unified event pipeline behind the scenes for browser events, webhooks, and server delivery. Configure the capabilities you use without worrying about the internal pipeline."
+msgstr "O ClickTrail usa um único pipeline de eventos nos bastidores para eventos do navegador, webhooks e entrega server-side. Configure os recursos que você usa sem se preocupar com o pipeline interno."
+
+#: assets/js/admin-settings-app.js:589
+msgid "Event collection"
+msgstr "Coleta de eventos"
+
+#: assets/js/admin-settings-app.js:590
+msgid "Control browser event collection and optional GTM loading for this site."
+msgstr "Controle a coleta de eventos no navegador e o carregamento opcional do GTM neste site."
+
+#: assets/js/admin-settings-app.js:592
+msgid "Enable browser event collection"
+msgstr "Ativar coleta de eventos no navegador"
+
+#: assets/js/admin-settings-app.js:592
+msgid "Collect page, click, and form events through ClickTrail's unified event layer."
+msgstr "Colete eventos de página, clique e formulário pela camada unificada de eventos do ClickTrail."
+
+#: assets/js/admin-settings-app.js:593
+msgid "Google Tag Manager container ID"
+msgstr "ID do contêiner do Google Tag Manager"
+
+#: assets/js/admin-settings-app.js:593
+#: includes/admin/class-admin.php:547
+#: includes/admin/class-admin.php:216
+msgid "Use only if your site does not already load Google Tag Manager."
+msgstr "Use isto apenas se o seu site ainda não carregar o Google Tag Manager."
+
+#: assets/js/admin-settings-app.js:601
+msgid "Keep campaign context visible on WooCommerce orders and extend the same event pipeline into the storefront when you need it."
+msgstr "Mantenha o contexto de campanha visível nos pedidos do WooCommerce e estenda o mesmo pipeline de eventos para a storefront quando necessário."
+
+#: assets/js/admin-settings-app.js:605
+msgid "Order attribution is stored on WooCommerce orders during checkout, so campaign context remains available after the visitor leaves the landing page."
+msgstr "A atribuição do pedido é armazenada nos pedidos do WooCommerce durante o checkout, para que o contexto da campanha continue disponível depois que o visitante sair da landing page."
+
+#: assets/js/admin-settings-app.js:609
+msgid "Purchase events are pushed automatically on the thank-you page and can also flow into ClickTrail's server-side delivery adapters when Delivery is enabled."
+msgstr "Eventos de compra são enviados automaticamente na página de agradecimento e também podem fluir para os adaptadores de entrega server-side do ClickTrail quando a Entrega estiver ativada."
+
+#: assets/js/admin-settings-app.js:611
+msgid "Enable WooCommerce storefront events"
+msgstr "Ativar eventos de storefront do WooCommerce"
+
+#: assets/js/admin-settings-app.js:611
+msgid "Emit GA4-style `view_item`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` events through ClickTrail's browser event layer. Existing installs keep this off until you enable it."
+msgstr "Emita eventos em estilo GA4 de `view_item`, `add_to_cart`, `remove_from_cart` e `begin_checkout` pela camada de eventos do navegador do ClickTrail. Instalações existentes mantêm isso desativado até você habilitar."
+
+#: assets/js/admin-settings-app.js:616
+msgid "Verify WooCommerce order attribution in the order screen, and verify storefront/browser events with GTM Preview, the dataLayer, or ClickTrail > Diagnostics when Delivery is enabled."
+msgstr "Verifique a atribuição do WooCommerce na tela do pedido e valide os eventos de storefront/navegador com o GTM Preview, a dataLayer ou ClickTrail > Diagnostics quando a Entrega estiver ativada."
+
+#: assets/js/admin-settings-app.js:622
+msgid "Destinations"
+msgstr "Destinos"
+
+#: assets/js/admin-settings-app.js:623
+msgid "Choose which advertising platforms should receive compatible event payloads."
+msgstr "Escolha quais plataformas de anúncios devem receber payloads de eventos compatíveis."
+
+#: assets/js/admin-settings-app.js:625
+msgid "Meta"
+msgstr "Meta"
+
+#: assets/js/admin-settings-app.js:625
+msgid "Send eligible events to Meta-compatible delivery adapters when configured."
+msgstr "Envie eventos elegíveis para adaptadores de entrega compatíveis com a Meta quando configurados."
+
+#: assets/js/admin-settings-app.js:626
+msgid "Google"
+msgstr "Google"
+
+#: assets/js/admin-settings-app.js:626
+msgid "Send eligible events to Google-compatible delivery adapters when configured."
+msgstr "Envie eventos elegíveis para adaptadores de entrega compatíveis com Google quando configurados."
+
+#: assets/js/admin-settings-app.js:627
+msgid "LinkedIn"
+msgstr "LinkedIn"
+
+#: assets/js/admin-settings-app.js:627
+msgid "Send eligible events to LinkedIn-compatible delivery adapters when configured."
+msgstr "Envie eventos elegíveis para adaptadores de entrega compatíveis com o LinkedIn quando configurados."
+
+#: assets/js/admin-settings-app.js:628
+msgid "Reddit"
+msgstr "Reddit"
+
+#: assets/js/admin-settings-app.js:628
+msgid "Send eligible events to Reddit-compatible delivery adapters when configured."
+msgstr "Envie eventos elegíveis para adaptadores de entrega compatíveis com o Reddit quando configurados."
+
+#: assets/js/admin-settings-app.js:629
+msgid "Pinterest"
+msgstr "Pinterest"
+
+#: assets/js/admin-settings-app.js:629
+msgid "Send eligible events to Pinterest-compatible delivery adapters when configured."
+msgstr "Envie eventos elegíveis para adaptadores de entrega compatíveis com o Pinterest quando configurados."
+
+#: assets/js/admin-settings-app.js:634
+msgid "Lifecycle updates"
+msgstr "Atualizações de ciclo de vida"
+
+#: assets/js/admin-settings-app.js:635
+msgid "Accept lifecycle updates from your CRM or backend and route them through the same event pipeline."
+msgstr "Aceite atualizações de ciclo de vida do seu CRM ou backend e encaminhe-as pelo mesmo pipeline de eventos."
+
+#: assets/js/admin-settings-app.js:637
+msgid "Accept lifecycle updates"
+msgstr "Aceitar atualizações de ciclo de vida"
+
+#: assets/js/admin-settings-app.js:637
+msgid "Allow lifecycle events to enter the unified event pipeline."
+msgstr "Permita que eventos de ciclo de vida entrem no pipeline unificado de eventos."
+
+#: assets/js/admin-settings-app.js:638
+msgid "Enable lifecycle endpoint"
+msgstr "Ativar endpoint de ciclo de vida"
+
+#: assets/js/admin-settings-app.js:638
+msgid "Turn on the REST endpoint used by your CRM or backend."
+msgstr "Ative o endpoint REST usado pelo seu CRM ou backend."
+
+#: assets/js/admin-settings-app.js:641
+msgid "Lifecycle endpoint token"
+msgstr "Token do endpoint de ciclo de vida"
+
+#: assets/js/admin-settings-app.js:641
+msgid "Leave unchanged to keep the current token."
+msgstr "Deixe inalterado para manter o token atual."
+
+#: assets/js/admin-settings-app.js:650
+msgid "None"
+msgstr "Nenhum"
+
+#: assets/js/admin-settings-app.js:655
+msgid "Delivery health"
+msgstr "Saúde da entrega"
+
+#: assets/js/admin-settings-app.js:656
+msgid "Quick operational summary for queue health, recent delivery attempts, and debug state."
+msgstr "Resumo operacional rápido da saúde da fila, tentativas recentes de entrega e estado da depuração."
+
+#: assets/js/admin-settings-app.js:663
+msgid "Server-side delivery is currently off. Historical diagnostics can still appear until their retention window expires."
+msgstr "A entrega server-side está desativada no momento. Diagnósticos históricos ainda podem aparecer até o fim da janela de retenção."
+
+#: assets/js/admin-settings-app.js:668
+msgid "Queue Backlog"
+msgstr "Fila pendente"
+
+#: assets/js/admin-settings-app.js:670
+msgid "Due now: "
+msgstr "Vencendo agora: "
+
+#: assets/js/admin-settings-app.js:673
+msgid "Last Dispatch"
+msgstr "Último envio"
+
+#: assets/js/admin-settings-app.js:674
+#: includes/admin/class-admin.php:1021
+msgid "No attempts yet"
+msgstr "Nenhuma tentativa ainda"
+
+#: assets/js/admin-settings-app.js:678
+msgid "Last Error"
+msgstr "Último erro"
+
+#: assets/js/admin-settings-app.js:680
+msgid "No errors recorded."
+msgstr "Nenhum erro registrado."
+
+#: assets/js/admin-settings-app.js:683
+msgid "Debug Logging"
+msgstr "Log de depuração"
+
+#: assets/js/admin-settings-app.js:685
+msgid "Enable it from Diagnostics when you need a short trace window."
+msgstr "Ative isso em Diagnósticos quando precisar de uma janela curta de rastreamento."
+
+#: assets/js/admin-settings-app.js:693
+msgid "Open Diagnostics"
+msgstr "Abrir Diagnósticos"
+
+#: assets/js/admin-settings-app.js:698
+msgid "Open Logs"
+msgstr "Abrir logs"
+
+#: assets/js/admin-settings-app.js:707
+msgid "Delivery controls cover transport, consent, queue health, and the safeguards that keep outbound tracking reliable. Most sites only need the server-side transport card and privacy controls."
+msgstr "Os controles de entrega cobrem transporte, consentimento, saúde da fila e as proteções que mantêm o rastreamento de saída confiável. A maioria dos sites só precisa do cartão de transporte server-side e dos controles de privacidade."
+
+#: assets/js/admin-settings-app.js:714
+msgid "This site is currently using network defaults for server-side delivery. Disable the network toggle below to customize this site independently."
+msgstr "Este site está usando no momento os padrões da rede para entrega server-side. Desative a chave de rede abaixo para personalizar este site de forma independente."
+
+#: assets/js/admin-settings-app.js:720
+msgid "Server-side transport"
+msgstr "Transporte server-side"
+
+#: assets/js/admin-settings-app.js:721
+msgid "Route events through your own collector endpoint when you need a more durable delivery path."
+msgstr "Encaminhe eventos pelo seu próprio endpoint coletor quando precisar de um caminho de entrega mais durável."
+
+#: assets/js/admin-settings-app.js:724
+msgid "Use network defaults"
+msgstr "Usar padrões da rede"
+
+#: assets/js/admin-settings-app.js:724
+msgid "Use the multisite network configuration for this site."
+msgstr "Usar a configuração de rede do multisite para este site."
+
+#: assets/js/admin-settings-app.js:726
+msgid "Enable server-side delivery"
+msgstr "Ativar entrega server-side"
+
+#: assets/js/admin-settings-app.js:726
+msgid "Send events through your own collector endpoint."
+msgstr "Envie eventos pelo seu próprio endpoint coletor."
+
+#: assets/js/admin-settings-app.js:729
+#: includes/admin/class-admin.php:577
+msgid "Collector URL"
+msgstr "URL do coletor"
+
+#: assets/js/admin-settings-app.js:729
+msgid "Endpoint that receives server-side events."
+msgstr "Endpoint que recebe eventos server-side."
+
+#: assets/js/admin-settings-app.js:733
+msgid "Delivery adapter"
+msgstr "Adaptador de entrega"
+
+#: assets/js/admin-settings-app.js:733
+msgid "Choose the format best suited to your receiving endpoint."
+msgstr "Escolha o formato mais adequado para o endpoint de destino."
+
+#: assets/js/admin-settings-app.js:736
+#: includes/admin/class-admin.php:599
+msgid "Generic Collector"
+msgstr "Coletor genérico"
+
+#: assets/js/admin-settings-app.js:737
+#: includes/admin/class-admin.php:600
+msgid "sGTM (Server GTM)"
+msgstr "sGTM (Server GTM)"
+
+#: assets/js/admin-settings-app.js:738
+#: includes/admin/class-admin.php:601
+msgid "Meta CAPI"
+msgstr "Meta CAPI"
+
+#: assets/js/admin-settings-app.js:739
+#: includes/admin/class-admin.php:602
+msgid "Google Ads / GA4"
+msgstr "Google Ads / GA4"
+
+#: assets/js/admin-settings-app.js:740
+#: includes/admin/class-admin.php:603
+msgid "LinkedIn CAPI"
+msgstr "LinkedIn CAPI"
+
+#: assets/js/admin-settings-app.js:742
+#: includes/admin/class-admin.php:610
+msgid "Request timeout (seconds)"
+msgstr "Tempo limite da requisição (segundos)"
+
+#: assets/js/admin-settings-app.js:742
+msgid "How long ClickTrail should wait before treating a delivery attempt as failed."
+msgstr "Por quanto tempo o ClickTrail deve esperar antes de considerar uma tentativa de entrega como falha."
+
+#: assets/js/admin-settings-app.js:746
+#: includes/admin/class-admin.php:622
+msgid "Share anonymous failure counts"
+msgstr "Compartilhar contagens anônimas de falhas"
+
+#: assets/js/admin-settings-app.js:746
+#: includes/admin/class-admin.php:629
+msgid "Only aggregated failure counts are shared. No payloads or personal data are included."
+msgstr "Apenas contagens agregadas de falhas são compartilhadas. Nenhum payload ou dado pessoal é incluído."
+
+#: assets/js/admin-settings-app.js:753
+msgid "Privacy & consent"
+msgstr "Privacidade e consentimento"
+
+#: assets/js/admin-settings-app.js:754
+msgid "Control when tracking is allowed to start and which consent signals ClickTrail should use."
+msgstr "Controle quando o rastreamento pode começar e quais sinais de consentimento o ClickTrail deve usar."
+
+#: assets/js/admin-settings-app.js:756
+msgid "Enable consent mode"
+msgstr "Ativar modo de consentimento"
+
+#: assets/js/admin-settings-app.js:756
+msgid "Gate attribution and event collection until consent requirements are satisfied."
+msgstr "Bloqueie a atribuição e a coleta de eventos até que os requisitos de consentimento sejam atendidos."
+
+#: assets/js/admin-settings-app.js:757
+#: includes/admin/class-admin.php:497
+msgid "Consent behavior"
+msgstr "Comportamento de consentimento"
+
+#: assets/js/admin-settings-app.js:757
+msgid "Choose whether consent is always required, never required, or region-based."
+msgstr "Escolha se o consentimento será sempre exigido, nunca exigido ou baseado em região."
+
+#: assets/js/admin-settings-app.js:760
+msgid "Strict"
+msgstr "Estrito"
+
+#: assets/js/admin-settings-app.js:761
+msgid "Relaxed"
+msgstr "Flexível"
+
+#: assets/js/admin-settings-app.js:762
+msgid "Region-based"
+msgstr "Baseado em região"
+
+#: assets/js/admin-settings-app.js:764
+#: includes/admin/class-admin.php:485
+msgid "Regions requiring consent"
+msgstr "Regiões que exigem consentimento"
+
+#: assets/js/admin-settings-app.js:764
+msgid "One region per line. Examples: EEA, UK, CA, US-CA."
+msgstr "Uma região por linha. Exemplos: EEA, UK, CA, US-CA."
+
+#: assets/js/admin-settings-app.js:769
+#: includes/admin/class-admin.php:509
+msgid "Consent source"
+msgstr "Origem do consentimento"
+
+#: assets/js/admin-settings-app.js:769
+msgid "Which consent platform ClickTrail should listen to."
+msgstr "Qual plataforma de consentimento o ClickTrail deve ouvir."
+
+#: assets/js/admin-settings-app.js:772
+msgid "Auto-detect"
+msgstr "Detectar automaticamente"
+
+#: assets/js/admin-settings-app.js:773
+msgid "ClickTrail plugin"
+msgstr "plugin ClickTrail"
+
+#: assets/js/admin-settings-app.js:774
+msgid "Cookiebot"
+msgstr "Cookiebot"
+
+#: assets/js/admin-settings-app.js:775
+msgid "OneTrust"
+msgstr "OneTrust"
+
+#: assets/js/admin-settings-app.js:776
+msgid "Complianz"
+msgstr "Complianz"
+
+#: assets/js/admin-settings-app.js:778
+msgid "Custom"
+msgstr "Personalizado"
+
+#: assets/js/admin-settings-app.js:780
+#: includes/admin/class-admin.php:521
+msgid "Consent wait time (ms)"
+msgstr "Tempo de espera pelo consentimento (ms)"
+
+#: assets/js/admin-settings-app.js:780
+msgid "How long ClickTrail should wait for a consent signal before continuing."
+msgstr "Por quanto tempo o ClickTrail deve esperar por um sinal de consentimento antes de continuar."
+
+#: assets/js/admin-settings-app.js:789
+msgid "Advanced delivery controls"
+msgstr "Controles avançados de entrega"
+
+#: assets/js/admin-settings-app.js:790
+msgid "Security, buffering, deduplication, and low-level transport controls for technical users."
+msgstr "Controles de segurança, buffering, desduplicação e transporte de baixo nível para usuários técnicos."
+
+#: assets/js/admin-settings-app.js:796
+msgid "Use native platform adapters"
+msgstr "Usar adaptadores nativos de plataforma"
+
+#: assets/js/admin-settings-app.js:796
+msgid "Prefer ClickTrail's built-in platform adapters when available."
+msgstr "Prefira os adaptadores nativos do ClickTrail quando estiverem disponíveis."
+
+#: assets/js/admin-settings-app.js:797
+msgid "Store structured event diagnostics"
+msgstr "Armazenar diagnósticos estruturados de eventos"
+
+#: assets/js/admin-settings-app.js:797
+msgid "Keep a structured intake buffer for troubleshooting and validation."
+msgstr "Mantenha um buffer estruturado de entrada para diagnóstico e validação."
+
+#: assets/js/admin-settings-app.js:798
+msgid "Encrypt saved secrets"
+msgstr "Criptografar segredos salvos"
+
+#: assets/js/admin-settings-app.js:798
+msgid "Encrypt stored secrets at rest when supported by the host environment."
+msgstr "Criptografe os segredos armazenados em repouso quando houver suporte no ambiente de hospedagem."
+
+#: assets/js/admin-settings-app.js:799
+msgid "Attribution token lifetime (seconds)"
+msgstr "Vida útil do token de atribuição (segundos)"
+
+#: assets/js/admin-settings-app.js:799
+msgid "Controls how long attribution tokens remain valid."
+msgstr "Controla por quanto tempo os tokens de atribuição permanecem válidos."
+
+#: assets/js/admin-settings-app.js:800
+msgid "Maximum token replays (0 to disable)"
+msgstr "Máximo de repetições do token (0 para desativar)"
+
+#: assets/js/admin-settings-app.js:800
+msgid "Cap how many times the same token nonce can be used."
+msgstr "Limite quantas vezes o mesmo nonce de token pode ser usado."
+
+#: assets/js/admin-settings-app.js:801
+msgid "Webhook replay protection window (seconds)"
+msgstr "Janela de proteção contra repetição de webhook (segundos)"
+
+#: assets/js/admin-settings-app.js:801
+msgid "Reject webhook signatures that fall outside this replay window."
+msgstr "Rejeite assinaturas de webhook que estejam fora desta janela de repetição."
+
+#: assets/js/admin-settings-app.js:802
+msgid "API rate limit window (seconds)"
+msgstr "Janela de limite de taxa da API (segundos)"
+
+#: assets/js/admin-settings-app.js:802
+msgid "The time window used by intake rate limiting."
+msgstr "A janela de tempo usada pelo limite de taxa da entrada."
+
+#: assets/js/admin-settings-app.js:803
+msgid "API requests allowed per window"
+msgstr "Requisições de API permitidas por janela"
+
+#: assets/js/admin-settings-app.js:803
+msgid "Maximum requests allowed within the configured rate limit window."
+msgstr "Máximo de requisições permitidas dentro da janela configurada de limite de taxa."
+
+#: assets/js/admin-settings-app.js:804
+msgid "Trusted proxy IPs or CIDR ranges"
+msgstr "IPs de proxy confiáveis ou faixas CIDR"
+
+#: assets/js/admin-settings-app.js:804
+msgid "One proxy per line. Only add proxies you control."
+msgstr "Um proxy por linha. Adicione apenas proxies sob seu controle."
+
+#: assets/js/admin-settings-app.js:805
+msgid "Allowed token hosts"
+msgstr "Hosts permitidos para tokens"
+
+#: assets/js/admin-settings-app.js:805
+msgid "Hosts allowed to mint or receive attribution tokens. One host per line."
+msgstr "Hosts permitidos para emitir ou receber tokens de atribuição. Um host por linha."
+
+#: assets/js/admin-settings-app.js:806
+msgid "Recent dispatch records kept"
+msgstr "Registros recentes de envio mantidos"
+
+#: assets/js/admin-settings-app.js:806
+msgid "How many recent dispatch attempts should be kept for diagnostics."
+msgstr "Quantas tentativas de envio recentes devem ser mantidas para diagnóstico."
+
+#: assets/js/admin-settings-app.js:807
+msgid "Failure summary flush interval (seconds)"
+msgstr "Intervalo de consolidação do resumo de falhas (segundos)"
+
+#: assets/js/admin-settings-app.js:807
+msgid "How often failure counters are flushed into hourly telemetry buckets."
+msgstr "Com que frequência os contadores de falha são consolidados em buckets horários de telemetria."
+
+#: assets/js/admin-settings-app.js:808
+msgid "Failure summary retention (hours)"
+msgstr "Retenção do resumo de falhas (horas)"
+
+#: assets/js/admin-settings-app.js:808
+msgid "How long failure telemetry buckets should be retained."
+msgstr "Por quanto tempo os buckets de telemetria de falhas devem ser mantidos."
+
+#: assets/js/admin-settings-app.js:809
+msgid "Event deduplication window (seconds)"
+msgstr "Janela de desduplicação de eventos (segundos)"
+
+#: assets/js/admin-settings-app.js:809
+msgid "How long dispatch deduplication markers should be kept."
+msgstr "Por quanto tempo os marcadores de desduplicação de envio devem ser mantidos."
+
+#: assets/js/admin-settings-app.js:883
+msgid "Save Changes"
+msgstr "Salvar alterações"
+
+#: assets/js/admin-settings-app.js:889
+msgid "Reload Saved Settings"
+msgstr "Recarregar configurações salvas"
+
+#: assets/js/admin-settings-app.js:350
+#: includes/admin/class-admin.php:725
+msgid "Forms"
+msgstr "Formulários"
+
+#: assets/js/admin-settings-app.js:356
+#: includes/admin/class-admin.php:731
+msgid "Events"
+msgstr "Eventos"
+
+#: assets/js/admin-settings-app.js:600
+msgid "WooCommerce"
+msgstr "WooCommerce"
+
+#: includes/admin/class-admin.php:272
+msgid "Core Attribution Settings"
+msgstr "Configurações principais de atribuição"
+
+#: includes/admin/class-admin.php:306
+msgid "Reliability Settings"
+msgstr "Configurações de confiabilidade"
+
+#: includes/admin/class-admin.php:313
+msgid "Form Capture Fallback"
+msgstr "Fallback de captura de formulários"
+
+#: includes/admin/class-admin.php:341
+msgid "Cross-domain Settings"
+msgstr "Configurações entre domínios"
+
+#: includes/admin/class-admin.php:466
+msgid "Consent mode"
+msgstr "Modo de consentimento"
+
+#: includes/admin/class-admin.php:541
+msgid "Container ID"
+msgstr "ID do contêiner"
+
+#: includes/admin/class-admin.php:1259
+msgid "Inject GTM on this site — only if GTM is not already loaded elsewhere."
+msgstr "Injete o GTM neste site — apenas se ele ainda não estiver carregado em outro lugar."
+
+#: includes/admin/class-admin.php:1275
+msgid "Route events through your own collector endpoint — bypasses browser ad-blockers and provides a reliable delivery path."
+msgstr "Encaminhe eventos pelo seu próprio endpoint coletor — isso contorna bloqueadores de anúncios do navegador e fornece um caminho de entrega mais confiável."
+
+#: includes/admin/class-admin.php:1384
+msgid "Recommended when forms or links appear after page load."
+msgstr "Recomendado quando formulários ou links aparecem após o carregamento da página."
+
+#: includes/admin/class-admin.php:1463
+msgid "JS Capture"
+msgstr "Captura via JS"
+
+#: includes/admin/class-admin.php:1473
+msgid "Server-side"
+msgstr "Server-side"
+
+#: includes/admin/class-admin.php:1318
+msgid "Decide when attribution and event collection are allowed to start."
+msgstr "Decida quando a atribuição e a coleta de eventos podem começar."
+
+#: includes/admin/class-admin.php:1468
+msgid "Cross-domain Links"
+msgstr "Links entre domínios"
+
+#: includes/admin/class-admin.php:1393
+msgid "Cross-domain links"
+msgstr "Links entre domínios"
+
+#: includes/admin/class-admin.php:163
+msgid "Diagnostics"
+msgstr "Diagnósticos"
+
+#: includes/admin/class-admin.php:557
+msgid "Server-side Transport"
+msgstr "Transporte server-side"
+
+#: includes/admin/class-admin.php:1274
+msgid "Server-side delivery"
+msgstr "Entrega server-side"
+
+#: includes/admin/class-admin.php:636
+msgid "Use Network Defaults"
+msgstr "Usar padrões da rede"
+
+#: includes/admin/class-admin.php:643
+msgid "Use network-level server-side settings for this site."
+msgstr "Usar as configurações server-side do nível da rede para este site."
+
+#: includes/admin/class-admin.php:789
+msgid "Advanced Settings"
+msgstr "Configurações avançadas"
+
+#: assets/js/admin-settings-app.js:236
+msgid "Setup Checklist"
+msgstr "Checklist de configuração"
+
+#: assets/js/admin-settings-app.js:237
+msgid "Read-only readiness checks for rollout, delivery, and WooCommerce coverage."
+msgstr "Verificações somente leitura de prontidão para rollout, entrega e cobertura do WooCommerce."
+
+#: assets/js/admin-settings-app.js:244
+msgid "Ready"
+msgstr "Pronto"
+
+#: assets/js/admin-settings-app.js:244
+msgid "Needs Review"
+msgstr "Requer revisão"
+
+#: assets/js/admin-settings-app.js:244
+msgid "Unavailable"
+msgstr "Indisponível"
+
+#: assets/js/admin-settings-app.js:244
+msgid "Optional"
+msgstr "Opcional"
+
+#: assets/js/admin-settings-app.js:638
+msgid "Mark this destination when another relay or downstream collector owns final delivery."
+msgstr "Marque este destino quando outro relay ou coletor downstream for responsável pela entrega final."
+
+#: assets/js/admin-settings-app.js:641
+msgid "Send eligible events to this destination when the matching delivery adapter or downstream collector is configured."
+msgstr "Envie eventos elegíveis para este destino quando o adaptador de entrega correspondente ou o coletor downstream estiver configurado."
+
+#: assets/js/admin-settings-app.js:659
+msgid "Emit GA4-style `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` events through ClickTrail's browser event layer. Existing installs keep this off until you enable it."
+msgstr "Emita eventos em estilo GA4 de `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart` e `begin_checkout` pela camada de eventos do navegador do ClickTrail. Instalações existentes mantêm isso desativado até você habilitar."
+
+#: assets/js/admin-settings-app.js:663
+msgid "Verify WooCommerce order attribution in the order screen, storefront/browser events with GTM Preview or the dataLayer, and server-side traces from ClickTrail > Diagnostics."
+msgstr "Verifique a atribuição do WooCommerce na tela do pedido, os eventos de storefront/navegador com o GTM Preview ou a dataLayer, e os rastros server-side em ClickTrail > Diagnostics."
+
+#: assets/js/admin-settings-app.js:792
+#: includes/admin/class-admin.php:908
+msgid "Pinterest Conversions API"
+msgstr "API de Conversões do Pinterest"
+
+#: assets/js/admin-settings-app.js:793
+#: includes/admin/class-admin.php:910
+msgid "TikTok Events API"
+msgstr "API de Eventos do TikTok"
+
+#: includes/admin/class-admin.php:251
+msgid "Preparing backup..."
+msgstr "Preparando backup..."
+
+#: includes/admin/class-admin.php:253
+msgid "Importing backup..."
+msgstr "Importando backup..."
+
+#: includes/admin/class-admin.php:255
+msgid "Choose a ClickTrail backup file first."
+msgstr "Escolha primeiro um arquivo de backup do ClickTrail."
+
+#: includes/admin/class-admin.php:256
+msgid "Restore this ClickTrail backup now? Current settings will be replaced."
+msgstr "Restaurar este backup do ClickTrail agora? As configurações atuais serão substituídas."
+
+#: includes/admin/class-admin.php:257
+msgid "Looking up order..."
+msgstr "Consultando pedido..."
+
+#: includes/admin/class-admin.php:258
+msgid "Order lookup failed."
+msgstr "A consulta do pedido falhou."
+
+#: includes/admin/class-admin.php:1154
+msgid "Attribution capture is enabled."
+msgstr "A captura de atribuição está ativada."
+
+#: includes/admin/class-admin.php:1155
+msgid "Turn on attribution capture before testing source continuity."
+msgstr "Ative a captura de atribuição antes de testar a continuidade da origem."
+
+#: includes/admin/class-admin.php:1159
+msgid "Consent Guidance"
+msgstr "Orientação de consentimento"
+
+#: includes/admin/class-admin.php:1162
+msgid "Consent mode is configured. Verify the selected CMP source before rollout."
+msgstr "O modo de consentimento está configurado. Verifique a fonte de CMP selecionada antes do rollout."
+
+#: includes/admin/class-admin.php:1163
+msgid "Consent mode is off. Confirm this matches your regional rollout requirements."
+msgstr "O modo de consentimento está desativado. Confirme se isso corresponde aos requisitos regionais do seu rollout."
+
+#: includes/admin/class-admin.php:1171
+msgid "Form capture helpers or providers are active."
+msgstr "Os auxiliares de captura de formulários ou provedores estão ativos."
+
+#: includes/admin/class-admin.php:1172
+msgid "Enable client fallback, WhatsApp, or provider hooks if forms are part of your attribution path."
+msgstr "Ative o fallback client-side, o WhatsApp ou hooks de provedores se os formulários fizerem parte do seu caminho de atribuição."
+
+#: includes/admin/class-admin.php:1181
+#, php-format
+msgid "Browser events are active. Enabled destinations: %d."
+msgstr "Os eventos do navegador estão ativos. Destinos ativados: %d."
+
+#: includes/admin/class-admin.php:1184
+msgid "Enable the browser event pipeline before relying on dataLayer and canonical intake."
+msgstr "Ative o pipeline de eventos do navegador antes de depender da dataLayer e do intake canônico."
+
+#: includes/admin/class-admin.php:1190
+msgid "Server-side delivery has an endpoint and is ready for endpoint tests."
+msgstr "A entrega server-side tem um endpoint configurado e está pronta para testes de endpoint."
+
+#: includes/admin/class-admin.php:1192
+msgid "Server-side delivery is on, but the collector URL still needs review."
+msgstr "A entrega server-side está ativada, mas a URL do coletor ainda precisa de revisão."
+
+#: includes/admin/class-admin.php:1193
+msgid "Server-side delivery is off. Logs and Diagnostics still work for local checks."
+msgstr "A entrega server-side está desativada. Logs e Diagnósticos ainda funcionam para verificações locais."
+
+#: includes/admin/class-admin.php:1200
+msgid "WooCommerce storefront events and order delivery helpers are ready."
+msgstr "Os eventos de storefront do WooCommerce e os auxiliares de entrega de pedidos estão prontos."
+
+#: includes/admin/class-admin.php:1202
+msgid "WooCommerce is active. Enable storefront events when you want list, product, cart, and checkout signals."
+msgstr "O WooCommerce está ativo. Ative os eventos de storefront quando quiser sinais de lista, produto, carrinho e checkout."
+
+#: includes/admin/class-admin.php:1203
+msgid "WooCommerce is not active on this site."
+msgstr "O WooCommerce não está ativo neste site."
+
+#: includes/admin/traits/trait-admin-pages.php:256
+msgid "Conflict Scan"
+msgstr "Verificação de conflitos"
+
+#: includes/admin/traits/trait-admin-pages.php:257
+msgid "Run deterministic checks for caching, duplicate ownership, Woo gaps, and delivery mismatches."
+msgstr "Execute verificações determinísticas para cache, propriedade duplicada, lacunas do Woo e incompatibilidades de entrega."
+
+#: includes/admin/traits/trait-admin-pages.php:263
+msgid "Run Conflict Scan"
+msgstr "Executar verificação de conflitos"
+
+#: includes/admin/traits/trait-admin-pages.php:277
+msgid "Backup Restore"
+msgstr "Backup e restauração"
+
+#: includes/admin/traits/trait-admin-pages.php:278
+msgid "Export or restore the five main ClickTrail option stores, including masked secrets through privileged server-side actions."
+msgstr "Exporte ou restaure os cinco principais armazenamentos de opções do ClickTrail, incluindo segredos mascarados por meio de ações server-side privilegiadas."
+
+#: includes/admin/traits/trait-admin-pages.php:285
+msgid "Export Backup"
+msgstr "Exportar backup"
+
+#: includes/admin/traits/trait-admin-pages.php:290
+msgid "Restore Backup"
+msgstr "Restaurar backup"
+
+#: includes/admin/traits/trait-admin-pages.php:300
+msgid "Woo Order Trace Lookup"
+msgstr "Consulta de rastros de pedidos do Woo"
+
+#: includes/admin/traits/trait-admin-pages.php:301
+msgid "Inspect the stored purchase and milestone payload snapshots for a WooCommerce order, even outside the debug window."
+msgstr "Inspecione os snapshots armazenados de payloads de compra e marcos de um pedido do WooCommerce, mesmo fora da janela de depuração."
+
+#: includes/admin/traits/trait-admin-pages.php:307
+msgid "Order ID"
+msgstr "ID do pedido"
+
+#: includes/admin/traits/trait-admin-pages.php:308
+msgid "Lookup Order"
+msgstr "Consultar pedido"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:335
+msgid "Conflict scan failed."
+msgstr "A verificação de conflitos falhou."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:347
+msgid "Backup export failed."
+msgstr "A exportação do backup falhou."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:375
+msgid "Backup import failed."
+msgstr "A importação do backup falhou."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:407
+msgid "No ClickTrail traces stored for this order yet."
+msgstr "Ainda não há rastros do ClickTrail armazenados para este pedido."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:423
+msgid "not_queued"
+msgstr "não na fila"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:423
+msgid "queued"
+msgstr "na fila"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:425
+msgid "No pending retry row found."
+msgstr "Nenhuma linha de nova tentativa pendente foi encontrada."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:429
+#, php-format
+msgid "Attempts: %1$d. Next attempt: %2$s."
+msgstr "Tentativas: %1$d. Próxima tentativa: %2$s."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:445
+msgid "Order trace loaded."
+msgstr "Rastro do pedido carregado."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:470
+msgid "Caching or script optimization detected"
+msgstr "Cache ou otimização de scripts detectados"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:474
+#, php-format
+msgid "Detected: %s. Turn on the client-side capture fallback to reduce stale attribution and delayed event issues."
+msgstr "Detectado: %s. Ative o fallback de captura client-side para reduzir problemas de atribuição obsoleta e eventos atrasados."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:483
+msgid "Server-side delivery has no endpoint"
+msgstr "A entrega server-side não tem endpoint"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:484
+msgid "Delivery is enabled, but the collector URL is empty."
+msgstr "A entrega está ativada, mas a URL do coletor está vazia."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:491
+msgid "Woo storefront events enabled without WooCommerce"
+msgstr "Eventos de storefront do Woo ativados sem WooCommerce"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:492
+msgid "Disable Woo storefront events or activate WooCommerce on this site."
+msgstr "Desative os eventos de storefront do Woo ou ative o WooCommerce neste site."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:501
+msgid "Adapter selected without matching destination toggle"
+msgstr "Adaptador selecionado sem a chave de destino correspondente"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:504
+#, php-format
+msgid "%1$s is selected as the delivery adapter, but %2$s is off in Events."
+msgstr "%1$s está selecionado como adaptador de entrega, mas %2$s está desativado em Eventos."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:527
+msgid "Destination toggle does not match the active adapter"
+msgstr "A chave de destino não corresponde ao adaptador ativo"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:530
+#, php-format
+msgid "%1$s is enabled in Events, but Delivery currently uses %2$s."
+msgstr "%1$s está ativado em Eventos, mas a Entrega usa atualmente %2$s."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:541
+msgid "Review duplicate destination ownership"
+msgstr "Revise a propriedade duplicada de destinos"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:542
+msgid "GTM is configured alongside native destination toggles. Confirm each platform is owned by only one runtime path."
+msgstr "O GTM está configurado junto com chaves nativas de destino. Confirme que cada plataforma é controlada por apenas um caminho de runtime."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:549
+msgid "No common conflicts detected in the current ClickTrail configuration."
+msgstr "Nenhum conflito comum foi detectado na configuração atual do ClickTrail."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:556
+#, php-format
+msgid "Conflict scan found %d item worth reviewing."
+msgstr "A verificação de conflitos encontrou %d item que merece revisão."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:556
+#, php-format
+msgid "Conflict scan found %d items worth reviewing."
+msgstr "A verificação de conflitos encontrou %d itens que merecem revisão."

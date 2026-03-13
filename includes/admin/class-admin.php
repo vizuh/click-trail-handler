@@ -12,6 +12,7 @@ use CLICUTCL\Modules\GTM\GTM_Settings;
 use CLICUTCL\Server_Side\Dispatcher;
 use CLICUTCL\Server_Side\Queue;
 use CLICUTCL\Server_Side\Settings;
+use CLICUTCL\Support\Feature_Registry;
 use CLICUTCL\Tracking\Settings as Tracking_Settings;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -65,6 +66,10 @@ class Admin {
 		add_action( 'wp_ajax_clicutcl_save_admin_settings', array( $this, 'ajax_save_admin_settings' ) );
 		add_action( 'wp_ajax_clicutcl_get_tracking_v2_settings', array( $this, 'ajax_get_tracking_v2_settings' ) );
 		add_action( 'wp_ajax_clicutcl_save_tracking_v2_settings', array( $this, 'ajax_save_tracking_v2_settings' ) );
+		add_action( 'wp_ajax_clicutcl_conflict_scan', array( $this, 'ajax_conflict_scan' ) );
+		add_action( 'wp_ajax_clicutcl_export_settings_backup', array( $this, 'ajax_export_settings_backup' ) );
+		add_action( 'wp_ajax_clicutcl_import_settings_backup', array( $this, 'ajax_import_settings_backup' ) );
+		add_action( 'wp_ajax_clicutcl_lookup_woo_order_trace', array( $this, 'ajax_lookup_woo_order_trace' ) );
 
 		if ( is_multisite() ) {
 			add_action( 'network_admin_menu', array( $this, 'network_admin_menu' ) );
@@ -227,6 +232,31 @@ class Admin {
 				array(
 					'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 					'nonce'   => wp_create_nonce( 'clicutcl_diag' ),
+					'strings' => array(
+						'testing'             => __( 'Testing...', 'click-trail-handler' ),
+						'test_failed'         => __( 'Test failed', 'click-trail-handler' ),
+						'clipboard_unavailable' => __( 'Clipboard unavailable', 'click-trail-handler' ),
+						'copied'              => __( 'Copied', 'click-trail-handler' ),
+						'copy_failed'         => __( 'Copy failed', 'click-trail-handler' ),
+						'saving'              => __( 'Saving...', 'click-trail-handler' ),
+						'failed'              => __( 'Failed', 'click-trail-handler' ),
+						'disable_debug'       => __( 'Disable Debug', 'click-trail-handler' ),
+						'enable_debug_window' => __( 'Enable 15 Minutes', 'click-trail-handler' ),
+						'confirm_purge'       => __( 'Purge local tracking data now? This cannot be undone.', 'click-trail-handler' ),
+						'purging'             => __( 'Purging...', 'click-trail-handler' ),
+						'purged'              => __( 'Purged', 'click-trail-handler' ),
+						'purge_failed'        => __( 'Purge failed', 'click-trail-handler' ),
+						'running_scan'        => __( 'Scanning...', 'click-trail-handler' ),
+						'scan_failed'         => __( 'Conflict scan failed.', 'click-trail-handler' ),
+						'exporting'           => __( 'Preparing backup...', 'click-trail-handler' ),
+						'export_failed'       => __( 'Backup export failed.', 'click-trail-handler' ),
+						'importing'           => __( 'Importing backup...', 'click-trail-handler' ),
+						'import_failed'       => __( 'Backup import failed.', 'click-trail-handler' ),
+						'choose_backup'       => __( 'Choose a ClickTrail backup file first.', 'click-trail-handler' ),
+						'confirm_import'      => __( 'Restore this ClickTrail backup now? Current settings will be replaced.', 'click-trail-handler' ),
+						'looking_up'          => __( 'Looking up order...', 'click-trail-handler' ),
+						'lookup_failed'       => __( 'Order lookup failed.', 'click-trail-handler' ),
+					),
 				)
 			);
 		}
@@ -241,6 +271,11 @@ class Admin {
 				\clicutcl_script_args( true, 'defer' )
 			);
 			wp_enqueue_script( 'clicutcl-admin-settings-app' );
+			wp_set_script_translations(
+				'clicutcl-admin-settings-app',
+				'click-trail-handler',
+				CLICUTCL_DIR . 'languages'
+			);
 
 			wp_localize_script(
 				'clicutcl-admin-settings-app',
@@ -595,13 +630,7 @@ class Admin {
 			array(
 				'label_for'   => 'adapter',
 				'option_name' => 'clicutcl_server_side',
-				'options'     => array(
-					'generic'   => __( 'Generic Collector', 'click-trail-handler' ),
-					'sgtm'      => __( 'sGTM (Server GTM)', 'click-trail-handler' ),
-					'meta_capi' => __( 'Meta CAPI', 'click-trail-handler' ),
-					'google_ads' => __( 'Google Ads / GA4', 'click-trail-handler' ),
-					'linkedin_capi' => __( 'LinkedIn CAPI', 'click-trail-handler' ),
-				),
+				'options'     => $this->get_localized_adapter_options(),
 			)
 		);
 
@@ -799,8 +828,115 @@ class Admin {
 				? __( 'These settings are now organized by capability. Browser events and destinations live under Events, while transport and privacy controls live under Delivery.', 'click-trail-handler' )
 				: '',
 			'tabs'            => $this->get_settings_app_tabs(),
+			'registry'        => array(
+				'adapters'     => $this->get_localized_adapter_choice_list(),
+				'destinations' => $this->get_localized_destination_toggle_list(),
+			),
 			'settings'        => $this->get_unified_admin_settings(),
 		);
+	}
+
+	/**
+	 * Return localized adapter options keyed by adapter value.
+	 *
+	 * @return array<string,string>
+	 */
+	protected function get_localized_adapter_options(): array {
+		$options = array();
+		foreach ( Feature_Registry::delivery_adapters() as $key => $adapter ) {
+			$options[ sanitize_key( (string) $key ) ] = $this->translate_adapter_label( (string) $key, (string) ( $adapter['label'] ?? $key ) );
+		}
+
+		return $options;
+	}
+
+	/**
+	 * Return localized adapter choices for JS clients.
+	 *
+	 * @return array<int,array<string,string>>
+	 */
+	protected function get_localized_adapter_choice_list(): array {
+		$choices = array();
+		foreach ( $this->get_localized_adapter_options() as $value => $label ) {
+			$choices[] = array(
+				'value' => $value,
+				'label' => $label,
+			);
+		}
+
+		return $choices;
+	}
+
+	/**
+	 * Return localized destination toggles for JS clients.
+	 *
+	 * @return array<int,array<string,string>>
+	 */
+	protected function get_localized_destination_toggle_list(): array {
+		$list = array();
+		foreach ( Feature_Registry::destinations() as $key => $destination ) {
+			$list[] = array(
+				'key'           => sanitize_key( (string) $key ),
+				'label'         => $this->translate_destination_label( (string) $key, (string) ( $destination['label'] ?? $key ) ),
+				'support_level' => sanitize_key( (string) ( $destination['support_level'] ?? 'unknown' ) ),
+			);
+		}
+
+		return $list;
+	}
+
+	/**
+	 * Translate an adapter label by key.
+	 *
+	 * @param string $key Adapter key.
+	 * @param string $fallback Fallback label.
+	 * @return string
+	 */
+	protected function translate_adapter_label( string $key, string $fallback ): string {
+		switch ( sanitize_key( $key ) ) {
+			case 'generic':
+				return __( 'Generic Collector', 'click-trail-handler' );
+			case 'sgtm':
+				return __( 'sGTM (Server GTM)', 'click-trail-handler' );
+			case 'meta_capi':
+				return __( 'Meta CAPI', 'click-trail-handler' );
+			case 'google_ads':
+				return __( 'Google Ads / GA4', 'click-trail-handler' );
+			case 'linkedin_capi':
+				return __( 'LinkedIn CAPI', 'click-trail-handler' );
+			case 'pinterest_capi':
+				return __( 'Pinterest Conversions API', 'click-trail-handler' );
+			case 'tiktok_events_api':
+				return __( 'TikTok Events API', 'click-trail-handler' );
+			default:
+				return sanitize_text_field( $fallback );
+		}
+	}
+
+	/**
+	 * Translate a destination label by key.
+	 *
+	 * @param string $key Destination key.
+	 * @param string $fallback Fallback label.
+	 * @return string
+	 */
+	protected function translate_destination_label( string $key, string $fallback ): string {
+		switch ( sanitize_key( $key ) ) {
+			case 'meta':
+				return __( 'Meta', 'click-trail-handler' );
+			case 'google':
+				return __( 'Google', 'click-trail-handler' );
+			case 'linkedin':
+				return __( 'LinkedIn', 'click-trail-handler' );
+			case 'reddit':
+				return __( 'Reddit', 'click-trail-handler' );
+			case 'pinterest':
+				return __( 'Pinterest', 'click-trail-handler' );
+			case 'tiktok':
+				return __( 'TikTok', 'click-trail-handler' );
+			default:
+				return sanitize_text_field( $fallback );
+		}
 	}
 
 	/**
@@ -840,6 +976,12 @@ class Admin {
 
 		$forms_active  = ! empty( $attr_options['enable_js_injection'] ) || ! empty( $attr_options['enable_whatsapp'] ) || $providers_active;
 		$events_active = ! empty( $feature_flags['event_v2'] );
+		$destination_state = array();
+
+		foreach ( Feature_Registry::destinations() as $destination_key => $destination_row ) {
+			$destination_key                      = sanitize_key( (string) $destination_key );
+			$destination_state[ $destination_key ] = ! empty( $destinations[ $destination_key ]['enabled'] ) ? 1 : 0;
+		}
 
 		return array(
 			'capture'  => array(
@@ -879,13 +1021,7 @@ class Admin {
 				'browser_pipeline'              => ! empty( $feature_flags['event_v2'] ) ? 1 : 0,
 				'woocommerce_storefront_events' => ! empty( $feature_flags['woocommerce_storefront_events'] ) ? 1 : 0,
 				'gtm_container_id'              => isset( $gtm_settings['container_id'] ) ? (string) $gtm_settings['container_id'] : '',
-				'destinations'                  => array(
-					'meta'      => ! empty( $destinations['meta']['enabled'] ) ? 1 : 0,
-					'google'    => ! empty( $destinations['google']['enabled'] ) ? 1 : 0,
-					'linkedin'  => ! empty( $destinations['linkedin']['enabled'] ) ? 1 : 0,
-					'reddit'    => ! empty( $destinations['reddit']['enabled'] ) ? 1 : 0,
-					'pinterest' => ! empty( $destinations['pinterest']['enabled'] ) ? 1 : 0,
-				),
+				'destinations'                  => $destination_state,
 				'lifecycle'        => array(
 					'accept_updates'   => ! empty( $feature_flags['lifecycle_ingestion'] ) ? 1 : 0,
 					'endpoint_enabled' => ! empty( $lifecycle['enabled'] ) ? 1 : 0,
@@ -965,10 +1101,106 @@ class Admin {
 					'tone'  => ! empty( $consent_settings['enabled'] ) ? 'success' : 'neutral',
 				),
 			),
+			'setup_checklist' => $this->get_setup_checklist(
+				$attr_options,
+				$feature_flags,
+				$consent_settings,
+				$server_effective,
+				$destination_state,
+				$providers_active
+			),
 			'urls'     => array(
 				'logs'        => admin_url( 'admin.php?page=clicutcl-logs' ),
 				'diagnostics' => admin_url( 'admin.php?page=clicutcl-diagnostics' ),
 				'settings'    => admin_url( 'admin.php?page=clicutcl-settings' ),
+			),
+		);
+	}
+
+	/**
+	 * Build the read-only setup checklist shown above the unified settings app.
+	 *
+	 * @param array $attr_options Attribution settings.
+	 * @param array $feature_flags Tracking feature flags.
+	 * @param array $consent_settings Consent settings.
+	 * @param array $server_effective Effective delivery settings.
+	 * @param array $destination_state Destination toggle state.
+	 * @param bool  $providers_active Whether any webhook provider is enabled.
+	 * @return array<int,array<string,string>>
+	 */
+	private function get_setup_checklist(
+		array $attr_options,
+		array $feature_flags,
+		array $consent_settings,
+		array $server_effective,
+		array $destination_state,
+		bool $providers_active
+	): array {
+		$capture_ready    = ! empty( $attr_options['enable_attribution'] );
+		$forms_ready      = ! empty( $attr_options['enable_js_injection'] ) || ! empty( $attr_options['enable_whatsapp'] ) || $providers_active;
+		$events_ready     = ! empty( $feature_flags['event_v2'] );
+		$delivery_ready   = ! empty( $server_effective['enabled'] ) && ! empty( $server_effective['endpoint_url'] );
+		$consent_enabled  = ! empty( $consent_settings['enabled'] );
+		$woo_installed    = class_exists( 'WooCommerce' );
+		$woo_ready        = $woo_installed && ! empty( $feature_flags['woocommerce_storefront_events'] );
+		$destination_count = count( array_filter( $destination_state ) );
+
+		return array(
+			array(
+				'key'    => 'capture',
+				'label'  => __( 'Capture', 'click-trail-handler' ),
+				'status' => $capture_ready ? 'ready' : 'attention',
+				'detail' => $capture_ready
+					? __( 'Attribution capture is enabled.', 'click-trail-handler' )
+					: __( 'Turn on attribution capture before testing source continuity.', 'click-trail-handler' ),
+			),
+			array(
+				'key'    => 'consent',
+				'label'  => __( 'Consent Guidance', 'click-trail-handler' ),
+				'status' => $consent_enabled ? 'ready' : 'neutral',
+				'detail' => $consent_enabled
+					? __( 'Consent mode is configured. Verify the selected CMP source before rollout.', 'click-trail-handler' )
+					: __( 'Consent mode is off. Confirm this matches your regional rollout requirements.', 'click-trail-handler' ),
+			),
+			array(
+				'key'    => 'forms',
+				'label'  => __( 'Forms', 'click-trail-handler' ),
+				'status' => $forms_ready ? 'ready' : 'neutral',
+				'detail' => $forms_ready
+					? __( 'Form capture helpers or providers are active.', 'click-trail-handler' )
+					: __( 'Enable client fallback, WhatsApp, or provider hooks if forms are part of your attribution path.', 'click-trail-handler' ),
+			),
+			array(
+				'key'    => 'events',
+				'label'  => __( 'Events', 'click-trail-handler' ),
+				'status' => $events_ready ? 'ready' : 'attention',
+				'detail' => $events_ready
+					? sprintf(
+						/* translators: %d: enabled destination count. */
+						__( 'Browser events are active. Enabled destinations: %d.', 'click-trail-handler' ),
+						$destination_count
+					)
+					: __( 'Enable the browser event pipeline before relying on dataLayer and canonical intake.', 'click-trail-handler' ),
+			),
+			array(
+				'key'    => 'delivery',
+				'label'  => __( 'Delivery', 'click-trail-handler' ),
+				'status' => $delivery_ready ? 'ready' : ( ! empty( $server_effective['enabled'] ) ? 'attention' : 'neutral' ),
+				'detail' => $delivery_ready
+					? __( 'Server-side delivery has an endpoint and is ready for endpoint tests.', 'click-trail-handler' )
+					: ( ! empty( $server_effective['enabled'] )
+						? __( 'Server-side delivery is on, but the collector URL still needs review.', 'click-trail-handler' )
+						: __( 'Server-side delivery is off. Logs and Diagnostics still work for local checks.', 'click-trail-handler' ) ),
+			),
+			array(
+				'key'    => 'woo',
+				'label'  => __( 'Woo', 'click-trail-handler' ),
+				'status' => $woo_ready ? 'ready' : ( $woo_installed ? 'neutral' : 'disabled' ),
+				'detail' => $woo_ready
+					? __( 'WooCommerce storefront events and order delivery helpers are ready.', 'click-trail-handler' )
+					: ( $woo_installed
+						? __( 'WooCommerce is active. Enable storefront events when you want list, product, cart, and checkout signals.', 'click-trail-handler' )
+						: __( 'WooCommerce is not active on this site.', 'click-trail-handler' ) ),
 			),
 		);
 	}
@@ -1070,6 +1302,14 @@ class Admin {
 		$events_destinations  = isset( $events['destinations'] ) && is_array( $events['destinations'] ) ? $events['destinations'] : array();
 		$events_lifecycle     = isset( $events['lifecycle'] ) && is_array( $events['lifecycle'] ) ? $events['lifecycle'] : array();
 
+		$tracking_destinations = array();
+		foreach ( Feature_Registry::destinations() as $destination_key => $destination_row ) {
+			$destination_key = sanitize_key( (string) $destination_key );
+			$tracking_destinations[ $destination_key ] = array(
+				'enabled' => ! empty( $events_destinations[ $destination_key ] ) ? 1 : 0,
+			);
+		}
+
 		$attr_input = array(
 			'enable_attribution'          => ! empty( $capture['enabled'] ) ? 1 : 0,
 			'cookie_days'                 => $capture['retention_days'] ?? 90,
@@ -1129,11 +1369,7 @@ class Admin {
 				'lifecycle_ingestion'          => ! empty( $events_lifecycle['accept_updates'] ) ? 1 : 0,
 			),
 			'destinations'   => array(
-				'meta'      => array( 'enabled' => ! empty( $events_destinations['meta'] ) ? 1 : 0 ),
-				'google'    => array( 'enabled' => ! empty( $events_destinations['google'] ) ? 1 : 0 ),
-				'linkedin'  => array( 'enabled' => ! empty( $events_destinations['linkedin'] ) ? 1 : 0 ),
-				'reddit'    => array( 'enabled' => ! empty( $events_destinations['reddit'] ) ? 1 : 0 ),
-				'pinterest' => array( 'enabled' => ! empty( $events_destinations['pinterest'] ) ? 1 : 0 ),
+				...$tracking_destinations,
 			),
 			'external_forms' => array(
 				'providers' => array(
@@ -1874,7 +2110,8 @@ class Admin {
 
 		if ( isset( $input['adapter'] ) ) {
 			$adapter = sanitize_key( $input['adapter'] );
-			$new_input['adapter'] = isset( \CLICUTCL\Server_Side\Dispatcher::ALLOWED_ADAPTERS[ $adapter ] ) ? $adapter : 'generic';
+			$allowed = \CLICUTCL\Server_Side\Dispatcher::allowed_adapters();
+			$new_input['adapter'] = isset( $allowed[ $adapter ] ) ? $adapter : 'generic';
 		}
 
 		if ( isset( $input['timeout'] ) ) {
