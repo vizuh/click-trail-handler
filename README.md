@@ -31,9 +31,9 @@ ClickTrail is designed to keep first-touch and last-touch context alive until th
 - **Events**: browser collection, `dataLayer` pushes, webhook intake, lifecycle updates, and optional Woo storefront signals.
 - **Delivery**: optional server-side transport, retries, diagnostics, conflict scanning, backup/restore, and consent-aware dispatch.
 
-## Latest Release: 1.4.0
+## Latest Release: 1.5.0
 
-This release makes ClickTrail more WooCommerce-focused without changing the broader plugin architecture.
+This release expands WooCommerce coverage, admin operations, and native delivery breadth without changing the broader plugin architecture.
 
 - WooCommerce HPOS compatibility is declared during bootstrap.
 - Purchase payloads now carry richer commerce fields such as subtotal, tax, shipping, discounts, coupon codes, item quantity, SKU, variant, and categories.

@@ -3,7 +3,7 @@
 - **Audience**: maintainers, reviewers, QA contributors, and release engineers
 - **Canonical for**: ClickTrail smoke-test IDs, evidence-backed regression checks, and manual verification coverage
 - **Update when**: registry smoke IDs change or a shipped capability needs new regression coverage
-- **Last verified against version**: `1.4.0`
+- **Last verified against version**: `1.5.0`
 
 ClickTrail now keeps a small evidence-backed smoke matrix so capability breadth can grow without silent docs or QA drift.
 

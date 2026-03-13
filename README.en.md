@@ -28,9 +28,9 @@ It combines:
 
 That means you can start with campaign-aware WooCommerce orders or reliable form attribution first, then add browser events, consent integrations, or server-side delivery when your setup actually needs them.
 
-## Latest Release Notes (1.4.0)
+## Latest Release Notes (1.5.0)
 
-Version `1.4.0` strengthens the WooCommerce layer while keeping ClickTrail's broader attribution and delivery architecture intact.
+Version `1.5.0` expands WooCommerce coverage, admin operations, and native delivery breadth while keeping ClickTrail's broader attribution and delivery architecture intact.
 
 - **WooCommerce HPOS declaration**: ClickTrail now declares compatibility with WooCommerce custom order tables during bootstrap and keeps order-tracking state on Woo order APIs.
 - **Richer purchase payloads**: Woo purchase events now keep the old keys while adding `subtotal`, `tax_total`, `shipping_total`, `discount_total`, `discount_codes`, `status`, `order_currency`, `item_quantity`, plus richer item detail such as `product_id`, `sku`, `variant`, and `categories`.
