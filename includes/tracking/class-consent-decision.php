@@ -26,6 +26,14 @@ class Consent_Decision implements ConsentDecisionInterface {
 	public function marketing_allowed( array $context = array() ): bool {
 		// Allow explicit override in context for trusted server callers.
 		if ( array_key_exists( 'marketing_allowed', $context ) ) {
+			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				$caller = ! empty( $context['caller'] ) ? sanitize_key( (string) $context['caller'] ) : 'unknown';
+				error_log( sprintf(
+					'ClickTrail: consent override by caller "%s" — marketing_allowed=%s',
+					$caller,
+					empty( $context['marketing_allowed'] ) ? 'false' : 'true'
+				) );
+			}
 			return ! empty( $context['marketing_allowed'] );
 		}
 

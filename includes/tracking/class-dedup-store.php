@@ -134,6 +134,10 @@ class Dedup_Store {
 	/**
 	 * Record dedup stats.
 	 *
+	 * NOTE: The read-modify-write on a transient is not atomic. Stats will
+	 * under-count on concurrent requests. These are advisory counters only —
+	 * do not use for billing, SLA enforcement, or dedup correctness checks.
+	 *
 	 * @param bool   $hit         Whether the check was a duplicate hit.
 	 * @param string $destination Destination key.
 	 * @return void

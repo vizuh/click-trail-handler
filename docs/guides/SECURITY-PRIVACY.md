@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, reviewers, and security-focused integrators
 - **Canonical for**: consent behavior, token handling, replay protection, and secret treatment
 - **Update when**: consent flow, auth, signing, secret storage, or privacy behavior changes
-- **Last verified against version**: `1.3.5`
+- **Last verified against version**: `1.3.9`
 
 ClickTrail is designed to capture attribution and events without treating privacy and delivery as separate concerns.
 

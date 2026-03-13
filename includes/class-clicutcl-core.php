@@ -20,6 +20,7 @@ use CLICUTCL\Admin\Admin;
 use CLICUTCL\Api\Tracking_Controller;
 use CLICUTCL\Integrations\WooCommerce;
 use CLICUTCL\Privacy\Privacy_Handler;
+use CLICUTCL\Settings\Attribution_Settings;
 use CLICUTCL\Server_Side\Queue;
 use CLICUTCL\Utils\Cleanup;
 
@@ -181,36 +182,50 @@ class Plugin {
 	 * @return void
 	 */
 	public function enqueue_scripts() {
-		$options            = get_option( 'clicutcl_attribution_settings', array() );
-		$enable_attribution = isset( $options['enable_attribution'] ) ? (bool) $options['enable_attribution'] : true;
-		$cookie_days        = isset( $options['cookie_days'] ) ? absint( $options['cookie_days'] ) : 90;
-		$debug_until            = get_transient( 'clicutcl_debug_until' );
-		$debug_active           = $debug_until && (int) $debug_until > time();
-		$browser_events_enabled = class_exists( 'CLICUTCL\\Tracking\\Settings' ) && \CLICUTCL\Tracking\Settings::browser_event_collection_enabled();
+		$options                  = Attribution_Settings::get_all();
+		$enable_attribution       = isset( $options['enable_attribution'] ) ? (bool) $options['enable_attribution'] : true;
+		$cookie_days              = isset( $options['cookie_days'] ) ? absint( $options['cookie_days'] ) : 90;
+		$debug_until              = get_transient( 'clicutcl_debug_until' );
+		$debug_active             = $debug_until && (int) $debug_until > time();
+		$browser_events_enabled   = class_exists( 'CLICUTCL\\Tracking\\Settings' ) && \CLICUTCL\Tracking\Settings::browser_event_collection_enabled();
 		$events_transport_enabled = class_exists( 'CLICUTCL\\Tracking\\Settings' ) && \CLICUTCL\Tracking\Settings::browser_event_transport_enabled();
 		$enable_cross_domain_token = isset( $options['enable_cross_domain_token'] ) ? (bool) $options['enable_cross_domain_token'] : false;
-		$events_batch_url   = $events_transport_enabled ? rest_url( 'clicutcl/v2/events/batch' ) : '';
-		$events_token       = ( class_exists( 'CLICUTCL\\Tracking\\Auth' ) && ( $events_transport_enabled || $enable_cross_domain_token ) )
+		$events_batch_url         = $events_transport_enabled ? rest_url( 'clicutcl/v2/events/batch' ) : '';
+		$events_token             = ( class_exists( 'CLICUTCL\\Tracking\\Auth' ) && ( $events_transport_enabled || $enable_cross_domain_token ) )
 			? \CLICUTCL\Tracking\Auth::mint_client_token()
 			: '';
 
-		$consent_config = $this->build_consent_bridge_config( $options, $debug_active );
+		$consent_config     = $this->build_consent_bridge_config( $options, $debug_active );
+		$should_load_events = ! is_admin() && ! is_feed() && ! is_robots() && ! is_trackback() && $browser_events_enabled;
 
-		wp_register_script(
-			'clicutcl-consent-bridge-js',
-			CLICUTCL_URL . 'assets/js/clicutcl-consent-bridge.js',
-			array(),
-			CLICUTCL_VERSION,
-			\clicutcl_script_args( false )
-		);
-		wp_enqueue_script( 'clicutcl-consent-bridge-js' );
-		wp_localize_script( 'clicutcl-consent-bridge-js', 'ctConsentBridgeConfig', $consent_config['bridge'] );
+		/**
+		 * Filter whether the events tracking script should be loaded.
+		 *
+		 * @since 1.3.0
+		 *
+		 * @param bool $should_load_events Whether to load the script.
+		 */
+		$should_load_events  = (bool) apply_filters( 'clicutcl_should_load_events_js', $should_load_events );
+		$needs_consent_bridge = $consent_config['enable_consent'] || $enable_attribution || $should_load_events;
+
+		if ( $needs_consent_bridge ) {
+			wp_register_script(
+				'clicutcl-consent-bridge-js',
+				CLICUTCL_URL . 'assets/js/clicutcl-consent-bridge.js',
+				array(),
+				CLICUTCL_VERSION,
+				\clicutcl_script_args( false )
+			);
+			wp_enqueue_script( 'clicutcl-consent-bridge-js' );
+			wp_localize_script( 'clicutcl-consent-bridge-js', 'ctConsentBridgeConfig', $consent_config['bridge'] );
+		}
 
 		if ( $enable_attribution ) {
+			$attribution_deps = $needs_consent_bridge ? array( 'clicutcl-consent-bridge-js' ) : array();
 			wp_register_script(
 				'clicutcl-attribution-js',
 				CLICUTCL_URL . 'assets/js/clicutcl-attribution.js',
-				array( 'clicutcl-consent-bridge-js' ),
+				$attribution_deps,
 				CLICUTCL_VERSION,
 				\clicutcl_script_args( true, 'defer' )
 			);
@@ -257,17 +272,8 @@ class Plugin {
 			);
 		}
 
-		$should_load_events = ! is_admin() && ! is_feed() && ! is_robots() && ! is_trackback() && $browser_events_enabled;
-
-		/**
-		 * Filter whether the events tracking script should be loaded.
-		 *
-		 * @since 1.3.0
-		 *
-		 * @param bool $should_load_events Whether to load the script.
-		 */
-		if ( apply_filters( 'clicutcl_should_load_events_js', $should_load_events ) ) {
-			$events_deps = array( 'clicutcl-consent-bridge-js' );
+		if ( $should_load_events ) {
+			$events_deps = $needs_consent_bridge ? array( 'clicutcl-consent-bridge-js' ) : array();
 			if ( $enable_attribution ) {
 				$events_deps[] = 'clicutcl-attribution-js';
 			}

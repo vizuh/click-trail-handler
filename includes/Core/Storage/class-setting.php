@@ -39,7 +39,7 @@ abstract class Setting {
 	 * @return mixed Value set for the option, or registered default if not set.
 	 */
 	public function get() {
-		return get_option( static::OPTION, $this->get_default() );
+		return Option_Cache::get( static::OPTION, $this->get_default() );
 	}
 
 	/**
@@ -49,7 +49,12 @@ abstract class Setting {
 	 * @return bool True on success, false on failure.
 	 */
 	public function set( $value ) {
-		return update_option( static::OPTION, $value, $this->get_autoload() );
+		$updated = update_option( static::OPTION, $value, $this->get_autoload() );
+		if ( $updated ) {
+			Option_Cache::set( static::OPTION, $value );
+		}
+
+		return $updated;
 	}
 
 	/**
@@ -68,7 +73,12 @@ abstract class Setting {
 	 * @return bool True on success, false on failure.
 	 */
 	public function delete() {
-		return delete_option( static::OPTION );
+		$deleted = delete_option( static::OPTION );
+		if ( $deleted ) {
+			Option_Cache::delete( static::OPTION );
+		}
+
+		return $deleted;
 	}
 
 	/**

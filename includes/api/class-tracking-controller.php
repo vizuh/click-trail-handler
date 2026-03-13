@@ -314,7 +314,7 @@ class Tracking_Controller extends WP_REST_Controller {
 			);
 		}
 
-		$canonical = Event_Translator_V1_To_V2::translate( $raw_event );
+		$canonical = EventV2::normalize( $raw_event );
 		if ( ! EventV2::validate( $canonical ) ) {
 			$this->record_intake_debug( $canonical, 'error', 'invalid_schema' );
 			return array(

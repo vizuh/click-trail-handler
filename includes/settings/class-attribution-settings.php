@@ -7,6 +7,8 @@
 
 namespace CLICUTCL\Settings;
 
+use CLICUTCL\Core\Storage\Option_Cache;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -34,7 +36,17 @@ class Attribution_Settings {
 	 * Constructor.
 	 */
 	public function __construct() {
-		$this->settings = get_option( self::OPTION_NAME, array() );
+		$this->settings = self::get_all();
+	}
+
+	/**
+	 * Get the full attribution settings array.
+	 *
+	 * @return array
+	 */
+	public static function get_all() {
+		$settings = Option_Cache::get( self::OPTION_NAME, array() );
+		return is_array( $settings ) ? $settings : array();
 	}
 
 	/**

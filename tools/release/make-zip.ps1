@@ -1,31 +1,45 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-function Get-PluginVersion {
+function Get-PluginHeaderValue {
     param(
         [Parameter(Mandatory = $true)]
-        [string] $PluginMainFile
+        [string] $PluginMainFile,
+
+        [Parameter(Mandatory = $true)]
+        [string] $HeaderName
     )
 
     $lines = Get-Content -Path $PluginMainFile
     foreach ($line in $lines) {
-        if ($line -match '^\s*\*\s*Version:\s*(.+)\s*$') {
+        if ($line -match ('^\s*\*\s*' + [regex]::Escape($HeaderName) + ':\s*(.+)\s*$')) {
             return $matches[1].Trim()
         }
     }
-    return 'dev'
+
+    return $null
 }
 
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repoRoot = (Resolve-Path (Join-Path $scriptRoot '..\..')).Path
-$pluginSlug = Split-Path -Leaf $repoRoot
 $pluginMain = Join-Path $repoRoot 'clicutcl.php'
 
 if (-not (Test-Path -Path $pluginMain)) {
     throw "Could not find plugin main file at: $pluginMain"
 }
 
-$version = Get-PluginVersion -PluginMainFile $pluginMain
+# Use the plugin text domain as the canonical release slug so packaging
+# stays stable even when the repo is opened from a temporary worktree.
+$pluginSlug = Get-PluginHeaderValue -PluginMainFile $pluginMain -HeaderName 'Text Domain'
+if ([string]::IsNullOrWhiteSpace($pluginSlug)) {
+    $pluginSlug = Split-Path -Leaf $repoRoot
+}
+
+$version = Get-PluginHeaderValue -PluginMainFile $pluginMain -HeaderName 'Version'
+if ([string]::IsNullOrWhiteSpace($version)) {
+    $version = 'dev'
+}
+
 $outputDir = Join-Path $repoRoot 'dist'
 $zipName = "$pluginSlug-$version.zip"
 $zipPath = Join-Path $outputDir $zipName
