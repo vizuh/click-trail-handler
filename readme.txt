@@ -10,19 +10,17 @@ Requires PHP: 8.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Consent-aware attribution for WooCommerce orders, WordPress forms, and event flows. Preserve UTMs and click IDs across real user journeys, push enriched purchase events, and optionally extend Woo storefront and post-purchase events into ClickTrail's unified pipeline.
+Consent-aware attribution for WooCommerce orders, WordPress forms, and event flows. Capture UTMs and click IDs, keep attribution available on supported conversion surfaces, and optionally send events through ClickTrail's browser and server-side pipeline.
 
 == Description ==
 
-ClickTrail helps WooCommerce stores and lead-generation sites stop losing campaign context between the landing page and the conversion.
+ClickTrail stores attribution data from landing pages and keeps it available for later form submissions, WooCommerce orders, and event flows.
 
-This plugin is sponsored by Funnelsheet.com.
+In WooCommerce, ClickTrail stores attribution on the order, pushes enriched purchase events on the thank-you page, and can optionally emit GA4-style storefront events for `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, and `begin_checkout`, plus post-purchase milestones, through the same ClickTrail pipeline.
 
-For WooCommerce specifically, ClickTrail keeps attribution attached to the order, pushes enriched purchase events on the thank-you page, and can optionally emit GA4-style storefront events for `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, and `begin_checkout`, plus post-purchase milestones, through the same ClickTrail pipeline.
+It is designed for cases where attribution often breaks in practice: cached pages, dynamic forms, multi-page journeys, repeat visits, consent requirements, and optional server-side delivery.
 
-It is built for the parts of attribution that usually break in production: cached pages, dynamic forms, multi-page journeys, repeat visits, consent requirements, and optional server-side delivery.
-
-Instead of only reading the landing-page URL and hoping the data survives, ClickTrail keeps first-touch and last-touch context available until the conversion point and makes that context usable inside WordPress.
+The plugin keeps first-touch and last-touch context available until the conversion point and makes that context usable inside WordPress.
 
 It captures first-touch and last-touch source data, keeps it available during the user journey, and makes that data usable where conversions actually happen:
 
@@ -31,7 +29,7 @@ It captures first-touch and last-touch source data, keeps it available during th
 * browser events
 * optional server-side delivery
 
-That lets teams start with reliable order or form attribution first, then add browser events, consent handling, or server-side transport later when they actually need them.
+Teams can start with order or form attribution first, then add browser events, consent handling, or server-side transport when needed.
 
 = What problems it solves =
 
@@ -51,14 +49,14 @@ That lets teams start with reliable order or form attribution first, then add br
 
 = What is new in 1.5.0 =
 
-This release expands WooCommerce coverage, admin operations, and native delivery breadth without changing the underlying architecture:
+This release adds WooCommerce event coverage, admin diagnostics, and native delivery adapters without changing the underlying architecture:
 
 * **WooCommerce HPOS compatibility declaration**: ClickTrail now declares compatibility with WooCommerce custom order tables during bootstrap and keeps order-level attribution logic on Woo APIs.
 * **Richer purchase payloads**: purchase events now include additive commerce fields such as `subtotal`, `tax_total`, `shipping_total`, `discount_total`, `discount_codes`, `status`, `order_currency`, `item_quantity`, plus richer item detail such as `product_id`, `sku`, `variant`, and `categories`.
-* **Broader WooCommerce coverage**: sites can opt in to `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` through the existing ClickTrail browser event layer, and server-side delivery can follow post-purchase milestones such as `order_paid`, `order_refunded`, and `order_cancelled`.
-* **Stronger admin operations**: Settings now includes a setup checklist, while Diagnostics now adds conflict scanning, backup restore, and Woo order trace lookup for stored payload snapshots.
-* **Selective adapter expansion**: native delivery support now includes Pinterest Conversions API and TikTok Events API alongside the existing adapters.
-* **Deployment and privacy hardening**: this release also packages the recent WordPress.org deployment cleanup, Plugin Check fixes, privacy-query hardening, and debug visibility improvements.
+* **WooCommerce event coverage**: sites can opt in to `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` through the existing ClickTrail browser event layer, and server-side delivery can follow post-purchase milestones such as `order_paid`, `order_refunded`, and `order_cancelled`.
+* **Admin diagnostics**: Settings now includes a setup checklist, while Diagnostics now adds conflict scanning, backup restore, and Woo order trace lookup for stored payload snapshots.
+* **Delivery adapters**: native delivery support now includes Pinterest Conversions API and TikTok Events API alongside the existing adapters.
+* **Deployment and privacy updates**: this release also packages the recent WordPress.org deployment cleanup, Plugin Check fixes, privacy-query hardening, and debug visibility improvements.
 
 = Current admin structure =
 
@@ -244,4 +242,4 @@ Older release notes remain available in `changelog.txt`.
 == Upgrade Notice ==
 
 = 1.5.0 =
-Recommended update. This release expands WooCommerce coverage, adds stronger admin diagnostics and backup tooling, and introduces Pinterest/TikTok native delivery adapters without changing ClickTrail's core attribution and delivery architecture.
+This release adds WooCommerce event coverage, admin diagnostics, and Pinterest/TikTok native delivery adapters without changing ClickTrail's core attribution and delivery architecture.
