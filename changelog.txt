@@ -2,9 +2,12 @@ Changelog
 ========
 
 = 1.4.0 =
-*   **WordPress.org deployment**: Aligned plugin version metadata and release packaging for the next WordPress.org / SVN deployment, including the main plugin header and canonical release references.
-*   **Standards compliance (privacy handler)**: Adjusted the `phpcs:ignore` placement around the privacy export and erasure prepared queries so WordPress coding standards checks no longer flag the known-safe dynamically assembled SQL template.
-*   **Privacy hardening**: Includes the recent privacy export/erasure safeguards, debug visibility improvements, and maintenance refactors from the current quality pass in a single release line for WordPress.org users.
+*   **WooCommerce (HPOS compatibility)**: Declared compatibility with WooCommerce custom order tables during bootstrap and moved purchase dedup state onto Woo order APIs, so the core Woo purchase flow stays aligned with HPOS-capable stores.
+*   **WooCommerce (purchase payload enrichment)**: Expanded the Woo purchase payload additively with `subtotal`, `tax_total`, `shipping_total`, `discount_total`, `discount_codes`, `status`, `order_currency`, `item_quantity`, plus richer item fields such as `product_id`, `sku`, `variant`, and `categories`.
+*   **WooCommerce (storefront events)**: Added an opt-in `woocommerce_storefront_events` capability that emits `view_item`, `add_to_cart`, and `begin_checkout` through ClickTrail's existing browser event layer and canonical REST transport.
+*   **Admin UX (Woo guidance)**: Added a WooCommerce card to the unified Events tab so users can see where order attribution is stored, how purchase pushes work, what storefront events do, and where to verify results.
+*   **Extensibility (Woo purchase filter)**: Added `clicutcl_woocommerce_purchase_payload` so integrators can extend the final Woo purchase payload in one place without replacing the integration boundary.
+*   **Standards / deployment**: Included the WordPress.org packaging alignment, Plugin Check suppression cleanup, privacy-query hardening, and debug visibility improvements from the recent maintenance pass in the same public release.
 
 = 1.3.9 =
 *   **Privacy erasure safety**: Tightened how WordPress privacy export and erasure requests match ClickTrail event records to a person. `LIKE` fragments that include a stored `user_id` are now escaped correctly, which prevents wildcard characters from over-matching unrelated rows during personal-data cleanup.

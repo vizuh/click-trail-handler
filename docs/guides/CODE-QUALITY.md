@@ -3,7 +3,7 @@
 - **Audience**: maintainers, reviewers, and cleanup-focused contributors
 - **Canonical for**: current maintenance posture, known dead paths, and cleanup hotspots
 - **Update when**: legacy paths are removed, major cleanup lands, or quality risks materially change
-- **Last verified against version**: `1.3.9`
+- **Last verified against version**: `1.4.0`
 
 This document summarizes the current quality posture of the repository and the main maintenance concerns worth watching.
 
@@ -17,17 +17,15 @@ This document summarizes the current quality posture of the repository and the m
 
 ## Current Maintenance Hotspots
 
-## 1. Legacy admin leftovers
+## 1. Compatibility admin logic inside `class-admin.php`
 
-There are still legacy admin renderer and asset surfaces in the repository that are not part of the active settings flow.
+The active admin UX now runs through the unified settings app, but `includes/admin/class-admin.php` still carries older Settings API registrations and callback helpers alongside the live screen bootstrap.
 
 Examples:
 
 - old settings renderer methods in `includes/admin/class-admin.php`
-- `assets/js/admin-tracking-v2.js`
-- `assets/js/admin-settings.js`
 
-These should be treated as cleanup candidates, not as the source of truth for current behavior.
+Treat the file as runtime-critical, but do not assume every renderer/helper inside it defines the current UX contract.
 
 ## 2. Internal naming that still reflects older architecture
 
@@ -46,6 +44,8 @@ The codebase has several distinct domains:
 - WordPress admin
 
 Because of that, admin or runtime refactors can easily leave docs stale unless the docs are updated in the same pass.
+
+The repository no longer keeps a duplicate redirect layer under `docs/`, so stale links now tend to fail fast instead of silently landing on compatibility stubs.
 
 ## 4. Test coverage gap
 

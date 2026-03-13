@@ -7,6 +7,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use CLICUTCL\Core\Context;
+use CLICUTCL\Server_Side\Event;
+use CLICUTCL\Tracking\Settings as Tracking_Settings;
 
 /**
  * Class ClickTrail\Modules\Events\Events_Logger
@@ -55,9 +57,12 @@ class Events_Logger {
 		$this->set_event_cookie(
 			'ct_event_login',
 			array(
-				'event'     => 'login',
-				'user_hash' => hash( 'sha256', (string) $user->ID . wp_salt( 'auth' ) ),
-				'method'    => 'wordpress',
+				'event'    => 'login',
+				'event_id' => Event::generate_id( 'login' ),
+				'params'   => array(
+					'user_hash' => hash( 'sha256', (string) $user->ID . wp_salt( 'auth' ) ),
+					'method'    => 'wordpress',
+				),
 			)
 		);
 	}
@@ -71,9 +76,12 @@ class Events_Logger {
 		$this->set_event_cookie(
 			'ct_event_signup',
 			array(
-				'event'     => 'sign_up',
-				'user_hash' => hash( 'sha256', (string) $user_id . wp_salt( 'auth' ) ),
-				'method'    => 'wordpress',
+				'event'    => 'sign_up',
+				'event_id' => Event::generate_id( 'signup' ),
+				'params'   => array(
+					'user_hash' => hash( 'sha256', (string) $user_id . wp_salt( 'auth' ) ),
+					'method'    => 'wordpress',
+				),
 			)
 		);
 	}
@@ -93,8 +101,11 @@ class Events_Logger {
 		$this->set_event_cookie(
 			'ct_event_comment',
 			array(
-				'event'      => 'comment_submit',
-				'comment_id' => $comment_id,
+				'event'    => 'comment_submit',
+				'event_id' => Event::generate_id( 'comment' ),
+				'params'   => array(
+					'comment_id' => absint( $comment_id ),
+				),
 			)
 		);
 	}
@@ -126,14 +137,14 @@ class Events_Logger {
 	 */
 	public function render_server_events() {
 		$events        = array( 'ct_event_login', 'ct_event_signup', 'ct_event_comment' );
-		$pushed_events = array();
+		$queued_events = array();
 
 		foreach ( $events as $cookie_name ) {
 			if ( isset( $_COOKIE[ $cookie_name ] ) ) {
 				$event_data = json_decode( sanitize_text_field( wp_unslash( $_COOKIE[ $cookie_name ] ) ), true );
 				
 				if ( $event_data ) {
-					$pushed_events[] = $event_data;
+					$queued_events[] = $this->normalize_event_cookie_payload( $event_data );
 					// Clear the cookie after reading
 					setcookie(
 						$cookie_name,
@@ -151,13 +162,108 @@ class Events_Logger {
 			}
 		}
 
-		if ( ! empty( $pushed_events ) ) {
-			echo "<script>\n";
-			echo "window.dataLayer = window.dataLayer || [];\n";
-			foreach ( $pushed_events as $event ) {
-				printf( "window.dataLayer.push(%s);\n", wp_json_encode( $event ) );
-			}
-			echo "</script>\n";
+		$queued_events = array_values( array_filter( $queued_events ) );
+		if ( empty( $queued_events ) ) {
+			return;
 		}
+
+		if ( class_exists( 'CLICUTCL\\Tracking\\Settings' ) && Tracking_Settings::browser_event_collection_enabled() ) {
+			echo "<script>\n";
+			printf( "window.clicutclServerEvents = (window.clicutclServerEvents || []).concat(%s);\n", wp_json_encode( $queued_events ) );
+			echo "</script>\n";
+			return;
+		}
+
+		echo "<script>\n";
+		echo "window.dataLayer = window.dataLayer || [];\n";
+		foreach ( $queued_events as $event ) {
+			$event_name = isset( $event['event'] ) ? sanitize_key( (string) $event['event'] ) : '';
+			$params     = isset( $event['params'] ) && is_array( $event['params'] ) ? $event['params'] : array();
+			if ( ! $event_name ) {
+				continue;
+			}
+
+			$legacy_payload = array_merge(
+				$params,
+				array(
+					'event' => $event_name,
+				)
+			);
+			if ( ! empty( $event['event_id'] ) ) {
+				$legacy_payload['event_id'] = sanitize_text_field( (string) $event['event_id'] );
+			}
+
+			printf( "window.dataLayer.push(%s);\n", wp_json_encode( $legacy_payload ) );
+		}
+		echo "</script>\n";
+	}
+
+	/**
+	 * Normalize server-event cookie payloads for the browser runtime.
+	 *
+	 * @param mixed $event_data Raw decoded cookie payload.
+	 * @return array<string,mixed>
+	 */
+	private function normalize_event_cookie_payload( $event_data ) {
+		if ( ! is_array( $event_data ) ) {
+			return array();
+		}
+
+		$event_name = isset( $event_data['event'] ) ? sanitize_key( (string) $event_data['event'] ) : '';
+		if ( '' === $event_name ) {
+			return array();
+		}
+
+		$payload = array(
+			'event'    => $event_name,
+			'event_id' => ! empty( $event_data['event_id'] )
+				? sanitize_text_field( (string) $event_data['event_id'] )
+				: Event::generate_id( $event_name ),
+			'params'   => array(),
+		);
+
+		if ( isset( $event_data['params'] ) && is_array( $event_data['params'] ) ) {
+			$payload['params'] = $this->sanitize_scalar_array( $event_data['params'] );
+			return $payload;
+		}
+
+		$legacy_params = $event_data;
+		unset( $legacy_params['event'], $legacy_params['event_id'] );
+		$payload['params'] = $this->sanitize_scalar_array( $legacy_params );
+
+		return $payload;
+	}
+
+	/**
+	 * Sanitize scalar browser event parameters.
+	 *
+	 * @param array $params Raw parameter array.
+	 * @return array<string,mixed>
+	 */
+	private function sanitize_scalar_array( array $params ) {
+		$out = array();
+
+		foreach ( $params as $key => $value ) {
+			$key = sanitize_key( (string) $key );
+			if ( '' === $key ) {
+				continue;
+			}
+
+			if ( is_bool( $value ) ) {
+				$out[ $key ] = $value;
+				continue;
+			}
+
+			if ( is_numeric( $value ) ) {
+				$out[ $key ] = 0 + $value;
+				continue;
+			}
+
+			if ( is_scalar( $value ) ) {
+				$out[ $key ] = sanitize_text_field( (string) $value );
+			}
+		}
+
+		return $out;
 	}
 }

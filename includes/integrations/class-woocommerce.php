@@ -142,65 +142,261 @@ class WooCommerce {
 			return;
 		}
 
-		// Duplicate Prevention: Check if we already tracked this order
-		if ( get_post_meta( $order_id, '_clicutcl_tracking_sent', true ) ) {
+		$order = wc_get_order( $order_id );
+		if ( ! $order ) {
 			return;
 		}
 
-		$order = wc_get_order( $order_id );
-		if ( ! $order ) {
+		if ( $order->get_meta( '_clicutcl_tracking_sent', true ) ) {
 			return;
 		}
 
 		$attribution = $this->collect_order_attribution( $order );
 		$flat_attr   = $this->flatten_attribution_for_event( $attribution );
 		$identity    = $this->resolve_purchase_identity( $order );
+		$payload     = $this->build_purchase_payload( $order, $attribution, $identity );
+		$defaults    = $payload;
 
-		$items_js = array();
-		foreach ( $order->get_items() as $item_id => $item ) {
-			$product    = $item->get_product();
-			$items_js[] = array(
-				'item_id'   => $product ? $product->get_id() : $item_id,
-				'item_name' => $item->get_name(),
-				'price'     => (float) $order->get_item_total( $item, false ),
-				'quantity'  => (int) $item->get_quantity(),
-			);
-		}
+		/**
+		 * Filter the final WooCommerce purchase payload before ClickTrail pushes
+		 * it into `dataLayer` and the server-side dispatcher.
+		 *
+		 * @param array     $payload Purchase payload.
+		 * @param \WC_Order $order   Order instance.
+		 */
+		$payload   = apply_filters( 'clicutcl_woocommerce_purchase_payload', $payload, $order );
+		$payload   = is_array( $payload ) ? wp_parse_args( $payload, $defaults ) : $defaults;
+		$datalayer   = $this->build_purchase_datalayer_payload( $payload, $flat_attr );
 
-		$payload = array_merge(
-			array(
-				'event'     => 'purchase',
-				'ecommerce' => array(
-					'transaction_id' => (string) $order->get_order_number(),
-					'value'          => (float) $order->get_total(),
-					'currency'       => $order->get_currency(),
-					'items'          => $items_js,
-				),
-			),
-			$flat_attr
-		);
-
-		Dispatcher::dispatch_purchase(
-			array(
-				'event_id'       => 'purchase_' . (int) $order->get_id(),
-				'order_id'       => (int) $order->get_id(),
-				'transaction_id' => (string) $order->get_order_number(),
-				'value'          => (float) $order->get_total(),
-				'currency'       => $order->get_currency(),
-				'items'          => $items_js,
-				'attribution'    => $attribution,
-				'identity'       => $identity,
-			)
-		);
+		Dispatcher::dispatch_purchase( $payload );
 		?>
 		<script>
 			window.dataLayer = window.dataLayer || [];
-			window.dataLayer.push(<?php echo wp_json_encode( $payload ); ?>);
+			window.dataLayer.push(<?php echo wp_json_encode( $datalayer ); ?>);
 		</script>
 		<?php
 
-		// Mark order as tracked to prevent duplicates on refresh
-		update_post_meta( $order_id, '_clicutcl_tracking_sent', 'yes' );
+		$order->update_meta_data( '_clicutcl_tracking_sent', 'yes' );
+		$order->save();
+	}
+
+	/**
+	 * Build the full WooCommerce purchase payload used for both `dataLayer`
+	 * and server-side dispatch.
+	 *
+	 * @param \WC_Order $order       Order instance.
+	 * @param array     $attribution Order attribution payload.
+	 * @param array     $identity    Consent-aware identity payload.
+	 * @return array<string, mixed>
+	 */
+	private function build_purchase_payload( $order, array $attribution, array $identity ): array {
+		$commerce = $this->build_purchase_commerce( $order );
+
+		return array(
+			'event_id'       => 'purchase_' . (int) $order->get_id(),
+			'order_id'       => (int) $order->get_id(),
+			'transaction_id' => (string) $order->get_order_number(),
+			'value'          => (float) $order->get_total(),
+			'currency'       => sanitize_text_field( (string) $order->get_currency() ),
+			'items'          => $commerce['items'],
+			'attribution'    => $attribution,
+			'identity'       => $identity,
+			'commerce'       => $commerce,
+			'meta'           => $this->build_purchase_meta( $order ),
+		);
+	}
+
+	/**
+	 * Build the nested commerce payload for WooCommerce purchases.
+	 *
+	 * @param \WC_Order $order Order instance.
+	 * @return array<string, mixed>
+	 */
+	private function build_purchase_commerce( $order ): array {
+		$items         = $this->build_purchase_items( $order );
+		$item_quantity = 0;
+
+		foreach ( $items as $item ) {
+			$item_quantity += isset( $item['quantity'] ) ? absint( $item['quantity'] ) : 0;
+		}
+
+		return array(
+			'transaction_id' => (string) $order->get_order_number(),
+			'value'          => (float) $order->get_total(),
+			'currency'       => sanitize_text_field( (string) $order->get_currency() ),
+			'subtotal'       => method_exists( $order, 'get_subtotal' ) ? (float) $order->get_subtotal() : 0.0,
+			'tax_total'      => method_exists( $order, 'get_total_tax' ) ? (float) $order->get_total_tax() : 0.0,
+			'shipping_total' => method_exists( $order, 'get_shipping_total' ) ? (float) $order->get_shipping_total() : 0.0,
+			'discount_total' => method_exists( $order, 'get_discount_total' ) ? (float) $order->get_discount_total() : 0.0,
+			'discount_codes' => array_values(
+				array_filter(
+					array_map(
+						'sanitize_text_field',
+						(array) $order->get_coupon_codes()
+					)
+				)
+			),
+			'status'         => sanitize_key( (string) $order->get_status() ),
+			'order_currency' => sanitize_text_field( (string) $order->get_currency() ),
+			'item_quantity'  => $item_quantity,
+			'items'          => $items,
+		);
+	}
+
+	/**
+	 * Build purchase line items with additive WooCommerce metadata.
+	 *
+	 * @param \WC_Order $order Order instance.
+	 * @return array<int, array<string, mixed>>
+	 */
+	private function build_purchase_items( $order ): array {
+		$items = array();
+
+		foreach ( $order->get_items() as $item_id => $item ) {
+			$product_id = method_exists( $item, 'get_product_id' ) ? absint( $item->get_product_id() ) : 0;
+			$variation_id = method_exists( $item, 'get_variation_id' ) ? absint( $item->get_variation_id() ) : 0;
+			$product      = $item->get_product();
+			$resolved_id  = $product ? absint( $product->get_id() ) : ( $variation_id ? $variation_id : $product_id );
+			$items[]      = array(
+				'item_id'    => $resolved_id ? $resolved_id : absint( $item_id ),
+				'item_name'  => sanitize_text_field( (string) $item->get_name() ),
+				'price'      => (float) $order->get_item_total( $item, false ),
+				'quantity'   => (int) $item->get_quantity(),
+				'product_id' => $resolved_id,
+				'sku'        => $product ? sanitize_text_field( (string) $product->get_sku() ) : '',
+				'variant'    => $product ? $this->get_product_variant( $product ) : '',
+				'categories' => $product ? $this->get_product_categories( $product ) : array(),
+			);
+		}
+
+		return $items;
+	}
+
+	/**
+	 * Build WooCommerce order/customer metadata for purchase payloads.
+	 *
+	 * @param \WC_Order $order Order instance.
+	 * @return array<string, mixed>
+	 */
+	private function build_purchase_meta( $order ): array {
+		$customer_id = method_exists( $order, 'get_customer_id' ) ? absint( $order->get_customer_id() ) : 0;
+		$order_date  = method_exists( $order, 'get_date_created' ) ? $order->get_date_created() : null;
+		$created_at  = $order_date ? $order_date->date( DATE_ATOM ) : '';
+		$customer_created_at = '';
+
+		if ( $customer_id ) {
+			$user = get_userdata( $customer_id );
+			if ( $user && ! empty( $user->user_registered ) ) {
+				$customer_created_at = mysql2date( DATE_ATOM, $user->user_registered, false );
+			}
+		}
+
+		return array(
+			'customer_id'         => $customer_id,
+			'customer_created_at' => sanitize_text_field( (string) $customer_created_at ),
+			'order_created_at'    => sanitize_text_field( (string) $created_at ),
+		);
+	}
+
+	/**
+	 * Convert the filtered purchase payload into the `dataLayer` event shape.
+	 *
+	 * @param array $payload   Final purchase payload.
+	 * @param array $flat_attr Flat attribution fields for `dataLayer`.
+	 * @return array<string, mixed>
+	 */
+	private function build_purchase_datalayer_payload( array $payload, array $flat_attr ): array {
+		$commerce = isset( $payload['commerce'] ) && is_array( $payload['commerce'] ) ? $payload['commerce'] : array();
+		$items    = isset( $commerce['items'] ) && is_array( $commerce['items'] ) ? $commerce['items'] : ( isset( $payload['items'] ) && is_array( $payload['items'] ) ? $payload['items'] : array() );
+
+		$ecommerce = array(
+			'transaction_id' => isset( $commerce['transaction_id'] ) ? (string) $commerce['transaction_id'] : (string) ( $payload['transaction_id'] ?? '' ),
+			'value'          => isset( $commerce['value'] ) ? (float) $commerce['value'] : (float) ( $payload['value'] ?? 0 ),
+			'currency'       => isset( $commerce['currency'] ) ? (string) $commerce['currency'] : (string) ( $payload['currency'] ?? '' ),
+			'items'          => $items,
+		);
+
+		foreach ( array( 'subtotal', 'tax_total', 'shipping_total', 'discount_total', 'item_quantity' ) as $field ) {
+			if ( isset( $commerce[ $field ] ) ) {
+				$ecommerce[ $field ] = (float) $commerce[ $field ];
+			}
+		}
+
+		if ( ! empty( $commerce['discount_codes'] ) && is_array( $commerce['discount_codes'] ) ) {
+			$ecommerce['discount_codes'] = array_values( array_map( 'sanitize_text_field', $commerce['discount_codes'] ) );
+		}
+		if ( ! empty( $commerce['status'] ) ) {
+			$ecommerce['status'] = sanitize_key( (string) $commerce['status'] );
+		}
+		if ( ! empty( $commerce['order_currency'] ) ) {
+			$ecommerce['order_currency'] = sanitize_text_field( (string) $commerce['order_currency'] );
+		}
+
+		return array_merge(
+			array(
+				'event'     => 'purchase',
+				'ecommerce' => $ecommerce,
+			),
+			$flat_attr
+		);
+	}
+
+	/**
+	 * Resolve a variation summary string for WooCommerce items.
+	 *
+	 * @param \WC_Product $product Product instance.
+	 * @return string
+	 */
+	private function get_product_variant( $product ): string {
+		if ( ! function_exists( 'wc_get_formatted_variation' ) || ! method_exists( $product, 'is_type' ) || ! $product->is_type( 'variation' ) ) {
+			return '';
+		}
+
+		return sanitize_text_field( wp_strip_all_tags( (string) wc_get_formatted_variation( $product, true, false, false ) ) );
+	}
+
+	/**
+	 * Resolve WooCommerce product category names.
+	 *
+	 * @param \WC_Product $product Product instance.
+	 * @return array<int, string>
+	 */
+	private function get_product_categories( $product ): array {
+		if ( ! function_exists( 'wc_get_product_terms' ) || ! method_exists( $product, 'get_id' ) ) {
+			return array();
+		}
+
+		$term_product_id = absint( $product->get_id() );
+		if ( method_exists( $product, 'get_parent_id' ) && $product->get_parent_id() ) {
+			$term_product_id = absint( $product->get_parent_id() );
+		}
+
+		if ( ! $term_product_id ) {
+			return array();
+		}
+
+		$terms = wc_get_product_terms(
+			$term_product_id,
+			'product_cat',
+			array(
+				'fields' => 'names',
+			)
+		);
+
+		if ( ! is_array( $terms ) ) {
+			return array();
+		}
+
+		return array_values(
+			array_filter(
+				array_map(
+					static function( $term_name ) {
+						return sanitize_text_field( (string) $term_name );
+					},
+					$terms
+				)
+			)
+		);
 	}
 
 	/**

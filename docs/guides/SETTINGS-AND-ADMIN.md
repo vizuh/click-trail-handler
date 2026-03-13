@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, designers, and reviewers
 - **Canonical for**: admin IA, screen structure, option mapping, and settings save behavior
 - **Update when**: tabs, settings grouping, screen slugs, or admin save contracts change
-- **Last verified against version**: `1.3.9`
+- **Last verified against version**: `1.4.0`
 
 This document describes the active admin experience and how it maps back to the stored option keys.
 
@@ -81,14 +81,22 @@ Primary controls:
 
 Purpose:
 
-- configure browser event collection and the unified event pipeline
+- configure browser event collection, WooCommerce event behavior, and the unified event pipeline
 
 Primary controls:
 
 - browser event collection
+- WooCommerce storefront events
 - GTM container ID
 - destination enablement
 - lifecycle update intake
+
+WooCommerce guidance now lives inside the `Events` tab rather than in a separate Woo settings screen. That card explains:
+
+- where WooCommerce order attribution is stored
+- how purchase pushes work on the thank-you page
+- what the optional storefront events setting does, including `view_item`, `add_to_cart`, `remove_from_cart`, and `begin_checkout`
+- where to verify Woo attribution and event output
 
 ## Delivery
 
@@ -212,12 +220,22 @@ Multisite network key:
 Used internally by:
 
 - advanced event and delivery settings
+- WooCommerce storefront events flag
 - destination enablement
 - external provider secrets
 - lifecycle token
 - dedup, security, and diagnostics tuning
 
 This option remains active for backward compatibility even though "Tracking v2" is no longer user-facing.
+
+Relevant feature flags now include:
+
+- `event_v2`
+- `woocommerce_storefront_events`
+- `external_webhooks`
+- `connector_native`
+- `diagnostics_v2`
+- `lifecycle_ingestion`
 
 ## Unified Settings AJAX
 

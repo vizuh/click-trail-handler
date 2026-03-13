@@ -22,6 +22,7 @@ use CLICUTCL\Integrations\WooCommerce;
 use CLICUTCL\Privacy\Privacy_Handler;
 use CLICUTCL\Settings\Attribution_Settings;
 use CLICUTCL\Server_Side\Queue;
+use CLICUTCL\Tracking\Settings as Tracking_Settings;
 use CLICUTCL\Utils\Cleanup;
 
 /**
@@ -187,8 +188,8 @@ class Plugin {
 		$cookie_days              = isset( $options['cookie_days'] ) ? absint( $options['cookie_days'] ) : 90;
 		$debug_until              = get_transient( 'clicutcl_debug_until' );
 		$debug_active             = $debug_until && (int) $debug_until > time();
-		$browser_events_enabled   = class_exists( 'CLICUTCL\\Tracking\\Settings' ) && \CLICUTCL\Tracking\Settings::browser_event_collection_enabled();
-		$events_transport_enabled = class_exists( 'CLICUTCL\\Tracking\\Settings' ) && \CLICUTCL\Tracking\Settings::browser_event_transport_enabled();
+		$browser_events_enabled   = class_exists( 'CLICUTCL\\Tracking\\Settings' ) && Tracking_Settings::browser_event_collection_enabled();
+		$events_transport_enabled = class_exists( 'CLICUTCL\\Tracking\\Settings' ) && Tracking_Settings::browser_event_transport_enabled();
 		$enable_cross_domain_token = isset( $options['enable_cross_domain_token'] ) ? (bool) $options['enable_cross_domain_token'] : false;
 		$events_batch_url         = $events_transport_enabled ? rest_url( 'clicutcl/v2/events/batch' ) : '';
 		$events_token             = ( class_exists( 'CLICUTCL\\Tracking\\Auth' ) && ( $events_transport_enabled || $enable_cross_domain_token ) )
@@ -295,6 +296,7 @@ class Plugin {
 					'debug'            => ! empty( $debug_active ),
 					'eventsBatchUrl'   => esc_url_raw( $events_batch_url ),
 					'eventsToken'      => $events_token,
+					'wooCommerce'      => $this->build_woocommerce_events_config(),
 					'thankYouMatchers' => array_values(
 						(array) apply_filters( 'clicutcl_thank_you_matchers', array() )
 					),
@@ -393,6 +395,230 @@ class Plugin {
 			'tokenSignUrl'              => esc_url_raw( rest_url( 'clicutcl/v2/attribution-token/sign' ) ),
 			'tokenVerifyUrl'            => esc_url_raw( rest_url( 'clicutcl/v2/attribution-token/verify' ) ),
 			'linkAppendBlob'            => false,
+		);
+	}
+
+	/**
+	 * Build WooCommerce storefront event configuration for the browser runtime.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function build_woocommerce_events_config(): array {
+		$config = array(
+			'enabled'  => false,
+			'pageType' => 'other',
+			'currency' => '',
+			'product'  => array(),
+			'cart'     => array(),
+			'checkout' => array(),
+		);
+
+		if ( ! class_exists( 'WooCommerce' ) || ! class_exists( 'CLICUTCL\\Tracking\\Settings' ) ) {
+			return $config;
+		}
+
+		$config['currency'] = function_exists( 'get_woocommerce_currency' )
+			? sanitize_text_field( (string) get_woocommerce_currency() )
+			: '';
+		$config['enabled']  = Tracking_Settings::woocommerce_storefront_events_enabled();
+
+		if ( ! $config['enabled'] ) {
+			return $config;
+		}
+
+		if ( function_exists( 'is_product' ) && is_product() ) {
+			$product_id = function_exists( 'get_queried_object_id' ) ? absint( get_queried_object_id() ) : 0;
+			$product    = $product_id && function_exists( 'wc_get_product' ) ? wc_get_product( $product_id ) : null;
+			$ecommerce  = $this->build_woocommerce_product_ecommerce( $product );
+
+			if ( ! empty( $ecommerce ) ) {
+				$config['pageType'] = 'product';
+				$config['product']  = $ecommerce;
+			}
+		}
+
+		if (
+			function_exists( 'is_cart' ) &&
+			is_cart() &&
+			( ! function_exists( 'is_checkout' ) || ! is_checkout() )
+		) {
+			$ecommerce = $this->build_woocommerce_checkout_ecommerce();
+
+			if ( ! empty( $ecommerce ) ) {
+				$config['pageType'] = 'cart';
+				$config['cart']     = $ecommerce;
+			}
+		}
+
+		if (
+			function_exists( 'is_checkout' ) &&
+			is_checkout() &&
+			( ! function_exists( 'is_order_received_page' ) || ! is_order_received_page() ) &&
+			( ! function_exists( 'is_checkout_pay_page' ) || ! is_checkout_pay_page() )
+		) {
+			$ecommerce = $this->build_woocommerce_checkout_ecommerce();
+
+			if ( ! empty( $ecommerce ) ) {
+				$config['pageType'] = 'checkout';
+				$config['checkout'] = $ecommerce;
+			}
+		}
+
+		return $config;
+	}
+
+	/**
+	 * Build product-page ecommerce payload for WooCommerce storefront events.
+	 *
+	 * @param mixed $product WooCommerce product object.
+	 * @return array<string, mixed>
+	 */
+	private function build_woocommerce_product_ecommerce( $product ): array {
+		$item = $this->build_woocommerce_product_item( $product, 1 );
+		if ( empty( $item ) ) {
+			return array();
+		}
+
+		return array(
+			'currency'      => function_exists( 'get_woocommerce_currency' ) ? sanitize_text_field( (string) get_woocommerce_currency() ) : '',
+			'value'         => isset( $item['price'] ) ? (float) $item['price'] : 0.0,
+			'items'         => array( $item ),
+			'item_quantity' => 1,
+		);
+	}
+
+	/**
+	 * Build checkout-page ecommerce payload for WooCommerce storefront events.
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function build_woocommerce_checkout_ecommerce(): array {
+		if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
+			return array();
+		}
+
+		$items         = array();
+		$item_quantity = 0;
+
+		foreach ( WC()->cart->get_cart() as $cart_item ) {
+			$product  = isset( $cart_item['data'] ) ? $cart_item['data'] : null;
+			$quantity = isset( $cart_item['quantity'] ) ? absint( $cart_item['quantity'] ) : 0;
+			$item     = $this->build_woocommerce_product_item( $product, $quantity );
+
+			if ( empty( $item ) ) {
+				continue;
+			}
+
+			$items[]       = $item;
+			$item_quantity += (int) $item['quantity'];
+		}
+
+		if ( empty( $items ) ) {
+			return array();
+		}
+
+		$discount_codes = array();
+		if ( method_exists( WC()->cart, 'get_applied_coupons' ) ) {
+			$discount_codes = array_values(
+				array_filter(
+					array_map(
+						'sanitize_text_field',
+						(array) WC()->cart->get_applied_coupons()
+					)
+				)
+			);
+		}
+
+		return array(
+			'currency'       => function_exists( 'get_woocommerce_currency' ) ? sanitize_text_field( (string) get_woocommerce_currency() ) : '',
+			'order_currency' => function_exists( 'get_woocommerce_currency' ) ? sanitize_text_field( (string) get_woocommerce_currency() ) : '',
+			'value'          => method_exists( WC()->cart, 'get_total' ) ? (float) WC()->cart->get_total( 'edit' ) : 0.0,
+			'subtotal'       => method_exists( WC()->cart, 'get_subtotal' ) ? (float) WC()->cart->get_subtotal() : 0.0,
+			'tax_total'      => method_exists( WC()->cart, 'get_total_tax' ) ? (float) WC()->cart->get_total_tax() : 0.0,
+			'shipping_total' => method_exists( WC()->cart, 'get_shipping_total' ) ? (float) WC()->cart->get_shipping_total() : 0.0,
+			'discount_total' => method_exists( WC()->cart, 'get_discount_total' ) ? (float) WC()->cart->get_discount_total() : 0.0,
+			'discount_codes' => $discount_codes,
+			'item_quantity'  => $item_quantity,
+			'items'          => $items,
+		);
+	}
+
+	/**
+	 * Build a reusable WooCommerce item payload.
+	 *
+	 * @param mixed $product  WooCommerce product object.
+	 * @param int   $quantity Item quantity.
+	 * @return array<string, mixed>
+	 */
+	private function build_woocommerce_product_item( $product, int $quantity ): array {
+		if ( ! is_object( $product ) || ! method_exists( $product, 'get_id' ) ) {
+			return array();
+		}
+
+		$product_id = absint( $product->get_id() );
+		if ( ! $product_id ) {
+			return array();
+		}
+
+		$quantity = max( 1, absint( $quantity ) );
+		$variant  = '';
+		if ( function_exists( 'wc_get_formatted_variation' ) && method_exists( $product, 'is_type' ) && $product->is_type( 'variation' ) ) {
+			$variant = wp_strip_all_tags( (string) wc_get_formatted_variation( $product, true, false, false ) );
+		}
+
+		return array(
+			'item_id'    => $product_id,
+			'item_name'  => sanitize_text_field( (string) $product->get_name() ),
+			'price'      => method_exists( $product, 'get_price' ) ? (float) $product->get_price() : 0.0,
+			'quantity'   => $quantity,
+			'product_id' => $product_id,
+			'sku'        => method_exists( $product, 'get_sku' ) ? sanitize_text_field( (string) $product->get_sku() ) : '',
+			'variant'    => sanitize_text_field( $variant ),
+			'categories' => $this->get_woocommerce_product_categories( $product ),
+		);
+	}
+
+	/**
+	 * Resolve WooCommerce product categories as plain-text names.
+	 *
+	 * @param mixed $product WooCommerce product object.
+	 * @return array<int, string>
+	 */
+	private function get_woocommerce_product_categories( $product ): array {
+		if ( ! is_object( $product ) || ! method_exists( $product, 'get_id' ) || ! function_exists( 'wc_get_product_terms' ) ) {
+			return array();
+		}
+
+		$term_product_id = absint( $product->get_id() );
+		if ( method_exists( $product, 'get_parent_id' ) && $product->get_parent_id() ) {
+			$term_product_id = absint( $product->get_parent_id() );
+		}
+
+		if ( ! $term_product_id ) {
+			return array();
+		}
+
+		$terms = wc_get_product_terms(
+			$term_product_id,
+			'product_cat',
+			array(
+				'fields' => 'names',
+			)
+		);
+
+		if ( ! is_array( $terms ) ) {
+			return array();
+		}
+
+		return array_values(
+			array_filter(
+				array_map(
+					static function( $term_name ) {
+						return sanitize_text_field( (string) $term_name );
+					},
+					$terms
+				)
+			)
 		);
 	}
 }

@@ -14,6 +14,7 @@
                 url: window.clicutclEventsConfig && window.clicutclEventsConfig.eventsBatchUrl ? String(window.clicutclEventsConfig.eventsBatchUrl) : '',
                 token: window.clicutclEventsConfig && window.clicutclEventsConfig.eventsToken ? String(window.clicutclEventsConfig.eventsToken) : ''
             };
+            this.wooCommerce = this.getWooCommerceConfig();
             this.thankYouMatchers = Array.isArray(window.clicutclEventsConfig && window.clicutclEventsConfig.thankYouMatchers)
                 ? window.clicutclEventsConfig.thankYouMatchers
                 : [];
@@ -38,11 +39,13 @@
             this.trackScroll();
             this.trackTimeOnPage();
             this.trackLeadGenEvents();
+            this.trackWooCommerceEvents();
             this.trackThankYouLead();
             this.trackExternalFormMessages();
+            this.consumeServerEvents();
         }
 
-        pushEvent(eventName, params = {}) {
+        pushEvent(eventName, params = {}, options = {}) {
             if (!this.collectionEnabled) {
                 return;
             }
@@ -54,13 +57,16 @@
             }
 
             window.dataLayer = window.dataLayer || [];
-            const eventId = this.generateEventId(eventName);
+            const providedEventId = options && typeof options === 'object'
+                ? this.safeText(options.eventId || options.event_id || '', 128)
+                : '';
+            const eventId = providedEventId || this.generateEventId(eventName);
             const eventData = {
+                ...(params && typeof params === 'object' ? params : {}),
                 event: eventName,
                 event_id: eventId,
                 session_id: this.sessionId,
-                visitor_id: this.visitorId,
-                ...params
+                visitor_id: this.visitorId
             };
 
             this.debugLog('ClickTrail Event:', eventName, eventData);
@@ -102,13 +108,20 @@
         buildCanonicalEvent(eventName, eventData, eventId) {
             const map = {
                 view_search_results: { event_name: 'search', funnel_stage: 'top' },
+                view_item: { event_name: 'view_item', funnel_stage: 'top' },
                 file_download: { event_name: 'view_content', funnel_stage: 'mid' },
                 scroll: { event_name: 'scroll_depth', funnel_stage: 'top' },
                 user_engagement: { event_name: 'key_page_view', funnel_stage: 'top' },
+                add_to_cart: { event_name: 'add_to_cart', funnel_stage: 'mid' },
+                remove_from_cart: { event_name: 'remove_from_cart', funnel_stage: 'mid' },
+                begin_checkout: { event_name: 'begin_checkout', funnel_stage: 'bottom' },
                 cta_click: { event_name: 'cta_click', funnel_stage: 'mid' },
                 form_start: { event_name: 'form_start', funnel_stage: 'mid' },
                 form_submit_attempt: { event_name: 'form_submit_attempt', funnel_stage: 'mid' },
                 lead: { event_name: 'lead', funnel_stage: 'bottom' },
+                login: { event_name: 'login', funnel_stage: 'bottom' },
+                sign_up: { event_name: 'sign_up', funnel_stage: 'bottom' },
+                comment_submit: { event_name: 'comment_submit', funnel_stage: 'mid' },
                 contact_call_click: { event_name: 'contact_call_click', funnel_stage: 'mid' },
                 contact_chat_start: { event_name: 'contact_chat_start', funnel_stage: 'mid' },
                 book_appointment: { event_name: 'book_appointment', funnel_stage: 'bottom' },
@@ -120,6 +133,8 @@
             const attribution = this.getAttributionPayload();
             const consent = this.getConsentState();
             const leadContext = this.extractLeadContext(eventData, eventName);
+            const commerceContext = this.extractCommerceContext(eventData);
+            const deliveryContext = this.extractDeliveryContext(eventData);
 
             return {
                 event_name: mapped.event_name,
@@ -138,6 +153,8 @@
                 attribution,
                 consent,
                 lead_context: leadContext,
+                commerce_context: commerceContext,
+                delivery_context: deliveryContext,
                 meta: {
                     schema_version: 2,
                     source_event: eventName,
@@ -177,6 +194,169 @@
                 out.time_to_submit_ms = Math.round(eventData.time_to_submit_ms);
             }
             return out;
+        }
+
+        extractCommerceContext(eventData) {
+            if (!eventData || typeof eventData !== 'object') {
+                return {};
+            }
+
+            const raw = eventData.commerce_context && typeof eventData.commerce_context === 'object'
+                ? eventData.commerce_context
+                : (eventData.ecommerce && typeof eventData.ecommerce === 'object' ? eventData.ecommerce : null);
+
+            if (!raw) {
+                return {};
+            }
+
+            const out = {};
+
+            ['transaction_id', 'currency', 'status', 'order_currency'].forEach((key) => {
+                const value = this.safeText(raw[key] || eventData[key] || '', 64);
+                if (value) {
+                    out[key] = value;
+                }
+            });
+
+            ['value', 'subtotal', 'tax_total', 'shipping_total', 'discount_total', 'item_quantity'].forEach((key) => {
+                const value = Number(raw[key]);
+                if (Number.isFinite(value)) {
+                    out[key] = value;
+                }
+            });
+
+            if (Array.isArray(raw.discount_codes)) {
+                const codes = raw.discount_codes
+                    .map((entry) => this.safeText(entry, 64))
+                    .filter(Boolean);
+                if (codes.length) {
+                    out.discount_codes = codes;
+                }
+            }
+
+            if (Array.isArray(raw.items)) {
+                const items = raw.items
+                    .map((item) => this.sanitizeCommerceItem(item))
+                    .filter(Boolean);
+                if (items.length) {
+                    out.items = items;
+                }
+            }
+
+            return out;
+        }
+
+        extractDeliveryContext(eventData) {
+            if (!eventData || typeof eventData !== 'object') {
+                return {};
+            }
+
+            const reserved = {
+                event: true,
+                event_id: true,
+                session_id: true,
+                visitor_id: true,
+                attribution: true,
+                consent: true,
+                lead_context: true,
+                commerce_context: true,
+                ecommerce: true
+            };
+            const out = {};
+
+            Object.keys(eventData).forEach((key) => {
+                if (reserved[key]) {
+                    return;
+                }
+
+                const value = eventData[key];
+                if (value === null || value === undefined || value === '') {
+                    return;
+                }
+
+                if (typeof value === 'string') {
+                    const sanitized = this.safeText(value, 255);
+                    if (sanitized) {
+                        out[key] = sanitized;
+                    }
+                    return;
+                }
+
+                if (typeof value === 'number' && Number.isFinite(value)) {
+                    out[key] = value;
+                    return;
+                }
+
+                if (typeof value === 'boolean') {
+                    out[key] = value;
+                    return;
+                }
+
+                if (Array.isArray(value)) {
+                    const list = value
+                        .map((entry) => {
+                            if (typeof entry === 'string') {
+                                return this.safeText(entry, 255);
+                            }
+                            if (typeof entry === 'number' && Number.isFinite(entry)) {
+                                return entry;
+                            }
+                            if (typeof entry === 'boolean') {
+                                return entry;
+                            }
+                            return '';
+                        })
+                        .filter((entry) => entry !== '');
+                    if (list.length) {
+                        out[key] = list;
+                    }
+                }
+            });
+
+            return out;
+        }
+
+        sanitizeCommerceItem(item) {
+            if (!item || typeof item !== 'object') {
+                return null;
+            }
+
+            const out = {};
+            const itemId = Number(item.item_id);
+            const productId = Number(item.product_id);
+            const price = Number(item.price);
+            const quantity = Number(item.quantity);
+
+            if (Number.isFinite(itemId) && itemId > 0) {
+                out.item_id = itemId;
+            }
+            if (Number.isFinite(productId) && productId > 0) {
+                out.product_id = productId;
+            }
+            if (Number.isFinite(price)) {
+                out.price = price;
+            }
+            if (Number.isFinite(quantity) && quantity > 0) {
+                out.quantity = Math.round(quantity);
+            }
+
+            ['item_name', 'sku', 'variant'].forEach((key) => {
+                const value = this.safeText(item[key] || '', 160);
+                if (value) {
+                    out[key] = value;
+                }
+            });
+
+            if (Array.isArray(item.categories)) {
+                const categories = item.categories
+                    .map((entry) => this.safeText(entry, 120))
+                    .filter(Boolean);
+                if (categories.length) {
+                    out.categories = categories;
+                }
+            }
+
+            return Object.keys(out).length ? out : null;
         }
 
         getAttributionPayload() {
@@ -516,6 +696,472 @@
             }, true);
         }
 
+        trackWooCommerceEvents() {
+            if (!this.wooCommerce.enabled) {
+                return;
+            }
+
+            this.trackWooProductView();
+            this.trackWooBeginCheckout();
+            this.trackWooAddToCart();
+            this.trackWooRemoveFromCart();
+        }
+
+        trackWooProductView() {
+            if (this.wooCommerce.pageType !== 'product') {
+                return;
+            }
+
+            const ecommerce = this.buildWooCommerceEventPayload(this.wooCommerce.product);
+            if (!ecommerce) {
+                return;
+            }
+
+            this.pushEvent('view_item', {
+                ecommerce
+            });
+        }
+
+        trackWooBeginCheckout() {
+            if (this.wooCommerce.pageType !== 'checkout') {
+                return;
+            }
+
+            const ecommerce = this.buildWooCommerceEventPayload(this.wooCommerce.checkout);
+            if (!ecommerce) {
+                return;
+            }
+
+            this.pushEvent('begin_checkout', {
+                ecommerce
+            });
+        }
+
+        trackWooAddToCart() {
+            if (!window.jQuery || !window.jQuery(document.body) || typeof window.jQuery(document.body).on !== 'function') {
+                this.debugLog('WooCommerce add_to_cart listener unavailable.');
+                return;
+            }
+
+            window.jQuery(document.body).on('added_to_cart', (event, fragments, cartHash, button) => {
+                const item = this.extractWooAddToCartItem(button);
+                if (!item) {
+                    return;
+                }
+
+                const quantity = Number.isFinite(Number(item.quantity)) && Number(item.quantity) > 0
+                    ? Math.round(Number(item.quantity))
+                    : 1;
+                const price = Number.isFinite(Number(item.price)) ? Number(item.price) : 0;
+
+                this.pushEvent('add_to_cart', {
+                    ecommerce: {
+                        currency: this.safeText(this.wooCommerce.currency || '', 16),
+                        value: price * quantity,
+                        item_quantity: quantity,
+                        items: [item]
+                    }
+                });
+            });
+        }
+
+        trackWooRemoveFromCart() {
+            if (window.jQuery && window.jQuery(document.body) && typeof window.jQuery(document.body).on === 'function') {
+                window.jQuery(document.body).on('removed_from_cart', (event, fragments, cartHash, button) => {
+                    const item = this.extractWooRemovedCartItem(button);
+                    this.emitWooRemoveFromCart(item);
+                });
+
+                window.jQuery(document.body).on('click', '.woocommerce-cart-form .remove, .cart_item .remove, .mini_cart_item .remove, .woocommerce-mini-cart-item .remove', (event) => {
+                    const item = this.extractWooRemovedCartItem(event.currentTarget);
+                    this.emitWooRemoveFromCart(item);
+                });
+            }
+
+            this.trackWooBlockCartRemoveFromCart();
+        }
+
+        extractWooAddToCartItem(button) {
+            const buttonElement = button && button.jquery ? button[0] : button;
+            const fallback = this.buildWooCommerceEventPayload(this.wooCommerce.product);
+            const fallbackItem = fallback && Array.isArray(fallback.items) && fallback.items.length ? fallback.items[0] : null;
+
+            if (!buttonElement || !buttonElement.closest) {
+                return fallbackItem;
+            }
+
+            const form = buttonElement.closest('form');
+            const quantityField = form ? form.querySelector('input.qty, input[name="quantity"]') : null;
+            const quantity = quantityField && Number.isFinite(Number(quantityField.value))
+                ? Math.max(1, Math.round(Number(quantityField.value)))
+                : (fallbackItem && Number.isFinite(Number(fallbackItem.quantity)) ? Math.round(Number(fallbackItem.quantity)) : 1);
+            const productId = Number(
+                buttonElement.getAttribute('data-product_id') ||
+                (buttonElement.dataset ? buttonElement.dataset.productId : '') ||
+                (fallbackItem ? fallbackItem.product_id : 0)
+            );
+            const sku = this.safeText(
+                buttonElement.getAttribute('data-product_sku') ||
+                (buttonElement.dataset ? buttonElement.dataset.productSku : '') ||
+                (fallbackItem ? fallbackItem.sku : ''),
+                120
+            );
+            const name = this.pickWooProductName(buttonElement, fallbackItem);
+            const price = this.extractWooProductPrice(buttonElement, fallbackItem);
+            const item = this.sanitizeCommerceItem({
+                item_id: productId || (fallbackItem ? fallbackItem.item_id : 0),
+                item_name: name || (fallbackItem ? fallbackItem.item_name : ''),
+                price: price,
+                quantity: quantity,
+                product_id: productId || (fallbackItem ? fallbackItem.product_id : 0),
+                sku: sku || (fallbackItem ? fallbackItem.sku : ''),
+                variant: fallbackItem ? fallbackItem.variant : '',
+                categories: fallbackItem && Array.isArray(fallbackItem.categories) ? fallbackItem.categories : []
+            });
+
+            return item || fallbackItem;
+        }
+
+        emitWooRemoveFromCart(item) {
+            if (!item) {
+                return;
+            }
+
+            const quantity = Number.isFinite(Number(item.quantity)) && Number(item.quantity) > 0
+                ? Math.round(Number(item.quantity))
+                : 1;
+            const price = Number.isFinite(Number(item.price)) ? Number(item.price) : 0;
+            const signature = [
+                Number(item.product_id || item.item_id || 0),
+                quantity,
+                Math.round(price * 100)
+            ].join(':');
+            const now = Date.now();
+
+            if (this.lastWooRemoveSignature === signature && (now - this.lastWooRemoveAt) < 1500) {
+                return;
+            }
+
+            this.lastWooRemoveSignature = signature;
+            this.lastWooRemoveAt = now;
+
+            this.pushEvent('remove_from_cart', {
+                ecommerce: {
+                    currency: this.safeText(this.wooCommerce.currency || '', 16),
+                    value: price * quantity,
+                    item_quantity: quantity,
+                    items: [item]
+                }
+            });
+        }
+
+        extractWooRemovedCartItem(button) {
+            const buttonElement = button && button.jquery ? button[0] : button;
+            const productId = Number(
+                buttonElement && buttonElement.getAttribute
+                    ? (
+                        buttonElement.getAttribute('data-product_id') ||
+                        (buttonElement.dataset ? buttonElement.dataset.productId : '') ||
+                        this.getUrlParam(buttonElement.getAttribute('href') || '', 'remove_item')
+                    )
+                    : 0
+            );
+            const fallbackItem = this.findWooCommerceConfigItem(productId);
+
+            if (!buttonElement || !buttonElement.closest) {
+                return fallbackItem;
+            }
+
+            const container = buttonElement.closest('.woocommerce-cart-form__cart-item, .cart_item, .mini_cart_item, .woocommerce-mini-cart-item');
+            const quantity = this.extractWooCartQuantity(container, fallbackItem);
+            const name = this.pickWooProductName(buttonElement, fallbackItem);
+            const price = this.extractWooProductPrice(buttonElement, fallbackItem);
+            const item = this.sanitizeCommerceItem({
+                item_id: productId || (fallbackItem ? fallbackItem.item_id : 0),
+                item_name: name || (fallbackItem ? fallbackItem.item_name : ''),
+                price: price,
+                quantity: quantity,
+                product_id: productId || (fallbackItem ? fallbackItem.product_id : 0),
+                sku: fallbackItem ? fallbackItem.sku : '',
+                variant: fallbackItem ? fallbackItem.variant : '',
+                categories: fallbackItem && Array.isArray(fallbackItem.categories) ? fallbackItem.categories : []
+            });
+
+            return item || fallbackItem;
+        }
+
+        trackWooBlockCartRemoveFromCart() {
+            if (
+                typeof window.wp === 'undefined' ||
+                !window.wp.data ||
+                typeof window.wp.data.select !== 'function' ||
+                typeof window.wp.data.subscribe !== 'function'
+            ) {
+                return;
+            }
+
+            const selectCartStore = () => {
+                try {
+                    return window.wp.data.select('wc/store/cart');
+                } catch (e) {
+                    return null;
+                }
+            };
+            const getCartItems = () => {
+                const store = selectCartStore();
+                if (!store || typeof store.getCartData !== 'function') {
+                    return [];
+                }
+
+                const cartData = store.getCartData();
+                return cartData && Array.isArray(cartData.items) ? cartData.items : [];
+            };
+
+            let previousItems = getCartItems();
+
+            window.wp.data.subscribe(() => {
+                const currentItems = getCartItems();
+                if (!Array.isArray(previousItems) || !Array.isArray(currentItems)) {
+                    previousItems = currentItems;
+                    return;
+                }
+
+                if (previousItems.length > currentItems.length) {
+                    const removedItem = previousItems.find((previousItem) => {
+                        const previousKey = String(previousItem && (previousItem.key || previousItem.id || previousItem.product_id || ''));
+                        return !currentItems.some((currentItem) => {
+                            const currentKey = String(currentItem && (currentItem.key || currentItem.id || currentItem.product_id || ''));
+                            return currentKey === previousKey;
+                        });
+                    });
+
+                    if (removedItem) {
+                        this.emitWooRemoveFromCart(this.normalizeWooStoreCartItem(removedItem));
+                    }
+                }
+
+                previousItems = currentItems;
+            });
+        }
+
+        normalizeWooStoreCartItem(item) {
+            const rawItem = item && typeof item === 'object' ? item : {};
+            const productId = Number(rawItem.product_id || rawItem.id || 0);
+            const fallbackItem = this.findWooCommerceConfigItem(productId);
+            const quantity = Number.isFinite(Number(rawItem.quantity))
+                ? Math.max(1, Math.round(Number(rawItem.quantity)))
+                : (fallbackItem && Number.isFinite(Number(fallbackItem.quantity)) ? Math.round(Number(fallbackItem.quantity)) : 1);
+            const price = this.parseWooStoreApiPrice(rawItem) || (fallbackItem && Number.isFinite(Number(fallbackItem.price)) ? Number(fallbackItem.price) : 0);
+            const itemName = this.safeText(rawItem.name || '', 160) || (fallbackItem ? fallbackItem.item_name : '');
+
+            return this.sanitizeCommerceItem({
+                item_id: productId || (fallbackItem ? fallbackItem.item_id : 0),
+                item_name: itemName,
+                price: price,
+                quantity: quantity,
+                product_id: productId || (fallbackItem ? fallbackItem.product_id : 0),
+                sku: fallbackItem ? fallbackItem.sku : '',
+                variant: fallbackItem ? fallbackItem.variant : '',
+                categories: fallbackItem && Array.isArray(fallbackItem.categories) ? fallbackItem.categories : []
+            }) || fallbackItem;
+        }
+
+        parseWooStoreApiPrice(item) {
+            if (!item || typeof item !== 'object' || !item.prices || typeof item.prices !== 'object') {
+                return 0;
+            }
+
+            const raw = Number(item.prices.price);
+            const minorUnit = Number(item.prices.currency_minor_unit);
+            if (!Number.isFinite(raw)) {
+                return 0;
+            }
+
+            if (Number.isFinite(minorUnit) && minorUnit >= 0) {
+                return raw / Math.pow(10, minorUnit);
+            }
+
+            return raw;
+        }
+
+        extractWooCartQuantity(container, fallbackItem) {
+            if (!container || !container.querySelector) {
+                return fallbackItem && Number.isFinite(Number(fallbackItem.quantity))
+                    ? Math.max(1, Math.round(Number(fallbackItem.quantity)))
+                    : 1;
+            }
+
+            const quantityField = container.querySelector('input.qty, input[name="cart\\[qty\\]"], input[name="quantity"]');
+            if (quantityField && Number.isFinite(Number(quantityField.value))) {
+                return Math.max(1, Math.round(Number(quantityField.value)));
+            }
+
+            const quantityNode = container.querySelector('.quantity');
+            if (quantityNode) {
+                const match = String(quantityNode.textContent || '').match(/(\d+)\s*[×x]/);
+                if (match && Number.isFinite(Number(match[1]))) {
+                    return Math.max(1, Math.round(Number(match[1])));
+                }
+            }
+
+            return fallbackItem && Number.isFinite(Number(fallbackItem.quantity))
+                ? Math.max(1, Math.round(Number(fallbackItem.quantity)))
+                : 1;
+        }
+
+        findWooCommerceConfigItem(productId) {
+            const resolvedId = Number(productId);
+            if (!Number.isFinite(resolvedId) || resolvedId <= 0) {
+                return null;
+            }
+
+            const pools = [];
+            ['product', 'cart', 'checkout'].forEach((key) => {
+                const source = this.wooCommerce[key];
+                if (source && Array.isArray(source.items)) {
+                    pools.push(...source.items);
+                }
+            });
+
+            return pools.find((item) => Number(item && (item.product_id || item.item_id || 0)) === resolvedId) || null;
+        }
+
+        getUrlParam(url, key) {
+            if (!url) {
+                return '';
+            }
+
+            try {
+                const parsed = new URL(url, window.location.origin);
+                return parsed.searchParams.get(key) || '';
+            } catch (e) {
+                return '';
+            }
+        }
+
+        buildWooCommerceEventPayload(source) {
+            const commerce = this.extractCommerceContext({
+                ecommerce: source
+            });
+
+            if (!commerce || !Array.isArray(commerce.items) || !commerce.items.length) {
+                return null;
+            }
+
+            if (!commerce.currency && this.wooCommerce.currency) {
+                commerce.currency = this.safeText(this.wooCommerce.currency, 16);
+            }
+
+            if (!Number.isFinite(Number(commerce.value))) {
+                commerce.value = commerce.items.reduce((total, item) => {
+                    const price = Number.isFinite(Number(item.price)) ? Number(item.price) : 0;
+                    const quantity = Number.isFinite(Number(item.quantity)) ? Number(item.quantity) : 1;
+                    return total + (price * quantity);
+                }, 0);
+            }
+
+            return commerce;
+        }
+
+        getWooCommerceConfig() {
+            const source = window.clicutclEventsConfig && typeof window.clicutclEventsConfig.wooCommerce === 'object'
+                ? window.clicutclEventsConfig.wooCommerce
+                : {};
+
+            return {
+                enabled: !!source.enabled,
+                pageType: this.safeText(source.pageType || 'other', 32) || 'other',
+                currency: this.safeText(source.currency || '', 16),
+                product: source.product && typeof source.product === 'object' ? source.product : {},
+                cart: source.cart && typeof source.cart === 'object' ? source.cart : {},
+                checkout: source.checkout && typeof source.checkout === 'object' ? source.checkout : {}
+            };
+        }
+
+        pickWooProductName(buttonElement, fallbackItem) {
+            if (!buttonElement || !buttonElement.closest) {
+                return fallbackItem ? this.safeText(fallbackItem.item_name || '', 160) : '';
+            }
+
+            const container = buttonElement.closest('.product, li.product, .single-product, form.cart, .wc-block-grid__product, .cart_item, .woocommerce-cart-form__cart-item, .mini_cart_item, .woocommerce-mini-cart-item, .wc-block-components-product-details');
+            const selectors = [
+                '[data-product_name]',
+                '.product-name a',
+                '.product-name',
+                '.wc-block-components-product-name',
+                'h1.product_title',
+                '.woocommerce-loop-product__title',
+                '.wc-block-grid__product-title',
+                'h2',
+                'h3'
+            ];
+
+            for (let i = 0; i < selectors.length; i += 1) {
+                const node = container ? container.querySelector(selectors[i]) : null;
+                if (!node) {
+                    continue;
+                }
+
+                const text = this.safeText(node.textContent || node.getAttribute('data-product_name') || '', 160);
+                if (text) {
+                    return text;
+                }
+            }
+
+            const ariaLabel = this.safeText(buttonElement.getAttribute('aria-label') || '', 160);
+            if (ariaLabel) {
+                return ariaLabel;
+            }
+
+            return fallbackItem ? this.safeText(fallbackItem.item_name || '', 160) : '';
+        }
+
+        extractWooProductPrice(buttonElement, fallbackItem) {
+            if (!buttonElement || !buttonElement.closest) {
+                return fallbackItem && Number.isFinite(Number(fallbackItem.price)) ? Number(fallbackItem.price) : 0;
+            }
+
+            const container = buttonElement.closest('.product, li.product, .single-product, form.cart, .wc-block-grid__product, .cart_item, .woocommerce-cart-form__cart-item, .mini_cart_item, .woocommerce-mini-cart-item, .wc-block-components-product-details');
+            const priceNode = container ? container.querySelector('.product-price .amount, .mini_cart_item .amount, .price .amount, .woocommerce-Price-amount') : null;
+            const parsed = this.parsePrice(priceNode ? priceNode.textContent : '');
+            if (parsed > 0) {
+                return parsed;
+            }
+
+            return fallbackItem && Number.isFinite(Number(fallbackItem.price)) ? Number(fallbackItem.price) : 0;
+        }
+
+        parsePrice(value) {
+            if (typeof value === 'number' && Number.isFinite(value)) {
+                return value;
+            }
+
+            const raw = this.safeText(value, 64);
+            if (!raw) {
+                return 0;
+            }
+
+            const normalized = raw.replace(/[^0-9,.-]/g, '');
+            if (!normalized) {
+                return 0;
+            }
+
+            const lastComma = normalized.lastIndexOf(',');
+            const lastDot = normalized.lastIndexOf('.');
+            let cleaned = normalized;
+
+            if (lastComma > lastDot) {
+                cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+            } else if (lastDot > lastComma) {
+                cleaned = cleaned.replace(/,/g, '');
+            } else {
+                cleaned = cleaned.replace(/,/g, '');
+            }
+
+            const parsed = Number(cleaned);
+            return Number.isFinite(parsed) ? parsed : 0;
+        }
+
         trackThankYouLead() {
             if (!Array.isArray(this.thankYouMatchers) || !this.thankYouMatchers.length) return;
 
@@ -556,6 +1202,40 @@
                     }
                 });
             });
+        }
+
+        consumeServerEvents() {
+            const queued = []
+                .concat(Array.isArray(window.clicutclServerEvents) ? window.clicutclServerEvents : [])
+                .concat(
+                    window.clicutclEventsConfig && Array.isArray(window.clicutclEventsConfig.serverEvents)
+                        ? window.clicutclEventsConfig.serverEvents
+                        : []
+                );
+
+            if (!queued.length) {
+                return;
+            }
+
+            queued.forEach((queuedEvent) => {
+                if (!queuedEvent || typeof queuedEvent !== 'object') {
+                    return;
+                }
+
+                const eventName = this.safeText(queuedEvent.event || queuedEvent.name || '', 64);
+                if (!eventName) {
+                    return;
+                }
+
+                const params = queuedEvent.params && typeof queuedEvent.params === 'object'
+                    ? queuedEvent.params
+                    : {};
+                const eventId = this.safeText(queuedEvent.event_id || queuedEvent.eventId || '', 128);
+
+                this.pushEvent(eventName, params, { eventId });
+            });
+
+            window.clicutclServerEvents = [];
         }
 
         normalizeExternalMessage(data, origin) {

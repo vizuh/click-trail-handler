@@ -68,12 +68,30 @@ What ClickTrail does:
 - save attribution on checkout
 - render attribution in WooCommerce admin
 - push purchase event to `dataLayer`
+- optionally emit storefront `view_item`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` browser events
 - optionally dispatch purchase events into the server-side delivery pipeline
 
 Where teams see value:
 
 - order review stays tied to campaign context
 - purchase events can align browser and server-side reporting paths
+
+## WordPress Core Follow-Up Events
+
+Managed by:
+
+- `includes/Modules/Events/class-events-logger.php`
+
+What ClickTrail does:
+
+- capture one-time follow-up events after WordPress core actions such as `wp_login`, `user_register`, and `comment_post`
+- queue those events for the next frontend page load
+- route them into the same browser event runtime and canonical intake path used by the rest of the browser pipeline when browser event collection is enabled
+
+Where teams see value:
+
+- login and signup milestones can reach the same `dataLayer` and delivery path used by other browser events
+- the follow-up events still respect ClickTrail's consent gate instead of bypassing the unified pipeline
 
 ## Consent and CMP Sources
 
