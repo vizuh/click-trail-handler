@@ -7,6 +7,8 @@
 
 namespace CLICUTCL\Server_Side;
 
+use CLICUTCL\Core\Storage\Option_Cache;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -31,18 +33,28 @@ class Settings {
 	 * @return array
 	 */
 	public static function get() {
-		$site = get_option( self::OPTION_SITE, array() );
+		static $site_cache = null;
+		static $network_cache = null;
+
+		if ( null === $site_cache ) {
+			$site_cache = Option_Cache::get( self::OPTION_SITE, array() );
+		}
+
+		$site = is_array( $site_cache ) ? $site_cache : array();
 
 		if ( is_multisite() ) {
 			$use_network = ! isset( $site['use_network'] ) || (int) $site['use_network'] === 1;
-			$network     = get_site_option( self::OPTION_NETWORK, array() );
+			if ( null === $network_cache ) {
+				$network_cache = get_site_option( self::OPTION_NETWORK, array() );
+			}
+			$network = is_array( $network_cache ) ? $network_cache : array();
 
-			if ( $use_network && is_array( $network ) && ! empty( $network ) ) {
+			if ( $use_network && ! empty( $network ) ) {
 				return $network;
 			}
 		}
 
-		return is_array( $site ) ? $site : array();
+		return $site;
 	}
 
 	/**
@@ -51,11 +63,17 @@ class Settings {
 	 * @return array
 	 */
 	public static function get_network() {
+		static $network_cache = null;
+
 		if ( ! is_multisite() ) {
 			return array();
 		}
 
-		$network = get_site_option( self::OPTION_NETWORK, array() );
+		if ( null === $network_cache ) {
+			$network_cache = get_site_option( self::OPTION_NETWORK, array() );
+		}
+
+		$network = $network_cache;
 		return is_array( $network ) ? $network : array();
 	}
 }

@@ -71,10 +71,6 @@ class Event_Translator_V1_To_V2 {
 		}
 
 		$session_id = isset( $input['session_id'] ) ? sanitize_text_field( (string) $input['session_id'] ) : '';
-		if ( '' === $session_id && isset( $_COOKIE['ct_session_id'] ) ) {
-			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized below.
-			$session_id = sanitize_text_field( wp_unslash( $_COOKIE['ct_session_id'] ) );
-		}
 
 		$canonical = array(
 			'event_name'      => $event_name,
