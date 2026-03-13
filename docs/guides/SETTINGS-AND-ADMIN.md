@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, designers, and reviewers
 - **Canonical for**: admin IA, screen structure, option mapping, and settings save behavior
 - **Update when**: tabs, settings grouping, screen slugs, or admin save contracts change
-- **Last verified against version**: `1.4.0`
+- **Last verified against version**: `1.5.0`
 
 This document describes the active admin experience and how it maps back to the stored option keys.
 

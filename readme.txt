@@ -5,7 +5,7 @@ Author URI: https://vizuh.com
 Tags: attribution, utm, consent mode, woocommerce, server-side tracking
 Requires at least: 6.5
 Tested up to: 6.9
-Stable tag: 1.4.0
+Stable tag: 1.5.0
 Requires PHP: 8.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -49,9 +49,9 @@ That lets teams start with reliable order or form attribution first, then add br
 * **Events**: browser event collection with `dataLayer` pushes, canonical REST intake, webhook ingestion, lifecycle updates, one-time WordPress follow-up events such as `login`, `sign_up`, and `comment_submit`, and optional WooCommerce storefront events.
 * **Delivery**: optional server-side transport, retry queue, diagnostics, consent-aware dispatch, and failure telemetry.
 
-= What is new in 1.4.0 =
+= What is new in 1.5.0 =
 
-This release makes ClickTrail more WooCommerce-focused without changing the underlying architecture:
+This release expands WooCommerce coverage, admin operations, and native delivery breadth without changing the underlying architecture:
 
 * **WooCommerce HPOS compatibility declaration**: ClickTrail now declares compatibility with WooCommerce custom order tables during bootstrap and keeps order-level attribution logic on Woo APIs.
 * **Richer purchase payloads**: purchase events now include additive commerce fields such as `subtotal`, `tax_total`, `shipping_total`, `discount_total`, `discount_codes`, `status`, `order_currency`, `item_quantity`, plus richer item detail such as `product_id`, `sku`, `variant`, and `categories`.
@@ -205,13 +205,14 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 
 == Changelog ==
 
-= 1.4.0 =
-* Declared WooCommerce HPOS compatibility during bootstrap and kept WooCommerce order tracking on Woo order APIs.
+= 1.5.0 =
+* Declared WooCommerce HPOS compatibility during bootstrap and kept Woo order tracking on Woo order APIs.
 * Enriched WooCommerce purchase payloads with additive order totals, coupon/status data, richer item detail, and customer/order metadata.
-* Added opt-in WooCommerce storefront events for `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` through the existing browser event pipeline.
+* Added opt-in WooCommerce storefront events for `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, and `begin_checkout`, including richer product-list context.
 * Added Woo order milestone delivery for `order_paid`, `order_refunded`, and `order_cancelled`, plus Diagnostics trace lookup for stored payload snapshots.
-* Added setup checklist, conflict scan, and backup restore tooling in the admin surfaces.
+* Added setup checklist, conflict scan, backup restore, and Woo order trace lookup in the admin surfaces.
 * Added Pinterest Conversions API and TikTok Events API as first-class native delivery adapters.
+* Added registry-backed QA/docs alignment for the expanded destination and diagnostics surface.
 * Included the recent WordPress.org deployment cleanup, Plugin Check fixes, privacy-query hardening, and better debug visibility.
 
 = 1.3.9 =
@@ -242,5 +243,5 @@ Older release notes remain available in `changelog.txt`.
 
 == Upgrade Notice ==
 
-= 1.4.0 =
-Recommended update. This release makes ClickTrail more WooCommerce-focused without breaking the existing architecture: HPOS compatibility is declared, Woo purchase payloads are richer, storefront events are available as an opt-in setting, and the recent privacy/deployment fixes are included in the same build.
+= 1.5.0 =
+Recommended update. This release expands WooCommerce coverage, adds stronger admin diagnostics and backup tooling, and introduces Pinterest/TikTok native delivery adapters without changing ClickTrail's core attribution and delivery architecture.

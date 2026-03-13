@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, and AI agents
 - **Canonical for**: active file layout and remaining compatibility surfaces in the repository
 - **Update when**: files move, new subsystems are added, or active/legacy status changes
-- **Last verified against version**: `1.4.0`
+- **Last verified against version**: `1.5.0`
 
 This map is organized around the active code paths first, then compatibility and maintenance notes.
 

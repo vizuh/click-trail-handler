@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, reviewers, and release engineers
 - **Canonical for**: internal capability registry, destination metadata, adapter metadata, and smoke-test IDs
 - **Update when**: a capability, destination, adapter, docs target, or smoke ID is added, renamed, or removed
-- **Last verified against version**: `1.4.0`
+- **Last verified against version**: `1.5.0`
 
 This document describes the internal feature registry used to keep ClickTrail's growing surface area aligned across admin UI, diagnostics, docs, and QA.
 
