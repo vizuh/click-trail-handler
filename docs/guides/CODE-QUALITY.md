@@ -14,6 +14,8 @@ This document summarizes the current quality posture of the repository and the m
 - Server-side delivery is separated into dispatcher, queue, adapters, and diagnostics concerns.
 - Browser events, webhook intake, lifecycle updates, and purchase dispatch converge on one shared delivery path.
 - The admin experience now presents one primary settings identity instead of exposing internal "v2" terminology to users.
+- A lightweight feature registry now reduces hard-coded adapter and destination drift across admin, dispatcher, docs, and QA.
+- The repository now includes a structural smoke harness for registry-backed capability checks.
 
 ## Current Maintenance Hotspots
 
@@ -47,16 +49,18 @@ Because of that, admin or runtime refactors can easily leave docs stale unless t
 
 The repository no longer keeps a duplicate redirect layer under `docs/`, so stale links now tend to fail fast instead of silently landing on compatibility stubs.
 
-## 4. Test coverage gap
+## 4. Runtime test coverage is still lighter than ideal
 
-The repository currently does not expose an automated test suite in `package.json`, and no local PHP or JS test harness is part of the standard repo workflow.
+The repository now exposes a lightweight smoke harness through `npm run smoke`, backed by `config/feature-registry.json`, `config/feature-test-matrix.json`, and `tools/qa/smoke.js`.
 
-That makes these areas particularly sensitive to regressions:
+That improves breadth safety, but it is still not a full WordPress runtime or integration test suite. These areas remain especially sensitive to regressions:
 
 - grouped admin save/load mapping
 - form adapter behavior
 - REST auth edge cases
 - queue retry semantics
+- WooCommerce browser events and milestone hooks
+- adapter payload translation against real downstream endpoints
 
 ## Suggested Review Checklist for Future Changes
 
@@ -65,4 +69,5 @@ That makes these areas particularly sensitive to regressions:
 - Does it change REST auth or token behavior?
 - Does it impact queue retry or diagnostics retention?
 - Does it affect form adapters or WooCommerce attribution persistence?
+- Does it require a feature-registry or smoke-matrix update?
 - Do the GitHub docs and WordPress `readme.txt` still describe the current state correctly?

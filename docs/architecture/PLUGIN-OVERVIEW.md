@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, and reviewers
 - **Canonical for**: runtime scope, bootstrap flow, subsystem ownership, and active vs compatibility paths
 - **Update when**: boot flow, module boundaries, or major runtime responsibilities change
-- **Last verified against version**: `1.3.9`
+- **Last verified against version**: `1.4.0`
 
 ## Product Summary
 
@@ -17,7 +17,7 @@ The plugin is designed to solve practical attribution failures:
 - cross-domain journeys losing continuity
 - consent-aware sites needing attribution and delivery to agree
 
-Current codebase version: `1.3.9`.
+Current codebase version: `1.4.0`.
 
 Runtime requirements:
 
@@ -45,6 +45,7 @@ Common value surfaces:
 - WooCommerce orders retain campaign context inside WordPress
 - browser events push consistent signals into GTM and related analytics tooling
 - server-side delivery adds retries, queueing, and diagnostics when a downstream endpoint exists
+- selective native destinations can expand without bypassing the canonical delivery model
 
 The plugin is intentionally layered so teams can adopt it progressively:
 
@@ -116,7 +117,7 @@ Responsibilities:
 
 - push events to `window.dataLayer`
 - collect search, file download, scroll, engagement, lead-gen, and one-time WordPress auth/comment signals
-- emit WooCommerce storefront events such as `view_item`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` when enabled
+- emit WooCommerce storefront events such as `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` when enabled
 - build canonical payloads for REST intake
 - send batch events only when event transport is available
 
@@ -173,6 +174,7 @@ Responsibilities:
 - endpoint health checks
 - failure telemetry
 - delivery diagnostics ring buffers
+- registry-backed adapter metadata for admin and diagnostics alignment
 
 ## 8. WordPress integrations
 
@@ -183,7 +185,8 @@ Responsibilities:
 - supported form adapters
 - WooCommerce order attribution
 - WooCommerce purchase event pushes
-- optional purchase dispatch into the delivery pipeline
+- WooCommerce order-status milestones
+- optional purchase and milestone dispatch into the delivery pipeline
 
 ## Admin Surfaces
 
@@ -200,6 +203,13 @@ Multisite only:
 - `ClickTrail Network`
 
 The current settings screen is a unified JavaScript app rendered inside `wp-admin` and loaded from `assets/js/admin-settings-app.js`.
+
+The admin surface now also includes:
+
+- a read-only setup checklist in Settings
+- Diagnostics conflict scanning
+- settings backup and restore
+- Diagnostics Woo order trace lookup
 
 ## Active vs Legacy
 

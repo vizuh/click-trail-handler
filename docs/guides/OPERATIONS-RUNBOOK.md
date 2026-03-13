@@ -3,7 +3,7 @@
 - **Audience**: maintainers, support engineers, and reviewers
 - **Canonical for**: activation checks, queue behavior, diagnostics, and common failure handling
 - **Update when**: operational troubleshooting, queue behavior, diagnostics surfaces, or recovery steps change
-- **Last verified against version**: `1.3.9`
+- **Last verified against version**: `1.4.0`
 
 ## Activation and Boot
 
@@ -28,10 +28,11 @@ On deactivation, ClickTrail clears:
 After enabling the plugin, validate:
 
 1. `ClickTrail > Settings` loads and saves correctly
-2. attribution is captured from a test URL with UTMs
-3. a supported form receives attribution fields
-4. if WooCommerce is active, a test order stores attribution
-5. if server-side delivery is enabled, `Diagnostics > Endpoint Test` succeeds
+2. the setup checklist reflects the intended rollout state
+3. attribution is captured from a test URL with UTMs
+4. a supported form receives attribution fields
+5. if WooCommerce is active, a test order stores attribution
+6. if server-side delivery is enabled, `Diagnostics > Endpoint Test` succeeds
 
 ## Health and Visibility Surfaces
 
@@ -45,6 +46,9 @@ Primary operational surfaces:
 Diagnostics exposes:
 
 - endpoint test
+- conflict scan
+- settings backup export and restore
+- Woo order trace lookup
 - queue backlog
 - last error
 - debug logging state
@@ -67,6 +71,8 @@ Defaults:
 - lock transient: `clicutcl_queue_lock`
 
 Retries use exponential backoff and stop after max attempts.
+
+The queue is also used to enrich Diagnostics Woo order-trace lookups with current retry state for a stored `event_name` plus `event_id`.
 
 ## Common Failure Patterns
 
@@ -188,6 +194,49 @@ Use it to validate:
 
 - endpoint reachability
 - adapter-level health behavior
+
+## Conflict Scan
+
+Diagnostics conflict scan calls:
+
+- admin AJAX `clicutcl_conflict_scan`
+
+It is designed for deterministic local checks such as:
+
+- cache or optimization plugins detected while client fallback is off
+- Woo storefront events enabled without WooCommerce
+- adapter and destination toggle mismatches
+- GTM plus native destination ownership overlap
+- delivery enabled without an endpoint URL
+
+## Backup and Restore
+
+Diagnostics backup actions call:
+
+- admin AJAX `clicutcl_export_settings_backup`
+- admin AJAX `clicutcl_import_settings_backup`
+
+They cover the five main option stores:
+
+- `clicutcl_attribution_settings`
+- `clicutcl_consent_mode`
+- `clicutcl_gtm`
+- `clicutcl_server_side`
+- `clicutcl_tracking_v2`
+
+Restore runs through the same sanitizers used by the live admin save flow instead of raw option writes.
+
+## Woo Order Trace Lookup
+
+Diagnostics Woo lookup calls:
+
+- admin AJAX `clicutcl_lookup_woo_order_trace`
+
+Use it to inspect:
+
+- stored purchase trace snapshots
+- stored `order_paid`, `order_refunded`, and `order_cancelled` milestone traces
+- queue retry status for matching event IDs
 
 ## Debug Windows
 

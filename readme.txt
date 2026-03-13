@@ -10,13 +10,15 @@ Requires PHP: 8.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Consent-aware attribution for WooCommerce orders, WordPress forms, and event flows. Preserve UTMs and click IDs across real user journeys, push enriched purchase events, and optionally extend Woo storefront events into ClickTrail's unified pipeline.
+Consent-aware attribution for WooCommerce orders, WordPress forms, and event flows. Preserve UTMs and click IDs across real user journeys, push enriched purchase events, and optionally extend Woo storefront and post-purchase events into ClickTrail's unified pipeline.
 
 == Description ==
 
 ClickTrail helps WooCommerce stores and lead-generation sites stop losing campaign context between the landing page and the conversion.
 
-For WooCommerce specifically, ClickTrail keeps attribution attached to the order, pushes enriched purchase events on the thank-you page, and can optionally emit GA4-style storefront events for `view_item`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` through the same browser event layer.
+This plugin is sponsored by Funnelsheet.com.
+
+For WooCommerce specifically, ClickTrail keeps attribution attached to the order, pushes enriched purchase events on the thank-you page, and can optionally emit GA4-style storefront events for `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, and `begin_checkout`, plus post-purchase milestones, through the same ClickTrail pipeline.
 
 It is built for the parts of attribution that usually break in production: cached pages, dynamic forms, multi-page journeys, repeat visits, consent requirements, and optional server-side delivery.
 
@@ -34,7 +36,7 @@ That lets teams start with reliable order or form attribution first, then add br
 = What problems it solves =
 
 * **WooCommerce orders losing source data**: Paid traffic often ends up looking like direct traffic by the time an order is placed. ClickTrail stores attribution on the order and keeps purchase reporting tied to campaign context.
-* **Checkout continuity breaking before purchase**: WooCommerce storefront journeys can now emit opt-in `view_item`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` signals through the same ClickTrail event layer used elsewhere in the plugin.
+* **Checkout continuity breaking before purchase**: WooCommerce storefront journeys can now emit opt-in `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` signals through the same ClickTrail event layer used elsewhere in the plugin.
 * **Cached or dynamic forms**: Hidden fields often break on cached pages or AJAX-rendered forms. ClickTrail includes client-side fallback and dynamic-content support.
 * **Cross-domain breaks**: Approved link decoration and attribution tokens help keep continuity between domains or subdomains.
 * **Consent and transport complexity**: Consent controls, browser events, webhook intake, and server-side transport live in the same plugin.
@@ -42,7 +44,7 @@ That lets teams start with reliable order or form attribution first, then add br
 = Core capabilities =
 
 * **Capture**: first-touch and last-touch UTMs, major ad click IDs, and referrers with automatic organic/social/referral fallback when UTMs are absent.
-* **WooCommerce**: checkout attribution persistence, thank-you purchase event push, enriched commerce payloads, and optional storefront commerce events.
+* **WooCommerce**: checkout attribution persistence, thank-you purchase event push, enriched commerce payloads, optional storefront commerce events, and optional order-status milestones.
 * **Forms**: automatic hidden-field enrichment for Contact Form 7 and Fluent Forms, compatible hidden-field population for Gravity Forms and WPForms, client-side fallback, dynamic form support, and WhatsApp attribution continuity.
 * **Events**: browser event collection with `dataLayer` pushes, canonical REST intake, webhook ingestion, lifecycle updates, one-time WordPress follow-up events such as `login`, `sign_up`, and `comment_submit`, and optional WooCommerce storefront events.
 * **Delivery**: optional server-side transport, retry queue, diagnostics, consent-aware dispatch, and failure telemetry.
@@ -53,8 +55,9 @@ This release makes ClickTrail more WooCommerce-focused without changing the unde
 
 * **WooCommerce HPOS compatibility declaration**: ClickTrail now declares compatibility with WooCommerce custom order tables during bootstrap and keeps order-level attribution logic on Woo APIs.
 * **Richer purchase payloads**: purchase events now include additive commerce fields such as `subtotal`, `tax_total`, `shipping_total`, `discount_total`, `discount_codes`, `status`, `order_currency`, `item_quantity`, plus richer item detail such as `product_id`, `sku`, `variant`, and `categories`.
-* **Optional Woo storefront events**: sites can opt in to `view_item`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` through the existing ClickTrail browser event layer. Existing installs keep this off until enabled.
-* **Clearer WooCommerce guidance in Settings**: the Events tab now explains where Woo attribution is stored, how purchase events flow, how storefront events work, and where to verify them.
+* **Broader WooCommerce coverage**: sites can opt in to `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` through the existing ClickTrail browser event layer, and server-side delivery can follow post-purchase milestones such as `order_paid`, `order_refunded`, and `order_cancelled`.
+* **Stronger admin operations**: Settings now includes a setup checklist, while Diagnostics now adds conflict scanning, backup restore, and Woo order trace lookup for stored payload snapshots.
+* **Selective adapter expansion**: native delivery support now includes Pinterest Conversions API and TikTok Events API alongside the existing adapters.
 * **Deployment and privacy hardening**: this release also packages the recent WordPress.org deployment cleanup, Plugin Check fixes, privacy-query hardening, and debug visibility improvements.
 
 = Current admin structure =
@@ -77,7 +80,7 @@ Operational screens stay separate:
 * **Commerce**: WooCommerce
 * **CMP sources**: ClickTrail banner, Cookiebot, OneTrust, Complianz, GTM, custom
 * **Webhook providers**: Calendly, HubSpot, Typeform
-* **Server-side adapters**: Generic collector, sGTM, Meta CAPI, Google Ads / GA4, LinkedIn CAPI
+* **Server-side adapters**: Generic collector, sGTM, Meta CAPI, Google Ads / GA4, LinkedIn CAPI, Pinterest Conversions API, TikTok Events API
 
 = Forms behavior by plugin =
 
@@ -129,13 +132,13 @@ ClickTrail can be rolled out in layers. A basic attribution setup for forms or W
    * for Gravity Forms and WPForms, add the matching `ct_*` hidden fields you want to preserve, such as `ct_ft_source`, `ct_lt_source`, or `ct_gclid`
 6. In **Events**:
    * leave browser events enabled only if you want `dataLayer` pushes and on-site event capture
-   * enable **WooCommerce storefront events** only if you want `view_item`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` in the browser event layer
+   * enable **WooCommerce storefront events** only if you want `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` in the browser event layer
    * add a GTM container ID only if your site does not already inject GTM somewhere else
 7. In **Delivery**:
    * leave server-side delivery off if you do not have a collector, sGTM, or advertising endpoint yet
    * if you do use server-side delivery, configure the adapter, endpoint, and timeout here
    * if consent is required, choose the correct consent source and mode before going live
-8. Open **ClickTrail > Diagnostics** and run the relevant checks.
+8. Open **ClickTrail > Diagnostics** and run the relevant checks, especially Endpoint Test, Conflict Scan, and Woo Order Trace Lookup when applicable.
 
 = How to verify your setup =
 
@@ -144,7 +147,7 @@ ClickTrail can be rolled out in layers. A basic attribution setup for forms or W
 3. Confirm the expected result:
    * the WooCommerce order or form entry contains attribution values
    * Woo purchase events appear in your GTM preview or `dataLayer`
-   * if Woo storefront events are enabled, `view_item`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` appear in GTM preview or the `dataLayer`
+   * if Woo storefront events are enabled, `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` appear in GTM preview or the `dataLayer`
    * Diagnostics and Logs show intake or delivery activity if **Delivery** is enabled
 
 = Good default rollout =
@@ -163,7 +166,7 @@ ClickTrail now declares compatibility with WooCommerce custom order tables (HPOS
 
 = What do the WooCommerce storefront events do? =
 
-When you enable **WooCommerce storefront events** in the Events tab, ClickTrail emits `view_item`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` through the same browser event layer used for other ClickTrail events. They are off by default on upgrades.
+When you enable **WooCommerce storefront events** in the Events tab, ClickTrail emits `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` through the same browser event layer used for other ClickTrail events. They are off by default on upgrades.
 
 = Does ClickTrail replace GA4 or GTM? =
 
@@ -205,8 +208,10 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 = 1.4.0 =
 * Declared WooCommerce HPOS compatibility during bootstrap and kept WooCommerce order tracking on Woo order APIs.
 * Enriched WooCommerce purchase payloads with additive order totals, coupon/status data, richer item detail, and customer/order metadata.
-* Added opt-in WooCommerce storefront events for `view_item`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` through the existing browser event pipeline.
-* Added clearer WooCommerce guidance to the Events tab in the unified settings app.
+* Added opt-in WooCommerce storefront events for `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` through the existing browser event pipeline.
+* Added Woo order milestone delivery for `order_paid`, `order_refunded`, and `order_cancelled`, plus Diagnostics trace lookup for stored payload snapshots.
+* Added setup checklist, conflict scan, and backup restore tooling in the admin surfaces.
+* Added Pinterest Conversions API and TikTok Events API as first-class native delivery adapters.
 * Included the recent WordPress.org deployment cleanup, Plugin Check fixes, privacy-query hardening, and better debug visibility.
 
 = 1.3.9 =

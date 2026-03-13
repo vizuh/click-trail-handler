@@ -187,7 +187,7 @@ function clicutcl_init() {
 			}
 			echo '<div class="notice notice-error"><p>';
 			echo esc_html__(
-				'ClickTrail Handler could not start because a required class is missing. This usually means the release ZIP is missing files or the autoloader mapping is incorrect.',
+				'ClickTrail could not start because a required class is missing. This usually means the release ZIP is missing files or the autoloader mapping is incorrect.',
 				'click-trail-handler'
 			);
 			echo '</p></div>';

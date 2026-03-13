@@ -77,7 +77,7 @@ class Plugin {
 					}
 					echo '<div class="notice notice-error"><p>';
 					echo esc_html__(
-						'ClickTrail Handler failed to boot: missing class CLICUTCL\\Core\\Context. Check your autoloader mapping and release ZIP contents.',
+						'ClickTrail failed to boot: missing class CLICUTCL\\Core\\Context. Check your autoloader mapping and release ZIP contents.',
 						'click-trail-handler'
 					);
 					echo '</p></div>';
@@ -405,12 +405,13 @@ class Plugin {
 	 */
 	private function build_woocommerce_events_config(): array {
 		$config = array(
-			'enabled'  => false,
-			'pageType' => 'other',
-			'currency' => '',
-			'product'  => array(),
-			'cart'     => array(),
-			'checkout' => array(),
+			'enabled'        => false,
+			'pageType'       => 'other',
+			'currency'       => '',
+			'product'        => array(),
+			'cart'           => array(),
+			'checkout'       => array(),
+			'catalogContext' => array(),
 		);
 
 		if ( ! class_exists( 'WooCommerce' ) || ! class_exists( 'CLICUTCL\\Tracking\\Settings' ) ) {
@@ -425,6 +426,8 @@ class Plugin {
 		if ( ! $config['enabled'] ) {
 			return $config;
 		}
+
+		$config['catalogContext'] = $this->build_woocommerce_catalog_context();
 
 		if ( function_exists( 'is_product' ) && is_product() ) {
 			$product_id = function_exists( 'get_queried_object_id' ) ? absint( get_queried_object_id() ) : 0;
@@ -465,6 +468,55 @@ class Plugin {
 		}
 
 		return $config;
+	}
+
+	/**
+	 * Build catalog-context fallback naming for Woo list tracking.
+	 *
+	 * @return array<string,string>
+	 */
+	private function build_woocommerce_catalog_context(): array {
+		$context = array(
+			'page_type' => 'other',
+			'list_name' => '',
+		);
+
+		if ( function_exists( 'is_shop' ) && is_shop() ) {
+			$context['page_type'] = 'shop';
+			$context['list_name'] = function_exists( 'wc_get_page_id' ) ? get_the_title( wc_get_page_id( 'shop' ) ) : __( 'Shop', 'click-trail-handler' );
+			return $context;
+		}
+
+		if ( function_exists( 'is_product_category' ) && is_product_category() ) {
+			$term = get_queried_object();
+			if ( $term && ! empty( $term->name ) ) {
+				$context['page_type'] = 'product_category';
+				$context['list_name'] = sanitize_text_field( (string) $term->name );
+				return $context;
+			}
+		}
+
+		if ( function_exists( 'is_product_tag' ) && is_product_tag() ) {
+			$term = get_queried_object();
+			if ( $term && ! empty( $term->name ) ) {
+				$context['page_type'] = 'product_tag';
+				$context['list_name'] = sanitize_text_field( (string) $term->name );
+				return $context;
+			}
+		}
+
+		if ( is_search() ) {
+			$context['page_type'] = 'search';
+			$context['list_name'] = get_search_query()
+				? sprintf(
+					/* translators: %s: search query. */
+					__( 'Search: %s', 'click-trail-handler' ),
+					sanitize_text_field( (string) get_search_query() )
+				)
+				: __( 'Search Results', 'click-trail-handler' );
+		}
+
+		return $context;
 	}
 
 	/**

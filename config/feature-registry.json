@@ -1,0 +1,316 @@
+{
+  "schema_version": 1,
+  "delivery_adapters": {
+    "generic": {
+      "label": "Generic Collector",
+      "class": "CLICUTCL\\Server_Side\\Generic_Collector_Adapter",
+      "support_level": "collector",
+      "runtime_surface": "delivery",
+      "destination": "",
+      "docs_target": "docs/reference/INTEGRATIONS.md",
+      "smoke_test_ids": [
+        "delivery-adapter-generic"
+      ]
+    },
+    "sgtm": {
+      "label": "sGTM (Server GTM)",
+      "class": "CLICUTCL\\Server_Side\\Sgtm_Adapter",
+      "support_level": "relay",
+      "runtime_surface": "delivery",
+      "destination": "",
+      "docs_target": "docs/reference/INTEGRATIONS.md",
+      "smoke_test_ids": [
+        "delivery-adapter-sgtm"
+      ]
+    },
+    "meta_capi": {
+      "label": "Meta CAPI",
+      "class": "CLICUTCL\\Server_Side\\Meta_Capi_Adapter",
+      "support_level": "native_delivery",
+      "runtime_surface": "delivery",
+      "destination": "meta",
+      "docs_target": "docs/reference/INTEGRATIONS.md",
+      "smoke_test_ids": [
+        "delivery-adapter-meta"
+      ]
+    },
+    "google_ads": {
+      "label": "Google Ads / GA4",
+      "class": "CLICUTCL\\Server_Side\\Google_Ads_Adapter",
+      "support_level": "native_delivery",
+      "runtime_surface": "delivery",
+      "destination": "google",
+      "docs_target": "docs/reference/INTEGRATIONS.md",
+      "smoke_test_ids": [
+        "delivery-adapter-google"
+      ]
+    },
+    "linkedin_capi": {
+      "label": "LinkedIn CAPI",
+      "class": "CLICUTCL\\Server_Side\\LinkedIn_Capi_Adapter",
+      "support_level": "native_delivery",
+      "runtime_surface": "delivery",
+      "destination": "linkedin",
+      "docs_target": "docs/reference/INTEGRATIONS.md",
+      "smoke_test_ids": [
+        "delivery-adapter-linkedin"
+      ]
+    },
+    "pinterest_capi": {
+      "label": "Pinterest Conversions API",
+      "class": "CLICUTCL\\Server_Side\\Pinterest_Capi_Adapter",
+      "support_level": "native_delivery",
+      "runtime_surface": "delivery",
+      "destination": "pinterest",
+      "docs_target": "docs/reference/INTEGRATIONS.md",
+      "smoke_test_ids": [
+        "delivery-adapter-pinterest"
+      ]
+    },
+    "tiktok_events_api": {
+      "label": "TikTok Events API",
+      "class": "CLICUTCL\\Server_Side\\TikTok_Events_Api_Adapter",
+      "support_level": "native_delivery",
+      "runtime_surface": "delivery",
+      "destination": "tiktok",
+      "docs_target": "docs/reference/INTEGRATIONS.md",
+      "smoke_test_ids": [
+        "delivery-adapter-tiktok"
+      ]
+    }
+  },
+  "destinations": {
+    "meta": {
+      "label": "Meta",
+      "support_level": "native_delivery",
+      "runtime_surface": [
+        "events",
+        "delivery"
+      ],
+      "enablement_path": "events.destinations.meta",
+      "adapter_keys": [
+        "meta_capi"
+      ],
+      "docs_target": "docs/reference/INTEGRATIONS.md",
+      "smoke_test_ids": [
+        "destination-meta-toggle",
+        "delivery-adapter-meta"
+      ]
+    },
+    "google": {
+      "label": "Google",
+      "support_level": "native_delivery",
+      "runtime_surface": [
+        "events",
+        "delivery"
+      ],
+      "enablement_path": "events.destinations.google",
+      "adapter_keys": [
+        "google_ads"
+      ],
+      "docs_target": "docs/reference/INTEGRATIONS.md",
+      "smoke_test_ids": [
+        "destination-google-toggle",
+        "delivery-adapter-google"
+      ]
+    },
+    "linkedin": {
+      "label": "LinkedIn",
+      "support_level": "native_delivery",
+      "runtime_surface": [
+        "events",
+        "delivery"
+      ],
+      "enablement_path": "events.destinations.linkedin",
+      "adapter_keys": [
+        "linkedin_capi"
+      ],
+      "docs_target": "docs/reference/INTEGRATIONS.md",
+      "smoke_test_ids": [
+        "destination-linkedin-toggle",
+        "delivery-adapter-linkedin"
+      ]
+    },
+    "reddit": {
+      "label": "Reddit",
+      "support_level": "relay_only",
+      "runtime_surface": [
+        "events"
+      ],
+      "enablement_path": "events.destinations.reddit",
+      "adapter_keys": [],
+      "docs_target": "docs/reference/INTEGRATIONS.md",
+      "smoke_test_ids": [
+        "destination-reddit-toggle"
+      ]
+    },
+    "pinterest": {
+      "label": "Pinterest",
+      "support_level": "native_delivery",
+      "runtime_surface": [
+        "events",
+        "delivery"
+      ],
+      "enablement_path": "events.destinations.pinterest",
+      "adapter_keys": [
+        "pinterest_capi"
+      ],
+      "docs_target": "docs/reference/INTEGRATIONS.md",
+      "smoke_test_ids": [
+        "destination-pinterest-toggle",
+        "delivery-adapter-pinterest"
+      ]
+    },
+    "tiktok": {
+      "label": "TikTok",
+      "support_level": "native_delivery",
+      "runtime_surface": [
+        "events",
+        "delivery"
+      ],
+      "enablement_path": "events.destinations.tiktok",
+      "adapter_keys": [
+        "tiktok_events_api"
+      ],
+      "docs_target": "docs/reference/INTEGRATIONS.md",
+      "smoke_test_ids": [
+        "destination-tiktok-toggle",
+        "delivery-adapter-tiktok"
+      ]
+    }
+  },
+  "features": {
+    "capture_core": {
+      "label": "Capture core",
+      "support_level": "shipped",
+      "runtime_surface": [
+        "capture"
+      ],
+      "enablement_path": "capture.enabled",
+      "docs_target": "docs/guides/SETTINGS-AND-ADMIN.md",
+      "smoke_test_ids": [
+        "admin-save-capture"
+      ]
+    },
+    "forms_capture": {
+      "label": "Forms capture",
+      "support_level": "shipped",
+      "runtime_surface": [
+        "forms"
+      ],
+      "enablement_path": "forms.client_fallback",
+      "docs_target": "docs/guides/SETTINGS-AND-ADMIN.md",
+      "smoke_test_ids": [
+        "admin-save-forms"
+      ]
+    },
+    "browser_pipeline": {
+      "label": "Browser pipeline",
+      "support_level": "shipped",
+      "runtime_surface": [
+        "events",
+        "browser"
+      ],
+      "enablement_path": "events.browser_pipeline",
+      "docs_target": "docs/architecture/EVENT-PIPELINE.md",
+      "smoke_test_ids": [
+        "signed-intake-gate"
+      ]
+    },
+    "woo_storefront_events": {
+      "label": "WooCommerce storefront events",
+      "support_level": "shipped",
+      "runtime_surface": [
+        "events",
+        "browser",
+        "woo"
+      ],
+      "enablement_path": "events.woocommerce_storefront_events",
+      "docs_target": "docs/reference/INTEGRATIONS.md",
+      "smoke_test_ids": [
+        "woo-view-item",
+        "woo-add-to-cart",
+        "woo-remove-from-cart",
+        "woo-begin-checkout"
+      ]
+    },
+    "woo_list_tracking": {
+      "label": "WooCommerce list-view tracking",
+      "support_level": "shipped",
+      "runtime_surface": [
+        "events",
+        "browser",
+        "woo"
+      ],
+      "enablement_path": "events.woocommerce_storefront_events",
+      "docs_target": "docs/architecture/EVENT-PIPELINE.md",
+      "smoke_test_ids": [
+        "woo-view-item-list"
+      ]
+    },
+    "woo_order_milestones": {
+      "label": "WooCommerce order milestones",
+      "support_level": "shipped",
+      "runtime_surface": [
+        "delivery",
+        "woo"
+      ],
+      "enablement_path": "delivery.server.enabled",
+      "docs_target": "docs/reference/INTEGRATIONS.md",
+      "smoke_test_ids": [
+        "woo-order-paid",
+        "woo-order-refunded",
+        "woo-order-cancelled"
+      ]
+    },
+    "diagnostics_conflict_scan": {
+      "label": "Diagnostics conflict scan",
+      "support_level": "shipped",
+      "runtime_surface": [
+        "diagnostics"
+      ],
+      "enablement_path": "delivery.advanced.store_event_diagnostics",
+      "docs_target": "docs/guides/OPERATIONS-RUNBOOK.md",
+      "smoke_test_ids": [
+        "diagnostics-conflict-scan"
+      ]
+    },
+    "diagnostics_woo_lookup": {
+      "label": "Diagnostics Woo order lookup",
+      "support_level": "shipped",
+      "runtime_surface": [
+        "diagnostics",
+        "woo"
+      ],
+      "enablement_path": "delivery.advanced.store_event_diagnostics",
+      "docs_target": "docs/guides/OPERATIONS-RUNBOOK.md",
+      "smoke_test_ids": [
+        "diagnostics-woo-lookup"
+      ]
+    },
+    "settings_backup_restore": {
+      "label": "Settings backup restore",
+      "support_level": "shipped",
+      "runtime_surface": [
+        "admin"
+      ],
+      "enablement_path": "admin",
+      "docs_target": "docs/guides/SETTINGS-AND-ADMIN.md",
+      "smoke_test_ids": [
+        "settings-export-import"
+      ]
+    },
+    "queue_retry_semantics": {
+      "label": "Queue retry semantics",
+      "support_level": "shipped",
+      "runtime_surface": [
+        "delivery"
+      ],
+      "enablement_path": "delivery.server.enabled",
+      "docs_target": "docs/guides/OPERATIONS-RUNBOOK.md",
+      "smoke_test_ids": [
+        "queue-retry-semantics"
+      ]
+    }
+  }
+}

@@ -8,6 +8,7 @@
 namespace CLICUTCL\Server_Side;
 
 use CLICUTCL\Settings\Attribution_Settings;
+use CLICUTCL\Support\Feature_Registry;
 use CLICUTCL\Tracking\Dedup_Store;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -51,7 +52,23 @@ class Dispatcher {
 		'meta_capi'    => true,
 		'google_ads'   => true,
 		'linkedin_capi' => true,
+		'pinterest_capi' => true,
+		'tiktok_events_api' => true,
 	);
+
+	/**
+	 * Return adapter allowlist from the shared feature registry.
+	 *
+	 * @return array<string,true>
+	 */
+	public static function allowed_adapters(): array {
+		$allowed = Feature_Registry::allowed_adapter_keys();
+		if ( ! empty( $allowed ) ) {
+			return $allowed;
+		}
+
+		return self::ALLOWED_ADAPTERS;
+	}
 
 	/**
 	 * In-request failure counters waiting for flush.
@@ -99,6 +116,16 @@ class Dispatcher {
 	 * @return Adapter_Result
 	 */
 	public static function dispatch_purchase( $payload ) {
+		return self::dispatch_commerce_event( $payload );
+	}
+
+	/**
+	 * Dispatch a commerce event payload through the purchase/event builder.
+	 *
+	 * @param array $payload Commerce payload.
+	 * @return Adapter_Result
+	 */
+	public static function dispatch_commerce_event( $payload ) {
 		$event = Event::from_purchase( $payload );
 		return self::dispatch( $event );
 	}
@@ -325,19 +352,17 @@ class Dispatcher {
 		$adapter = sanitize_key( (string) $adapter );
 
 		// Fallback to generic for any unrecognised adapter key.
-		if ( ! isset( self::ALLOWED_ADAPTERS[ $adapter ] ) ) {
+		$allowed = self::allowed_adapters();
+		if ( ! isset( $allowed[ $adapter ] ) ) {
 			$adapter = 'generic';
 		}
 
+		$class = Feature_Registry::adapter_class( $adapter );
+		if ( $class && class_exists( $class ) ) {
+			return new $class( $endpoint, $timeout );
+		}
+
 		switch ( $adapter ) {
-			case 'sgtm':
-				return new Sgtm_Adapter( $endpoint, $timeout );
-			case 'meta_capi':
-				return new Meta_Capi_Adapter( $endpoint, $timeout );
-			case 'google_ads':
-				return new Google_Ads_Adapter( $endpoint, $timeout );
-			case 'linkedin_capi':
-				return new LinkedIn_Capi_Adapter( $endpoint, $timeout );
 			case 'generic':
 			default:
 				return new Generic_Collector_Adapter( $endpoint, $timeout );

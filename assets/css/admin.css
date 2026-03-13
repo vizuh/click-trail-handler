@@ -997,6 +997,27 @@
     background: #fafafa;
 }
 
+.clicktrail-diagnostics-results {
+    padding: 0 16px 16px;
+}
+
+.clicktrail-plain-list {
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.clicktrail-json-preview {
+    margin: 12px 0 0;
+    padding: 12px;
+    border-radius: 10px;
+    background: #0f172a;
+    color: #e2e8f0;
+    overflow: auto;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
 @media (max-width: 782px) {
     .clicktrail-page-header,
     .clicktrail-save-bar,

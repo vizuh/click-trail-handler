@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, and reviewers
 - **Canonical for**: option keys, cookies, tables, transients, cron hooks, and persistence surfaces
 - **Update when**: stored keys, retention behavior, queue schema, or cookie/storage usage changes
-- **Last verified against version**: `1.3.9`
+- **Last verified against version**: `1.4.0`
 
 This document summarizes the active storage surfaces used by ClickTrail.
 
@@ -85,6 +85,15 @@ Stores advanced runtime state for:
 - diagnostics tuning
 - dedup tuning
 
+Current destination state lives here as well, including:
+
+- `meta`
+- `google`
+- `linkedin`
+- `reddit`
+- `pinterest`
+- `tiktok`
+
 ## Client-Side Attribution Storage
 
 Cookie key:
@@ -140,6 +149,23 @@ Columns:
 - `next_attempt_at`
 - `last_error`
 - `created_at`
+
+## WooCommerce Order Meta Surfaces
+
+WooCommerce order-level tracking state now also uses order meta for traceability:
+
+- `_clicutcl_tracking_sent`: purchase dedup marker
+- `_clicutcl_woo_trace_snapshot`: stored purchase and milestone trace snapshots
+- `_clicutcl_woo_milestone_sent_{event_name}`: per-milestone sent markers
+
+The trace snapshot stores:
+
+- `event_name`
+- `event_id`
+- `source_hook`
+- `attempted_at`
+- canonical payload snapshot
+- dispatch result summary
 
 ## Client-Side Storage
 

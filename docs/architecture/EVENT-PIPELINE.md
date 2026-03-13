@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, and reviewers
 - **Canonical for**: browser-to-REST intake, webhook intake, lifecycle ingestion, dedup, and delivery flow
 - **Update when**: intake stages, canonical event flow, dedup behavior, or delivery stages change
-- **Last verified against version**: `1.3.9`
+- **Last verified against version**: `1.4.0`
 
 ClickTrail uses one unified event pipeline behind the admin UI, even though the data can enter the system from different sources.
 
@@ -54,7 +54,7 @@ Browser events currently include:
 - form start
 - form submit attempt
 - selected lead-gen CTA interactions
-- WooCommerce storefront signals including `view_item`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` when the storefront-events flag is enabled
+- WooCommerce storefront signals including `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` when the storefront-events flag is enabled
 - thank-you page lead detection
 - external message bridge events for supported embedded providers
 
@@ -64,6 +64,12 @@ Flow:
 2. consent is checked
 3. event is pushed to `window.dataLayer`
 4. if REST delivery is configured, a canonical event payload is posted to `/clicutcl/v2/events/batch`
+
+Woo list-view specifics:
+
+- product loops, related products, upsells, cross-sells, widgets, and supported Woo blocks can resolve `item_list_name`
+- list views fire once per detected container
+- downstream add-to-cart events can inherit `item_list_name` and `item_list_index` when the click came from a tracked list
 
 ## 3. Canonical Intake and Normalization
 
@@ -144,7 +150,15 @@ Flow:
 2. thank-you page pushes purchase event into `dataLayer`
 3. purchase identity is resolved from WooCommerce order data plus request context
 4. purchase payload is sent into dispatcher as a server-side event
-5. duplicate purchase sends are prevented with order meta
+5. purchase trace snapshots are stored on the order for Diagnostics lookup
+6. duplicate purchase sends are prevented with order meta
+
+Woo milestone flow:
+
+1. Woo order status hooks trigger `order_paid`, `order_refunded`, or `order_cancelled`
+2. each milestone reuses the purchase payload builder and receives a deterministic event ID
+3. trace snapshots are stored on the order before and after dispatch
+4. per-milestone order meta prevents repeated sends while queue retry remains the second line of defense
 
 ## 8. Dispatch and Queue
 
@@ -159,7 +173,7 @@ Queue:
 Flow:
 
 1. dispatcher validates environment, settings, endpoint, and consent
-2. adapter is selected
+2. adapter is selected from the registry-backed allowlist
 3. dedup check runs
 4. send attempt happens
 5. success is logged and dedup marker is stored
@@ -177,10 +191,13 @@ Queue behavior:
 
 Delivery diagnostics:
 
+- setup checklist in Settings for rollout readiness
+- conflict scan in Diagnostics
 - recent dispatch buffer
 - last error snapshot
 - aggregated failure telemetry
 - queue backlog stats
+- Woo order trace lookup backed by stored order snapshots
 
 Intake diagnostics:
 

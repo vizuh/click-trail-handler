@@ -29,6 +29,15 @@ Multisite only:
 
 The main settings surface is a unified admin app mounted into `#clicutcl-admin-settings-root`.
 
+Above the tabbed cards, the app now renders a read-only setup checklist for:
+
+- Capture
+- Consent Guidance
+- Forms
+- Events
+- Delivery
+- Woo
+
 Tab order:
 
 1. `Capture`
@@ -87,6 +96,7 @@ Primary controls:
 
 - browser event collection
 - WooCommerce storefront events
+- registry-driven destination toggles
 - GTM container ID
 - destination enablement
 - lifecycle update intake
@@ -95,7 +105,7 @@ WooCommerce guidance now lives inside the `Events` tab rather than in a separate
 
 - where WooCommerce order attribution is stored
 - how purchase pushes work on the thank-you page
-- what the optional storefront events setting does, including `view_item`, `add_to_cart`, `remove_from_cart`, and `begin_checkout`
+- what the optional storefront events setting does, including `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, and `begin_checkout`
 - where to verify Woo attribution and event output
 
 ## Delivery
@@ -107,7 +117,7 @@ Purpose:
 Primary controls:
 
 - server-side transport
-- adapter selection
+- registry-driven adapter selection
 - timeout and failure telemetry
 - consent mode
 - advanced delivery and security settings
@@ -237,6 +247,15 @@ Relevant feature flags now include:
 - `diagnostics_v2`
 - `lifecycle_ingestion`
 
+Relevant destination keys now include:
+
+- `meta`
+- `google`
+- `linkedin`
+- `reddit`
+- `pinterest`
+- `tiktok`
+
 ## Unified Settings AJAX
 
 The active settings screen uses these admin AJAX actions:
@@ -255,6 +274,12 @@ The grouped payload is translated back into:
 - `clicutcl_gtm`
 - `clicutcl_server_side`
 - `clicutcl_tracking_v2`
+
+The admin payload also includes:
+
+- registry-backed adapter and destination metadata
+- setup checklist rows
+- delivery operations summary data
 
 ## Logs Screen
 
@@ -280,6 +305,10 @@ Screen:
 Primary functions:
 
 - endpoint test
+- conflict scan
+- settings backup export
+- settings backup restore
+- Woo order trace lookup
 - debug-window toggle
 - queue backlog visibility
 - failure telemetry summary
@@ -289,8 +318,14 @@ Primary functions:
 Key AJAX actions:
 
 - `clicutcl_test_endpoint`
+- `clicutcl_conflict_scan`
+- `clicutcl_export_settings_backup`
+- `clicutcl_import_settings_backup`
+- `clicutcl_lookup_woo_order_trace`
 - `clicutcl_toggle_debug`
 - `clicutcl_purge_tracking_data`
+
+The Woo order trace lookup is diagnostics-only. It reads stored purchase and milestone snapshots from Woo order meta and augments them with live queue state.
 
 ## Dashboard and Site Health
 

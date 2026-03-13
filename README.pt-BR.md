@@ -46,7 +46,7 @@ O ClickTrail inclui fallback client-side e observacao de conteudo dinamico para 
 
 Trafego pago frequentemente acaba aparecendo como direto dentro dos pedidos.
 
-O ClickTrail grava a atribuicao no pedido, envia um evento de compra enriquecido para o `dataLayer` e pode estender a mesma jornada Woo para `view_item`, `add_to_cart`, `remove_from_cart`, `begin_checkout` e dispatch server-side opcional.
+O ClickTrail grava a atribuicao no pedido, envia um evento de compra enriquecido para o `dataLayer` e pode estender a mesma jornada Woo para `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, `begin_checkout`, marcos pos-compra e dispatch server-side opcional.
 
 ### 4. Jornadas entre dominios perdendo continuidade
 
@@ -109,6 +109,7 @@ Identificadores adicionais de browser incluem:
 - coleta de eventos no navegador
 - pushes para `dataLayer` em formato amigavel para GA4
 - eventos de busca, download, scroll, tempo na pagina, interacoes de lead gen e eventos pontuais do WordPress como `login`, `sign_up` e `comment_submit`
+- `view_item_list` opcional do Woo com contexto de `item_list_name` e `item_list_index`
 - intake de atualizacoes de lifecycle para CRM ou backend
 - pipeline canonico unificado por tras da interface
 
@@ -166,6 +167,8 @@ Comportamento por plugin:
 - Meta CAPI
 - Google Ads / GA4
 - LinkedIn CAPI
+- Pinterest Conversions API
+- TikTok Events API
 
 ## Experiencia no Admin
 
@@ -180,6 +183,13 @@ As telas operacionais continuam separadas:
 
 - **Logs**
 - **Diagnostics**
+
+As ferramentas operacionais agora incluem:
+
+- checklist de setup em modo somente leitura dentro de Settings
+- conflict scan interativo
+- exportacao e restauracao de backup das configuracoes
+- consulta de rastros de pedidos Woo para compras e marcos
 
 Isso deixa a configuracao principal mais clara sem esconder saude de fila e ferramentas de debug.
 

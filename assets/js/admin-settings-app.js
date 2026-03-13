@@ -211,6 +211,42 @@
         ]);
     }
 
+    function SetupChecklist(props) {
+        var items = Array.isArray(props.items) ? props.items : [];
+        if (!items.length) {
+            return null;
+        }
+
+        function toneForStatus(status) {
+            if (status === 'ready') {
+                return 'ok';
+            }
+            if (status === 'attention') {
+                return 'warn';
+            }
+            if (status === 'disabled') {
+                return 'neutral';
+            }
+            return 'info';
+        }
+
+        return el(AppCard, {
+            key: 'setup-checklist',
+            icon: 'dashicons-yes-alt',
+            title: __('Setup Checklist', 'click-trail-handler'),
+            description: __('Read-only readiness checks for rollout, delivery, and WooCommerce coverage.', 'click-trail-handler')
+        }, el('div', { className: 'clicktrail-diagnostics-grid clicktrail-diagnostics-grid--compact' }, items.map(function (item) {
+            return el('div', {
+                key: item.key || item.label,
+                className: 'clicktrail-diagnostic-stat clicktrail-diagnostic-stat--' + toneForStatus(item.status || 'info')
+            }, [
+                el('div', { key: 'label', className: 'clicktrail-diagnostic-stat__label' }, item.label || ''),
+                el('div', { key: 'value', className: 'clicktrail-diagnostic-stat__value' }, item.status === 'ready' ? __('Ready', 'click-trail-handler') : (item.status === 'attention' ? __('Needs Review', 'click-trail-handler') : (item.status === 'disabled' ? __('Unavailable', 'click-trail-handler') : __('Optional', 'click-trail-handler')))),
+                el('div', { key: 'detail', className: 'clicktrail-diagnostic-stat__sub' }, item.detail || '')
+            ]);
+        })));
+    }
+
     function App() {
         var settingsState = useState(deepClone(config.settings || {}));
         var settings = settingsState[0];
@@ -236,6 +272,10 @@
         var tabOrder = ['capture', 'forms', 'events', 'delivery'];
         var activeMeta = tabs[activeTab] || tabs.capture || {};
         var settingsBaseUrl = getIn(settings, 'urls.settings', '');
+        var registry = config.registry || {};
+        var setupChecklist = Array.isArray(getIn(settings, 'setup_checklist', [])) ? getIn(settings, 'setup_checklist', []) : [];
+        var adapterRegistry = Array.isArray(registry.adapters) ? registry.adapters : [];
+        var destinationRegistry = Array.isArray(registry.destinations) ? registry.destinations : [];
         var serverLocked = !!getIn(settings, 'delivery.server.has_network_defaults', false) && !!getIn(settings, 'delivery.server.use_network', false);
         var serverEnabled = !!getIn(settings, 'delivery.server.enabled', false);
         var consentEnabled = !!getIn(settings, 'delivery.privacy.enabled', false);
@@ -578,6 +618,14 @@
         }
 
         function renderEventsTab() {
+            function destinationHelp(entry) {
+                if (entry && entry.support_level === 'relay_only') {
+                    return __('Mark this destination when another relay or downstream collector owns final delivery.', 'click-trail-handler');
+                }
+
+                return __('Send eligible events to this destination when the matching delivery adapter or downstream collector is configured.', 'click-trail-handler');
+            }
+
             return [
                 el(InlineNotice, {
                     key: 'events-note',
@@ -608,12 +656,12 @@
                         key: 'events-woo-purchase',
                         text: __('Purchase events are pushed automatically on the thank-you page and can also flow into ClickTrail\'s server-side delivery adapters when Delivery is enabled.', 'click-trail-handler')
                     }),
-                    renderToggle('events.woocommerce_storefront_events', __('Enable WooCommerce storefront events', 'click-trail-handler'), __('Emit GA4-style `view_item`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` events through ClickTrail\'s browser event layer. Existing installs keep this off until you enable it.', 'click-trail-handler'), {
+                    renderToggle('events.woocommerce_storefront_events', __('Enable WooCommerce storefront events', 'click-trail-handler'), __('Emit GA4-style `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` events through ClickTrail\'s browser event layer. Existing installs keep this off until you enable it.', 'click-trail-handler'), {
                         disabled: !browserPipelineEnabled
                     }),
                     el(InlineNotice, {
                         key: 'events-woo-verify',
-                        text: __('Verify WooCommerce order attribution in the order screen, and verify storefront/browser events with GTM Preview, the dataLayer, or ClickTrail > Diagnostics when Delivery is enabled.', 'click-trail-handler')
+                        text: __('Verify WooCommerce order attribution in the order screen, storefront/browser events with GTM Preview or the dataLayer, and server-side traces from ClickTrail > Diagnostics.', 'click-trail-handler')
                     })
                 ]),
                 el(AppCard, {
@@ -621,13 +669,16 @@
                     icon: 'dashicons-share',
                     title: __('Destinations', 'click-trail-handler'),
                     description: __('Choose which advertising platforms should receive compatible event payloads.', 'click-trail-handler')
-                }, [
-                    renderToggle('events.destinations.meta', __('Meta', 'click-trail-handler'), __('Send eligible events to Meta-compatible delivery adapters when configured.', 'click-trail-handler')),
-                    renderToggle('events.destinations.google', __('Google', 'click-trail-handler'), __('Send eligible events to Google-compatible delivery adapters when configured.', 'click-trail-handler')),
-                    renderToggle('events.destinations.linkedin', __('LinkedIn', 'click-trail-handler'), __('Send eligible events to LinkedIn-compatible delivery adapters when configured.', 'click-trail-handler')),
-                    renderToggle('events.destinations.reddit', __('Reddit', 'click-trail-handler'), __('Send eligible events to Reddit-compatible delivery adapters when configured.', 'click-trail-handler')),
-                    renderToggle('events.destinations.pinterest', __('Pinterest', 'click-trail-handler'), __('Send eligible events to Pinterest-compatible delivery adapters when configured.', 'click-trail-handler'))
-                ]),
+                }, (destinationRegistry.length ? destinationRegistry : [
+                    { key: 'meta', label: __('Meta', 'click-trail-handler') },
+                    { key: 'google', label: __('Google', 'click-trail-handler') },
+                    { key: 'linkedin', label: __('LinkedIn', 'click-trail-handler') },
+                    { key: 'reddit', label: __('Reddit', 'click-trail-handler') },
+                    { key: 'pinterest', label: __('Pinterest', 'click-trail-handler') },
+                    { key: 'tiktok', label: __('TikTok', 'click-trail-handler') }
+                ]).map(function (entry) {
+                    return renderToggle('events.destinations.' + entry.key, entry.label, destinationHelp(entry));
+                })),
                 el(AppCard, {
                     key: 'events-lifecycle',
                     icon: 'dashicons-update',
@@ -732,12 +783,14 @@
                     }),
                     renderSelect('delivery.server.adapter', __('Delivery adapter', 'click-trail-handler'), __('Choose the format best suited to your receiving endpoint.', 'click-trail-handler'), {
                         disabled: serverLocked || !serverEnabled
-                    }, [
+                    }, adapterRegistry.length ? adapterRegistry : [
                         { label: __('Generic Collector', 'click-trail-handler'), value: 'generic' },
                         { label: __('sGTM (Server GTM)', 'click-trail-handler'), value: 'sgtm' },
                         { label: __('Meta CAPI', 'click-trail-handler'), value: 'meta_capi' },
                         { label: __('Google Ads / GA4', 'click-trail-handler'), value: 'google_ads' },
-                        { label: __('LinkedIn CAPI', 'click-trail-handler'), value: 'linkedin_capi' }
+                        { label: __('LinkedIn CAPI', 'click-trail-handler'), value: 'linkedin_capi' },
+                        { label: __('Pinterest Conversions API', 'click-trail-handler'), value: 'pinterest_capi' },
+                        { label: __('TikTok Events API', 'click-trail-handler'), value: 'tiktok_events_api' }
                     ]),
                     renderText('delivery.server.timeout', __('Request timeout (seconds)', 'click-trail-handler'), __('How long ClickTrail should wait before treating a delivery attempt as failed.', 'click-trail-handler'), {
                         disabled: serverLocked || !serverEnabled,
@@ -851,6 +904,7 @@
                     }
                 }, notice.message || '')
                 : null,
+            el(SetupChecklist, { key: 'checklist', items: setupChecklist }),
             loading ? el('div', { key: 'loading', style: { marginBottom: '12px' } }, el(Spinner)) : null,
             el(SummaryBar, { key: 'summary', items: computeStatusItems() }),
             el('h2', { key: 'tabs', className: 'nav-tab-wrapper clicktrail-app-tabs' }, tabOrder.map(function (slug) {

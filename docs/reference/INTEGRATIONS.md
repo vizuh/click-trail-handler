@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, reviewers, and solution engineers
 - **Canonical for**: supported integrations, providers, CMP sources, webhook sources, and delivery adapters
 - **Update when**: integration support level, adapter list, provider list, or capability messaging changes
-- **Last verified against version**: `1.3.9`
+- **Last verified against version**: `1.4.0`
 
 This document lists the active integrations and external-facing connection points in the current codebase.
 
@@ -68,13 +68,23 @@ What ClickTrail does:
 - save attribution on checkout
 - render attribution in WooCommerce admin
 - push purchase event to `dataLayer`
-- optionally emit storefront `view_item`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` browser events
-- optionally dispatch purchase events into the server-side delivery pipeline
+- optionally emit storefront `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` browser events
+- preserve `item_list_name` and `item_list_index` when list context is available
+- store purchase and milestone trace snapshots on the order for Diagnostics lookup
+- optionally dispatch purchase and order-status milestone events into the server-side delivery pipeline
+
+Post-purchase milestone events:
+
+- `order_paid`
+- `order_refunded`
+- `order_cancelled`
 
 Where teams see value:
 
 - order review stays tied to campaign context
 - purchase events can align browser and server-side reporting paths
+- list merchandising surfaces can feed richer Woo browser events without adding destination-specific logic
+- post-purchase milestones follow the same dispatcher, queue, dedup, and diagnostics model as purchases
 
 ## WordPress Core Follow-Up Events
 
@@ -176,11 +186,18 @@ Supported adapter keys:
 - `meta_capi`
 - `google_ads`
 - `linkedin_capi`
+- `pinterest_capi`
+- `tiktok_events_api`
 
 Current role of adapters:
 
 - send canonical delivery events to the configured endpoint shape
 - share queueing, retry, diagnostics, and consent gates
+- stay selectable through the shared feature registry instead of hard-coded admin lists
+
+Important constraint:
+
+- ClickTrail still uses one selected native adapter at a time. Destination toggles are capability markers and diagnostics inputs, not multi-send fan-out controls.
 
 Operational note:
 

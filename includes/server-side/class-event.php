@@ -235,12 +235,14 @@ class Event {
 		$payload = is_array( $payload ) ? $payload : array();
 
 		$commerce_source = isset( $payload['commerce'] ) && is_array( $payload['commerce'] ) ? $payload['commerce'] : array();
+		$event_name      = isset( $payload['event_name'] ) ? sanitize_key( (string) $payload['event_name'] ) : 'purchase';
+		$event_name      = '' !== $event_name ? $event_name : 'purchase';
 		$order_id       = isset( $payload['order_id'] ) ? absint( $payload['order_id'] ) : 0;
 		$transaction_id = isset( $commerce_source['transaction_id'] )
 			? sanitize_text_field( (string) $commerce_source['transaction_id'] )
 			: ( isset( $payload['transaction_id'] ) ? sanitize_text_field( (string) $payload['transaction_id'] ) : '' );
 		$event_id       = isset( $payload['event_id'] ) ? sanitize_text_field( (string) $payload['event_id'] ) : '';
-		$event_id       = $event_id ? $event_id : ( $transaction_id ? 'purchase_' . $transaction_id : ( $order_id ? 'purchase_' . $order_id : self::generate_id( 'purchase' ) ) );
+		$event_id       = $event_id ? $event_id : ( $transaction_id ? $event_name . '_' . $transaction_id : ( $order_id ? $event_name . '_' . $order_id : self::generate_id( $event_name ) ) );
 		$timestamp      = isset( $payload['timestamp'] ) ? absint( $payload['timestamp'] ) : time();
 
 		$items_source = isset( $commerce_source['items'] ) && is_array( $commerce_source['items'] )
@@ -297,10 +299,10 @@ class Event {
 		}
 
 		$data = array(
-			'event_name' => 'purchase',
+			'event_name' => $event_name,
 			'event_id'   => $event_id,
 			'timestamp'  => $timestamp,
-			'source'     => 'server',
+			'source'     => isset( $payload['source'] ) ? sanitize_text_field( (string) $payload['source'] ) : 'server',
 			'commerce'   => $commerce,
 			'attribution' => isset( $payload['attribution'] ) && is_array( $payload['attribution'] ) ? self::sanitize_nested_array( $payload['attribution'] ) : array(),
 			'identity'    => isset( $payload['identity'] ) && is_array( $payload['identity'] ) ? self::sanitize_nested_array( $payload['identity'] ) : array(),
@@ -399,6 +401,12 @@ class Event {
 			}
 			if ( isset( $item['categories'] ) && is_array( $item['categories'] ) ) {
 				$row['categories'] = self::sanitize_string_array( $item['categories'] );
+			}
+			if ( isset( $item['item_list_name'] ) ) {
+				$row['item_list_name'] = sanitize_text_field( (string) $item['item_list_name'] );
+			}
+			if ( isset( $item['item_list_index'] ) ) {
+				$row['item_list_index'] = absint( $item['item_list_index'] );
 			}
 
 			$sanitized[] = $row;
