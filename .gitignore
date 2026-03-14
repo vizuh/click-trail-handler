@@ -2,6 +2,7 @@ assets/js/ct-consent.js
 includes/integrations/class-form-integrations.php
 dist/
 node_modules/
+vendor/
 
 # Claude Code
 .claude/
@@ -11,6 +12,7 @@ node_modules/
 
 # Local dev configs
 .mcp.json
+.tools/
 
 # Internal notes
 readme_header_update.txt
