@@ -32,7 +32,8 @@ After enabling the plugin, validate:
 3. attribution is captured from a test URL with UTMs
 4. a supported form receives attribution fields
 5. if WooCommerce is active, a test order stores attribution
-6. if server-side delivery is enabled, `Diagnostics > Endpoint Test` succeeds
+6. if sGTM mode is enabled, the Events-tab preview checks can reach the configured loader and collector URLs
+7. if server-side delivery is enabled, `Diagnostics > Endpoint Test` succeeds
 
 ## Health and Visibility Surfaces
 
@@ -55,6 +56,11 @@ Diagnostics exposes:
 - recent dispatches
 - failure telemetry
 - local purge action
+
+Settings also exposes:
+
+- read-only setup checklist
+- sGTM preview checks and destination template hints in the Events tab
 
 ## Queue Behavior
 
@@ -205,6 +211,8 @@ It is designed for deterministic local checks such as:
 
 - cache or optimization plugins detected while client fallback is off
 - Woo storefront events enabled without WooCommerce
+- sGTM mode enabled without a container or loader source
+- sGTM mode enabled while Delivery is not using the sGTM adapter
 - adapter and destination toggle mismatches
 - GTM plus native destination ownership overlap
 - delivery enabled without an endpoint URL

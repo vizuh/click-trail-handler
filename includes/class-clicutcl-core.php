@@ -19,6 +19,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use CLICUTCL\Admin\Admin;
 use CLICUTCL\Api\Tracking_Controller;
 use CLICUTCL\Integrations\WooCommerce;
+use CLICUTCL\Modules\GTM\GTM_Settings;
 use CLICUTCL\Privacy\Privacy_Handler;
 use CLICUTCL\Settings\Attribution_Settings;
 use CLICUTCL\Server_Side\Queue;
@@ -412,11 +413,24 @@ class Plugin {
 			'cart'           => array(),
 			'checkout'       => array(),
 			'catalogContext' => array(),
+			'dataLayer'      => array(
+				'enhancedContract' => false,
+				'includeUserData'  => false,
+			),
 		);
 
 		if ( ! class_exists( 'WooCommerce' ) || ! class_exists( 'CLICUTCL\\Tracking\\Settings' ) ) {
 			return $config;
 		}
+
+		$gtm_settings = class_exists( 'CLICUTCL\\Modules\\GTM\\GTM_Settings' )
+			? ( new GTM_Settings() )->get()
+			: array();
+
+		$config['dataLayer'] = array(
+			'enhancedContract' => ! empty( $gtm_settings['woo_enhanced_datalayer'] ),
+			'includeUserData'  => ! empty( $gtm_settings['woo_include_user_data'] ),
+		);
 
 		$config['currency'] = function_exists( 'get_woocommerce_currency' )
 			? sanitize_text_field( (string) get_woocommerce_currency() )

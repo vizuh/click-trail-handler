@@ -268,6 +268,14 @@
         var activeTab = tabState[0];
         var setActiveTab = tabState[1];
 
+        var sgtmPreviewState = useState(null);
+        var sgtmPreview = sgtmPreviewState[0];
+        var setSgtmPreview = sgtmPreviewState[1];
+
+        var sgtmPreviewLoadingState = useState(false);
+        var sgtmPreviewLoading = sgtmPreviewLoadingState[0];
+        var setSgtmPreviewLoading = sgtmPreviewLoadingState[1];
+
         var tabs = config.tabs || {};
         var tabOrder = ['capture', 'forms', 'events', 'delivery'];
         var activeMeta = tabs[activeTab] || tabs.capture || {};
@@ -286,6 +294,10 @@
         var linkDecorationEnabled = !!getIn(settings, 'capture.decorate_links', false);
         var whatsappEnabled = !!getIn(settings, 'forms.whatsapp.enabled', false);
         var webhookSourcesEnabled = !!getIn(settings, 'forms.webhook_sources_enabled', false);
+        var gtmMode = String(getIn(settings, 'events.gtm_mode', 'standard') || 'standard');
+        var sgtmModeEnabled = gtmMode === 'sgtm';
+        var customLoaderEnabled = !!getIn(settings, 'events.gtm_custom_loader_enabled', false);
+        var wooEnhancedDataLayerEnabled = !!getIn(settings, 'events.woo_enhanced_datalayer', false);
 
         function update(path, value) {
             setSettings(function (prev) {
@@ -318,6 +330,7 @@
         function reload() {
             setLoading(true);
             setNotice(null);
+            setSgtmPreview(null);
             postAjax('clicutcl_get_admin_settings', {})
                 .then(function (json) {
                     if (!json || !json.success) {
@@ -364,6 +377,30 @@
                 })
                 .finally(function () {
                     setSaving(false);
+                });
+        }
+
+        function runSgtmPreviewChecks() {
+            setSgtmPreviewLoading(true);
+            setNotice(null);
+            postAjax('clicutcl_sgtm_preview_check', {
+                settings: JSON.stringify(settings || {})
+            })
+                .then(function (json) {
+                    if (!json || !json.success) {
+                        throw new Error((json && json.data && json.data.message) || 'preview_failed');
+                    }
+
+                    setSgtmPreview(json.data && json.data.report ? json.data.report : null);
+                })
+                .catch(function () {
+                    setNotice({
+                        status: 'error',
+                        message: __('Failed to run sGTM preview checks.', 'click-trail-handler')
+                    });
+                })
+                .finally(function () {
+                    setSgtmPreviewLoading(false);
                 });
         }
 
@@ -618,12 +655,25 @@
         }
 
         function renderEventsTab() {
+            var previewChecks = Array.isArray(getIn(sgtmPreview, 'checks', [])) ? getIn(sgtmPreview, 'checks', []) : [];
+            var templateHints = Array.isArray(getIn(sgtmPreview, 'template_hints', [])) ? getIn(sgtmPreview, 'template_hints', []) : [];
+
             function destinationHelp(entry) {
                 if (entry && entry.support_level === 'relay_only') {
                     return __('Mark this destination when another relay or downstream collector owns final delivery.', 'click-trail-handler');
                 }
 
                 return __('Send eligible events to this destination when the matching delivery adapter or downstream collector is configured.', 'click-trail-handler');
+            }
+
+            function toneForCheck(status) {
+                if (status === 'ready') {
+                    return 'ok';
+                }
+                if (status === 'attention') {
+                    return 'warn';
+                }
+                return 'info';
             }
 
             return [
@@ -635,12 +685,94 @@
                     key: 'events-core',
                     icon: 'dashicons-chart-bar',
                     title: __('Event collection', 'click-trail-handler'),
-                    description: __('Control browser event collection and optional GTM loading for this site.', 'click-trail-handler')
+                    description: __('Control browser event collection and choose whether GTM should load in standard or sGTM compatibility mode.', 'click-trail-handler')
                 }, [
                     renderToggle('events.browser_pipeline', __('Enable browser event collection', 'click-trail-handler'), __('Collect page, click, and form events through ClickTrail\'s unified event layer.', 'click-trail-handler')),
                     renderText('events.gtm_container_id', __('Google Tag Manager container ID', 'click-trail-handler'), __('Use only if your site does not already load Google Tag Manager.', 'click-trail-handler'), {
                         placeholder: 'GTM-XXXXXXX'
+                    }),
+                    renderSelect('events.gtm_mode', __('GTM loader mode', 'click-trail-handler'), __('Use standard mode for the default Google host, or sGTM mode when you want a tagging-server URL or custom loader path.', 'click-trail-handler'), {}, [
+                        { label: __('Standard GTM', 'click-trail-handler'), value: 'standard' },
+                        { label: __('sGTM compatibility mode', 'click-trail-handler'), value: 'sgtm' }
+                    ]),
+                    renderText('events.gtm_tagging_server_url', __('Tagging server URL', 'click-trail-handler'), __('Used for first-party GTM delivery and preview checks in sGTM mode.', 'click-trail-handler'), {
+                        disabled: !sgtmModeEnabled,
+                        placeholder: 'https://sgtm.example.com'
+                    }),
+                    renderToggle('events.gtm_first_party_script', __('Use first-party script delivery', 'click-trail-handler'), __('Load `gtm.js` and `ns.html` from the tagging server instead of the default Google host.', 'click-trail-handler'), {
+                        disabled: !sgtmModeEnabled
+                    }),
+                    renderToggle('events.gtm_custom_loader_enabled', __('Use a custom loader path', 'click-trail-handler'), __('Prefer a same-site loader path when your sGTM setup rewrites GTM requests through a first-party URL.', 'click-trail-handler'), {
+                        disabled: !sgtmModeEnabled
+                    }),
+                    renderText('events.gtm_custom_loader_url', __('Custom loader URL or path', 'click-trail-handler'), __('Examples: `/metrics/gtm.js` or `https://metrics.example.com/gtm.js`.', 'click-trail-handler'), {
+                        disabled: !sgtmModeEnabled || !customLoaderEnabled,
+                        placeholder: '/metrics/gtm.js'
+                    }),
+                    el(InlineNotice, {
+                        key: 'events-gtm-mode-note',
+                        text: sgtmModeEnabled
+                            ? __('sGTM mode changes only the loader path and preview workflow. ClickTrail still uses the same canonical event pipeline underneath.', 'click-trail-handler')
+                            : __('Standard mode keeps the default Google Tag Manager loader. Switch to sGTM mode when you need a tagging-server URL, first-party delivery, or a custom loader path.', 'click-trail-handler')
                     })
+                ]),
+                el(AppCard, {
+                    key: 'events-sgtm-wizard',
+                    icon: 'dashicons-cloud',
+                    title: __('sGTM setup wizard', 'click-trail-handler'),
+                    description: __('Use this checklist when ClickTrail should cooperate with a server-side GTM stack without turning into a generic tag manager.', 'click-trail-handler')
+                }, [
+                    el(InlineNotice, {
+                        key: 'events-sgtm-intro',
+                        text: __('Recommended flow: set the web container, choose a tagging-server URL or custom loader, point Delivery to the sGTM adapter when ClickTrail sends server events, then verify ownership in GTM Preview.', 'click-trail-handler')
+                    }),
+                    el('ol', {
+                        key: 'events-sgtm-steps',
+                        className: 'clicktrail-checklist'
+                    }, [
+                        el('li', { key: 'step-container' }, __('Set the GTM web container ID for the site that owns the browser dataLayer.', 'click-trail-handler')),
+                        el('li', { key: 'step-loader' }, __('Choose a tagging-server URL for first-party delivery or a custom loader path if your stack rewrites GTM requests.', 'click-trail-handler')),
+                        el('li', { key: 'step-delivery' }, __('When ClickTrail should send server events into sGTM, switch Delivery to the sGTM adapter and point it at the collector URL.', 'click-trail-handler')),
+                        el('li', { key: 'step-preview' }, __('Run preview checks here, then confirm the web and server containers receive the events you expect without duplicate ownership.', 'click-trail-handler'))
+                    ]),
+                    el('div', { key: 'events-sgtm-actions', className: 'clicktrail-ops-links' }, [
+                        el(Button, {
+                            key: 'events-sgtm-run',
+                            variant: 'secondary',
+                            isBusy: sgtmPreviewLoading,
+                            disabled: sgtmPreviewLoading,
+                            onClick: runSgtmPreviewChecks
+                        }, __('Run Preview Checks', 'click-trail-handler'))
+                    ]),
+                    sgtmPreviewLoading
+                        ? el('div', { key: 'events-sgtm-loading', style: { marginTop: '12px' } }, el(Spinner))
+                        : null,
+                    sgtmPreview && getIn(sgtmPreview, 'summary', '')
+                        ? el(InlineNotice, {
+                            key: 'events-sgtm-summary',
+                            text: String(getIn(sgtmPreview, 'summary', ''))
+                        })
+                        : null,
+                    previewChecks.length
+                        ? el('div', { key: 'events-sgtm-checks', className: 'clicktrail-diagnostics-grid clicktrail-diagnostics-grid--compact' }, previewChecks.map(function (check) {
+                            return el('div', {
+                                key: check.key || check.label,
+                                className: 'clicktrail-diagnostic-stat clicktrail-diagnostic-stat--' + toneForCheck(check.status || 'info')
+                            }, [
+                                el('div', { key: 'label', className: 'clicktrail-diagnostic-stat__label' }, check.label || ''),
+                                el('div', { key: 'value', className: 'clicktrail-diagnostic-stat__value' }, check.status === 'ready' ? __('Ready', 'click-trail-handler') : (check.status === 'attention' ? __('Needs Review', 'click-trail-handler') : __('Optional', 'click-trail-handler'))),
+                                el('div', { key: 'detail', className: 'clicktrail-diagnostic-stat__sub' }, check.detail || '')
+                            ]);
+                        }))
+                        : null,
+                    templateHints.length
+                        ? el('div', { key: 'events-sgtm-hints', className: 'clicktrail-setting-block' }, [
+                            el('strong', { key: 'events-sgtm-hints-title' }, __('Destination template hints', 'click-trail-handler')),
+                            el('ul', { key: 'events-sgtm-hints-list' }, templateHints.map(function (hint) {
+                                return el('li', { key: hint.key || hint.label }, (hint.label || '') + ': ' + (hint.detail || ''));
+                            }))
+                        ])
+                        : null
                 ]),
                 el(AppCard, {
                     key: 'events-woocommerce',
@@ -656,8 +788,16 @@
                         key: 'events-woo-purchase',
                         text: __('Purchase events are pushed automatically on the thank-you page and can also flow into ClickTrail\'s server-side delivery adapters when Delivery is enabled.', 'click-trail-handler')
                     }),
-                    renderToggle('events.woocommerce_storefront_events', __('Enable WooCommerce storefront events', 'click-trail-handler'), __('Emit GA4-style `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` events through ClickTrail\'s browser event layer. Existing installs keep this off until you enable it.', 'click-trail-handler'), {
+                    renderToggle('events.woocommerce_storefront_events', __('Enable WooCommerce storefront events', 'click-trail-handler'), __('Emit GA4-style `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` events through ClickTrail\'s browser event layer. Existing installs keep this off until you enable it.', 'click-trail-handler'), {
                         disabled: !browserPipelineEnabled
+                    }),
+                    renderToggle('events.woo_enhanced_datalayer', __('Use the richer Woo dataLayer contract', 'click-trail-handler'), __('Add `event_id` to Woo purchase pushes and make richer Woo browser events available for GTM-first setups.', 'click-trail-handler')),
+                    renderToggle('events.woo_include_user_data', __('Include consent-aware Woo user_data', 'click-trail-handler'), __('Emit `user_data` objects with browser identifiers and purchase identity only when the richer contract is on and marketing consent is granted.', 'click-trail-handler'), {
+                        disabled: !wooEnhancedDataLayerEnabled
+                    }),
+                    el(InlineNotice, {
+                        key: 'events-woo-contract',
+                        text: __('The richer contract is optional. ClickTrail still keeps Woo tracking on the same canonical pipeline and only widens the dataLayer shape for GTM-first workflows.', 'click-trail-handler')
                     }),
                     el(InlineNotice, {
                         key: 'events-woo-verify',

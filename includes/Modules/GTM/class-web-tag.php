@@ -63,22 +63,26 @@ class Web_Tag {
 	 * Outputs Tag Manager script.
 	 */
 	public function render() {
+		$settings     = $this->gtm_settings->get();
 		$container_id = $this->gtm_settings->get_container_id();
-		if ( empty( $container_id ) ) {
+		$script_src   = GTM_Settings::build_script_src( $settings, $container_id );
+		if ( empty( $container_id ) || empty( $script_src ) ) {
 			return;
 		}
 
 		$script = "
-			(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+			(function(w,d,s,l,u){w[l]=w[l]||[];w[l].push({'gtm.start':
 			new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-			j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-			'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+			j=d.createElement(s);j.async=true;j.src=u;f.parentNode.insertBefore(j,f);
 			})(window,document,'script','dataLayer','%s');
 		";
 
-		printf( "\n<!-- %s -->\n", esc_html__( 'Google Tag Manager snippet added by ClickTrail', 'click-trail-handler' ) );
+		$mode_label = 'sgtm' === $this->gtm_settings->get_mode()
+			? __( 'Google Tag Manager snippet added by ClickTrail (sGTM mode)', 'click-trail-handler' )
+			: __( 'Google Tag Manager snippet added by ClickTrail', 'click-trail-handler' );
+		printf( "\n<!-- %s -->\n", esc_html( $mode_label ) );
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Content is hardcoded script with safely escaped ID.
-		printf( "<script>%s</script>", sprintf( $script, esc_js( $container_id ) ) );
+		printf( "<script>%s</script>", sprintf( $script, esc_js( $script_src ) ) );
 		printf( "\n<!-- %s -->\n", esc_html__( 'End Google Tag Manager snippet added by ClickTrail', 'click-trail-handler' ) );
 	}
 
@@ -92,12 +96,12 @@ class Web_Tag {
 		}
 		define( 'CLICUTCL_GTM_NOSCRIPT_RENDERED', true );
 
+		$settings     = $this->gtm_settings->get();
 		$container_id = $this->gtm_settings->get_container_id();
-		if ( empty( $container_id ) ) {
+		$iframe_src   = GTM_Settings::build_noscript_src( $settings, $container_id );
+		if ( empty( $container_id ) || empty( $iframe_src ) ) {
 			return;
 		}
-
-		$iframe_src = 'https://www.googletagmanager.com/ns.html?id=' . rawurlencode( $container_id );
 
 		?>
 		<!-- <?php esc_html_e( 'Google Tag Manager (noscript) snippet added by ClickTrail', 'click-trail-handler' ); ?> -->

@@ -110,7 +110,7 @@ class Event_Translator_V1_To_V2 {
 		$event_name = sanitize_key( $event_name );
 
 		$top = array( 'page_view', 'key_page_view', 'view_content', 'search', 'video_view', 'scroll_depth', 'view_item', 'view_item_list' );
-		$mid = array( 'cta_click', 'form_start', 'form_submit_attempt', 'contact_call_click', 'contact_whatsapp_start', 'contact_chat_start', 'add_to_cart', 'remove_from_cart' );
+		$mid = array( 'cta_click', 'form_start', 'form_submit_attempt', 'contact_call_click', 'contact_whatsapp_start', 'contact_chat_start', 'view_cart', 'add_to_cart', 'remove_from_cart' );
 		$bot = array( 'lead', 'book_appointment', 'qualified_lead', 'client_won', 'purchase', 'begin_checkout', 'order_paid', 'order_refunded', 'order_cancelled', 'login', 'sign_up' );
 
 		if ( in_array( $event_name, $top, true ) ) {
@@ -140,7 +140,7 @@ class Event_Translator_V1_To_V2 {
 		if ( in_array( $event_name, array( 'lead', 'book_appointment', 'qualified_lead', 'client_won', 'purchase', 'order_paid', 'order_refunded', 'order_cancelled', 'login', 'sign_up' ), true ) ) {
 			return 'converted';
 		}
-		if ( in_array( $event_name, array( 'cta_click', 'form_start', 'form_submit_attempt', 'contact_call_click', 'contact_whatsapp_start', 'contact_chat_start', 'add_to_cart', 'remove_from_cart', 'begin_checkout' ), true ) ) {
+		if ( in_array( $event_name, array( 'cta_click', 'form_start', 'form_submit_attempt', 'contact_call_click', 'contact_whatsapp_start', 'contact_chat_start', 'view_cart', 'add_to_cart', 'remove_from_cart', 'begin_checkout' ), true ) ) {
 			return 'high';
 		}
 		if ( 'mid' === $funnel_stage ) {

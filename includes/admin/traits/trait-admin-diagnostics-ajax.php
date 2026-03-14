@@ -307,6 +307,37 @@ trait Admin_Diagnostics_Ajax_Trait {
 	}
 
 	/**
+	 * Run sGTM preview and setup checks against the current admin payload.
+	 *
+	 * @return void
+	 */
+	public function ajax_sgtm_preview_check() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Forbidden', 'click-trail-handler' ) ), 403 );
+		}
+		check_ajax_referer( 'clicutcl_admin_settings', 'nonce' );
+
+		$settings = $this->get_unified_admin_settings();
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above.
+		$raw = isset( $_POST['settings'] ) ? wp_unslash( $_POST['settings'] ) : '';
+		if ( is_string( $raw ) && '' !== trim( $raw ) ) {
+			$decoded = json_decode( $raw, true );
+			if ( is_array( $decoded ) ) {
+				$settings = array_replace_recursive( $settings, $decoded );
+			}
+		}
+
+		$report = $this->build_sgtm_preview_report( $settings );
+		wp_send_json_success(
+			array(
+				'message' => $report['summary'] ?? '',
+				'report'  => $report,
+			)
+		);
+	}
+
+	/**
 	 * Export a privileged settings backup.
 	 *
 	 * @return void
@@ -492,6 +523,47 @@ trait Admin_Diagnostics_Ajax_Trait {
 			);
 		}
 
+		$gtm_mode = isset( $gtm_settings['mode'] ) ? sanitize_key( (string) $gtm_settings['mode'] ) : 'standard';
+		if ( 'sgtm' === $gtm_mode && empty( $gtm_settings['container_id'] ) ) {
+			$findings[] = array(
+				'severity' => 'high',
+				'title'    => __( 'sGTM mode enabled without a web container', 'click-trail-handler' ),
+				'detail'   => __( 'Add a GTM web container ID before testing sGTM mode.', 'click-trail-handler' ),
+			);
+		}
+
+		if ( 'sgtm' === $gtm_mode && empty( $gtm_settings['tagging_server_url'] ) && empty( $gtm_settings['custom_loader_url'] ) ) {
+			$findings[] = array(
+				'severity' => 'high',
+				'title'    => __( 'sGTM mode has no loader source', 'click-trail-handler' ),
+				'detail'   => __( 'Provide a tagging server URL or a custom loader path so ClickTrail can deliver the GTM script in sGTM mode.', 'click-trail-handler' ),
+			);
+		}
+
+		if ( ! empty( $gtm_settings['custom_loader_enabled'] ) && empty( $gtm_settings['custom_loader_url'] ) ) {
+			$findings[] = array(
+				'severity' => 'medium',
+				'title'    => __( 'Custom loader enabled without a path', 'click-trail-handler' ),
+				'detail'   => __( 'Add a same-site path or loader URL before enabling the custom loader option.', 'click-trail-handler' ),
+			);
+		}
+
+		if ( 'sgtm' === $gtm_mode && ! empty( $server_effective['enabled'] ) && 'sgtm' !== $current_adapter ) {
+			$findings[] = array(
+				'severity' => 'medium',
+				'title'    => __( 'sGTM mode does not match the active delivery adapter', 'click-trail-handler' ),
+				'detail'   => __( 'GTM is configured for sGTM mode, but Delivery is not currently using the sGTM adapter.', 'click-trail-handler' ),
+			);
+		}
+
+		if ( ! empty( $gtm_settings['woo_include_user_data'] ) && empty( $gtm_settings['woo_enhanced_datalayer'] ) ) {
+			$findings[] = array(
+				'severity' => 'info',
+				'title'    => __( 'Woo user_data is enabled without the richer contract', 'click-trail-handler' ),
+				'detail'   => __( 'Turn on the richer Woo dataLayer contract if you want ClickTrail to emit consent-aware user_data objects.', 'click-trail-handler' ),
+			);
+		}
+
 		if ( ! empty( $adapter_meta[ $current_adapter ]['destination'] ) ) {
 			$destination_key = sanitize_key( (string) $adapter_meta[ $current_adapter ]['destination'] );
 			if ( empty( $settings['events']['destinations'][ $destination_key ] ) ) {
@@ -598,6 +670,252 @@ trait Admin_Diagnostics_Ajax_Trait {
 	}
 
 	/**
+	 * Build preview checks for the sGTM compatibility layer.
+	 *
+	 * @param array $settings Unified admin settings payload.
+	 * @return array<string,mixed>
+	 */
+	private function build_sgtm_preview_report( array $settings ): array {
+		$events             = isset( $settings['events'] ) && is_array( $settings['events'] ) ? $settings['events'] : array();
+		$delivery           = isset( $settings['delivery']['server'] ) && is_array( $settings['delivery']['server'] ) ? $settings['delivery']['server'] : array();
+		$destinations       = isset( $events['destinations'] ) && is_array( $events['destinations'] ) ? $events['destinations'] : array();
+		$container_id       = sanitize_text_field( (string) ( $events['gtm_container_id'] ?? '' ) );
+		$mode               = sanitize_key( (string) ( $events['gtm_mode'] ?? 'standard' ) );
+		$gtm_payload        = GTM_Settings::sanitize(
+			array(
+				'container_id'           => $container_id,
+				'mode'                   => $mode,
+				'tagging_server_url'     => $events['gtm_tagging_server_url'] ?? '',
+				'first_party_script'     => ! empty( $events['gtm_first_party_script'] ) ? 1 : 0,
+				'custom_loader_enabled'  => ! empty( $events['gtm_custom_loader_enabled'] ) ? 1 : 0,
+				'custom_loader_url'      => $events['gtm_custom_loader_url'] ?? '',
+				'woo_enhanced_datalayer' => ! empty( $events['woo_enhanced_datalayer'] ) ? 1 : 0,
+				'woo_include_user_data'  => ! empty( $events['woo_include_user_data'] ) ? 1 : 0,
+			)
+		);
+		$tagging_server_url = (string) ( $gtm_payload['tagging_server_url'] ?? '' );
+		$loader_url         = GTM_Settings::build_script_src( $gtm_payload, $container_id );
+		$current_adapter    = sanitize_key( (string) ( $delivery['adapter'] ?? 'generic' ) );
+		$endpoint_url       = esc_url_raw( (string) ( $delivery['endpoint_url'] ?? '' ) );
+		$delivery_enabled   = ! empty( $delivery['enabled'] );
+		$first_party_on     = ! empty( $gtm_payload['first_party_script'] );
+		$custom_loader_on   = ! empty( $gtm_payload['custom_loader_enabled'] );
+		$native_destinations = count( array_filter( $destinations ) );
+
+		$checks = array(
+			array(
+				'key'    => 'web_container',
+				'label'  => __( 'Web container', 'click-trail-handler' ),
+				'status' => '' !== $container_id ? 'ready' : 'attention',
+				'detail' => '' !== $container_id
+					? sprintf(
+						/* translators: %s: GTM container ID. */
+						__( 'Container %s is configured.', 'click-trail-handler' ),
+						$container_id
+					)
+					: __( 'Add a GTM web container ID before using the wizard.', 'click-trail-handler' ),
+			),
+			array(
+				'key'    => 'sgtm_mode',
+				'label'  => __( 'sGTM mode', 'click-trail-handler' ),
+				'status' => 'sgtm' === $mode ? 'ready' : 'neutral',
+				'detail' => 'sgtm' === $mode
+					? __( 'sGTM compatibility mode is active.', 'click-trail-handler' )
+					: __( 'ClickTrail is still using the standard GTM loader mode.', 'click-trail-handler' ),
+			),
+			array(
+				'key'    => 'tagging_server',
+				'label'  => __( 'Tagging server URL', 'click-trail-handler' ),
+				'status' => '' !== $tagging_server_url ? 'ready' : ( 'sgtm' === $mode ? 'attention' : 'neutral' ),
+				'detail' => '' !== $tagging_server_url
+					? $tagging_server_url
+					: __( 'Add the tagging server URL if you want first-party script delivery or a stronger preview workflow.', 'click-trail-handler' ),
+			),
+			array(
+				'key'    => 'loader_mode',
+				'label'  => __( 'Loader path', 'click-trail-handler' ),
+				'status' => ( $custom_loader_on || $first_party_on ) ? 'ready' : ( 'sgtm' === $mode ? 'attention' : 'neutral' ),
+				'detail' => $custom_loader_on
+					? sprintf(
+						/* translators: %s: loader URL. */
+						__( 'Custom loader enabled: %s', 'click-trail-handler' ),
+						(string) ( $gtm_payload['custom_loader_url'] ?? '' )
+					)
+					: ( $first_party_on
+						? __( 'First-party script delivery is enabled.', 'click-trail-handler' )
+						: __( 'Enable first-party delivery or add a custom loader when you want the script to avoid the default Google host.', 'click-trail-handler' ) ),
+			),
+			array(
+				'key'    => 'delivery_adapter',
+				'label'  => __( 'Delivery adapter', 'click-trail-handler' ),
+				'status' => ( $delivery_enabled && 'sgtm' === $current_adapter ) ? 'ready' : ( $delivery_enabled ? 'attention' : 'neutral' ),
+				'detail' => $delivery_enabled
+					? sprintf(
+						/* translators: %s: adapter label. */
+						__( 'Delivery is enabled with %s.', 'click-trail-handler' ),
+						Feature_Registry::adapter_label( $current_adapter )
+					)
+					: __( 'Delivery is off. You can still validate browser-side GTM behavior before enabling server delivery.', 'click-trail-handler' ),
+			),
+			array(
+				'key'    => 'destinations',
+				'label'  => __( 'Destination toggles', 'click-trail-handler' ),
+				'status' => $native_destinations > 0 ? 'ready' : 'info',
+				'detail' => $native_destinations > 0
+					? sprintf(
+						/* translators: %d: enabled destination count. */
+						_n( '%d destination is enabled in Events.', '%d destinations are enabled in Events.', $native_destinations, 'click-trail-handler' ),
+						$native_destinations
+					)
+					: __( 'No native destination toggles are enabled. That is fine if GTM or another relay owns final delivery.', 'click-trail-handler' ),
+			),
+		);
+
+		if ( '' !== $loader_url ) {
+			$checks[] = $this->run_sgtm_http_preview_check(
+				'loader_probe',
+				__( 'Loader probe', 'click-trail-handler' ),
+				$loader_url,
+				__( 'Could not reach the configured GTM loader URL from WordPress.', 'click-trail-handler' )
+			);
+		}
+
+		if ( $delivery_enabled && 'sgtm' === $current_adapter && '' !== $endpoint_url ) {
+			$checks[] = $this->run_sgtm_http_preview_check(
+				'collector_probe',
+				__( 'Collector probe', 'click-trail-handler' ),
+				$endpoint_url,
+				__( 'Could not reach the configured sGTM collector URL from WordPress.', 'click-trail-handler' )
+			);
+		}
+
+		$template_hints = $this->build_sgtm_template_hints( $destinations );
+		$ready_count    = count(
+			array_filter(
+				$checks,
+				static function ( $check ) {
+					return isset( $check['status'] ) && 'ready' === $check['status'];
+				}
+			)
+		);
+
+		return array(
+			'summary'        => sprintf(
+				/* translators: 1: ready checks count, 2: total checks count. */
+				__( 'sGTM preview checks marked %1$d of %2$d items as ready.', 'click-trail-handler' ),
+				$ready_count,
+				count( $checks )
+			),
+			'checks'         => $checks,
+			'template_hints' => $template_hints,
+		);
+	}
+
+	/**
+	 * Run an HTTP reachability check for the sGTM preview helper.
+	 *
+	 * @param string $key            Check key.
+	 * @param string $label          Check label.
+	 * @param string $url            URL to probe.
+	 * @param string $fallback_error Default error message.
+	 * @return array<string,string>
+	 */
+	private function run_sgtm_http_preview_check( string $key, string $label, string $url, string $fallback_error ): array {
+		$response = wp_remote_request(
+			$url,
+			array(
+				'timeout'     => 5,
+				'method'      => 'GET',
+				'redirection' => 2,
+			)
+		);
+
+		if ( is_wp_error( $response ) ) {
+			return array(
+				'key'    => sanitize_key( $key ),
+				'label'  => $label,
+				'status' => 'attention',
+				'detail' => $fallback_error . ' ' . sanitize_text_field( (string) $response->get_error_message() ),
+			);
+		}
+
+		$status = (int) wp_remote_retrieve_response_code( $response );
+		$tone   = ( $status >= 200 && $status < 400 ) ? 'ready' : 'attention';
+
+		return array(
+			'key'    => sanitize_key( $key ),
+			'label'  => $label,
+			'status' => $tone,
+			'detail' => sprintf(
+				/* translators: 1: URL, 2: HTTP status code. */
+				__( '%1$s responded with HTTP %2$d.', 'click-trail-handler' ),
+				esc_url_raw( $url ),
+				$status
+			),
+		);
+	}
+
+	/**
+	 * Build destination template hints for the sGTM setup helper.
+	 *
+	 * @param array $destinations Destination toggle state.
+	 * @return array<int,array<string,string>>
+	 */
+	private function build_sgtm_template_hints( array $destinations ): array {
+		$hints = array();
+
+		if ( ! empty( $destinations['meta'] ) ) {
+			$hints[] = array(
+				'key'    => 'meta',
+				'label'  => Feature_Registry::destination_label( 'meta' ),
+				'detail' => __( 'Load the Meta tag and matching server template in GTM, then confirm Meta is owned by either GTM or ClickTrail native delivery, not both.', 'click-trail-handler' ),
+			);
+		}
+
+		if ( ! empty( $destinations['google'] ) ) {
+			$hints[] = array(
+				'key'    => 'google',
+				'label'  => Feature_Registry::destination_label( 'google' ),
+				'detail' => __( 'Confirm your server container has the GA4 client and the Google tags you expect before previewing purchase and checkout events.', 'click-trail-handler' ),
+			);
+		}
+
+		if ( ! empty( $destinations['linkedin'] ) ) {
+			$hints[] = array(
+				'key'    => 'linkedin',
+				'label'  => Feature_Registry::destination_label( 'linkedin' ),
+				'detail' => __( 'Verify the LinkedIn server-side tag template and consent handling in GTM before you rely on ClickTrail purchase or lead events.', 'click-trail-handler' ),
+			);
+		}
+
+		if ( ! empty( $destinations['pinterest'] ) ) {
+			$hints[] = array(
+				'key'    => 'pinterest',
+				'label'  => Feature_Registry::destination_label( 'pinterest' ),
+				'detail' => __( 'Install the Pinterest Conversions template in the server container if GTM owns Pinterest delivery for this site.', 'click-trail-handler' ),
+			);
+		}
+
+		if ( ! empty( $destinations['tiktok'] ) ) {
+			$hints[] = array(
+				'key'    => 'tiktok',
+				'label'  => Feature_Registry::destination_label( 'tiktok' ),
+				'detail' => __( 'Install the TikTok Events API template in the server container if GTM owns TikTok delivery for this site.', 'click-trail-handler' ),
+			);
+		}
+
+		if ( empty( $hints ) ) {
+			$hints[] = array(
+				'key'    => 'generic',
+				'label'  => __( 'Template ownership', 'click-trail-handler' ),
+				'detail' => __( 'Use destination toggles as ownership markers. Keep each downstream platform owned by exactly one delivery path.', 'click-trail-handler' ),
+			);
+		}
+
+		return $hints;
+	}
+
+	/**
 	 * Build a settings backup payload.
 	 *
 	 * @return array<string,mixed>
@@ -651,8 +969,8 @@ trait Admin_Diagnostics_Ajax_Trait {
 		update_option( Consent_Mode_Settings::OPTION, $consent, false );
 
 		$gtm = isset( $options[ GTM_Settings::OPTION ] ) && is_array( $options[ GTM_Settings::OPTION ] )
-			? sanitize_option( GTM_Settings::OPTION, $options[ GTM_Settings::OPTION ] )
-			: sanitize_option( GTM_Settings::OPTION, array() );
+			? GTM_Settings::sanitize( $options[ GTM_Settings::OPTION ] )
+			: GTM_Settings::sanitize( array() );
 		update_option( GTM_Settings::OPTION, $gtm, false );
 
 		$server = isset( $options[ Settings::OPTION_SITE ] ) && is_array( $options[ Settings::OPTION_SITE ] )
