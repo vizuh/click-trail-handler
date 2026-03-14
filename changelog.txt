@@ -1,6 +1,11 @@
 Changelog
 ========
 
+= 1.5.2 =
+*   **Code quality (line endings)**: Normalized mixed line endings in the consent, attribution-token, and privacy handlers so standards checks and packaging behave consistently across environments.
+*   **Code quality (PHPCS cleanup)**: Resolved the remaining coding-standards issues in those handlers and documented the intentional exceptions for signed-token Base64URL helpers and the required WordPress privacy eraser callback signature.
+*   **Runtime behavior**: No functional changes intended; this patch is a maintenance and standards-compliance release.
+
 = 1.5.1 =
 *   **Release metadata**: Bumped the public plugin version to `1.5.1` and aligned the main release surfaces across the plugin header, WordPress readme, product readmes, and technical docs.
 *   **Public release notes**: Cleaned up changelog wording to keep public release copy product-focused and competitor-neutral.

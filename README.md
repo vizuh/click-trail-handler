@@ -31,13 +31,13 @@ ClickTrail is designed to keep first-touch and last-touch context alive until th
 - **Events**: browser collection, `dataLayer` pushes, sGTM compatibility mode, webhook intake, lifecycle updates, and optional Woo storefront signals.
 - **Delivery**: optional server-side transport, retries, diagnostics, conflict scanning, backup/restore, and consent-aware dispatch.
 
-## Latest Release: 1.5.1
+## Latest Release: 1.5.2
 
-This patch release aligns public version metadata and cleans up public release-note wording without changing runtime behavior.
+This maintenance release cleans up coding-standards noise and packaging consistency without changing runtime behavior.
 
-- The plugin header, WordPress readme, product readmes, and technical docs now consistently reference `1.5.1`.
-- Public changelog wording is now competitor-neutral and product-focused.
-- Runtime behavior is unchanged from `1.5.0`.
+- Mixed line endings were normalized in the consent, attribution-token, and privacy handlers.
+- Remaining PHPCS findings in those handlers were resolved or documented where the behavior is intentional.
+- Runtime behavior is unchanged from `1.5.1`.
 - Full release notes are available in [changelog.txt](changelog.txt) and the public WordPress listing in [readme.txt](readme.txt).
 
 ## Documentation By Audience

@@ -3,7 +3,7 @@
 - **Audience**: implementers, contributors, maintainers, support teams, reviewers, and AI agents
 - **Canonical for**: engineering navigation, adoption guidance, and source-of-truth lookup
 - **Update when**: docs move, ownership changes, or a new subsystem or rollout pattern needs a canonical reference
-- **Last verified against version**: `1.5.1`
+- **Last verified against version**: `1.5.2`
 
 This is the docs home for GitHub readers. Use it to find the right document by role, task, or rollout goal. Canonical docs live under `docs/architecture`, `docs/guides`, and `docs/reference`.
 
