@@ -7,6 +7,7 @@
 
     var el = wp.element.createElement;
     var useState = wp.element.useState;
+    var useEffect = wp.element.useEffect;
     var __ = wp.i18n && wp.i18n.__ ? wp.i18n.__ : function (s) { return s; };
 
     var Button = wp.components.Button;
@@ -116,7 +117,11 @@
             }
         }
 
-        return el('section', { className: classes.join(' ') }, [
+        return el('section', {
+            className: classes.join(' '),
+            id: props.sectionId || undefined,
+            tabIndex: props.sectionId ? '-1' : undefined
+        }, [
             collapsible
                 ? el('button', {
                     key: 'header',
@@ -230,21 +235,40 @@
             return 'info';
         }
 
+        function renderItem(item) {
+            var isNavigable = !!(item && item.target_tab);
+            var classes = 'clicktrail-diagnostic-stat clicktrail-diagnostic-stat--' + toneForStatus(item.status || 'info') + (isNavigable ? ' clicktrail-diagnostic-stat--action' : '');
+            var children = [
+                el('div', { key: 'label', className: 'clicktrail-diagnostic-stat__label' }, item.label || ''),
+                el('div', { key: 'value', className: 'clicktrail-diagnostic-stat__value' }, item.status === 'ready' ? __('Ready', 'click-trail-handler') : (item.status === 'attention' ? __('Needs Review', 'click-trail-handler') : (item.status === 'disabled' ? __('Unavailable', 'click-trail-handler') : __('Optional', 'click-trail-handler')))),
+                el('div', { key: 'detail', className: 'clicktrail-diagnostic-stat__sub' }, item.detail || '')
+            ];
+
+            if (!isNavigable) {
+                return el('div', {
+                    key: item.key || item.label,
+                    className: classes
+                }, children);
+            }
+
+            return el('button', {
+                key: item.key || item.label,
+                type: 'button',
+                className: classes,
+                onClick: function () {
+                    if (typeof props.onNavigate === 'function') {
+                        props.onNavigate(item);
+                    }
+                }
+            }, children);
+        }
+
         return el(AppCard, {
             key: 'setup-checklist',
             icon: 'dashicons-yes-alt',
             title: __('Setup Checklist', 'click-trail-handler'),
             description: __('Read-only readiness checks for rollout, delivery, and WooCommerce coverage.', 'click-trail-handler')
-        }, el('div', { className: 'clicktrail-diagnostics-grid clicktrail-diagnostics-grid--compact' }, items.map(function (item) {
-            return el('div', {
-                key: item.key || item.label,
-                className: 'clicktrail-diagnostic-stat clicktrail-diagnostic-stat--' + toneForStatus(item.status || 'info')
-            }, [
-                el('div', { key: 'label', className: 'clicktrail-diagnostic-stat__label' }, item.label || ''),
-                el('div', { key: 'value', className: 'clicktrail-diagnostic-stat__value' }, item.status === 'ready' ? __('Ready', 'click-trail-handler') : (item.status === 'attention' ? __('Needs Review', 'click-trail-handler') : (item.status === 'disabled' ? __('Unavailable', 'click-trail-handler') : __('Optional', 'click-trail-handler')))),
-                el('div', { key: 'detail', className: 'clicktrail-diagnostic-stat__sub' }, item.detail || '')
-            ]);
-        })));
+        }, el('div', { className: 'clicktrail-diagnostics-grid clicktrail-diagnostics-grid--compact' }, items.map(renderItem)));
     }
 
     function App() {
@@ -267,6 +291,9 @@
         var tabState = useState(String(config.activeTab || 'capture'));
         var activeTab = tabState[0];
         var setActiveTab = tabState[1];
+        var pendingSectionState = useState('');
+        var pendingSection = pendingSectionState[0];
+        var setPendingSection = pendingSectionState[1];
 
         var sgtmPreviewState = useState(null);
         var sgtmPreview = sgtmPreviewState[0];
@@ -326,6 +353,76 @@
                 window.history.replaceState({}, document.title, buildTabUrl(slug));
             }
         }
+
+        function scrollToSection(sectionId) {
+            if (!sectionId) {
+                return false;
+            }
+
+            var node = document.getElementById(sectionId);
+            if (!node) {
+                return false;
+            }
+
+            if (typeof node.scrollIntoView === 'function') {
+                node.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            if (typeof node.focus === 'function') {
+                try {
+                    node.focus({ preventScroll: true });
+                } catch (e) {
+                    node.focus();
+                }
+            }
+
+            return true;
+        }
+
+        function navigateChecklistItem(item) {
+            var targetTab = String(item && (item.target_tab || item.targetTab) || '');
+            var targetSection = String(item && (item.target_section || item.targetSection) || '');
+
+            if (targetSection) {
+                setPendingSection(targetSection);
+            }
+
+            if (targetTab) {
+                switchTab(null, targetTab);
+            }
+        }
+
+        useEffect(function () {
+            var attempts = 0;
+            var timer = 0;
+
+            if (!pendingSection) {
+                return undefined;
+            }
+
+            function tryScroll() {
+                if (scrollToSection(pendingSection)) {
+                    setPendingSection('');
+                    return;
+                }
+
+                attempts += 1;
+                if (attempts >= 6) {
+                    setPendingSection('');
+                    return;
+                }
+
+                timer = window.setTimeout(tryScroll, 70);
+            }
+
+            tryScroll();
+
+            return function () {
+                if (timer) {
+                    window.clearTimeout(timer);
+                }
+            };
+        }, [activeTab, pendingSection]);
 
         function reload() {
             setLoading(true);
@@ -532,6 +629,7 @@
             return [
                 el(AppCard, {
                     key: 'capture-core',
+                    sectionId: 'capture-core',
                     icon: 'dashicons-chart-area',
                     title: __('Core tracking', 'click-trail-handler'),
                     description: __('Enable attribution tracking and choose how long visit source data should be stored.', 'click-trail-handler')
@@ -543,6 +641,7 @@
                 ]),
                 el(AppCard, {
                     key: 'capture-cross-domain',
+                    sectionId: 'capture-cross-domain',
                     icon: 'dashicons-admin-links',
                     title: __('Cross-domain attribution', 'click-trail-handler'),
                     description: __('Preserve attribution when visitors move between your domains or subdomains.', 'click-trail-handler')
@@ -595,6 +694,7 @@
             return [
                 el(AppCard, {
                     key: 'forms-onsite',
+                    sectionId: 'forms-onsite',
                     icon: 'dashicons-feedback',
                     title: __('On-site form capture', 'click-trail-handler'),
                     description: __('Recommended settings to keep attribution attached to forms on cached pages and dynamic sites.', 'click-trail-handler'),
@@ -614,6 +714,7 @@
                 ]),
                 el(AppCard, {
                     key: 'forms-whatsapp',
+                    sectionId: 'forms-whatsapp',
                     icon: 'dashicons-format-chat',
                     title: __('WhatsApp', 'click-trail-handler'),
                     description: __('Carry attribution into outbound WhatsApp clicks and pre-filled messages.', 'click-trail-handler'),
@@ -627,6 +728,7 @@
                 ]),
                 el(AppCard, {
                     key: 'forms-providers',
+                    sectionId: 'forms-providers',
                     icon: 'dashicons-randomize',
                     title: __('External form sources', 'click-trail-handler'),
                     description: __('Accept attributed submissions from supported providers without exposing raw engineering controls.', 'click-trail-handler')
@@ -638,6 +740,7 @@
                 ]),
                 el(AppCard, {
                     key: 'forms-advanced',
+                    sectionId: 'forms-advanced',
                     icon: 'dashicons-admin-tools',
                     title: __('Advanced technical options', 'click-trail-handler'),
                     description: __('Only change these if you need more control over how the browser watches the page.', 'click-trail-handler'),
@@ -683,6 +786,7 @@
                 }),
                 el(AppCard, {
                     key: 'events-core',
+                    sectionId: 'events-core',
                     icon: 'dashicons-chart-bar',
                     title: __('Event collection', 'click-trail-handler'),
                     description: __('Control browser event collection and choose whether GTM should load in standard or sGTM compatibility mode.', 'click-trail-handler')
@@ -718,6 +822,7 @@
                 ]),
                 el(AppCard, {
                     key: 'events-sgtm-wizard',
+                    sectionId: 'events-sgtm-wizard',
                     icon: 'dashicons-cloud',
                     title: __('sGTM setup wizard', 'click-trail-handler'),
                     description: __('Use this checklist when ClickTrail should cooperate with a server-side GTM stack without turning into a generic tag manager.', 'click-trail-handler')
@@ -776,6 +881,7 @@
                 ]),
                 el(AppCard, {
                     key: 'events-woocommerce',
+                    sectionId: 'events-woocommerce',
                     icon: 'dashicons-cart',
                     title: __('WooCommerce', 'click-trail-handler'),
                     description: __('Keep campaign context visible on WooCommerce orders and extend the same event pipeline into the storefront when you need it.', 'click-trail-handler')
@@ -806,6 +912,7 @@
                 ]),
                 el(AppCard, {
                     key: 'events-destinations',
+                    sectionId: 'events-destinations',
                     icon: 'dashicons-share',
                     title: __('Destinations', 'click-trail-handler'),
                     description: __('Choose which advertising platforms should receive compatible event payloads.', 'click-trail-handler')
@@ -821,6 +928,7 @@
                 })),
                 el(AppCard, {
                     key: 'events-lifecycle',
+                    sectionId: 'events-lifecycle',
                     icon: 'dashicons-update',
                     title: __('Lifecycle updates', 'click-trail-handler'),
                     description: __('Accept lifecycle updates from your CRM or backend and route them through the same event pipeline.', 'click-trail-handler')
@@ -842,6 +950,7 @@
 
             return el(AppCard, {
                 key: 'delivery-health',
+                sectionId: 'delivery-health',
                 icon: 'dashicons-chart-area',
                 title: __('Delivery health', 'click-trail-handler'),
                 description: __('Quick operational summary for queue health, recent delivery attempts, and debug state.', 'click-trail-handler')
@@ -907,6 +1016,7 @@
                     : null,
                 el(AppCard, {
                     key: 'delivery-server',
+                    sectionId: 'delivery-server',
                     icon: 'dashicons-cloud',
                     title: __('Server-side transport', 'click-trail-handler'),
                     description: __('Route events through your own collector endpoint when you need a more durable delivery path.', 'click-trail-handler')
@@ -942,6 +1052,7 @@
                 ]),
                 el(AppCard, {
                     key: 'delivery-privacy',
+                    sectionId: 'delivery-privacy',
                     icon: 'dashicons-privacy',
                     title: __('Privacy & consent', 'click-trail-handler'),
                     description: __('Control when tracking is allowed to start and which consent signals ClickTrail should use.', 'click-trail-handler')
@@ -978,6 +1089,7 @@
                 renderDeliveryHealth(),
                 el(AppCard, {
                     key: 'delivery-advanced',
+                    sectionId: 'delivery-advanced',
                     icon: 'dashicons-admin-tools',
                     title: __('Advanced delivery controls', 'click-trail-handler'),
                     description: __('Security, buffering, deduplication, and low-level transport controls for technical users.', 'click-trail-handler'),
@@ -1044,7 +1156,7 @@
                     }
                 }, notice.message || '')
                 : null,
-            el(SetupChecklist, { key: 'checklist', items: setupChecklist }),
+            el(SetupChecklist, { key: 'checklist', items: setupChecklist, onNavigate: navigateChecklistItem }),
             loading ? el('div', { key: 'loading', style: { marginBottom: '12px' } }, el(Spinner)) : null,
             el(SummaryBar, { key: 'summary', items: computeStatusItems() }),
             el('h2', { key: 'tabs', className: 'nav-tab-wrapper clicktrail-app-tabs' }, tabOrder.map(function (slug) {

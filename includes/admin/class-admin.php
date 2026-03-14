@@ -1165,70 +1165,84 @@ class Admin {
 
 		return array(
 			array(
-				'key'    => 'capture',
-				'label'  => __( 'Capture', 'click-trail-handler' ),
-				'status' => $capture_ready ? 'ready' : 'attention',
-				'detail' => $capture_ready
+				'key'            => 'capture',
+				'label'          => __( 'Capture', 'click-trail-handler' ),
+				'status'         => $capture_ready ? 'ready' : 'attention',
+				'detail'         => $capture_ready
 					? __( 'Attribution capture is enabled.', 'click-trail-handler' )
 					: __( 'Turn on attribution capture before testing source continuity.', 'click-trail-handler' ),
+				'target_tab'     => 'capture',
+				'target_section' => 'capture-core',
 			),
 			array(
-				'key'    => 'consent',
-				'label'  => __( 'Consent Guidance', 'click-trail-handler' ),
-				'status' => $consent_enabled ? 'ready' : 'neutral',
-				'detail' => $consent_enabled
+				'key'            => 'consent',
+				'label'          => __( 'Consent Guidance', 'click-trail-handler' ),
+				'status'         => $consent_enabled ? 'ready' : 'neutral',
+				'detail'         => $consent_enabled
 					? __( 'Consent mode is configured. Verify the selected CMP source before rollout.', 'click-trail-handler' )
 					: __( 'Consent mode is off. Confirm this matches your regional rollout requirements.', 'click-trail-handler' ),
+				'target_tab'     => 'delivery',
+				'target_section' => 'delivery-privacy',
 			),
 			array(
-				'key'    => 'forms',
-				'label'  => __( 'Forms', 'click-trail-handler' ),
-				'status' => $forms_ready ? 'ready' : 'neutral',
-				'detail' => $forms_ready
+				'key'            => 'forms',
+				'label'          => __( 'Forms', 'click-trail-handler' ),
+				'status'         => $forms_ready ? 'ready' : 'neutral',
+				'detail'         => $forms_ready
 					? __( 'Form capture helpers or providers are active.', 'click-trail-handler' )
 					: __( 'Enable client fallback, WhatsApp, or provider hooks if forms are part of your attribution path.', 'click-trail-handler' ),
+				'target_tab'     => 'forms',
+				'target_section' => 'forms-onsite',
 			),
 			array(
-				'key'    => 'events',
-				'label'  => __( 'Events', 'click-trail-handler' ),
-				'status' => $events_ready ? 'ready' : 'attention',
-				'detail' => $events_ready
+				'key'            => 'events',
+				'label'          => __( 'Events', 'click-trail-handler' ),
+				'status'         => $events_ready ? 'ready' : 'attention',
+				'detail'         => $events_ready
 					? sprintf(
 						/* translators: %d: enabled destination count. */
 						__( 'Browser events are active. Enabled destinations: %d.', 'click-trail-handler' ),
 						$destination_count
 					)
 					: __( 'Enable the browser event pipeline before relying on dataLayer and canonical intake.', 'click-trail-handler' ),
+				'target_tab'     => 'events',
+				'target_section' => 'events-core',
 			),
 			array(
-				'key'    => 'delivery',
-				'label'  => __( 'Delivery', 'click-trail-handler' ),
-				'status' => $delivery_ready ? 'ready' : ( ! empty( $server_effective['enabled'] ) ? 'attention' : 'neutral' ),
-				'detail' => $delivery_ready
+				'key'            => 'delivery',
+				'label'          => __( 'Delivery', 'click-trail-handler' ),
+				'status'         => $delivery_ready ? 'ready' : ( ! empty( $server_effective['enabled'] ) ? 'attention' : 'neutral' ),
+				'detail'         => $delivery_ready
 					? __( 'Server-side delivery has an endpoint and is ready for endpoint tests.', 'click-trail-handler' )
 					: ( ! empty( $server_effective['enabled'] )
 						? __( 'Server-side delivery is on, but the collector URL still needs review.', 'click-trail-handler' )
 						: __( 'Server-side delivery is off. Logs and Diagnostics still work for local checks.', 'click-trail-handler' ) ),
+				'target_tab'     => 'delivery',
+				'target_section' => 'delivery-server',
 			),
 			array(
-				'key'    => 'sgtm',
-				'label'  => __( 'sGTM', 'click-trail-handler' ),
-				'status' => $sgtm_ready ? 'ready' : ( 'sgtm' === $sgtm_mode ? 'attention' : 'neutral' ),
-				'detail' => $sgtm_ready
+				'key'            => 'sgtm',
+				'label'          => __( 'sGTM', 'click-trail-handler' ),
+				'status'         => $sgtm_ready ? 'ready' : ( 'sgtm' === $sgtm_mode ? 'attention' : 'neutral' ),
+				'detail'         => $sgtm_ready
 					? __( 'sGTM mode has a web container plus a tagging server or custom loader path configured.', 'click-trail-handler' )
 					: ( 'sgtm' === $sgtm_mode
 						? __( 'sGTM mode is on. Add the tagging server URL or a custom loader path before preview testing.', 'click-trail-handler' )
 						: __( 'Standard GTM loading is active. Enable sGTM mode when you want first-party script delivery or custom loader support.', 'click-trail-handler' ) ),
+				'target_tab'     => 'events',
+				'target_section' => 'events-sgtm-wizard',
 			),
 			array(
-				'key'    => 'woo',
-				'label'  => __( 'Woo', 'click-trail-handler' ),
-				'status' => $woo_ready ? 'ready' : ( $woo_installed ? 'neutral' : 'disabled' ),
-				'detail' => $woo_ready
+				'key'            => 'woo',
+				'label'          => __( 'Woo', 'click-trail-handler' ),
+				'status'         => $woo_ready ? 'ready' : ( $woo_installed ? 'neutral' : 'disabled' ),
+				'detail'         => $woo_ready
 					? __( 'WooCommerce storefront events and order delivery helpers are ready.', 'click-trail-handler' )
 					: ( $woo_installed
 						? __( 'WooCommerce is active. Enable storefront events when you want list, product, cart, and checkout signals.', 'click-trail-handler' )
 						: __( 'WooCommerce is not active on this site.', 'click-trail-handler' ) ),
+				'target_tab'     => 'events',
+				'target_section' => 'events-woocommerce',
 			),
 		);
 	}
