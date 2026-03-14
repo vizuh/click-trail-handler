@@ -624,6 +624,7 @@
 .clicktrail-card {
     margin: 0 0 12px;
     overflow: hidden;
+    scroll-margin-top: 18px;
     border: 1px solid var(--clicktrail-border);
     border-radius: var(--clicktrail-radius);
     background: var(--clicktrail-card);
@@ -906,6 +907,25 @@
     border-radius: var(--clicktrail-radius);
     background: var(--clicktrail-card);
     box-shadow: var(--clicktrail-shadow);
+}
+
+.clicktrail-diagnostic-stat--action {
+    width: 100%;
+    cursor: pointer;
+    text-align: left;
+    color: inherit;
+    font: inherit;
+    appearance: none;
+}
+
+.clicktrail-diagnostic-stat--action:hover {
+    background: #fafafa;
+    border-color: var(--clicktrail-blue-line);
+}
+
+.clicktrail-diagnostic-stat--action:focus-visible {
+    outline: 2px solid var(--clicktrail-blue);
+    outline-offset: 2px;
 }
 
 .clicktrail-diagnostic-stat::before {

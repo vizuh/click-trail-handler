@@ -39,6 +39,16 @@ Above the tabbed cards, the app now renders a read-only setup checklist for:
 - sGTM
 - Woo
 
+Checklist rows with a mapped target are clickable. They switch to the relevant tab and scroll to the matching section card:
+
+- `Capture` -> `Capture` tab -> `Core tracking`
+- `Consent Guidance` -> `Delivery` tab -> `Privacy & consent`
+- `Forms` -> `Forms` tab -> `On-site form capture`
+- `Events` -> `Events` tab -> `Event collection`
+- `Delivery` -> `Delivery` tab -> `Server-side transport`
+- `sGTM` -> `Events` tab -> `sGTM setup wizard`
+- `Woo` -> `Events` tab -> `WooCommerce`
+
 Tab order:
 
 1. `Capture`
