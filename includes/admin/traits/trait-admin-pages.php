@@ -645,6 +645,7 @@ trait Admin_Pages_Trait {
 		<div class="clicktrail-inline-notice">
 			<span class="dashicons dashicons-cart" aria-hidden="true"></span>
 			<span>
+				<?php /* translators: %d: WooCommerce order ID. */ ?>
 				<strong><?php echo esc_html( sprintf( __( 'Order #%d', 'click-trail-handler' ), $order_id ) ); ?></strong>
 				<?php echo esc_html( $status ? ' · ' . $status : '' ); ?>
 			</span>

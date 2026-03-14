@@ -319,7 +319,7 @@ trait Admin_Diagnostics_Ajax_Trait {
 
 		$settings = $this->get_unified_admin_settings();
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce verified above; raw JSON is decoded before recursive sanitization.
 		$raw = isset( $_POST['settings'] ) ? wp_unslash( $_POST['settings'] ) : '';
 		if ( is_string( $raw ) && '' !== trim( $raw ) ) {
 			$decoded = json_decode( $raw, true );
@@ -374,7 +374,7 @@ trait Admin_Diagnostics_Ajax_Trait {
 		}
 		check_ajax_referer( 'clicutcl_diag', 'nonce' );
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified above.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Verified above; backup JSON is decoded before import validation and sanitization.
 		$raw = isset( $_POST['snapshot'] ) ? wp_unslash( $_POST['snapshot'] ) : '';
 		if ( ! is_string( $raw ) || '' === trim( $raw ) ) {
 			wp_send_json_error( array( 'message' => __( 'Missing backup payload.', 'click-trail-handler' ) ), 400 );

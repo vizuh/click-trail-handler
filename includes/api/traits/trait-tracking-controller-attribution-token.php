@@ -324,6 +324,7 @@ trait Tracking_Controller_Attribution_Token_Trait {
 		$decoded = base64_decode( strtr( $data, '-_', '+/' ), true );
 		if ( false === $decoded ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Debug-only logging behind WP_DEBUG for token parsing failures.
 				error_log( 'ClickTrail: base64url_decode failed for attribution token payload.' );
 			}
 			return '';

@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, and reviewers
 - **Canonical for**: runtime scope, bootstrap flow, subsystem ownership, and active vs compatibility paths
 - **Update when**: boot flow, module boundaries, or major runtime responsibilities change
-- **Last verified against version**: `1.5.0`
+- **Last verified against version**: `1.5.1`
 
 ## Product Summary
 
@@ -17,7 +17,7 @@ The plugin is designed to solve practical attribution failures:
 - cross-domain journeys losing continuity
 - consent-aware sites needing attribution and delivery to agree
 
-Current codebase version: `1.5.0`.
+Current codebase version: `1.5.1`.
 
 Runtime requirements:
 

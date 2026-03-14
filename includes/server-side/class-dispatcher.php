@@ -189,7 +189,9 @@ class Dispatcher {
 		if ( ! $result->success && ! $result->skipped ) {
 			self::record_last_error( 'adapter_error', $result->message );
 			self::record_failure( 'adapter_error' );
-			Queue::enqueue( $event, $adapter->get_name(), self::get_endpoint(), $result->message );
+			$queued = Queue::enqueue( $event, $adapter->get_name(), self::get_endpoint(), $result->message );
+			$result->meta = is_array( $result->meta ) ? $result->meta : array();
+			$result->meta['queued'] = (bool) $queued;
 		}
 		if ( $result->success && ! $result->skipped && $event_name && $event_id ) {
 			Dedup_Store::mark( $destination_key, $event_name, $event_id );

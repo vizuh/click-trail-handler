@@ -103,6 +103,7 @@ class Privacy_Handler {
 				'done' => true,
 			);
 		}
+		$table_escaped = esc_sql( $table );
 
 		$user_id = (int) email_exists( $email );
 		$where   = $this->build_event_match_where( $email, $user_id );
@@ -188,13 +189,14 @@ class Privacy_Handler {
 				'done'           => true,
 			);
 		}
+		$table_escaped = esc_sql( $table );
 
 		$user_id = (int) email_exists( $email );
 		$where   = $this->build_event_match_where( $email, $user_id );
 
 		// Always read first page for erasure to avoid offset skipping after deletions.
 		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name and WHERE clause are plugin-owned.
-		$query = "SELECT id FROM {$table} WHERE {$where['sql']} ORDER BY id ASC LIMIT %d";
+		$query = "SELECT id FROM {$table_escaped} WHERE {$where['sql']} ORDER BY id ASC LIMIT %d";
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Required for privacy erasure callbacks.
 		$rows = $wpdb->get_results(
@@ -224,7 +226,7 @@ class Privacy_Handler {
 			$placeholders = implode( ', ', array_fill( 0, count( $event_ids ), '%d' ) );
 
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name and placeholder count are plugin-owned.
-			$delete_query = "DELETE FROM {$table} WHERE id IN ({$placeholders})";
+			$delete_query = "DELETE FROM {$table_escaped} WHERE id IN ({$placeholders})";
 
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Required for privacy erasure callbacks.
 			$deleted = $wpdb->query(

@@ -3,7 +3,7 @@
 - **Audience**: maintainers, support engineers, and reviewers
 - **Canonical for**: activation checks, queue behavior, diagnostics, and common failure handling
 - **Update when**: operational troubleshooting, queue behavior, diagnostics surfaces, or recovery steps change
-- **Last verified against version**: `1.5.0`
+- **Last verified against version**: `1.5.1`
 
 ## Activation and Boot
 
@@ -79,6 +79,8 @@ Defaults:
 Retries use exponential backoff and stop after max attempts.
 
 The queue is also used to enrich Diagnostics Woo order-trace lookups with current retry state for a stored `event_name` plus `event_id`.
+
+Woo purchase and milestone sent markers are only written after a successful, skipped, or confirmed queued attempt. If a Woo order trace shows an error with no matching queue row, the order-level sent marker should remain unset and the event can be retried by the original hook path.
 
 ## Common Failure Patterns
 

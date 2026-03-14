@@ -3,7 +3,7 @@
 - **Audience**: maintainers, reviewers, and cleanup-focused contributors
 - **Canonical for**: current maintenance posture, known dead paths, and cleanup hotspots
 - **Update when**: legacy paths are removed, major cleanup lands, or quality risks materially change
-- **Last verified against version**: `1.5.0`
+- **Last verified against version**: `1.5.1`
 
 This document summarizes the current quality posture of the repository and the main maintenance concerns worth watching.
 

@@ -5,12 +5,12 @@ Author URI: https://vizuh.com
 Tags: attribution, utm, consent mode, woocommerce, server-side tracking
 Requires at least: 6.5
 Tested up to: 6.9
-Stable tag: 1.5.0
+Stable tag: 1.5.1
 Requires PHP: 8.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Consent-aware attribution for WooCommerce orders, WordPress forms, and event flows. Capture UTMs and click IDs, keep attribution available on supported conversion surfaces, and optionally send events through ClickTrail's browser and server-side pipeline.
+Consent-aware attribution for WooCommerce, WordPress forms, and event flows. Capture UTMs and click IDs across conversion paths.
 
 == Description ==
 
@@ -47,17 +47,13 @@ Teams can start with order or form attribution first, then add browser events, c
 * **Events**: browser event collection with `dataLayer` pushes, canonical REST intake, webhook ingestion, lifecycle updates, one-time WordPress follow-up events such as `login`, `sign_up`, and `comment_submit`, and optional WooCommerce storefront events.
 * **Delivery**: optional server-side transport, retry queue, diagnostics, consent-aware dispatch, and failure telemetry.
 
-= What is new in 1.5.0 =
+= What is new in 1.5.1 =
 
-This release adds WooCommerce event coverage, admin diagnostics, and native delivery adapters without changing the underlying architecture:
+This patch release aligns the public release surfaces and keeps the WordPress-facing release copy product-focused:
 
-* **WooCommerce HPOS compatibility declaration**: ClickTrail now declares compatibility with WooCommerce custom order tables during bootstrap and keeps order-level attribution logic on Woo APIs.
-* **Richer purchase payloads**: purchase events now include additive commerce fields such as `subtotal`, `tax_total`, `shipping_total`, `discount_total`, `discount_codes`, `status`, `order_currency`, `item_quantity`, plus richer item detail such as `product_id`, `sku`, `variant`, and `categories`.
-* **WooCommerce event coverage**: sites can opt in to `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` through the existing ClickTrail browser event layer, and server-side delivery can follow post-purchase milestones such as `order_paid`, `order_refunded`, and `order_cancelled`.
-* **sGTM compatibility mode**: the Events tab now supports a dedicated sGTM mode with tagging-server URL support, first-party or custom-loader script delivery, and preview checks with destination template hints for GTM-first rollouts.
-* **Admin diagnostics**: Settings now includes a setup checklist, while Diagnostics now adds conflict scanning, backup restore, and Woo order trace lookup for stored payload snapshots.
-* **Delivery adapters**: native delivery support now includes Pinterest Conversions API and TikTok Events API alongside the existing adapters.
-* **Deployment and privacy updates**: this release also packages the recent WordPress.org deployment cleanup, Plugin Check fixes, privacy-query hardening, and debug visibility improvements.
+* **Version alignment**: the plugin header, WordPress readme, product readmes, and technical docs now consistently reference `1.5.1`.
+* **Release-copy cleanup**: the public changelog and release notes were tightened to stay product-focused and competitor-neutral.
+* **No runtime change**: behavior remains the same as `1.5.0`; this is a patch release for public metadata and documentation.
 
 = Current admin structure =
 
@@ -211,6 +207,11 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 
 == Changelog ==
 
+= 1.5.1 =
+* Aligned the public plugin version to `1.5.1` across release surfaces.
+* Cleaned up public changelog wording to keep it competitor-neutral and product-focused.
+* Kept runtime behavior unchanged from `1.5.0`.
+
 = 1.5.0 =
 * Declared WooCommerce HPOS compatibility during bootstrap and kept Woo order tracking on Woo order APIs.
 * Enriched WooCommerce purchase payloads with additive order totals, coupon/status data, richer item detail, and customer/order metadata.
@@ -250,5 +251,5 @@ Older release notes remain available in `changelog.txt`.
 
 == Upgrade Notice ==
 
-= 1.5.0 =
-This release adds WooCommerce event coverage, admin diagnostics, and Pinterest/TikTok native delivery adapters without changing ClickTrail's core attribution and delivery architecture.
+= 1.5.1 =
+This patch release aligns public version metadata and cleans up release-note wording without changing runtime behavior from `1.5.0`.

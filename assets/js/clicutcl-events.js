@@ -26,6 +26,10 @@
             this.sessionId = this.getOrCreateSessionId();
             this.visitorId = this.getOrCreateVisitorId();
             this.wooListSeen = new Set();
+            this.wooCartViewSeen = new Set();
+            this.wooCartObserverTargets = new WeakSet();
+            this.wooCartViewCheckTimer = 0;
+            this.lastWooStoreCartSignature = '';
             this.wooListItemContext = {};
             this.init();
         }
@@ -788,19 +792,11 @@
         }
 
         trackWooViewCart() {
-            if (this.wooCommerce.pageType !== 'cart') {
-                return;
+            if (this.wooCommerce.pageType === 'cart') {
+                this.emitWooViewCart(this.buildWooCommerceEventPayload(this.wooCommerce.cart));
             }
 
-            const ecommerce = this.buildWooCommerceEventPayload(this.wooCommerce.cart);
-            if (!ecommerce) {
-                return;
-            }
-
-            this.pushEvent('view_cart', {
-                ecommerce,
-                ...this.buildWooEventExtras()
-            });
+            this.observeWooCartViews();
         }
 
         trackWooBeginCheckout() {
@@ -1094,6 +1090,442 @@
             return fallbackItem && Number.isFinite(Number(fallbackItem.quantity))
                 ? Math.max(1, Math.round(Number(fallbackItem.quantity)))
                 : 1;
+        }
+
+        observeWooCartViews() {
+            this.registerWooCartObservers();
+            this.scheduleWooCartViewCheck(220);
+
+            document.addEventListener('click', (event) => {
+                const target = event && event.target && typeof event.target.closest === 'function'
+                    ? event.target.closest(this.getWooCartToggleSelector())
+                    : null;
+                if (!target) {
+                    return;
+                }
+
+                this.scheduleWooCartViewCheck(220);
+            }, true);
+
+            if (window.jQuery && window.jQuery(document.body) && typeof window.jQuery(document.body).on === 'function') {
+                window.jQuery(document.body).on(
+                    'added_to_cart removed_from_cart wc_fragments_loaded wc_fragments_refreshed updated_cart_totals updated_wc_div',
+                    () => {
+                        this.registerWooCartObservers();
+                        this.scheduleWooCartViewCheck(180);
+                    }
+                );
+            }
+
+            if (
+                typeof window.wp !== 'undefined' &&
+                window.wp.data &&
+                typeof window.wp.data.select === 'function' &&
+                typeof window.wp.data.subscribe === 'function'
+            ) {
+                window.wp.data.subscribe(() => {
+                    const signature = this.getWooStoreCartSignature();
+                    if (!signature || signature === this.lastWooStoreCartSignature) {
+                        return;
+                    }
+
+                    this.lastWooStoreCartSignature = signature;
+                    this.scheduleWooCartViewCheck(180);
+                });
+            }
+        }
+
+        emitWooViewCart(ecommerce) {
+            if (!ecommerce || !Array.isArray(ecommerce.items) || !ecommerce.items.length) {
+                return;
+            }
+
+            const signature = this.getWooCartViewSignature(ecommerce);
+            if (!signature || this.wooCartViewSeen.has(signature)) {
+                return;
+            }
+
+            this.wooCartViewSeen.add(signature);
+            this.pushEvent('view_cart', {
+                ecommerce,
+                ...this.buildWooEventExtras()
+            });
+        }
+
+        getWooCartViewSignature(ecommerce) {
+            if (!ecommerce || !Array.isArray(ecommerce.items) || !ecommerce.items.length) {
+                return '';
+            }
+
+            const currency = this.safeText(ecommerce.currency || this.wooCommerce.currency || '', 16);
+            const items = ecommerce.items
+                .map((item) => {
+                    const productId = Number(item && (item.product_id || item.item_id || 0));
+                    const quantity = Number.isFinite(Number(item && item.quantity)) ? Math.round(Number(item.quantity)) : 1;
+                    const price = Number.isFinite(Number(item && item.price)) ? Math.round(Number(item.price) * 100) : 0;
+                    const name = this.safeText(item && item.item_name ? item.item_name : '', 120);
+                    return [productId, quantity, price, name].join(':');
+                })
+                .sort();
+
+            return [currency, items.join('|')].join('::');
+        }
+
+        scheduleWooCartViewCheck(delay = 180) {
+            if (this.wooCartViewCheckTimer) {
+                window.clearTimeout(this.wooCartViewCheckTimer);
+            }
+
+            this.wooCartViewCheckTimer = window.setTimeout(() => {
+                this.wooCartViewCheckTimer = 0;
+                this.flushWooCartViewCheck();
+            }, Math.max(0, Number(delay) || 0));
+        }
+
+        flushWooCartViewCheck() {
+            this.registerWooCartObservers();
+
+            const visibleContainers = this.getVisibleWooCartContainers();
+            if (!visibleContainers.length) {
+                return;
+            }
+
+            visibleContainers.forEach((container) => {
+                this.emitWooViewCart(this.buildWooCurrentCartEcommerce(container));
+            });
+        }
+
+        registerWooCartObservers() {
+            if (typeof window.MutationObserver !== 'function') {
+                return;
+            }
+
+            if (!this.wooCartMutationObserver) {
+                this.wooCartMutationObserver = new window.MutationObserver(() => {
+                    this.scheduleWooCartViewCheck(140);
+                });
+            }
+
+            this.getWooCartContainers().forEach((container) => {
+                if (!container || this.wooCartObserverTargets.has(container)) {
+                    return;
+                }
+
+                this.wooCartMutationObserver.observe(container, {
+                    attributes: true,
+                    childList: true,
+                    subtree: true,
+                    attributeFilter: ['class', 'style', 'hidden', 'aria-hidden', 'open']
+                });
+                this.wooCartObserverTargets.add(container);
+            });
+        }
+
+        getWooCartToggleSelector() {
+            return [
+                '.cart-contents',
+                '.site-header-cart a',
+                '.widget_shopping_cart a',
+                '.wc-block-mini-cart__button',
+                '.wc-block-mini-cart__icon',
+                '[data-cart-toggle]',
+                '[data-mini-cart-toggle]',
+                '[data-cart-trigger]',
+                '[aria-controls*="cart"]',
+                '[class*="cart-toggle"]',
+                '[class*="cart-trigger"]'
+            ].join(', ');
+        }
+
+        getWooCartContainers() {
+            const selectors = [
+                '.woocommerce-cart-form',
+                '.woocommerce-cart',
+                '.widget_shopping_cart',
+                '.widget_shopping_cart_content',
+                '.site-header-cart',
+                '.woocommerce-mini-cart',
+                '.wc-block-mini-cart__drawer',
+                '.wc-block-components-drawer',
+                '.wc-block-components-drawer__content',
+                '[class*="cart-drawer"]',
+                '[class*="mini-cart-drawer"]',
+                '[data-cart-drawer]',
+                '[data-mini-cart]',
+                '[data-cart-panel]'
+            ];
+            const seen = new Set();
+
+            return Array.from(document.querySelectorAll(selectors.join(','))).filter((container) => {
+                if (!container || seen.has(container)) {
+                    return false;
+                }
+
+                seen.add(container);
+                return this.getWooCartItemContainers(container).length > 0 || !!this.buildWooStoreCartEcommerce();
+            });
+        }
+
+        getVisibleWooCartContainers() {
+            return this.getWooCartContainers().filter((container) => this.isWooCartContainerVisible(container));
+        }
+
+        isWooCartContainerVisible(container) {
+            if (!this.isElementVisible(container)) {
+                return false;
+            }
+
+            const rows = this.getWooCartItemContainers(container);
+            if (rows.some((row) => this.isElementVisible(row))) {
+                return true;
+            }
+
+            return this.isWooBlockCartContainer(container) && !!this.buildWooStoreCartEcommerce();
+        }
+
+        isWooBlockCartContainer(container) {
+            if (!container || !container.classList) {
+                return false;
+            }
+
+            const className = String(container.className || '').toLowerCase();
+            return className.includes('wc-block') || className.includes('mini-cart') || className.includes('cart-drawer');
+        }
+
+        isElementVisible(node) {
+            if (!node || typeof node.getBoundingClientRect !== 'function') {
+                return false;
+            }
+
+            if (node.hidden || node.getAttribute('aria-hidden') === 'true' || node.getAttribute('inert') !== null) {
+                return false;
+            }
+
+            const style = typeof window.getComputedStyle === 'function' ? window.getComputedStyle(node) : null;
+            if (style && (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0')) {
+                return false;
+            }
+
+            const rect = node.getBoundingClientRect();
+            if ( !rect || rect.width <= 0 || rect.height <= 0 ) {
+                return false;
+            }
+
+            const viewportWidth = window.innerWidth || document.documentElement.clientWidth || 0;
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+            return rect.bottom > 0 && rect.right > 0 && rect.left < viewportWidth && rect.top < viewportHeight;
+        }
+
+        buildWooCurrentCartEcommerce(preferredContainer = null) {
+            if (this.wooCommerce.pageType === 'cart') {
+                const pagePayload = this.buildWooCommerceEventPayload(this.wooCommerce.cart);
+                if (pagePayload) {
+                    return pagePayload;
+                }
+            }
+
+            const storePayload = this.buildWooStoreCartEcommerce();
+            if (storePayload) {
+                return storePayload;
+            }
+
+            if (preferredContainer) {
+                const domPayload = this.buildWooDomCartEcommerce(preferredContainer);
+                if (domPayload) {
+                    return domPayload;
+                }
+            }
+
+            const fallbackContainer = this.getVisibleWooCartContainers()[0] || null;
+            return fallbackContainer ? this.buildWooDomCartEcommerce(fallbackContainer) : null;
+        }
+
+        getWooStoreCartData() {
+            if (
+                typeof window.wp === 'undefined' ||
+                !window.wp.data ||
+                typeof window.wp.data.select !== 'function'
+            ) {
+                return null;
+            }
+
+            try {
+                const store = window.wp.data.select('wc/store/cart');
+                if (!store || typeof store.getCartData !== 'function') {
+                    return null;
+                }
+
+                const cartData = store.getCartData();
+                return cartData && typeof cartData === 'object' ? cartData : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        getWooStoreCartSignature() {
+            const cartData = this.getWooStoreCartData();
+            if (!cartData || !Array.isArray(cartData.items) || !cartData.items.length) {
+                return '';
+            }
+
+            return cartData.items
+                .map((item) => {
+                    const key = String(item && (item.key || item.id || item.product_id || ''));
+                    const quantity = Number.isFinite(Number(item && item.quantity)) ? Math.round(Number(item.quantity)) : 1;
+                    return [key, quantity].join(':');
+                })
+                .sort()
+                .join('|');
+        }
+
+        buildWooStoreCartEcommerce() {
+            const cartData = this.getWooStoreCartData();
+            if (!cartData || !Array.isArray(cartData.items) || !cartData.items.length) {
+                return null;
+            }
+
+            const items = cartData.items
+                .map((item) => this.normalizeWooStoreCartItem(item))
+                .filter(Boolean);
+            if (!items.length) {
+                return null;
+            }
+
+            const totals = cartData.totals && typeof cartData.totals === 'object' ? cartData.totals : {};
+            let value = this.parseWooStoreApiAmount(totals.total_price, totals.currency_minor_unit);
+            if (!Number.isFinite(value) || value <= 0) {
+                value = items.reduce((total, item) => {
+                    const price = Number.isFinite(Number(item.price)) ? Number(item.price) : 0;
+                    const quantity = Number.isFinite(Number(item.quantity)) ? Number(item.quantity) : 1;
+                    return total + (price * quantity);
+                }, 0);
+            }
+
+            return {
+                currency: this.safeText(totals.currency_code || this.wooCommerce.currency || '', 16),
+                value,
+                item_quantity: items.reduce((total, item) => {
+                    const quantity = Number.isFinite(Number(item.quantity)) ? Number(item.quantity) : 1;
+                    return total + quantity;
+                }, 0),
+                items
+            };
+        }
+
+        parseWooStoreApiAmount(rawValue, minorUnit) {
+            const raw = Number(rawValue);
+            const scale = Number(minorUnit);
+            if (!Number.isFinite(raw)) {
+                return 0;
+            }
+
+            if (Number.isFinite(scale) && scale >= 0) {
+                return raw / Math.pow(10, scale);
+            }
+
+            return raw;
+        }
+
+        buildWooDomCartEcommerce(container) {
+            const rows = this.getWooCartItemContainers(container);
+            if (!rows.length) {
+                return null;
+            }
+
+            const items = rows
+                .map((row) => this.extractWooCartItem(row))
+                .filter(Boolean);
+            if (!items.length) {
+                return null;
+            }
+
+            return {
+                currency: this.safeText(this.wooCommerce.currency || '', 16),
+                value: items.reduce((total, item) => {
+                    const price = Number.isFinite(Number(item.price)) ? Number(item.price) : 0;
+                    const quantity = Number.isFinite(Number(item.quantity)) ? Number(item.quantity) : 1;
+                    return total + (price * quantity);
+                }, 0),
+                item_quantity: items.reduce((total, item) => {
+                    const quantity = Number.isFinite(Number(item.quantity)) ? Number(item.quantity) : 1;
+                    return total + quantity;
+                }, 0),
+                items
+            };
+        }
+
+        getWooCartItemContainers(container) {
+            if (!container || !container.querySelectorAll) {
+                return [];
+            }
+
+            const selectors = [
+                '.woocommerce-mini-cart-item',
+                '.mini_cart_item',
+                '.woocommerce-cart-form__cart-item',
+                '.cart_item',
+                '.wc-block-cart-items__row',
+                '.wc-block-cart-item',
+                '.wc-block-components-order-summary-item'
+            ];
+            const seen = new Set();
+
+            return Array.from(container.querySelectorAll(selectors.join(','))).filter((row) => {
+                if (!row || seen.has(row)) {
+                    return false;
+                }
+
+                seen.add(row);
+                return true;
+            });
+        }
+
+        extractWooCartItem(container) {
+            if (!container) {
+                return null;
+            }
+
+            const productId = this.extractWooCartProductId(container);
+            const fallbackItem = this.findWooCommerceConfigItem(productId);
+
+            return this.sanitizeCommerceItem({
+                item_id: productId || (fallbackItem ? fallbackItem.item_id : 0),
+                item_name: this.extractWooProductNameFromNode(container, fallbackItem) || (fallbackItem ? fallbackItem.item_name : ''),
+                price: this.extractWooPriceFromNode(container, fallbackItem),
+                quantity: this.extractWooCartQuantity(container, fallbackItem),
+                product_id: productId || (fallbackItem ? fallbackItem.product_id : 0),
+                sku: fallbackItem ? fallbackItem.sku : '',
+                variant: fallbackItem ? fallbackItem.variant : '',
+                categories: fallbackItem && Array.isArray(fallbackItem.categories) ? fallbackItem.categories : []
+            }) || fallbackItem;
+        }
+
+        extractWooCartProductId(container) {
+            const direct = this.extractWooProductIdFromElement(container);
+            if (direct > 0) {
+                return direct;
+            }
+
+            if (!container || !container.querySelector) {
+                return 0;
+            }
+
+            const candidates = container.querySelectorAll('[data-product_id], [data-product-id], .remove, .remove_from_cart_button, a[href*="add-to-cart="], a[href*="product_id="]');
+            for (let i = 0; i < candidates.length; i += 1) {
+                const target = candidates[i];
+                const candidateId = this.extractWooProductIdFromElement(target);
+                if (candidateId > 0) {
+                    return candidateId;
+                }
+
+                const href = target && typeof target.getAttribute === 'function' ? target.getAttribute('href') || '' : '';
+                const hrefProductId = Number(this.getUrlParam(href, 'product_id') || this.getUrlParam(href, 'add-to-cart') || 0);
+                if (Number.isFinite(hrefProductId) && hrefProductId > 0) {
+                    return hrefProductId;
+                }
+            }
+
+            return 0;
         }
 
         findWooCommerceConfigItem(productId) {

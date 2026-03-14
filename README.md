@@ -31,17 +31,13 @@ ClickTrail is designed to keep first-touch and last-touch context alive until th
 - **Events**: browser collection, `dataLayer` pushes, sGTM compatibility mode, webhook intake, lifecycle updates, and optional Woo storefront signals.
 - **Delivery**: optional server-side transport, retries, diagnostics, conflict scanning, backup/restore, and consent-aware dispatch.
 
-## Latest Release: 1.5.0
+## Latest Release: 1.5.1
 
-This release expands WooCommerce coverage, admin operations, and native delivery breadth without changing the broader plugin architecture.
+This patch release aligns public version metadata and cleans up public release-note wording without changing runtime behavior.
 
-- WooCommerce HPOS compatibility is declared during bootstrap.
-- Purchase payloads now carry richer commerce fields such as subtotal, tax, shipping, discounts, coupon codes, item quantity, SKU, variant, and categories.
-- Woo storefront events can be enabled explicitly for `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout`, with richer Woo `dataLayer` support and post-purchase milestones on the same delivery path.
-- Settings now adds a dedicated sGTM mode with a GTM-first setup wizard, preview checks, first-party loader delivery, and custom loader support.
-- Settings now includes a setup checklist, and Diagnostics now adds conflict scanning, backup restore, and Woo order trace lookup.
-- Native delivery adapter support now includes Pinterest Conversions API and TikTok Events API.
-- The release also includes the recent WordPress.org deployment cleanup and privacy/query hardening work.
+- The plugin header, WordPress readme, product readmes, and technical docs now consistently reference `1.5.1`.
+- Public changelog wording is now competitor-neutral and product-focused.
+- Runtime behavior is unchanged from `1.5.0`.
 - Full release notes are available in [changelog.txt](changelog.txt) and the public WordPress listing in [readme.txt](readme.txt).
 
 ## Documentation By Audience
