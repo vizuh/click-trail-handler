@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, and reviewers
 - **Canonical for**: browser-to-REST intake, webhook intake, lifecycle ingestion, dedup, and delivery flow
 - **Update when**: intake stages, canonical event flow, dedup behavior, or delivery stages change
-- **Last verified against version**: `1.5.1`
+- **Last verified against version**: `1.5.2`
 
 ClickTrail uses one unified event pipeline behind the admin UI, even though the data can enter the system from different sources.
 

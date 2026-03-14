@@ -5,7 +5,7 @@ Author URI: https://vizuh.com
 Tags: attribution, utm, consent mode, woocommerce, server-side tracking
 Requires at least: 6.5
 Tested up to: 6.9
-Stable tag: 1.5.1
+Stable tag: 1.5.2
 Requires PHP: 8.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -47,13 +47,13 @@ Teams can start with order or form attribution first, then add browser events, c
 * **Events**: browser event collection with `dataLayer` pushes, canonical REST intake, webhook ingestion, lifecycle updates, one-time WordPress follow-up events such as `login`, `sign_up`, and `comment_submit`, and optional WooCommerce storefront events.
 * **Delivery**: optional server-side transport, retry queue, diagnostics, consent-aware dispatch, and failure telemetry.
 
-= What is new in 1.5.1 =
+= What is new in 1.5.2 =
 
-This patch release aligns the public release surfaces and keeps the WordPress-facing release copy product-focused:
+This maintenance release focuses on code-quality cleanup and standards compliance without changing runtime behavior:
 
-* **Version alignment**: the plugin header, WordPress readme, product readmes, and technical docs now consistently reference `1.5.1`.
-* **Release-copy cleanup**: the public changelog and release notes were tightened to stay product-focused and competitor-neutral.
-* **No runtime change**: behavior remains the same as `1.5.0`; this is a patch release for public metadata and documentation.
+* **Line-ending cleanup**: normalized mixed line endings in key PHP handlers so packaging and standards checks stay consistent across environments.
+* **Standards cleanup**: resolved PHPCS findings in the consent, attribution-token, and privacy handlers, including targeted documentation for intentional exceptions.
+* **No runtime change**: behavior remains the same as `1.5.1`; this is a maintenance release focused on code hygiene.
 
 = Current admin structure =
 
@@ -207,6 +207,11 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 
 == Changelog ==
 
+= 1.5.2 =
+* Normalized mixed line endings in core PHP handlers to keep standards checks deterministic across environments.
+* Resolved the remaining PHPCS findings in the consent, attribution-token, and privacy handlers.
+* Kept runtime behavior unchanged from `1.5.1`.
+
 = 1.5.1 =
 * Aligned the public plugin version to `1.5.1` across release surfaces.
 * Cleaned up public changelog wording to keep it competitor-neutral and product-focused.
@@ -251,5 +256,5 @@ Older release notes remain available in `changelog.txt`.
 
 == Upgrade Notice ==
 
-= 1.5.1 =
-This patch release aligns public version metadata and cleans up release-note wording without changing runtime behavior from `1.5.0`.
+= 1.5.2 =
+This maintenance release cleans up coding-standards issues without changing runtime behavior from `1.5.1`.
