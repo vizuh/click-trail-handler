@@ -168,7 +168,7 @@ class Privacy_Handler {
 	 * @param int    $page  Page number.
 	 * @return array{items_removed:bool,items_retained:bool,messages:array<int,string>,done:bool}
 	 */
-	public function erase_user_data( string $email, int $page = 1 ): array {
+	public function erase_user_data( string $email, int $page = 1 ): array { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- Required by the WordPress personal data eraser callback signature.
 		global $wpdb;
 
 		if ( ! is_email( $email ) ) {
@@ -524,7 +524,7 @@ class Privacy_Handler {
 	private function value_matches_markers( $value, array $markers ): bool {
 		$haystack = '';
 		if ( is_array( $value ) || is_object( $value ) ) {
-			$json = wp_json_encode( $value );
+			$json     = wp_json_encode( $value );
 			$haystack = is_string( $json ) ? $json : '';
 		} else {
 			$haystack = (string) $value;
@@ -592,7 +592,7 @@ class Privacy_Handler {
 			if ( $key !== $expected ) {
 				return false;
 			}
-			$expected++;
+			++$expected;
 		}
 		return true;
 	}

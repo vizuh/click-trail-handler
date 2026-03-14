@@ -46,16 +46,60 @@ trait Tracking_Controller_Attribution_Token_Trait {
 	 */
 	private function sanitize_attribution_token_data( array $data ): array {
 		$allowed_keys = array(
-			'ft_source', 'ft_medium', 'ft_campaign', 'ft_term', 'ft_content',
-			'ft_utm_id', 'ft_utm_source_platform', 'ft_utm_creative_format', 'ft_utm_marketing_tactic',
-			'lt_source', 'lt_medium', 'lt_campaign', 'lt_term', 'lt_content',
-			'lt_utm_id', 'lt_utm_source_platform', 'lt_utm_creative_format', 'lt_utm_marketing_tactic',
-			'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid',
-			'twclid', 'li_fat_id', 'sccid', 'sc_click_id', 'ScCid', 'epik',
-			'ft_gclid', 'ft_fbclid', 'ft_msclkid', 'ft_ttclid', 'ft_wbraid', 'ft_gbraid',
-			'ft_twclid', 'ft_li_fat_id', 'ft_sccid', 'ft_sc_click_id', 'ft_ScCid', 'ft_epik',
-			'lt_gclid', 'lt_fbclid', 'lt_msclkid', 'lt_ttclid', 'lt_wbraid', 'lt_gbraid',
-			'lt_twclid', 'lt_li_fat_id', 'lt_sccid', 'lt_sc_click_id', 'lt_ScCid', 'lt_epik',
+			'ft_source',
+			'ft_medium',
+			'ft_campaign',
+			'ft_term',
+			'ft_content',
+			'ft_utm_id',
+			'ft_utm_source_platform',
+			'ft_utm_creative_format',
+			'ft_utm_marketing_tactic',
+			'lt_source',
+			'lt_medium',
+			'lt_campaign',
+			'lt_term',
+			'lt_content',
+			'lt_utm_id',
+			'lt_utm_source_platform',
+			'lt_utm_creative_format',
+			'lt_utm_marketing_tactic',
+			'gclid',
+			'fbclid',
+			'msclkid',
+			'ttclid',
+			'wbraid',
+			'gbraid',
+			'twclid',
+			'li_fat_id',
+			'sccid',
+			'sc_click_id',
+			'ScCid',
+			'epik',
+			'ft_gclid',
+			'ft_fbclid',
+			'ft_msclkid',
+			'ft_ttclid',
+			'ft_wbraid',
+			'ft_gbraid',
+			'ft_twclid',
+			'ft_li_fat_id',
+			'ft_sccid',
+			'ft_sc_click_id',
+			'ft_ScCid',
+			'ft_epik',
+			'lt_gclid',
+			'lt_fbclid',
+			'lt_msclkid',
+			'lt_ttclid',
+			'lt_wbraid',
+			'lt_gbraid',
+			'lt_twclid',
+			'lt_li_fat_id',
+			'lt_sccid',
+			'lt_sc_click_id',
+			'lt_ScCid',
+			'lt_epik',
 		);
 
 		$out = array();
@@ -178,7 +222,7 @@ trait Tracking_Controller_Attribution_Token_Trait {
 		}
 
 		list( $payload_b64, $sig_b64 ) = $parts;
-		$expected = $this->base64url_encode( hash_hmac( 'sha256', $payload_b64, $this->attribution_token_signing_key(), true ) );
+		$expected                      = $this->base64url_encode( hash_hmac( 'sha256', $payload_b64, $this->attribution_token_signing_key(), true ) );
 		if ( ! hash_equals( $expected, $sig_b64 ) ) {
 			return new WP_Error( 'invalid_signature', 'Invalid attribution token signature', array( 'status' => 401 ) );
 		}
@@ -307,6 +351,7 @@ trait Tracking_Controller_Attribution_Token_Trait {
 	 * @return string
 	 */
 	private function base64url_encode( string $data ): string {
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Base64URL encoding for signed token transport, not code obfuscation.
 		return rtrim( strtr( base64_encode( $data ), '+/', '-_' ), '=' );
 	}
 
@@ -321,6 +366,7 @@ trait Tracking_Controller_Attribution_Token_Trait {
 		if ( $remainder > 0 ) {
 			$data .= str_repeat( '=', 4 - $remainder );
 		}
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Base64URL decoding for signed token transport, not code obfuscation.
 		$decoded = base64_decode( strtr( $data, '-_', '+/' ), true );
 		if ( false === $decoded ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
