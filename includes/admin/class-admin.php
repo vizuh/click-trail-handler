@@ -67,6 +67,7 @@ class Admin {
 		add_action( 'wp_ajax_clicutcl_get_tracking_v2_settings', array( $this, 'ajax_get_tracking_v2_settings' ) );
 		add_action( 'wp_ajax_clicutcl_save_tracking_v2_settings', array( $this, 'ajax_save_tracking_v2_settings' ) );
 		add_action( 'wp_ajax_clicutcl_conflict_scan', array( $this, 'ajax_conflict_scan' ) );
+		add_action( 'wp_ajax_clicutcl_sgtm_preview_check', array( $this, 'ajax_sgtm_preview_check' ) );
 		add_action( 'wp_ajax_clicutcl_export_settings_backup', array( $this, 'ajax_export_settings_backup' ) );
 		add_action( 'wp_ajax_clicutcl_import_settings_backup', array( $this, 'ajax_import_settings_backup' ) );
 		add_action( 'wp_ajax_clicutcl_lookup_woo_order_trace', array( $this, 'ajax_lookup_woo_order_trace' ) );
@@ -1021,6 +1022,13 @@ class Admin {
 				'browser_pipeline'              => ! empty( $feature_flags['event_v2'] ) ? 1 : 0,
 				'woocommerce_storefront_events' => ! empty( $feature_flags['woocommerce_storefront_events'] ) ? 1 : 0,
 				'gtm_container_id'              => isset( $gtm_settings['container_id'] ) ? (string) $gtm_settings['container_id'] : '',
+				'gtm_mode'                      => isset( $gtm_settings['mode'] ) ? (string) $gtm_settings['mode'] : 'standard',
+				'gtm_tagging_server_url'        => isset( $gtm_settings['tagging_server_url'] ) ? (string) $gtm_settings['tagging_server_url'] : '',
+				'gtm_first_party_script'        => ! empty( $gtm_settings['first_party_script'] ) ? 1 : 0,
+				'gtm_custom_loader_enabled'     => ! empty( $gtm_settings['custom_loader_enabled'] ) ? 1 : 0,
+				'gtm_custom_loader_url'         => isset( $gtm_settings['custom_loader_url'] ) ? (string) $gtm_settings['custom_loader_url'] : '',
+				'woo_enhanced_datalayer'        => ! empty( $gtm_settings['woo_enhanced_datalayer'] ) ? 1 : 0,
+				'woo_include_user_data'         => ! empty( $gtm_settings['woo_include_user_data'] ) ? 1 : 0,
 				'destinations'                  => $destination_state,
 				'lifecycle'        => array(
 					'accept_updates'   => ! empty( $feature_flags['lifecycle_ingestion'] ) ? 1 : 0,
@@ -1105,6 +1113,7 @@ class Admin {
 				$attr_options,
 				$feature_flags,
 				$consent_settings,
+				$gtm_settings,
 				$server_effective,
 				$destination_state,
 				$providers_active
@@ -1123,6 +1132,7 @@ class Admin {
 	 * @param array $attr_options Attribution settings.
 	 * @param array $feature_flags Tracking feature flags.
 	 * @param array $consent_settings Consent settings.
+	 * @param array $gtm_settings GTM settings.
 	 * @param array $server_effective Effective delivery settings.
 	 * @param array $destination_state Destination toggle state.
 	 * @param bool  $providers_active Whether any webhook provider is enabled.
@@ -1132,6 +1142,7 @@ class Admin {
 		array $attr_options,
 		array $feature_flags,
 		array $consent_settings,
+		array $gtm_settings,
 		array $server_effective,
 		array $destination_state,
 		bool $providers_active
@@ -1144,6 +1155,13 @@ class Admin {
 		$woo_installed    = class_exists( 'WooCommerce' );
 		$woo_ready        = $woo_installed && ! empty( $feature_flags['woocommerce_storefront_events'] );
 		$destination_count = count( array_filter( $destination_state ) );
+		$sgtm_mode        = isset( $gtm_settings['mode'] ) ? sanitize_key( (string) $gtm_settings['mode'] ) : 'standard';
+		$sgtm_ready       = 'sgtm' === $sgtm_mode
+			&& ! empty( $gtm_settings['container_id'] )
+			&& (
+				! empty( $gtm_settings['tagging_server_url'] )
+				|| ! empty( $gtm_settings['custom_loader_url'] )
+			);
 
 		return array(
 			array(
@@ -1191,6 +1209,16 @@ class Admin {
 					: ( ! empty( $server_effective['enabled'] )
 						? __( 'Server-side delivery is on, but the collector URL still needs review.', 'click-trail-handler' )
 						: __( 'Server-side delivery is off. Logs and Diagnostics still work for local checks.', 'click-trail-handler' ) ),
+			),
+			array(
+				'key'    => 'sgtm',
+				'label'  => __( 'sGTM', 'click-trail-handler' ),
+				'status' => $sgtm_ready ? 'ready' : ( 'sgtm' === $sgtm_mode ? 'attention' : 'neutral' ),
+				'detail' => $sgtm_ready
+					? __( 'sGTM mode has a web container plus a tagging server or custom loader path configured.', 'click-trail-handler' )
+					: ( 'sgtm' === $sgtm_mode
+						? __( 'sGTM mode is on. Add the tagging server URL or a custom loader path before preview testing.', 'click-trail-handler' )
+						: __( 'Standard GTM loading is active. Enable sGTM mode when you want first-party script delivery or custom loader support.', 'click-trail-handler' ) ),
 			),
 			array(
 				'key'    => 'woo',
@@ -1301,6 +1329,7 @@ class Admin {
 		$forms_providers      = isset( $forms['providers'] ) && is_array( $forms['providers'] ) ? $forms['providers'] : array();
 		$events_destinations  = isset( $events['destinations'] ) && is_array( $events['destinations'] ) ? $events['destinations'] : array();
 		$events_lifecycle     = isset( $events['lifecycle'] ) && is_array( $events['lifecycle'] ) ? $events['lifecycle'] : array();
+		$gtm_current          = ( new GTM_Settings() )->get();
 
 		$tracking_destinations = array();
 		foreach ( Feature_Registry::destinations() as $destination_key => $destination_row ) {
@@ -1336,9 +1365,16 @@ class Admin {
 		update_option( Consent_Mode_Settings::OPTION, sanitize_option( Consent_Mode_Settings::OPTION, $consent_input ), false );
 
 		$gtm_input = array(
-			'container_id' => isset( $events['gtm_container_id'] ) ? (string) $events['gtm_container_id'] : '',
+			'container_id'           => isset( $events['gtm_container_id'] ) ? (string) $events['gtm_container_id'] : '',
+			'mode'                   => isset( $events['gtm_mode'] ) ? (string) $events['gtm_mode'] : 'standard',
+			'tagging_server_url'     => isset( $events['gtm_tagging_server_url'] ) ? (string) $events['gtm_tagging_server_url'] : '',
+			'first_party_script'     => ! empty( $events['gtm_first_party_script'] ) ? 1 : 0,
+			'custom_loader_enabled'  => ! empty( $events['gtm_custom_loader_enabled'] ) ? 1 : 0,
+			'custom_loader_url'      => isset( $events['gtm_custom_loader_url'] ) ? (string) $events['gtm_custom_loader_url'] : '',
+			'woo_enhanced_datalayer' => ! empty( $events['woo_enhanced_datalayer'] ) ? 1 : 0,
+			'woo_include_user_data'  => ! empty( $events['woo_include_user_data'] ) ? 1 : 0,
 		);
-		update_option( GTM_Settings::OPTION, sanitize_option( GTM_Settings::OPTION, $gtm_input ), false );
+		update_option( GTM_Settings::OPTION, GTM_Settings::sanitize( $gtm_input, is_array( $gtm_current ) ? $gtm_current : array() ), false );
 
 		$server_current = get_option( Settings::OPTION_SITE, array() );
 		$server_current = is_array( $server_current ) ? $server_current : array();

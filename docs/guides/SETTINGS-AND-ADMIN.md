@@ -36,6 +36,7 @@ Above the tabbed cards, the app now renders a read-only setup checklist for:
 - Forms
 - Events
 - Delivery
+- sGTM
 - Woo
 
 Tab order:
@@ -95,9 +96,15 @@ Purpose:
 Primary controls:
 
 - browser event collection
-- WooCommerce storefront events
-- registry-driven destination toggles
 - GTM container ID
+- GTM loader mode
+- tagging server URL
+- first-party script delivery
+- custom loader path
+- sGTM setup wizard with preview checks and destination template hints
+- WooCommerce storefront events
+- richer Woo `dataLayer` contract and optional consent-aware `user_data`
+- registry-driven destination toggles
 - destination enablement
 - lifecycle update intake
 
@@ -105,7 +112,8 @@ WooCommerce guidance now lives inside the `Events` tab rather than in a separate
 
 - where WooCommerce order attribution is stored
 - how purchase pushes work on the thank-you page
-- what the optional storefront events setting does, including `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, and `begin_checkout`
+- what the optional storefront events setting does, including `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout`
+- what the richer Woo `dataLayer` contract adds for GTM-first setups
 - where to verify Woo attribution and event output
 
 ## Delivery
@@ -200,11 +208,18 @@ Key fields:
 
 Used by:
 
-- Events -> GTM container
+- Events -> GTM and Woo `dataLayer`
 
-Key field:
+Key fields:
 
 - `container_id`
+- `mode`
+- `tagging_server_url`
+- `first_party_script`
+- `custom_loader_enabled`
+- `custom_loader_url`
+- `woo_enhanced_datalayer`
+- `woo_include_user_data`
 
 ## `clicutcl_server_side`
 
@@ -262,6 +277,7 @@ The active settings screen uses these admin AJAX actions:
 
 - `wp_ajax_clicutcl_get_admin_settings`
 - `wp_ajax_clicutcl_save_admin_settings`
+- `wp_ajax_clicutcl_sgtm_preview_check`
 
 Implemented in:
 
@@ -280,6 +296,12 @@ The admin payload also includes:
 - registry-backed adapter and destination metadata
 - setup checklist rows
 - delivery operations summary data
+
+The sGTM setup wizard uses:
+
+- `wp_ajax_clicutcl_sgtm_preview_check`
+
+That action evaluates the current unsaved Events payload, probes the configured loader and collector URLs when possible, and returns destination template hints for GTM-first rollout checks.
 
 ## Logs Screen
 

@@ -59,6 +59,12 @@ Stores:
 Stores:
 
 - GTM container ID
+- GTM loader mode
+- tagging-server URL
+- first-party loader toggle
+- custom loader toggle and path
+- richer Woo `dataLayer` toggle
+- consent-aware Woo `user_data` toggle
 
 ## `clicutcl_server_side`
 
@@ -234,6 +240,11 @@ Secrets stored inside `clicutcl_tracking_v2` are:
 Legacy server-side event payloads now carry identity as a first-class top-level `identity` object.
 
 For backward compatibility during the transition, that resolved identity is also mirrored into `meta.identity` when present.
+
+When the richer Woo `dataLayer` contract is enabled, thank-you page purchase pushes may also include:
+
+- `event_id`
+- `user_data`
 
 ## Uninstall Behavior
 

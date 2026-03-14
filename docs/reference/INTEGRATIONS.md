@@ -68,8 +68,9 @@ What ClickTrail does:
 - save attribution on checkout
 - render attribution in WooCommerce admin
 - push purchase event to `dataLayer`
-- optionally emit storefront `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` browser events
+- optionally emit storefront `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` browser events
 - preserve `item_list_name` and `item_list_index` when list context is available
+- optionally widen Woo `dataLayer` pushes with `event_id` and consent-aware `user_data` for GTM-first setups
 - store purchase and milestone trace snapshots on the order for Diagnostics lookup
 - optionally dispatch purchase and order-status milestone events into the server-side delivery pipeline
 
@@ -135,11 +136,17 @@ Managed by:
 What ClickTrail does:
 
 - optionally inject a GTM container
+- support a dedicated sGTM compatibility mode with a tagging-server URL, first-party loader delivery, and custom loader paths
 - push browser and purchase events to `window.dataLayer`
+- expose a GTM-first setup wizard with preview probes and destination template hints in the Events tab
 
 Important note:
 
 - if the site already injects GTM elsewhere, do not configure GTM injection again in ClickTrail
+
+Implementation note:
+
+- ClickTrail's sGTM mode only changes the loader path and rollout checks; it does not replace the canonical event pipeline with a generic GTM utility layer
 
 ## External Form Source Webhooks
 

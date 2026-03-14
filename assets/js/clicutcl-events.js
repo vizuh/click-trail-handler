@@ -112,6 +112,7 @@
                 view_search_results: { event_name: 'search', funnel_stage: 'top' },
                 view_item: { event_name: 'view_item', funnel_stage: 'top' },
                 view_item_list: { event_name: 'view_item_list', funnel_stage: 'top' },
+                view_cart: { event_name: 'view_cart', funnel_stage: 'mid' },
                 file_download: { event_name: 'view_content', funnel_stage: 'mid' },
                 scroll: { event_name: 'scroll_depth', funnel_stage: 'top' },
                 user_engagement: { event_name: 'key_page_view', funnel_stage: 'top' },
@@ -263,7 +264,8 @@
                 consent: true,
                 lead_context: true,
                 commerce_context: true,
-                ecommerce: true
+                ecommerce: true,
+                user_data: true
             };
             const out = {};
 
@@ -716,6 +718,7 @@
 
             this.trackWooListViews();
             this.trackWooProductView();
+            this.trackWooViewCart();
             this.trackWooBeginCheckout();
             this.trackWooAddToCart();
             this.trackWooRemoveFromCart();
@@ -740,7 +743,8 @@
 
                 this.wooListSeen.add(signature);
                 this.pushEvent('view_item_list', {
-                    ecommerce
+                    ecommerce,
+                    ...this.buildWooEventExtras()
                 });
             };
 
@@ -778,7 +782,24 @@
             }
 
             this.pushEvent('view_item', {
-                ecommerce
+                ecommerce,
+                ...this.buildWooEventExtras()
+            });
+        }
+
+        trackWooViewCart() {
+            if (this.wooCommerce.pageType !== 'cart') {
+                return;
+            }
+
+            const ecommerce = this.buildWooCommerceEventPayload(this.wooCommerce.cart);
+            if (!ecommerce) {
+                return;
+            }
+
+            this.pushEvent('view_cart', {
+                ecommerce,
+                ...this.buildWooEventExtras()
             });
         }
 
@@ -793,7 +814,8 @@
             }
 
             this.pushEvent('begin_checkout', {
-                ecommerce
+                ecommerce,
+                ...this.buildWooEventExtras()
             });
         }
 
@@ -820,7 +842,8 @@
                         value: price * quantity,
                         item_quantity: quantity,
                         items: [item]
-                    }
+                    },
+                    ...this.buildWooEventExtras()
                 });
             });
         }
@@ -914,7 +937,8 @@
                     value: price * quantity,
                     item_quantity: quantity,
                     items: [item]
-                }
+                },
+                ...this.buildWooEventExtras()
             });
         }
 
@@ -1362,6 +1386,58 @@
             return commerce;
         }
 
+        buildWooEventExtras() {
+            if (!this.wooCommerce.dataLayer || !this.wooCommerce.dataLayer.enhancedContract) {
+                return {};
+            }
+
+            const extras = {};
+            const userData = this.buildWooUserData();
+
+            if (userData) {
+                extras.user_data = userData;
+            }
+
+            return extras;
+        }
+
+        buildWooUserData() {
+            if (
+                !this.wooCommerce.dataLayer ||
+                !this.wooCommerce.dataLayer.enhancedContract ||
+                !this.wooCommerce.dataLayer.includeUserData
+            ) {
+                return null;
+            }
+
+            const consent = this.getConsentState();
+            if (!consent || !consent.marketing) {
+                return null;
+            }
+
+            const attribution = this.getAttributionPayload();
+            const allowedKeys = [
+                'fbc', 'fbp', 'ttp', 'li_gc',
+                'ga_client_id', 'ga_session_id', 'ga_session_number',
+                'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid',
+                'twclid', 'li_fat_id', 'sccid', 'epik'
+            ];
+            const out = {};
+
+            allowedKeys.forEach((key) => {
+                if (!Object.prototype.hasOwnProperty.call(attribution, key)) {
+                    return;
+                }
+
+                const value = this.safeText(attribution[key], 160);
+                if (value) {
+                    out[key] = value;
+                }
+            });
+
+            return Object.keys(out).length ? out : null;
+        }
+
         getWooCommerceConfig() {
             const source = window.clicutclEventsConfig && typeof window.clicutclEventsConfig.wooCommerce === 'object'
                 ? window.clicutclEventsConfig.wooCommerce
@@ -1379,7 +1455,16 @@
                         pageType: this.safeText(source.catalogContext.page_type || source.catalogContext.pageType || '', 32),
                         listName: this.safeText(source.catalogContext.list_name || source.catalogContext.listName || '', 160)
                     }
-                    : {}
+                    : {},
+                dataLayer: source.dataLayer && typeof source.dataLayer === 'object'
+                    ? {
+                        enhancedContract: !!source.dataLayer.enhancedContract,
+                        includeUserData: !!source.dataLayer.includeUserData
+                    }
+                    : {
+                        enhancedContract: false,
+                        includeUserData: false
+                    }
             };
         }
 

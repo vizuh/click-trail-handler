@@ -26,9 +26,9 @@ ClickTrail is designed to keep first-touch and last-touch context alive until th
 ## Core Capabilities
 
 - **Capture**: first-touch and last-touch attribution, referrers, classic and extended UTMs, click IDs, browser identifiers, retention, and cross-domain continuity.
-- **WooCommerce**: order attribution, enriched purchase payloads, thank-you page purchase pushes, optional list-view storefront events, cart removal, and post-purchase milestones.
+- **WooCommerce**: order attribution, enriched purchase payloads, thank-you page purchase pushes, optional list-view and cart storefront events, richer Woo `dataLayer` support, and post-purchase milestones.
 - **Forms**: automatic hidden-field enrichment for Contact Form 7 and Fluent Forms, compatible hidden-field population for Gravity Forms and WPForms, cached-page fallback, dynamic-content support, and WhatsApp continuity.
-- **Events**: browser collection, `dataLayer` pushes, webhook intake, lifecycle updates, and optional Woo storefront signals.
+- **Events**: browser collection, `dataLayer` pushes, sGTM compatibility mode, webhook intake, lifecycle updates, and optional Woo storefront signals.
 - **Delivery**: optional server-side transport, retries, diagnostics, conflict scanning, backup/restore, and consent-aware dispatch.
 
 ## Latest Release: 1.5.0
@@ -37,7 +37,8 @@ This release expands WooCommerce coverage, admin operations, and native delivery
 
 - WooCommerce HPOS compatibility is declared during bootstrap.
 - Purchase payloads now carry richer commerce fields such as subtotal, tax, shipping, discounts, coupon codes, item quantity, SKU, variant, and categories.
-- Woo storefront events can be enabled explicitly for `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, and `begin_checkout`, with post-purchase milestones on the same delivery path.
+- Woo storefront events can be enabled explicitly for `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout`, with richer Woo `dataLayer` support and post-purchase milestones on the same delivery path.
+- Settings now adds a dedicated sGTM mode with a GTM-first setup wizard, preview checks, first-party loader delivery, and custom loader support.
 - Settings now includes a setup checklist, and Diagnostics now adds conflict scanning, backup restore, and Woo order trace lookup.
 - Native delivery adapter support now includes Pinterest Conversions API and TikTok Events API.
 - The release also includes the recent WordPress.org deployment cleanup and privacy/query hardening work.

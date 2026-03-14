@@ -46,7 +46,7 @@ O ClickTrail inclui fallback client-side e observacao de conteudo dinamico para 
 
 Trafego pago frequentemente acaba aparecendo como direto dentro dos pedidos.
 
-O ClickTrail grava a atribuicao no pedido, envia um evento de compra enriquecido para o `dataLayer` e pode estender a mesma jornada Woo para `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, `begin_checkout`, marcos pos-compra e dispatch server-side opcional.
+O ClickTrail grava a atribuicao no pedido, envia um evento de compra enriquecido para o `dataLayer` e pode estender a mesma jornada Woo para `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, `begin_checkout`, `user_data` opcional no `dataLayer`, marcos pos-compra e dispatch server-side opcional.
 
 ### 4. Jornadas entre dominios perdendo continuidade
 
@@ -110,6 +110,7 @@ Identificadores adicionais de browser incluem:
 - pushes para `dataLayer` em formato amigavel para GA4
 - eventos de busca, download, scroll, tempo na pagina, interacoes de lead gen e eventos pontuais do WordPress como `login`, `sign_up` e `comment_submit`
 - `view_item_list` opcional do Woo com contexto de `item_list_name` e `item_list_index`
+- contrato enriquecido opcional de `dataLayer` do Woo com `user_data` sensivel a consentimento
 - intake de atualizacoes de lifecycle para CRM ou backend
 - pipeline canonico unificado por tras da interface
 
@@ -129,6 +130,7 @@ Identificadores adicionais de browser incluem:
 - PHP 8.1+
 - banner de consentimento proprio quando o plugin e a fonte de consentimento
 - injecao opcional de container do GTM
+- modo de compatibilidade sGTM com URL do tagging server, entrega first-party do script e suporte a custom loader
 
 ### Formularios
 
@@ -150,7 +152,8 @@ Comportamento por plugin:
 
 - atribuicao em pedidos do WooCommerce
 - push enriquecido do evento de compra para o `dataLayer`
-- eventos opcionais de storefront para `view_item`, `add_to_cart`, `remove_from_cart` e `begin_checkout`
+- eventos opcionais de storefront para `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart` e `begin_checkout`
+- contrato enriquecido opcional do `dataLayer` do Woo para setups GTM-first
 - dispatch server-side opcional para compras
 - declaracao de compatibilidade com WooCommerce HPOS para armazenamento/rastreamento de pedidos
 
@@ -221,7 +224,7 @@ O ClickTrail pode ser adotado por partes. Uma configuracao basica para formulari
 2. Ative o plugin e abra `ClickTrail > Settings`.
 3. Em `Capture`, mantenha a atribuicao ligada, escolha uma janela de retencao compativel com o seu ciclo de venda e ative a continuidade cross-domain apenas se o visitante realmente passar por dominios ou subdominios aprovados.
 4. Em `Forms`, ligue apenas as integracoes que voce usa. Contact Form 7 e Fluent Forms podem receber os campos de atribuicao automaticamente. Gravity Forms e WPForms devem ter os campos hidden `ct_*` que voce quer preservar, como `ct_ft_source`, `ct_lt_source` ou `ct_gclid`.
-5. Em `Events`, deixe a coleta no navegador ligada apenas se voce quiser pushes para o `dataLayer` e captura de eventos no site. Ative os eventos de storefront do Woo apenas se quiser `view_item`, `add_to_cart`, `remove_from_cart` e `begin_checkout`. Preencha o container ID do GTM apenas se o site ainda nao injeta GTM em outro lugar.
+5. Em `Events`, deixe a coleta no navegador ligada apenas se voce quiser pushes para o `dataLayer` e captura de eventos no site. Ative os eventos de storefront do Woo apenas se quiser `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart` e `begin_checkout`. Ative o contrato enriquecido de `dataLayer` do Woo apenas se quiser `event_id` e `user_data` sensivel a consentimento em fluxos GTM-first. Preencha o container ID do GTM apenas se o site ainda nao injeta GTM em outro lugar.
 6. Em `Delivery`, deixe o server-side desligado se voce ainda nao tem collector, sGTM ou endpoint de destino pronto. Se houver exigencia de consentimento, escolha aqui a fonte e o modo corretos antes de colocar em producao.
 7. Abra `ClickTrail > Diagnostics` e rode as verificacoes relevantes.
 

@@ -8,11 +8,12 @@
 namespace CLICUTCL\Integrations;
 
 use CLICUTCL\Core\Attribution_Provider;
-use CLICUTCL\Utils\Attribution;
+use CLICUTCL\Modules\GTM\GTM_Settings;
 use CLICUTCL\Server_Side\Dispatcher;
 use CLICUTCL\Server_Side\Consent;
 use CLICUTCL\Tracking\Event_Translator_V1_To_V2;
 use CLICUTCL\Tracking\Identity_Resolver;
+use CLICUTCL\Utils\Attribution;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -606,13 +607,91 @@ class WooCommerce {
 			$ecommerce['order_currency'] = sanitize_text_field( (string) $commerce['order_currency'] );
 		}
 
-		return array_merge(
+		$datalayer = array_merge(
 			array(
 				'event'     => 'purchase',
 				'ecommerce' => $ecommerce,
 			),
 			$flat_attr
 		);
+
+		if ( $this->should_use_enhanced_woo_datalayer() ) {
+			$event_id = isset( $payload['event_id'] ) ? sanitize_text_field( (string) $payload['event_id'] ) : '';
+			if ( '' !== $event_id ) {
+				$datalayer['event_id'] = $event_id;
+			}
+
+			$user_data = $this->build_purchase_datalayer_user_data( $payload, $flat_attr );
+			if ( ! empty( $user_data ) ) {
+				$datalayer['user_data'] = $user_data;
+			}
+		}
+
+		return $datalayer;
+	}
+
+	/**
+	 * Whether the richer Woo `dataLayer` contract is enabled.
+	 *
+	 * @return bool
+	 */
+	private function should_use_enhanced_woo_datalayer(): bool {
+		$settings = ( new GTM_Settings() )->get();
+		return ! empty( $settings['woo_enhanced_datalayer'] );
+	}
+
+	/**
+	 * Whether Woo purchase `dataLayer` may include consent-aware `user_data`.
+	 *
+	 * @return bool
+	 */
+	private function should_include_woo_datalayer_user_data(): bool {
+		if ( ! $this->should_use_enhanced_woo_datalayer() ) {
+			return false;
+		}
+
+		$settings = ( new GTM_Settings() )->get();
+		return ! empty( $settings['woo_include_user_data'] ) && Consent::marketing_allowed();
+	}
+
+	/**
+	 * Build a consent-aware `user_data` object for enhanced Woo `dataLayer` pushes.
+	 *
+	 * @param array $payload   Final purchase payload.
+	 * @param array $flat_attr Flat attribution fields.
+	 * @return array<string,string>
+	 */
+	private function build_purchase_datalayer_user_data( array $payload, array $flat_attr ): array {
+		if ( ! $this->should_include_woo_datalayer_user_data() ) {
+			return array();
+		}
+
+		$out      = array();
+		$identity = isset( $payload['identity'] ) && is_array( $payload['identity'] ) ? $payload['identity'] : array();
+
+		foreach ( array( 'hashed_email', 'hashed_phone' ) as $key ) {
+			if ( empty( $identity[ $key ] ) ) {
+				continue;
+			}
+
+			$value = sanitize_text_field( (string) $identity[ $key ] );
+			if ( '' !== $value ) {
+				$out[ $key ] = $value;
+			}
+		}
+
+		foreach ( array( 'fbc', 'fbp', 'ttp', 'li_gc', 'ga_client_id', 'ga_session_id', 'ga_session_number', 'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid', 'twclid', 'li_fat_id', 'sccid', 'epik' ) as $key ) {
+			if ( empty( $flat_attr[ $key ] ) ) {
+				continue;
+			}
+
+			$value = sanitize_text_field( (string) $flat_attr[ $key ] );
+			if ( '' !== $value ) {
+				$out[ $key ] = $value;
+			}
+		}
+
+		return $out;
 	}
 
 	/**

@@ -54,7 +54,7 @@ Browser events currently include:
 - form start
 - form submit attempt
 - selected lead-gen CTA interactions
-- WooCommerce storefront signals including `view_item`, `view_item_list`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` when the storefront-events flag is enabled
+- WooCommerce storefront signals including `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` when the storefront-events flag is enabled
 - thank-you page lead detection
 - external message bridge events for supported embedded providers
 
@@ -70,6 +70,7 @@ Woo list-view specifics:
 - product loops, related products, upsells, cross-sells, widgets, and supported Woo blocks can resolve `item_list_name`
 - list views fire once per detected container
 - downstream add-to-cart events can inherit `item_list_name` and `item_list_index` when the click came from a tracked list
+- when the richer Woo `dataLayer` contract is enabled, Woo browser events can also carry consent-aware `user_data` identifiers for GTM-first setups
 
 ## 3. Canonical Intake and Normalization
 
@@ -148,10 +149,11 @@ Flow:
 
 1. attribution is saved on checkout
 2. thank-you page pushes purchase event into `dataLayer`
-3. purchase identity is resolved from WooCommerce order data plus request context
-4. purchase payload is sent into dispatcher as a server-side event
-5. purchase trace snapshots are stored on the order for Diagnostics lookup
-6. duplicate purchase sends are prevented with order meta
+3. the optional richer Woo `dataLayer` contract can add `event_id` and consent-aware `user_data`
+4. purchase identity is resolved from WooCommerce order data plus request context
+5. purchase payload is sent into dispatcher as a server-side event
+6. purchase trace snapshots are stored on the order for Diagnostics lookup
+7. duplicate purchase sends are prevented with order meta
 
 Woo milestone flow:
 
