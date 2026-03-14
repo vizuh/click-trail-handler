@@ -28,17 +28,13 @@ It combines:
 
 That means you can start with campaign-aware WooCommerce orders or reliable form attribution first, then add browser events, consent integrations, or server-side delivery when your setup actually needs them.
 
-## Latest Release Notes (1.5.0)
+## Latest Release Notes (1.5.1)
 
-Version `1.5.0` expands WooCommerce coverage, admin operations, and native delivery breadth while keeping ClickTrail's broader attribution and delivery architecture intact.
+Version `1.5.1` is a patch release that aligns public release metadata and keeps public release copy product-focused.
 
-- **WooCommerce HPOS declaration**: ClickTrail now declares compatibility with WooCommerce custom order tables during bootstrap and keeps order-tracking state on Woo order APIs.
-- **Richer purchase payloads**: Woo purchase events now keep the old keys while adding `subtotal`, `tax_total`, `shipping_total`, `discount_total`, `discount_codes`, `status`, `order_currency`, `item_quantity`, plus richer item detail such as `product_id`, `sku`, `variant`, and `categories`.
-- **Broader Woo storefront and lifecycle coverage**: Woo storefront `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` events can now be enabled explicitly through the existing ClickTrail browser event layer, while the richer Woo `dataLayer` contract and post-purchase milestones stay on the same delivery model.
-- **GTM-first compatibility layer**: ClickTrail now adds a dedicated sGTM mode with tagging-server URL support, first-party or custom-loader script delivery, and an Events-tab setup wizard with preview probes and destination template hints.
-- **Stronger admin operations**: the unified settings app now includes a setup checklist, while Diagnostics adds a conflict scan, backup restore, and Woo order trace lookup.
-- **Selective destination expansion**: native delivery adapter support now includes Pinterest Conversions API and TikTok Events API alongside the existing adapters.
-- **Recent hardening included**: the release also carries the WordPress.org deployment cleanup, Plugin Check/privacy-query fixes, and debug visibility improvements from the current maintenance pass.
+- **Version alignment**: the plugin header, WordPress readme, product readmes, and technical docs now consistently reference `1.5.1`.
+- **Release-copy cleanup**: public changelog wording was tightened to stay competitor-neutral and product-focused.
+- **Runtime unchanged**: behavior remains the same as `1.5.0`; this patch only updates release metadata and documentation.
 
 For the full release history, see [changelog.txt](changelog.txt). The same public release notes are mirrored in [readme.txt](readme.txt) for the WordPress.org plugin page.
 

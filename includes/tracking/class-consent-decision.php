@@ -28,6 +28,7 @@ class Consent_Decision implements ConsentDecisionInterface {
 		if ( array_key_exists( 'marketing_allowed', $context ) ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 				$caller = ! empty( $context['caller'] ) ? sanitize_key( (string) $context['caller'] ) : 'unknown';
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Debug-only logging behind WP_DEBUG for consent-override auditing.
 				error_log( sprintf(
 					'ClickTrail: consent override by caller "%s" — marketing_allowed=%s',
 					$caller,

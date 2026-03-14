@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, reviewers, and solution engineers
 - **Canonical for**: supported integrations, providers, CMP sources, webhook sources, and delivery adapters
 - **Update when**: integration support level, adapter list, provider list, or capability messaging changes
-- **Last verified against version**: `1.5.0`
+- **Last verified against version**: `1.5.1`
 
 This document lists the active integrations and external-facing connection points in the current codebase.
 
@@ -85,6 +85,7 @@ Where teams see value:
 - order review stays tied to campaign context
 - purchase events can align browser and server-side reporting paths
 - list merchandising surfaces can feed richer Woo browser events without adding destination-specific logic
+- `view_cart` can be emitted from the cart page, visible mini-cart surfaces, and supported cart-drawer flows when the runtime can resolve current cart contents
 - post-purchase milestones follow the same dispatcher, queue, dedup, and diagnostics model as purchases
 
 ## WordPress Core Follow-Up Events

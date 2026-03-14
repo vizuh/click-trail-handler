@@ -794,6 +794,7 @@ class Settings {
 
 		if ( false === $plain ) {
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Debug-only logging behind WP_DEBUG for decryption troubleshooting.
 				error_log( 'ClickTrail: failed to decrypt secret value — key mismatch or corrupted payload.' );
 			}
 			return '';

@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, and reviewers
 - **Canonical for**: browser-to-REST intake, webhook intake, lifecycle ingestion, dedup, and delivery flow
 - **Update when**: intake stages, canonical event flow, dedup behavior, or delivery stages change
-- **Last verified against version**: `1.5.0`
+- **Last verified against version**: `1.5.1`
 
 ClickTrail uses one unified event pipeline behind the admin UI, even though the data can enter the system from different sources.
 
@@ -71,6 +71,7 @@ Woo list-view specifics:
 - list views fire once per detected container
 - downstream add-to-cart events can inherit `item_list_name` and `item_list_index` when the click came from a tracked list
 - when the richer Woo `dataLayer` contract is enabled, Woo browser events can also carry consent-aware `user_data` identifiers for GTM-first setups
+- `view_cart` can come from the cart page itself, visible mini-cart surfaces, or supported drawer flows when the browser runtime can resolve the current cart payload from Woo blocks, fragments, or DOM cart rows
 
 ## 3. Canonical Intake and Normalization
 
@@ -160,7 +161,7 @@ Woo milestone flow:
 1. Woo order status hooks trigger `order_paid`, `order_refunded`, or `order_cancelled`
 2. each milestone reuses the purchase payload builder and receives a deterministic event ID
 3. trace snapshots are stored on the order before and after dispatch
-4. per-milestone order meta prevents repeated sends while queue retry remains the second line of defense
+4. per-milestone order meta is only written after a successful, skipped, or confirmed queued attempt, so queue retry remains the second line of defense without suppressing unqueued failures
 
 ## 8. Dispatch and Queue
 

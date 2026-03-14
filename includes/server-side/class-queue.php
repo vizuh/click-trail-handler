@@ -106,7 +106,7 @@ class Queue {
 	 * @param string $adapter_key Adapter key.
 	 * @param string $endpoint Endpoint URL.
 	 * @param string $error_message Error message.
-	 * @return void
+	 * @return bool True when the event is already queued or has been persisted for retry.
 	 */
 	public static function enqueue( Event $event, $adapter_key, $endpoint, $error_message = '' ) {
 		global $wpdb;
@@ -116,11 +116,15 @@ class Queue {
 		$event_id   = isset( $data['event_id'] ) ? sanitize_text_field( (string) $data['event_id'] ) : '';
 
 		if ( ! $event_name || ! $event_id ) {
-			return;
+			return false;
 		}
 
 		if ( ! self::table_exists() ) {
 			self::ensure_table();
+		}
+
+		if ( ! self::table_exists() ) {
+			return false;
 		}
 
 		$table_name = self::get_table_name();
@@ -135,13 +139,13 @@ class Queue {
 			)
 		);
 		if ( $existing ) {
-			return;
+			return true;
 		}
 
 		$next_attempt = gmdate( 'Y-m-d H:i:s', time() + self::get_backoff_seconds( 0 ) );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery
-		$wpdb->insert(
+		$inserted = $wpdb->insert(
 			$table_name,
 			array(
 				'event_name'      => $event_name,
@@ -156,6 +160,8 @@ class Queue {
 			),
 			array( '%s', '%s', '%s', '%s', '%s', '%d', '%s', '%s', '%s' )
 		);
+
+		return false !== $inserted;
 	}
 
 	/**
@@ -490,7 +496,8 @@ class Queue {
 			return array();
 		}
 
-		$table_name = self::get_table_name();
+		$table_name = esc_sql( self::get_table_name() );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live queue lookup for diagnostics.
 		$row        = $wpdb->get_row(
 			$wpdb->prepare(
 				"SELECT event_name, event_id, adapter, attempts, next_attempt_at, last_error FROM {$table_name} WHERE event_name = %s AND event_id = %s LIMIT 1", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table.
@@ -498,7 +505,7 @@ class Queue {
 				$event_id
 			),
 			ARRAY_A
-		); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live queue lookup for diagnostics.
+		);
 
 		return is_array( $row ) ? $row : array();
 	}

@@ -570,7 +570,12 @@ class WooCommerce {
 			return true;
 		}
 
-		return ! empty( $result->skipped ) || ! empty( $result->message );
+		if ( ! empty( $result->skipped ) ) {
+			return true;
+		}
+
+		$meta = isset( $result->meta ) && is_array( $result->meta ) ? $result->meta : array();
+		return ! empty( $meta['queued'] );
 	}
 
 	/**
