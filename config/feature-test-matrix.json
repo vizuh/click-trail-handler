@@ -774,6 +774,223 @@
           ]
         }
       ]
+    },
+    "gf-channel-field": {
+      "label": "Gravity Forms channel field classification and persistence",
+      "expected_behavior": "GF entries receive ct_ft_channel with a human-readable label derived from click IDs, UTM parameters, or referrer context; server-side fallback computes the label when JS attribution is unavailable.",
+      "prerequisites": [
+        "Gravity Forms is active.",
+        "ClickTrail attribution is enabled."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Submit a GF form after visiting with ?gclid=test. Open the entry detail and confirm ct_ft_channel = 'Google Ads'.",
+        "Submit a GF form with no click ID or UTM. Confirm ct_ft_channel is 'Direct' or 'Unknown' — never empty."
+      ],
+      "evidence": [
+        {
+          "file": "includes/integrations/forms/class-gravity-forms-adapter.php",
+          "patterns": [
+            "resolve_channel_fallback",
+            "ft_channel",
+            "clicutcl_gf_channel_label"
+          ]
+        },
+        {
+          "file": "includes/Core/class-attribution-provider.php",
+          "patterns": [
+            "'channel'"
+          ]
+        },
+        {
+          "file": "assets/js/clicutcl-attribution.js",
+          "patterns": [
+            "resolveChannelLabel"
+          ]
+        }
+      ]
+    },
+    "gf-expanded-click-ids": {
+      "label": "Expanded click ID capture (Reddit, Pinterest, Snapchat, Mailchimp, DV360)",
+      "expected_behavior": "The six new click IDs (rdt_cid, pin_cid, snap_cid, mc_cid, mc_eid, dclid) are captured in the attribution cookie and persisted as ct_* GF entry meta alongside existing IDs.",
+      "prerequisites": [
+        "Gravity Forms is active.",
+        "ClickTrail attribution is enabled."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Visit with ?rdt_cid=test and submit a GF form. Confirm ct_rdt_cid appears in the entry detail.",
+        "Visit with ?mc_cid=test and submit. Confirm ct_mc_cid is present and ct_ft_channel = 'Mailchimp'."
+      ],
+      "evidence": [
+        {
+          "file": "includes/Core/class-attribution-provider.php",
+          "patterns": [
+            "'rdt_cid'",
+            "'mc_cid'",
+            "'dclid'"
+          ]
+        },
+        {
+          "file": "assets/js/clicutcl-attribution.js",
+          "patterns": [
+            "rdt_cid",
+            "pin_cid",
+            "dclid"
+          ]
+        }
+      ]
+    },
+    "gf-merge-tags": {
+      "label": "Gravity Forms merge tag resolution from entry meta",
+      "expected_behavior": "All nine {clicutcl_*} merge tags resolve their stored entry meta values in GF notifications and confirmations, with empty-string fallback and three developer filter hooks.",
+      "prerequisites": [
+        "Gravity Forms is active.",
+        "A GF notification or confirmation contains at least one {clicutcl_*} merge tag."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Add {clicutcl_channel} to a GF notification. Submit the form after visiting with ?gclid=test. Confirm the notification body contains 'Google Ads'.",
+        "Confirm {clicutcl_click_id} returns the first non-empty click ID meta value."
+      ],
+      "evidence": [
+        {
+          "file": "includes/integrations/forms/class-gf-merge-tags.php",
+          "patterns": [
+            "MERGE_TAGS",
+            "replace_merge_tags",
+            "clicutcl_gf_merge_tag_value",
+            "clicutcl_click_id"
+          ]
+        }
+      ]
+    },
+    "gf-per-form-toggle": {
+      "label": "Per-form attribution tracking toggle with global default fallback",
+      "expected_behavior": "Attribution tracking can be disabled per form via a ClickTrail section in GF form settings; the toggle defaults to the global gf_tracking_default_enabled option and can be overridden by the clicutcl_gf_tracking_enabled filter.",
+      "prerequisites": [
+        "Gravity Forms is active.",
+        "ClickTrail attribution is enabled."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Open a GF form in the admin, go to Form Settings, and confirm a ClickTrail section with an enable/disable toggle is present.",
+        "Disable tracking for a form, submit it, and confirm no ct_* entry meta is written."
+      ],
+      "evidence": [
+        {
+          "file": "includes/integrations/forms/class-gf-form-settings-tab.php",
+          "patterns": [
+            "is_enabled",
+            "clicutcl_gf_tracking_enabled",
+            "add_section",
+            "save"
+          ]
+        },
+        {
+          "file": "includes/settings/class-attribution-settings.php",
+          "patterns": [
+            "is_gf_tracking_default_enabled",
+            "gf_tracking_default_enabled"
+          ]
+        }
+      ]
+    },
+    "gf-entry-edit-safety": {
+      "label": "Attribution meta preserved after manual GF entry edit",
+      "expected_behavior": "Manually editing a GF entry does not clear or overwrite ct_* attribution meta; tracking fields are excluded from the edit screen and any values cleared during save are restored.",
+      "prerequisites": [
+        "Gravity Forms is active.",
+        "An entry exists with ct_ft_source or ct_gclid meta set."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Open a GF entry with attribution data and click Edit. Save without touching any field. Confirm ct_* meta values are unchanged.",
+        "Confirm that ct_* fields are absent from the editable field list on the entry edit screen."
+      ],
+      "evidence": [
+        {
+          "file": "includes/integrations/forms/class-gravity-forms-adapter.php",
+          "patterns": [
+            "restore_tracking_meta_after_edit",
+            "exclude_fields_from_edit",
+            "gform_after_update_entry"
+          ]
+        }
+      ]
+    },
+    "gf-admin-qa-mode": {
+      "label": "Admin QA mode writes to sessionStorage only — no persistent cookie",
+      "expected_behavior": "When a manage_options user is logged in, attribution data is written to sessionStorage instead of the persistent cookie and localStorage, preventing admin browsing from polluting real attribution data.",
+      "prerequisites": [
+        "Log in as a WordPress administrator.",
+        "ClickTrail attribution is enabled."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Log in as admin, visit the site, open DevTools Application tab. Confirm no ct_attribution cookie is set; confirm sessionStorage contains the attribution object.",
+        "Log out, visit the same page. Confirm the ct_attribution cookie is now written normally."
+      ],
+      "evidence": [
+        {
+          "file": "assets/js/clicutcl-attribution.js",
+          "patterns": [
+            "isAdminQaMode",
+            "setSessionData"
+          ]
+        },
+        {
+          "file": "includes/class-clicutcl-core.php",
+          "patterns": [
+            "set_admin_qa_cookie"
+          ]
+        }
+      ]
+    },
+    "gf-script-minification-protection": {
+      "label": "ClickTrail script tags carry minification-exclusion attributes",
+      "expected_behavior": "The clicutcl-attribution-js, clicutcl-consent-bridge-js, and clicutcl-consent-js script tags are emitted with data-no-optimize, data-cfasync, data-wprocket-exclude, and data-litespeed-no-optimize attributes.",
+      "prerequisites": [
+        "Gravity Forms is active.",
+        "ClickTrail attribution is enabled."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "View the rendered page HTML source. Confirm each ClickTrail script tag includes data-no-optimize=\"1\" and data-cfasync=\"false\"."
+      ],
+      "evidence": [
+        {
+          "file": "includes/integrations/forms/class-gf-minification-protector.php",
+          "patterns": [
+            "add_attrs",
+            "data-no-optimize",
+            "data-cfasync"
+          ]
+        }
+      ]
+    },
+    "gf-session-storage-fallback": {
+      "label": "sessionStorage fallback when cookies are blocked",
+      "expected_behavior": "When the attribution cookie cannot be written (cookies blocked by browser policy), attribution data falls back to sessionStorage using the same JSON envelope, remaining readable for the lifetime of the tab.",
+      "prerequisites": [
+        "ClickTrail attribution is enabled.",
+        "Cookies are blocked for the test domain (disable via DevTools or browser settings)."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Block cookies for the site in DevTools. Visit a URL with ?utm_source=test. Confirm sessionStorage contains the attribution object after page load.",
+        "Confirm the attribution data is readable by GF field pre-population on the same page load."
+      ],
+      "evidence": [
+        {
+          "file": "assets/js/clicutcl-attribution.js",
+          "patterns": [
+            "getSessionData",
+            "setSessionData",
+            "sessionStorage.setItem"
+          ]
+        }
+      ]
     }
   }
 }

@@ -24,7 +24,8 @@
     const TOUCH_FIELD_KEYS = Array.from(new Set(Object.values(TOUCH_QUERY_FIELD_MAP)));
     const CLICK_ID_KEYS = [
         'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid',
-        'twclid', 'li_fat_id', 'sccid', 'epik'
+        'twclid', 'li_fat_id', 'sccid', 'epik',
+        'rdt_cid', 'pin_cid', 'snap_cid', 'mc_cid', 'mc_eid', 'dclid'
     ];
     const CLICK_ID_SIGNAL_KEYS = CLICK_ID_KEYS.concat(['sc_click_id']);
     const BROWSER_IDENTIFIER_KEYS = [
@@ -40,7 +41,13 @@
         twclid: ['twclid'],
         li_fat_id: ['li_fat_id'],
         sccid: ['sccid', 'sc_click_id'],
-        epik: ['epik']
+        epik: ['epik'],
+        rdt_cid: ['rdt_cid'],
+        pin_cid: ['pin_cid'],
+        snap_cid: ['snap_cid'],
+        mc_cid: ['mc_cid'],
+        mc_eid: ['mc_eid'],
+        dclid: ['dclid']
     };
     const ATTRIBUTION_KEY_ALIASES = {
         _fbc: 'fbc',
@@ -126,6 +133,18 @@
             }
         });
         return out;
+    }
+
+    // I-1: detect admin QA mode by reading the `clicutcl_admin_qa` cookie set
+    // server-side at WP `init` for logged-in admins. Cached at module scope on
+    // first call so getData/saveData stay symmetric and cheap. Cookie value `1`
+    // = QA mode on. The cookie's 1-hour TTL self-clears after admin logout.
+    let _adminQaCache = null;
+    function isAdminQaMode() {
+        if (_adminQaCache !== null) return _adminQaCache;
+        const match = document.cookie.match(/(?:^|;\s*)clicutcl_admin_qa=([^;]+)/);
+        _adminQaCache = !!(match && match[1] === '1');
+        return _adminQaCache;
     }
 
     function getConsentCookieName() {
@@ -265,6 +284,76 @@
         };
     }
 
+    function resolveChannelLabel(params, referrer) {
+        // Paid click IDs — highest priority, checked before referrer
+        if (params.gclid || params.gbraid || params.wbraid) return 'Google Ads';
+        if (params.msclkid) return 'Microsoft Ads';
+        if (params.li_fat_id) return 'LinkedIn Ads';
+        if (params.twclid) return 'X Ads';
+        if (params.rdt_cid) return 'Reddit Ads';
+        if (params.ttclid) return 'TikTok Ads';
+        if (params.pin_cid || params.epik) return 'Pinterest Ads';
+        if (params.snap_cid || params.sccid) return 'Snapchat Ads';
+        if (params.dclid) return 'Display & Video 360';
+
+        // fbclid: Ads only when a paid medium is also present
+        if (params.fbclid) {
+            var med = sanitizeValue(params.utm_medium || '', 64).toLowerCase();
+            if (med === 'cpc' || med === 'paid_social' || med === 'paid') return 'Facebook Ads';
+        }
+
+        // Email platform signals
+        if (params.mc_cid || params.mc_eid) return 'Mailchimp';
+        var utmSrc = sanitizeValue(params.utm_source || '', 64).toLowerCase();
+        if (utmSrc === 'hubspot' || params.hs_cta) return 'HubSpot';
+        if (utmSrc === 'pardot' || params.pi_u) return 'Salesforce Pardot';
+        if (utmSrc === 'constantcontact') return 'Constant Contact';
+
+        // Referrer-based classification
+        var refUrl = parseUrlSafely(referrer);
+        var refHost = refUrl ? normalizeHostname(refUrl.hostname) : '';
+
+        if (refHost) {
+            // AI assistants — before search engines so gemini.google.com does not match Google Organic
+            if (hostMatchesDomain(refHost, 'chatgpt.com') || hostMatchesDomain(refHost, 'chat.openai.com')) return 'ChatGPT';
+            if (hostMatchesDomain(refHost, 'perplexity.ai')) return 'Perplexity';
+            if (hostMatchesDomain(refHost, 'copilot.microsoft.com') ||
+                (hostMatchesDomain(refHost, 'bing.com') && refUrl.pathname && refUrl.pathname.startsWith('/chat'))) {
+                return 'Microsoft Copilot';
+            }
+            if (hostMatchesDomain(refHost, 'gemini.google.com')) return 'Gemini';
+            if (hostMatchesDomain(refHost, 'claude.ai')) return 'Claude';
+            if (hostMatchesDomain(refHost, 'grok.com') ||
+                (hostMatchesDomain(refHost, 'x.com') && refUrl.pathname && refUrl.pathname.startsWith('/i/grok'))) {
+                return 'Grok';
+            }
+            if (hostMatchesDomain(refHost, 'deepseek.com')) return 'DeepSeek';
+
+            // Organic search
+            if (hostMatchesLabel(refHost, 'google')) return 'Google Organic';
+            if (hostMatchesDomain(refHost, 'bing.com')) return 'Bing Organic';
+            if (hostMatchesLabel(refHost, 'yahoo')) return 'Yahoo';
+            if (hostMatchesDomain(refHost, 'duckduckgo.com')) return 'DuckDuckGo';
+            if (hostMatchesLabel(refHost, 'yandex')) return 'Yandex';
+
+            // Organic social
+            if (hostMatchesDomain(refHost, 'facebook.com') || hostMatchesDomain(refHost, 'fb.com')) return 'Facebook Organic';
+            if (hostMatchesDomain(refHost, 'instagram.com')) return 'Instagram Organic';
+            if (hostMatchesDomain(refHost, 'linkedin.com') || hostMatchesDomain(refHost, 'lnkd.in')) return 'LinkedIn Organic';
+            if (hostMatchesDomain(refHost, 'twitter.com') || hostMatchesDomain(refHost, 't.co') ||
+                hostMatchesDomain(refHost, 'x.com')) return 'X Organic';
+            if (hostMatchesDomain(refHost, 'reddit.com')) return 'Reddit Organic';
+            if (hostMatchesDomain(refHost, 'tiktok.com')) return 'TikTok Organic';
+            if (hostMatchesDomain(refHost, 'pinterest.com')) return 'Pinterest Organic';
+            if (hostMatchesDomain(refHost, 'snapchat.com')) return 'Snapchat Organic';
+        }
+
+        // fbclid without paid medium defaults to organic Facebook
+        if (params.fbclid) return 'Facebook Organic';
+
+        return 'Unknown';
+    }
+
     function getExternalReferrerDetails(rawReferrer) {
         const referrerUrl = parseUrlSafely(rawReferrer, window.location.href);
         if (!referrerUrl || !/^https?:$/i.test(referrerUrl.protocol)) {
@@ -398,17 +487,50 @@
             } catch (e) { }
         },
 
+        getSessionData: function () {
+            try {
+                const raw = sessionStorage.getItem(CONFIG.cookieName);
+                if (!raw) return null;
+                const parsed = this.safeJsonParse(raw);
+                if (!parsed || typeof parsed !== 'object') {
+                    sessionStorage.removeItem(CONFIG.cookieName);
+                    return null;
+                }
+                if (parsed.v === STORAGE_ENVELOPE_VERSION && parsed.data && typeof parsed.data === 'object') {
+                    return normalizeStoredAttribution(parsed.data);
+                }
+                sessionStorage.removeItem(CONFIG.cookieName);
+            } catch (e) { }
+            return null;
+        },
+
+        setSessionData: function (data) {
+            try {
+                sessionStorage.setItem(CONFIG.cookieName, JSON.stringify({
+                    v: STORAGE_ENVELOPE_VERSION,
+                    savedAt: Date.now(),
+                    data: sanitizeAttributionData(data)
+                }));
+            } catch (e) { }
+        },
+
         clearData: function () {
             this.removeCookie(CONFIG.cookieName);
             if (CONFIG.cookieName !== 'ct_attribution') {
                 this.removeCookie('ct_attribution');
             }
             try { localStorage.removeItem(CONFIG.cookieName); } catch (e) { }
+            try { sessionStorage.removeItem(CONFIG.cookieName); } catch (e) { }
             this.signedTokenCache = '';
             this.signedTokenPayloadHash = '';
         },
 
         getData: function () {
+            // Admin QA mode: session-scoped reads only, no persistent cookie/localStorage.
+            if (isAdminQaMode()) {
+                const ssData = this.getSessionData();
+                return normalizeStoredAttribution(ssData || {});
+            }
             // 1. Try Cookie
             const cookieRaw = this.getCookie(CONFIG.cookieName) || (
                 CONFIG.cookieName !== 'ct_attribution' ? this.getCookie('ct_attribution') : null
@@ -422,8 +544,11 @@
                 this.setLocalData(cookieObj);
             }
 
-            // 3. Merge (Cookie takes precedence over LS, but current logic usually keeps them in sync)
-            return normalizeStoredAttribution(Object.assign({}, lsObj || {}, cookieObj || {}));
+            // 3. Try sessionStorage (fallback for blocked cookies/localStorage)
+            const ssObj = !cookieObj && !lsObj ? this.getSessionData() : null;
+
+            // Cookie takes precedence; sessionStorage is last resort
+            return normalizeStoredAttribution(Object.assign({}, ssObj || {}, lsObj || {}, cookieObj || {}));
         },
 
         saveData: function (data) {
@@ -432,9 +557,18 @@
                 this.clearData();
                 return;
             }
+            // Admin QA mode: session-scoped writes only, no persistent cookie/localStorage.
+            if (isAdminQaMode()) {
+                this.setSessionData(sanitized);
+                return;
+            }
             const dataStr = JSON.stringify(sanitized);
             this.setCookie(CONFIG.cookieName, dataStr, CONFIG.cookieDays);
             this.setLocalData(sanitized);
+            // If cookie was not persisted (blocked), fall back to sessionStorage
+            if (!this.getCookie(CONFIG.cookieName)) {
+                this.setSessionData(sanitized);
+            }
         },
 
         signedTokenCache: '',
@@ -449,7 +583,8 @@
                 'lt_source', 'lt_medium', 'lt_campaign', 'lt_term', 'lt_content',
                 'lt_utm_id', 'lt_utm_source_platform', 'lt_utm_creative_format', 'lt_utm_marketing_tactic',
                 'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid',
-                'twclid', 'li_fat_id', 'sccid', 'epik'
+                'twclid', 'li_fat_id', 'sccid', 'epik',
+                'rdt_cid', 'pin_cid', 'snap_cid', 'mc_cid', 'mc_eid', 'dclid'
             ];
             const out = {};
             allow.forEach((k) => {
@@ -777,6 +912,8 @@
             });
 
             mappings.push(
+                ['ft_channel', ['ct_ft_channel']],
+                ['lt_channel', ['ct_lt_channel']],
                 ['ft_referrer', ['ct_ft_referrer']],
                 ['lt_referrer', ['ct_lt_referrer', 'ct_referrer']],
                 ['ft_landing_page', ['ct_ft_landing_page', 'ct_first_landing_page', 'ct_landing']],
@@ -960,7 +1097,8 @@
                 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
                 'utm_id', 'utm_source_platform', 'utm_creative_format', 'utm_marketing_tactic',
                 'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid',
-                'twclid', 'li_fat_id', 'ScCid', 'epik'
+                'twclid', 'li_fat_id', 'ScCid', 'epik',
+                'rdt_cid', 'pin_cid', 'snap_cid', 'mc_cid', 'mc_eid', 'dclid'
             ];
 
             let changed = false;
@@ -971,7 +1109,8 @@
                 if (!val) val = data[k]; // Try direct (if stored)
 
                 // For Click IDs, they are just ids
-                if (['gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid', 'twclid', 'li_fat_id', 'ScCid', 'epik'].includes(k)) {
+                if (['gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid', 'twclid', 'li_fat_id', 'ScCid', 'epik',
+                        'rdt_cid', 'pin_cid', 'snap_cid', 'mc_cid', 'mc_eid', 'dclid'].includes(k)) {
                     val = data[canonicalKey] || data[k] || data['lt_' + canonicalKey] || data['ft_' + canonicalKey];
                 }
 
@@ -1445,6 +1584,9 @@
         resolveTouch(params, referrer) {
             if (this.hasTouchQuerySignal(params)) {
                 const fields = this.mapQueryFields(params);
+                if (Object.keys(fields).length > 0) {
+                    fields.channel = resolveChannelLabel(params, referrer);
+                }
                 return {
                     hasSignal: Object.keys(fields).length > 0,
                     fields: fields
@@ -1452,6 +1594,9 @@
             }
 
             const fields = this.mapReferrerFields(referrer);
+            if (Object.keys(fields).length > 0) {
+                fields.channel = resolveChannelLabel(params, referrer);
+            }
             return {
                 hasSignal: Object.keys(fields).length > 0,
                 fields: fields

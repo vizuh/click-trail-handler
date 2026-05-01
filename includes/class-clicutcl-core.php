@@ -1,5 +1,4 @@
-<?php
-
+<?php // phpcs:ignore WordPress.Files.FileName.InvalidClassFileName -- historical naming; renaming would break the plugin bootstrap.
 /**
  * The core plugin class.
  *
@@ -72,7 +71,7 @@ class Plugin {
 		if ( ! class_exists( 'CLICUTCL\\Core\\Context' ) ) {
 			add_action(
 				'admin_notices',
-				function() {
+				function () {
 					if ( ! current_user_can( 'activate_plugins' ) ) {
 						return;
 					}
@@ -159,11 +158,18 @@ class Plugin {
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'enqueue_scripts' ) );
 
+		// I-1: set the admin QA cookie directly — we are already inside init
+		// priority 20, so registering at priority 1 would never fire (that
+		// window has passed). Call directly instead. wp_logout clears it so
+		// stale QA state does not persist after the session ends.
+		$this->set_admin_qa_cookie();
+		add_action( 'wp_logout', array( $this, 'clear_admin_qa_cookie' ) );
+
 		Queue::register();
 
 		add_action(
 			'rest_api_init',
-			function() {
+			function () {
 				$controller = new Tracking_Controller();
 				$controller->register_routes();
 			}
@@ -184,16 +190,16 @@ class Plugin {
 	 * @return void
 	 */
 	public function enqueue_scripts() {
-		$options                  = Attribution_Settings::get_all();
-		$enable_attribution       = isset( $options['enable_attribution'] ) ? (bool) $options['enable_attribution'] : true;
-		$cookie_days              = isset( $options['cookie_days'] ) ? absint( $options['cookie_days'] ) : 90;
-		$debug_until              = get_transient( 'clicutcl_debug_until' );
-		$debug_active             = $debug_until && (int) $debug_until > time();
-		$browser_events_enabled   = class_exists( 'CLICUTCL\\Tracking\\Settings' ) && Tracking_Settings::browser_event_collection_enabled();
-		$events_transport_enabled = class_exists( 'CLICUTCL\\Tracking\\Settings' ) && Tracking_Settings::browser_event_transport_enabled();
+		$options                   = Attribution_Settings::get_all();
+		$enable_attribution        = isset( $options['enable_attribution'] ) ? (bool) $options['enable_attribution'] : true;
+		$cookie_days               = isset( $options['cookie_days'] ) ? absint( $options['cookie_days'] ) : 90;
+		$debug_until               = get_transient( 'clicutcl_debug_until' );
+		$debug_active              = $debug_until && (int) $debug_until > time();
+		$browser_events_enabled    = class_exists( 'CLICUTCL\\Tracking\\Settings' ) && Tracking_Settings::browser_event_collection_enabled();
+		$events_transport_enabled  = class_exists( 'CLICUTCL\\Tracking\\Settings' ) && Tracking_Settings::browser_event_transport_enabled();
 		$enable_cross_domain_token = isset( $options['enable_cross_domain_token'] ) ? (bool) $options['enable_cross_domain_token'] : false;
-		$events_batch_url         = $events_transport_enabled ? rest_url( 'clicutcl/v2/events/batch' ) : '';
-		$events_token             = ( class_exists( 'CLICUTCL\\Tracking\\Auth' ) && ( $events_transport_enabled || $enable_cross_domain_token ) )
+		$events_batch_url          = $events_transport_enabled ? rest_url( 'clicutcl/v2/events/batch' ) : '';
+		$events_token              = ( class_exists( 'CLICUTCL\\Tracking\\Auth' ) && ( $events_transport_enabled || $enable_cross_domain_token ) )
 			? \CLICUTCL\Tracking\Auth::mint_client_token()
 			: '';
 
@@ -207,7 +213,7 @@ class Plugin {
 		 *
 		 * @param bool $should_load_events Whether to load the script.
 		 */
-		$should_load_events  = (bool) apply_filters( 'clicutcl_should_load_events_js', $should_load_events );
+		$should_load_events   = (bool) apply_filters( 'clicutcl_should_load_events_js', $should_load_events );
 		$needs_consent_bridge = $consent_config['enable_consent'] || $enable_attribution || $should_load_events;
 
 		if ( $needs_consent_bridge ) {
@@ -268,7 +274,7 @@ class Plugin {
 					'readMore'        => __( 'Read more', 'click-trail-handler' ),
 					'acceptAll'       => __( 'Accept All', 'click-trail-handler' ),
 					'rejectEssential' => __( 'Reject Non-Essential', 'click-trail-handler' ),
-					'privacyUrl'      => get_privacy_policy_url() ?: '#',
+					'privacyUrl'      => get_privacy_policy_url() ? get_privacy_policy_url() : '#',
 					'cookieName'      => $consent_config['cookie_name'],
 				)
 			);
@@ -328,8 +334,8 @@ class Plugin {
 		$consent_settings     = $consent_settings_obj->get();
 		$enable_consent       = $consent_settings_obj->is_consent_mode_enabled();
 		$consent_mode         = $consent_settings_obj->get_mode();
-		$cmp_source = isset( $consent_settings['cmp_source'] ) ? sanitize_key( (string) $consent_settings['cmp_source'] ) : 'auto';
-		$cmp_source = isset( Modules\Consent_Mode\Consent_Mode_Settings::ALLOWED_CMP_SOURCES[ $cmp_source ] ) ? $cmp_source : 'auto';
+		$cmp_source           = isset( $consent_settings['cmp_source'] ) ? sanitize_key( (string) $consent_settings['cmp_source'] ) : 'auto';
+		$cmp_source           = isset( Modules\Consent_Mode\Consent_Mode_Settings::ALLOWED_CMP_SOURCES[ $cmp_source ] ) ? $cmp_source : 'auto';
 		$cmp_timeout          = isset( $consent_settings['cmp_timeout_ms'] ) ? absint( $consent_settings['cmp_timeout_ms'] ) : 3000;
 		$cmp_timeout          = min( 10000, max( 500, $cmp_timeout ) );
 		$cookie_name          = isset( $consent_settings['cookie_name'] ) ? sanitize_key( (string) $consent_settings['cookie_name'] ) : 'ct_consent';
@@ -396,6 +402,76 @@ class Plugin {
 			'tokenSignUrl'              => esc_url_raw( rest_url( 'clicutcl/v2/attribution-token/sign' ) ),
 			'tokenVerifyUrl'            => esc_url_raw( rest_url( 'clicutcl/v2/attribution-token/verify' ) ),
 			'linkAppendBlob'            => false,
+		);
+	}
+
+	/**
+	 * Emit the admin QA cookie when a logged-in user has manage_options.
+	 *
+	 * Replaces the previous approach of baking `adminQaMode` into the localized
+	 * attribution config (I-1). The previous approach risked being cached by
+	 * full-page cache plugins and served to anonymous visitors. Setting a
+	 * cookie at the WordPress `init` action ensures the `Set-Cookie` header is
+	 * only emitted in responses that cache plugins exclude (logged-in users).
+	 *
+	 * Cookie attributes:
+	 * - Name: `clicutcl_admin_qa`
+	 * - Value: `1`
+	 * - TTL: 1 hour (self-clears if admin logs out)
+	 * - Path: COOKIEPATH (site root)
+	 * - Secure: only on SSL
+	 * - HttpOnly: false (JS must read it)
+	 * - SameSite: Lax
+	 *
+	 * @return void
+	 */
+	public function set_admin_qa_cookie() {
+		// Logged-in gate ensures the Set-Cookie header is only present in
+		// uncacheable responses; cache plugins exclude logged-in users.
+		if ( ! is_user_logged_in() || ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		// Skip if headers already sent (defensive; init runs before output).
+		if ( headers_sent() ) {
+			return;
+		}
+
+		setcookie(
+			'clicutcl_admin_qa',
+			'1',
+			array(
+				'expires'  => time() + HOUR_IN_SECONDS,
+				'path'     => COOKIEPATH ? COOKIEPATH : '/',
+				'domain'   => COOKIE_DOMAIN ? COOKIE_DOMAIN : '',
+				'secure'   => is_ssl(),
+				'httponly' => false,
+				'samesite' => 'Lax',
+			)
+		);
+	}
+
+	/**
+	 * Expire the admin QA cookie on logout so QA mode clears immediately.
+	 *
+	 * @return void
+	 */
+	public function clear_admin_qa_cookie() {
+		if ( headers_sent() ) {
+			return;
+		}
+
+		setcookie(
+			'clicutcl_admin_qa',
+			'',
+			array(
+				'expires'  => time() - HOUR_IN_SECONDS,
+				'path'     => COOKIEPATH ? COOKIEPATH : '/',
+				'domain'   => COOKIE_DOMAIN ? COOKIE_DOMAIN : '',
+				'secure'   => is_ssl(),
+				'httponly' => false,
+				'samesite' => 'Lax',
+			)
 		);
 	}
 
@@ -575,7 +651,7 @@ class Plugin {
 				continue;
 			}
 
-			$items[]       = $item;
+			$items[]        = $item;
 			$item_quantity += (int) $item['quantity'];
 		}
 
@@ -679,7 +755,7 @@ class Plugin {
 		return array_values(
 			array_filter(
 				array_map(
-					static function( $term_name ) {
+					static function ( $term_name ) {
 						return sanitize_text_field( (string) $term_name );
 					},
 					$terms
