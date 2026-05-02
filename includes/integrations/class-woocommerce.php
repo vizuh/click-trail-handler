@@ -99,19 +99,31 @@ class WooCommerce {
 			if ( '' === $meta_key ) {
 				continue;
 			}
-			
-			// Map standard keys to storage keys if needed, but our array usually is flat or structured?
-			// Attribution::get() returns flat? No, it implies structured in other parts.
-			// Let's assume flat for the fallback logic or handle structure.
-			// Actually `Attribution::get()` returns the cookie array (structured).
-			// We need to flatten our POST data to match that structure or just save what we have.
-			
+
 			if ( 'session_count' === $meta_key ) {
 				$order->update_meta_data( '_clicutcl_session_count', absint( $value ) );
 				continue;
 			}
 
 			$order->update_meta_data( '_clicutcl_' . $meta_key, sanitize_text_field( $value ) );
+		}
+
+		// visitor_id and session_id live in separate cookies not included in
+		// Utils\Attribution::get(). Write them explicitly so order meta has the
+		// same cross-platform join key available in GF entry meta.
+		if ( Attribution_Provider::should_populate() ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			if ( ! empty( $_COOKIE['ct_visitor_id'] ) && is_scalar( $_COOKIE['ct_visitor_id'] ) ) {
+				$visitor_id = sanitize_text_field( wp_unslash( $_COOKIE['ct_visitor_id'] ) );
+				if ( '' !== $visitor_id ) {
+					$order->update_meta_data( '_clicutcl_visitor_id', $visitor_id );
+				}
+			}
+
+			$session = Attribution_Provider::get_session();
+			if ( ! empty( $session['session_id'] ) ) {
+				$order->update_meta_data( '_clicutcl_session_id', $session['session_id'] );
+			}
 		}
 	}
 

@@ -26,12 +26,12 @@ class Attribution_Provider {
 	 * @var array<string,string>
 	 */
 	private const FIELD_ALIASES = array(
-		'_fbc'                 => 'fbc',
-		'_fbp'                 => 'fbp',
-		'_ttp'                 => 'ttp',
-		'sc_click_id'          => 'sccid',
-		'ft_sc_click_id'       => 'ft_sccid',
-		'lt_sc_click_id'       => 'lt_sccid',
+		'_fbc'                  => 'fbc',
+		'_fbp'                  => 'fbp',
+		'_ttp'                  => 'ttp',
+		'sc_click_id'           => 'sccid',
+		'ft_sc_click_id'        => 'ft_sccid',
+		'lt_sc_click_id'        => 'lt_sccid',
 		'first_touch_timestamp' => 'ft_touch_timestamp',
 		'last_touch_timestamp'  => 'lt_touch_timestamp',
 		'first_landing_page'    => 'ft_landing_page',
@@ -53,6 +53,7 @@ class Attribution_Provider {
 		'utm_source_platform',
 		'utm_creative_format',
 		'utm_marketing_tactic',
+		'channel',
 	);
 
 	/**
@@ -71,6 +72,12 @@ class Attribution_Provider {
 		'li_fat_id',
 		'sccid',
 		'epik',
+		'rdt_cid',
+		'pin_cid',
+		'snap_cid',
+		'mc_cid',
+		'mc_eid',
+		'dclid',
 	);
 
 	/**
@@ -126,7 +133,24 @@ class Attribution_Provider {
 			return array();
 		}
 
-		return self::sanitize( $data );
+		$sanitized = self::sanitize( $data );
+
+		// visitor_id and session_id live in separate cookies — merge them into
+		// the payload so every form adapter persists them as entry meta.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		if ( ! empty( $_COOKIE['ct_visitor_id'] ) && is_scalar( $_COOKIE['ct_visitor_id'] ) ) {
+			$visitor_id = sanitize_text_field( wp_unslash( $_COOKIE['ct_visitor_id'] ) );
+			if ( '' !== $visitor_id ) {
+				$sanitized['visitor_id'] = $visitor_id;
+			}
+		}
+
+		$session = self::get_session();
+		if ( ! empty( $session['session_id'] ) ) {
+			$sanitized['session_id'] = $session['session_id'];
+		}
+
+		return $sanitized;
 	}
 
 	/**
@@ -136,7 +160,7 @@ class Attribution_Provider {
 	 */
 	public static function should_populate() {
 		$options         = Attribution_Settings::get_all();
-		$require_consent = isset( $options['require_consent'] ) ? (bool) $options['require_consent'] : true; // Default to true for safety
+		$require_consent = isset( $options['require_consent'] ) ? (bool) $options['require_consent'] : true; // Default to true for safety.
 		$cookie_name     = 'ct_consent';
 
 		if ( class_exists( 'CLICUTCL\\Modules\\Consent_Mode\\Consent_Mode_Settings' ) ) {
@@ -151,7 +175,7 @@ class Attribution_Provider {
 			return true;
 		}
 
-		// Check consent cookie
+		// Check consent cookie.
 		if ( isset( $_COOKIE[ $cookie_name ] ) ) {
 			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 			$consent_json = wp_unslash( $_COOKIE[ $cookie_name ] );
@@ -162,12 +186,12 @@ class Attribution_Provider {
 			if ( in_array( $normalized, array( 'denied', '0', 'false', 'no' ), true ) ) {
 				return false;
 			}
-			$consent      = json_decode( $consent_json, true );
+			$consent = json_decode( $consent_json, true );
 
 			return isset( $consent['marketing'] ) && $consent['marketing'];
 		}
 
-		return false; // Consent required but not found
+		return false; // Consent required but not found.
 	}
 
 	/**
@@ -189,7 +213,7 @@ class Attribution_Provider {
 				continue;
 			}
 
-			if ( array_key_exists( $meta_key, $sanitized ) && $meta_key !== sanitize_key( $key ) ) {
+			if ( array_key_exists( $meta_key, $sanitized ) && sanitize_key( $key ) !== $meta_key ) {
 				continue;
 			}
 
@@ -197,8 +221,8 @@ class Attribution_Provider {
 				$sanitized[ $meta_key ] = absint( $value );
 				continue;
 			}
-			
-			// Handle simple values only, no nested arrays expected in flattened payload
+
+			// Handle simple values only; no nested arrays expected in flattened payload.
 			if ( is_scalar( $value ) ) {
 				$sanitized[ $meta_key ] = sanitize_text_field( $value );
 			}
@@ -256,6 +280,8 @@ class Attribution_Provider {
 				'lt_referrer',
 				'session_count',
 				'session_number',
+				'visitor_id',
+				'session_id',
 			)
 		);
 	}
@@ -290,7 +316,7 @@ class Attribution_Provider {
 
 		if ( isset( $decoded['session_number'] ) ) {
 			$sanitized['session_number'] = absint( $decoded['session_number'] );
-			$sanitized['session_count']  = $sanitized['session_number']; // backward compat
+			$sanitized['session_count']  = $sanitized['session_number']; // Backward compat.
 		}
 
 		if ( isset( $decoded['session_started_at'] ) && is_numeric( $decoded['session_started_at'] ) ) {
