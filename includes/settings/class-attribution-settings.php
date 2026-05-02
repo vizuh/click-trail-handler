@@ -95,21 +95,20 @@ class Attribution_Settings {
 	}
 
 	/**
-	 * Log WhatsApp Clicks?
-	 *
-	 * @return bool
-	 */
-	public function log_whatsapp_clicks() {
-		// WA click persistence was removed; keep method for backward compatibility.
-		return false;
-	}
-
-	/**
 	 * Enable cross-domain token?
 	 *
 	 * @return bool
 	 */
 	public function is_cross_domain_token_enabled() {
 		return isset( $this->settings['enable_cross_domain_token'] ) ? (bool) $this->settings['enable_cross_domain_token'] : false;
+	}
+
+	/**
+	 * Is attribution tracking enabled by default for new Gravity Forms?
+	 *
+	 * @return bool
+	 */
+	public function is_gf_tracking_default_enabled() {
+		return isset( $this->settings['gf_tracking_default_enabled'] ) ? (bool) $this->settings['gf_tracking_default_enabled'] : true;
 	}
 }

@@ -780,34 +780,11 @@ class Admin {
 	private function resolve_settings_app_tab() {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page navigation does not require nonce.
 		$raw_tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'capture';
-		$aliases = array(
-			'general'      => 'capture',
-			'attribution'  => 'capture',
-			'whatsapp'     => 'forms',
-			'channels'     => 'forms',
-			'gtm'          => 'events',
-			'integrations' => 'events',
-			'tracking'     => 'events',
-			'trackingv2'   => 'events',
-			'advanced'     => 'events',
-			'server'       => 'delivery',
-			'server-side'  => 'delivery',
-			'consent'      => 'delivery',
-			'privacy'      => 'delivery',
-			'destinations' => 'delivery',
-		);
 		$tabs    = $this->get_settings_app_tabs();
-		$active  = isset( $aliases[ $raw_tab ] ) ? $aliases[ $raw_tab ] : $raw_tab;
-
-		if ( ! isset( $tabs[ $active ] ) ) {
-			$active = 'capture';
-		}
+		$active  = isset( $tabs[ $raw_tab ] ) ? $raw_tab : 'capture';
 
 		return array(
-			'raw_tab'      => $raw_tab,
-			'active_tab'   => $active,
-			'used_legacy'  => isset( $aliases[ $raw_tab ] ),
-			'migration_ui' => 'trackingv2' === $raw_tab,
+			'active_tab' => $active,
 		);
 	}
 
@@ -820,15 +797,11 @@ class Admin {
 		$resolved = $this->resolve_settings_app_tab();
 
 		return array(
-			'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
-			'nonce'           => wp_create_nonce( 'clicutcl_admin_settings' ),
-			'pageTitle'       => __( 'ClickTrail', 'click-trail-handler' ),
-			'activeTab'       => $resolved['active_tab'],
-			'legacyTab'       => $resolved['raw_tab'],
-			'migrationNotice' => $resolved['migration_ui']
-				? __( 'These settings are now organized by capability. Browser events and destinations live under Events, while transport and privacy controls live under Delivery.', 'click-trail-handler' )
-				: '',
-			'tabs'            => $this->get_settings_app_tabs(),
+			'ajaxUrl'   => admin_url( 'admin-ajax.php' ),
+			'nonce'     => wp_create_nonce( 'clicutcl_admin_settings' ),
+			'pageTitle' => __( 'ClickTrail', 'click-trail-handler' ),
+			'activeTab' => $resolved['active_tab'],
+			'tabs'      => $this->get_settings_app_tabs(),
 			'registry'        => array(
 				'adapters'     => $this->get_localized_adapter_choice_list(),
 				'destinations' => $this->get_localized_destination_toggle_list(),
@@ -1472,19 +1445,7 @@ class Admin {
 	 */
 	public function render_settings_page() {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page navigation does not require nonce.
-		$active_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : 'general';
-
-		$legacy_map = array(
-			'general'    => 'attribution',
-			'whatsapp'   => 'attribution',
-			'channels'   => 'attribution',
-			'gtm'        => 'destinations',
-			'server'     => 'destinations',
-			'trackingv2' => 'advanced',
-		);
-		if ( isset( $legacy_map[ $active_tab ] ) ) {
-			$active_tab = $legacy_map[ $active_tab ];
-		}
+		$active_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : 'attribution';
 
 		$tabs = $this->get_settings_tabs();
 		if ( ! isset( $tabs[ $active_tab ] ) ) {
@@ -1994,11 +1955,6 @@ class Admin {
 				'sanitize' => array( $this, 'sanitize_toggle' ),
 			),
 			'whatsapp_append_attribution' => array(
-				'default'  => 0,
-				'sanitize' => array( $this, 'sanitize_toggle' ),
-			),
-			// Backward compatibility for legacy keys still read in some installs.
-			'enable_consent_banner'      => array(
 				'default'  => 0,
 				'sanitize' => array( $this, 'sanitize_toggle' ),
 			),
