@@ -9,6 +9,7 @@
     };
     const DEBUG_ENABLED = !!CONFIG.debug;
     const STORAGE_ENVELOPE_VERSION = 1;
+    const PENDING_SS_KEY = 'ct_pending_v1';
     const TOUCH_QUERY_FIELD_MAP = Object.freeze({
         utm_source: 'source',
         utm_medium: 'medium',
@@ -702,6 +703,49 @@
         }
     };
 
+    const PendingCapture = {
+        save: function () {
+            try {
+                if (sessionStorage.getItem(PENDING_SS_KEY)) return; // first landing page wins
+            } catch (e) {
+                return;
+            }
+            const params = Store.getQueryParams();
+            const tokenParam = CONFIG.tokenParam || 'ct_token';
+            const hasSignal =
+                TOUCH_QUERY_KEYS.some((k) => !!params[k]) ||
+                CLICK_ID_SIGNAL_KEYS.some((k) => !!params[k]) ||
+                !!(CONFIG.linkAppendToken && params[tokenParam]);
+            if (!hasSignal) return;
+            try {
+                sessionStorage.setItem(PENDING_SS_KEY, JSON.stringify({
+                    v: 1,
+                    savedAt: Date.now(),
+                    params: params,
+                    referrer: (document.referrer || '').slice(0, 512),
+                    landingPage: (window.location.href || '').slice(0, 512)
+                }));
+                if (DEBUG_ENABLED) {
+                    console.log('[ClickTrail] Pending capture saved to sessionStorage.');
+                }
+            } catch (e) {}
+        },
+        read: function () {
+            try {
+                const raw = sessionStorage.getItem(PENDING_SS_KEY);
+                if (!raw) return null;
+                const parsed = JSON.parse(raw);
+                if (!parsed || parsed.v !== 1 || !parsed.params) return null;
+                return parsed;
+            } catch (e) {
+                return null;
+            }
+        },
+        clear: function () {
+            try { sessionStorage.removeItem(PENDING_SS_KEY); } catch (e) {}
+        }
+    };
+
     const BrowserIdentifiers = {
         getCookieMap: function () {
             return String(document.cookie || '')
@@ -988,6 +1032,22 @@
                 if (targetNode) {
                     let timeout;
                     const obs = new MutationObserver((mutations) => {
+                        // Skip if every new anchor in the mutation is a skippable scheme
+                        // (tel:, mailto:, #, javascript:) — avoids wasted cycles during
+                        // Dynamic Number Insertion swaps from call-tracking tools (CallRail,
+                        // CallTrackingMetrics, WhatConverts, etc.)
+                        const hasDecoratable = mutations.some((m) => {
+                            if (!m.addedNodes || !m.addedNodes.length) return false;
+                            return Array.from(m.addedNodes).some((node) => {
+                                if (node.nodeType !== 1) return false;
+                                const anchors = node.tagName === 'A'
+                                    ? [node]
+                                    : Array.from(node.querySelectorAll('a'));
+                                if (!anchors.length) return false;
+                                return anchors.some((a) => !Decorator.isSkippable(a.getAttribute('href')));
+                            });
+                        });
+                        if (!hasDecoratable) return;
                         // De-bounce execution to avoid performance hits on rapid DOM changes
                         clearTimeout(timeout);
                         timeout = setTimeout(run, 200);
@@ -1382,6 +1442,9 @@
 
         init() {
             const requiresConsent = CONFIG.requireConsent === true || CONFIG.requireConsent === '1';
+            // Phase 1: buffer URL signals to sessionStorage immediately — no consent required.
+            // sessionStorage is ephemeral and tab-scoped; does not require consent under GDPR/ePrivacy.
+            PendingCapture.save();
             this.bindConsentListener();
             const consent = this.getConsent();
 
@@ -1485,8 +1548,24 @@
                 return;
             }
             this.hasRunAttribution = true;
-            const currentParams = Store.getQueryParams();
-            const referrer = document.referrer;
+            let currentParams = Store.getQueryParams();
+            let referrer = document.referrer;
+
+            // Phase 2: if this page has no attribution signal, promote the pending capture.
+            // Covers the case where the user navigated away from the landing page before accepting consent.
+            if (!this.hasTouchQuerySignal(currentParams)) {
+                const pending = PendingCapture.read();
+                if (pending && pending.params) {
+                    // Pending is base; current page params override (a fresh UTM on page 2 wins last-touch).
+                    currentParams = Object.assign({}, pending.params, currentParams);
+                    if (!referrer && pending.referrer) {
+                        referrer = pending.referrer;
+                    }
+                    if (DEBUG_ENABLED) {
+                        console.log('[ClickTrail] Promoted pending capture from sessionStorage.');
+                    }
+                }
+            }
 
             // Cross-domain token support
             if (CONFIG.linkAppendToken) {
@@ -1545,6 +1624,8 @@
             if (shouldPersist) {
                 Store.saveData(storedData);
                 storedData = Store.getData() || storedData;
+                // Pending capture fulfilled — clear so it isn't re-promoted on subsequent pages.
+                PendingCapture.clear();
             }
 
             // Touch session (creates or resumes based on 30-min inactivity)

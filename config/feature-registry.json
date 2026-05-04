@@ -189,7 +189,8 @@
       "enablement_path": "capture.enabled",
       "docs_target": "docs/guides/SETTINGS-AND-ADMIN.md",
       "smoke_test_ids": [
-        "admin-save-capture"
+        "admin-save-capture",
+        "admin-get-admin-settings"
       ]
     },
     "forms_capture": {
@@ -310,6 +311,27 @@
       "docs_target": "docs/guides/OPERATIONS-RUNBOOK.md",
       "smoke_test_ids": [
         "queue-retry-semantics"
+      ]
+    },
+    "gf_integration": {
+      "label": "Gravity Forms integration",
+      "support_level": "shipped",
+      "runtime_surface": [
+        "forms",
+        "browser",
+        "capture"
+      ],
+      "enablement_path": "forms.client_fallback",
+      "docs_target": "docs/reference/INTEGRATIONS.md",
+      "smoke_test_ids": [
+        "gf-channel-field",
+        "gf-expanded-click-ids",
+        "gf-merge-tags",
+        "gf-per-form-toggle",
+        "gf-entry-edit-safety",
+        "gf-admin-qa-mode",
+        "gf-script-minification-protection",
+        "gf-session-storage-fallback"
       ]
     }
   }

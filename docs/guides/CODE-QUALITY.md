@@ -3,7 +3,7 @@
 - **Audience**: maintainers, reviewers, and cleanup-focused contributors
 - **Canonical for**: current maintenance posture, known dead paths, and cleanup hotspots
 - **Update when**: legacy paths are removed, major cleanup lands, or quality risks materially change
-- **Last verified against version**: `1.5.2`
+- **Last verified against version**: `1.7.0`
 
 This document summarizes the current quality posture of the repository and the main maintenance concerns worth watching.
 
@@ -29,11 +29,11 @@ Examples:
 
 Treat the file as runtime-critical, but do not assume every renderer/helper inside it defines the current UX contract.
 
-## 2. Internal naming that still reflects older architecture
+## 2. ~~Internal naming that still reflects older architecture~~ — resolved
 
-The option key `clicutcl_tracking_v2` remains active because it is part of the current storage contract.
+The option key `clicutcl_tracking_v2` is still the live storage contract (defined in `includes/tracking/class-settings.php` as `Tracking_Settings::OPTION`) and is intentionally preserved. The two AJAX handlers that exposed this name in action strings and nonce actions (`ajax_get_tracking_v2_settings`, `ajax_save_tracking_v2_settings`) have been removed, along with their `add_action` registrations and the `register_setting('clicutcl_tracking_v2')` no-op call.
 
-This is intentional for compatibility, but future contributors should avoid reintroducing that label into the public UI copy.
+The string `clicutcl_tracking_v2` no longer appears in any public-facing action name, nonce, or UI surface. It exists only as an internal option key in `class-settings.php` and `uninstall.php`, which is correct.
 
 ## 3. Documentation drift risk
 

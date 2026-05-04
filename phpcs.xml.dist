@@ -13,6 +13,7 @@
 	<exclude-pattern>*/vendor/*</exclude-pattern>
 	<exclude-pattern>*/languages/*</exclude-pattern>
 	<exclude-pattern>*/docs/*</exclude-pattern>
+	<exclude-pattern>*/tests/*</exclude-pattern>
 
 	<rule ref="WordPress-Core" />
 	<rule ref="WordPress-Extra" />

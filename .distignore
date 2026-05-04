@@ -1,0 +1,44 @@
+# Development and tooling – excluded from SVN trunk
+.git
+.github
+.claude
+.claude-flow
+.tools
+.editorconfig
+.mcp.json
+.distignore
+
+# Tests and CI config
+tests/
+phpcs.xml.dist
+phpunit.xml.dist
+
+# Node / npm
+node_modules/
+package.json
+package-lock.json
+
+# Composer dev dependencies and config
+composer.json
+composer.lock
+vendor/
+
+# Project config
+config/
+
+# Contributor docs
+CONTRIBUTING.md
+CONTRIBUTING.pt-BR.md
+AGENTS.md
+CLAUDE.md
+
+# Dev README variants (non-English kept out of WP.org trunk)
+README.en.md
+README.pt-BR.md
+readme_header_update.txt
+
+# Internal docs
+docs/
+
+# Build tools
+tools/

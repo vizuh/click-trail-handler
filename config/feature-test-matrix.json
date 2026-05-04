@@ -365,7 +365,10 @@
       ],
       "automated": true,
       "manual_verification": [
-        "Toggle attribution capture or retention values, save, reload, and confirm the values persist."
+        "Toggle attribution capture or retention values, save, reload, and confirm the values persist.",
+        "POST wp-admin/admin-ajax.php with action=clicutcl_save_admin_settings, nonce=<clicutcl_admin_settings nonce>, and a settings JSON payload that changes capture.enabled. Confirm response is {\"success\":true,\"data\":{\"message\":\"Settings saved.\",\"settings\":{...}}} and the capture group reflects the change.",
+        "POST the same endpoint with an invalid or missing nonce. Confirm WordPress returns a -1 or {\"success\":false} failure — not a 200 with saved data.",
+        "After a successful save, POST action=clicutcl_get_admin_settings with the same nonce. Confirm the returned settings.capture object matches what was just saved (round-trip correctness). Confirm sanitize_settings() output is present — no raw unsanitized keys."
       ],
       "evidence": [
         {
@@ -394,7 +397,9 @@
       ],
       "automated": true,
       "manual_verification": [
-        "Toggle client fallback or provider settings, save, reload, and confirm the values persist."
+        "Toggle client fallback or provider settings, save, reload, and confirm the values persist.",
+        "POST wp-admin/admin-ajax.php with action=clicutcl_save_admin_settings, nonce=<clicutcl_admin_settings nonce>, and a settings JSON payload that changes forms.client_fallback. Confirm response is {\"success\":true,\"data\":{\"message\":\"Settings saved.\",\"settings\":{...}}} and the forms group reflects the change.",
+        "After a successful save, POST action=clicutcl_get_admin_settings with the same nonce. Confirm the returned settings.forms object matches what was just saved. Confirm whatsapp and external_webhooks keys are present and sanitized."
       ],
       "evidence": [
         {
@@ -411,6 +416,37 @@
             "'enable_js_injection'",
             "'external_webhooks'",
             "'whatsapp_append_attribution'"
+          ]
+        }
+      ]
+    },
+    "admin-get-admin-settings": {
+      "label": "Admin settings GET returns full schema",
+      "expected_behavior": "The clicutcl_get_admin_settings AJAX endpoint returns a success envelope whose settings object contains all expected top-level keys.",
+      "prerequisites": [
+        "Logged in as a manage_options user.",
+        "A valid clicutcl_admin_settings nonce is available (localized in the settings app script data)."
+      ],
+      "automated": false,
+      "manual_verification": [
+        "POST wp-admin/admin-ajax.php with action=clicutcl_get_admin_settings and nonce=<clicutcl_admin_settings nonce>. Confirm response shape is {\"success\":true,\"data\":{\"settings\":{...}}} and the settings object contains keys: capture, forms, events, delivery, status, setup_checklist.",
+        "Repeat the request with a missing or invalid nonce. Confirm the response is a WordPress nonce failure (HTTP 400 or {\"success\":false}) — not a 200 with settings data.",
+        "Repeat the request while logged out (no auth cookie). Confirm the response is a WordPress capability failure — not a 200 with settings data."
+      ],
+      "evidence": [
+        {
+          "file": "includes/admin/traits/trait-admin-diagnostics-ajax.php",
+          "patterns": [
+            "ajax_get_admin_settings",
+            "get_unified_admin_settings",
+            "clicutcl_admin_settings"
+          ]
+        },
+        {
+          "file": "includes/admin/class-admin.php",
+          "patterns": [
+            "wp_ajax_clicutcl_get_admin_settings",
+            "clicutcl_admin_settings"
           ]
         }
       ]

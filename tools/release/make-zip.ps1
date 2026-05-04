@@ -58,9 +58,13 @@ $excludeDirs = @(
     '.vscode',
     '.claude',
     '.claude-flow',
+    '.tools',
+    'config',
     'dist',
     'docs',
+    'tests',
     'tools',
+    'vendor',
     'node_modules'
 )
 
@@ -74,6 +78,7 @@ $excludeFiles = @(
     'composer.json',
     'composer.lock',
     'phpcs.xml.dist',
+    'phpunit.xml.dist',
     'readme_header_update.txt',
     'AGENTS.md',
     'CLAUDE.md',

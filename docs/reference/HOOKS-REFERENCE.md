@@ -3,7 +3,7 @@
 - **Audience**: contributors, integrators, and maintainers
 - **Canonical for**: public filters and actions exposed by the plugin
 - **Update when**: a public hook is added, removed, renamed, or changes contract
-- **Last verified against version**: `1.3.9`
+- **Last verified against version**: `1.7.0`
 
 This document lists the public custom hooks currently exposed by the active codebase.
 
@@ -216,3 +216,100 @@ Type:
 Purpose:
 
 - receive aggregated delivery failure telemetry when remote telemetry is enabled
+
+## Gravity Forms
+
+### Notes about the GF integration
+
+**Entry meta scope (M-4):** the GF adapter declares the full `ct_*` attribution key set as Gravity Forms entry meta for **all forms**, regardless of the per-form tracking toggle. This is a metadata declaration only — it makes the columns available to GF's entry-list picker, exporter, and merge-tag UI. Actual values are written at `gform_after_submission` time and gated by the per-form toggle (`clicutcl_gf_tracking_enabled` filter), so disabled forms produce empty entries with no `ct_*` values.
+
+**Channel labels are stored data, not UI strings (M-5):** values like `"Google Ads"`, `"Microsoft Ads"`, `"Gemini"`, `"ChatGPT"`, `"Unknown"`, etc. are persisted to `ct_ft_channel` and consumed by reports, exports, and downstream automations. They are **deliberately not wrapped in `__()`** — a Portuguese site and an English site must record the same label for the same source so cross-locale reporting is consistent. If you want to localise the display in a single context, use `clicutcl_gf_channel_label` (overrides the stored value) or transform it at the reporting layer; do not translate it via WordPress text domain.
+
+### `clicutcl_gf_tracking_enabled`
+
+Type:
+
+- filter
+
+Purpose:
+
+- override whether attribution tracking is enabled for a specific Gravity Forms form
+
+Arguments:
+
+- `bool $enabled` — current state (per-form meta when set, otherwise global `gf_tracking_default_enabled` option)
+- `int $form_id`
+- `array|null $form` — full form object when available
+
+Notes:
+
+- returning `false` suppresses all `ct_*` entry meta writes, merge tag population, and field pre-population for that form
+
+### `clicutcl_gf_channel_label`
+
+Type:
+
+- filter
+
+Purpose:
+
+- override the resolved channel label before it is stored as `ct_ft_channel` entry meta
+
+Arguments:
+
+- `string $channel` — computed label (e.g. `"Google Ads"`, `"ChatGPT"`, `"Unknown"`)
+- `array $payload` — full attribution payload at submission time
+- `array $entry` — Gravity Forms entry object
+- `array $form` — Gravity Forms form object
+
+### `clicutcl_gf_merge_tag_value`
+
+Type:
+
+- filter
+
+Purpose:
+
+- override the raw value resolved for any `{clicutcl_*}` merge tag before formatting is applied
+
+Arguments:
+
+- `string $value` — raw meta value (may be empty string)
+- `string $tag` — merge tag key without braces (e.g. `"clicutcl_channel"`, `"clicutcl_click_id"`)
+- `array $entry` — Gravity Forms entry object
+- `array $form` — Gravity Forms form object
+
+### `clicutcl_gf_merge_tag_formatted_value`
+
+Type:
+
+- filter
+
+Purpose:
+
+- override the formatted value for any `{clicutcl_*}` merge tag after escaping and encoding are applied
+
+Arguments:
+
+- `string $formatted` — value after `esc_html` / `urlencode` / `nl2br` as requested by the notification context
+- `string $tag` — merge tag key without braces
+- `array $entry` — Gravity Forms entry object
+- `array $form` — Gravity Forms form object
+- `bool $url_encode`
+- `bool $esc_html`
+- `string $format`
+
+### `clicutcl_gf_merge_tag_default_value`
+
+Type:
+
+- filter
+
+Purpose:
+
+- supply a fallback string when a `{clicutcl_*}` merge tag resolves to an empty value
+
+Arguments:
+
+- `string $default` — empty string by default
+- `string $tag` — merge tag key without braces

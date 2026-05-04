@@ -730,6 +730,10 @@ class Dispatcher {
 	 * @return void
 	 */
 	private static function log_failure_telemetry_line( $deltas, $throttled ) {
+		if ( ! defined( 'WP_DEBUG' ) || ! WP_DEBUG ) {
+			return;
+		}
+
 		if ( ! function_exists( 'error_log' ) ) {
 			return;
 		}

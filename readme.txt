@@ -5,7 +5,7 @@ Author URI: https://vizuh.com
 Tags: attribution, utm, consent mode, woocommerce, server-side tracking
 Requires at least: 6.5
 Tested up to: 6.9
-Stable tag: 1.5.2
+Stable tag: 1.7.0
 Requires PHP: 8.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -47,13 +47,17 @@ Teams can start with order or form attribution first, then add browser events, c
 * **Events**: browser event collection with `dataLayer` pushes, canonical REST intake, webhook ingestion, lifecycle updates, one-time WordPress follow-up events such as `login`, `sign_up`, and `comment_submit`, and optional WooCommerce storefront events.
 * **Delivery**: optional server-side transport, retry queue, diagnostics, consent-aware dispatch, and failure telemetry.
 
-= What is new in 1.5.2 =
+= What is new in 1.6.0 =
 
-This maintenance release focuses on code-quality cleanup and standards compliance without changing runtime behavior:
+This release extends the Gravity Forms integration with channel classification, merge tags, and per-form controls:
 
-* **Line-ending cleanup**: normalized mixed line endings in key PHP handlers so packaging and standards checks stay consistent across environments.
-* **Standards cleanup**: resolved PHPCS findings in the consent, attribution-token, and privacy handlers, including targeted documentation for intentional exceptions.
-* **No runtime change**: behavior remains the same as `1.5.1`; this is a maintenance release focused on code hygiene.
+* **Channel classification**: every GF entry now receives a `ct_ft_channel` value — a human-readable label such as Google Ads, ChatGPT, or Mailchimp — derived from click IDs, UTM parameters, or referrer context. A server-side fallback covers sessions where JS attribution was unavailable.
+* **Expanded click ID capture**: six additional click IDs (Reddit `rdt_cid`, Pinterest `pin_cid`, Snapchat `snap_cid`, Mailchimp `mc_cid` / `mc_eid`, and Display & Video 360 `dclid`) are now captured and stored.
+* **Merge tags**: nine `{clicutcl_*}` merge tags are available in GF notifications and confirmations, including `{clicutcl_channel}`, `{clicutcl_click_id}`, and seven UTM-based tags.
+* **Per-form toggle**: attribution tracking can be enabled or disabled per form via a dedicated ClickTrail section in Gravity Forms form settings.
+* **Admin QA mode**: attribution data is stored in `sessionStorage` only when a `manage_options` user is logged in, preventing admin browsing from appearing in attribution reports.
+* **sessionStorage fallback**: attribution capture now falls back to `sessionStorage` when the browser blocks cookies.
+* **Minification protection**: ClickTrail script tags carry exclusion attributes recognised by Autoptimize, Cloudflare Rocket Loader, WP Rocket, and LiteSpeed Cache (corrected attribute set in 1.7.0).
 
 = Current admin structure =
 
@@ -207,6 +211,27 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 
 == Changelog ==
 
+= 1.7.0 =
+* Hardening release. No user-visible feature changes; addresses ten findings from the 1.6.0 internal code review.
+* Fixed admin QA mode cache-poisoning risk: `adminQaMode` is no longer baked into the localized attribution config, where a full-page cache plugin could capture it from an admin-viewed response and serve it to anonymous visitors. It is now a 1-hour `clicutcl_admin_qa` cookie set on `init` only for logged-in `manage_options` users, which cache plugins correctly exclude.
+* Fixed minification-exclusion attributes: the previous set advertised support for WP Rocket and LiteSpeed but used non-existent attribute names. Replaced with the canonical attributes each tool actually reads: `data-no-optimize`, `data-noptimize`, `data-cfasync`, `data-no-defer`, `data-no-minify`.
+* Replaced `str_replace(' src=', ...)` injection with regex-based injection after the opening `<script` token, robust to attribute order and leading/trailing whitespace.
+* Refactored `Gravity_Forms_Adapter` from ~660 lines into four focused classes: `Gf_Channel_Resolver`, `Gf_Form_Settings_Tab`, `Gf_Merge_Tags`, `Gf_Minification_Protector`. The adapter is now a thin coordinator under 350 lines. All public method signatures preserved; `resolve_channel_fallback()` kept as a backward-compat shim.
+* Memoized `Attribution_Settings` instance inside the adapter and shared it with the extracted classes — fewer redundant `Option_Cache` reads per request.
+* Added PHPUnit unit-test suite for `Gf_Channel_Resolver` covering 10 classification rules, including the `gemini.google.com` precedence over Google Organic and the fbclid+paid-medium gate.
+* Added documentation in HOOKS-REFERENCE.md clarifying that `ct_*` entry meta is registered for all forms but values are gated per-form, and that channel labels are stored data values (not UI strings) and should not be wrapped with `__()`.
+* Added inline comments documenting fail-open semantics when GF form context is unavailable, and the GF 2.5+ single-arg signature of `gform_pre_form_settings_save`.
+
+= 1.6.0 =
+* Added full channel classification to Gravity Forms entries: `ct_ft_channel` stores a human-readable label (Google Ads, ChatGPT, Mailchimp, etc.) derived from click IDs, UTM parameters, or referrer context; server-side fallback computes the label when JS is unavailable.
+* Added six new click IDs to the capture schema: `rdt_cid` (Reddit), `pin_cid` (Pinterest), `snap_cid` (Snapchat), `mc_cid` and `mc_eid` (Mailchimp), and `dclid` (Display & Video 360).
+* Added nine `{clicutcl_*}` merge tags for Gravity Forms notifications and confirmations, including `{clicutcl_channel}`, `{clicutcl_click_id}`, and seven UTM-based tags.
+* Added per-form attribution tracking toggle in Gravity Forms form settings, with a global default option and `clicutcl_gf_tracking_enabled` filter for developer overrides.
+* Added admin QA mode: attribution data is written to `sessionStorage` only when a `manage_options` user is logged in, preventing admin browsing from polluting attribution records.
+* Added `sessionStorage` fallback for attribution capture when browser cookies are blocked.
+* Added minification-exclusion data attributes to ClickTrail script tags to prevent cache and optimization plugins from deferring or bundling them.
+* Added entry-edit safety for Gravity Forms: `ct_*` attribution meta is excluded from the editable fields screen and restored automatically if cleared during a manual entry edit.
+
 = 1.5.2 =
 * Normalized mixed line endings in core PHP handlers to keep standards checks deterministic across environments.
 * Resolved the remaining PHPCS findings in the consent, attribution-token, and privacy handlers.
@@ -255,6 +280,12 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 Older release notes remain available in `changelog.txt`.
 
 == Upgrade Notice ==
+
+= 1.7.0 =
+Hardening release. Fixes a cache-related risk that could leak admin QA mode to anonymous visitors, corrects minification-exclusion attribute names so WP Rocket and Autoptimize actually skip ClickTrail scripts, and refactors the Gravity Forms adapter for maintainability. No public API changes; safe to upgrade.
+
+= 1.6.0 =
+Extends Gravity Forms with channel classification, merge tags, per-form tracking toggle, admin QA mode, and sessionStorage fallback. No breaking changes.
 
 = 1.5.2 =
 This maintenance release cleans up coding-standards issues without changing runtime behavior from `1.5.1`.

@@ -1,5 +1,15 @@
 # ClickTrail
 
+[![Support](https://img.shields.io/badge/support-active-brightgreen.svg)](https://github.com/vizuh/click-trail-handler)
+[![Release](https://img.shields.io/github/v/release/vizuh/click-trail-handler?label=release&color=blue)](https://github.com/vizuh/click-trail-handler/releases)
+[![WordPress tested](https://img.shields.io/badge/WordPress-v6.9%20tested-3858e9.svg)](https://wordpress.org)
+[![License](https://img.shields.io/badge/license-GPL--2.0-orange.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
+
+[![PHP Linting](https://github.com/vizuh/click-trail-handler/actions/workflows/php-lint.yml/badge.svg)](https://github.com/vizuh/click-trail-handler/actions/workflows/php-lint.yml)
+[![PHPUnit Tests](https://github.com/vizuh/click-trail-handler/actions/workflows/phpunit.yml/badge.svg)](https://github.com/vizuh/click-trail-handler/actions/workflows/phpunit.yml)
+[![CodeQL](https://github.com/vizuh/click-trail-handler/actions/workflows/codeql.yml/badge.svg)](https://github.com/vizuh/click-trail-handler/actions/workflows/codeql.yml)
+[![Dependency Review](https://github.com/vizuh/click-trail-handler/actions/workflows/dependency-review.yml/badge.svg)](https://github.com/vizuh/click-trail-handler/actions/workflows/dependency-review.yml)
+
 ClickTrail is a WordPress attribution plugin for sites that need reliable marketing source data to survive real-world user journeys, especially when WooCommerce orders or lead forms happen several pages after the landing page.
 
 It is built for the problems that usually break attribution in production:
