@@ -3,7 +3,7 @@
  * Plugin Name: ClickTrail – UTM, Click ID & Ad Tracking (with Consent)
  * Plugin URI:  https://github.com/vizuh/click-trail-handler
  * Description: Consent-aware marketing attribution for WordPress. Captures UTMs, click IDs, and referrers, enriches WooCommerce orders and forms, collects browser events, and supports optional server-side delivery.
- * Version:     1.7.0
+ * Version:     1.7.1
  * Author:      Vizuh
  * Author URI:  https://vizuh.com
  * License:     GPL-2.0-or-later
@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define Constants
-define( 'CLICUTCL_VERSION', '1.7.0' );
+define( 'CLICUTCL_VERSION', '1.7.1' );
 define( 'CLICUTCL_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CLICUTCL_URL', plugin_dir_url( __FILE__ ) );
 define( 'CLICUTCL_BASENAME', plugin_basename( __FILE__ ) );
@@ -156,6 +156,10 @@ register_activation_hook( __FILE__, function() {
 	if ( class_exists( 'CLICUTCL\\Server_Side\\Queue' ) ) {
 		CLICUTCL\Server_Side\Queue::ensure_schedule();
 	}
+
+	// Trigger the setup wizard on the next admin page load (new installs only).
+	// The wizard checks clicutcl_setup_complete and skips the redirect if already done.
+	set_transient( 'clicutcl_activation_redirect', true, 30 );
 } );
 
 register_deactivation_hook( __FILE__, function() {
@@ -172,6 +176,12 @@ function clicutcl_init() {
 	// Ensure bootstrap has run (in case another file called init directly)
 	if ( ! class_exists( 'CLICUTCL\\Core\\Context' ) ) {
 		clicutcl_bootstrap();
+	}
+
+	// Register the setup wizard early -- before the preflight -- so the
+	// activation redirect fires even when a required class fails to load.
+	if ( class_exists( 'CLICUTCL\\Admin\\Setup_Wizard' ) ) {
+		\CLICUTCL\Admin\Setup_Wizard::init();
 	}
 
 	// Preflight: never fatal the site if a required class is missing.

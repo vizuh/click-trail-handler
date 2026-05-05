@@ -227,6 +227,65 @@ trait Admin_Diagnostics_Ajax_Trait {
 	}
 
 	/**
+	 * Return tracking v2 settings via AJAX.
+	 *
+	 * @return void
+	 */
+	public function ajax_get_tracking_v2_settings() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Forbidden', 'click-trail-handler' ) ), 403 );
+		}
+		check_ajax_referer( 'clicutcl_tracking_v2', 'nonce' );
+
+		if ( ! class_exists( 'CLICUTCL\\Tracking\\Settings' ) ) {
+			wp_send_json_error( array( 'message' => 'tracking_settings_class_missing' ), 500 );
+		}
+
+		wp_send_json_success(
+			array(
+				'settings' => \CLICUTCL\Tracking\Settings::get_for_admin(),
+			)
+		);
+	}
+
+	/**
+	 * Save tracking v2 settings via AJAX.
+	 *
+	 * @return void
+	 */
+	public function ajax_save_tracking_v2_settings() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Forbidden', 'click-trail-handler' ) ), 403 );
+		}
+		check_ajax_referer( 'clicutcl_tracking_v2', 'nonce' );
+
+		if ( ! class_exists( 'CLICUTCL\\Tracking\\Settings' ) ) {
+			wp_send_json_error( array( 'message' => 'tracking_settings_class_missing' ), 500 );
+		}
+
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above.
+		$raw = isset( $_POST['settings'] ) ? sanitize_text_field( wp_unslash( $_POST['settings'] ) ) : '';
+		if ( is_string( $raw ) ) {
+			$decoded = json_decode( $raw, true );
+			$raw     = is_array( $decoded ) ? $decoded : array();
+		}
+
+		if ( ! is_array( $raw ) ) {
+			$raw = array();
+		}
+
+		$clean = \CLICUTCL\Tracking\Settings::sanitize( $raw );
+		update_option( \CLICUTCL\Tracking\Settings::OPTION, $clean, false );
+
+		wp_send_json_success(
+			array(
+				'message'  => __( 'Advanced event settings saved.', 'click-trail-handler' ),
+				'settings' => \CLICUTCL\Tracking\Settings::get_for_admin(),
+			)
+		);
+	}
+
+	/**
 	 * Run the interactive conflict scan.
 	 *
 	 * @return void
@@ -431,9 +490,8 @@ trait Admin_Diagnostics_Ajax_Trait {
 		$server_effective = Settings::get();
 		$gtm_settings     = get_option( GTM_Settings::OPTION, array() );
 		$findings         = array();
-		$detected_cache        = $this->detect_cache_conflict_labels();
-		$detected_call_tracking = $this->detect_call_tracking_labels();
-		$current_adapter       = isset( $server_effective['adapter'] ) ? sanitize_key( (string) $server_effective['adapter'] ) : 'generic';
+		$detected_cache   = $this->detect_cache_conflict_labels();
+		$current_adapter  = isset( $server_effective['adapter'] ) ? sanitize_key( (string) $server_effective['adapter'] ) : 'generic';
 		$adapter_meta     = Feature_Registry::delivery_adapters();
 		$destination_meta = Feature_Registry::destinations();
 
@@ -561,18 +619,6 @@ trait Admin_Diagnostics_Ajax_Trait {
 			}
 		}
 
-		if ( ! empty( $detected_call_tracking ) ) {
-			$findings[] = array(
-				'severity' => 'info',
-				'title'    => sprintf(
-					/* translators: %s: detected call tracking tool labels. */
-					__( 'Call tracking detected: %s', 'click-trail-handler' ),
-					implode( ', ', $detected_call_tracking )
-				),
-				'detail'   => __( 'ClickTrail automatically skips tel: link decoration so Dynamic Number Insertion is not disrupted. No action is needed unless you are seeing unexpected behaviour on phone number links.', 'click-trail-handler' ),
-			);
-		}
-
 		if ( empty( $findings ) ) {
 			return array(
 				'summary'  => __( 'No common conflicts detected in the current ClickTrail configuration.', 'click-trail-handler' ),
@@ -618,47 +664,6 @@ trait Admin_Diagnostics_Ajax_Trait {
 		$cf_ray = filter_input( INPUT_SERVER, 'HTTP_CF_RAY', FILTER_UNSAFE_RAW );
 		if ( ! empty( $cf_ray ) ) {
 			$found[] = 'Cloudflare';
-		}
-
-		return array_values( array_unique( $found ) );
-	}
-
-	/**
-	 * Detect active call tracking tools by plugin presence or known constants.
-	 *
-	 * Used to surface an informational note in the conflict scan — ClickTrail
-	 * already handles these correctly (tel: links are skipped by the decorator
-	 * and MutationObserver), so this is awareness-only, not an error.
-	 *
-	 * @return array<int,string>
-	 */
-	private function detect_call_tracking_labels(): array {
-		$found = array();
-
-		// Plugin-based detection — checks active plugin file slugs.
-		$active_plugins = (array) get_option( 'active_plugins', array() );
-		$known_plugins  = array(
-			'callrail'              => 'CallRail',
-			'call-tracking-metrics' => 'CallTrackingMetrics',
-			'whatconverts'          => 'WhatConverts',
-			'retreaver'             => 'Retreaver',
-			'infinity-call-tracking' => 'Infinity',
-		);
-		foreach ( $active_plugins as $plugin_path ) {
-			$plugin_path = strtolower( (string) $plugin_path );
-			foreach ( $known_plugins as $slug => $label ) {
-				if ( str_contains( $plugin_path, $slug ) ) {
-					$found[] = $label;
-				}
-			}
-		}
-
-		// Constant-based detection for tools that define a PHP constant on load.
-		if ( defined( 'CALLRAIL_PLUGIN_VERSION' ) ) {
-			$found[] = 'CallRail';
-		}
-		if ( defined( 'CTM_PLUGIN_VERSION' ) ) {
-			$found[] = 'CallTrackingMetrics';
 		}
 
 		return array_values( array_unique( $found ) );

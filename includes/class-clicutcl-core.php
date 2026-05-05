@@ -135,6 +135,8 @@ class Plugin {
 		$plugin_admin = new Admin( $this->context );
 		$plugin_admin->init();
 
+		\CLICUTCL\Admin\Setup_Wizard::init();
+
 		if ( class_exists( 'WooCommerce' ) && class_exists( 'CLICUTCL_WooCommerce_Admin' ) ) {
 			$wc_admin = new \CLICUTCL_WooCommerce_Admin();
 			$wc_admin->init();

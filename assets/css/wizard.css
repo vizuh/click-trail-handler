@@ -1,0 +1,541 @@
+/**
+ * ClickTrail Setup Wizard Styles
+ *
+ * Builds on the design tokens defined in admin.css (:root).
+ * Scoped to .clicutcl-wizard so nothing bleeds into WP admin chrome.
+ */
+
+/* ============================================================
+   Wrap + card
+   ============================================================ */
+
+.clicutcl-wizard-wrap {
+    padding: 0;
+}
+
+.clicutcl-wizard {
+    max-width: 640px;
+    margin: 32px auto;
+    background: var(--clicktrail-card);
+    border: 1px solid var(--clicktrail-border);
+    border-radius: var(--clicktrail-radius);
+    box-shadow: var(--clicktrail-shadow);
+}
+
+/* ============================================================
+   Header (logo + skip link)
+   ============================================================ */
+
+.clicutcl-wizard__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 28px;
+    border-bottom: 1px solid var(--clicktrail-border);
+}
+
+.clicutcl-wizard__logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--clicktrail-text);
+    letter-spacing: -0.01em;
+}
+
+.clicutcl-wizard__logo .dashicons {
+    color: var(--clicktrail-blue);
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+}
+
+.clicutcl-wizard__skip {
+    font-size: 12px;
+    color: var(--clicktrail-text-muted);
+    text-decoration: none;
+}
+
+.clicutcl-wizard__skip:hover {
+    color: var(--clicktrail-text);
+    text-decoration: underline;
+}
+
+/* ============================================================
+   Step indicator
+   ============================================================ */
+
+.clicutcl-wizard__steps {
+    display: flex;
+    align-items: center;
+    padding: 20px 28px 0;
+    gap: 0;
+}
+
+.clicutcl-wizard__step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+}
+
+.clicutcl-wizard__step-number {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #f0f0f1;
+    border: 2px solid var(--clicktrail-border);
+    color: var(--clicktrail-text-subtle);
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.clicutcl-wizard__step-label {
+    font-size: 11px;
+    color: var(--clicktrail-text-subtle);
+    white-space: nowrap;
+    transition: color 0.2s;
+}
+
+.clicutcl-wizard__step-connector {
+    flex: 1;
+    height: 2px;
+    background: var(--clicktrail-border);
+    margin-bottom: 18px; /* align with centre of number circle */
+    transition: background 0.2s;
+}
+
+/* Active step */
+.clicutcl-wizard__step.is-active .clicutcl-wizard__step-number {
+    background: var(--clicktrail-blue);
+    border-color: var(--clicktrail-blue);
+    color: #fff;
+}
+
+.clicutcl-wizard__step.is-active .clicutcl-wizard__step-label {
+    color: var(--clicktrail-blue);
+    font-weight: 600;
+}
+
+/* Completed step */
+.clicutcl-wizard__step.is-complete .clicutcl-wizard__step-number {
+    background: var(--clicktrail-success);
+    border-color: var(--clicktrail-success);
+    color: #fff;
+    font-size: 0; /* hide the number */
+    position: relative;
+}
+
+.clicutcl-wizard__step.is-complete .clicutcl-wizard__step-number::after {
+    content: '\f147'; /* dashicons-yes */
+    font-family: dashicons;
+    font-size: 16px;
+    line-height: 1;
+}
+
+.clicutcl-wizard__step.is-complete .clicutcl-wizard__step-label {
+    color: var(--clicktrail-success);
+}
+
+.clicutcl-wizard__step.is-complete + .clicutcl-wizard__step-connector {
+    background: var(--clicktrail-success);
+}
+
+/* ============================================================
+   Panels
+   ============================================================ */
+
+.clicutcl-wizard__form {
+    margin: 0;
+}
+
+.clicutcl-wizard__panel {
+    padding: 28px 28px 0;
+}
+
+.clicutcl-wizard__panel[hidden] {
+    display: none;
+}
+
+.clicutcl-wizard__panel-inner {
+    margin-bottom: 24px;
+}
+
+.clicutcl-wizard__panel-inner--center {
+    text-align: center;
+}
+
+/* ============================================================
+   Typography
+   ============================================================ */
+
+.clicutcl-wizard__title {
+    margin: 12px 0 6px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--clicktrail-text);
+    letter-spacing: -0.02em;
+    line-height: 1.3;
+}
+
+.clicutcl-wizard__subtitle {
+    margin: 0 0 20px;
+    font-size: 13px;
+    color: var(--clicktrail-text-muted);
+    line-height: 1.6;
+}
+
+/* ============================================================
+   Detection checklist
+   ============================================================ */
+
+.clicutcl-wizard__checklist {
+    border: 1px solid var(--clicktrail-border);
+    border-radius: var(--clicktrail-radius);
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.clicutcl-wizard__check-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--clicktrail-border);
+}
+
+.clicutcl-wizard__check-row:last-child {
+    border-bottom: none;
+}
+
+.clicutcl-wizard__check-icon {
+    flex-shrink: 0;
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+}
+
+.clicutcl-wizard__check-label {
+    flex: 1;
+    color: var(--clicktrail-text);
+}
+
+.clicutcl-wizard__check-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 7px;
+    border-radius: 2px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.clicutcl-wizard__check-badge--on {
+    background: var(--clicktrail-success-bg);
+    color: var(--clicktrail-success);
+    border: 1px solid #b7e1c0;
+}
+
+.clicutcl-wizard__check-badge--off {
+    background: #f6f7f7;
+    color: var(--clicktrail-text-subtle);
+    border: 1px solid var(--clicktrail-border);
+}
+
+/* ============================================================
+   Form fields
+   ============================================================ */
+
+.clicutcl-wizard__field {
+    margin-bottom: 16px;
+}
+
+.clicutcl-wizard__field-label {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--clicktrail-text);
+    margin-bottom: 6px;
+}
+
+.clicutcl-wizard__field-optional {
+    font-size: 11px;
+    font-weight: 400;
+    color: var(--clicktrail-text-subtle);
+}
+
+.clicutcl-wizard__input {
+    display: block;
+    width: 100%;
+    max-width: 300px;
+    box-sizing: border-box;
+}
+
+.clicutcl-wizard__input.is-invalid {
+    border-color: var(--clicktrail-danger);
+    box-shadow: 0 0 0 1px var(--clicktrail-danger);
+}
+
+.clicutcl-wizard__checkbox-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--clicktrail-text);
+    cursor: pointer;
+}
+
+.clicutcl-wizard__checkbox {
+    margin: 0;
+    flex-shrink: 0;
+}
+
+/* ============================================================
+   Toggle rows (step 2)
+   ============================================================ */
+
+.clicutcl-wizard__toggles {
+    border: 1px solid var(--clicktrail-border);
+    border-radius: var(--clicktrail-radius);
+    overflow: hidden;
+    margin-bottom: 4px;
+}
+
+.clicutcl-wizard__toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--clicktrail-border);
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.clicutcl-wizard__toggle-row:last-child {
+    border-bottom: none;
+}
+
+.clicutcl-wizard__toggle-row:hover {
+    background: #fafafa;
+}
+
+.clicutcl-wizard__toggle-input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+}
+
+/* CSS toggle pill */
+.clicutcl-wizard__toggle-switch {
+    flex-shrink: 0;
+    width: 40px;
+    height: 22px;
+    background: var(--clicktrail-border);
+    border-radius: 11px;
+    position: relative;
+    transition: background 0.2s;
+    order: -1; /* render switch before text */
+}
+
+.clicutcl-wizard__toggle-switch::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s;
+}
+
+.clicutcl-wizard__toggle-row.is-checked .clicutcl-wizard__toggle-switch {
+    background: var(--clicktrail-success);
+}
+
+.clicutcl-wizard__toggle-row.is-checked .clicutcl-wizard__toggle-switch::after {
+    transform: translateX(18px);
+}
+
+.clicutcl-wizard__toggle-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+}
+
+.clicutcl-wizard__toggle-text strong {
+    font-size: 13px;
+    color: var(--clicktrail-text);
+}
+
+.clicutcl-wizard__toggle-text span {
+    font-size: 12px;
+    color: var(--clicktrail-text-muted);
+    line-height: 1.4;
+}
+
+/* ============================================================
+   Step 3 — confirmation
+   ============================================================ */
+
+.clicutcl-wizard__success-icon {
+    width: 52px;
+    height: 52px;
+    background: var(--clicktrail-success-bg);
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+.clicutcl-wizard__success-icon .dashicons {
+    color: var(--clicktrail-success);
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+}
+
+.clicutcl-wizard__summary {
+    background: var(--clicktrail-blue-soft);
+    border: 1px solid var(--clicktrail-blue-line);
+    border-radius: var(--clicktrail-radius);
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    text-align: left;
+    display: inline-block;
+    min-width: 280px;
+}
+
+.clicutcl-wizard__summary-line {
+    margin: 0 0 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--clicktrail-blue);
+    letter-spacing: 0.01em;
+}
+
+.clicutcl-wizard__summary-line:last-child {
+    margin-bottom: 0;
+}
+
+.clicutcl-wizard__summary-ga4 {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--clicktrail-success);
+}
+
+.clicutcl-wizard__summary-ga4 .dashicons {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+.clicutcl-wizard__test-tip {
+    font-size: 12px;
+    color: var(--clicktrail-text-muted);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.clicutcl-wizard__test-tip code {
+    background: #f6f7f7;
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-size: 11px;
+    color: var(--clicktrail-text);
+}
+
+/* ============================================================
+   Action bar
+   ============================================================ */
+
+.clicutcl-wizard__actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 28px;
+    border-top: 1px solid var(--clicktrail-border);
+    background: #f6f7f7;
+    border-radius: 0 0 var(--clicktrail-radius) var(--clicktrail-radius);
+}
+
+.clicutcl-wizard__actions--center {
+    justify-content: center;
+}
+
+.clicutcl-wizard__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.clicutcl-wizard__btn .dashicons {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+    margin: 0;
+}
+
+.clicutcl-wizard__advanced-link {
+    text-align: center;
+    font-size: 12px;
+    padding: 10px 28px 18px;
+    margin: 0;
+}
+
+.clicutcl-wizard__advanced-link a {
+    color: var(--clicktrail-text-muted);
+    text-decoration: none;
+}
+
+.clicutcl-wizard__advanced-link a:hover {
+    color: var(--clicktrail-blue);
+    text-decoration: underline;
+}
+
+/* ============================================================
+   Responsive
+   ============================================================ */
+
+@media screen and (max-width: 700px) {
+    .clicutcl-wizard {
+        margin: 12px;
+    }
+
+    .clicutcl-wizard__step-label {
+        display: none;
+    }
+
+    .clicutcl-wizard__panel,
+    .clicutcl-wizard__header {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+
+    .clicutcl-wizard__actions {
+        padding-left: 16px;
+        padding-right: 16px;
+    }
+}

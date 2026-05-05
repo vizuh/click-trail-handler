@@ -5,7 +5,7 @@ Author URI: https://vizuh.com
 Tags: attribution, utm, consent mode, woocommerce, server-side tracking
 Requires at least: 6.5
 Tested up to: 6.9
-Stable tag: 1.7.0
+Stable tag: 1.7.1
 Requires PHP: 8.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -210,6 +210,10 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 4. Diagnostics and delivery health for verifying event intake and transport behavior.
 
 == Changelog ==
+
+= 1.7.1 =
+* Fixed Elementor Forms field injection for popup and dynamically rendered forms. Attribution data is now injected reliably when an Elementor popup opens (`elementor/popup/show` event) and when new form inputs appear in the DOM after initial page load (dedicated `MutationObserver` on input elements, separate from the link-decoration observer). Previously, popup forms with no anchor tags in the same render batch could silently miss injection.
+* Fixed CodeQL CI workflow: removed `php` from the language matrix (CodeQL does not support PHP) and updated all action refs from `v3` to `v4` ahead of the December 2026 deprecation.
 
 = 1.7.0 =
 * Hardening release. No user-visible feature changes; addresses ten findings from the 1.6.0 internal code review.

@@ -64,6 +64,8 @@ class Admin {
 		add_action( 'wp_ajax_clicutcl_purge_tracking_data', array( $this, 'ajax_purge_tracking_data' ) );
 		add_action( 'wp_ajax_clicutcl_get_admin_settings', array( $this, 'ajax_get_admin_settings' ) );
 		add_action( 'wp_ajax_clicutcl_save_admin_settings', array( $this, 'ajax_save_admin_settings' ) );
+		add_action( 'wp_ajax_clicutcl_get_tracking_v2_settings', array( $this, 'ajax_get_tracking_v2_settings' ) );
+		add_action( 'wp_ajax_clicutcl_save_tracking_v2_settings', array( $this, 'ajax_save_tracking_v2_settings' ) );
 		add_action( 'wp_ajax_clicutcl_conflict_scan', array( $this, 'ajax_conflict_scan' ) );
 		add_action( 'wp_ajax_clicutcl_sgtm_preview_check', array( $this, 'ajax_sgtm_preview_check' ) );
 		add_action( 'wp_ajax_clicutcl_export_settings_backup', array( $this, 'ajax_export_settings_backup' ) );
@@ -288,7 +290,7 @@ class Admin {
 	 * Register settings.
 	 */
 	public function register_settings() {
-		// Attribution settings.
+		// 1. Attribution Settings (General & WhatsApp)
 		register_setting(
 			'clicutcl_attribution_settings',
 			'clicutcl_attribution_settings',
@@ -298,10 +300,424 @@ class Admin {
 				'default'           => $this->get_attribution_settings_defaults(),
 			)
 		);
+		register_setting( 'clicutcl_tracking_v2', 'clicutcl_tracking_v2', array( 'CLICUTCL\\Tracking\\Settings', 'sanitize' ) );
+
+		// Core Attribution Section
+		add_settings_section(
+			'clicutcl_core_section',
+			__( 'Core Attribution Settings', 'click-trail-handler' ),
+			null,
+			'clicutcl_general_tab'
+		);
+
+		add_settings_field(
+			'enable_attribution',
+			__( 'Enable attribution tracking', 'click-trail-handler' ),
+			array( $this, 'render_checkbox_field' ),
+			'clicutcl_general_tab',
+			'clicutcl_core_section',
+			array(
+				'label_for' => 'enable_attribution',
+				'option_name' => 'clicutcl_attribution_settings',
+				'description' => __( 'Capture campaign and referral data for each visit.', 'click-trail-handler' ),
+			)
+		);
+
+		add_settings_field(
+			'cookie_days',
+			__( 'Attribution retention (days)', 'click-trail-handler' ),
+			array( $this, 'render_number_field' ),
+			'clicutcl_general_tab',
+			'clicutcl_core_section',
+			array(
+				'label_for'   => 'cookie_days',
+				'option_name' => 'clicutcl_attribution_settings',
+				'description' => __( 'How long attribution data should be stored.', 'click-trail-handler' ),
+			)
+		);
+
+		// Reliability Section
+		add_settings_section(
+			'clicutcl_reliability_section',
+			__( 'Reliability Settings', 'click-trail-handler' ),
+			null,
+			'clicutcl_general_tab'
+		);
+
+		add_settings_field(
+			'enable_js_injection',
+			__( 'Client-side capture fallback', 'click-trail-handler' ),
+			array( $this, 'render_checkbox_field' ),
+			'clicutcl_general_tab',
+			'clicutcl_reliability_section',
+			array(
+				'label_for' => 'enable_js_injection',
+				'option_name' => 'clicutcl_attribution_settings',
+				'class' => 'clicutcl-field-enable-js-injection',
+				'description' => __( 'Recommended for cached or highly optimized pages.', 'click-trail-handler' ),
+			)
+		);
+
+		add_settings_field(
+			'inject_mutation_observer',
+			__( 'Watch dynamic content', 'click-trail-handler' ),
+			array( $this, 'render_checkbox_field' ),
+			'clicutcl_general_tab',
+			'clicutcl_reliability_section',
+			array(
+				'label_for' => 'inject_mutation_observer',
+				'option_name' => 'clicutcl_attribution_settings',
+				'class' => 'clicutcl-field-inject-mutation-observer',
+				'description' => __( 'Recommended when forms or links appear after page load.', 'click-trail-handler' ),
+			)
+		);
+
+		// Cross-domain Section
+		add_settings_section(
+			'clicutcl_cross_domain_section',
+			__( 'Cross-domain Settings', 'click-trail-handler' ),
+			null,
+			'clicutcl_general_tab'
+		);
+
+		add_settings_field(
+			'enable_link_decoration',
+			__( 'Decorate outgoing links', 'click-trail-handler' ),
+			array( $this, 'render_checkbox_field' ),
+			'clicutcl_general_tab',
+			'clicutcl_cross_domain_section',
+			array(
+				'label_for' => 'enable_link_decoration',
+				'option_name' => 'clicutcl_attribution_settings',
+				'class' => 'clicutcl-field-enable-link-decoration',
+				'description' => __( 'Append attribution parameters to approved links.', 'click-trail-handler' ),
+			)
+		);
+
+		add_settings_field(
+			'link_allowed_domains',
+			__( 'Allowed cross-domain destinations', 'click-trail-handler' ),
+			array( $this, 'render_text_field' ),
+			'clicutcl_general_tab',
+			'clicutcl_cross_domain_section',
+			array(
+				'label_for' => 'link_allowed_domains',
+				'option_name' => 'clicutcl_attribution_settings',
+				'class' => 'clicutcl-field-link-allowed-domains',
+				'description' => __( 'Domains where attribution parameters may be added.', 'click-trail-handler' ),
+				'placeholder' => 'app.example.com, checkout.example.com',
+			)
+		);
+
+		add_settings_field(
+			'link_skip_signed',
+			__( 'Do not modify signed URLs', 'click-trail-handler' ),
+			array( $this, 'render_checkbox_field' ),
+			'clicutcl_general_tab',
+			'clicutcl_cross_domain_section',
+			array(
+				'label_for' => 'link_skip_signed',
+				'option_name' => 'clicutcl_attribution_settings',
+				'class' => 'clicutcl-field-link-skip-signed',
+				'description' => __( 'Recommended when links contain temporary signatures or protected access tokens.', 'click-trail-handler' ),
+			)
+		);
+
+		add_settings_field(
+			'enable_cross_domain_token',
+			__( 'Pass cross-domain attribution token', 'click-trail-handler' ),
+			array( $this, 'render_checkbox_field' ),
+			'clicutcl_general_tab',
+			'clicutcl_cross_domain_section',
+			array(
+				'label_for' => 'enable_cross_domain_token',
+				'option_name' => 'clicutcl_attribution_settings',
+				'class' => 'clicutcl-field-enable-cross-domain-token',
+				'description' => __( 'Adds a temporary token to preserve attribution across approved domains. No personal data is included.', 'click-trail-handler' ),
+			)
+		);
+
+		// Advanced Section
+		add_settings_section(
+			'clicutcl_advanced_section',
+			__( 'Advanced Settings', 'click-trail-handler' ),
+			null,
+			'clicutcl_general_tab'
+		);
+
+		add_settings_field(
+			'inject_overwrite',
+			__( 'Replace existing attribution values', 'click-trail-handler' ),
+			array( $this, 'render_checkbox_field' ),
+			'clicutcl_general_tab',
+			'clicutcl_advanced_section',
+			array(
+				'label_for'   => 'inject_overwrite',
+				'option_name' => 'clicutcl_attribution_settings',
+				'class'       => 'clicutcl-field-inject-overwrite',
+				'description' => __( 'Use newly detected values even if attribution was already stored.', 'click-trail-handler' ),
+			)
+		);
 
 
+		// WhatsApp Section (on Attribution tab, same option group)
+		add_settings_section(
+			'clicutcl_whatsapp_section',
+			__( 'WhatsApp', 'click-trail-handler' ),
+			null,
+			'clicutcl_general_tab'
+		);
+
+		add_settings_field(
+			'enable_whatsapp',
+			__( 'Enable WhatsApp tracking', 'click-trail-handler' ),
+			array( $this, 'render_checkbox_field' ),
+			'clicutcl_general_tab',
+			'clicutcl_whatsapp_section',
+			array(
+				'label_for' => 'enable_whatsapp',
+				'option_name' => 'clicutcl_attribution_settings',
+				'class' => 'clicutcl-field-enable-whatsapp',
+				'description' => __( 'Track clicks on WhatsApp links and buttons.', 'click-trail-handler' ),
+			)
+		);
+
+		add_settings_field(
+			'whatsapp_append_attribution',
+			__( 'Append attribution to message', 'click-trail-handler' ),
+			array( $this, 'render_checkbox_field' ),
+			'clicutcl_general_tab',
+			'clicutcl_whatsapp_section',
+			array(
+				'label_for' => 'whatsapp_append_attribution',
+				'option_name' => 'clicutcl_attribution_settings',
+				'class' => 'clicutcl-field-whatsapp-append-attribution',
+				'description' => __( 'Add attribution details to the pre-filled WhatsApp message.', 'click-trail-handler' ),
+			)
+		);
+
+		// 2. Consent Mode Settings
+		add_settings_section(
+			'clicutcl_consent_section',
+			__( 'Consent Mode Configuration', 'click-trail-handler' ),
+			null,
+			'clicutcl_consent_mode'
+		);
+
+		add_settings_field(
+			'enabled',
+			__( 'Enable consent mode', 'click-trail-handler' ),
+			array( $this, 'render_consent_checkbox' ),
+			'clicutcl_consent_mode',
+			'clicutcl_consent_section',
+			array(
+				'label_for' => 'enabled',
+				'class'     => 'clicutcl-field-consent-enabled',
+			)
+		);
+
+		add_settings_field(
+			'regions',
+			__( 'Regions requiring consent', 'click-trail-handler' ),
+			array( $this, 'render_regions_field' ),
+			'clicutcl_consent_mode',
+			'clicutcl_consent_section',
+			array(
+				'label_for' => 'regions',
+				'class'     => 'clicutcl-field-consent-regions',
+			)
+		);
+
+		add_settings_field(
+			'mode',
+			__( 'Consent behavior', 'click-trail-handler' ),
+			array( $this, 'render_consent_mode_field' ),
+			'clicutcl_consent_mode',
+			'clicutcl_consent_section',
+			array(
+				'label_for' => 'mode',
+				'class'     => 'clicutcl-field-consent-mode',
+			)
+		);
+
+		add_settings_field(
+			'cmp_source',
+			__( 'Consent source', 'click-trail-handler' ),
+			array( $this, 'render_cmp_source_field' ),
+			'clicutcl_consent_mode',
+			'clicutcl_consent_section',
+			array(
+				'label_for' => 'cmp_source',
+				'class'     => 'clicutcl-field-consent-cmp-source',
+			)
+		);
+
+		add_settings_field(
+			'cmp_timeout_ms',
+			__( 'Consent wait time (ms)', 'click-trail-handler' ),
+			array( $this, 'render_cmp_timeout_field' ),
+			'clicutcl_consent_mode',
+			'clicutcl_consent_section',
+			array(
+				'label_for' => 'cmp_timeout_ms',
+				'class'     => 'clicutcl-field-consent-timeout',
+			)
+		);
+
+		// 3. GTM Settings
+		add_settings_section(
+			'clicutcl_gtm_section',
+			__( 'Google Tag Manager', 'click-trail-handler' ),
+			null,
+			'clicutcl_gtm'
+		);
+
+		add_settings_field(
+			'container_id',
+			__( 'Container ID', 'click-trail-handler' ),
+			array( $this, 'render_gtm_text_field' ),
+			'clicutcl_gtm',
+			'clicutcl_gtm_section',
+			array(
+				'label_for'   => 'container_id',
+				'description' => __( 'Use only if your site does not already load Google Tag Manager.', 'click-trail-handler' ),
+				'placeholder' => 'GTM-XXXXXXX',
+			)
+		);
+
+		// 4. Server-side Settings
 		register_setting( 'clicutcl_server_side', 'clicutcl_server_side', array( $this, 'sanitize_server_side_settings' ) );
 
+		add_settings_section(
+			'clicutcl_server_side_section',
+			__( 'Server-side Transport', 'click-trail-handler' ),
+			null,
+			'clicutcl_server_side_tab'
+		);
+
+		add_settings_field(
+			'enabled',
+			__( 'Enable server-side delivery', 'click-trail-handler' ),
+			array( $this, 'render_checkbox_field' ),
+			'clicutcl_server_side_tab',
+			'clicutcl_server_side_section',
+			array(
+				'label_for'   => 'enabled',
+				'option_name' => 'clicutcl_server_side',
+				'description' => __( 'Send events through your own collector endpoint.', 'click-trail-handler' ),
+			)
+		);
+
+		add_settings_field(
+			'endpoint_url',
+			__( 'Collector URL', 'click-trail-handler' ),
+			array( $this, 'render_text_field' ),
+			'clicutcl_server_side_tab',
+			'clicutcl_server_side_section',
+			array(
+				'label_for'   => 'endpoint_url',
+				'option_name' => 'clicutcl_server_side',
+				'description' => __( 'Endpoint that receives server-side events.', 'click-trail-handler' ),
+				'placeholder' => 'https://collect.example.com',
+			)
+		);
+
+		add_settings_field(
+			'adapter',
+			__( 'Delivery adapter', 'click-trail-handler' ),
+			array( $this, 'render_select_field' ),
+			'clicutcl_server_side_tab',
+			'clicutcl_server_side_section',
+			array(
+				'label_for'   => 'adapter',
+				'option_name' => 'clicutcl_server_side',
+				'options'     => $this->get_localized_adapter_options(),
+			)
+		);
+
+		add_settings_field(
+			'timeout',
+			__( 'Request timeout (seconds)', 'click-trail-handler' ),
+			array( $this, 'render_number_field' ),
+			'clicutcl_server_side_tab',
+			'clicutcl_server_side_section',
+			array(
+				'label_for'   => 'timeout',
+				'option_name' => 'clicutcl_server_side',
+			)
+		);
+
+		add_settings_field(
+			'remote_failure_telemetry',
+			__( 'Share anonymous failure counts', 'click-trail-handler' ),
+			array( $this, 'render_checkbox_field' ),
+			'clicutcl_server_side_tab',
+			'clicutcl_server_side_section',
+			array(
+				'label_for'   => 'remote_failure_telemetry',
+				'option_name' => 'clicutcl_server_side',
+				'description' => __( 'Only aggregated failure counts are shared. No payloads or personal data are included.', 'click-trail-handler' ),
+			)
+		);
+
+		if ( is_multisite() && ! empty( Settings::get_network() ) ) {
+			add_settings_field(
+				'use_network',
+				__( 'Use Network Defaults', 'click-trail-handler' ),
+				array( $this, 'render_checkbox_field' ),
+				'clicutcl_server_side_tab',
+				'clicutcl_server_side_section',
+				array(
+					'label_for'   => 'use_network',
+					'option_name' => 'clicutcl_server_side',
+					'tooltip'     => __( 'Use network-level server-side settings for this site.', 'click-trail-handler' ),
+				)
+			);
+		}
+	}
+
+	/**
+	 * Render text field.
+	 *
+	 * @param array $args Field arguments.
+	 */
+	public function render_text_field( $args ) {
+		$option_name = $args['option_name'];
+		$options = get_option( $option_name );
+		$value = isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : '';
+		$description = isset( $args['description'] ) ? $args['description'] : '';
+		$placeholder = isset( $args['placeholder'] ) ? $args['placeholder'] : '';
+		?>
+		<input type="text" name="<?php echo esc_attr( $option_name . '[' . $args['label_for'] . ']' ); ?>" value="<?php echo esc_attr( $value ); ?>" class="regular-text clicktrail-field-input" placeholder="<?php echo esc_attr( $placeholder ); ?>" />
+		<?php if ( $description ) : ?>
+			<p class="description"><?php echo wp_kses_post( $description ); ?></p>
+		<?php endif; ?>
+		<?php
+	}
+
+	/**
+	 * Render select field.
+	 *
+	 * @param array $args Field arguments.
+	 */
+	public function render_select_field( $args ) {
+		$option_name = $args['option_name'];
+		$options     = get_option( $option_name, array() );
+		$current     = isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : '';
+		$choices     = isset( $args['options'] ) && is_array( $args['options'] ) ? $args['options'] : array();
+		$description = isset( $args['description'] ) ? $args['description'] : '';
+		?>
+		<select name="<?php echo esc_attr( $option_name . '[' . $args['label_for'] . ']' ); ?>" class="clicktrail-field-select">
+			<?php foreach ( $choices as $value => $label ) : ?>
+				<option value="<?php echo esc_attr( $value ); ?>" <?php selected( $current, $value ); ?>>
+					<?php echo esc_html( $label ); ?>
+				</option>
+			<?php endforeach; ?>
+		</select>
+		<?php if ( $description ) : ?>
+			<p class="description"><?php echo wp_kses_post( $description ); ?></p>
+		<?php endif; ?>
+		<?php
 	}
 
 	/**
@@ -364,11 +780,34 @@ class Admin {
 	private function resolve_settings_app_tab() {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page navigation does not require nonce.
 		$raw_tab = isset( $_GET['tab'] ) ? sanitize_key( wp_unslash( $_GET['tab'] ) ) : 'capture';
+		$aliases = array(
+			'general'      => 'capture',
+			'attribution'  => 'capture',
+			'whatsapp'     => 'forms',
+			'channels'     => 'forms',
+			'gtm'          => 'events',
+			'integrations' => 'events',
+			'tracking'     => 'events',
+			'trackingv2'   => 'events',
+			'advanced'     => 'events',
+			'server'       => 'delivery',
+			'server-side'  => 'delivery',
+			'consent'      => 'delivery',
+			'privacy'      => 'delivery',
+			'destinations' => 'delivery',
+		);
 		$tabs    = $this->get_settings_app_tabs();
-		$active  = isset( $tabs[ $raw_tab ] ) ? $raw_tab : 'capture';
+		$active  = isset( $aliases[ $raw_tab ] ) ? $aliases[ $raw_tab ] : $raw_tab;
+
+		if ( ! isset( $tabs[ $active ] ) ) {
+			$active = 'capture';
+		}
 
 		return array(
-			'active_tab' => $active,
+			'raw_tab'      => $raw_tab,
+			'active_tab'   => $active,
+			'used_legacy'  => isset( $aliases[ $raw_tab ] ),
+			'migration_ui' => 'trackingv2' === $raw_tab,
 		);
 	}
 
@@ -381,11 +820,15 @@ class Admin {
 		$resolved = $this->resolve_settings_app_tab();
 
 		return array(
-			'ajaxUrl'   => admin_url( 'admin-ajax.php' ),
-			'nonce'     => wp_create_nonce( 'clicutcl_admin_settings' ),
-			'pageTitle' => __( 'ClickTrail', 'click-trail-handler' ),
-			'activeTab' => $resolved['active_tab'],
-			'tabs'      => $this->get_settings_app_tabs(),
+			'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
+			'nonce'           => wp_create_nonce( 'clicutcl_admin_settings' ),
+			'pageTitle'       => __( 'ClickTrail', 'click-trail-handler' ),
+			'activeTab'       => $resolved['active_tab'],
+			'legacyTab'       => $resolved['raw_tab'],
+			'migrationNotice' => $resolved['migration_ui']
+				? __( 'These settings are now organized by capability. Browser events and destinations live under Events, while transport and privacy controls live under Delivery.', 'click-trail-handler' )
+				: '',
+			'tabs'            => $this->get_settings_app_tabs(),
 			'registry'        => array(
 				'adapters'     => $this->get_localized_adapter_choice_list(),
 				'destinations' => $this->get_localized_destination_toggle_list(),
@@ -747,7 +1190,7 @@ class Admin {
 				'status'         => $forms_ready ? 'ready' : 'neutral',
 				'detail'         => $forms_ready
 					? __( 'Form capture helpers or providers are active.', 'click-trail-handler' )
-					: __( 'Enable client-side fallback, form provider hooks, or WhatsApp attribution for your attribution path.', 'click-trail-handler' ),
+					: __( 'Enable client fallback, WhatsApp, or provider hooks if forms are part of your attribution path.', 'click-trail-handler' ),
 				'target_tab'     => 'forms',
 				'target_section' => 'forms-onsite',
 			),
@@ -1029,7 +1472,19 @@ class Admin {
 	 */
 	public function render_settings_page() {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Admin page navigation does not require nonce.
-		$active_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : 'attribution';
+		$active_tab = isset( $_GET['tab'] ) ? sanitize_text_field( wp_unslash( $_GET['tab'] ) ) : 'general';
+
+		$legacy_map = array(
+			'general'    => 'attribution',
+			'whatsapp'   => 'attribution',
+			'channels'   => 'attribution',
+			'gtm'        => 'destinations',
+			'server'     => 'destinations',
+			'trackingv2' => 'advanced',
+		);
+		if ( isset( $legacy_map[ $active_tab ] ) ) {
+			$active_tab = $legacy_map[ $active_tab ];
+		}
 
 		$tabs = $this->get_settings_tabs();
 		if ( ! isset( $tabs[ $active_tab ] ) ) {
@@ -1075,7 +1530,7 @@ class Admin {
 						<?php esc_html_e( "ClickTrail's core engine handles attribution capture. The sections below configure how captured events are packaged and delivered — each platform receives its own tailored payload, with consent signals already applied. You only need to configure the platforms you actively use. If you only run a single GTM container, you don't need anything here.", 'click-trail-handler' ); ?>
 					</span>
 				</div>
-				<div id="clicutcl-advanced-root"></div>
+				<div id="clicutcl-tracking-v2-root"></div>
 
 			<?php elseif ( 'destinations' === $active_tab ) : ?>
 				<form action="options.php" method="post" class="clicktrail-settings-form">
@@ -1160,7 +1615,7 @@ class Admin {
 			'advanced'     => array(
 				'label'       => __( 'Advanced', 'click-trail-handler' ),
 				'title'       => __( 'Advanced', 'click-trail-handler' ),
-				'description' => __( 'Advanced configuration — delivery behaviour, security options, deduplication, and external form provider intake.', 'click-trail-handler' ),
+				'description' => __( 'Platform-level controls — feature flags, security, deduplication, lifecycle ingestion, and external form providers.', 'click-trail-handler' ),
 				'icon'        => 'dashicons-admin-tools',
 			),
 		);
@@ -1406,6 +1861,61 @@ class Admin {
 		<?php
 	}
 
+	/**
+	 * Render checkbox field as modern toggle switch.
+	 *
+	 * @param array $args Field arguments.
+	 */
+	public function render_checkbox_field( $args ) {
+		$option_name = $args['option_name'];
+		$options = get_option( $option_name );
+		$value = isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : 0;
+		$tooltip = isset( $args['tooltip'] ) ? $args['tooltip'] : '';
+		$field_name = $option_name . '[' . $args['label_for'] . ']';
+		?>
+		<div class="clicktrail-toggle-wrapper">
+			<label class="clicktrail-toggle">
+				<input type="hidden" name="<?php echo esc_attr( $field_name ); ?>" value="0" />
+				<input type="checkbox" name="<?php echo esc_attr( $field_name ); ?>" value="1" <?php checked( 1, $value ); ?> />
+				<span class="clicktrail-toggle-slider"></span>
+			</label>
+			<?php if ( $tooltip ) : ?>
+				<span class="clicktrail-help-tip" data-tip="<?php echo esc_attr( $tooltip ); ?>">?</span>
+			<?php endif; ?>
+		</div>
+		<?php if ( isset( $args['description'] ) ) : ?>
+			<p class="clicktrail-description"><?php echo wp_kses_post( $args['description'] ); ?></p>
+		<?php endif; ?>
+		<?php
+	}
+
+	public function render_number_field( $args ) {
+		$option_name = $args['option_name'];
+		$options = get_option( $option_name );
+		$value = isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : '';
+		$description = isset( $args['description'] ) ? $args['description'] : '';
+		?>
+		<input type="number" name="<?php echo esc_attr( $option_name . '[' . $args['label_for'] . ']' ); ?>" value="<?php echo esc_attr( $value ); ?>" class="regular-text clicktrail-field-input clicktrail-field-input--narrow" />
+		<?php if ( $description ) : ?>
+			<p class="description"><?php echo wp_kses_post( $description ); ?></p>
+		<?php endif; ?>
+		<?php
+	}
+	
+	public function render_gtm_text_field( $args ) {
+		$settings = new GTM_Settings();
+		$value = $settings->get();
+		$id = isset($value['container_id']) ? $value['container_id'] : '';
+		$description = isset( $args['description'] ) ? $args['description'] : '';
+		$placeholder = isset( $args['placeholder'] ) ? $args['placeholder'] : 'GTM-XXXXXXX';
+		?>
+		<input type="text" name="clicutcl_gtm[container_id]" value="<?php echo esc_attr($id); ?>" class="regular-text clicktrail-field-input clicktrail-field-input--mono" placeholder="<?php echo esc_attr( $placeholder ); ?>" />
+		<?php if ( $description ) : ?>
+			<p class="description"><?php echo wp_kses_post( $description ); ?></p>
+		<?php endif; ?>
+		<?php
+	}
+
 	public function sanitize_settings( $input ) {
 		$current  = get_option( 'clicutcl_attribution_settings', array() );
 		$defaults = $this->get_attribution_settings_defaults();
@@ -1484,6 +1994,11 @@ class Admin {
 				'sanitize' => array( $this, 'sanitize_toggle' ),
 			),
 			'whatsapp_append_attribution' => array(
+				'default'  => 0,
+				'sanitize' => array( $this, 'sanitize_toggle' ),
+			),
+			// Backward compatibility for legacy keys still read in some installs.
+			'enable_consent_banner'      => array(
 				'default'  => 0,
 				'sanitize' => array( $this, 'sanitize_toggle' ),
 			),
@@ -1611,4 +2126,55 @@ class Admin {
 			$item = preg_replace( '#/.*$#', '', $item );
 			$item = strtolower( trim( $item ) );
 
-			if ( preg_match( '/^[a-z0-9.-]+\.[a-
+			if ( preg_match( '/^[a-z0-9.-]+\.[a-z]{2,}$/', $item ) ) {
+				$out[] = $item;
+			}
+		}
+
+		$out = array_values( array_unique( $out ) );
+		return implode( ',', $out );
+	}
+
+	public function sanitize_server_side_settings( $input ) {
+		$current = is_network_admin() ? Settings::get_network() : get_option( 'clicutcl_server_side', array() );
+		$current = is_array( $current ) ? $current : array();
+		$input   = is_array( $input ) ? wp_unslash( $input ) : array();
+
+		$new_input = array_merge(
+			array(
+				'enabled'                  => 0,
+				'endpoint_url'             => '',
+				'adapter'                  => 'generic',
+				'timeout'                  => 5,
+				'use_network'              => 0,
+				'remote_failure_telemetry' => 0,
+			),
+			$current
+		);
+
+		$new_input['enabled'] = isset( $input['enabled'] ) ? absint( $input['enabled'] ) : 0;
+
+		if ( isset( $input['endpoint_url'] ) ) {
+			$new_input['endpoint_url'] = esc_url_raw( trim( (string) $input['endpoint_url'] ) );
+		}
+
+		if ( isset( $input['adapter'] ) ) {
+			$adapter = sanitize_key( $input['adapter'] );
+			$allowed = \CLICUTCL\Server_Side\Dispatcher::allowed_adapters();
+			$new_input['adapter'] = isset( $allowed[ $adapter ] ) ? $adapter : 'generic';
+		}
+
+		if ( isset( $input['timeout'] ) ) {
+			$timeout = absint( $input['timeout'] );
+			$new_input['timeout'] = $timeout > 0 ? min( 15, $timeout ) : 5;
+		}
+
+		if ( isset( $input['use_network'] ) ) {
+			$new_input['use_network'] = absint( $input['use_network'] );
+		}
+
+		$new_input['remote_failure_telemetry'] = isset( $input['remote_failure_telemetry'] ) ? absint( $input['remote_failure_telemetry'] ) : 0;
+
+		return $new_input;
+	}
+}

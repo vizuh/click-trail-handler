@@ -1056,7 +1056,33 @@
                 }
             }
 
-            // 4. Fallback
+            // 4. Elementor popup event -- fires when a popup opens, before the form is visible.
+            document.addEventListener('elementor/popup/show', run);
+
+            // 5. Form-input observer -- watches for new <input> elements in the DOM.
+            //    Separate from the link-decoration observer so Elementor popup forms
+            //    (which may render with no anchors) still get attribution injected.
+            if (CONFIG.injectMutationObserver) {
+                const formTargetSelector = CONFIG.injectObserverTarget || 'body';
+                const formTargetNode = document.querySelector(formTargetSelector);
+                if (formTargetNode) {
+                    let formTimeout;
+                    const formObs = new MutationObserver((mutations) => {
+                        const hasNewInputs = mutations.some((m) =>
+                            Array.from(m.addedNodes).some((node) => {
+                                if (node.nodeType !== 1) return false;
+                                return node.tagName === 'INPUT' || !!node.querySelector('input');
+                            })
+                        );
+                        if (!hasNewInputs) return;
+                        clearTimeout(formTimeout);
+                        formTimeout = setTimeout(run, 100);
+                    });
+                    formObs.observe(formTargetNode, { childList: true, subtree: true });
+                }
+            }
+
+            // 6. Fallback
             setTimeout(run, 1500);
         }
     };
