@@ -32,6 +32,11 @@ CONTRIBUTING.pt-BR.md
 AGENTS.md
 CLAUDE.md
 
+# Private planning docs
+ROADMAP.md
+docs/PLAN-*.md
+docs/guides/TRACKING-ATTRIBUTION-PORTABLE-PROMPT.md
+
 # Dev README variants (non-English kept out of WP.org trunk)
 README.en.md
 README.pt-BR.md

@@ -17,3 +17,8 @@ vendor/
 # Internal notes
 readme_header_update.txt
 AGENTS.md
+
+# Private planning and strategy — not for public repo
+ROADMAP.md
+docs/PLAN-*.md
+docs/guides/TRACKING-ATTRIBUTION-PORTABLE-PROMPT.md
