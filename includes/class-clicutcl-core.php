@@ -18,6 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use CLICUTCL\Admin\Admin;
 use CLICUTCL\Api\Tracking_Controller;
 use CLICUTCL\Integrations\WooCommerce;
+use CLICUTCL\Integrations\NitroPack_Compat;
 use CLICUTCL\Modules\GTM\GTM_Settings;
 use CLICUTCL\Privacy\Privacy_Handler;
 use CLICUTCL\Settings\Attribution_Settings;
@@ -168,6 +169,7 @@ class Plugin {
 		add_action( 'wp_logout', array( $this, 'clear_admin_qa_cookie' ) );
 
 		Queue::register();
+		NitroPack_Compat::register();
 
 		add_action(
 			'rest_api_init',

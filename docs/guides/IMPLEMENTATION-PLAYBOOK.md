@@ -259,6 +259,38 @@ If the implementation is working, teams should see value in at least one of thes
 - Logs and Diagnostics show server-side delivery activity
 - cross-domain journeys stop resetting source attribution
 
+
+## Cross-Domain Limitations
+
+Link decoration and signed token continuity work between domains you control and have listed under **Capture → Link Decoration → Allowed domains**. They cannot cover external payment providers.
+
+### What cannot be decorated
+
+The following providers process payments on their own domain. ClickTrail has no mechanism to inject attribution parameters into those pages:
+
+- **Stripe Checkout** (`checkout.stripe.com`)
+- **PayPal** (`paypal.com`, `www.paypal.com`)
+- **Mollie** (`checkout.mollie.com`)
+- **Square** (`squareupsandbox.com`, `squareup.com`)
+- Any other external hosted-payment page you do not own
+
+### What actually happens
+
+Attribution survives these redirects only if the attribution cookie was already written **before** the user reached the payment provider. On return to your confirmation page, ClickTrail reads the cookie and attaches attribution to the order as normal.
+
+The risk window is narrow: a user who arrives at your checkout page **without** UTMs and with no prior cookie will produce an unattributed order. This is a known limitation of cookie-based attribution on cross-domain flows, not a ClickTrail bug.
+
+### How to reduce the gap
+
+1. Ensure attribution capture is enabled and fires early (before the checkout page load).
+2. Do not rely on link decoration to carry attribution through the payment provider. It will be stripped.
+3. If your funnel is `marketing site → hosted checkout → return URL`, test that the return URL correctly receives `order_id` or `session_id` from the provider and that ClickTrail picks up the cookie on the confirmation page.
+4. For Stripe, consider using Stripe's own `client_reference_id` field to correlate the provider session to your ClickTrail visitor ID — this is a manual integration, not built into ClickTrail.
+
+### The checklist warning
+
+When link decoration is on and no allowed domains are listed, ClickTrail surfaces a **warn** status in the Setup Checklist (Settings → Setup). This means decoration is configured but will not fire. Add your destination domains to clear the warning.
+
 ## Common Mistakes to Avoid
 
 - enabling GTM injection when GTM already loads elsewhere

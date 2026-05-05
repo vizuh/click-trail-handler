@@ -50,6 +50,27 @@ class Setup_Wizard {
 		add_action( 'admin_init', array( __CLASS__, 'handle_save' ) );
 		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue_assets' ) );
 
+		// Suppress all non-ClickTrail admin notices on the wizard page.
+		// Other plugins' notices (theme updates, license nags, etc.) clutter
+		// the wizard UI and confuse first-time users.
+		add_action(
+			'current_screen',
+			static function() {
+				$screen = get_current_screen();
+				if ( ! $screen ) {
+					return;
+				}
+				// Hidden submenu pages get the screen ID "admin_page_{slug}".
+				if ( 'admin_page_' . self::PAGE_SLUG !== $screen->id ) {
+					return;
+				}
+				remove_all_actions( 'admin_notices' );
+				remove_all_actions( 'all_admin_notices' );
+				remove_all_actions( 'user_admin_notices' );
+				remove_all_actions( 'network_admin_notices' );
+			}
+		);
+
 		// Add a "Setup Wizard" link to the plugins list as a permanent fallback
 		// so the wizard is accessible even when the activation redirect is suppressed.
 		add_filter(

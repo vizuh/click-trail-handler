@@ -507,6 +507,16 @@ trait Admin_Diagnostics_Ajax_Trait {
 			);
 		}
 
+		if ( defined( 'NITROPACK_VERSION' ) ) {
+			$findings[] = array(
+				'severity'       => 'warn',
+				'title'          => __( 'NitroPack detected — check JS postpone exclusions', 'click-trail-handler' ),
+				'detail'         => __( 'NitroPack's "Postpone JS" feature can prevent attribution scripts from running before the user interacts with the page, causing empty UTM data on leads. ClickTrail attempts to exclude its scripts automatically. To verify: NitroPack → Optimization → JavaScript → Script exclusions — confirm clicutcl-attribution.js and clicutcl-consent-bridge.js are listed.', 'click-trail-handler' ),
+				'target_tab'     => 'capture',
+				'target_section' => 'capture-general',
+			);
+		}
+
 		if ( ! empty( $server_effective['enabled'] ) && empty( $server_effective['endpoint_url'] ) ) {
 			$findings[] = array(
 				'severity' => 'high',
@@ -619,6 +629,12 @@ trait Admin_Diagnostics_Ajax_Trait {
 			}
 		}
 
+
+		// Check GF / WPForms for missing ct_* hidden fields.
+		foreach ( $this->check_form_attribution_fields() as $item ) {
+			$findings[] = $item;
+		}
+
 		if ( empty( $findings ) ) {
 			return array(
 				'summary'  => __( 'No common conflicts detected in the current ClickTrail configuration.', 'click-trail-handler' ),
@@ -641,6 +657,111 @@ trait Admin_Diagnostics_Ajax_Trait {
 	 *
 	 * @return array<int,string>
 	 */
+
+	/**
+	 * Check whether Gravity Forms and WPForms have ct_* hidden fields in active forms.
+	 *
+	 * Gravity Forms and WPForms require manually placed ct_* hidden fields for
+	 * attribution data to be captured in form entries. When those fields are absent,
+	 * attribution silently fails. This check surfaces a warning per affected form
+	 * with a direct edit link so the user can act without leaving Diagnostics.
+	 *
+	 * @return array<int,array<string,string>>
+	 */
+	private function check_form_attribution_fields(): array {
+		$findings = array();
+
+		// --- Gravity Forms ---
+		if ( class_exists( 'GFForms' ) && class_exists( 'GFAPI' ) ) {
+			$gf_forms = GFAPI::get_forms( true ); // active forms only
+			if ( is_array( $gf_forms ) ) {
+				foreach ( $gf_forms as $form ) {
+					$form_id    = isset( $form['id'] ) ? (int) $form['id'] : 0;
+					$form_title = isset( $form['title'] ) ? (string) $form['title'] : "Form #{$form_id}";
+					$fields     = isset( $form['fields'] ) && is_array( $form['fields'] ) ? $form['fields'] : array();
+
+					$has_ct = false;
+					foreach ( $fields as $field ) {
+						$admin_label   = isset( $field->adminLabel ) ? strtolower( (string) $field->adminLabel ) : '';
+						$field_label   = isset( $field->label ) ? strtolower( (string) $field->label ) : '';
+						$css_class     = isset( $field->cssClass ) ? strtolower( (string) $field->cssClass ) : '';
+						if (
+							str_starts_with( $admin_label, 'ct_' ) ||
+							str_starts_with( $field_label, 'ct_' ) ||
+							str_contains( $css_class, 'ct_' )
+						) {
+							$has_ct = true;
+							break;
+						}
+					}
+
+					if ( ! $has_ct ) {
+						$edit_url = admin_url( 'admin.php?page=gf_edit_forms&id=' . $form_id );
+						$findings[] = array(
+							'severity' => 'medium',
+							'title'    => sprintf(
+								/* translators: %s: form title. */
+								__( 'Gravity Forms: "%s" has no ct_* attribution fields', 'click-trail-handler' ),
+								$form_title
+							),
+							'detail'   => sprintf(
+								/* translators: %s: edit form URL. */
+								__( 'Add hidden fields named ct_utm_source, ct_utm_medium, etc. to capture attribution in this entry. <a href="%s">Edit form &rarr;</a>', 'click-trail-handler' ),
+								esc_url( $edit_url )
+							),
+						);
+					}
+				}
+			}
+		}
+
+		// --- WPForms ---
+		if ( function_exists( 'wpforms' ) ) {
+			$wpforms_obj = wpforms();
+			if ( $wpforms_obj && isset( $wpforms_obj->form ) && method_exists( $wpforms_obj->form, 'get' ) ) {
+				$wpf_forms = $wpforms_obj->form->get( '', array( 'status' => 'publish' ) );
+				if ( is_array( $wpf_forms ) ) {
+					foreach ( $wpf_forms as $form ) {
+						$form_id    = isset( $form->ID ) ? (int) $form->ID : 0;
+						$form_title = isset( $form->post_title ) ? (string) $form->post_title : "Form #{$form_id}";
+						$form_data  = isset( $form->post_content ) ? json_decode( $form->post_content, true ) : array();
+						$form_data  = is_array( $form_data ) ? $form_data : array();
+						$fields     = isset( $form_data['fields'] ) && is_array( $form_data['fields'] ) ? $form_data['fields'] : array();
+
+						$has_ct = false;
+						foreach ( $fields as $field ) {
+							$label = isset( $field['label'] ) ? strtolower( (string) $field['label'] ) : '';
+							$name  = isset( $field['name'] ) ? strtolower( (string) $field['name'] ) : '';
+							if ( str_starts_with( $label, 'ct_' ) || str_starts_with( $name, 'ct_' ) ) {
+								$has_ct = true;
+								break;
+							}
+						}
+
+						if ( ! $has_ct ) {
+							$edit_url = admin_url( 'admin.php?page=wpforms-builder&action=edit&form_id=' . $form_id );
+							$findings[] = array(
+								'severity' => 'medium',
+								'title'    => sprintf(
+									/* translators: %s: form title. */
+									__( 'WPForms: "%s" has no ct_* attribution fields', 'click-trail-handler' ),
+									$form_title
+								),
+								'detail'   => sprintf(
+									/* translators: %s: edit form URL. */
+									__( 'Add hidden fields named ct_utm_source, ct_utm_medium, etc. to capture attribution in this entry. <a href="%s">Edit form &rarr;</a>', 'click-trail-handler' ),
+									esc_url( $edit_url )
+								),
+							);
+						}
+					}
+				}
+			}
+		}
+
+		return $findings;
+	}
+
 	private function detect_cache_conflict_labels(): array {
 		$found = array();
 		if ( defined( 'WP_ROCKET_VERSION' ) ) {
@@ -654,6 +775,9 @@ trait Admin_Diagnostics_Ajax_Trait {
 		}
 		if ( defined( 'AUTOPTIMIZE_PLUGIN_VERSION' ) ) {
 			$found[] = 'Autoptimize';
+		}
+		if ( defined( 'NITROPACK_VERSION' ) ) {
+			$found[] = 'NitroPack';
 		}
 
 		$wpe_api_key = filter_input( INPUT_SERVER, 'WPE_APIKEY', FILTER_UNSAFE_RAW );

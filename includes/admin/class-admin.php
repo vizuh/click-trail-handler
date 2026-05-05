@@ -1147,6 +1147,10 @@ class Admin {
 		array $destination_state,
 		bool $providers_active
 	): array {
+		$link_decor_on      = ! empty( $attr_options['enable_link_decoration'] );
+		$domains_raw        = isset( $attr_options['link_allowed_domains'] ) ? (string) $attr_options['link_allowed_domains'] : '';
+		$domains_configured = ! empty( trim( $domains_raw ) );
+
 		$capture_ready    = ! empty( $attr_options['enable_attribution'] );
 		$forms_ready      = ! empty( $attr_options['enable_js_injection'] ) || ! empty( $attr_options['enable_whatsapp'] ) || $providers_active;
 		$events_ready     = ! empty( $feature_flags['event_v2'] );
@@ -1243,6 +1247,18 @@ class Admin {
 						: __( 'WooCommerce is not active on this site.', 'click-trail-handler' ) ),
 				'target_tab'     => 'events',
 				'target_section' => 'events-woocommerce',
+			),
+			array(
+				'key'            => 'cross_domain_decoration',
+				'label'          => __( 'Cross-domain', 'click-trail-handler' ),
+				'status'         => ( \$link_decor_on && ! \$domains_configured ) ? 'warn' : ( \$link_decor_on ? 'ready' : 'neutral' ),
+				'detail'         => ( \$link_decor_on && ! \$domains_configured )
+					? __( 'Cross-domain link decoration is on but no allowed domains are listed — decoration will not fire. Add the destination domains under Capture → Link Decoration.', 'click-trail-handler' )
+					: ( \$link_decor_on
+						? __( 'Link decoration is active. Note: external payment providers (Stripe, PayPal, Mollie) cannot be decorated — attribution survives those redirects only via the last-touch cookie.', 'click-trail-handler' )
+						: __( 'Cross-domain link decoration is off. Enable it under Capture → Link Decoration if your funnel spans multiple domains.', 'click-trail-handler' ) ),
+				'target_tab'     => 'capture',
+				'target_section' => 'capture-cross-domain',
 			),
 		);
 	}

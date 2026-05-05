@@ -228,6 +228,23 @@ Best fit:
 - marketing site -> scheduler
 - marketing site -> checkout
 
+### Payment provider limitations
+
+Cross-domain decoration cannot reach external hosted-payment pages. These providers process payments on their own domain and strip any injected query parameters before the user reaches them:
+
+| Provider | Domain |
+|----------|--------|
+| Stripe Checkout | `checkout.stripe.com` |
+| PayPal | `paypal.com` |
+| Mollie | `checkout.mollie.com` |
+| Square | `squareup.com` |
+
+Attribution survives these redirects only via the attribution cookie written before checkout. On return to your confirmation page, ClickTrail reads the cookie and tags the order as normal.
+
+If the user had no prior cookie when entering the payment flow, the order will be unattributed. This is a documented limitation of cookie-based cross-domain attribution — not a bug.
+
+See also: [Cross-Domain Limitations](../guides/IMPLEMENTATION-PLAYBOOK.md#cross-domain-limitations) in the Implementation Playbook.
+
 ## WhatsApp
 
 Supported hosts:
@@ -260,4 +277,4 @@ Consent geo behavior reads server-provided headers when available, such as:
 
 ## Important Implementation Note
 
-The user-facing admin now groups integrations under `Forms`, `Events`, and `Delivery`, but some of the advanced integration state still lives internally in `clicutcl_tracking_v2` for backward compatibility.
+The user-facing admin now groups integrations under `Forms`, `Events`, and `Delivery`, but some of the advanced integration state still

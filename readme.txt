@@ -5,7 +5,7 @@ Author URI: https://vizuh.com
 Tags: attribution, utm, consent mode, woocommerce, server-side tracking
 Requires at least: 6.5
 Tested up to: 6.9
-Stable tag: 1.7.1
+Stable tag: 1.7.2
 Requires PHP: 8.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -211,10 +211,23 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 
 == Changelog ==
 
-= 1.7.1 =
-* Fixed Elementor Forms field injection for popup and dynamically rendered forms. Attribution data is now injected reliably when an Elementor popup opens (`elementor/popup/show` event) and when new form inputs appear in the DOM after initial page load (dedicated `MutationObserver` on input elements, separate from the link-decoration observer). Previously, popup forms with no anchor tags in the same render batch could silently miss injection.
-* Fixed CodeQL CI workflow: removed `php` from the language matrix (CodeQL does not support PHP) and updated all action refs from `v3` to `v4` ahead of the December 2026 deprecation.
+= 1.7.2 =
+*   **NitroPack compatibility**: ClickTrail now detects NitroPack and automatically attempts to exclude its scripts from NitroPack's "Postpone JS" feature via two mechanisms: the `nitropack_js_url_exclude` filter and the `data-nitropack-exclude` HTML attribute on script tags. Without this, postponed scripts can cause empty UTM data on leads when users navigate away before interacting with the page.
+*   **NitroPack diagnostic warning**: The Diagnostics conflict scan now surfaces a `warn` finding when NitroPack is active, with instructions to verify script exclusions in NitroPack → Optimization → JavaScript → Script exclusions.
+*   **pt-BR playbook — webhook middleware pattern**: Expanded the Padrão 5 section in the Portuguese Implementation Playbook to document the three-layer webhook architecture (script → webhook middleware → CRM), the complete field reference for Google Ads and Meta Ads attribution, PipeRun-specific notes on custom field IDs, and common errors including the silent field-drop behaviour when CRM fields do not exist before the first webhook call.
 
+= 1.7.1 =
+*   **Setup Wizard**: Added a 3-step onboarding wizard that fires automatically on first activation. Step 1 auto-detects active form plugins, WooCommerce, CMPs, and caching layers. Step 2 collects the GA4 Measurement ID. Step 3 confirms attribution is active with a quick-test link. All external admin notices are suppressed while the wizard is open. A permanent "Setup Wizard" link is added to the plugin action row on the Plugins screen.
+*   **Activation fix**: `Setup_Wizard::init()` now registers before the preflight class check so the activation redirect fires reliably on all environments.
+*   **Two-phase consent capture**: UTMs and click IDs are now buffered to `sessionStorage` immediately on page load before any consent banner fires. On consent grant the pending buffer is promoted to the attribution cookie, preserving first-touch even when the user accepts the banner on a later page.
+*   **Call tracking MutationObserver skip**: The MutationObserver watching for dynamically inserted links now bails early when every new anchor has a skippable scheme (`tel:`, `mailto:`, `#`). Eliminates wasted debounce cycles from Dynamic Number Insertion tools such as CallRail, CallTrackingMetrics, and WhatConverts.
+*   **GF / WPForms attribution field diagnostic**: The Diagnostics conflict scan now checks every active Gravity Forms and WPForms form for `ct_*` hidden fields. Forms without attribution fields surface a warning with a direct edit link. No new AJAX endpoints.
+*   **Cross-domain decoration checklist warning**: The setup checklist now shows a `warn` state when link decoration is on but no allowed domains are listed, and an informational note about external payment providers when decoration is correctly configured.
+*   **Cross-domain limitations documentation**: Added a "Cross-Domain Limitations" section to the Implementation Playbook and a payment provider table to the Integrations reference covering Stripe, PayPal, Mollie, and Square.
+*   **Portuguese (pt-BR) Implementation Playbook**: Added `IMPLEMENTATION-PLAYBOOK.pt-BR.md` covering all rollout patterns including webhook/CRM integrations, the `window.ClickTrail` JS API field reference, and external checkout limitations.
+*   **WP.org compliance**: Plugin zip folder renamed from `cth` to `click-trail-handler` to match the WordPress.org plugin slug requirement.
+*   **Elementor Forms popup fix**: Attribution data is now injected reliably when an Elementor popup opens and when new form inputs appear in the DOM after initial page load.
+*   **CI**: Fixed CodeQL workflow — removed PHP from the language matrix and updated action refs to v4.
 = 1.7.0 =
 * Hardening release. No user-visible feature changes; addresses ten findings from the 1.6.0 internal code review.
 * Fixed admin QA mode cache-poisoning risk: `adminQaMode` is no longer baked into the localized attribution config, where a full-page cache plugin could capture it from an admin-viewed response and serve it to anonymous visitors. It is now a 1-hour `clicutcl_admin_qa` cookie set on `init` only for logged-in `manage_options` users, which cache plugins correctly exclude.
@@ -281,15 +294,4 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 * Rebuilt the main settings experience around four capability-based tabs: Capture, Forms, Events, and Delivery.
 * Removed user-facing "Tracking v2" language from the main admin flow while keeping backward-compatible internal storage where needed.
 
-Older release notes remain available in `changelog.txt`.
-
-== Upgrade Notice ==
-
-= 1.7.0 =
-Hardening release. Fixes a cache-related risk that could leak admin QA mode to anonymous visitors, corrects minification-exclusion attribute names so WP Rocket and Autoptimize actually skip ClickTrail scripts, and refactors the Gravity Forms adapter for maintainability. No public API changes; safe to upgrade.
-
-= 1.6.0 =
-Extends Gravity Forms with channel classification, merge tags, per-form tracking toggle, admin QA mode, and sessionStorage fallback. No breaking changes.
-
-= 1.5.2 =
-This maintenance release cleans up coding-standards issues without changing runtime behavior from `1.5.1`.
+Older release notes remain available in `changelog.t
