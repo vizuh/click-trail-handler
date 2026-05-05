@@ -2,6 +2,12 @@
 
 Keep campaign context attached to WooCommerce orders, WordPress forms, and event flows across cached pages, dynamic forms, cross-domain journeys, repeat visits, and consent-aware sites.
 
+[![GitHub release](https://img.shields.io/github/v/release/vizuh/click-trail-handler?label=version&color=blue)](https://github.com/vizuh/click-trail-handler/releases)
+[![License](https://img.shields.io/badge/license-GPL--2.0--or--later-green)](LICENSE)
+[![PHP](https://img.shields.io/badge/PHP-8.1%2B-blue)](https://www.php.net/)
+[![WordPress](https://img.shields.io/badge/WordPress-6.5%2B-blue)](https://wordpress.org/)
+[![GitHub stars](https://img.shields.io/github/stars/vizuh/click-trail-handler?style=social)](https://github.com/vizuh/click-trail-handler/stargazers)
+
 <p>
   <img src="assets/vizuh-logo.png" alt="Vizuh logo" width="120">
 </p>
@@ -31,14 +37,15 @@ ClickTrail is designed to keep first-touch and last-touch context alive until th
 - **Events**: browser collection, `dataLayer` pushes, sGTM compatibility mode, webhook intake, lifecycle updates, and optional Woo storefront signals.
 - **Delivery**: optional server-side transport, retries, diagnostics, conflict scanning, backup/restore, and consent-aware dispatch.
 
-## Latest Release: 1.5.2
+## Latest Release: 1.7.0
 
-This maintenance release cleans up coding-standards noise and packaging consistency without changing runtime behavior.
-
-- Mixed line endings were normalized in the consent, attribution-token, and privacy handlers.
-- Remaining PHPCS findings in those handlers were resolved or documented where the behavior is intentional.
-- Runtime behavior is unchanged from `1.5.1`.
-- Full release notes are available in [changelog.txt](changelog.txt) and the public WordPress listing in [readme.txt](readme.txt).
+- GF helper classes committed (Gf_Channel_Resolver, Gf_Form_Settings_Tab, Gf_Merge_Tags, Gf_Minification_Protector)
+- Admin QA cookie priority fix; `wp_logout` now clears it immediately
+- `lt_channel` server-side fallback added alongside `ft_channel`
+- Channel classifier extended: `dclid` → Display & Video 360, `epik` → Pinterest Ads, `sccid` → Snapchat Ads
+- `visitor_id` + `session_id` persisted to GF entry meta and WooCommerce order meta
+- Legacy code removed: dead v1 API controller, URL alias remapping, `enable_consent_banner`, `log_whatsapp_clicks()` stub
+- Full release notes: [changelog.txt](changelog.txt)
 
 ## Documentation By Audience
 
