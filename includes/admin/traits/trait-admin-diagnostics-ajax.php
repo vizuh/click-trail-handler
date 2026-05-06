@@ -511,7 +511,7 @@ trait Admin_Diagnostics_Ajax_Trait {
 			$findings[] = array(
 				'severity'       => 'warn',
 				'title'          => __( 'NitroPack detected — check JS postpone exclusions', 'click-trail-handler' ),
-				'detail'         => __( 'NitroPack's "Postpone JS" feature can prevent attribution scripts from running before the user interacts with the page, causing empty UTM data on leads. ClickTrail attempts to exclude its scripts automatically. To verify: NitroPack → Optimization → JavaScript → Script exclusions — confirm clicutcl-attribution.js and clicutcl-consent-bridge.js are listed.', 'click-trail-handler' ),
+				'detail'         => __( 'NitroPack\'s "Postpone JS" feature can prevent attribution scripts from running before the user interacts with the page, causing empty UTM data on leads. ClickTrail attempts to exclude its scripts automatically. To verify: NitroPack > Optimization > JavaScript > Script exclusions -- confirm clicutcl-attribution.js and clicutcl-consent-bridge.js are listed.', 'click-trail-handler' ),
 				'target_tab'     => 'capture',
 				'target_section' => 'capture-general',
 			);

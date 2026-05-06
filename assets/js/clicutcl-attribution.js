@@ -1139,20 +1139,30 @@
                 if (manualMatch) return true;
             }
 
-            // 2. Auto-Allow Subdomains of Current Site
-            // Logic: if target hostname ends with current hostname (e.g. shop.site.com ends with site.com)
-            // or if they share the same root domain (approximate).
-            // Safe check: if target host ends with current host (handling www stripping)
-
+            // 2. Auto-allow same registrable domain — covers direct subdomains AND
+            //    sibling subdomains (e.g. shop.site.com → checkout.site.com) so the
+            //    most common WooCommerce subdomain-checkout pattern requires zero config.
             const currentHost = window.location.hostname.toLowerCase().replace(/^www\./, '');
-            const targetHost = host.replace(/^www\./, '');
+            const targetHost  = host.replace(/^www\./, '');
 
-            // If target is subdomain of current (e.g. app.site.com -> site.com)
+            // Direct child: target is a subdomain of current host
             if (targetHost.endsWith("." + currentHost)) return true;
 
-            // If current is subdomain of target (e.g. site.com -> site.co.uk - wait, no)
-            // Better: just check strict subdomain relationship.
-            // If on www.site.com (site.com), allow app.site.com.
+            // Sibling / cousin subdomains: compare registrable domains (eTLD+1 heuristic).
+            // Handles common 2-part TLDs (co.uk, com.br, etc.) without shipping a full PSL.
+            function getRegistrableDomain(h) {
+                const parts = h.split(".");
+                if (parts.length <= 2) return h;
+                const knownSLD = new Set(["co", "com", "net", "org", "gov", "edu", "ac", "ne", "or", "me"]);
+                if (parts.length >= 3 && knownSLD.has(parts[parts.length - 2])) {
+                    return parts.slice(-3).join(".");
+                }
+                return parts.slice(-2).join(".");
+            }
+
+            const currentReg = getRegistrableDomain(currentHost);
+            const targetReg  = getRegistrableDomain(targetHost);
+            if (currentReg && currentReg === targetReg) return true;
 
             return false;
         },

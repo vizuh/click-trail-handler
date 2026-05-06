@@ -51,6 +51,11 @@ if ( function_exists( 'is_multisite' ) && is_multisite() ) {
 wp_clear_scheduled_hook( 'clicutcl_dispatch_queue' );
 wp_clear_scheduled_hook( 'clicutcl_daily_cleanup' );
 
+// Cancel Action Scheduler recurring actions when AS library is present.
+if ( function_exists( 'as_unschedule_all_actions' ) ) {
+	as_unschedule_all_actions( 'clicutcl_dispatch_queue', array(), 'clicktrail-delivery' );
+}
+
 // Clear known transients used for diagnostics, dedup, rate limits, and replay guards.
 global $wpdb;
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Uninstall cleanup; no cache needed.

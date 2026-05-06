@@ -5,8 +5,10 @@
 .claude-flow
 .tools
 .editorconfig
+.gitignore
 .mcp.json
 .distignore
+.phpunit.result.cache
 
 # Tests and CI config
 tests/
@@ -37,6 +39,9 @@ ROADMAP.md
 docs/PLAN-*.md
 docs/guides/TRACKING-ATTRIBUTION-PORTABLE-PROMPT.md
 
+# Release notes (internal)
+RELEASING.md
+
 # Dev README variants (non-English kept out of WP.org trunk)
 README.en.md
 README.pt-BR.md
@@ -45,5 +50,5 @@ readme_header_update.txt
 # Internal docs
 docs/
 
-# Build tools
+# Build tools and dev scripts
 tools/

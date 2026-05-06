@@ -60,7 +60,7 @@ class Plugin {
 	 *
 	 * @var bool
 	 */
-	protected $booted = false;
+	protected $booted = false; // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- protected class property, not a global variable.
 
 	/**
 	 * Constructor — loads dependencies and builds module objects only.
@@ -141,6 +141,11 @@ class Plugin {
 		if ( class_exists( 'WooCommerce' ) && class_exists( 'CLICUTCL_WooCommerce_Admin' ) ) {
 			$wc_admin = new \CLICUTCL_WooCommerce_Admin();
 			$wc_admin->init();
+		}
+
+		// GTM Starter Kit lead magnet — settings-page banner after first order tracked.
+		if ( class_exists( 'CLICUTCL\\Admin\\GTM_Lead_Magnet' ) ) {
+			\CLICUTCL\Admin\GTM_Lead_Magnet::init();
 		}
 	}
 
@@ -735,6 +740,7 @@ class Plugin {
 			return array();
 		}
 
+		// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- local variables inside a class method, not globals.
 		$term_product_id = absint( $product->get_id() );
 		if ( method_exists( $product, 'get_parent_id' ) && $product->get_parent_id() ) {
 			$term_product_id = absint( $product->get_parent_id() );
@@ -752,6 +758,7 @@ class Plugin {
 			)
 		);
 
+		// phpcs:enable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 		if ( ! is_array( $terms ) ) {
 			return array();
 		}

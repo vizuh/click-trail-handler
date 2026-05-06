@@ -138,7 +138,7 @@ class Admin {
 			'manage_options',
 			'clicutcl-settings',
 			array( $this, 'render_settings_app_page' ),
-			'dashicons-chart-area', // Attribution friendly icon
+			'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAyMCI+PHBhdGggZD0iTTIuNSAxNkw3IDEwLjVMMTAuNSAxMi41TDE3IDQuNSIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjEuNiIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PGNpcmNsZSBjeD0iMi41IiBjeT0iMTYiIHI9IjEuOCIgZmlsbD0iIzAwMCIvPjxjaXJjbGUgY3g9IjciIGN5PSIxMC41IiByPSIxLjgiIGZpbGw9IiMwMDAiLz48Y2lyY2xlIGN4PSIxMC41IiBjeT0iMTIuNSIgcj0iMS44IiBmaWxsPSIjMDAwIi8+PGNpcmNsZSBjeD0iMTciIGN5PSI0LjUiIHI9IjEuOCIgZmlsbD0iIzAwMCIvPjwvc3ZnPg==', // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- base64 SVG data URI for admin menu icon
 			56 // Analytics plugin zone (after Plugins, near Yoast/MonsterInsights)
 		);
 
@@ -1158,6 +1158,17 @@ class Admin {
 		$consent_enabled  = ! empty( $consent_settings['enabled'] );
 		$woo_installed    = class_exists( 'WooCommerce' );
 		$woo_ready        = $woo_installed && ! empty( $feature_flags['woocommerce_storefront_events'] );
+
+		// Detect WooCommerce checkout on a different host (subdomain or external domain).
+		$wc_checkout_host = '';
+		if ( $woo_installed && function_exists( 'wc_get_checkout_url' ) ) {
+			$checkout_url     = wc_get_checkout_url();
+			$parsed_checkout  = wp_parse_url( $checkout_url, PHP_URL_HOST );
+			$parsed_site      = wp_parse_url( home_url(), PHP_URL_HOST );
+			if ( $parsed_checkout && $parsed_site && $parsed_checkout !== $parsed_site ) {
+				$wc_checkout_host = (string) $parsed_checkout;
+			}
+		}
 		$destination_count = count( array_filter( $destination_state ) );
 		$sgtm_mode        = isset( $gtm_settings['mode'] ) ? sanitize_key( (string) $gtm_settings['mode'] ) : 'standard';
 		$sgtm_ready       = 'sgtm' === $sgtm_mode
@@ -1251,12 +1262,13 @@ class Admin {
 			array(
 				'key'            => 'cross_domain_decoration',
 				'label'          => __( 'Cross-domain', 'click-trail-handler' ),
-				'status'         => ( \$link_decor_on && ! \$domains_configured ) ? 'warn' : ( \$link_decor_on ? 'ready' : 'neutral' ),
-				'detail'         => ( \$link_decor_on && ! \$domains_configured )
-					? __( 'Cross-domain link decoration is on but no allowed domains are listed — decoration will not fire. Add the destination domains under Capture → Link Decoration.', 'click-trail-handler' )
-					: ( \$link_decor_on
-						? __( 'Link decoration is active. Note: external payment providers (Stripe, PayPal, Mollie) cannot be decorated — attribution survives those redirects only via the last-touch cookie.', 'click-trail-handler' )
-						: __( 'Cross-domain link decoration is off. Enable it under Capture → Link Decoration if your funnel spans multiple domains.', 'click-trail-handler' ) ),
+				'status'         => $link_decor_on ? 'ready' : ( '' !== $wc_checkout_host ? 'attention' : 'neutral' ),
+				'detail'         => $link_decor_on
+					? __( 'Link decoration is active. Attribution carries across subdomains automatically. Add destination domains in the allowed list only if your checkout is on a fully separate domain. Note: external payment providers (Stripe, PayPal, Mollie) cannot be decorated — attribution survives those redirects via the last-touch cookie.', 'click-trail-handler' )
+					: ( '' !== $wc_checkout_host
+						/* translators: %s: WooCommerce checkout hostname detected on a different subdomain. */
+						? sprintf( __( 'Your WooCommerce checkout is on %s. Enable cross-domain link decoration under Capture → Link Decoration to carry attribution through the subdomain hop.', 'click-trail-handler' ), esc_html( $wc_checkout_host ) )
+						: __( 'Cross-domain link decoration is off. Enable it under Capture → Link Decoration if your funnel spans multiple domains or subdomains.', 'click-trail-handler' ) ),
 				'target_tab'     => 'capture',
 				'target_section' => 'capture-cross-domain',
 			),
@@ -2152,6 +2164,7 @@ class Admin {
 	}
 
 	public function sanitize_server_side_settings( $input ) {
+		// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- local variables inside a class method, not globals.
 		$current = is_network_admin() ? Settings::get_network() : get_option( 'clicutcl_server_side', array() );
 		$current = is_array( $current ) ? $current : array();
 		$input   = is_array( $input ) ? wp_unslash( $input ) : array();
@@ -2191,6 +2204,7 @@ class Admin {
 
 		$new_input['remote_failure_telemetry'] = isset( $input['remote_failure_telemetry'] ) ? absint( $input['remote_failure_telemetry'] ) : 0;
 
+		// phpcs:enable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 		return $new_input;
 	}
 }

@@ -125,6 +125,12 @@ class WooCommerce {
 				$order->update_meta_data( '_clicutcl_session_id', $session['session_id'] );
 			}
 		}
+
+		/**
+		 * Fires after ClickTrail writes attribution data to a WooCommerce order.
+		 * Used internally to trigger the GTM lead magnet after the first tracked order.
+		 */
+		do_action( 'clicutcl_order_attribution_saved', $order );
 	}
 
 	/**
@@ -927,6 +933,7 @@ class WooCommerce {
 	 * @return array
 	 */
 	private function normalize_attribution_structure( $attribution ) {
+		// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- local variables inside a class method, not globals.
 		$normalized = array(
 			'first_touch' => array(),
 			'last_touch'  => array(),
@@ -971,6 +978,7 @@ class WooCommerce {
 			}
 		}
 
+		// phpcs:enable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 		return $normalized;
 	}
 

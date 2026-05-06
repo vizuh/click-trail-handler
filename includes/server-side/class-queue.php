@@ -28,6 +28,11 @@ class Queue {
 	const CRON_SCHEDULE = 'clicutcl_five_minutes';
 
 	/**
+	 * Action Scheduler group.
+	 */
+	const AS_GROUP = 'clicktrail-delivery';
+
+	/**
 	 * Max retry attempts.
 	 */
 	const MAX_ATTEMPTS = 5;
@@ -47,7 +52,7 @@ class Queue {
 	 *
 	 * @var bool|null
 	 */
-	private static $table_exists_mem = null;
+	private static $table_exists_mem = null; // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- private static class property, not a global variable.
 
 	/**
 	 * Register hooks.
@@ -80,9 +85,21 @@ class Queue {
 	/**
 	 * Ensure cron is scheduled.
 	 *
+	 * Uses Action Scheduler when available (WooCommerce / AS library present),
+	 * otherwise falls back to WP-cron. Both fire the same CRON_HOOK action so
+	 * the rest of the class requires no further changes.
+	 *
 	 * @return void
 	 */
 	public static function ensure_schedule() {
+		if ( function_exists( 'as_schedule_recurring_action' ) ) {
+			if ( ! as_next_scheduled_action( self::CRON_HOOK, array(), self::AS_GROUP ) ) {
+				as_schedule_recurring_action( time() + 300, 300, self::CRON_HOOK, array(), self::AS_GROUP );
+			}
+			return;
+		}
+
+		// WP-cron fallback.
 		if ( ! wp_next_scheduled( self::CRON_HOOK ) ) {
 			$schedules = wp_get_schedules();
 			$interval  = isset( $schedules[ self::CRON_SCHEDULE ] ) ? self::CRON_SCHEDULE : 'hourly';
@@ -93,9 +110,16 @@ class Queue {
 	/**
 	 * Clear scheduled cron.
 	 *
+	 * Cancels the Action Scheduler recurring action when AS is available, and
+	 * always clears the WP-cron hook so no orphaned entries remain after a
+	 * scheduler switch.
+	 *
 	 * @return void
 	 */
 	public static function clear_schedule() {
+		if ( function_exists( 'as_unschedule_all_actions' ) ) {
+			as_unschedule_all_actions( self::CRON_HOOK, array(), self::AS_GROUP );
+		}
 		wp_clear_scheduled_hook( self::CRON_HOOK );
 	}
 

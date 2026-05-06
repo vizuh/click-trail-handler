@@ -1,0 +1,643 @@
+{
+  "exportFormatVersion": 2,
+  "exportTime": "2026-05-06 00:00:00",
+  "containerVersion": {
+    "path": "accounts/0/containers/0/versions/0",
+    "accountId": "0",
+    "containerId": "0",
+    "containerVersionId": "0",
+    "container": {
+      "path": "accounts/0/containers/0",
+      "accountId": "0",
+      "containerId": "0",
+      "name": "ClickTrail Starter Kit",
+      "publicId": "GTM-XXXXXXX",
+      "usageContext": ["WEB"]
+    },
+    "folder": [
+      {
+        "folderId": "1",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "ClickTrail — Setup (fill these in)"
+      },
+      {
+        "folderId": "2",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "ClickTrail — Attribution Variables"
+      },
+      {
+        "folderId": "3",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "ClickTrail — Tags"
+      }
+    ],
+    "variable": [
+      {
+        "variableId": "1",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "CONST - GA4 Measurement ID",
+        "type": "c",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "value", "value": "G-XXXXXXXXXX" }
+        ],
+        "parentFolderId": "1",
+        "notes": "Replace G-XXXXXXXXXX with your GA4 Measurement ID."
+      },
+      {
+        "variableId": "2",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "CONST - Ads Conversion ID",
+        "type": "c",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "value", "value": "AW-XXXXXXXXX" }
+        ],
+        "parentFolderId": "1",
+        "notes": "Replace AW-XXXXXXXXX with your Google Ads Conversion ID. Leave blank to disable Google Ads tags."
+      },
+      {
+        "variableId": "3",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "CONST - Ads Purchase Label",
+        "type": "c",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "value", "value": "" }
+        ],
+        "parentFolderId": "1",
+        "notes": "Your Google Ads purchase conversion label (e.g. aBcDeFgHiJk). Found in Google Ads → Goals → Conversions."
+      },
+      {
+        "variableId": "4",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "CONST - Meta Pixel ID",
+        "type": "c",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "value", "value": "" }
+        ],
+        "parentFolderId": "1",
+        "notes": "Your Meta Pixel ID (numbers only, e.g. 1234567890123). Leave blank to disable Meta Pixel tags."
+      },
+      {
+        "variableId": "5",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "CONST - sGTM Endpoint",
+        "type": "c",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "value", "value": "" }
+        ],
+        "parentFolderId": "1",
+        "notes": "Your server-side GTM tagging server URL (e.g. https://gtm.yourdomain.com). Leave blank if not using sGTM."
+      },
+      {
+        "variableId": "10",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "DLV - transaction_id",
+        "type": "v",
+        "parameter": [
+          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
+          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
+          { "type": "TEMPLATE", "key": "name", "value": "ecommerce.transaction_id" }
+        ],
+        "parentFolderId": "2"
+      },
+      {
+        "variableId": "11",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "DLV - value",
+        "type": "v",
+        "parameter": [
+          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
+          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
+          { "type": "TEMPLATE", "key": "name", "value": "ecommerce.value" }
+        ],
+        "parentFolderId": "2"
+      },
+      {
+        "variableId": "12",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "DLV - currency",
+        "type": "v",
+        "parameter": [
+          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
+          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
+          { "type": "TEMPLATE", "key": "name", "value": "ecommerce.currency" }
+        ],
+        "parentFolderId": "2"
+      },
+      {
+        "variableId": "13",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "DLV - items",
+        "type": "v",
+        "parameter": [
+          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
+          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
+          { "type": "TEMPLATE", "key": "name", "value": "ecommerce.items" }
+        ],
+        "parentFolderId": "2"
+      },
+      {
+        "variableId": "14",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "DLV - event_id",
+        "type": "v",
+        "parameter": [
+          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
+          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
+          { "type": "TEMPLATE", "key": "name", "value": "event_id" }
+        ],
+        "parentFolderId": "2",
+        "notes": "Used for GA4 / Meta deduplication."
+      },
+      {
+        "variableId": "15",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "DLV - ft_source",
+        "type": "v",
+        "parameter": [
+          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
+          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
+          { "type": "TEMPLATE", "key": "name", "value": "ft_source" }
+        ],
+        "parentFolderId": "2"
+      },
+      {
+        "variableId": "16",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "DLV - lt_source",
+        "type": "v",
+        "parameter": [
+          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
+          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
+          { "type": "TEMPLATE", "key": "name", "value": "lt_source" }
+        ],
+        "parentFolderId": "2"
+      },
+      {
+        "variableId": "17",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "DLV - ft_medium",
+        "type": "v",
+        "parameter": [
+          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
+          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
+          { "type": "TEMPLATE", "key": "name", "value": "ft_medium" }
+        ],
+        "parentFolderId": "2"
+      },
+      {
+        "variableId": "18",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "DLV - lt_medium",
+        "type": "v",
+        "parameter": [
+          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
+          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
+          { "type": "TEMPLATE", "key": "name", "value": "lt_medium" }
+        ],
+        "parentFolderId": "2"
+      },
+      {
+        "variableId": "19",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "DLV - ft_campaign",
+        "type": "v",
+        "parameter": [
+          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
+          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
+          { "type": "TEMPLATE", "key": "name", "value": "ft_campaign" }
+        ],
+        "parentFolderId": "2"
+      },
+      {
+        "variableId": "20",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "DLV - lt_campaign",
+        "type": "v",
+        "parameter": [
+          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
+          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
+          { "type": "TEMPLATE", "key": "name", "value": "lt_campaign" }
+        ],
+        "parentFolderId": "2"
+      },
+      {
+        "variableId": "21",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "DLV - ft_channel",
+        "type": "v",
+        "parameter": [
+          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
+          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
+          { "type": "TEMPLATE", "key": "name", "value": "ft_channel" }
+        ],
+        "parentFolderId": "2"
+      },
+      {
+        "variableId": "22",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "DLV - lt_channel",
+        "type": "v",
+        "parameter": [
+          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
+          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
+          { "type": "TEMPLATE", "key": "name", "value": "lt_channel" }
+        ],
+        "parentFolderId": "2"
+      },
+      {
+        "variableId": "23",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "DLV - gclid",
+        "type": "v",
+        "parameter": [
+          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
+          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
+          { "type": "TEMPLATE", "key": "name", "value": "gclid" }
+        ],
+        "parentFolderId": "2"
+      },
+      {
+        "variableId": "24",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "DLV - fbclid",
+        "type": "v",
+        "parameter": [
+          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
+          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
+          { "type": "TEMPLATE", "key": "name", "value": "fbclid" }
+        ],
+        "parentFolderId": "2"
+      },
+      {
+        "variableId": "25",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "DLV - ga_client_id",
+        "type": "v",
+        "parameter": [
+          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
+          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
+          { "type": "TEMPLATE", "key": "name", "value": "user_data.ga_client_id" }
+        ],
+        "parentFolderId": "2",
+        "notes": "Only populated when ClickTrail enhanced mode is active (woo_include_user_data: true)."
+      }
+    ],
+    "trigger": [
+      {
+        "triggerId": "1",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "All Pages",
+        "type": "PAGEVIEW"
+      },
+      {
+        "triggerId": "2",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "Consent Initialization — All Pages",
+        "type": "CONSENT_INIT"
+      },
+      {
+        "triggerId": "3",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "CE - purchase",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              { "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" },
+              { "type": "TEMPLATE", "key": "arg1", "value": "purchase" }
+            ]
+          }
+        ]
+      },
+      {
+        "triggerId": "4",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "CE - add_to_cart",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              { "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" },
+              { "type": "TEMPLATE", "key": "arg1", "value": "add_to_cart" }
+            ]
+          }
+        ]
+      },
+      {
+        "triggerId": "5",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "CE - begin_checkout",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              { "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" },
+              { "type": "TEMPLATE", "key": "arg1", "value": "begin_checkout" }
+            ]
+          }
+        ]
+      },
+      {
+        "triggerId": "6",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "CE - view_item",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              { "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" },
+              { "type": "TEMPLATE", "key": "arg1", "value": "view_item" }
+            ]
+          }
+        ]
+      },
+      {
+        "triggerId": "7",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "CE - view_item_list",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              { "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" },
+              { "type": "TEMPLATE", "key": "arg1", "value": "view_item_list" }
+            ]
+          }
+        ]
+      }
+    ],
+    "tag": [
+      {
+        "tagId": "1",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "Consent Mode — Defaults",
+        "type": "html",
+        "parameter": [
+          {
+            "type": "TEMPLATE",
+            "key": "html",
+            "value": "<script>\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  'ad_storage': 'denied',\n  'analytics_storage': 'denied',\n  'ad_user_data': 'denied',\n  'ad_personalization': 'denied',\n  'wait_for_update': 500\n});\ngtag('set', 'ads_data_redaction', true);\ngtag('set', 'url_passthrough', true);\n</script>"
+          },
+          { "type": "BOOLEAN", "key": "supportDocumentWrite", "value": "false" }
+        ],
+        "firingTriggerId": ["2"],
+        "parentFolderId": "3",
+        "notes": "Sets consent defaults before any other tags fire. Adjust defaults to match your CMP. ClickTrail updates consent via the Consent Bridge."
+      },
+      {
+        "tagId": "2",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "Google tag — Config",
+        "type": "googtag",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "tagId", "value": "{{CONST - GA4 Measurement ID}}" }
+        ],
+        "firingTriggerId": ["1"],
+        "parentFolderId": "3"
+      },
+      {
+        "tagId": "3",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "Conversion Linker",
+        "type": "clt",
+        "parameter": [
+          { "type": "BOOLEAN", "key": "enableCrossDomain", "value": "false" }
+        ],
+        "firingTriggerId": ["1"],
+        "parentFolderId": "3",
+        "notes": "Required for gclid to survive cross-domain hops. ClickTrail's link decoration handles the UTM/click-ID passthrough; this tag handles Google's own linker protocol."
+      },
+      {
+        "tagId": "4",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "Meta Pixel — PageView",
+        "type": "html",
+        "parameter": [
+          {
+            "type": "TEMPLATE",
+            "key": "html",
+            "value": "<script>\n!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?\nn.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;\nn.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;\nt.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,\ndocument,'script','https://connect.facebook.net/en_US/fbevents.js');\nfbq('init', '{{CONST - Meta Pixel ID}}');\nfbq('track', 'PageView');\n</script>"
+          },
+          { "type": "BOOLEAN", "key": "supportDocumentWrite", "value": "false" }
+        ],
+        "firingTriggerId": ["1"],
+        "parentFolderId": "3",
+        "notes": "Basic Meta Pixel base code. Only fires if CONST - Meta Pixel ID is set."
+      },
+      {
+        "tagId": "5",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "GA4 Event — purchase",
+        "type": "gaawc",
+        "parameter": [
+          { "type": "BOOLEAN", "key": "sendEcommerceData", "value": "true" },
+          { "type": "TEMPLATE", "key": "getEcommerceData", "value": "dataLayer" },
+          { "type": "TEMPLATE", "key": "eventName", "value": "purchase" },
+          { "type": "TEMPLATE", "key": "measurementIdOverride", "value": "{{CONST - GA4 Measurement ID}}" },
+          {
+            "type": "LIST",
+            "key": "eventParameters",
+            "list": [
+              { "type": "MAP", "map": [
+                { "type": "TEMPLATE", "key": "name",  "value": "transaction_id" },
+                { "type": "TEMPLATE", "key": "value", "value": "{{DLV - transaction_id}}" }
+              ]},
+              { "type": "MAP", "map": [
+                { "type": "TEMPLATE", "key": "name",  "value": "event_id" },
+                { "type": "TEMPLATE", "key": "value", "value": "{{DLV - event_id}}" }
+              ]},
+              { "type": "MAP", "map": [
+                { "type": "TEMPLATE", "key": "name",  "value": "ft_source" },
+                { "type": "TEMPLATE", "key": "value", "value": "{{DLV - ft_source}}" }
+              ]},
+              { "type": "MAP", "map": [
+                { "type": "TEMPLATE", "key": "name",  "value": "lt_source" },
+                { "type": "TEMPLATE", "key": "value", "value": "{{DLV - lt_source}}" }
+              ]},
+              { "type": "MAP", "map": [
+                { "type": "TEMPLATE", "key": "name",  "value": "ft_medium" },
+                { "type": "TEMPLATE", "key": "value", "value": "{{DLV - ft_medium}}" }
+              ]},
+              { "type": "MAP", "map": [
+                { "type": "TEMPLATE", "key": "name",  "value": "lt_medium" },
+                { "type": "TEMPLATE", "key": "value", "value": "{{DLV - lt_medium}}" }
+              ]},
+              { "type": "MAP", "map": [
+                { "type": "TEMPLATE", "key": "name",  "value": "ft_campaign" },
+                { "type": "TEMPLATE", "key": "value", "value": "{{DLV - ft_campaign}}" }
+              ]},
+              { "type": "MAP", "map": [
+                { "type": "TEMPLATE", "key": "name",  "value": "lt_campaign" },
+                { "type": "TEMPLATE", "key": "value", "value": "{{DLV - lt_campaign}}" }
+              ]},
+              { "type": "MAP", "map": [
+                { "type": "TEMPLATE", "key": "name",  "value": "ft_channel" },
+                { "type": "TEMPLATE", "key": "value", "value": "{{DLV - ft_channel}}" }
+              ]},
+              { "type": "MAP", "map": [
+                { "type": "TEMPLATE", "key": "name",  "value": "lt_channel" },
+                { "type": "TEMPLATE", "key": "value", "value": "{{DLV - lt_channel}}" }
+              ]},
+              { "type": "MAP", "map": [
+                { "type": "TEMPLATE", "key": "name",  "value": "gclid" },
+                { "type": "TEMPLATE", "key": "value", "value": "{{DLV - gclid}}" }
+              ]},
+              { "type": "MAP", "map": [
+                { "type": "TEMPLATE", "key": "name",  "value": "fbclid" },
+                { "type": "TEMPLATE", "key": "value", "value": "{{DLV - fbclid}}" }
+              ]}
+            ]
+          }
+        ],
+        "firingTriggerId": ["3"],
+        "parentFolderId": "3",
+        "notes": "Fires on ClickTrail's purchase event. All attribution fields (ft_/lt_ series) are included as custom event parameters and will appear in GA4 Explorations and BigQuery exports."
+      },
+      {
+        "tagId": "6",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "Google Ads — Purchase Conversion",
+        "type": "awct",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "conversionId",    "value": "{{CONST - Ads Conversion ID}}" },
+          { "type": "TEMPLATE", "key": "conversionLabel", "value": "{{CONST - Ads Purchase Label}}" },
+          { "type": "TEMPLATE", "key": "conversionValue", "value": "{{DLV - value}}" },
+          { "type": "TEMPLATE", "key": "currencyCode",    "value": "{{DLV - currency}}" },
+          { "type": "TEMPLATE", "key": "orderId",         "value": "{{DLV - transaction_id}}" },
+          { "type": "BOOLEAN",  "key": "enableDynamicRemarketing", "value": "false" }
+        ],
+        "firingTriggerId": ["3"],
+        "parentFolderId": "3"
+      },
+      {
+        "tagId": "7",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "Meta Pixel — Purchase",
+        "type": "html",
+        "parameter": [
+          {
+            "type": "TEMPLATE",
+            "key": "html",
+            "value": "<script>\nfbq('track', 'Purchase', {\n  value: {{DLV - value}},\n  currency: '{{DLV - currency}}',\n  order_id: '{{DLV - transaction_id}}',\n  content_type: 'product'\n}, {\n  eventID: '{{DLV - event_id}}'\n});\n</script>"
+          },
+          { "type": "BOOLEAN", "key": "supportDocumentWrite", "value": "false" }
+        ],
+        "firingTriggerId": ["3"],
+        "parentFolderId": "3",
+        "notes": "Uses event_id from ClickTrail for server-side deduplication against Meta's Conversions API."
+      },
+      {
+        "tagId": "8",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "GA4 Event — add_to_cart",
+        "type": "gaawc",
+        "parameter": [
+          { "type": "BOOLEAN",  "key": "sendEcommerceData",     "value": "true" },
+          { "type": "TEMPLATE", "key": "getEcommerceData",      "value": "dataLayer" },
+          { "type": "TEMPLATE", "key": "eventName",             "value": "add_to_cart" },
+          { "type": "TEMPLATE", "key": "measurementIdOverride", "value": "{{CONST - GA4 Measurement ID}}" }
+        ],
+        "firingTriggerId": ["4"],
+        "parentFolderId": "3"
+      },
+      {
+        "tagId": "9",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "GA4 Event — begin_checkout",
+        "type": "gaawc",
+        "parameter": [
+          { "type": "BOOLEAN",  "key": "sendEcommerceData",     "value": "true" },
+          { "type": "TEMPLATE", "key": "getEcommerceData",      "value": "dataLayer" },
+          { "type": "TEMPLATE", "key": "eventName",             "value": "begin_checkout" },
+          { "type": "TEMPLATE", "key": "measurementIdOverride", "value": "{{CONST - GA4 Measurement ID}}" }
+        ],
+        "firingTriggerId": ["5"],
+        "parentFolderId": "3"
+      },
+      {
+        "tagId": "10",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "GA4 Event — view_item",
+        "type": "gaawc",
+        "parameter": [
+          { "type": "BOOLEAN",  "key": "sendEcommerceData",     "value": "true" },
+          { "type": "TEMPLATE", "key": "getEcommerceData",      "value": "dataLayer" },
+          { "type": "TEMPLATE", "key": "eventName",             "value": "view_item" },
+          { "type": "TEMPLATE", "key": "measurementIdOverride", "value": "{{CONST - GA4 Measurement ID}}" }
+        ],
+        "firingTriggerId": ["6"],
+        "parentFolderId": "3",
+        "notes": "Requires ClickTrail storefront events enabled."
+      },
+      {
+        "tagId": "11",
+        "accountId": "0",
+        "containerId": "0",
+        "name": "GA4 Event — view_item_list",
+        "type": "gaawc",
+        "parameter": [
+          { "type": "BOOLEAN",  "key": "sendEcommerceData",     "value": "true" },
+          { "type": "TEMPLATE", "key": "getEcommerceData",      "value": "dataLayer" },
+          { "type": "TEMPLATE", "key": "eventName",             "value": "view_item_list" },
+          { "type": "TEMPLATE", "key": "measurementIdOverride", "value": "{{CONST - GA4 Measurement ID}}" }
+        ],
+        "firingTriggerId": ["7"],
+        "parentFolderId": "3",
+        "notes": "Requires ClickTrail storefront events enabled."
+      }
+    ],
+    "builtInVariable": [
+      { "accountId": "0", "containerId": "0", "type": "PAGE_URL",      "name": "Page URL" },
+      { "accountId": "0", "containerId": "0", "type": "PAGE_HOSTNAME", "name": "Page Hostname" },
+      { "accountId": "0", "containerId": "0", "type": "PAGE_PATH",     "name": "Page Path" },
+      { "accountId": "0", "containerId": "0", "type": "REFERRER",      "name": "Referrer" },
+      { "accountId": "0", "containerId": "0", "type": "EVENT",         "name": "Event" }
+    ]
+  }
+}
