@@ -1,18 +1,22 @@
+# German translations for ClickTrail package
+# German translation for ClickTrail.
+# Copyright (C) 2026 Vizuh
+# This file is distributed under the same license as the ClickTrail package.
+# Automatically generated, 2026.
+#
 msgid ""
 msgstr ""
 "Project-Id-Version: ClickTrail 1.8.6\n"
 "Report-Msgid-Bugs-To: hugo@vizuh.com\n"
 "POT-Creation-Date: 2026-05-28 16:20+0200\n"
-"PO-Revision-Date: 2026-03-13 00:00+0000\n"
-"Last-Translator: ClickTrail Team\n"
-"Language-Team: pt_BR\n"
-"Language: pt_BR\n"
+"PO-Revision-Date: 2026-05-28 16:20+0200\n"
+"Last-Translator: Automatically generated\n"
+"Language-Team: none\n"
+"Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=2; plural=(n > 1);\n"
-"X-Domain: click-trail-handler\n"
-"X-Generator: Codex\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: clicutcl.php:197
 msgid ""
@@ -20,89 +24,80 @@ msgid ""
 "means the release ZIP is missing files or the autoloader mapping is "
 "incorrect."
 msgstr ""
-"O ClickTrail não pôde iniciar porque uma classe obrigatória está ausente. "
-"Isso geralmente significa que o arquivo ZIP da versão está sem arquivos ou o "
-"mapeamento do autoloader está incorreto."
 
 #: includes/Modules/GTM/class-gtm-settings.php:89
 msgid "Invalid GTM Container ID format. Should be GTM-XXXXXX"
-msgstr "Formato de ID de Contêiner do GTM inválido. Deve ser GTM-XXXXXX"
+msgstr ""
 
 #: includes/Modules/GTM/class-web-tag.php:81
-#, fuzzy
 msgid "Google Tag Manager snippet added by ClickTrail (sGTM mode)"
-msgstr "Snippet do Google Tag Manager adicionado pelo ClickTrail"
+msgstr ""
 
 #: includes/Modules/GTM/class-web-tag.php:82
 msgid "Google Tag Manager snippet added by ClickTrail"
-msgstr "Snippet do Google Tag Manager adicionado pelo ClickTrail"
+msgstr ""
 
 #: includes/Modules/GTM/class-web-tag.php:86
 msgid "End Google Tag Manager snippet added by ClickTrail"
-msgstr "Fim do snippet do Google Tag Manager adicionado pelo ClickTrail"
+msgstr ""
 
 #: includes/Modules/GTM/class-web-tag.php:107
 msgid "Google Tag Manager (noscript) snippet added by ClickTrail"
-msgstr "Snippet do Google Tag Manager (noscript) adicionado pelo ClickTrail"
+msgstr ""
 
 #: includes/Modules/GTM/class-web-tag.php:111
 msgid "End Google Tag Manager (noscript) snippet added by ClickTrail"
 msgstr ""
-"Fim do snippet do Google Tag Manager (noscript) adicionado pelo ClickTrail"
 
 #: includes/Modules/consent-mode/class-consent-mode.php:88
 msgid "Google tag (gtag.js) consent mode dataLayer added by ClickTrail"
 msgstr ""
-"dataLayer do modo de consentimento do Google tag (gtag.js) adicionado pelo "
-"ClickTrail"
 
 #: includes/Modules/consent-mode/class-consent-mode.php:98
 msgid "End Google tag (gtag.js) consent mode dataLayer added by ClickTrail"
 msgstr ""
-"Fim do dataLayer do modo de consentimento do Google tag (gtag.js) adicionado "
-"pelo ClickTrail"
 
 #: includes/admin/class-admin.php:95
 msgid "ClickTrail Status"
-msgstr "Status do ClickTrail"
+msgstr ""
 
 #: includes/admin/class-admin.php:122
 msgid "Attribution Cookie"
-msgstr "Cookie de Atribuição"
+msgstr ""
 
 #: includes/admin/class-admin.php:123
 msgid "Caching Status"
-msgstr "Status de Cache"
+msgstr ""
 
 #: includes/admin/class-admin.php:124
 msgid "Form Capture Fallback"
-msgstr "Fallback de captura de formulários"
+msgstr ""
 
 #: includes/admin/class-admin.php:125
 msgid "Cross-domain Links"
-msgstr "Links entre domínios"
+msgstr ""
 
 #: includes/admin/class-admin.php:127
 msgid "Run Full Diagnostics"
-msgstr "Executar Diagnóstico Completo"
+msgstr ""
 
 #: includes/admin/class-admin.php:136 includes/admin/class-admin.php:137
 #: includes/admin/class-admin.php:825 includes/admin/class-admin.php:1526
 #: includes/admin/traits/trait-admin-pages.php:23
 msgid "ClickTrail"
-msgstr "ClickTrail"
+msgstr ""
 
 #: includes/admin/class-admin.php:148 includes/admin/class-admin.php:149
 msgid "Settings"
-msgstr "Configurações"
+msgstr ""
 
 #: includes/admin/class-admin.php:157 includes/admin/class-admin.php:158
 msgid "Logs"
-msgstr "Logs"
+msgstr ""
 
 #: includes/admin/class-admin.php:166 includes/admin/class-admin.php:167
 msgid "Diagnostics"
-msgstr "Diagnósticos"
+msgstr ""
 
 #: includes/admin/class-admin.php:237
 msgid "Testing..."
@@ -113,9 +108,8 @@ msgid "Test failed"
 msgstr ""
 
 #: includes/admin/class-admin.php:239
-#, fuzzy
 msgid "Clipboard unavailable"
-msgstr "Indisponível"
+msgstr ""
 
 #: includes/admin/class-admin.php:240
 msgid "Copied"
@@ -135,9 +129,8 @@ msgstr ""
 
 #: includes/admin/class-admin.php:244
 #: includes/admin/traits/trait-admin-pages.php:330
-#, fuzzy
 msgid "Disable Debug"
-msgstr "Desativado"
+msgstr ""
 
 #: includes/admin/class-admin.php:245
 #: includes/admin/traits/trait-admin-pages.php:330
@@ -166,297 +159,279 @@ msgstr ""
 
 #: includes/admin/class-admin.php:251
 msgid "Conflict scan failed."
-msgstr "A verificação de conflitos falhou."
+msgstr ""
 
 #: includes/admin/class-admin.php:252
 msgid "Preparing backup..."
-msgstr "Preparando backup..."
+msgstr ""
 
 #: includes/admin/class-admin.php:253
 msgid "Backup export failed."
-msgstr "A exportação do backup falhou."
+msgstr ""
 
 #: includes/admin/class-admin.php:254
 msgid "Importing backup..."
-msgstr "Importando backup..."
+msgstr ""
 
 #: includes/admin/class-admin.php:255
 msgid "Backup import failed."
-msgstr "A importação do backup falhou."
+msgstr ""
 
 #: includes/admin/class-admin.php:256
 msgid "Choose a ClickTrail backup file first."
-msgstr "Escolha primeiro um arquivo de backup do ClickTrail."
+msgstr ""
 
 #: includes/admin/class-admin.php:257
 msgid "Restore this ClickTrail backup now? Current settings will be replaced."
 msgstr ""
-"Restaurar este backup do ClickTrail agora? As configurações atuais serão "
-"substituídas."
 
 #: includes/admin/class-admin.php:258
 msgid "Looking up order..."
-msgstr "Consultando pedido..."
+msgstr ""
 
 #: includes/admin/class-admin.php:259
 msgid "Order lookup failed."
-msgstr "A consulta do pedido falhou."
+msgstr ""
 
 #: includes/admin/class-admin.php:308
 msgid "Core Attribution Settings"
-msgstr "Configurações principais de atribuição"
+msgstr ""
 
 #: includes/admin/class-admin.php:315
 msgid "Enable attribution tracking"
-msgstr "Ativar rastreamento de atribuição"
+msgstr ""
 
 #: includes/admin/class-admin.php:322
 msgid "Capture campaign and referral data for each visit."
-msgstr "Capture dados de campanha e referência em cada visita."
+msgstr ""
 
 #: includes/admin/class-admin.php:328
 msgid "Attribution retention (days)"
-msgstr "Retenção de atribuição (dias)"
+msgstr ""
 
 #: includes/admin/class-admin.php:335
 msgid "How long attribution data should be stored."
-msgstr "Por quanto tempo os dados de atribuição devem ser armazenados."
+msgstr ""
 
 #: includes/admin/class-admin.php:342
 msgid "Reliability Settings"
-msgstr "Configurações de confiabilidade"
+msgstr ""
 
 #: includes/admin/class-admin.php:349
 msgid "Client-side capture fallback"
-msgstr "Fallback de captura no cliente"
+msgstr ""
 
 #: includes/admin/class-admin.php:357
 msgid "Recommended for cached or highly optimized pages."
-msgstr "Recomendado para páginas em cache ou altamente otimizadas."
+msgstr ""
 
 #: includes/admin/class-admin.php:363
 msgid "Watch dynamic content"
-msgstr "Observar conteúdo dinâmico"
+msgstr ""
 
 #: includes/admin/class-admin.php:371
 msgid "Recommended when forms or links appear after page load."
 msgstr ""
-"Recomendado quando formulários ou links aparecem após o carregamento da "
-"página."
 
 #: includes/admin/class-admin.php:378
 msgid "Cross-domain Settings"
-msgstr "Configurações entre domínios"
+msgstr ""
 
 #: includes/admin/class-admin.php:385
 msgid "Decorate outgoing links"
-msgstr "Decorar links de saída"
+msgstr ""
 
 #: includes/admin/class-admin.php:393
 msgid "Append attribution parameters to approved links."
-msgstr "Acrescente parâmetros de atribuição aos links aprovados."
+msgstr ""
 
 #: includes/admin/class-admin.php:399
 msgid "Allowed cross-domain destinations"
-msgstr "Destinos permitidos entre domínios"
+msgstr ""
 
 #: includes/admin/class-admin.php:407
 msgid "Domains where attribution parameters may be added."
-msgstr "Domínios nos quais parâmetros de atribuição podem ser adicionados."
+msgstr ""
 
 #: includes/admin/class-admin.php:414
 msgid "Do not modify signed URLs"
-msgstr "Não modificar URLs assinadas"
+msgstr ""
 
 #: includes/admin/class-admin.php:422
 msgid ""
 "Recommended when links contain temporary signatures or protected access "
 "tokens."
 msgstr ""
-"Recomendado quando os links contêm assinaturas temporárias ou tokens de "
-"acesso protegidos."
 
 #: includes/admin/class-admin.php:428
 msgid "Pass cross-domain attribution token"
-msgstr "Passar token de atribuição entre domínios"
+msgstr ""
 
 #: includes/admin/class-admin.php:436
 msgid ""
 "Adds a temporary token to preserve attribution across approved domains. No "
 "personal data is included."
 msgstr ""
-"Adiciona um token temporário para preservar a atribuição entre domínios "
-"aprovados. Nenhum dado pessoal é incluído."
 
 #: includes/admin/class-admin.php:443
 msgid "Advanced Settings"
-msgstr "Configurações avançadas"
+msgstr ""
 
 #: includes/admin/class-admin.php:450
 msgid "Replace existing attribution values"
-msgstr "Substituir valores de atribuição existentes"
+msgstr ""
 
 #: includes/admin/class-admin.php:458
 msgid "Use newly detected values even if attribution was already stored."
 msgstr ""
-"Use valores recém-detectados mesmo que a atribuição já tenha sido armazenada."
 
 #: includes/admin/class-admin.php:466 includes/admin/class-admin.php:1715
 msgid "WhatsApp"
-msgstr "WhatsApp"
+msgstr ""
 
 #: includes/admin/class-admin.php:473
 msgid "Enable WhatsApp tracking"
-msgstr "Ativar rastreamento do WhatsApp"
+msgstr ""
 
 #: includes/admin/class-admin.php:481
 msgid "Track clicks on WhatsApp links and buttons."
-msgstr "Rastrear cliques em links e botões do WhatsApp."
+msgstr ""
 
 #: includes/admin/class-admin.php:487
 msgid "Append attribution to message"
-msgstr "Acrescentar atribuição à mensagem"
+msgstr ""
 
 #: includes/admin/class-admin.php:495
 msgid "Add attribution details to the pre-filled WhatsApp message."
-msgstr "Adicione detalhes de atribuição à mensagem pré-preenchida do WhatsApp."
+msgstr ""
 
 #: includes/admin/class-admin.php:502
 msgid "Consent Mode Configuration"
-msgstr "Configuração do Modo de Consentimento"
+msgstr ""
 
 #: includes/admin/class-admin.php:509
 msgid "Enable consent mode"
-msgstr "Ativar modo de consentimento"
+msgstr ""
 
 #: includes/admin/class-admin.php:521
 msgid "Regions requiring consent"
-msgstr "Regiões que exigem consentimento"
+msgstr ""
 
 #: includes/admin/class-admin.php:533
 msgid "Consent behavior"
-msgstr "Comportamento de consentimento"
+msgstr ""
 
 #: includes/admin/class-admin.php:545
 msgid "Consent source"
-msgstr "Origem do consentimento"
+msgstr ""
 
 #: includes/admin/class-admin.php:557
 msgid "Consent wait time (ms)"
-msgstr "Tempo de espera pelo consentimento (ms)"
+msgstr ""
 
 #: includes/admin/class-admin.php:570 includes/admin/class-admin.php:1572
 msgid "Google Tag Manager"
-msgstr "Google Tag Manager"
+msgstr ""
 
 #: includes/admin/class-admin.php:577
 msgid "Container ID"
-msgstr "ID do contêiner"
+msgstr ""
 
 #: includes/admin/class-admin.php:583
 msgid "Use only if your site does not already load Google Tag Manager."
-msgstr "Use isto apenas se o seu site ainda não carregar o Google Tag Manager."
+msgstr ""
 
 #: includes/admin/class-admin.php:593
 msgid "Server-side Transport"
-msgstr "Transporte server-side"
+msgstr ""
 
 #: includes/admin/class-admin.php:600
 msgid "Enable server-side delivery"
-msgstr "Ativar entrega server-side"
+msgstr ""
 
 #: includes/admin/class-admin.php:607
 msgid "Send events through your own collector endpoint."
-msgstr "Envie eventos pelo seu próprio endpoint coletor."
+msgstr ""
 
 #: includes/admin/class-admin.php:613
 msgid "Collector URL"
-msgstr "URL do coletor"
+msgstr ""
 
 #: includes/admin/class-admin.php:620
 msgid "Endpoint that receives server-side events."
-msgstr "Endpoint que recebe eventos server-side."
+msgstr ""
 
 #: includes/admin/class-admin.php:627
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:874
 msgid "Delivery adapter"
-msgstr "Adaptador de entrega"
+msgstr ""
 
 #: includes/admin/class-admin.php:640
 msgid "Request timeout (seconds)"
-msgstr "Tempo limite da requisição (segundos)"
+msgstr ""
 
 #: includes/admin/class-admin.php:652
 msgid "Share anonymous failure counts"
-msgstr "Compartilhar contagens anônimas de falhas"
+msgstr ""
 
 #: includes/admin/class-admin.php:659
 msgid ""
 "Only aggregated failure counts are shared. No payloads or personal data are "
 "included."
 msgstr ""
-"Apenas contagens agregadas de falhas são compartilhadas. Nenhum payload ou "
-"dado pessoal é incluído."
 
 #: includes/admin/class-admin.php:666
 msgid "Use Network Defaults"
-msgstr "Usar padrões da rede"
+msgstr ""
 
 #: includes/admin/class-admin.php:673
 msgid "Use network-level server-side settings for this site."
-msgstr "Usar as configurações server-side do nível da rede para este site."
+msgstr ""
 
 #: includes/admin/class-admin.php:734
 msgid "ClickTrail settings require JavaScript in wp-admin."
-msgstr "As configurações do ClickTrail exigem JavaScript no wp-admin."
+msgstr ""
 
 #: includes/admin/class-admin.php:749 includes/admin/class-admin.php:750
 #: includes/admin/class-admin.php:1077 includes/admin/class-admin.php:1184
 #: includes/admin/class-admin.php:1689
 msgid "Capture"
-msgstr "Captura"
+msgstr ""
 
 #: includes/admin/class-admin.php:751
 msgid ""
 "Capture and preserve source data from campaigns, referrals, and ad clicks."
 msgstr ""
-"Capture e preserve dados de origem de campanhas, referências e cliques em "
-"anúncios."
 
 #: includes/admin/class-admin.php:755 includes/admin/class-admin.php:756
 #: includes/admin/class-admin.php:1083 includes/admin/class-admin.php:1204
 msgid "Forms"
-msgstr "Formulários"
+msgstr ""
 
 #: includes/admin/class-admin.php:757
 msgid ""
 "Keep attribution attached to forms, lead sources, and messaging touchpoints."
 msgstr ""
-"Mantenha a atribuição associada a formulários, origens de leads e pontos de "
-"contato por mensagem."
 
 #: includes/admin/class-admin.php:761 includes/admin/class-admin.php:762
 #: includes/admin/class-admin.php:1089 includes/admin/class-admin.php:1214
 msgid "Events"
-msgstr "Eventos"
+msgstr ""
 
 #: includes/admin/class-admin.php:763
 msgid ""
 "Configure browser event collection, destinations, and the unified event "
 "pipeline."
 msgstr ""
-"Configure a coleta de eventos no navegador, os destinos e o pipeline "
-"unificado de eventos."
 
 #: includes/admin/class-admin.php:767 includes/admin/class-admin.php:768
 #: includes/admin/class-admin.php:1101 includes/admin/class-admin.php:1228
 msgid "Delivery"
-msgstr "Entrega"
+msgstr ""
 
 #: includes/admin/class-admin.php:769
 msgid "Control privacy, server-side transport, and operational safeguards."
 msgstr ""
-"Controle a privacidade, o transporte server-side e as proteções operacionais."
 
 #: includes/admin/class-admin.php:829
 msgid ""
@@ -464,57 +439,54 @@ msgid ""
 "destinations live under Events, while transport and privacy controls live "
 "under Delivery."
 msgstr ""
-"Estas configurações agora estão organizadas por capacidade. Eventos do "
-"navegador e destinos ficam em Eventos, enquanto os controles de transporte e "
-"privacidade ficam em Entrega."
 
 #: includes/admin/class-admin.php:899
 msgid "Generic Collector"
-msgstr "Coletor genérico"
+msgstr ""
 
 #: includes/admin/class-admin.php:901
 msgid "sGTM (Server GTM)"
-msgstr "sGTM (Server GTM)"
+msgstr ""
 
 #: includes/admin/class-admin.php:903
 msgid "Meta CAPI"
-msgstr "Meta CAPI"
+msgstr ""
 
 #: includes/admin/class-admin.php:905
 msgid "Google Ads / GA4"
-msgstr "Google Ads / GA4"
+msgstr ""
 
 #: includes/admin/class-admin.php:907
 msgid "LinkedIn CAPI"
-msgstr "LinkedIn CAPI"
+msgstr ""
 
 #: includes/admin/class-admin.php:909
 msgid "Pinterest Conversions API"
-msgstr "API de Conversões do Pinterest"
+msgstr ""
 
 #: includes/admin/class-admin.php:911
 msgid "TikTok Events API"
-msgstr "API de Eventos do TikTok"
+msgstr ""
 
 #: includes/admin/class-admin.php:927
 msgid "Meta"
-msgstr "Meta"
+msgstr ""
 
 #: includes/admin/class-admin.php:929
 msgid "Google"
-msgstr "Google"
+msgstr ""
 
 #: includes/admin/class-admin.php:931
 msgid "LinkedIn"
-msgstr "LinkedIn"
+msgstr ""
 
 #: includes/admin/class-admin.php:933
 msgid "Reddit"
-msgstr "Reddit"
+msgstr ""
 
 #: includes/admin/class-admin.php:935
 msgid "Pinterest"
-msgstr "Pinterest"
+msgstr ""
 
 #: includes/admin/class-admin.php:937
 msgid "TikTok"
@@ -527,7 +499,7 @@ msgstr ""
 #: includes/admin/class-admin.php:1778 includes/admin/class-admin.php:1783
 #: includes/admin/class-admin.php:1788
 msgid "Off"
-msgstr "Desativado"
+msgstr ""
 
 #: includes/admin/class-admin.php:1078 includes/admin/class-admin.php:1084
 #: includes/admin/class-admin.php:1090 includes/admin/class-admin.php:1096
@@ -536,91 +508,76 @@ msgstr "Desativado"
 #: includes/admin/class-admin.php:1778 includes/admin/class-admin.php:1783
 #: includes/admin/class-admin.php:1788
 msgid "On"
-msgstr "Ativado"
+msgstr ""
 
 #: includes/admin/class-admin.php:1095 includes/admin/class-admin.php:1264
 #: includes/admin/class-admin.php:1782
 msgid "Cross-domain"
-msgstr "Entre domínios"
+msgstr ""
 
 #: includes/admin/class-admin.php:1107 includes/admin/class-admin.php:1632
 #: includes/admin/class-admin.php:1633
 #: includes/admin/traits/trait-admin-pages.php:473
 msgid "Consent"
-msgstr "Consentimento"
+msgstr ""
 
 #: includes/admin/class-admin.php:1187
 msgid "Attribution capture is enabled."
-msgstr "A captura de atribuição está ativada."
+msgstr ""
 
 #: includes/admin/class-admin.php:1188
 msgid "Turn on attribution capture before testing source continuity."
 msgstr ""
-"Ative a captura de atribuição antes de testar a continuidade da origem."
 
 #: includes/admin/class-admin.php:1194
 msgid "Consent Guidance"
-msgstr "Orientação de consentimento"
+msgstr ""
 
 #: includes/admin/class-admin.php:1197
 msgid ""
 "Consent mode is configured. Verify the selected CMP source before rollout."
 msgstr ""
-"O modo de consentimento está configurado. Verifique a fonte de CMP "
-"selecionada antes do rollout."
 
 #: includes/admin/class-admin.php:1198
 msgid ""
 "Consent mode is off. Confirm this matches your regional rollout requirements."
 msgstr ""
-"O modo de consentimento está desativado. Confirme se isso corresponde aos "
-"requisitos regionais do seu rollout."
 
 #: includes/admin/class-admin.php:1207
 msgid "Form capture helpers or providers are active."
-msgstr "Os auxiliares de captura de formulários ou provedores estão ativos."
+msgstr ""
 
 #: includes/admin/class-admin.php:1208
 msgid ""
 "Enable client fallback, WhatsApp, or provider hooks if forms are part of "
 "your attribution path."
 msgstr ""
-"Ative o fallback client-side, o WhatsApp ou hooks de provedores se os "
-"formulários fizerem parte do seu caminho de atribuição."
 
 #. translators: %d: enabled destination count.
 #: includes/admin/class-admin.php:1219
 #, php-format
 msgid "Browser events are active. Enabled destinations: %d."
-msgstr "Os eventos do navegador estão ativos. Destinos ativados: %d."
+msgstr ""
 
 #: includes/admin/class-admin.php:1222
 msgid ""
 "Enable the browser event pipeline before relying on dataLayer and canonical "
 "intake."
 msgstr ""
-"Ative o pipeline de eventos do navegador antes de depender da dataLayer e do "
-"intake canônico."
 
 #: includes/admin/class-admin.php:1231
 msgid "Server-side delivery has an endpoint and is ready for endpoint tests."
 msgstr ""
-"A entrega server-side tem um endpoint configurado e está pronta para testes "
-"de endpoint."
 
 #: includes/admin/class-admin.php:1233
 msgid "Server-side delivery is on, but the collector URL still needs review."
 msgstr ""
-"A entrega server-side está ativada, mas a URL do coletor ainda precisa de "
-"revisão."
 
 #: includes/admin/class-admin.php:1234
 msgid ""
 "Server-side delivery is off. Logs and Diagnostics still work for local "
 "checks."
 msgstr ""
-"A entrega server-side está desativada. Logs e Diagnósticos ainda funcionam "
-"para verificações locais."
 
 #: includes/admin/class-admin.php:1240
 msgid "sGTM"
@@ -651,20 +608,16 @@ msgstr ""
 #: includes/admin/class-admin.php:1255
 msgid "WooCommerce storefront events and order delivery helpers are ready."
 msgstr ""
-"Os eventos de storefront do WooCommerce e os auxiliares de entrega de "
-"pedidos estão prontos."
 
 #: includes/admin/class-admin.php:1257
 msgid ""
 "WooCommerce is active. Enable storefront events when you want list, product, "
 "cart, and checkout signals."
 msgstr ""
-"O WooCommerce está ativo. Ative os eventos de storefront quando quiser "
-"sinais de lista, produto, carrinho e checkout."
 
 #: includes/admin/class-admin.php:1258
 msgid "WooCommerce is not active on this site."
-msgstr "O WooCommerce não está ativo neste site."
+msgstr ""
 
 #: includes/admin/class-admin.php:1267
 msgid ""
@@ -692,19 +645,19 @@ msgstr ""
 
 #: includes/admin/class-admin.php:1323
 msgid "No attempts yet"
-msgstr "Nenhuma tentativa ainda"
+msgstr ""
 
 #. translators: %s: relative time.
 #: includes/admin/class-admin.php:1327
 #: includes/admin/traits/trait-admin-pages.php:164
 #, php-format
 msgid "%s ago"
-msgstr "há %s"
+msgstr ""
 
 #: includes/admin/class-admin.php:1330
 #: includes/admin/traits/trait-admin-pages.php:167
 msgid "No delivery attempts recorded."
-msgstr "Nenhuma tentativa de entrega registrada."
+msgstr ""
 
 #: includes/admin/class-admin.php:1558
 msgid ""
@@ -718,21 +671,16 @@ msgstr ""
 #: includes/admin/class-admin.php:1573
 msgid "Inject GTM on this site — only if GTM is not already loaded elsewhere."
 msgstr ""
-"Injete o GTM neste site — apenas se ele ainda não estiver carregado em outro "
-"lugar."
 
 #: includes/admin/class-admin.php:1588
 msgid "Server-side delivery"
-msgstr "Entrega server-side"
+msgstr ""
 
 #: includes/admin/class-admin.php:1589
 msgid ""
 "Route events through your own collector endpoint — bypasses browser ad-"
 "blockers and provides a reliable delivery path."
 msgstr ""
-"Encaminhe eventos pelo seu próprio endpoint coletor — isso contorna "
-"bloqueadores de anúncios do navegador e fornece um caminho de entrega mais "
-"confiável."
 
 #: includes/admin/class-admin.php:1598
 msgid ""
@@ -743,120 +691,101 @@ msgstr ""
 #: includes/admin/class-admin.php:1626 includes/admin/class-admin.php:1627
 #: includes/admin/class-admin.php:1767
 msgid "Attribution"
-msgstr "Atribuição"
+msgstr ""
 
 #: includes/admin/class-admin.php:1628
 msgid ""
 "Capture UTM parameters, click IDs, and referrers — and keep them through "
 "forms, caching, and navigation."
 msgstr ""
-"Capture parâmetros UTM, IDs de clique e referenciadores — e mantenha esses "
-"dados ao longo de formulários, cache e navegação."
 
 #: includes/admin/class-admin.php:1634
 msgid ""
 "Control when tracking is allowed to start, which regions require explicit "
 "opt-in, and which consent platform ClickTrail should listen to."
 msgstr ""
-"Controle quando o rastreamento pode começar, quais regiões exigem opt-in "
-"explícito e qual plataforma de consentimento o ClickTrail deve ouvir."
 
 #: includes/admin/class-admin.php:1638 includes/admin/class-admin.php:1639
 msgid "Destinations"
-msgstr "Destinos"
+msgstr ""
 
 #: includes/admin/class-admin.php:1640
 msgid ""
 "Configure where events are sent — your own server-side endpoint, GTM, and "
 "advertising platforms."
 msgstr ""
-"Configure para onde os eventos são enviados — seu próprio endpoint server-"
-"side, GTM e plataformas de anúncios."
 
 #: includes/admin/class-admin.php:1644 includes/admin/class-admin.php:1645
 #: includes/admin/class-admin.php:1725 includes/admin/class-admin.php:1730
 msgid "Advanced"
-msgstr "Avançado"
+msgstr ""
 
 #: includes/admin/class-admin.php:1646
 msgid ""
 "Platform-level controls — feature flags, security, deduplication, lifecycle "
 "ingestion, and external form providers."
 msgstr ""
-"Controles em nível de plataforma — feature flags, segurança, desduplicação, "
-"ingestão de ciclo de vida e provedores externos de formulários."
 
 #: includes/admin/class-admin.php:1690
 msgid "Enable attribution tracking and set how long source data is stored."
 msgstr ""
-"Ative o rastreamento de atribuição e defina por quanto tempo os dados de "
-"origem serão armazenados."
 
 #: includes/admin/class-admin.php:1697
 msgid "Cached pages"
-msgstr "Páginas em cache"
+msgstr ""
 
 #: includes/admin/class-admin.php:1698
 msgid ""
 "Ensures attribution still reaches hidden form fields when pages are served "
 "from cache. Recommended for most sites."
 msgstr ""
-"Garante que a atribuição continue chegando aos campos ocultos dos "
-"formulários quando as páginas são servidas do cache. Recomendado para a "
-"maioria dos sites."
 
 #: includes/admin/class-admin.php:1700
 msgid "Recommended"
-msgstr "Recomendado"
+msgstr ""
 
 #: includes/admin/class-admin.php:1707
 msgid "Cross-domain links"
-msgstr "Links entre domínios"
+msgstr ""
 
 #: includes/admin/class-admin.php:1708
 msgid ""
 "Preserve attribution when visitors follow links to your other domains or "
 "subdomains."
 msgstr ""
-"Preserve a atribuição quando visitantes seguirem links para seus outros "
-"domínios ou subdomínios."
 
 #: includes/admin/class-admin.php:1716
 msgid ""
 "Carry attribution into outbound WhatsApp clicks and pre-filled messages."
 msgstr ""
-"Leve a atribuição para cliques de saída do WhatsApp e mensagens pré-"
-"preenchidas."
 
 #: includes/admin/class-admin.php:1726
 msgid "Low-level capture behavior. Most sites can leave these unchanged."
 msgstr ""
-"Comportamento de captura de baixo nível. A maioria dos sites pode deixar "
-"isso como está."
 
 #: includes/admin/class-admin.php:1740
 msgid "Consent mode"
-msgstr "Modo de consentimento"
+msgstr ""
 
 #: includes/admin/class-admin.php:1741
 msgid "Decide when attribution and event collection are allowed to start."
-msgstr "Decida quando a atribuição e a coleta de eventos podem começar."
+msgstr ""
 
 #: includes/admin/class-admin.php:1772
 msgid "Consent Mode"
-msgstr "Modo de consentimento"
+msgstr ""
 
 #: includes/admin/class-admin.php:1777
 msgid "JS Capture"
-msgstr "Captura via JS"
+msgstr ""
 
 #: includes/admin/class-admin.php:1787
 msgid "Server-side"
-msgstr "Server-side"
+msgstr ""
 
 #: includes/admin/class-admin.php:1884
 msgid "Save Changes"
-msgstr "Salvar alterações"
+msgstr ""
 
 #: includes/admin/class-admin.php:1886
 msgid "Save changes for this tab."
@@ -866,64 +795,64 @@ msgstr ""
 #: includes/admin/class-clicutcl-woocommerce-admin.php:109
 #: includes/admin/class-clicutcl-woocommerce-admin.php:156
 msgid "Source"
-msgstr "Origem"
+msgstr ""
 
 #: includes/admin/class-clicutcl-woocommerce-admin.php:77
 msgid "Direct"
-msgstr "Direto"
+msgstr ""
 
 #: includes/admin/class-clicutcl-woocommerce-admin.php:87
 msgid "Marketing Attribution"
-msgstr "Atribuição de Marketing"
+msgstr ""
 
 #: includes/admin/class-clicutcl-woocommerce-admin.php:103
 msgid "No attribution data available."
-msgstr "Nenhum dado de atribuição disponível."
+msgstr ""
 
 #: includes/admin/class-clicutcl-woocommerce-admin.php:110
 #: includes/admin/class-clicutcl-woocommerce-admin.php:159
 msgid "Medium"
-msgstr "Meio"
+msgstr ""
 
 #: includes/admin/class-clicutcl-woocommerce-admin.php:111
 msgid "Campaign"
-msgstr "Campanha"
+msgstr ""
 
 #: includes/admin/class-clicutcl-woocommerce-admin.php:112
 msgid "Term"
-msgstr "Termo"
+msgstr ""
 
 #: includes/admin/class-clicutcl-woocommerce-admin.php:113
 msgid "Content"
-msgstr "Conteúdo"
+msgstr ""
 
 #: includes/admin/class-clicutcl-woocommerce-admin.php:114
 msgid "Google Click ID"
-msgstr "Google Click ID"
+msgstr ""
 
 #: includes/admin/class-clicutcl-woocommerce-admin.php:115
 msgid "Facebook Click ID"
-msgstr "Facebook Click ID"
+msgstr ""
 
 #: includes/admin/class-clicutcl-woocommerce-admin.php:116
 msgid "LinkedIn Click ID"
-msgstr "LinkedIn Click ID"
+msgstr ""
 
 #: includes/admin/class-clicutcl-woocommerce-admin.php:117
 msgid "Landing Page"
-msgstr "Página de Destino"
+msgstr ""
 
 #: includes/admin/class-clicutcl-woocommerce-admin.php:121
 msgid "First Touch"
-msgstr "Primeiro Toque"
+msgstr ""
 
 #: includes/admin/class-clicutcl-woocommerce-admin.php:142
 msgid "No first-touch data available"
-msgstr "Nenhum dado de primeiro toque disponível"
+msgstr ""
 
 #: includes/admin/class-clicutcl-woocommerce-admin.php:153
 msgid "Last Touch"
-msgstr "Último Toque"
+msgstr ""
 
 #: includes/admin/class-gtm-lead-magnet.php:118
 msgid "Free GTM Starter Kit — pre-wired for ClickTrail"
@@ -987,9 +916,8 @@ msgid "A valid email address is required."
 msgstr ""
 
 #: includes/admin/class-gtm-lead-magnet.php:245
-#, fuzzy
 msgid "Consent is required."
-msgstr "Origem do consentimento"
+msgstr ""
 
 #: includes/admin/class-gtm-lead-magnet.php:290
 msgid ""
@@ -998,52 +926,47 @@ msgid ""
 msgstr ""
 
 #: includes/admin/class-gtm-lead-magnet.php:291
-#, fuzzy
 msgid "Link expired"
-msgstr "LinkedIn"
+msgstr ""
 
 #: includes/admin/class-gtm-lead-magnet.php:302
-#, fuzzy
 msgid "File not found."
-msgstr "Nenhum log encontrado."
+msgstr ""
 
 #: includes/admin/class-gtm-lead-magnet.php:303
 #: includes/admin/class-setup-wizard.php:344
-#, fuzzy
 msgid "Not found"
-msgstr "Nenhum log encontrado."
+msgstr ""
 
 #: includes/admin/class-gtm-lead-magnet.php:318
 msgid "Could not read the download file."
 msgstr ""
 
 #: includes/admin/class-gtm-lead-magnet.php:319
-#, fuzzy
 msgid "Server error"
-msgstr "Server-side"
+msgstr ""
 
 #: includes/admin/class-log-list-table.php:101
 #: includes/privacy/class-privacy-handler.php:140
 msgid "Date"
-msgstr "Data"
+msgstr ""
 
 #: includes/admin/class-log-list-table.php:102
 #: includes/privacy/class-privacy-handler.php:136
 msgid "Event Type"
-msgstr "Tipo de Evento"
+msgstr ""
 
 #: includes/admin/class-log-list-table.php:103
 msgid "Details"
-msgstr "Detalhes"
+msgstr ""
 
 #: includes/admin/class-log-list-table.php:195
 msgid "No logs found."
-msgstr "Nenhum log encontrado."
+msgstr ""
 
 #: includes/admin/class-setup-wizard.php:74
-#, fuzzy
 msgid "ClickTrail Setup"
-msgstr "Status do ClickTrail"
+msgstr ""
 
 #: includes/admin/class-setup-wizard.php:75
 msgid "Setup"
@@ -1079,9 +1002,8 @@ msgstr ""
 
 #: includes/admin/class-setup-wizard.php:249
 #: includes/admin/class-setup-wizard.php:287
-#, fuzzy
 msgid "What are you tracking?"
-msgstr "Rastreamento principal"
+msgstr ""
 
 #: includes/admin/class-setup-wizard.php:250
 msgid "Ad platforms"
@@ -1138,9 +1060,9 @@ msgstr ""
 
 #. translators: %s: form plugin name.
 #: includes/admin/class-setup-wizard.php:336
-#, fuzzy, php-format
+#, php-format
 msgid "%s attribution"
-msgstr "Atribuição"
+msgstr ""
 
 #: includes/admin/class-setup-wizard.php:342
 #: includes/admin/class-setup-wizard.php:353
@@ -1149,15 +1071,14 @@ msgid "Detected"
 msgstr ""
 
 #: includes/admin/class-setup-wizard.php:352
-#, fuzzy
 msgid "WooCommerce order attribution"
-msgstr "Atribuição entre domínios"
+msgstr ""
 
 #. translators: %s: CMP plugin name.
 #: includes/admin/class-setup-wizard.php:364
-#, fuzzy, php-format
+#, php-format
 msgid "%s consent integration"
-msgstr "Configuração do Modo de Consentimento"
+msgstr ""
 
 #. translators: %s: caching/CDN plugin name.
 #: includes/admin/class-setup-wizard.php:380
@@ -1169,16 +1090,15 @@ msgstr ""
 #: includes/admin/traits/trait-admin-pages.php:49
 #: includes/admin/traits/trait-admin-pages.php:216
 msgid "Enabled"
-msgstr "Ativado"
+msgstr ""
 
 #: includes/admin/class-setup-wizard.php:393
 msgid "GA4 Measurement ID"
 msgstr ""
 
 #: includes/admin/class-setup-wizard.php:394
-#, fuzzy
 msgid "optional"
-msgstr "Opcional"
+msgstr ""
 
 #: includes/admin/class-setup-wizard.php:407
 msgid "Needed for GA4 event forwarding. You can add this later in Settings."
@@ -1205,9 +1125,8 @@ msgstr ""
 
 #: includes/admin/class-setup-wizard.php:471
 #: includes/admin/class-setup-wizard.php:475
-#, fuzzy
 msgid "Google Ads"
-msgstr "Google Ads / GA4"
+msgstr ""
 
 #: includes/admin/class-setup-wizard.php:476
 msgid "Captures GCLID and auto-tag parameters from every Google Ads click."
@@ -1228,20 +1147,18 @@ msgid "Back"
 msgstr ""
 
 #: includes/admin/class-setup-wizard.php:521
-#, fuzzy
 msgid "UTM tracking: ON"
-msgstr "Rastreamento principal"
+msgstr ""
 
 #. translators: %s: form plugin names.
 #: includes/admin/class-setup-wizard.php:527
-#, fuzzy, php-format
+#, php-format
 msgid "Forms: %s"
-msgstr "Formulários"
+msgstr ""
 
 #: includes/admin/class-setup-wizard.php:532
-#, fuzzy
 msgid "WooCommerce: ON"
-msgstr "WooCommerce"
+msgstr ""
 
 #: includes/admin/class-setup-wizard.php:546
 msgid ""
@@ -1275,7 +1192,7 @@ msgstr ""
 
 #: includes/admin/class-site-health.php:20
 msgid "ClickTrail: Caching/conflicts detected"
-msgstr "ClickTrail: Cache/conflitos detectados"
+msgstr ""
 
 #: includes/admin/class-site-health.php:25
 msgid "ClickTrail: Admin diagnostics script heartbeat"
@@ -1283,44 +1200,39 @@ msgstr ""
 
 #: includes/admin/class-site-health.php:30
 msgid "ClickTrail: Attribution cookie readable"
-msgstr "ClickTrail: Cookie de atribuição legível"
+msgstr ""
 
 #: includes/admin/class-site-health.php:67
 msgid "No common caching/conflict plugins detected"
-msgstr "Nenhum plugin comum de cache/conflito detectado"
+msgstr ""
 
 #: includes/admin/class-site-health.php:68
 msgid "ClickTrail will still work best with JS injection enabled."
-msgstr "O ClickTrail ainda funcionará melhor com a injeção de JS ativada."
+msgstr ""
 
 #: includes/admin/class-site-health.php:74
-#, fuzzy
 msgid "Caching/optimization detected (client-side capture recommended)"
-msgstr "Cache/otimização detectados (injeção de JS recomendada)"
+msgstr ""
 
 #. translators: %s: List of detected caching or conflict plugins.
 #: includes/admin/class-site-health.php:77
-#, fuzzy, php-format
+#, php-format
 msgid ""
 "Detected: %s. Full-page caching can make hidden field values stale. Enable "
 "ClickTrail's client-side capture fallback."
 msgstr ""
-"Detectado: %s. O cache de página inteira pode tornar os campos ocultos do "
-"lado do servidor obsoletos. Ative o Injetor de Campo JS do ClickTrail."
 
 #: includes/admin/class-site-health.php:90
-#, fuzzy
 msgid "Admin diagnostics script seen in the last 24h"
-msgstr "Script de frontend visto nas últimas 24h"
+msgstr ""
 
 #: includes/admin/class-site-health.php:91
 msgid "A recent wp-admin heartbeat ping was recorded."
 msgstr ""
 
 #: includes/admin/class-site-health.php:97
-#, fuzzy
 msgid "Admin diagnostics script not seen recently"
-msgstr "Script de frontend não visto recentemente"
+msgstr ""
 
 #: includes/admin/class-site-health.php:98
 msgid ""
@@ -1330,36 +1242,33 @@ msgstr ""
 
 #: includes/admin/class-site-health.php:114
 msgid "Attribution cookie present in request"
-msgstr "Cookie de atribuição presente na requisição"
+msgstr ""
 
 #: includes/admin/class-site-health.php:115
 msgid "Server received the attribution cookie."
-msgstr "O servidor recebeu o cookie de atribuição."
+msgstr ""
 
 #: includes/admin/class-site-health.php:119
 msgid "This may be normal if no UTM visit occurred."
-msgstr "Isso pode ser normal se nenhuma visita UTM ocorreu."
+msgstr ""
 
 #: includes/admin/class-site-health.php:121
 msgid ""
 "Note: Consent Mode is enabled. If you have not granted consent, no cookie "
 "will be set."
 msgstr ""
-"Nota: O Modo de Consentimento está ativado. Se você não concedeu "
-"consentimento, nenhum cookie será definido."
 
 #: includes/admin/class-site-health.php:123
 msgid "Test by visiting a page with ?utm_source=test."
-msgstr "Teste visitando uma página com ?utm_source=test."
+msgstr ""
 
 #: includes/admin/class-site-health.php:128
 msgid "Attribution cookie not present in request"
-msgstr "Cookie de atribuição não presente na requisição"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-consent-mode.php:38
-#, fuzzy
 msgid "Wait for consent"
-msgstr "Privacidade e consentimento"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-consent-mode.php:39
 msgid "Allow until denied"
@@ -1370,23 +1279,20 @@ msgid "Require consent by region"
 msgstr ""
 
 #: includes/admin/traits/trait-admin-consent-mode.php:51
-#, fuzzy
 msgid "Choose when attribution is allowed to start for a visitor."
-msgstr "Decida quando a atribuição e a coleta de eventos podem começar."
+msgstr ""
 
 #: includes/admin/traits/trait-admin-consent-mode.php:65
-#, fuzzy
 msgid "Use region codes such as EEA, UK, US, or US-CA."
-msgstr "Uma região por linha. Exemplos: EEA, UK, CA, US-CA."
+msgstr ""
 
 #: includes/admin/traits/trait-admin-consent-mode.php:74
 msgid "Auto-detect"
-msgstr "Detectar automaticamente"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-consent-mode.php:75
-#, fuzzy
 msgid "ClickTrail built-in banner"
-msgstr "plugin ClickTrail"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-consent-mode.php:76
 msgid "Cookiebot / Usercentrics"
@@ -1394,55 +1300,45 @@ msgstr ""
 
 #: includes/admin/traits/trait-admin-consent-mode.php:77
 msgid "OneTrust"
-msgstr "OneTrust"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-consent-mode.php:78
 msgid "Complianz"
-msgstr "Complianz"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-consent-mode.php:79
-#, fuzzy
 msgid "Google Consent Mode via GTM"
-msgstr "Ativar Modo de Consentimento"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-consent-mode.php:80
-#, fuzzy
 msgid "Custom integration"
-msgstr "Integrações"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-consent-mode.php:91
-#, fuzzy
 msgid "Select the consent platform ClickTrail should listen to."
-msgstr "Qual plataforma de consentimento o ClickTrail deve ouvir."
+msgstr ""
 
 #: includes/admin/traits/trait-admin-consent-mode.php:113
-#, fuzzy
 msgid "How long to wait for a consent response before treating it as denied."
 msgstr ""
-"Por quanto tempo o ClickTrail deve esperar por um sinal de consentimento "
-"antes de continuar."
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:51
 msgid ""
 "ClickTrail Audit detected PII risk on your Thank You page. Your tracking may "
 "be deactivated by Google."
 msgstr ""
-"A Auditoria do ClickTrail detectou risco de PII na sua página de Obrigado. "
-"Seu rastreamento pode ser desativado pelo Google."
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:54
 msgid "Open Diagnostics"
-msgstr "Abrir Diagnósticos"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:57
-#, fuzzy
 msgid "Review Tracking Settings"
-msgstr "Configurações de confiabilidade"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:76
-#, fuzzy
 msgid "Server-side adapter not configured."
-msgstr "Transporte server-side"
+msgstr ""
 
 #. translators: %1$d: HTTP status code.
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:85
@@ -1457,9 +1353,8 @@ msgid "Endpoint error (HTTP %1$d): %2$s"
 msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:107
-#, fuzzy
 msgid "Debug disabled."
-msgstr "Desativado"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:112
 msgid "Debug enabled for 15 minutes."
@@ -1475,17 +1370,15 @@ msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:223
 msgid "Settings saved."
-msgstr "Configurações salvas."
+msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:282
-#, fuzzy
 msgid "Advanced event settings saved."
-msgstr "Configurações avançadas"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:359
-#, fuzzy
 msgid "Backup prepared."
-msgstr "A exportação do backup falhou."
+msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:380
 msgid "Missing backup payload."
@@ -1496,55 +1389,51 @@ msgid "Backup file is not valid JSON."
 msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:402
-#, fuzzy
 msgid "Backup restored."
-msgstr "Backup e restauração"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:420
-#, fuzzy
 msgid "WooCommerce is not active."
-msgstr "O WooCommerce não está ativo neste site."
+msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:425
-#, fuzzy
 msgid "Enter a valid WooCommerce order ID."
-msgstr "Ativar eventos de storefront do WooCommerce"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:430
-#, fuzzy
 msgid "Order not found."
-msgstr "Rastro do pedido carregado."
+msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:438
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:439
 msgid "No ClickTrail traces stored for this order yet."
-msgstr "Ainda não há rastros do ClickTrail armazenados para este pedido."
+msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:459
 msgid "not_queued"
-msgstr "não na fila"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:459
 msgid "queued"
-msgstr "na fila"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:461
 msgid "No pending retry row found."
-msgstr "Nenhuma linha de nova tentativa pendente foi encontrada."
+msgstr ""
 
 #. translators: 1: attempts count, 2: next attempt timestamp.
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:464
 #, php-format
 msgid "Attempts: %1$d. Next attempt: %2$s."
-msgstr "Tentativas: %1$d. Próxima tentativa: %2$s."
+msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:476
 msgid "Order trace loaded."
-msgstr "Rastro do pedido carregado."
+msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:501
 msgid "Caching or script optimization detected"
-msgstr "Cache ou otimização de scripts detectados"
+msgstr ""
 
 #. translators: %s: detected plugin labels.
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:504
@@ -1553,8 +1442,6 @@ msgid ""
 "Detected: %s. Turn on the client-side capture fallback to reduce stale "
 "attribution and delayed event issues."
 msgstr ""
-"Detectado: %s. Ative o fallback de captura client-side para reduzir "
-"problemas de atribuição obsoleta e eventos atrasados."
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:513
 msgid "NitroPack detected — check JS postpone exclusions"
@@ -1571,20 +1458,19 @@ msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:523
 msgid "Server-side delivery has no endpoint"
-msgstr "A entrega server-side não tem endpoint"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:524
 msgid "Delivery is enabled, but the collector URL is empty."
-msgstr "A entrega está ativada, mas a URL do coletor está vazia."
+msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:531
 msgid "Woo storefront events enabled without WooCommerce"
-msgstr "Eventos de storefront do Woo ativados sem WooCommerce"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:532
 msgid "Disable Woo storefront events or activate WooCommerce on this site."
 msgstr ""
-"Desative os eventos de storefront do Woo ou ative o WooCommerce neste site."
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:540
 msgid "sGTM mode enabled without a web container"
@@ -1614,9 +1500,8 @@ msgid ""
 msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:564
-#, fuzzy
 msgid "sGTM mode does not match the active delivery adapter"
-msgstr "A chave de destino não corresponde ao adaptador ativo"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:565
 msgid ""
@@ -1625,9 +1510,8 @@ msgid ""
 msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:572
-#, fuzzy
 msgid "Woo user_data is enabled without the richer contract"
-msgstr "Eventos de storefront do Woo ativados sem WooCommerce"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:573
 msgid ""
@@ -1637,50 +1521,45 @@ msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:582
 msgid "Adapter selected without matching destination toggle"
-msgstr "Adaptador selecionado sem a chave de destino correspondente"
+msgstr ""
 
 #. translators: 1: adapter label, 2: destination label.
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:585
 #, php-format
 msgid "%1$s is selected as the delivery adapter, but %2$s is off in Events."
 msgstr ""
-"%1$s está selecionado como adaptador de entrega, mas %2$s está desativado em "
-"Eventos."
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:608
 msgid "Destination toggle does not match the active adapter"
-msgstr "A chave de destino não corresponde ao adaptador ativo"
+msgstr ""
 
 #. translators: 1: destination label, 2: adapter label.
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:611
 #, php-format
 msgid "%1$s is enabled in Events, but Delivery currently uses %2$s."
-msgstr "%1$s está ativado em Eventos, mas a Entrega usa atualmente %2$s."
+msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:626
 msgid "Review duplicate destination ownership"
-msgstr "Revise a propriedade duplicada de destinos"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:627
 msgid ""
 "GTM is configured alongside native destination toggles. Confirm each "
 "platform is owned by only one runtime path."
 msgstr ""
-"O GTM está configurado junto com chaves nativas de destino. Confirme que "
-"cada plataforma é controlada por apenas um caminho de runtime."
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:640
 msgid "No common conflicts detected in the current ClickTrail configuration."
 msgstr ""
-"Nenhum conflito comum foi detectado na configuração atual do ClickTrail."
 
 #. translators: %d: findings count.
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:648
-#, fuzzy, php-format
+#, php-format
 msgid "Conflict scan found %d item worth reviewing."
 msgid_plural "Conflict scan found %d items worth reviewing."
-msgstr[0] "A verificação de conflitos encontrou %d item que merece revisão."
-msgstr[1] "A verificação de conflitos encontrou %d item que merece revisão."
+msgstr[0] ""
+msgstr[1] ""
 
 #. translators: %s: form title.
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:704
@@ -1704,9 +1583,8 @@ msgid "WPForms: \"%s\" has no ct_* attribution fields"
 msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:832
-#, fuzzy
 msgid "Web container"
-msgstr "ID do contêiner"
+msgstr ""
 
 #. translators: %s: GTM container ID.
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:837
@@ -1762,9 +1640,9 @@ msgstr ""
 
 #. translators: %s: adapter label.
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:879
-#, fuzzy, php-format
+#, php-format
 msgid "Delivery is enabled with %s."
-msgstr "Saúde da entrega"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:882
 msgid ""
@@ -1773,9 +1651,8 @@ msgid ""
 msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:886
-#, fuzzy
 msgid "Destination toggles"
-msgstr "Destinos"
+msgstr ""
 
 #. translators: %d: enabled destination count.
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:891
@@ -1800,9 +1677,8 @@ msgid "Could not reach the configured GTM loader URL from WordPress."
 msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:910
-#, fuzzy
 msgid "Collector probe"
-msgstr "URL do coletor"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-diagnostics-ajax.php:912
 msgid "Could not reach the configured sGTM collector URL from WordPress."
@@ -1869,33 +1745,28 @@ msgid "Backup file does not contain any ClickTrail options."
 msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:22
-#, fuzzy
 msgid "ClickTrail Network"
-msgstr "Logs do ClickTrail"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:40
-#, fuzzy
 msgid "ClickTrail Network Settings"
-msgstr "Status do ClickTrail"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:45
-#, fuzzy
 msgid "Enable Server-side Sending"
-msgstr "Ativar entrega server-side"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:54
-#, fuzzy
 msgid "Collector Endpoint URL"
-msgstr "URL do coletor"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:60
 msgid "Adapter Type"
 msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:78
-#, fuzzy
 msgid "Request Timeout (seconds)"
-msgstr "Tempo limite da requisição (segundos)"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:84
 msgid "Remote Failure Telemetry (Opt-in)"
@@ -1912,49 +1783,47 @@ msgid ""
 msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:159
-#, fuzzy
 msgid "No dispatches yet"
-msgstr "Nenhuma tentativa ainda"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:183
-#, fuzzy
 msgid "ClickTrail Diagnostics"
-msgstr "Status do ClickTrail"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:189
 msgid "Queue Backlog"
-msgstr "Fila pendente"
+msgstr ""
 
 #. translators: %d: due now count.
 #: includes/admin/traits/trait-admin-pages.php:195
-#, fuzzy, php-format
+#, php-format
 msgid "Due now: %d"
-msgstr "Vencendo agora: "
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:203
 msgid "Last Dispatch"
-msgstr "Último envio"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:209
 msgid "Last Error"
-msgstr "Último erro"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:210
 msgid "None"
-msgstr "Nenhum"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:211
 msgid "No errors recorded."
-msgstr "Nenhum erro registrado."
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:215
 #: includes/admin/traits/trait-admin-pages.php:322
 msgid "Debug Logging"
-msgstr "Log de depuração"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:216
 msgid "Disabled"
-msgstr "Desativado"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:218
 msgid "15 minute window when enabled."
@@ -1974,60 +1843,53 @@ msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:256
 msgid "Conflict Scan"
-msgstr "Verificação de conflitos"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:257
 msgid ""
 "Run deterministic checks for caching, duplicate ownership, Woo gaps, and "
 "delivery mismatches."
 msgstr ""
-"Execute verificações determinísticas para cache, propriedade duplicada, "
-"lacunas do Woo e incompatibilidades de entrega."
 
 #: includes/admin/traits/trait-admin-pages.php:263
 msgid "Run Conflict Scan"
-msgstr "Executar verificação de conflitos"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:277
 msgid "Backup Restore"
-msgstr "Backup e restauração"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:278
 msgid ""
 "Export or restore the five main ClickTrail option stores, including masked "
 "secrets through privileged server-side actions."
 msgstr ""
-"Exporte ou restaure os cinco principais armazenamentos de opções do "
-"ClickTrail, incluindo segredos mascarados por meio de ações server-side "
-"privilegiadas."
 
 #: includes/admin/traits/trait-admin-pages.php:284
 msgid "Export Backup"
-msgstr "Exportar backup"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:289
 msgid "Restore Backup"
-msgstr "Restaurar backup"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:300
 msgid "Woo Order Trace Lookup"
-msgstr "Consulta de rastros de pedidos do Woo"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:301
 msgid ""
 "Inspect the stored purchase and milestone payload snapshots for a "
 "WooCommerce order, even outside the debug window."
 msgstr ""
-"Inspecione os snapshots armazenados de payloads de compra e marcos de um "
-"pedido do WooCommerce, mesmo fora da janela de depuração."
 
 #: includes/admin/traits/trait-admin-pages.php:307
 msgid "Order ID"
-msgstr "ID do pedido"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:308
 msgid "Lookup Order"
-msgstr "Consultar pedido"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:323
 msgid ""
@@ -2046,9 +1908,8 @@ msgid ""
 msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:349
-#, fuzzy
 msgid "Purge Tracking Data"
-msgstr "Rastreamento principal"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:360
 msgid "Failure Telemetry"
@@ -2073,42 +1934,36 @@ msgid "Codes"
 msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:408
-#, fuzzy
 msgid "No failures recorded yet."
-msgstr "Nenhum erro registrado."
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:421
-#, fuzzy
 msgid "Queue Backlog Details"
-msgstr "Fila pendente"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:422
 msgid "Current state of the retry queue used for failed dispatch attempts."
 msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:430
-#, fuzzy
 msgid "Queue Ready"
-msgstr "Pronto"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:431
-#, fuzzy
 msgid "No"
-msgstr "Nenhum"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:431
 msgid "Yes"
 msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:434
-#, fuzzy
 msgid "Pending Events"
-msgstr "Eventos"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:438
-#, fuzzy
 msgid "Due Now"
-msgstr "Vencendo agora: "
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:442
 msgid "Max Attempts in Queue"
@@ -2137,24 +1992,21 @@ msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:470
 #: includes/admin/traits/trait-admin-pages.php:524
-#, fuzzy
 msgid "Event"
-msgstr "Eventos"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:471
 #: includes/admin/traits/trait-admin-pages.php:527
-#, fuzzy
 msgid "Status"
-msgstr "Status de Cache"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:472
 msgid "Reason"
 msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:474
-#, fuzzy
 msgid "Attribution Keys"
-msgstr "Atribuição"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:475
 msgid "Identity Keys"
@@ -2167,18 +2019,16 @@ msgid ""
 msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:514
-#, fuzzy
 msgid "Recent Dispatches"
-msgstr "Registros recentes de envio mantidos"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:515
 msgid "Dispatch entries are captured only while Debug Logging is enabled."
 msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:525
-#, fuzzy
 msgid "Event ID"
-msgstr "Eventos"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:526
 msgid "Adapter"
@@ -2197,13 +2047,12 @@ msgid "Message"
 msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:550
-#, fuzzy
 msgid "No dispatches recorded yet."
-msgstr "Registros recentes de envio mantidos"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:569
 msgid "ClickTrail Logs"
-msgstr "Logs do ClickTrail"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:593
 msgid "Run the scan to review likely setup conflicts."
@@ -2215,19 +2064,17 @@ msgstr ""
 
 #. translators: %d: WooCommerce order ID.
 #: includes/admin/traits/trait-admin-pages.php:649
-#, fuzzy, php-format
+#, php-format
 msgid "Order #%d"
-msgstr "ID do pedido"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:667
-#, fuzzy
 msgid "Stored trace"
-msgstr "Rastreamento principal"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:676
-#, fuzzy
 msgid "Source Hook"
-msgstr "Origem"
+msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:680
 msgid "Attempted At"
@@ -2246,9 +2093,8 @@ msgid "Queue State"
 msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:696
-#, fuzzy
 msgid "Queue Detail"
-msgstr "Fila pendente"
+msgstr ""
 
 #: includes/api/class-tracking-controller.php:483
 #: includes/api/class-tracking-controller.php:568
@@ -2260,24 +2106,22 @@ msgid ""
 "ClickTrail failed to boot: missing class CLICUTCL\\Core\\Context. Check your "
 "autoloader mapping and release ZIP contents."
 msgstr ""
-"O ClickTrail falhou ao iniciar: classe CLICUTCL\\Core\\Context ausente. "
-"Verifique o mapeamento do autoloader e o conteúdo do arquivo ZIP da versão."
 
 #: includes/class-clicutcl-core.php:282
 msgid "We use cookies to improve your experience and analyze traffic."
-msgstr "Usamos cookies para melhorar sua experiência e analisar o tráfego."
+msgstr ""
 
 #: includes/class-clicutcl-core.php:283
 msgid "Read more"
-msgstr "Saiba mais"
+msgstr ""
 
 #: includes/class-clicutcl-core.php:284
 msgid "Accept All"
-msgstr "Aceitar Todos"
+msgstr ""
 
 #: includes/class-clicutcl-core.php:285
 msgid "Reject Non-Essential"
-msgstr "Rejeitar Não Essenciais"
+msgstr ""
 
 #: includes/class-clicutcl-core.php:585
 msgid "Shop"
@@ -2294,35 +2138,29 @@ msgid "Search Results"
 msgstr ""
 
 #: includes/integrations/forms/class-gf-form-settings-tab.php:74
-#, fuzzy
 msgid "Attribution Tracking"
-msgstr "Ativar Rastreamento de Atribuição"
+msgstr ""
 
 #: includes/integrations/forms/class-gf-form-settings-tab.php:78
-#, fuzzy
 msgid "Enable attribution tracking for this form"
-msgstr "Ativar rastreamento de atribuição"
+msgstr ""
 
 #: includes/integrations/forms/class-ninja-forms-submission-extra-handler.php:96
-#, fuzzy
 msgid "ClickTrail Attribution"
-msgstr "ClickTrail: Cookie de atribuição legível"
+msgstr ""
 
 #: includes/privacy/class-privacy-handler.php:58
 #: includes/privacy/class-privacy-handler.php:73
-#, fuzzy
 msgid "ClickTrail Tracking Data"
-msgstr "Status do ClickTrail"
+msgstr ""
 
 #: includes/privacy/class-privacy-handler.php:132
-#, fuzzy
 msgid "ClickTrail Events"
-msgstr "Status do ClickTrail"
+msgstr ""
 
 #: includes/privacy/class-privacy-handler.php:144
-#, fuzzy
 msgid "Event Data"
-msgstr "Eventos"
+msgstr ""
 
 #: includes/privacy/class-privacy-handler.php:241
 #: includes/privacy/class-privacy-handler.php:245
@@ -2337,9 +2175,8 @@ msgstr ""
 
 #: includes/privacy/class-privacy-handler.php:376
 #: includes/privacy/class-privacy-handler.php:404
-#, fuzzy
 msgid "ClickTrail Debug Storage"
-msgstr "Status do ClickTrail"
+msgstr ""
 
 #: includes/privacy/class-privacy-handler.php:380
 #: includes/privacy/class-privacy-handler.php:408
@@ -2374,42 +2211,40 @@ msgstr ""
 
 #: assets/js/admin-settings-app.js:243 assets/js/admin-settings-app.js:868
 msgid "Needs Review"
-msgstr "Requer revisão"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:243 assets/js/admin-settings-app.js:868
 msgid "Optional"
-msgstr "Opcional"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:243 assets/js/admin-settings-app.js:868
 msgid "Ready"
-msgstr "Pronto"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:243
 msgid "Unavailable"
-msgstr "Indisponível"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:269
 msgid "Setup Checklist"
-msgstr "Checklist de configuração"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:270
 msgid ""
 "Read-only readiness checks for rollout, delivery, and WooCommerce coverage."
 msgstr ""
-"Verificações somente leitura de prontidão para rollout, entrega e cobertura "
-"do WooCommerce."
 
 #: assets/js/admin-settings-app.js:439
 msgid "Settings reloaded."
-msgstr "Configurações recarregadas."
+msgstr ""
 
 #: assets/js/admin-settings-app.js:445
 msgid "Failed to reload settings."
-msgstr "Falha ao recarregar as configurações."
+msgstr ""
 
 #: assets/js/admin-settings-app.js:472
 msgid "Failed to save settings."
-msgstr "Falha ao salvar as configurações."
+msgstr ""
 
 #: assets/js/admin-settings-app.js:496
 msgid "Failed to run sGTM preview checks."
@@ -2417,114 +2252,98 @@ msgstr ""
 
 #: assets/js/admin-settings-app.js:634
 msgid "Core tracking"
-msgstr "Rastreamento principal"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:635
 msgid ""
 "Enable attribution tracking and choose how long visit source data should be "
 "stored."
 msgstr ""
-"Ative o rastreamento de atribuição e escolha por quanto tempo os dados de "
-"origem da visita devem ser armazenados."
 
 #: assets/js/admin-settings-app.js:646
 msgid "Cross-domain attribution"
-msgstr "Atribuição entre domínios"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:647
 msgid ""
 "Preserve attribution when visitors move between your domains or subdomains."
 msgstr ""
-"Preserve a atribuição quando os visitantes se moverem entre seus domínios ou "
-"subdomínios."
 
 #: assets/js/admin-settings-app.js:673
 msgid "Enable this source and accept signed webhook submissions."
-msgstr "Ative esta fonte e aceite envios de webhook assinados."
+msgstr ""
 
 #: assets/js/admin-settings-app.js:682
 msgid "Signing secret"
-msgstr "Segredo de assinatura"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:683
 msgid "Leave unchanged to keep the current secret."
-msgstr "Deixe inalterado para manter o segredo atual."
+msgstr ""
 
 #: assets/js/admin-settings-app.js:699
 msgid "On-site form capture"
-msgstr "Captura de formulários no site"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:700
 msgid ""
 "Recommended settings to keep attribution attached to forms on cached pages "
 "and dynamic sites."
 msgstr ""
-"Configurações recomendadas para manter a atribuição associada aos "
-"formulários em páginas em cache e sites dinâmicos."
 
 #: assets/js/admin-settings-app.js:707
 msgid "Detect forms and links added after page load."
-msgstr "Detecte formulários e links adicionados após o carregamento da página."
+msgstr ""
 
 #: assets/js/admin-settings-app.js:733
 msgid "External form sources"
-msgstr "Fontes externas de formulários"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:734
 msgid ""
 "Accept attributed submissions from supported providers without exposing raw "
 "engineering controls."
 msgstr ""
-"Aceite envios atribuídos de provedores compatíveis sem expor controles "
-"técnicos avançados."
 
 #: assets/js/admin-settings-app.js:736
 msgid "Accept external form source webhooks"
-msgstr "Aceitar webhooks de fontes externas de formulários"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:736
 msgid "Enable signed inbound submissions from supported providers."
-msgstr "Ative envios de entrada assinados de provedores compatíveis."
+msgstr ""
 
 #: assets/js/admin-settings-app.js:745
 msgid "Advanced technical options"
-msgstr "Opções técnicas avançadas"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:746
 msgid ""
 "Only change these if you need more control over how the browser watches the "
 "page."
 msgstr ""
-"Altere isto apenas se precisar de mais controle sobre como o navegador "
-"observa a página."
 
 #: assets/js/admin-settings-app.js:752
 msgid ""
 "Defaults to body. Narrow this only if you need to watch a specific part of "
 "the page."
 msgstr ""
-"O padrão é body. Restrinja isso apenas se precisar observar uma parte "
-"específica da página."
 
 #: assets/js/admin-settings-app.js:752
 msgid "Dynamic content root selector"
-msgstr "Seletor raiz do conteúdo dinâmico"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:766
 msgid ""
 "Mark this destination when another relay or downstream collector owns final "
 "delivery."
 msgstr ""
-"Marque este destino quando outro relay ou coletor downstream for responsável "
-"pela entrega final."
 
 #: assets/js/admin-settings-app.js:769
 msgid ""
 "Send eligible events to this destination when the matching delivery adapter "
 "or downstream collector is configured."
 msgstr ""
-"Envie eventos elegíveis para este destino quando o adaptador de entrega "
-"correspondente ou o coletor downstream estiver configurado."
 
 #: assets/js/admin-settings-app.js:785
 msgid ""
@@ -2532,38 +2351,30 @@ msgid ""
 "events, webhooks, and server delivery. Configure the capabilities you use "
 "without worrying about the internal pipeline."
 msgstr ""
-"O ClickTrail usa um único pipeline de eventos nos bastidores para eventos do "
-"navegador, webhooks e entrega server-side. Configure os recursos que você "
-"usa sem se preocupar com o pipeline interno."
 
 #: assets/js/admin-settings-app.js:791
 msgid "Event collection"
-msgstr "Coleta de eventos"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:792
-#, fuzzy
 msgid ""
 "Control browser event collection and choose whether GTM should load in "
 "standard or sGTM compatibility mode."
 msgstr ""
-"Controle a coleta de eventos no navegador e o carregamento opcional do GTM "
-"neste site."
 
 #: assets/js/admin-settings-app.js:794
 msgid ""
 "Collect page, click, and form events through ClickTrail's unified event "
 "layer."
 msgstr ""
-"Colete eventos de página, clique e formulário pela camada unificada de "
-"eventos do ClickTrail."
 
 #: assets/js/admin-settings-app.js:794
 msgid "Enable browser event collection"
-msgstr "Ativar coleta de eventos no navegador"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:795
 msgid "Google Tag Manager container ID"
-msgstr "ID do contêiner do Google Tag Manager"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:798
 msgid "GTM loader mode"
@@ -2673,30 +2484,24 @@ msgid "Run Preview Checks"
 msgstr ""
 
 #: assets/js/admin-settings-app.js:875
-#, fuzzy
 msgid "Destination template hints"
-msgstr "Destinos"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:886
 msgid "WooCommerce"
-msgstr "WooCommerce"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:887
 msgid ""
 "Keep campaign context visible on WooCommerce orders and extend the same "
 "event pipeline into the storefront when you need it."
 msgstr ""
-"Mantenha o contexto de campanha visível nos pedidos do WooCommerce e estenda "
-"o mesmo pipeline de eventos para a storefront quando necessário."
 
 #: assets/js/admin-settings-app.js:891
 msgid ""
 "Order attribution is stored on WooCommerce orders during checkout, so "
 "campaign context remains available after the visitor leaves the landing page."
 msgstr ""
-"A atribuição do pedido é armazenada nos pedidos do WooCommerce durante o "
-"checkout, para que o contexto da campanha continue disponível depois que o "
-"visitante sair da landing page."
 
 #: assets/js/admin-settings-app.js:895
 msgid ""
@@ -2704,24 +2509,17 @@ msgid ""
 "flow into ClickTrail's server-side delivery adapters when Delivery is "
 "enabled."
 msgstr ""
-"Eventos de compra são enviados automaticamente na página de agradecimento e "
-"também podem fluir para os adaptadores de entrega server-side do ClickTrail "
-"quando a Entrega estiver ativada."
 
 #: assets/js/admin-settings-app.js:897
-#, fuzzy
 msgid ""
 "Emit GA4-style `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, "
 "`remove_from_cart`, and `begin_checkout` events through ClickTrail's browser "
 "event layer. Existing installs keep this off until you enable it."
 msgstr ""
-"Emita eventos em estilo GA4 de `view_item`, `view_item_list`, `add_to_cart`, "
-"`remove_from_cart` e `begin_checkout` pela camada de eventos do navegador do "
-"ClickTrail. Instalações existentes mantêm isso desativado até você habilitar."
 
 #: assets/js/admin-settings-app.js:897
 msgid "Enable WooCommerce storefront events"
-msgstr "Ativar eventos de storefront do WooCommerce"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:900
 msgid ""
@@ -2756,87 +2554,73 @@ msgid ""
 "events with GTM Preview or the dataLayer, and server-side traces from "
 "ClickTrail > Diagnostics."
 msgstr ""
-"Verifique a atribuição do WooCommerce na tela do pedido, os eventos de "
-"storefront/navegador com o GTM Preview ou a dataLayer, e os rastros server-"
-"side em ClickTrail > Diagnostics."
 
 #: assets/js/admin-settings-app.js:918
 msgid ""
 "Choose which advertising platforms should receive compatible event payloads."
 msgstr ""
-"Escolha quais plataformas de anúncios devem receber payloads de eventos "
-"compatíveis."
 
 #: assets/js/admin-settings-app.js:933
 msgid "Lifecycle updates"
-msgstr "Atualizações de ciclo de vida"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:934
 msgid ""
 "Accept lifecycle updates from your CRM or backend and route them through the "
 "same event pipeline."
 msgstr ""
-"Aceite atualizações de ciclo de vida do seu CRM ou backend e encaminhe-as "
-"pelo mesmo pipeline de eventos."
 
 #: assets/js/admin-settings-app.js:936
 msgid "Accept lifecycle updates"
-msgstr "Aceitar atualizações de ciclo de vida"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:936
 msgid "Allow lifecycle events to enter the unified event pipeline."
 msgstr ""
-"Permita que eventos de ciclo de vida entrem no pipeline unificado de eventos."
 
 #: assets/js/admin-settings-app.js:937
 msgid "Enable lifecycle endpoint"
-msgstr "Ativar endpoint de ciclo de vida"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:937
 msgid "Turn on the REST endpoint used by your CRM or backend."
-msgstr "Ative o endpoint REST usado pelo seu CRM ou backend."
+msgstr ""
 
 #: assets/js/admin-settings-app.js:940
 msgid "Leave unchanged to keep the current token."
-msgstr "Deixe inalterado para manter o token atual."
+msgstr ""
 
 #: assets/js/admin-settings-app.js:940
 msgid "Lifecycle endpoint token"
-msgstr "Token do endpoint de ciclo de vida"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:955
 msgid "Delivery health"
-msgstr "Saúde da entrega"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:956
 msgid ""
 "Quick operational summary for queue health, recent delivery attempts, and "
 "debug state."
 msgstr ""
-"Resumo operacional rápido da saúde da fila, tentativas recentes de entrega e "
-"estado da depuração."
 
 #: assets/js/admin-settings-app.js:963
 msgid ""
 "Server-side delivery is currently off. Historical diagnostics can still "
 "appear until their retention window expires."
 msgstr ""
-"A entrega server-side está desativada no momento. Diagnósticos históricos "
-"ainda podem aparecer até o fim da janela de retenção."
 
 #: assets/js/admin-settings-app.js:970
 msgid "Due now: "
-msgstr "Vencendo agora: "
+msgstr ""
 
 #: assets/js/admin-settings-app.js:985
 msgid "Enable it from Diagnostics when you need a short trace window."
 msgstr ""
-"Ative isso em Diagnósticos quando precisar de uma janela curta de "
-"rastreamento."
 
 #: assets/js/admin-settings-app.js:998
 msgid "Open Logs"
-msgstr "Abrir logs"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1007
 msgid ""
@@ -2844,435 +2628,219 @@ msgid ""
 "that keep outbound tracking reliable. Most sites only need the server-side "
 "transport card and privacy controls."
 msgstr ""
-"Os controles de entrega cobrem transporte, consentimento, saúde da fila e as "
-"proteções que mantêm o rastreamento de saída confiável. A maioria dos sites "
-"só precisa do cartão de transporte server-side e dos controles de "
-"privacidade."
 
 #: assets/js/admin-settings-app.js:1014
 msgid ""
 "This site is currently using network defaults for server-side delivery. "
 "Disable the network toggle below to customize this site independently."
 msgstr ""
-"Este site está usando no momento os padrões da rede para entrega server-"
-"side. Desative a chave de rede abaixo para personalizar este site de forma "
-"independente."
 
 #: assets/js/admin-settings-app.js:1021
 msgid "Server-side transport"
-msgstr "Transporte server-side"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1022
 msgid ""
 "Route events through your own collector endpoint when you need a more "
 "durable delivery path."
 msgstr ""
-"Encaminhe eventos pelo seu próprio endpoint coletor quando precisar de um "
-"caminho de entrega mais durável."
 
 #: assets/js/admin-settings-app.js:1025
 msgid "Use network defaults"
-msgstr "Usar padrões da rede"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1025
 msgid "Use the multisite network configuration for this site."
-msgstr "Usar a configuração de rede do multisite para este site."
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1034
 msgid "Choose the format best suited to your receiving endpoint."
-msgstr "Escolha o formato mais adequado para o endpoint de destino."
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1045
 msgid ""
 "How long ClickTrail should wait before treating a delivery attempt as failed."
 msgstr ""
-"Por quanto tempo o ClickTrail deve esperar antes de considerar uma tentativa "
-"de entrega como falha."
 
 #: assets/js/admin-settings-app.js:1057
 msgid "Privacy & consent"
-msgstr "Privacidade e consentimento"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1058
 msgid ""
 "Control when tracking is allowed to start and which consent signals "
 "ClickTrail should use."
 msgstr ""
-"Controle quando o rastreamento pode começar e quais sinais de consentimento "
-"o ClickTrail deve usar."
 
 #: assets/js/admin-settings-app.js:1060
 msgid ""
 "Gate attribution and event collection until consent requirements are "
 "satisfied."
 msgstr ""
-"Bloqueie a atribuição e a coleta de eventos até que os requisitos de "
-"consentimento sejam atendidos."
 
 #: assets/js/admin-settings-app.js:1061
 msgid ""
 "Choose whether consent is always required, never required, or region-based."
 msgstr ""
-"Escolha se o consentimento será sempre exigido, nunca exigido ou baseado em "
-"região."
 
 #: assets/js/admin-settings-app.js:1064
 msgid "Strict"
-msgstr "Estrito"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1065
 msgid "Relaxed"
-msgstr "Flexível"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1066
 msgid "Region-based"
-msgstr "Baseado em região"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1068
 msgid "One region per line. Examples: EEA, UK, CA, US-CA."
-msgstr "Uma região por linha. Exemplos: EEA, UK, CA, US-CA."
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1073
 msgid "Which consent platform ClickTrail should listen to."
-msgstr "Qual plataforma de consentimento o ClickTrail deve ouvir."
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1077
 msgid "ClickTrail plugin"
-msgstr "plugin ClickTrail"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1078
 msgid "Cookiebot"
-msgstr "Cookiebot"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1082
 msgid "Custom"
-msgstr "Personalizado"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1084
 msgid "How long ClickTrail should wait for a consent signal before continuing."
 msgstr ""
-"Por quanto tempo o ClickTrail deve esperar por um sinal de consentimento "
-"antes de continuar."
 
 #: assets/js/admin-settings-app.js:1094
 msgid "Advanced delivery controls"
-msgstr "Controles avançados de entrega"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1095
 msgid ""
 "Security, buffering, deduplication, and low-level transport controls for "
 "technical users."
 msgstr ""
-"Controles de segurança, buffering, desduplicação e transporte de baixo nível "
-"para usuários técnicos."
 
 #: assets/js/admin-settings-app.js:1101
 msgid "Prefer ClickTrail's built-in platform adapters when available."
 msgstr ""
-"Prefira os adaptadores nativos do ClickTrail quando estiverem disponíveis."
 
 #: assets/js/admin-settings-app.js:1101
 msgid "Use native platform adapters"
-msgstr "Usar adaptadores nativos de plataforma"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1102
 msgid "Keep a structured intake buffer for troubleshooting and validation."
 msgstr ""
-"Mantenha um buffer estruturado de entrada para diagnóstico e validação."
 
 #: assets/js/admin-settings-app.js:1102
 msgid "Store structured event diagnostics"
-msgstr "Armazenar diagnósticos estruturados de eventos"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1103
 msgid "Encrypt saved secrets"
-msgstr "Criptografar segredos salvos"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1103
 msgid "Encrypt stored secrets at rest when supported by the host environment."
 msgstr ""
-"Criptografe os segredos armazenados em repouso quando houver suporte no "
-"ambiente de hospedagem."
 
 #: assets/js/admin-settings-app.js:1104
 msgid "Attribution token lifetime (seconds)"
-msgstr "Vida útil do token de atribuição (segundos)"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1104
 msgid "Controls how long attribution tokens remain valid."
-msgstr "Controla por quanto tempo os tokens de atribuição permanecem válidos."
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1105
 msgid "Cap how many times the same token nonce can be used."
-msgstr "Limite quantas vezes o mesmo nonce de token pode ser usado."
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1105
 msgid "Maximum token replays (0 to disable)"
-msgstr "Máximo de repetições do token (0 para desativar)"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1106
 msgid "Reject webhook signatures that fall outside this replay window."
 msgstr ""
-"Rejeite assinaturas de webhook que estejam fora desta janela de repetição."
 
 #: assets/js/admin-settings-app.js:1106
 msgid "Webhook replay protection window (seconds)"
-msgstr "Janela de proteção contra repetição de webhook (segundos)"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1107
 msgid "API rate limit window (seconds)"
-msgstr "Janela de limite de taxa da API (segundos)"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1107
 msgid "The time window used by intake rate limiting."
-msgstr "A janela de tempo usada pelo limite de taxa da entrada."
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1108
 msgid "API requests allowed per window"
-msgstr "Requisições de API permitidas por janela"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1108
 msgid "Maximum requests allowed within the configured rate limit window."
 msgstr ""
-"Máximo de requisições permitidas dentro da janela configurada de limite de "
-"taxa."
 
 #: assets/js/admin-settings-app.js:1109
 msgid "One proxy per line. Only add proxies you control."
-msgstr "Um proxy por linha. Adicione apenas proxies sob seu controle."
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1109
 msgid "Trusted proxy IPs or CIDR ranges"
-msgstr "IPs de proxy confiáveis ou faixas CIDR"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1110
 msgid "Allowed token hosts"
-msgstr "Hosts permitidos para tokens"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1110
 msgid "Hosts allowed to mint or receive attribution tokens. One host per line."
 msgstr ""
-"Hosts permitidos para emitir ou receber tokens de atribuição. Um host por "
-"linha."
 
 #: assets/js/admin-settings-app.js:1111
 msgid "How many recent dispatch attempts should be kept for diagnostics."
 msgstr ""
-"Quantas tentativas de envio recentes devem ser mantidas para diagnóstico."
 
 #: assets/js/admin-settings-app.js:1111
 msgid "Recent dispatch records kept"
-msgstr "Registros recentes de envio mantidos"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1112
 msgid "Failure summary flush interval (seconds)"
-msgstr "Intervalo de consolidação do resumo de falhas (segundos)"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1112
 msgid "How often failure counters are flushed into hourly telemetry buckets."
 msgstr ""
-"Com que frequência os contadores de falha são consolidados em buckets "
-"horários de telemetria."
 
 #: assets/js/admin-settings-app.js:1113
 msgid "Failure summary retention (hours)"
-msgstr "Retenção do resumo de falhas (horas)"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1113
 msgid "How long failure telemetry buckets should be retained."
 msgstr ""
-"Por quanto tempo os buckets de telemetria de falhas devem ser mantidos."
 
 #: assets/js/admin-settings-app.js:1114
 msgid "Event deduplication window (seconds)"
-msgstr "Janela de desduplicação de eventos (segundos)"
+msgstr ""
 
 #: assets/js/admin-settings-app.js:1114
 msgid "How long dispatch deduplication markers should be kept."
 msgstr ""
-"Por quanto tempo os marcadores de desduplicação de envio devem ser mantidos."
 
 #: assets/js/admin-settings-app.js:1195
 msgid "Reload Saved Settings"
-msgstr "Recarregar configurações salvas"
-
-#~ msgid "ClickTrail: Frontend script running"
-#~ msgstr "ClickTrail: Script de frontend em execução"
-
-#~ msgid "Your frontend script reported activity recently."
-#~ msgstr "Seu script de frontend reportou atividade recentemente."
-
-#~ msgid ""
-#~ "If you use caching/minification, confirm the ClickTrail JS is loaded on "
-#~ "public pages."
-#~ msgstr ""
-#~ "Se você usa cache/minificação, confirme se o JS do ClickTrail está "
-#~ "carregado em páginas públicas."
-
-#~ msgid "JS Injection"
-#~ msgstr "Injeção de JS"
-
-#~ msgid "Link Decoration"
-#~ msgstr "Decoração de Link"
-
-#~ msgid "General Attribution Settings"
-#~ msgstr "Configurações Gerais de Atribuição"
-
-#~ msgid ""
-#~ "Automatically track UTM parameters and Click IDs from incoming traffic."
-#~ msgstr ""
-#~ "Rastrear automaticamente parâmetros UTM e Click IDs do tráfego de entrada."
-
-#~ msgid "Cookie Expiration (Days)"
-#~ msgstr "Expiração do Cookie (Dias)"
-
-#~ msgid "Reliability & Cross-Domain"
-#~ msgstr "Confiabilidade & Domínio Cruzado"
-
-#~ msgid "Enable JS Field Injector"
-#~ msgstr "Ativar Injetor de Campo JS"
-
-#~ msgid ""
-#~ "CRITICAL: Fills hidden fields via JavaScript. Required for sites with "
-#~ "caching (WP Rocket, WP Engine, Cloudflare)."
-#~ msgstr ""
-#~ "CRÍTICO: Preenche campos ocultos via JavaScript. Necessário para sites "
-#~ "com cache (WP Rocket, WP Engine, Cloudflare)."
-
-#~ msgid ""
-#~ "Keep this ON to ensure data is captured even when the page is cached."
-#~ msgstr ""
-#~ "Mantenha isso ATIVADO para garantir que os dados sejam capturados mesmo "
-#~ "quando a página estiver em cache."
-
-#~ msgid "Overwrite Existing Values"
-#~ msgstr "Sobrescrever Valores Existentes"
-
-#~ msgid "If checked, JS will overwrite fields that already have a value."
-#~ msgstr "Se marcado, o JS sobrescreverá os campos que já possuem um valor."
-
-#~ msgid "Use MutationObserver"
-#~ msgstr "Usar MutationObserver"
-
-#~ msgid "Detects forms in popups or loaded via AJAX (Elementor, etc)."
-#~ msgstr ""
-#~ "Detecta formulários em popups ou carregados via AJAX (Elementor, etc)."
-
-#~ msgid "Enable Link Decoration"
-#~ msgstr "Ativar Decoração de Link"
-
-#~ msgid "Appends UTMs/Click IDs to outbound links."
-#~ msgstr "Anexa UTMs/Click IDs a links externos."
-
-#~ msgid "Allowed Domains"
-#~ msgstr "Domínios Permitidos"
-
-#~ msgid ""
-#~ "Comma-separated list of domains to decorate (e.g., app.mysite.com, "
-#~ "otherdomain.com)."
-#~ msgstr ""
-#~ "Lista separada por vírgulas de domínios para decorar (ex: "
-#~ "app.meusite.com, outrodominio.com)."
-
-#~ msgid "Skip Signed URLs"
-#~ msgstr "Pular URLs Assinadas"
-
-#~ msgid ""
-#~ "Avoid decorating signed URLs (e.g. Amazon S3, secure tokens) to prevent "
-#~ "breaking signatures."
-#~ msgstr ""
-#~ "Evita decorar URLs assinadas (ex: Amazon S3, tokens seguros) para evitar "
-#~ "quebra de assinaturas."
-
-#~ msgid "WhatsApp Tracking"
-#~ msgstr "Rastreamento de WhatsApp"
-
-#~ msgid "Enable WhatsApp Tracking"
-#~ msgstr "Ativar Rastreamento de WhatsApp"
-
-#~ msgid "Append Attribution to Message"
-#~ msgstr "Anexar Atribuição à Mensagem"
-
-#~ msgid "Add attribution data to the pre-filled WhatsApp message."
-#~ msgstr ""
-#~ "Adicionar dados de atribuição à mensagem pré-preenchida do WhatsApp."
-
-#~ msgid "Log Clicks (Custom Post Type)"
-#~ msgstr "Logar Cliques (Custom Post Type)"
-
-#~ msgid "Save each WhatsApp click as a \"WhatsApp Click\" post in WordPress."
-#~ msgstr ""
-#~ "Salvar cada clique do WhatsApp como um post de \"Clique do WhatsApp\" no "
-#~ "WordPress."
-
-#~ msgid "Regions (e.g. EU)"
-#~ msgstr "Regiões (ex: EU)"
-
-#~ msgid "Container ID (GTM-XXXXXX)"
-#~ msgstr "ID do Contêiner (GTM-XXXXXX)"
-
-#~ msgid "Privacy & Consent"
-#~ msgstr "Privacidade & Consentimento"
-
-#~ msgid "Comma-separated list of region codes."
-#~ msgstr "Lista separada por vírgulas de códigos de região."
-
-#~ msgid "Fix PII Issues Now"
-#~ msgstr "Corrigir Problemas de PII Agora"
-
-#~ msgid ""
-#~ "Emit GA4-style `view_item`, `add_to_cart`, `remove_from_cart`, and "
-#~ "`begin_checkout` events through ClickTrail's browser event layer. "
-#~ "Existing installs keep this off until you enable it."
-#~ msgstr ""
-#~ "Emita eventos em estilo GA4 de `view_item`, `add_to_cart`, "
-#~ "`remove_from_cart` e `begin_checkout` pela camada de eventos do navegador "
-#~ "do ClickTrail. Instalações existentes mantêm isso desativado até você "
-#~ "habilitar."
-
-#~ msgid ""
-#~ "Verify WooCommerce order attribution in the order screen, and verify "
-#~ "storefront/browser events with GTM Preview, the dataLayer, or ClickTrail "
-#~ "> Diagnostics when Delivery is enabled."
-#~ msgstr ""
-#~ "Verifique a atribuição do WooCommerce na tela do pedido e valide os "
-#~ "eventos de storefront/navegador com o GTM Preview, a dataLayer ou "
-#~ "ClickTrail > Diagnostics quando a Entrega estiver ativada."
-
-#~ msgid ""
-#~ "Send eligible events to Meta-compatible delivery adapters when configured."
-#~ msgstr ""
-#~ "Envie eventos elegíveis para adaptadores de entrega compatíveis com a "
-#~ "Meta quando configurados."
-
-#~ msgid ""
-#~ "Send eligible events to Google-compatible delivery adapters when "
-#~ "configured."
-#~ msgstr ""
-#~ "Envie eventos elegíveis para adaptadores de entrega compatíveis com "
-#~ "Google quando configurados."
-
-#~ msgid ""
-#~ "Send eligible events to LinkedIn-compatible delivery adapters when "
-#~ "configured."
-#~ msgstr ""
-#~ "Envie eventos elegíveis para adaptadores de entrega compatíveis com o "
-#~ "LinkedIn quando configurados."
-
-#~ msgid ""
-#~ "Send eligible events to Reddit-compatible delivery adapters when "
-#~ "configured."
-#~ msgstr ""
-#~ "Envie eventos elegíveis para adaptadores de entrega compatíveis com o "
-#~ "Reddit quando configurados."
-
-#~ msgid ""
-#~ "Send eligible events to Pinterest-compatible delivery adapters when "
-#~ "configured."
-#~ msgstr ""
-#~ "Envie eventos elegíveis para adaptadores de entrega compatíveis com o "
-#~ "Pinterest quando configurados."
-
-#, php-format
-#~ msgid "Conflict scan found %d items worth reviewing."
-#~ msgstr "A verificação de conflitos encontrou %d itens que merecem revisão."
+msgstr ""
