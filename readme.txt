@@ -212,6 +212,11 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 
 == Changelog ==
 
+= 1.8.8 =
+*   **Security**: Reject unsubstituted ad-platform dynamic-parameter macros (Facebook `{{campaign.name}}`, `{{adset.name}}`, etc.) during attribution capture. These placeholders appear literally in landing-page URLs when ads aren't served through the ad platform, and previously flowed into attribution storage and downstream destinations as if they were real campaign names. Applied to both PHP server-side sanitizer and the client-side `sanitizeValue()` helper.
+*   **Fix**: Consent gate no longer defaults to ON when Consent Mode is disabled. Two paths previously read a removed legacy `require_consent` option (default TRUE) — on any site without Consent Mode + a CMP, that implicit default silently blocked all attribution. Now the gate is only active when Consent Mode is explicitly enabled.
+*   **Housekeeping**: GTM Starter Kit lead-magnet banner disabled in-plugin; the kit is now distributed via the website. The class file stays for future re-activation; the runtime init() call is commented out and the source files added to `.distignore` so they're not bundled in the WP.org SVN release.
+
 = 1.8.7 =
 *   **Brazilian Portuguese (pt_BR) translations refreshed**: Regenerated from current source code (was last updated at v1.5.2). 533 strings translated, 81 strings carried over from the prior translation but flagged for human review where the underlying source string changed.
 *   **German (de_DE) translations added**: Full translation of all 614 strings — first locale beyond Portuguese.
