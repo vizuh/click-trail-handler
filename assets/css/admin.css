@@ -11,6 +11,7 @@
     --clicktrail-blue-soft: #f0f6fc;
     --clicktrail-blue-line: #cfe2f3;
     --clicktrail-border: #dcdcde;
+    --clicktrail-border-light: #f3f4f6;
     --clicktrail-text: #1e1e1e;
     --clicktrail-text-muted: #646970;
     --clicktrail-text-subtle: #8c8f94;
@@ -25,6 +26,22 @@
     --clicktrail-warning-bg: #fef8ee;
     --clicktrail-danger: #d63638;
     --clicktrail-danger-bg: #fef0f0;
+    --clicktrail-danger-border: #f0c0c0;
+    /* Status indicator text colors */
+    --clicktrail-status-connected-text: #00703c;
+    --clicktrail-status-disconnected-text: #8b0000;
+    --clicktrail-status-warning-text: #826200;
+    /* Background scale */
+    --clicktrail-bg-secondary: #f6f7f7;
+    --clicktrail-bg-hover: #fafafa;
+    /* Spacing scale (8px base) */
+    --clicktrail-space-2: 8px;
+    --clicktrail-space-3: 12px;
+    --clicktrail-space-4: 16px;
+    --clicktrail-space-5: 20px;
+    --clicktrail-space-6: 24px;
+    --clicktrail-space-7: 28px;
+    --clicktrail-space-8: 32px;
 }
 
 /* ========================================
@@ -47,9 +64,9 @@
 }
 
 .clicktrail-section-header {
-    background: #f6f7f7;
+    background: var(--clicktrail-bg-secondary);
     border-bottom: 1px solid var(--clicktrail-border-medium);
-    padding: 15px 20px;
+    padding: 14px 16px;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -178,7 +195,7 @@
 
 .clicktrail-status.connected {
     background: var(--clicktrail-success-bg);
-    color: #00703c;
+    color: var(--clicktrail-status-connected-text);
 }
 
 .clicktrail-status.connected .clicktrail-status-dot {
@@ -187,7 +204,7 @@
 
 .clicktrail-status.disconnected {
     background: var(--clicktrail-danger-bg);
-    color: #8b0000;
+    color: var(--clicktrail-status-disconnected-text);
 }
 
 .clicktrail-status.disconnected .clicktrail-status-dot {
@@ -196,7 +213,7 @@
 
 .clicktrail-status.warning {
     background: var(--clicktrail-warning-bg);
-    color: #826200;
+    color: var(--clicktrail-status-warning-text);
 }
 
 .clicktrail-status.warning .clicktrail-status-dot {
@@ -589,9 +606,9 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    padding: 13px 16px;
+    padding: 14px 16px;
     border: 0;
-    border-bottom: 1px solid #f0f0f1;
+    border-bottom: 1px solid var(--clicktrail-border-light);
     background: transparent;
     cursor: default;
     text-align: left;
@@ -605,7 +622,7 @@
 
 .clicktrail-card--collapsible .clicktrail-card__header:hover,
 .clicktrail-card__header--static {
-    background: #fafafa;
+    background: var(--clicktrail-bg-hover);
 }
 
 .clicktrail-card__header-main {
@@ -1188,110 +1205,3 @@
     font-size: 12px;
     margin: 4px 0 0;
     width: 100%;
-}
-
-.clicktrail-gtm-offer__success {
-    font-size: 13px;
-    color: var(--clicktrail-text);
-    line-height: 1.5;
-}
-
-.clicktrail-gtm-offer__success strong {
-    color: var(--clicktrail-success);
-}
-
-.clicktrail-gtm-offer__dismiss {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-}
-
-/* ========================================
-   GTM Starter Kit Lead Magnet Banner
-   ======================================== */
-.clicktrail-gtm-offer {
-    padding: 0 !important;
-    border-left-color: var(--clicktrail-blue) !important;
-}
-
-.clicktrail-gtm-offer__inner {
-    display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    padding: 16px 40px 16px 16px;
-}
-
-.clicktrail-gtm-offer__icon {
-    flex-shrink: 0;
-    margin-top: 2px;
-}
-
-.clicktrail-gtm-offer__body {
-    flex: 1;
-    min-width: 0;
-}
-
-.clicktrail-gtm-offer__headline {
-    font-weight: 600;
-    font-size: 14px;
-    color: var(--clicktrail-text);
-    margin: 0 0 4px;
-}
-
-.clicktrail-gtm-offer__sub {
-    color: var(--clicktrail-text-muted);
-    font-size: 13px;
-    margin: 0 0 12px;
-    max-width: 680px;
-    line-height: 1.5;
-}
-
-.clicktrail-gtm-offer__form {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
-}
-
-.clicktrail-gtm-offer__email {
-    width: 260px;
-    max-width: 100%;
-}
-
-.clicktrail-gtm-offer__consent {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
-    color: var(--clicktrail-text-muted);
-    width: 100%;
-    margin-top: 2px;
-    cursor: pointer;
-}
-
-.clicktrail-gtm-offer__consent input[type="checkbox"] {
-    margin: 0;
-}
-
-.clicktrail-gtm-offer__error {
-    color: var(--clicktrail-danger);
-    font-size: 12px;
-    margin: 4px 0 0;
-    width: 100%;
-}
-
-.clicktrail-gtm-offer__success {
-    font-size: 13px;
-    color: var(--clicktrail-text);
-    line-height: 1.5;
-}
-
-.clicktrail-gtm-offer__success strong {
-    color: var(--clicktrail-success);
-}
-
-.clicktrail-gtm-offer__dismiss {
-    position: absolute;
-    top: 12px;
-    right: 12px;
-}
