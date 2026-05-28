@@ -1,5 +1,7 @@
 # ClickTrail
 
+[![WordPress tested](https://img.shields.io/badge/WordPress-v7.0%20tested-3858e9.svg)](https://wordpress.org)
+
 ClickTrail e um plugin de atribuicao para WordPress feito para sites que precisam manter a origem real das conversoes ao longo da jornada completa, especialmente quando pedidos do WooCommerce ou formularios acontecem varias paginas depois da landing page.
 
 Ele foi pensado para os problemas que normalmente quebram a atribuicao em producao:
