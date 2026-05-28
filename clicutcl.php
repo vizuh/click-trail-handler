@@ -175,6 +175,13 @@ function clicutcl_init() {
 		\CLICUTCL\Admin\Setup_Wizard::init();
 	}
 
+	// Strip third-party admin notices on every ClickTrail admin screen so
+	// competitor plugins cannot inject promotional banners into our wizard
+	// or settings UI.
+	if ( is_admin() && class_exists( 'CLICUTCL\\Admin\\Notice_Suppressor' ) ) {
+		\CLICUTCL\Admin\Notice_Suppressor::init();
+	}
+
 	// Preflight: never fatal the site if a required class is missing.
 	if ( ! class_exists( 'CLICUTCL\\Core\\Context' )
 		|| ! class_exists( 'CLICUTCL\\Modules\\Consent_Mode\\Consent_Mode' )
