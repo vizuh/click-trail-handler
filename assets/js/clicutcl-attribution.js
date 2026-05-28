@@ -99,6 +99,10 @@
         let s = String(value);
         s = s.replace(/[\u0000-\u001F\u007F]/g, ' ').trim();
         if (!s) return '';
+        // Reject unsubstituted ad-platform dynamic parameter macros, e.g.
+        // Facebook {{campaign.name}}, {{adset.name}}, {{ad.name}}, etc.
+        // These appear literally in URLs when not served through the ad platform.
+        if (/^\{\{.+\}\}$/.test(s)) return '';
         if (s.length > maxLen) s = s.slice(0, maxLen);
         return s;
     }

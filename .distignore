@@ -44,11 +44,25 @@ RELEASING.md
 
 # Dev README variants (non-English kept out of WP.org trunk)
 README.en.md
+README.md
 README.pt-BR.md
 readme_header_update.txt
+
+# Dev assets not used in production
+assets/funnelsheet-logo.png
 
 # Internal docs
 docs/
 
 # Build tools and dev scripts
 tools/
+
+# Release artefacts (zip archives, release notes)
+dist/
+
+# GTM reference / dev files
+assets/GTM-*.json
+assets/gtm-starter-kit.json
+assets/shopify-gtm-container-templates-master/
+assets/build-starter-kit.py
+includes/admin/class-gtm-lead-magnet.php

@@ -143,10 +143,11 @@ class Plugin {
 			$wc_admin->init();
 		}
 
-		// GTM Starter Kit lead magnet — settings-page banner after first order tracked.
-		if ( class_exists( 'CLICUTCL\\Admin\\GTM_Lead_Magnet' ) ) {
-			\CLICUTCL\Admin\GTM_Lead_Magnet::init();
-		}
+		// GTM Starter Kit lead magnet — disabled in 1.8.8; kit offered on the website instead.
+		// Reactivate when in-plugin distribution is ready.
+		// if ( class_exists( 'CLICUTCL\\Admin\\GTM_Lead_Magnet' ) ) {
+		// 	\CLICUTCL\Admin\GTM_Lead_Magnet::init();
+		// }
 	}
 
 	/**
@@ -352,9 +353,14 @@ class Plugin {
 		$gcm_analytics_key    = isset( $consent_settings['gcm_analytics_key'] ) ? sanitize_key( (string) $consent_settings['gcm_analytics_key'] ) : 'analytics_storage';
 		$gcm_analytics_key    = '' !== $gcm_analytics_key ? $gcm_analytics_key : 'analytics_storage';
 		$bridge_debug         = (bool) $debug_active || ( defined( 'WP_DEBUG' ) && WP_DEBUG );
-		$require_consent      = isset( $options['require_consent'] ) ? (bool) $options['require_consent'] : true;
 		if ( $enable_consent ) {
+			// Consent Mode is active — delegate entirely to the configured mode/region logic.
 			$require_consent = $consent_settings_obj->is_consent_required_for_request();
+		} else {
+			// Consent Mode is disabled — never gate attribution on a legacy hidden setting.
+			// The legacy `require_consent` field is no longer exposed in the UI, so silently
+			// defaulting it to true would block all attribution for sites without a CMP.
+			$require_consent = false;
 		}
 
 		return array(
