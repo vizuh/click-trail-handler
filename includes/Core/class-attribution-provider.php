@@ -159,8 +159,7 @@ class Attribution_Provider {
 	 * @return bool
 	 */
 	public static function should_populate() {
-		$options         = Attribution_Settings::get_all();
-		$require_consent = isset( $options['require_consent'] ) ? (bool) $options['require_consent'] : true; // Default to true for safety.
+		$require_consent = false; // Default: no consent gate unless Consent Mode is explicitly enabled.
 		$cookie_name     = 'ct_consent';
 
 		if ( class_exists( 'CLICUTCL\\Modules\\Consent_Mode\\Consent_Mode_Settings' ) ) {
@@ -224,7 +223,14 @@ class Attribution_Provider {
 
 			// Handle simple values only; no nested arrays expected in flattened payload.
 			if ( is_scalar( $value ) ) {
-				$sanitized[ $meta_key ] = sanitize_text_field( $value );
+				$clean = sanitize_text_field( $value );
+				// Reject unsubstituted ad-platform dynamic parameter macros, e.g.
+				// Facebook {{campaign.name}}, {{adset.name}}, {{ad.name}}, etc.
+				// These appear literally in URLs when not served through the ad platform.
+				if ( preg_match( '/^\{\{.+\}\}$/', $clean ) ) {
+					continue;
+				}
+				$sanitized[ $meta_key ] = $clean;
 			}
 		}
 
