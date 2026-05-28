@@ -76,7 +76,7 @@ composer phpcs        # coding standards
 composer phpcompat    # PHP + WP deprecation surface
 ```
 
-`phpcompat` is the canonical local gate when bumping the WordPress `Tested up to:` header. It will not catch every behavioral regression, but it catches every deprecated/removed function the installed `phpcompatibility-wp` ruleset knows about.
+`phpcompat` flags deprecated and removed symbols against whatever WordPress version range the installed `phpcompatibility-wp` ruleset codifies — there is no per-WP `testVersion` flag; the ruleset itself is the version. Treat it as a static safety net during WP-version bumps (it catches removed functions that ship with the installed ruleset), not as a behavioral test. Pair it with a real WP runtime smoke test before publishing.
 
 ## Suggested Review Checklist for Future Changes
 
