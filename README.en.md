@@ -2,7 +2,7 @@
 
 [![Support](https://img.shields.io/badge/support-active-brightgreen.svg)](https://github.com/vizuh/click-trail-handler)
 [![Release](https://img.shields.io/github/v/release/vizuh/click-trail-handler?label=release&color=blue)](https://github.com/vizuh/click-trail-handler/releases)
-[![WordPress tested](https://img.shields.io/badge/WordPress-v6.9%20tested-3858e9.svg)](https://wordpress.org)
+[![WordPress tested](https://img.shields.io/badge/WordPress-v7.0%20tested-3858e9.svg)](https://wordpress.org)
 [![License](https://img.shields.io/badge/license-GPL--2.0-orange.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
 
 [![PHP Linting](https://github.com/vizuh/click-trail-handler/actions/workflows/php-lint.yml/badge.svg)](https://github.com/vizuh/click-trail-handler/actions/workflows/php-lint.yml)
