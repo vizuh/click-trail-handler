@@ -39,27 +39,18 @@ add_action(
 );
 
 /**
- * Build script enqueue args with backward compatibility for pre-6.3 WordPress.
+ * Build script enqueue args for wp_register_script / wp_enqueue_script.
  *
  * @param bool   $in_footer Whether to print the script in footer.
  * @param string $strategy  Optional loading strategy: defer|async.
- * @return array|bool
+ * @return array
  */
 function clicutcl_script_args( $in_footer = false, $strategy = '' ) {
-	global $wp_version;
-
-	$in_footer = (bool) $in_footer;
-	$strategy  = strtolower( (string) $strategy );
-
-	// Before WP 6.3, the 5th parameter is a boolean ($in_footer).
-	if ( ! isset( $wp_version ) || version_compare( (string) $wp_version, '6.3', '<' ) ) {
-		return $in_footer;
-	}
-
 	$args = array(
-		'in_footer' => $in_footer,
+		'in_footer' => (bool) $in_footer,
 	);
 
+	$strategy = strtolower( (string) $strategy );
 	if ( in_array( $strategy, array( 'defer', 'async' ), true ) ) {
 		$args['strategy'] = $strategy;
 	}
