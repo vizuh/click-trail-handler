@@ -3,7 +3,7 @@
 - **Audience**: contributors, integrators, and maintainers
 - **Canonical for**: public filters and actions exposed by the plugin
 - **Update when**: a public hook is added, removed, renamed, or changes contract
-- **Last verified against version**: `1.7.0`
+- **Last verified against version**: `1.8.5`
 
 This document lists the public custom hooks currently exposed by the active codebase.
 
