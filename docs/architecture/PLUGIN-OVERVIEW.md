@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, and reviewers
 - **Canonical for**: runtime scope, bootstrap flow, subsystem ownership, and active vs compatibility paths
 - **Update when**: boot flow, module boundaries, or major runtime responsibilities change
-- **Last verified against version**: `1.7.0`
+- **Last verified against version**: `1.8.3`
 
 ## Product Summary
 

@@ -211,6 +211,11 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 
 == Changelog ==
 
+= 1.8.3 =
+*   **WordPress 7.0 compatibility**: Tested up to WordPress 7.0 "Armstrong" (released 2026-05-20). Requires WooCommerce 10.4.2 or later for WP 7.0 compatibility.
+*   **Script enqueue refactor**: Removed dead pre-WP-6.3 fallback from `clicutcl_script_args()`. All supported installs (WP 6.5+) now use the array-form registration and optional `defer`/`async` strategy keys.
+*   **Deprecation scan in CI**: Added `composer phpcompat` and a PHPCompatibilityWP GitHub Actions workflow to flag PHP and WordPress deprecated/removed API usage on every push.
+
 = 1.7.2 =
 *   **NitroPack compatibility**: ClickTrail now detects NitroPack and automatically attempts to exclude its scripts from NitroPack's "Postpone JS" feature via two mechanisms: the `nitropack_js_url_exclude` filter and the `data-nitropack-exclude` HTML attribute on script tags. Without this, postponed scripts can cause empty UTM data on leads when users navigate away before interacting with the page.
 *   **NitroPack diagnostic warning**: The Diagnostics conflict scan now surfaces a `warn` finding when NitroPack is active, with instructions to verify script exclusions in NitroPack → Optimization → JavaScript → Script exclusions.

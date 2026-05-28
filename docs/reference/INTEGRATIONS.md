@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, reviewers, and solution engineers
 - **Canonical for**: supported integrations, providers, CMP sources, webhook sources, and delivery adapters
 - **Update when**: integration support level, adapter list, provider list, or capability messaging changes
-- **Last verified against version**: `1.7.0`
+- **Last verified against version**: `1.8.3`
 
 This document lists the active integrations and external-facing connection points in the current codebase.
 
