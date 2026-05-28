@@ -212,6 +212,10 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 
 == Changelog ==
 
+= 1.8.6 =
+*   **Block third-party promotional banners**: Bundle-sale ads and other plugin notices can no longer inject promotional banners into the ClickTrail wizard, settings, logs, or diagnostics pages.
+*   **Admin UI consistency pass**: Expanded design tokens (status colors, background scale, 8px spacing scale), aligned card and section header padding, removed a duplicated 90-line GTM-offer CSS block.
+
 = 1.8.5 =
 *   **WordPress 7.0 compatibility**: Tested up to WordPress 7.0 "Armstrong" (released 2026-05-20). Requires WooCommerce 10.4.2 or later for WP 7.0 compatibility.
 *   **Script enqueue refactor**: Removed dead pre-WP-6.3 fallback from `clicutcl_script_args()`. All supported installs (WP 6.5+) now use the array-form registration and optional `defer`/`async` strategy keys.
