@@ -1,0 +1,426 @@
+{
+    "translation-revision-date": "2026-05-28 16:20+0200",
+    "generator": "WP-CLI\/2.12.0",
+    "source": "assets\/js\/admin-settings-app.js",
+    "domain": "messages",
+    "locale_data": {
+        "messages": {
+            "": {
+                "domain": "messages",
+                "lang": "de",
+                "plural-forms": "nplurals=2; plural=(n != 1);"
+            },
+            "Needs Review": [
+                "Pr\u00fcfung erforderlich"
+            ],
+            "Optional": [
+                "Optional"
+            ],
+            "Ready": [
+                "Bereit"
+            ],
+            "Unavailable": [
+                "Nicht verf\u00fcgbar"
+            ],
+            "Setup Checklist": [
+                "Einrichtungs-Checkliste"
+            ],
+            "Read-only readiness checks for rollout, delivery, and WooCommerce coverage.": [
+                "Schreibgesch\u00fctzte Bereitschaftspr\u00fcfungen f\u00fcr Rollout, Auslieferung und WooCommerce-Abdeckung."
+            ],
+            "Settings reloaded.": [
+                "Einstellungen neu geladen."
+            ],
+            "Failed to reload settings.": [
+                "Einstellungen konnten nicht neu geladen werden."
+            ],
+            "Failed to save settings.": [
+                "Einstellungen konnten nicht gespeichert werden."
+            ],
+            "Failed to run sGTM preview checks.": [
+                "Die sGTM-Vorschaupr\u00fcfungen konnten nicht ausgef\u00fchrt werden."
+            ],
+            "Core tracking": [
+                "Kern-Tracking"
+            ],
+            "Enable attribution tracking and choose how long visit source data should be stored.": [
+                "Aktivieren Sie das Attributions-Tracking und legen Sie fest, wie lange Quellendaten der Besuche gespeichert werden sollen."
+            ],
+            "Cross-domain attribution": [
+                "Dom\u00e4nen\u00fcbergreifende Attribution"
+            ],
+            "Preserve attribution when visitors move between your domains or subdomains.": [
+                "Erhalten Sie die Attribution, wenn Besucher zwischen Ihren Domains oder Subdomains wechseln."
+            ],
+            "Enable this source and accept signed webhook submissions.": [
+                "Diese Quelle aktivieren und signierte Webhook-\u00dcbermittlungen akzeptieren."
+            ],
+            "Signing secret": [
+                "Signatur-Secret"
+            ],
+            "Leave unchanged to keep the current secret.": [
+                "Unver\u00e4ndert lassen, um das aktuelle Secret zu behalten."
+            ],
+            "On-site form capture": [
+                "Formularerfassung auf der Website"
+            ],
+            "Recommended settings to keep attribution attached to forms on cached pages and dynamic sites.": [
+                "Empfohlene Einstellungen, damit die Attribution auf gecachten Seiten und dynamischen Sites mit Formularen verbunden bleibt."
+            ],
+            "Detect forms and links added after page load.": [
+                "Formulare und Links erkennen, die nach dem Seitenaufbau hinzugef\u00fcgt werden."
+            ],
+            "External form sources": [
+                "Externe Formularquellen"
+            ],
+            "Accept attributed submissions from supported providers without exposing raw engineering controls.": [
+                "Attribuierte \u00dcbermittlungen unterst\u00fctzter Anbieter akzeptieren, ohne technische Detailsteuerungen offenzulegen."
+            ],
+            "Accept external form source webhooks": [
+                "Webhooks externer Formularquellen akzeptieren"
+            ],
+            "Enable signed inbound submissions from supported providers.": [
+                "Signierte eingehende \u00dcbermittlungen unterst\u00fctzter Anbieter aktivieren."
+            ],
+            "Advanced technical options": [
+                "Erweiterte technische Optionen"
+            ],
+            "Only change these if you need more control over how the browser watches the page.": [
+                "\u00c4ndern Sie diese nur, wenn Sie mehr Kontrolle dar\u00fcber ben\u00f6tigen, wie der Browser die Seite beobachtet."
+            ],
+            "Defaults to body. Narrow this only if you need to watch a specific part of the page.": [
+                "Standardwert ist body. Schr\u00e4nken Sie dies nur ein, wenn Sie einen bestimmten Seitenbereich beobachten m\u00f6chten."
+            ],
+            "Dynamic content root selector": [
+                "Root-Selektor f\u00fcr dynamische Inhalte"
+            ],
+            "Mark this destination when another relay or downstream collector owns final delivery.": [
+                "Markieren Sie dieses Ziel, wenn ein anderes Relay oder ein nachgelagerter Collector die Endauslieferung \u00fcbernimmt."
+            ],
+            "Send eligible events to this destination when the matching delivery adapter or downstream collector is configured.": [
+                "Berechtigte Events an dieses Ziel senden, sobald der passende Delivery-Adapter oder nachgelagerte Collector konfiguriert ist."
+            ],
+            "ClickTrail uses one unified event pipeline behind the scenes for browser events, webhooks, and server delivery. Configure the capabilities you use without worrying about the internal pipeline.": [
+                "ClickTrail nutzt im Hintergrund eine einheitliche Event-Pipeline f\u00fcr Browser-Events, Webhooks und Server-Auslieferung. Konfigurieren Sie die Funktionen, die Sie verwenden, ohne sich um die interne Pipeline k\u00fcmmern zu m\u00fcssen."
+            ],
+            "Event collection": [
+                "Event-Erfassung"
+            ],
+            "Control browser event collection and choose whether GTM should load in standard or sGTM compatibility mode.": [
+                "Steuern Sie die Erfassung von Browser-Events und entscheiden Sie, ob GTM im Standard- oder sGTM-Kompatibilit\u00e4tsmodus geladen wird."
+            ],
+            "Collect page, click, and form events through ClickTrail's unified event layer.": [
+                "Page-, Klick- und Formular-Events \u00fcber die einheitliche Event-Schicht von ClickTrail erfassen."
+            ],
+            "Enable browser event collection": [
+                "Browser-Event-Erfassung aktivieren"
+            ],
+            "Google Tag Manager container ID": [
+                "Google Tag Manager Container-ID"
+            ],
+            "GTM loader mode": [
+                "GTM-Loader-Modus"
+            ],
+            "Use standard mode for the default Google host, or sGTM mode when you want a tagging-server URL or custom loader path.": [
+                "Verwenden Sie den Standardmodus f\u00fcr den Google-Standardhost oder den sGTM-Modus, wenn Sie eine Tagging-Server-URL oder einen benutzerdefinierten Loader-Pfad nutzen m\u00f6chten."
+            ],
+            "Standard GTM": [
+                "Standard-GTM"
+            ],
+            "sGTM compatibility mode": [
+                "sGTM-Kompatibilit\u00e4tsmodus"
+            ],
+            "Used for first-party GTM delivery and preview checks in sGTM mode.": [
+                "Wird f\u00fcr die First-Party-GTM-Auslieferung und Vorschaupr\u00fcfungen im sGTM-Modus verwendet."
+            ],
+            "Load `gtm.js` and `ns.html` from the tagging server instead of the default Google host.": [
+                "`gtm.js` und `ns.html` vom Tagging-Server statt vom Google-Standardhost laden."
+            ],
+            "Use first-party script delivery": [
+                "First-Party-Skriptauslieferung verwenden"
+            ],
+            "Prefer a same-site loader path when your sGTM setup rewrites GTM requests through a first-party URL.": [
+                "Bevorzugen Sie einen Same-Site-Loader-Pfad, wenn Ihr sGTM-Setup GTM-Anfragen \u00fcber eine First-Party-URL umschreibt."
+            ],
+            "Use a custom loader path": [
+                "Benutzerdefinierten Loader-Pfad verwenden"
+            ],
+            "Custom loader URL or path": [
+                "Benutzerdefinierte Loader-URL oder Pfad"
+            ],
+            "Examples: `\/metrics\/gtm.js` or `https:\/\/metrics.example.com\/gtm.js`.": [
+                "Beispiele: `\/metrics\/gtm.js` oder `https:\/\/metrics.example.com\/gtm.js`."
+            ],
+            "sGTM mode changes only the loader path and preview workflow. ClickTrail still uses the same canonical event pipeline underneath.": [
+                "Der sGTM-Modus ver\u00e4ndert lediglich den Loader-Pfad und den Vorschau-Workflow. ClickTrail nutzt darunter weiterhin dieselbe kanonische Event-Pipeline."
+            ],
+            "Standard mode keeps the default Google Tag Manager loader. Switch to sGTM mode when you need a tagging-server URL, first-party delivery, or a custom loader path.": [
+                "Im Standardmodus bleibt der Standard-Loader des Google Tag Manager aktiv. Wechseln Sie in den sGTM-Modus, wenn Sie eine Tagging-Server-URL, First-Party-Auslieferung oder einen benutzerdefinierten Loader-Pfad ben\u00f6tigen."
+            ],
+            "sGTM setup wizard": [
+                "sGTM-Einrichtungsassistent"
+            ],
+            "Use this checklist when ClickTrail should cooperate with a server-side GTM stack without turning into a generic tag manager.": [
+                "Nutzen Sie diese Checkliste, wenn ClickTrail mit einem serverseitigen GTM-Stack zusammenarbeiten soll, ohne selbst zu einem generischen Tag-Manager zu werden."
+            ],
+            "Recommended flow: set the web container, choose a tagging-server URL or custom loader, point Delivery to the sGTM adapter when ClickTrail sends server events, then verify ownership in GTM Preview.": [
+                "Empfohlener Ablauf: Web-Container festlegen, eine Tagging-Server-URL oder einen benutzerdefinierten Loader w\u00e4hlen, Delivery auf den sGTM-Adapter setzen, wenn ClickTrail Server-Events sendet, und anschlie\u00dfend die Zust\u00e4ndigkeit in der GTM-Vorschau \u00fcberpr\u00fcfen."
+            ],
+            "Set the GTM web container ID for the site that owns the browser dataLayer.": [
+                "Hinterlegen Sie die GTM-Web-Container-ID f\u00fcr die Website, die f\u00fcr den Browser-dataLayer zust\u00e4ndig ist."
+            ],
+            "Choose a tagging-server URL for first-party delivery or a custom loader path if your stack rewrites GTM requests.": [
+                "W\u00e4hlen Sie eine Tagging-Server-URL f\u00fcr First-Party-Auslieferung oder einen benutzerdefinierten Loader-Pfad, wenn Ihr Stack GTM-Anfragen umschreibt."
+            ],
+            "When ClickTrail should send server events into sGTM, switch Delivery to the sGTM adapter and point it at the collector URL.": [
+                "Wenn ClickTrail Server-Events an sGTM senden soll, stellen Sie Delivery auf den sGTM-Adapter um und hinterlegen Sie die Collector-URL."
+            ],
+            "Run preview checks here, then confirm the web and server containers receive the events you expect without duplicate ownership.": [
+                "F\u00fchren Sie hier die Vorschaupr\u00fcfungen aus und best\u00e4tigen Sie, dass Web- und Server-Container die erwarteten Events ohne doppelte Zust\u00e4ndigkeit erhalten."
+            ],
+            "Run Preview Checks": [
+                "Vorschaupr\u00fcfungen starten"
+            ],
+            "Destination template hints": [
+                "Hinweise zu Ziel-Templates"
+            ],
+            "WooCommerce": [
+                "WooCommerce"
+            ],
+            "Keep campaign context visible on WooCommerce orders and extend the same event pipeline into the storefront when you need it.": [
+                "Halten Sie den Kampagnenkontext bei WooCommerce-Bestellungen sichtbar und erweitern Sie dieselbe Event-Pipeline bei Bedarf in die Storefront."
+            ],
+            "Order attribution is stored on WooCommerce orders during checkout, so campaign context remains available after the visitor leaves the landing page.": [
+                "Die Bestell-Attribution wird w\u00e4hrend des Checkouts in WooCommerce-Bestellungen gespeichert, sodass der Kampagnenkontext erhalten bleibt, nachdem der Besucher die Landing Page verlassen hat."
+            ],
+            "Purchase events are pushed automatically on the thank-you page and can also flow into ClickTrail's server-side delivery adapters when Delivery is enabled.": [
+                "Kauf-Events werden auf der Danke-Seite automatisch \u00fcbermittelt und k\u00f6nnen bei aktivierter Auslieferung auch in die serverseitigen Delivery-Adapter von ClickTrail einflie\u00dfen."
+            ],
+            "Emit GA4-style `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` events through ClickTrail's browser event layer. Existing installs keep this off until you enable it.": [
+                "Sendet `view_item`-, `view_item_list`-, `view_cart`-, `add_to_cart`-, `remove_from_cart`- und `begin_checkout`-Events im GA4-Stil \u00fcber die Browser-Event-Schicht von ClickTrail. In bestehenden Installationen bleibt dies deaktiviert, bis Sie es aktivieren."
+            ],
+            "Enable WooCommerce storefront events": [
+                "WooCommerce-Storefront-Events aktivieren"
+            ],
+            "Add `event_id` to Woo purchase pushes and make richer Woo browser events available for GTM-first setups.": [
+                "F\u00fcgen Sie Woo-Kauf-Pushes eine `event_id` hinzu und stellen Sie f\u00fcr GTM-First-Setups erweiterte Woo-Browser-Events bereit."
+            ],
+            "Use the richer Woo dataLayer contract": [
+                "Erweiterten Woo-dataLayer-Vertrag verwenden"
+            ],
+            "Emit `user_data` objects with browser identifiers and purchase identity only when the richer contract is on and marketing consent is granted.": [
+                "Senden Sie `user_data`-Objekte mit Browser-Identifikatoren und Kauf-Identit\u00e4t nur dann, wenn der erweiterte Vertrag aktiv ist und eine Marketing-Einwilligung vorliegt."
+            ],
+            "Include consent-aware Woo user_data": [
+                "Einwilligungsbewusste Woo-user_data einbeziehen"
+            ],
+            "The richer contract is optional. ClickTrail still keeps Woo tracking on the same canonical pipeline and only widens the dataLayer shape for GTM-first workflows.": [
+                "Der erweiterte Vertrag ist optional. ClickTrail beh\u00e4lt das Woo-Tracking auf derselben kanonischen Pipeline bei und erweitert lediglich die dataLayer-Form f\u00fcr GTM-First-Workflows."
+            ],
+            "Verify WooCommerce order attribution in the order screen, storefront\/browser events with GTM Preview or the dataLayer, and server-side traces from ClickTrail > Diagnostics.": [
+                "Pr\u00fcfen Sie die WooCommerce-Bestellattribution im Bestell-Bildschirm, die Storefront-\/Browser-Events \u00fcber GTM-Vorschau oder dataLayer und die serverseitigen Traces unter ClickTrail > Diagnose."
+            ],
+            "Choose which advertising platforms should receive compatible event payloads.": [
+                "W\u00e4hlen Sie aus, welche Werbeplattformen kompatible Event-Payloads erhalten sollen."
+            ],
+            "Lifecycle updates": [
+                "Lifecycle-Updates"
+            ],
+            "Accept lifecycle updates from your CRM or backend and route them through the same event pipeline.": [
+                "Akzeptieren Sie Lifecycle-Updates von Ihrem CRM oder Backend und leiten Sie sie durch dieselbe Event-Pipeline."
+            ],
+            "Accept lifecycle updates": [
+                "Lifecycle-Updates akzeptieren"
+            ],
+            "Allow lifecycle events to enter the unified event pipeline.": [
+                "Lifecycle-Events den Eintritt in die einheitliche Event-Pipeline erlauben."
+            ],
+            "Enable lifecycle endpoint": [
+                "Lifecycle-Endpoint aktivieren"
+            ],
+            "Turn on the REST endpoint used by your CRM or backend.": [
+                "Den REST-Endpoint aktivieren, der von Ihrem CRM oder Backend verwendet wird."
+            ],
+            "Leave unchanged to keep the current token.": [
+                "Unver\u00e4ndert lassen, um das aktuelle Token zu behalten."
+            ],
+            "Lifecycle endpoint token": [
+                "Lifecycle-Endpoint-Token"
+            ],
+            "Delivery health": [
+                "Auslieferungs-Status"
+            ],
+            "Quick operational summary for queue health, recent delivery attempts, and debug state.": [
+                "Kurzer Betriebs\u00fcberblick zu Warteschlangen-Zustand, j\u00fcngsten Auslieferungsversuchen und Debug-Status."
+            ],
+            "Server-side delivery is currently off. Historical diagnostics can still appear until their retention window expires.": [
+                "Die serverseitige Auslieferung ist derzeit deaktiviert. Historische Diagnosedaten k\u00f6nnen bis zum Ablauf ihrer Aufbewahrungsfrist weiterhin erscheinen."
+            ],
+            "Due now: ": [
+                "Aktuell f\u00e4llig: "
+            ],
+            "Enable it from Diagnostics when you need a short trace window.": [
+                "Aktivieren Sie es in der Diagnose, wenn Sie ein kurzes Trace-Fenster ben\u00f6tigen."
+            ],
+            "Open Logs": [
+                "Logs \u00f6ffnen"
+            ],
+            "Delivery controls cover transport, consent, queue health, and the safeguards that keep outbound tracking reliable. Most sites only need the server-side transport card and privacy controls.": [
+                "Die Auslieferungs-Steuerungen umfassen Transport, Einwilligung, Warteschlangen-Zustand und die Schutzmechanismen, die das ausgehende Tracking zuverl\u00e4ssig halten. F\u00fcr die meisten Websites gen\u00fcgen die serverseitige Transport-Karte und die Datenschutz-Steuerungen."
+            ],
+            "This site is currently using network defaults for server-side delivery. Disable the network toggle below to customize this site independently.": [
+                "Diese Website nutzt derzeit die Netzwerk-Standards f\u00fcr die serverseitige Auslieferung. Deaktivieren Sie den Netzwerk-Schalter unten, um diese Website unabh\u00e4ngig zu konfigurieren."
+            ],
+            "Server-side transport": [
+                "Serverseitiger Transport"
+            ],
+            "Route events through your own collector endpoint when you need a more durable delivery path.": [
+                "Leiten Sie Events \u00fcber Ihren eigenen Collector-Endpoint, wenn Sie einen robusteren Auslieferungsweg ben\u00f6tigen."
+            ],
+            "Use network defaults": [
+                "Netzwerk-Standards verwenden"
+            ],
+            "Use the multisite network configuration for this site.": [
+                "Die Multisite-Netzwerkkonfiguration f\u00fcr diese Website verwenden."
+            ],
+            "Choose the format best suited to your receiving endpoint.": [
+                "W\u00e4hlen Sie das Format, das am besten zu Ihrem empfangenden Endpoint passt."
+            ],
+            "How long ClickTrail should wait before treating a delivery attempt as failed.": [
+                "Wie lange ClickTrail warten soll, bevor ein Auslieferungsversuch als fehlgeschlagen gilt."
+            ],
+            "Privacy & consent": [
+                "Datenschutz & Einwilligung"
+            ],
+            "Control when tracking is allowed to start and which consent signals ClickTrail should use.": [
+                "Steuern Sie, wann das Tracking starten darf und welche Einwilligungssignale ClickTrail nutzen soll."
+            ],
+            "Gate attribution and event collection until consent requirements are satisfied.": [
+                "Attribution und Event-Erfassung sperren, bis die Einwilligungsanforderungen erf\u00fcllt sind."
+            ],
+            "Choose whether consent is always required, never required, or region-based.": [
+                "W\u00e4hlen Sie, ob eine Einwilligung immer, nie oder regionsabh\u00e4ngig erforderlich ist."
+            ],
+            "Strict": [
+                "Streng"
+            ],
+            "Relaxed": [
+                "Locker"
+            ],
+            "Region-based": [
+                "Regionsbasiert"
+            ],
+            "One region per line. Examples: EEA, UK, CA, US-CA.": [
+                "Eine Region pro Zeile. Beispiele: EEA, UK, CA, US-CA."
+            ],
+            "Which consent platform ClickTrail should listen to.": [
+                "Auf welche Einwilligungsplattform ClickTrail h\u00f6ren soll."
+            ],
+            "ClickTrail plugin": [
+                "ClickTrail-Plugin"
+            ],
+            "Cookiebot": [
+                "Cookiebot"
+            ],
+            "Custom": [
+                "Benutzerdefiniert"
+            ],
+            "How long ClickTrail should wait for a consent signal before continuing.": [
+                "Wie lange ClickTrail auf ein Einwilligungssignal warten soll, bevor es fortf\u00e4hrt."
+            ],
+            "Advanced delivery controls": [
+                "Erweiterte Auslieferungs-Steuerungen"
+            ],
+            "Security, buffering, deduplication, and low-level transport controls for technical users.": [
+                "Sicherheit, Pufferung, Deduplizierung und Low-Level-Transportsteuerungen f\u00fcr technische Nutzer."
+            ],
+            "Prefer ClickTrail's built-in platform adapters when available.": [
+                "Wenn verf\u00fcgbar, die integrierten Plattform-Adapter von ClickTrail bevorzugen."
+            ],
+            "Use native platform adapters": [
+                "Native Plattform-Adapter verwenden"
+            ],
+            "Keep a structured intake buffer for troubleshooting and validation.": [
+                "Einen strukturierten Intake-Puffer f\u00fcr Fehlerbehebung und Validierung vorhalten."
+            ],
+            "Store structured event diagnostics": [
+                "Strukturierte Event-Diagnose speichern"
+            ],
+            "Encrypt saved secrets": [
+                "Gespeicherte Geheimnisse verschl\u00fcsseln"
+            ],
+            "Encrypt stored secrets at rest when supported by the host environment.": [
+                "Gespeicherte Geheimnisse im Ruhezustand verschl\u00fcsseln, sofern die Host-Umgebung dies unterst\u00fctzt."
+            ],
+            "Attribution token lifetime (seconds)": [
+                "Lebensdauer des Attributions-Tokens (Sekunden)"
+            ],
+            "Controls how long attribution tokens remain valid.": [
+                "Bestimmt, wie lange Attributions-Token g\u00fcltig bleiben."
+            ],
+            "Cap how many times the same token nonce can be used.": [
+                "Begrenzt, wie oft derselbe Token-Nonce verwendet werden kann."
+            ],
+            "Maximum token replays (0 to disable)": [
+                "Maximale Token-Replays (0 zum Deaktivieren)"
+            ],
+            "Reject webhook signatures that fall outside this replay window.": [
+                "Webhook-Signaturen ablehnen, die au\u00dferhalb dieses Replay-Fensters liegen."
+            ],
+            "Webhook replay protection window (seconds)": [
+                "Replay-Schutzfenster f\u00fcr Webhooks (Sekunden)"
+            ],
+            "API rate limit window (seconds)": [
+                "API-Rate-Limit-Fenster (Sekunden)"
+            ],
+            "The time window used by intake rate limiting.": [
+                "Das Zeitfenster, das f\u00fcr die Intake-Ratenbegrenzung verwendet wird."
+            ],
+            "API requests allowed per window": [
+                "Erlaubte API-Anfragen pro Fenster"
+            ],
+            "Maximum requests allowed within the configured rate limit window.": [
+                "Maximale Anzahl an Anfragen innerhalb des konfigurierten Rate-Limit-Fensters."
+            ],
+            "One proxy per line. Only add proxies you control.": [
+                "Ein Proxy pro Zeile. F\u00fcgen Sie nur Proxys hinzu, die Sie selbst kontrollieren."
+            ],
+            "Trusted proxy IPs or CIDR ranges": [
+                "Vertrauensw\u00fcrdige Proxy-IPs oder CIDR-Bereiche"
+            ],
+            "Allowed token hosts": [
+                "Erlaubte Token-Hosts"
+            ],
+            "Hosts allowed to mint or receive attribution tokens. One host per line.": [
+                "Hosts, die Attributions-Token ausstellen oder empfangen d\u00fcrfen. Ein Host pro Zeile."
+            ],
+            "How many recent dispatch attempts should be kept for diagnostics.": [
+                "Wie viele aktuelle Auslieferungsversuche zur Diagnose vorgehalten werden."
+            ],
+            "Recent dispatch records kept": [
+                "Anzahl aufbewahrter Dispatch-Datens\u00e4tze"
+            ],
+            "Failure summary flush interval (seconds)": [
+                "Flush-Intervall der Fehler\u00fcbersicht (Sekunden)"
+            ],
+            "How often failure counters are flushed into hourly telemetry buckets.": [
+                "Wie oft Fehlerz\u00e4hler in st\u00fcndliche Telemetrie-Buckets \u00fcbertragen werden."
+            ],
+            "Failure summary retention (hours)": [
+                "Aufbewahrung der Fehler\u00fcbersicht (Stunden)"
+            ],
+            "How long failure telemetry buckets should be retained.": [
+                "Wie lange Fehler-Telemetrie-Buckets aufbewahrt werden sollen."
+            ],
+            "Event deduplication window (seconds)": [
+                "Event-Deduplizierungs-Fenster (Sekunden)"
+            ],
+            "How long dispatch deduplication markers should be kept.": [
+                "Wie lange Dispatch-Deduplizierungs-Marker aufbewahrt werden sollen."
+            ],
+            "Reload Saved Settings": [
+                "Gespeicherte Einstellungen neu laden"
+            ]
+        }
+    }
+}
