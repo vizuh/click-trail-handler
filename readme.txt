@@ -212,6 +212,10 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 
 == Changelog ==
 
+= 1.8.7 =
+*   **Brazilian Portuguese (pt_BR) translations refreshed**: Regenerated from current source code (was last updated at v1.5.2). 533 strings translated, 81 strings carried over from the prior translation but flagged for human review where the underlying source string changed.
+*   **German (de_DE) translations added**: Full translation of all 614 strings — first locale beyond Portuguese.
+
 = 1.8.6 =
 *   **Block third-party promotional banners**: Bundle-sale ads and other plugin notices can no longer inject promotional banners into the ClickTrail wizard, settings, logs, or diagnostics pages.
 *   **Admin UI consistency pass**: Expanded design tokens (status colors, background scale, 8px spacing scale), aligned card and section header padding, removed a duplicated 90-line GTM-offer CSS block.
