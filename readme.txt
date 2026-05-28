@@ -212,6 +212,9 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 
 == Changelog ==
 
+= 1.8.9 =
+*   **i18n: German (de_DE) JavaScript translations now load**: Added the script-translation JSON for the React settings app. Without this file, the de_DE locale shipped in v1.8.7 only translated PHP-side strings; the JS-side React UI (Capture/Forms/Events/Delivery tabs) stayed in English. Generated via `wp i18n make-json` for `assets/js/admin-settings-app.js`.
+
 = 1.8.8 =
 *   **Security**: Reject unsubstituted ad-platform dynamic-parameter macros (Facebook `{{campaign.name}}`, `{{adset.name}}`, etc.) during attribution capture. These placeholders appear literally in landing-page URLs when ads aren't served through the ad platform, and previously flowed into attribution storage and downstream destinations as if they were real campaign names. Applied to both PHP server-side sanitizer and the client-side `sanitizeValue()` helper.
 *   **Fix**: Consent gate no longer defaults to ON when Consent Mode is disabled. Two paths previously read a removed legacy `require_consent` option (default TRUE) — on any site without Consent Mode + a CMP, that implicit default silently blocked all attribution. Now the gate is only active when Consent Mode is explicitly enabled.
