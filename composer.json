@@ -24,6 +24,7 @@
   },
   "scripts": {
     "phpcs": "phpcs --standard=phpcs.xml.dist",
+    "phpcompat": "phpcs -p --standard=PHPCompatibilityWP --runtime-set testVersion 8.1- --extensions=php --ignore=*/vendor/*,*/node_modules/*,*/dist/*,*/tests/*,*/languages/* clicutcl.php uninstall.php includes/",
     "test": "phpunit"
   }
 }

@@ -62,6 +62,22 @@ That improves breadth safety, but it is still not a full WordPress runtime or in
 - WooCommerce browser events and milestone hooks
 - adapter payload translation against real downstream endpoints
 
+## Static Compatibility Check (CI)
+
+The repository runs two PHP static checks on every push and pull request:
+
+- `php-lint.yml` — WordPress-Core/Extra/Docs standards via `composer phpcs`.
+- `phpcompatibility.yml` — PHP and WordPress deprecated/removed API surface via `composer phpcompat` (uses `PHPCompatibilityWP`, `testVersion 8.1-`).
+
+Run either locally before pushing:
+
+```
+composer phpcs        # coding standards
+composer phpcompat    # PHP + WP deprecation surface
+```
+
+`phpcompat` is the canonical local gate when bumping the WordPress `Tested up to:` header. It will not catch every behavioral regression, but it catches every deprecated/removed function the installed `phpcompatibility-wp` ruleset knows about.
+
 ## Suggested Review Checklist for Future Changes
 
 - Does the change affect the capability-based admin IA?
