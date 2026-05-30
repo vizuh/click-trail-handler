@@ -1,643 +1,2458 @@
 {
   "exportFormatVersion": 2,
-  "exportTime": "2026-05-06 00:00:00",
+  "exportTime": "2026-05-08 00:00:00",
   "containerVersion": {
-    "path": "accounts/0/containers/0/versions/0",
-    "accountId": "0",
-    "containerId": "0",
+    "path": "accounts/6004967354/containers/187414573/versions/0",
+    "accountId": "6004967354",
+    "containerId": "187414573",
     "containerVersionId": "0",
+    "fingerprint": "1780135800639",
     "container": {
-      "path": "accounts/0/containers/0",
-      "accountId": "0",
-      "containerId": "0",
+      "path": "accounts/6004967354/containers/187414573",
+      "accountId": "6004967354",
+      "containerId": "187414573",
       "name": "ClickTrail Starter Kit",
       "publicId": "GTM-XXXXXXX",
-      "usageContext": ["WEB"]
+      "usageContext": [
+        "WEB"
+      ],
+      "fingerprint": "1780135800639",
+      "features": {
+        "supportUserPermissions": true,
+        "supportEnvironments": true,
+        "supportWorkspaces": true,
+        "supportGtagConfigs": false,
+        "supportBuiltInVariables": true,
+        "supportClients": false,
+        "supportFolders": true,
+        "supportTags": true,
+        "supportTemplates": true,
+        "supportTriggers": true,
+        "supportVariables": true,
+        "supportVersions": true,
+        "supportZones": true,
+        "supportTransformations": false
+      }
     },
+    "builtInVariable": [
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "type": "PAGE_URL",
+        "name": "Page Url"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "type": "PAGE_HOSTNAME",
+        "name": "Page Hostname"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "type": "PAGE_PATH",
+        "name": "Page Path"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "type": "REFERRER",
+        "name": "Referrer"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "type": "EVENT",
+        "name": "Event"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "type": "CLICK_ELEMENT",
+        "name": "Click Element"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "type": "CLICK_CLASSES",
+        "name": "Click Classes"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "type": "CLICK_ID",
+        "name": "Click Id"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "type": "CLICK_TARGET",
+        "name": "Click Target"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "type": "CLICK_URL",
+        "name": "Click Url"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "type": "CLICK_TEXT",
+        "name": "Click Text"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "type": "FORM_ELEMENT",
+        "name": "Form Element"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "type": "FORM_CLASSES",
+        "name": "Form Classes"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "type": "FORM_ID",
+        "name": "Form Id"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "type": "FORM_TARGET",
+        "name": "Form Target"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "type": "FORM_URL",
+        "name": "Form Url"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "type": "FORM_TEXT",
+        "name": "Form Text"
+      }
+    ],
+    "customTemplate": [
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "templateId": "21",
+        "name": "Facebook Pixel",
+        "fingerprint": "1718191899813",
+        "templateData": "___TERMS_OF_SERVICE___\n\nBy creating or modifying this file you agree to Google Tag Manager's Community\nTemplate Gallery Developer Terms of Service available at\nhttps://developers.google.com/tag-manager/gallery-tos (or such other URL as\nGoogle may provide), as modified from time to time.\n\n\n___INFO___\n\n{\n  \"displayName\": \"Facebook Pixel\",\n  \"__wm\": \"VGVtcGxhdGUtQXV0aG9yX0ZhY2Vib29rLVNpbW8tQWhhdmE\\u003d\",\n  \"description\": \"This is an unofficial Google Tag Manager template for the Facebook Pixel.\",\n  \"securityGroups\": [],\n  \"categories\": [\n    \"ADVERTISING\",\n    \"ANALYTICS\"\n  ],\n  \"id\": \"cvt_temp_public_id\",\n  \"type\": \"TAG\",\n  \"version\": 1,\n  \"brand\": {\n    \"displayName\": \"facebookarchive\",\n    \"id\": \"github.com_facebookarchive\",\n    \"thumbnail\": \"data:image/png;base64,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\"\n  },\n  \"containerContexts\": [\n    \"WEB\"\n  ]\n}\n\n\n___TEMPLATE_PARAMETERS___\n\n[\n  {\n    \"alwaysInSummary\": true,\n    \"valueValidators\": [\n      {\n        \"errorMessage\": \"You must provide a Pixel ID\",\n        \"type\": \"NON_EMPTY\"\n      },\n      {\n        \"args\": [\n          \"^[0-9,]+$\"\n        ],\n        \"errorMessage\": \"Invalid Pixel ID format\",\n        \"type\": \"REGEX\"\n      }\n    ],\n    \"displayName\": \"Facebook Pixel ID(s)\",\n    \"simpleValueType\": true,\n    \"name\": \"pixelId\",\n    \"type\": \"TEXT\",\n    \"valueHint\": \"e.g. 12345678910\"\n  },\n  {\n    \"type\": \"CHECKBOX\",\n    \"name\": \"enhancedEcommerce\",\n    \"checkboxText\": \"Enhanced Ecommerce dataLayer Integration\",\n    \"simpleValueType\": true,\n    \"help\": \"If you check this, then the Facebook pixel will populate \\u003cstrong\\u003eEvent Name\\u003c/strong\\u003e and \\u003cstrong\\u003eObject Properties\\u003c/strong\\u003e automatically from the last \\u003ca href\\u003d\\\"https://developers.google.com/tag-manager/enhanced-ecommerce\\\"\\u003eecommerce\\u003c/a\\u003e object pushed into the dataLayer array.\"\n  },\n  {\n    \"type\": \"RADIO\",\n    \"name\": \"eventName\",\n    \"displayName\": \"Event Name\",\n    \"radioItems\": [\n      {\n        \"value\": \"standard\",\n        \"displayValue\": \"Standard\",\n        \"subParams\": [\n          {\n            \"type\": \"SELECT\",\n            \"name\": \"standardEventName\",\n            \"macrosInSelect\": false,\n            \"selectItems\": [\n              {\n                \"displayValue\": \"PageView\",\n                \"value\": \"PageView\"\n              },\n              {\n                \"displayValue\": \"AddPaymentInfo\",\n                \"value\": \"AddPaymentInfo\"\n              },\n              {\n                \"displayValue\": \"AddToCart\",\n                \"value\": \"AddToCart\"\n              },\n              {\n                \"displayValue\": \"AddToWishlist\",\n                \"value\": \"AddToWishlist\"\n              },\n              {\n                \"displayValue\": \"CompleteRegistration\",\n                \"value\": \"CompleteRegistration\"\n              },\n              {\n                \"displayValue\": \"Contact\",\n                \"value\": \"Contact\"\n              },\n              {\n                \"displayValue\": \"CustomizeProduct\",\n                \"value\": \"CustomizeProduct\"\n              },\n              {\n                \"displayValue\": \"Donate\",\n                \"value\": \"Donate\"\n              },\n              {\n                \"displayValue\": \"FindLocation\",\n                \"value\": \"FindLocation\"\n              },\n              {\n                \"displayValue\": \"InitiateCheckout\",\n                \"value\": \"InitiateCheckout\"\n              },\n              {\n                \"displayValue\": \"Lead\",\n                \"value\": \"Lead\"\n              },\n              {\n                \"displayValue\": \"Purchase\",\n                \"value\": \"Purchase\"\n              },\n              {\n                \"displayValue\": \"Schedule\",\n                \"value\": \"Schedule\"\n              },\n              {\n                \"displayValue\": \"Search\",\n                \"value\": \"Search\"\n              },\n              {\n                \"displayValue\": \"StartTrial\",\n                \"value\": \"StartTrial\"\n              },\n              {\n                \"displayValue\": \"SubmitApplication\",\n                \"value\": \"SubmitApplication\"\n              },\n              {\n                \"displayValue\": \"Subscribe\",\n                \"value\": \"Subscribe\"\n              },\n              {\n                \"displayValue\": \"ViewContent\",\n                \"value\": \"ViewContent\"\n              }\n            ],\n            \"simpleValueType\": true,\n            \"defaultValue\": \"PageView\"\n          }\n        ]\n      },\n      {\n        \"value\": \"custom\",\n        \"displayValue\": \"Custom\",\n        \"subParams\": [\n          {\n            \"type\": \"TEXT\",\n            \"name\": \"customEventName\",\n            \"displayName\": \"\",\n            \"simpleValueType\": true\n          }\n        ]\n      },\n      {\n        \"value\": \"variable\",\n        \"displayValue\": \"Variable\",\n        \"subParams\": [\n          {\n            \"type\": \"SELECT\",\n            \"name\": \"variableEventName\",\n            \"macrosInSelect\": true,\n            \"selectItems\": [],\n            \"simpleValueType\": true\n          }\n        ]\n      }\n    ],\n    \"simpleValueType\": true,\n    \"enablingConditions\": [\n      {\n        \"paramName\": \"enhancedEcommerce\",\n        \"paramValue\": true,\n        \"type\": \"NOT_EQUALS\"\n      }\n    ]\n  },\n  {\n    \"type\": \"RADIO\",\n    \"name\": \"eecEventName\",\n    \"displayName\": \"Event Name\",\n    \"radioItems\": [\n      {\n        \"value\": \"eec\",\n        \"displayValue\": \"Set automatically from dataLayer\"\n      }\n    ],\n    \"simpleValueType\": true,\n    \"help\": \"The Enhanced Ecommerce integration populates the Event Name automatically depending on what type of \\u003cstrong\\u003eecommerce\\u003c/strong\\u003e object was last pushed into dataLayer (\\\"detail\\\" -\\u003e \\\"ViewContent\\\", \\\"add\\\" -\\u003e \\\"AddToCart\\\", \\\"checkout\\\" -\\u003e \\\"InitiateCheckout\\\", \\\"purchase\\\" -\\u003e \\\"Purchase\\\").\",\n    \"enablingConditions\": [\n      {\n        \"paramName\": \"enhancedEcommerce\",\n        \"paramValue\": true,\n        \"type\": \"EQUALS\"\n      }\n    ]\n  },\n  {\n    \"type\": \"SELECT\",\n    \"name\": \"consent\",\n    \"displayName\": \"Consent Granted (GDPR)\",\n    \"macrosInSelect\": true,\n    \"selectItems\": [\n      {\n        \"value\": true,\n        \"displayValue\": \"True\"\n      },\n      {\n        \"value\": false,\n        \"displayValue\": \"False\"\n      }\n    ],\n    \"simpleValueType\": true,\n    \"help\": \"If you set Consent Granted to \\u003cstrong\\u003efalse\\u003c/strong\\u003e, the pixel will not send any hits until a tag is fired where Consent Granted is set to \\u003cstrong\\u003etrue\\u003c/strong\\u003e. See \\u003ca href\\u003d\\\"https://developers.facebook.com/docs/facebook-pixel/implementation/gdpr/\\\"\\u003ethis article\\u003c/a\\u003e for more information.\"\n  },\n  {\n    \"simpleValueType\": true,\n    \"name\": \"advancedMatching\",\n    \"checkboxText\": \"Enable Advanced Matching\",\n    \"type\": \"CHECKBOX\"\n  },\n  {\n    \"type\": \"GROUP\",\n    \"name\": \"dataProcessingOptionsGroup\",\n    \"displayName\": \"Data Processing Options\",\n    \"groupStyle\": \"ZIPPY_CLOSED\",\n    \"subParams\": [\n      {\n        \"type\": \"LABEL\",\n        \"name\": \"dpoInfo\",\n        \"displayName\": \"Data Processing Options force this Facebook event to comply to regional regulations with regard to the processing and selling of user data. Read \\u003ca href\\u003d\\\"https://developers.facebook.com/docs/marketing-apis/data-processing-options\\\"\\u003ethis\\u003c/a\\u003e for more information about how to configure this section.\"\n      },\n      {\n        \"type\": \"CHECKBOX\",\n        \"name\": \"dpoLDU\",\n        \"checkboxText\": \"Limited Data Use (LDU)\",\n        \"simpleValueType\": true\n      },\n      {\n        \"type\": \"TEXT\",\n        \"name\": \"dpoCountry\",\n        \"displayName\": \"Country\",\n        \"simpleValueType\": true,\n        \"defaultValue\": 0,\n        \"enablingConditions\": [\n          {\n            \"paramName\": \"dpoLDU\",\n            \"paramValue\": true,\n            \"type\": \"EQUALS\"\n          }\n        ],\n        \"valueValidators\": [\n          {\n            \"type\": \"NUMBER\"\n          }\n        ]\n      },\n      {\n        \"type\": \"TEXT\",\n        \"name\": \"dpoState\",\n        \"displayName\": \"State\",\n        \"simpleValueType\": true,\n        \"defaultValue\": 0,\n        \"enablingConditions\": [\n          {\n            \"paramName\": \"dpoLDU\",\n            \"paramValue\": true,\n            \"type\": \"EQUALS\"\n          }\n        ],\n        \"valueValidators\": [\n          {\n            \"type\": \"NUMBER\"\n          }\n        ]\n      }\n    ]\n  },\n  {\n    \"enablingConditions\": [\n      {\n        \"paramName\": \"advancedMatching\",\n        \"type\": \"EQUALS\",\n        \"paramValue\": true\n      }\n    ],\n    \"displayName\": \"Customer Information Data Parameters\",\n    \"name\": \"advancedMatchingGroup\",\n    \"groupStyle\": \"ZIPPY_CLOSED\",\n    \"type\": \"GROUP\",\n    \"subParams\": [\n      {\n        \"displayName\": \"\",\n        \"name\": \"advancedMatchingList\",\n        \"simpleTableColumns\": [\n          {\n            \"selectItems\": [\n              {\n                \"displayValue\": \"City\",\n                \"value\": \"ct\"\n              },\n              {\n                \"displayValue\": \"Country\",\n                \"value\": \"cn\"\n              },\n              {\n                \"displayValue\": \"Date of Birth\",\n                \"value\": \"db\"\n              },\n              {\n                \"displayValue\": \"Email\",\n                \"value\": \"em\"\n              },\n              {\n                \"displayValue\": \"External ID\",\n                \"value\": \"external_id\"\n              },\n              {\n                \"displayValue\": \"First Name\",\n                \"value\": \"fn\"\n              },\n              {\n                \"displayValue\": \"Gender\",\n                \"value\": \"ge\"\n              },\n              {\n                \"displayValue\": \"Last Name\",\n                \"value\": \"ln\"\n              },\n              {\n                \"displayValue\": \"Phone\",\n                \"value\": \"ph\"\n              },\n              {\n                \"displayValue\": \"State\",\n                \"value\": \"st\"\n              },\n              {\n                \"displayValue\": \"Zip Code\",\n                \"value\": \"zp\"\n              }\n            ],\n            \"defaultValue\": \"\",\n            \"displayName\": \"Parameter name\",\n            \"name\": \"name\",\n            \"isUnique\": true,\n            \"type\": \"SELECT\"\n          },\n          {\n            \"defaultValue\": \"\",\n            \"displayName\": \"Parameter value\",\n            \"name\": \"value\",\n            \"type\": \"TEXT\"\n          }\n        ],\n        \"type\": \"SIMPLE_TABLE\",\n        \"newRowButtonText\": \"Add parameter\",\n        \"valueValidators\": [\n          {\n            \"type\": \"NON_EMPTY\"\n          }\n        ]\n      }\n    ]\n  },\n  {\n    \"displayName\": \"Object Properties\",\n    \"name\": \"objectPropertiesGroup\",\n    \"groupStyle\": \"ZIPPY_CLOSED\",\n    \"type\": \"GROUP\",\n    \"subParams\": [\n      {\n        \"type\": \"LABEL\",\n        \"name\": \"enhancedEcommerceObject\",\n        \"displayName\": \"\\u003cstrong\\u003eWarning!\\u003c/strong\\u003e Object properties are populated automatically based on the most recent \\u003cstrong\\u003eecommerce\\u003c/strong\\u003e object pushed into dataLayer. If you add properties here that are already set by the integration (content_type, contents, num_items, value, currency), then the properties you add here will override those set automatically by the integration!\",\n        \"enablingConditions\": [\n          {\n            \"paramName\": \"enhancedEcommerce\",\n            \"paramValue\": true,\n            \"type\": \"EQUALS\"\n          }\n        ]\n      },\n      {\n        \"type\": \"SELECT\",\n        \"name\": \"objectPropertiesFromVariable\",\n        \"displayName\": \"Load Properties From Variable\",\n        \"macrosInSelect\": true,\n        \"selectItems\": [\n          {\n            \"value\": false,\n            \"displayValue\": \"False\"\n          }\n        ],\n        \"simpleValueType\": true,\n        \"help\": \"You can use a variable that returns a JavaScript object with the properties you want to use. This object will be merged with any additional properties you add via the table below. Any conflicts will be resolved in favor of the properties you add to the table.\"\n      },\n      {\n        \"name\": \"objectPropertyList\",\n        \"simpleTableColumns\": [\n          {\n            \"valueValidators\": [],\n            \"defaultValue\": \"\",\n            \"displayName\": \"Property Name\",\n            \"name\": \"name\",\n            \"isUnique\": true,\n            \"type\": \"TEXT\"\n          },\n          {\n            \"defaultValue\": \"\",\n            \"displayName\": \"Property Value\",\n            \"name\": \"value\",\n            \"type\": \"TEXT\"\n          }\n        ],\n        \"type\": \"SIMPLE_TABLE\",\n        \"newRowButtonText\": \"Add property\"\n      }\n    ]\n  },\n  {\n    \"displayName\": \"More Settings\",\n    \"name\": \"moreSettingsGroup\",\n    \"groupStyle\": \"ZIPPY_CLOSED\",\n    \"type\": \"GROUP\",\n    \"subParams\": [\n      {\n        \"help\": \"Facebook collects some metadata (e.g. structured data) and user interactions (e.g. clicks) automatically. Check this box to disable this automatic configuration of the pixel.\",\n        \"simpleValueType\": true,\n        \"name\": \"disableAutoConfig\",\n        \"checkboxText\": \"Disable Automatic Configuration\",\n        \"type\": \"CHECKBOX\"\n      },\n      {\n        \"type\": \"CHECKBOX\",\n        \"name\": \"disablePushState\",\n        \"checkboxText\": \"Disable History Event Tracking\",\n        \"simpleValueType\": true,\n        \"help\": \"The Facebook Pixel tracks history events (pushState and replaceState) automatically as PageViews. Check this box to prevent the pixel from tracking such events automatically.\"\n      },\n      {\n        \"type\": \"TEXT\",\n        \"name\": \"eventId\",\n        \"displayName\": \"Event ID\",\n        \"simpleValueType\": true,\n        \"help\": \"Set the Event ID parameter in case you are tracking the same event server-side as well. The Event ID can be used to deduplicate the same event if sent from multiple sources. See more \\u003ca href\\u003d\\\"https://developers.facebook.com/docs/marketing-api/conversions-api/deduplicate-pixel-and-server-events/\\\"\\u003ehere\\u003c/a\\u003e.\"\n      }\n    ]\n  }\n]\n\n\n___SANDBOXED_JS_FOR_WEB_TEMPLATE___\n\nconst createQueue = require('createQueue');\nconst callInWindow = require('callInWindow');\nconst aliasInWindow = require('aliasInWindow');\nconst copyFromWindow = require('copyFromWindow');\nconst setInWindow = require('setInWindow');\nconst injectScript = require('injectScript');\nconst makeTableMap = require('makeTableMap');\nconst makeNumber = require('makeNumber');\nconst getType = require('getType');\nconst copyFromDataLayer = require('copyFromDataLayer');\nconst math = require('Math');\nconst log = require('logToConsole');\n\nconst initIds = copyFromWindow('_fbq_gtm_ids') || [];\nconst pixelIds = data.pixelId;\nconst standardEventNames = ['AddPaymentInfo', 'AddToCart', 'AddToWishlist', 'CompleteRegistration', 'Contact', 'CustomizeProduct', 'Donate', 'FindLocation', 'InitiateCheckout', 'Lead', 'PageView', 'Purchase', 'Schedule', 'Search', 'StartTrial', 'SubmitApplication', 'Subscribe', 'ViewContent'];\nconst ecommerce = copyFromDataLayer('ecommerce', 1);\n\n// Helper methods\nconst fail = msg => {\n  log(msg);\n  data.gtmOnFailure();\n};\n\nconst mergeObj = (obj, obj2) => {\n  for (let key in obj2) {\n    if (obj2.hasOwnProperty(key)) {\n      obj[key] = obj2[key];\n    }\n  }\n  return obj;\n};\n\nconst parseEecObj = prod => {\n  return {\n    id: prod.id,\n    quantity: prod.quantity\n  };\n};\n\n// Initialize EEC integration\nlet eventName, action, eecObjectProps;\nif (data.enhancedEcommerce) {\n  if (!ecommerce) return fail('Facebook Pixel: No valid \"ecommerce\" object found in dataLayer');\n  if (ecommerce.detail) { eventName = 'ViewContent'; action = 'detail'; }\n  else if (ecommerce.add) { eventName = 'AddToCart'; action = 'add'; }\n  else if (ecommerce.checkout) { eventName = 'InitiateCheckout'; action = 'checkout'; }\n  else if (ecommerce.purchase) { eventName = 'Purchase'; action = 'purchase'; }\n  else return fail('Facebook Pixel: Most recently pushed \"ecommerce\" object must be one of types \"detail\", \"add\", \"checkout\" or \"purchase\".');\n  \n  if (!ecommerce[action].products || getType(ecommerce[action].products) !== 'array') return fail('Facebook pixel: Most recently pushed \"ecommerce\" object did not have a valid \"products\" array.');\n  eecObjectProps = {\n    content_type: 'product',\n    contents: ecommerce[action].products.map(parseEecObj),\n    value: ecommerce[action].products.reduce((acc, cur) => {\n      const curVal = math.round(makeNumber(cur.price || 0) * (cur.quantity || 1) * 100) / 100;\n      return acc + curVal;\n    }, 0.0),\n    currency: ecommerce.currencyCode || 'USD'\n  };\n  if (['InitiateCheckout', 'Purchase'].indexOf(eventName) > -1) eecObjectProps.num_items = ecommerce[action].products.reduce((acc,cur) => {\n    return acc + makeNumber(cur.quantity || 1);\n  }, 0);\n}\n\n// Build the fbq() command arguments\nconst cidParams = data.advancedMatchingList && data.advancedMatchingList.length ? makeTableMap(data.advancedMatchingList, 'name', 'value') : {};\nconst objectProps = data.objectPropertyList && data.objectPropertyList.length ? makeTableMap(data.objectPropertyList, 'name', 'value') : {};\nconst objectPropsFromVar = getType(data.objectPropertiesFromVariable) === 'object' ? data.objectPropertiesFromVariable : {};\nconst mergedObjectProps = mergeObj(objectPropsFromVar, objectProps);\nconst finalObjectProps = mergeObj(eecObjectProps || {}, mergedObjectProps);\neventName = eventName || (data.eventName === 'custom' ? data.customEventName : (data.eventName === 'variable' ? data.variableEventName : data.standardEventName));\n\nconst command = standardEventNames.indexOf(eventName) === -1 ? 'trackSingleCustom' : 'trackSingle';\nconst consent = data.consent === false ? 'revoke' : 'grant';\n\n// Utility function to use either fbq.queue[]\n// (if the FB SDK hasn't loaded yet), or fbq.callMethod()\n// if the SDK has loaded.\nconst getFbq = () => {\n  // Return the existing 'fbq' global method if available\n  let fbq = copyFromWindow('fbq');\n  if (fbq) {\n    return fbq;\n  }\n  \n  // Initialize the 'fbq' global method to either use\n  // fbq.callMethod or fbq.queue)\n  setInWindow('fbq', function() {    \n    const callMethod = copyFromWindow('fbq.callMethod.apply');\n    if (callMethod) {           \n      callInWindow('fbq.callMethod.apply', null, arguments); \n    } else {       \n      callInWindow('fbq.queue.push', arguments);\n    }\n  });\n  aliasInWindow('_fbq', 'fbq');\n  \n  // Create the fbq.queue\n  createQueue('fbq.queue');\n    \n  // Return the global 'fbq' method, created above\n  return copyFromWindow('fbq');\n};\n\n// Get reference to the global method\nconst fbq = getFbq();\n\nfbq('consent', consent);\n\n // Set Data Processing Options\nif (data.dpoLDU) {\n  fbq('dataProcessingOptions', ['LDU'], makeNumber(data.dpoCountry), makeNumber(data.dpoState));\n}\n\n// Handle multiple, comma-separated pixel IDs,\n// and initialize each ID if not done already.\npixelIds.split(',').forEach(pixelId => {\n  if (initIds.indexOf(pixelId) === -1) {\n    \n    // If the user has chosen to disable automatic configuration\n    if (data.disableAutoConfig) {\n      fbq('set', 'autoConfig', false, pixelId);\n    }\n    \n    // If the user has chosen to disable pushState and replaceState tracking\n    if (data.disablePushState) {\n      setInWindow('fbq.disablePushState', true);\n    }\n   \t\n    \n    // Initialize pixel and store in global array\n    fbq('init', pixelId, cidParams);\n\n    // Monitoring agent string for Tag Setup\n    fbq('set','agent','tmSimo-GTM-WebTemplate', pixelId);\n\n    initIds.push(pixelId);\n    setInWindow('_fbq_gtm_ids', initIds, true);\n    \n  }\n\n  // Call the fbq() method with the parameters defined earlier\n  if (data.eventId) {\n    fbq(command, pixelId, eventName, finalObjectProps, {eventID: data.eventId});\n  } else {\n    fbq(command, pixelId, eventName, finalObjectProps);\n  }\n});\n\ninjectScript('https://connect.facebook.net/en_US/fbevents.js', data.gtmOnSuccess, data.gtmOnFailure, 'fbPixel');\n\n\n___WEB_PERMISSIONS___\n\n[\n  {\n    \"instance\": {\n      \"key\": {\n        \"publicId\": \"access_globals\",\n        \"versionId\": \"1\"\n      },\n      \"param\": [\n        {\n          \"key\": \"keys\",\n          \"value\": {\n            \"type\": 2,\n            \"listItem\": [\n              {\n                \"type\": 3,\n                \"mapKey\": [\n                  {\n                    \"type\": 1,\n                    \"string\": \"key\"\n                  },\n                  {\n                    \"type\": 1,\n                    \"string\": \"read\"\n                  },\n                  {\n                    \"type\": 1,\n                    \"string\": \"write\"\n                  },\n                  {\n                    \"type\": 1,\n                    \"string\": \"execute\"\n                  }\n                ],\n                \"mapValue\": [\n                  {\n                    \"type\": 1,\n                    \"string\": \"fbq\"\n                  },\n                  {\n                    \"type\": 8,\n                    \"boolean\": true\n                  },\n                  {\n                    \"type\": 8,\n                    \"boolean\": true\n                  },\n                  {\n                    \"type\": 8,\n                    \"boolean\": false\n                  }\n                ]\n              },\n              {\n                \"type\": 3,\n                \"mapKey\": [\n                  {\n                    \"type\": 1,\n                    \"string\": \"key\"\n                  },\n                  {\n                    \"type\": 1,\n                    \"string\": \"read\"\n                  },\n                  {\n                    \"type\": 1,\n                    \"string\": \"write\"\n                  },\n                  {\n                    \"type\": 1,\n                    \"string\": \"execute\"\n                  }\n                ],\n                \"mapValue\": [\n                  {\n                    \"type\": 1,\n                    \"string\": \"_fbq_gtm\"\n                  },\n                  {\n                    \"type\": 8,\n                    \"boolean\": true\n                  },\n                  {\n                    \"type\": 8,\n                    \"boolean\": true\n                  },\n                  {\n                    \"type\": 8,\n                    \"boolean\": false\n                  }\n                ]\n              },\n              {\n                \"type\": 3,\n                \"mapKey\": [\n                  {\n                    \"type\": 1,\n                    \"string\": \"key\"\n                  },\n                  {\n                    \"type\": 1,\n                    \"string\": \"read\"\n                  },\n                  {\n                    \"type\": 1,\n                    \"string\": \"write\"\n                  },\n                  {\n                    \"type\": 1,\n                    \"string\": \"execute\"\n                  }\n                ],\n                \"mapValue\": [\n                  {\n                    \"type\": 1,\n                    \"string\": \"_fbq\"\n                  },\n                  {\n                    \"type\": 8,\n                    \"boolean\": false\n                  },\n                  {\n                    \"type\": 8,\n                    \"boolean\": true\n                  },\n                  {\n                    \"type\": 8,\n                    \"boolean\": false\n                  }\n                ]\n              },\n              {\n                \"type\": 3,\n                \"mapKey\": [\n                  {\n                    \"type\": 1,\n                    \"string\": \"key\"\n                  },\n                  {\n                    \"type\": 1,\n                    \"string\": \"read\"\n                  },\n                  {\n                    \"type\": 1,\n                    \"string\": \"write\"\n                  },\n                  {\n                    \"type\": 1,\n                    \"string\": \"execute\"\n                  }\n                ],\n                \"mapValue\": [\n                  {\n                    \"type\": 1,\n                    \"string\": \"_fbq_gtm_ids\"\n                  },\n                  {\n                    \"type\": 8,\n                    \"boolean\": true\n                  },\n                  {\n                    \"type\": 8,\n                    \"boolean\": true\n                  },\n                  {\n                    \"type\": 8,\n                    \"boolean\": false\n                  }\n                ]\n              },\n              {\n                \"type\": 3,\n                \"mapKey\": [\n                  {\n                    \"type\": 1,\n                    \"string\": \"key\"\n                  },\n                  {\n                    \"type\": 1,\n                    \"string\": \"read\"\n                  },\n                  {\n                    \"type\": 1,\n                    \"string\": \"write\"\n                  },\n                  {\n                    \"type\": 1,\n                    \"string\": \"execute\"\n                  }\n                ],\n                \"mapValue\": [\n                  {\n                    \"type\": 1,\n                    \"string\": \"fbq.callMethod.apply\"\n                  },\n                  {\n                    \"type\": 8,\n                    \"boolean\": true\n                  },\n                  {\n                    \"type\": 8,\n                    \"boolean\": false\n                  },\n                  {\n                    \"type\": 8,\n                    \"boolean\": true\n                  }\n                ]\n              },\n              {\n                \"type\": 3,\n                \"mapKey\": [\n                  {\n                    \"type\": 1,\n                    \"string\": \"key\"\n                  },\n                  {\n                    \"type\": 1,\n                    \"string\": \"read\"\n                  },\n                  {\n                    \"type\": 1,\n                    \"string\": \"write\"\n                  },\n                  {\n                    \"type\": 1,\n                    \"string\": \"execute\"\n                  }\n                ],\n                \"mapValue\": [\n                  {\n                    \"type\": 1,\n                    \"string\": \"fbq.queue.push\"\n                  },\n                  {\n                    \"type\": 8,\n                    \"boolean\": false\n                  },\n                  {\n                    \"type\": 8,\n                    \"boolean\": false\n                  },\n                  {\n                    \"type\": 8,\n                    \"boolean\": true\n                  }\n                ]\n              },\n              {\n                \"type\": 3,\n                \"mapKey\": [\n                  {\n                    \"type\": 1,\n                    \"string\": \"key\"\n                  },\n                  {\n                    \"type\": 1,\n                    \"string\": \"read\"\n                  },\n                  {\n                    \"type\": 1,\n                    \"string\": \"write\"\n                  },\n                  {\n                    \"type\": 1,\n                    \"string\": \"execute\"\n                  }\n                ],\n                \"mapValue\": [\n                  {\n                    \"type\": 1,\n                    \"string\": \"fbq.queue\"\n                  },\n                  {\n                    \"type\": 8,\n                    \"boolean\": true\n                  },\n                  {\n                    \"type\": 8,\n                    \"boolean\": true\n                  },\n                  {\n                    \"type\": 8,\n                    \"boolean\": false\n                  }\n                ]\n              },\n              {\n                \"type\": 3,\n                \"mapKey\": [\n                  {\n                    \"type\": 1,\n                    \"string\": \"key\"\n                  },\n                  {\n                    \"type\": 1,\n                    \"string\": \"read\"\n                  },\n                  {\n                    \"type\": 1,\n                    \"string\": \"write\"\n                  },\n                  {\n                    \"type\": 1,\n                    \"string\": \"execute\"\n                  }\n                ],\n                \"mapValue\": [\n                  {\n                    \"type\": 1,\n                    \"string\": \"fbq.disablePushState\"\n                  },\n                  {\n                    \"type\": 8,\n                    \"boolean\": true\n                  },\n                  {\n                    \"type\": 8,\n                    \"boolean\": true\n                  },\n                  {\n                    \"type\": 8,\n                    \"boolean\": false\n                  }\n                ]\n              }\n            ]\n          }\n        }\n      ]\n    },\n    \"clientAnnotations\": {\n      \"isEditedByUser\": true\n    },\n    \"isRequired\": true\n  },\n  {\n    \"instance\": {\n      \"key\": {\n        \"publicId\": \"inject_script\",\n        \"versionId\": \"1\"\n      },\n      \"param\": [\n        {\n          \"key\": \"urls\",\n          \"value\": {\n            \"type\": 2,\n            \"listItem\": [\n              {\n                \"type\": 1,\n                \"string\": \"https://connect.facebook.net/en_US/fbevents.js\"\n              }\n            ]\n          }\n        }\n      ]\n    },\n    \"clientAnnotations\": {\n      \"isEditedByUser\": true\n    },\n    \"isRequired\": true\n  },\n  {\n    \"instance\": {\n      \"key\": {\n        \"publicId\": \"logging\",\n        \"versionId\": \"1\"\n      },\n      \"param\": [\n        {\n          \"key\": \"environments\",\n          \"value\": {\n            \"type\": 1,\n            \"string\": \"debug\"\n          }\n        }\n      ]\n    },\n    \"isRequired\": true\n  },\n  {\n    \"instance\": {\n      \"key\": {\n        \"publicId\": \"read_data_layer\",\n        \"versionId\": \"1\"\n      },\n      \"param\": [\n        {\n          \"key\": \"keyPatterns\",\n          \"value\": {\n            \"type\": 2,\n            \"listItem\": [\n              {\n                \"type\": 1,\n                \"string\": \"ecommerce\"\n              }\n            ]\n          }\n        }\n      ]\n    },\n    \"clientAnnotations\": {\n      \"isEditedByUser\": true\n    },\n    \"isRequired\": true\n  }\n]\n\n\n___TESTS___\n\nscenarios:\n- name: Library is injected\n  code: |-\n    // Call runCode to run the template's code.\n    runCode(mockData);\n\n    // Verify that the tag finished successfully.\n    assertApi('injectScript').wasCalledWith(scriptUrl, success, failure, 'fbPixel');\n    assertApi('gtmOnSuccess').wasCalled();\n- name: fbq does not exist - method created\n  code: |-\n    let fbq;\n\n    mock('copyFromWindow', key => {\n      if (key === 'fbq') return fbq;\n    });\n\n    mock('createQueue', key => {});\n\n    mock('setInWindow', (key, val) => {\n      if (key === 'fbq') fbq = val;\n    });\n\n    // Call runCode to run the template's code.\n    runCode(mockData);\n\n    // Verify that the tag finished successfully.\n    assertApi('aliasInWindow').wasCalledWith('_fbq', 'fbq');\n    assertApi('setInWindow').wasCalled();\n    assertApi('gtmOnSuccess').wasCalled();\n- name: fbq exists - method copied\n  code: |-\n    mock('setInWindow', key => {\n      if (key === 'fbq') fail('setInWindow called with fbq even though variable exists');\n    });\n\n    mock('createQueue', key => {});\n\n    // Call runCode to run the template's code.\n    runCode(mockData);\n\n    // Verify that the tag finished successfully.\n    assertApi('gtmOnSuccess').wasCalled();\n- name: makeTableMap called\n  code: |-\n    mockData.advancedMatching = true;\n\n    // Call runCode to run the template's code.\n    runCode(mockData);\n\n    // Verify that the tag finished successfully.\n    assertApi('makeTableMap').wasCalledWith(mockData.advancedMatchingList, 'name', 'value');\n    assertApi('makeTableMap').wasCalledWith(mockData.objectPropertyList, 'name', 'value');\n    assertApi('gtmOnSuccess').wasCalled();\n- name: Consent set\n  code: |-\n    mock('copyFromWindow', key => {\n      if (key === 'fbq') return function() {\n        if (arguments[0] === 'consent') {\n          assertThat(arguments[1], 'Consent set incorrectly').isEqualTo('grant');\n        }\n      };\n    });\n\n    // Call runCode to run the template's code.\n    runCode(mockData);\n\n    // Verify that the tag finished successfully.\n    assertApi('gtmOnSuccess').wasCalled();\n- name: DPO LDU set\n  code: |-\n    mockData.dpoLDU = true;\n    mockData.dpoCountry = '0';\n    mockData.dpoState = '0';\n\n    mock('copyFromWindow', key => {\n      if (key === 'fbq') return function() {\n        if (arguments[0] === 'consent') {\n          assertThat(arguments[1], 'Consent set incorrectly').isEqualTo('grant');\n        }\n        if (arguments[0] === 'dataProcessingOptions') {\n          assertThat(arguments[1], 'LDU array value not set').isEqualTo(['LDU']);\n          assertThat(arguments[2], 'LDU country not set').isEqualTo(0);\n          assertThat(arguments[3], 'LDU state not set').isEqualTo(0);\n        }\n      };\n    });\n\n    // Call runCode to run the template's code.\n    runCode(mockData);\n\n    // Verify that the tag finished successfully.\n    assertApi('gtmOnSuccess').wasCalled();\n- name: DPO LDU not set\n  code: |-\n    mock('copyFromWindow', key => {\n      if (key === 'fbq') return function() {\n        if (arguments[0] === 'consent') {\n          assertThat(arguments[1], 'Consent set incorrectly').isEqualTo('grant');\n        }\n        if (arguments[0] === 'dataProcessingOptions') {\n          fail('dataProcessingOptions called even though DPO was not set');\n        }\n      };\n    });\n\n    // Call runCode to run the template's code.\n    runCode(mockData);\n\n    // Verify that the tag finished successfully.\n    assertApi('gtmOnSuccess').wasCalled();\n- name: Pixel IDs set - do not initialize\n  code: |-\n    mock('copyFromWindow', key => {\n      if (key === '_fbq_gtm_ids') return ['12345', '23456'];\n      if (key === 'fbq') return function() {\n        if (arguments[0] === 'init') fail('init called even though pixel IDs already initialized');\n      };\n    });\n\n    // Call runCode to run the template's code.\n    runCode(mockData);\n\n    // Verify that the tag finished successfully.\n    assertApi('gtmOnSuccess').wasCalled();\n- name: Pixel IDs not set - run init process\n  code: \"let index = 0;\\nlet count = 0;\\nlet _fbq_gtm_ids;\\n\\nmockData.advancedMatching\\\n    \\ = true;\\nmockData.disableAutoConfig = true;\\nmockData.disablePushState = true;\\n\\\n    \\nmock('setInWindow', (key, val) => {\\n  if (key === 'fbq.disablePushState') count\\\n    \\ += 1;\\n  if (key === '_fbq_gtm_ids') _fbq_gtm_ids = val;\\n});\\n\\nconst initObj\\\n    \\ = {\\n  ct: 'Helsinki',\\n  cn: 'Finland',\\n  external_id: 'UserId'\\n};\\n\\nmock('copyFromWindow',\\\n    \\ key => {\\n  if (key === 'fbq') return function() {\\n    if (arguments[0] ===\\\n    \\ 'set' && arguments[1] === 'autoConfig' && arguments[2] === false) {\\n      assertThat(arguments[3],\\\n    \\ 'autoConfig called with incorrect pixelId').isEqualTo(mockData.pixelId.split(',')[index]);\\n\\\n    \\    }\\n    if (arguments[0] === 'set' && arguments[1] === 'agent') {\\n      assertThat(arguments[2],\\\n    \\ 'agent set with invalid value').isEqualTo('tmSimo-GTM-WebTemplate');\\n     \\\n    \\ assertThat(arguments[3], 'agent set with invalid pixel ID').isEqualTo(mockData.pixelId.split(',')[index]);\\n\\\n    \\      index += 1;\\n    }\\n    if (arguments[0] === 'init') {\\n      assertThat(arguments[1],\\\n    \\ 'init called with incorrect pixelId').isEqualTo(mockData.pixelId.split(',')[index]);\\n\\\n    \\      assertThat(arguments[2], 'init called with incorrect initObj').isEqualTo(initObj);\\n\\\n    \\    } \\n  };\\n});\\n\\n// Call runCode to run the template's code.\\nrunCode(mockData);\\n\\\n    \\nassertThat(_fbq_gtm_ids, '_fbq_gtm_ids has incorrect contents').isEqualTo(mockData.pixelId.split(','));\\n\\\n    assertThat(index, 'init called incorrect number of times: ' + index).isEqualTo(2);\\n\\\n    assertThat(count, 'fbq.disablePushState called incorrect number of times: ' +\\\n    \\ count).isEqualTo(2);\\n\\n// Verify that the tag finished successfully.\\nassertApi('gtmOnSuccess').wasCalled();\"\n- name: Send standard event\n  code: \"const eventParams = {\\n  prop1: 'val1',\\n  prop2: 'val2'\\n};\\n\\nlet index\\\n    \\ = 0;\\nmock('copyFromWindow', key => {\\n  if (key === 'fbq') return function()\\\n    \\ {\\n    if (arguments[0] === 'trackSingle') {\\n      assertThat(arguments[1],\\\n    \\ 'trackSingle called with incorrect pixel ID').isEqualTo(mockData.pixelId.split(',')[index]);\\n\\\n    \\      assertThat(arguments[2], 'trackSingle called with incorrect event name').isEqualTo(mockData.standardEventName);\\n\\\n    \\      assertThat(arguments[3], 'trackSingle called with incorrect event parameters').isEqualTo(eventParams);\\n\\\n    \\      index += 1;\\n    }\\n  };\\n});\\n     \\n// Call runCode to run the template's\\\n    \\ code.\\nrunCode(mockData);\\n\\n// Verify that the tag finished successfully.\\n\\\n    assertThat(index, 'trackSingle called incorrect number of times').isEqualTo(2);\\n\\\n    assertApi('gtmOnSuccess').wasCalled();\"\n- name: Send custom event\n  code: \"mockData.eventName = 'custom';\\n\\nconst eventParams = {\\n  prop1: 'val1',\\n\\\n    \\  prop2: 'val2'\\n};\\n\\nlet index = 0;\\nmock('copyFromWindow', key => {\\n  if\\\n    \\ (key === 'fbq') return function() {\\n    if (arguments[0] === 'trackSingleCustom')\\\n    \\ {\\n      assertThat(arguments[1], 'trackSingleCustom called with incorrect pixel\\\n    \\ ID').isEqualTo(mockData.pixelId.split(',')[index]);\\n      assertThat(arguments[2],\\\n    \\ 'trackSingleCustom called with incorrect event name').isEqualTo(mockData.customEventName);\\n\\\n    \\      assertThat(arguments[3], 'trackSingleCustom called with incorrect event\\\n    \\ parameters').isEqualTo(eventParams);\\n      index += 1;\\n    }\\n  };\\n});\\n\\\n    \\     \\n// Call runCode to run the template's code.\\nrunCode(mockData);\\n\\n//\\\n    \\ Verify that the tag finished successfully.\\nassertThat(index, 'trackSingleCustom\\\n    \\ called incorrect number of times').isEqualTo(2);\\nassertApi('gtmOnSuccess').wasCalled();\"\n- name: Send variable event with standard name\n  code: \"mockData.eventName = 'variable';\\nmockData.variableEventName = 'PageView';\\n\\\n    \\nconst eventParams = {\\n  prop1: 'val1',\\n  prop2: 'val2'\\n};\\n\\nlet index =\\\n    \\ 0;\\nmock('copyFromWindow', key => {\\n  if (key === 'fbq') return function()\\\n    \\ {\\n    if (arguments[0] === 'trackSingle') {\\n      assertThat(arguments[1],\\\n    \\ 'trackSingle called with incorrect pixel ID').isEqualTo(mockData.pixelId.split(',')[index]);\\n\\\n    \\      assertThat(arguments[2], 'trackSingle called with incorrect event name').isEqualTo(mockData.variableEventName);\\n\\\n    \\      assertThat(arguments[3], 'trackSingle called with incorrect event parameters').isEqualTo(eventParams);\\n\\\n    \\      index += 1;\\n    }\\n  };\\n});\\n     \\n// Call runCode to run the template's\\\n    \\ code.\\nrunCode(mockData);\\n\\n// Verify that the tag finished successfully.\\n\\\n    assertThat(index, 'trackSingle called incorrect number of times').isEqualTo(2);\\n\\\n    assertApi('gtmOnSuccess').wasCalled();\"\n- name: Send variable event with custom name\n  code: \"mockData.eventName = 'variable';\\nmockData.variableEventName = 'custom';\\n\\\n    \\nconst eventParams = {\\n  prop1: 'val1',\\n  prop2: 'val2'\\n};\\n\\nlet index =\\\n    \\ 0;\\nmock('copyFromWindow', key => {\\n  if (key === 'fbq') return function()\\\n    \\ {\\n    if (arguments[0] === 'trackSingleCustom') {\\n      assertThat(arguments[1],\\\n    \\ 'trackSingleCustom called with incorrect pixel ID').isEqualTo(mockData.pixelId.split(',')[index]);\\n\\\n    \\      assertThat(arguments[2], 'trackSingleCustom called with incorrect event\\\n    \\ name').isEqualTo(mockData.variableEventName);\\n      assertThat(arguments[3],\\\n    \\ 'trackSingleCustom called with incorrect event parameters').isEqualTo(eventParams);\\n\\\n    \\      index += 1;\\n    }\\n  };\\n});\\n     \\n// Call runCode to run the template's\\\n    \\ code.\\nrunCode(mockData);\\n\\n// Verify that the tag finished successfully.\\n\\\n    assertThat(index, 'trackSingleCustom called incorrect number of times').isEqualTo(2);\\n\\\n    assertApi('gtmOnSuccess').wasCalled();\"\n- name: Send event parameters from a variable\n  code: \"mockData.objectPropertiesFromVariable = {\\n  prop1: 'val1',\\n  prop2: 'val2'\\n\\\n    };\\n\\nlet index = 0;\\nmock('copyFromWindow', key => {\\n  if (key === 'fbq') return\\\n    \\ function() {\\n    if (arguments[0] === 'trackSingle') {\\n      assertThat(arguments[1],\\\n    \\ 'trackSingle called with incorrect pixel ID').isEqualTo(mockData.pixelId.split(',')[index]);\\n\\\n    \\      assertThat(arguments[2], 'trackSingle called with incorrect event name').isEqualTo(mockData.standardEventName);\\n\\\n    \\      assertThat(arguments[3], 'trackSingle called with incorrect event parameters').isEqualTo(mockData.objectPropertiesFromVariable);\\n\\\n    \\      index += 1;\\n    }\\n  };\\n});\\n     \\n// Call runCode to run the template's\\\n    \\ code.\\nrunCode(mockData);\\n\\n// Verify that the tag finished successfully.\\n\\\n    assertThat(index, 'trackSingle called incorrect number of times').isEqualTo(2);\\n\\\n    assertApi('gtmOnSuccess').wasCalled();\"\n- name: Enhanced Ecommerce integration fails with invalid object\n  code: |-\n    mockData.enhancedEcommerce = true;\n\n    // Call runCode to run the template's code.\n    runCode(mockData);\n\n    // Verify that the tag finished successfully.\n    assertApi('logToConsole').wasCalledWith('Facebook Pixel: No valid \"ecommerce\" object found in dataLayer');\n    assertApi('gtmOnFailure').wasCalled();\n    assertApi('gtmOnSuccess').wasNotCalled();\n- name: Enhanced Ecommerce integration fails with invalid action\n  code: |-\n    mockData.enhancedEcommerce = true;\n\n    mock('copyFromDataLayer', key => {\n      if (key === 'ecommerce') return {\n        invalid: true\n      };\n    });\n\n    // Call runCode to run the template's code.\n    runCode(mockData);\n\n    // Verify that the tag finished successfully.\n    assertApi('logToConsole').wasCalledWith('Facebook Pixel: Most recently pushed \"ecommerce\" object must be one of types \"detail\", \"add\", \"checkout\" or \"purchase\".');\n    assertApi('gtmOnFailure').wasCalled();\n    assertApi('gtmOnSuccess').wasNotCalled();\n- name: Enhanced Ecommerce ViewContent works\n  code: \"mockData.enhancedEcommerce = true;\\nmockData.objectPropertyList = {};\\n\\n\\\n    mock('copyFromDataLayer', key => {\\n  if (key === 'ecommerce') return {\\n    currencyCode:\\\n    \\ 'EUR',\\n    detail: {\\n      products: mockEec.gtm.products\\n    }\\n  };\\n});\\n\\\n    \\nlet index = 0;\\nmock('copyFromWindow', key => {\\n  if (key === 'fbq') return\\\n    \\ function() {\\n    if (arguments[0] === 'trackSingle') {\\n      assertThat(arguments[1],\\\n    \\ 'trackSingle called with incorrect pixel ID').isEqualTo(mockData.pixelId.split(',')[index]);\\n\\\n    \\      assertThat(arguments[2], 'trackSingle called with incorrect event name').isEqualTo('ViewContent');\\n\\\n    \\      assertThat(arguments[3], 'trackSingle called with incorrect event parameters').isEqualTo(mockEec.fb);\\n\\\n    \\      index += 1;\\n    }\\n  };\\n});\\n     \\n// Call runCode to run the template's\\\n    \\ code.\\nrunCode(mockData);\\n\\n// Verify that the tag finished successfully.\\n\\\n    assertThat(index, 'trackSingle called incorrect number of times').isEqualTo(2);\\n\\\n    assertApi('gtmOnSuccess').wasCalled();\"\n- name: Enhanced Ecommerce AddToCart works\n  code: \"mockData.enhancedEcommerce = true;\\nmockData.objectPropertyList = {};\\n\\n\\\n    mock('copyFromDataLayer', key => {\\n  if (key === 'ecommerce') return {\\n    currencyCode:\\\n    \\ 'EUR',\\n    add: {\\n      products: mockEec.gtm.products\\n    }\\n  };\\n});\\n\\\n    \\nlet index = 0;\\nmock('copyFromWindow', key => {\\n  if (key === 'fbq') return\\\n    \\ function() {\\n    if (arguments[0] === 'trackSingle') {\\n      assertThat(arguments[1],\\\n    \\ 'trackSingle called with incorrect pixel ID').isEqualTo(mockData.pixelId.split(',')[index]);\\n\\\n    \\      assertThat(arguments[2], 'trackSingle called with incorrect event name').isEqualTo('AddToCart');\\n\\\n    \\      assertThat(arguments[3], 'trackSingle called with incorrect event parameters').isEqualTo(mockEec.fb);\\n\\\n    \\      index += 1;\\n    }\\n  };\\n});\\n     \\n// Call runCode to run the template's\\\n    \\ code.\\nrunCode(mockData);\\n\\n// Verify that the tag finished successfully.\\n\\\n    assertThat(index, 'trackSingle called incorrect number of times').isEqualTo(2);\\n\\\n    assertApi('gtmOnSuccess').wasCalled();\"\n- name: Enhanced Ecommerce InitiateCheckout works\n  code: \"mockData.enhancedEcommerce = true;\\nmockEec.fb.num_items = 3;\\nmockData.objectPropertyList\\\n    \\ = {};\\n\\nmock('copyFromDataLayer', key => {\\n  if (key === 'ecommerce') return\\\n    \\ {\\n    currencyCode: 'EUR',\\n    checkout: {\\n      products: mockEec.gtm.products\\n\\\n    \\    }\\n  };\\n});\\n\\nlet index = 0;\\nmock('copyFromWindow', key => {\\n  if (key\\\n    \\ === 'fbq') return function() {\\n    if (arguments[0] === 'trackSingle') {\\n\\\n    \\      assertThat(arguments[1], 'trackSingle called with incorrect pixel ID').isEqualTo(mockData.pixelId.split(',')[index]);\\n\\\n    \\      assertThat(arguments[2], 'trackSingle called with incorrect event name').isEqualTo('InitiateCheckout');\\n\\\n    \\      assertThat(arguments[3], 'trackSingle called with incorrect event parameters').isEqualTo(mockEec.fb);\\n\\\n    \\      index += 1;\\n    }\\n  };\\n});\\n     \\n// Call runCode to run the template's\\\n    \\ code.\\nrunCode(mockData);\\n\\n// Verify that the tag finished successfully.\\n\\\n    assertThat(index, 'trackSingle called incorrect number of times').isEqualTo(2);\\n\\\n    assertApi('gtmOnSuccess').wasCalled();\"\n- name: Enhanced Ecommerce Purchase works\n  code: \"mockData.enhancedEcommerce = true;\\nmockEec.fb.num_items = 3;\\nmockData.objectPropertyList\\\n    \\ = {};\\n\\nmock('copyFromDataLayer', key => {\\n  if (key === 'ecommerce') return\\\n    \\ {\\n    currencyCode: 'EUR',\\n    purchase: {\\n      products: mockEec.gtm.products\\n\\\n    \\    }\\n  };\\n});\\n\\nlet index = 0;\\nmock('copyFromWindow', key => {\\n  if (key\\\n    \\ === 'fbq') return function() {\\n    if (arguments[0] === 'trackSingle') {\\n\\\n    \\      assertThat(arguments[1], 'trackSingle called with incorrect pixel ID').isEqualTo(mockData.pixelId.split(',')[index]);\\n\\\n    \\      assertThat(arguments[2], 'trackSingle called with incorrect event name').isEqualTo('Purchase');\\n\\\n    \\      assertThat(arguments[3], 'trackSingle called with incorrect event parameters').isEqualTo(mockEec.fb);\\n\\\n    \\      index += 1;\\n    }\\n  };\\n});\\n     \\n// Call runCode to run the template's\\\n    \\ code.\\nrunCode(mockData);\\n\\n// Verify that the tag finished successfully.\\n\\\n    assertThat(index, 'trackSingle called incorrect number of times').isEqualTo(2);\\n\\\n    assertApi('gtmOnSuccess').wasCalled();\"\n- name: Object merge with variable and list works\n  code: \"mockData.objectPropertiesFromVariable = {\\n  prop1: 'var1',\\n  prop2: 'var2',\\n\\\n    \\  prop3: 'var3'\\n};\\n\\nconst expected = {\\n  prop1: 'val1',\\n  prop2: 'val2',\\n\\\n    \\  prop3: 'var3'\\n};\\n\\nlet index = 0;\\nmock('copyFromWindow', key => {\\n  if\\\n    \\ (key === 'fbq') return function() {\\n    if (arguments[0] === 'trackSingle')\\\n    \\ {\\n      assertThat(arguments[1], 'trackSingle called with incorrect pixel ID').isEqualTo(mockData.pixelId.split(',')[index]);\\n\\\n    \\      assertThat(arguments[2], 'trackSingle called with incorrect event name').isEqualTo('PageView');\\n\\\n    \\      assertThat(arguments[3], 'trackSingle called with incorrect event parameters').isEqualTo(expected);\\n\\\n    \\      index += 1;\\n    }\\n  };\\n});\\n     \\n// Call runCode to run the template's\\\n    \\ code.\\nrunCode(mockData);\\n\\n// Verify that the tag finished successfully.\\n\\\n    assertThat(index, 'trackSingle called incorrect number of times').isEqualTo(2);\\n\\\n    assertApi('gtmOnSuccess').wasCalled();\"\n- name: Object merge with variable, list and eec works\n  code: \"mockData.enhancedEcommerce = true;\\nmockData.objectPropertiesFromVariable\\\n    \\ = {\\n  content_type: 'product_group'\\n};\\nmockData.objectPropertyList = [{\\n\\\n    \\  name: 'currency',\\n  value: 'USD'\\n}];\\nmockEec.fb.num_items = 3;\\nmockEec.fb.content_type\\\n    \\ = 'product_group';\\nmockEec.fb.currency = 'USD';\\n\\nmock('copyFromDataLayer',\\\n    \\ key => {\\n  if (key === 'ecommerce') return {\\n    currencyCode: 'EUR',\\n  \\\n    \\  purchase: {\\n      products: mockEec.gtm.products\\n    }\\n  };\\n});\\n\\nlet\\\n    \\ index = 0;\\nmock('copyFromWindow', key => {\\n  if (key === 'fbq') return function()\\\n    \\ {\\n    if (arguments[0] === 'trackSingle') {\\n      assertThat(arguments[1],\\\n    \\ 'trackSingle called with incorrect pixel ID').isEqualTo(mockData.pixelId.split(',')[index]);\\n\\\n    \\      assertThat(arguments[2], 'trackSingle called with incorrect event name').isEqualTo('Purchase');\\n\\\n    \\      assertThat(arguments[3], 'trackSingle called with incorrect event parameters').isEqualTo(mockEec.fb);\\n\\\n    \\      index += 1;\\n    }\\n  };\\n});\\n     \\n// Call runCode to run the template's\\\n    \\ code.\\nrunCode(mockData);\\n\\n// Verify that the tag finished successfully.\\n\\\n    assertThat(index, 'trackSingle called incorrect number of times').isEqualTo(2);\\n\\\n    assertApi('gtmOnSuccess').wasCalled();\"\n- name: Send event ID\n  code: \"mockData.eventId = 'eventId';\\n\\nmock('copyFromWindow', key => {\\n  if (key\\\n    \\ === 'fbq') return function() {\\n    if (arguments[0] === 'trackSingle') {\\n\\\n    \\      assertThat(arguments[4], 'eventID not included in hit').isEqualTo({eventID:\\\n    \\ mockData.eventId});\\n    }\\n  };\\n});\\n     \\n// Call runCode to run the template's\\\n    \\ code.\\nrunCode(mockData);\\n\\n// Verify that the tag finished successfully.\\n\\\n    assertApi('gtmOnSuccess').wasCalled();\"\nsetup: \"const mockData = {\\n  pixelId: '12345,23456',\\n  eventName: 'standard',\\n\\\n  \\  standardEventName: 'PageView',\\n  customEventName: 'custom',\\n  variableEventName:\\\n  \\ 'standard',\\n  consent: true,\\n  advancedMatching: false,\\n  advancedMatchingList:\\\n  \\ [{name: 'ct', value: 'Helsinki'},{name: 'cn', value: 'Finland'},{name: 'external_id',\\\n  \\ value: 'UserId'}],\\n  objectPropertiesFromVariable: false,\\n  objectPropertyList:\\\n  \\ [{name: 'prop1', value: 'val1'},{name: 'prop2', value: 'val2'}],\\n  disableAutoConfig:\\\n  \\ false,\\n  disablePushState: false,\\n  enhancedEcommerce: false,\\n  eventId: ''\\n\\\n  };\\n\\nconst mockEec = {\\n  gtm: {  \\n    products: [{\\n      id: 'i1',\\n      name:\\\n  \\ 'n1',\\n      category: 'c1',\\n      price: '1.00',\\n      quantity: 1\\n    },{\\n\\\n  \\      id: 'i2',\\n      name: 'n2',\\n      category: 'c2',\\n      price: '2.00',\\n\\\n  \\      quantity: 2\\n    }]\\n  },\\n  fb: {\\n    content_type: 'product',\\n    contents:\\\n  \\ [{\\n      id: 'i1',\\n      quantity: 1\\n    },{\\n      id: 'i2',\\n      quantity:\\\n  \\ 2\\n    }],\\n    currency: 'EUR',\\n    value: 5.00\\n  }\\n};\\n\\nconst scriptUrl\\\n  \\ = 'https://connect.facebook.net/en_US/fbevents.js';\\n\\n// Create injectScript\\\n  \\ mock\\nlet success, failure;\\nmock('injectScript', (url, onsuccess, onfailure)\\\n  \\ => {\\n  success = onsuccess;\\n  failure = onfailure;\\n  onsuccess();\\n});\\n\\n\\\n  mock('copyFromWindow', key => {\\n  if (key === 'fbq') return () => {};\\n});\"\n\n\n___NOTES___\n\nCreated on 18/05/2019, 21:57:16\n\n\n",
+        "galleryReference": {
+          "host": "github.com",
+          "owner": "facebookarchive",
+          "repository": "GoogleTagManager-WebTemplate-For-FacebookPixel",
+          "version": "11c004614f6b8f7cc999caabef521086116ce302",
+          "signature": "de30f66e675f24ef8640cea7175b615c94807fa8f027929f94c3d0b45a520d86"
+        }
+      }
+    ],
     "folder": [
       {
-        "folderId": "1",
-        "accountId": "0",
-        "containerId": "0",
-        "name": "ClickTrail — Setup (fill these in)"
+        "folderId": "200",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "name": "ClickTrail - Setup (fill these in)",
+        "fingerprint": "1780135800638"
       },
       {
-        "folderId": "2",
-        "accountId": "0",
-        "containerId": "0",
-        "name": "ClickTrail — Attribution Variables"
+        "folderId": "201",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "name": "ClickTrail - Attribution Variables",
+        "fingerprint": "1780135800638"
       },
       {
-        "folderId": "3",
-        "accountId": "0",
-        "containerId": "0",
-        "name": "ClickTrail — Tags"
+        "folderId": "202",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "name": "ClickTrail - GA4",
+        "fingerprint": "1780135800638"
+      },
+      {
+        "folderId": "203",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "name": "ClickTrail - Meta",
+        "fingerprint": "1780135800638"
+      },
+      {
+        "folderId": "204",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "name": "ClickTrail - Google Ads",
+        "fingerprint": "1780135800638"
+      },
+      {
+        "folderId": "205",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "name": "ClickTrail - Triggers",
+        "fingerprint": "1780135800638"
+      },
+      {
+        "folderId": "206",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "name": "ClickTrail - Data Layer",
+        "fingerprint": "1780135800638"
       }
     ],
     "variable": [
       {
-        "variableId": "1",
-        "accountId": "0",
-        "containerId": "0",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "201",
         "name": "CONST - GA4 Measurement ID",
         "type": "c",
         "parameter": [
-          { "type": "TEMPLATE", "key": "value", "value": "G-XXXXXXXXXX" }
+          {
+            "type": "TEMPLATE",
+            "key": "value",
+            "value": "G-XXXXXXXXXX"
+          }
         ],
-        "parentFolderId": "1",
-        "notes": "Replace G-XXXXXXXXXX with your GA4 Measurement ID."
+        "fingerprint": "1780135800638",
+        "parentFolderId": "200",
+        "notes": "Replace with your GA4 Measurement ID."
       },
       {
-        "variableId": "2",
-        "accountId": "0",
-        "containerId": "0",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "202",
         "name": "CONST - Ads Conversion ID",
         "type": "c",
         "parameter": [
-          { "type": "TEMPLATE", "key": "value", "value": "AW-XXXXXXXXX" }
+          {
+            "type": "TEMPLATE",
+            "key": "value",
+            "value": "XXXXXXXXX"
+          }
         ],
-        "parentFolderId": "1",
-        "notes": "Replace AW-XXXXXXXXX with your Google Ads Conversion ID. Leave blank to disable Google Ads tags."
+        "fingerprint": "1780135800638",
+        "parentFolderId": "200",
+        "notes": "NUMERIC conversion ID only — do NOT include the 'AW-' prefix. The Conversion Tracking tag (with a conversion label) only accepts the bare digits; the AW- form silently fails there. These are the digits in 'AW-XXXXXXXXX/<label>' before the slash. Used by the Google Ads conversion tags. Leave blank to disable."
       },
       {
-        "variableId": "3",
-        "accountId": "0",
-        "containerId": "0",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "203",
+        "name": "CONST - Ads Conversion ID (AW-)",
+        "type": "c",
+        "parameter": [
+          {
+            "type": "TEMPLATE",
+            "key": "value",
+            "value": "AW-XXXXXXXXX"
+          }
+        ],
+        "fingerprint": "1780135800638",
+        "parentFolderId": "200",
+        "notes": "Full 'AW-XXXXXXXXX' form. Used ONLY by 'Google Ads - Config' (the Google tag / gtag loader), which accepts the AW- prefix. Leave blank to disable the Google Ads global tag."
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "204",
         "name": "CONST - Ads Purchase Label",
         "type": "c",
         "parameter": [
-          { "type": "TEMPLATE", "key": "value", "value": "" }
+          {
+            "type": "TEMPLATE",
+            "key": "value",
+            "value": "AbCdEfGhIjK"
+          }
         ],
-        "parentFolderId": "1",
-        "notes": "Your Google Ads purchase conversion label (e.g. aBcDeFgHiJk). Found in Google Ads → Goals → Conversions."
+        "fingerprint": "1780135800638",
+        "parentFolderId": "200",
+        "notes": "Your Google Ads purchase conversion label. Found in Google Ads > Goals > Conversions."
       },
       {
-        "variableId": "4",
-        "accountId": "0",
-        "containerId": "0",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "205",
+        "name": "CONST - Ads Thank You Label",
+        "type": "c",
+        "parameter": [
+          {
+            "type": "TEMPLATE",
+            "key": "value",
+            "value": "AbCdEfGhIjK"
+          }
+        ],
+        "fingerprint": "1780135800638",
+        "parentFolderId": "200",
+        "notes": "Your Google Ads lead conversion label (thank-you page). Found in Google Ads > Goals > Conversions. Leave the default to keep the tag inactive until you set it."
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "206",
+        "name": "CONST - Thank You Page Path",
+        "type": "c",
+        "parameter": [
+          {
+            "type": "TEMPLATE",
+            "key": "value",
+            "value": "/thank-you"
+          }
+        ],
+        "fingerprint": "1780135800638",
+        "parentFolderId": "200",
+        "notes": "Path (or partial path) of the thank-you / success page used by your forms or booking flow. The Thank You trigger fires when Page Path 'contains' this string. Examples: /thank-you, /obrigado, /success, /contact/success."
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "207",
         "name": "CONST - Meta Pixel ID",
         "type": "c",
         "parameter": [
-          { "type": "TEMPLATE", "key": "value", "value": "" }
+          {
+            "type": "TEMPLATE",
+            "key": "value",
+            "value": "0000000000000"
+          }
         ],
-        "parentFolderId": "1",
-        "notes": "Your Meta Pixel ID (numbers only, e.g. 1234567890123). Leave blank to disable Meta Pixel tags."
+        "fingerprint": "1780135800638",
+        "parentFolderId": "200",
+        "notes": "Your Meta Pixel ID (numbers only). Leave blank to disable Meta tags."
       },
       {
-        "variableId": "5",
-        "accountId": "0",
-        "containerId": "0",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "208",
         "name": "CONST - sGTM Endpoint",
         "type": "c",
         "parameter": [
-          { "type": "TEMPLATE", "key": "value", "value": "" }
+          {
+            "type": "TEMPLATE",
+            "key": "value",
+            "value": "https://gtm.yourdomain.com"
+          }
         ],
-        "parentFolderId": "1",
-        "notes": "Your server-side GTM tagging server URL (e.g. https://gtm.yourdomain.com). Leave blank if not using sGTM."
+        "fingerprint": "1780135800638",
+        "parentFolderId": "200",
+        "notes": "Your server-side GTM URL. Leave blank if not using sGTM."
       },
       {
-        "variableId": "10",
-        "accountId": "0",
-        "containerId": "0",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "209",
         "name": "DLV - transaction_id",
         "type": "v",
         "parameter": [
-          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
-          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
-          { "type": "TEMPLATE", "key": "name", "value": "ecommerce.transaction_id" }
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "ecommerce.transaction_id"
+          }
         ],
-        "parentFolderId": "2"
+        "fingerprint": "1780135800638",
+        "parentFolderId": "206"
       },
       {
-        "variableId": "11",
-        "accountId": "0",
-        "containerId": "0",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "210",
         "name": "DLV - value",
         "type": "v",
         "parameter": [
-          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
-          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
-          { "type": "TEMPLATE", "key": "name", "value": "ecommerce.value" }
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "ecommerce.value"
+          }
         ],
-        "parentFolderId": "2"
+        "fingerprint": "1780135800638",
+        "parentFolderId": "206"
       },
       {
-        "variableId": "12",
-        "accountId": "0",
-        "containerId": "0",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "211",
         "name": "DLV - currency",
         "type": "v",
         "parameter": [
-          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
-          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
-          { "type": "TEMPLATE", "key": "name", "value": "ecommerce.currency" }
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "ecommerce.currency"
+          }
         ],
-        "parentFolderId": "2"
+        "fingerprint": "1780135800638",
+        "parentFolderId": "206"
       },
       {
-        "variableId": "13",
-        "accountId": "0",
-        "containerId": "0",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "212",
         "name": "DLV - items",
         "type": "v",
         "parameter": [
-          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
-          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
-          { "type": "TEMPLATE", "key": "name", "value": "ecommerce.items" }
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "ecommerce.items"
+          }
         ],
-        "parentFolderId": "2"
+        "fingerprint": "1780135800638",
+        "parentFolderId": "206"
       },
       {
-        "variableId": "14",
-        "accountId": "0",
-        "containerId": "0",
-        "name": "DLV - event_id",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "213",
+        "name": "DLV - coupon",
         "type": "v",
         "parameter": [
-          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
-          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
-          { "type": "TEMPLATE", "key": "name", "value": "event_id" }
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "ecommerce.coupon"
+          }
         ],
-        "parentFolderId": "2",
-        "notes": "Used for GA4 / Meta deduplication."
+        "fingerprint": "1780135800638",
+        "parentFolderId": "206"
       },
       {
-        "variableId": "15",
-        "accountId": "0",
-        "containerId": "0",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "214",
+        "name": "DLV - shipping",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "ecommerce.shipping"
+          }
+        ],
+        "fingerprint": "1780135800638",
+        "parentFolderId": "206"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "215",
+        "name": "DLV - tax",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "ecommerce.tax"
+          }
+        ],
+        "fingerprint": "1780135800638",
+        "parentFolderId": "206"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "216",
         "name": "DLV - ft_source",
         "type": "v",
         "parameter": [
-          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
-          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
-          { "type": "TEMPLATE", "key": "name", "value": "ft_source" }
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "ft_source"
+          }
         ],
-        "parentFolderId": "2"
+        "fingerprint": "1780135800638",
+        "parentFolderId": "201"
       },
       {
-        "variableId": "16",
-        "accountId": "0",
-        "containerId": "0",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "217",
         "name": "DLV - lt_source",
         "type": "v",
         "parameter": [
-          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
-          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
-          { "type": "TEMPLATE", "key": "name", "value": "lt_source" }
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "lt_source"
+          }
         ],
-        "parentFolderId": "2"
+        "fingerprint": "1780135800638",
+        "parentFolderId": "201"
       },
       {
-        "variableId": "17",
-        "accountId": "0",
-        "containerId": "0",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "218",
         "name": "DLV - ft_medium",
         "type": "v",
         "parameter": [
-          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
-          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
-          { "type": "TEMPLATE", "key": "name", "value": "ft_medium" }
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "ft_medium"
+          }
         ],
-        "parentFolderId": "2"
+        "fingerprint": "1780135800638",
+        "parentFolderId": "201"
       },
       {
-        "variableId": "18",
-        "accountId": "0",
-        "containerId": "0",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "219",
         "name": "DLV - lt_medium",
         "type": "v",
         "parameter": [
-          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
-          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
-          { "type": "TEMPLATE", "key": "name", "value": "lt_medium" }
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "lt_medium"
+          }
         ],
-        "parentFolderId": "2"
+        "fingerprint": "1780135800638",
+        "parentFolderId": "201"
       },
       {
-        "variableId": "19",
-        "accountId": "0",
-        "containerId": "0",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "220",
         "name": "DLV - ft_campaign",
         "type": "v",
         "parameter": [
-          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
-          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
-          { "type": "TEMPLATE", "key": "name", "value": "ft_campaign" }
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "ft_campaign"
+          }
         ],
-        "parentFolderId": "2"
+        "fingerprint": "1780135800638",
+        "parentFolderId": "201"
       },
       {
-        "variableId": "20",
-        "accountId": "0",
-        "containerId": "0",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "221",
         "name": "DLV - lt_campaign",
         "type": "v",
         "parameter": [
-          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
-          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
-          { "type": "TEMPLATE", "key": "name", "value": "lt_campaign" }
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "lt_campaign"
+          }
         ],
-        "parentFolderId": "2"
+        "fingerprint": "1780135800638",
+        "parentFolderId": "201"
       },
       {
-        "variableId": "21",
-        "accountId": "0",
-        "containerId": "0",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "222",
         "name": "DLV - ft_channel",
         "type": "v",
         "parameter": [
-          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
-          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
-          { "type": "TEMPLATE", "key": "name", "value": "ft_channel" }
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "ft_channel"
+          }
         ],
-        "parentFolderId": "2"
+        "fingerprint": "1780135800638",
+        "parentFolderId": "201"
       },
       {
-        "variableId": "22",
-        "accountId": "0",
-        "containerId": "0",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "223",
         "name": "DLV - lt_channel",
         "type": "v",
         "parameter": [
-          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
-          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
-          { "type": "TEMPLATE", "key": "name", "value": "lt_channel" }
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "lt_channel"
+          }
         ],
-        "parentFolderId": "2"
+        "fingerprint": "1780135800638",
+        "parentFolderId": "201"
       },
       {
-        "variableId": "23",
-        "accountId": "0",
-        "containerId": "0",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "224",
         "name": "DLV - gclid",
         "type": "v",
         "parameter": [
-          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
-          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
-          { "type": "TEMPLATE", "key": "name", "value": "gclid" }
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "gclid"
+          }
         ],
-        "parentFolderId": "2"
+        "fingerprint": "1780135800638",
+        "parentFolderId": "201"
       },
       {
-        "variableId": "24",
-        "accountId": "0",
-        "containerId": "0",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "225",
         "name": "DLV - fbclid",
         "type": "v",
         "parameter": [
-          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
-          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
-          { "type": "TEMPLATE", "key": "name", "value": "fbclid" }
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "fbclid"
+          }
         ],
-        "parentFolderId": "2"
+        "fingerprint": "1780135800638",
+        "parentFolderId": "201"
       },
       {
-        "variableId": "25",
-        "accountId": "0",
-        "containerId": "0",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "226",
         "name": "DLV - ga_client_id",
         "type": "v",
         "parameter": [
-          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
-          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
-          { "type": "TEMPLATE", "key": "name", "value": "user_data.ga_client_id" }
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "ga_client_id"
+          }
         ],
-        "parentFolderId": "2",
-        "notes": "Only populated when ClickTrail enhanced mode is active (woo_include_user_data: true)."
+        "fingerprint": "1780135800638",
+        "parentFolderId": "201"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "227",
+        "name": "DLV - event_id",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "event_id"
+          }
+        ],
+        "fingerprint": "1780135800638",
+        "parentFolderId": "201"
       }
     ],
     "trigger": [
       {
-        "triggerId": "1",
-        "accountId": "0",
-        "containerId": "0",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "triggerId": "201",
         "name": "All Pages",
-        "type": "PAGEVIEW"
+        "type": "PAGEVIEW",
+        "fingerprint": "1780135800638",
+        "parentFolderId": "205"
       },
       {
-        "triggerId": "2",
-        "accountId": "0",
-        "containerId": "0",
-        "name": "Consent Initialization — All Pages",
-        "type": "CONSENT_INIT"
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "triggerId": "202",
+        "name": "DOM Ready",
+        "type": "DOM_READY",
+        "fingerprint": "1780135800638",
+        "parentFolderId": "205"
       },
       {
-        "triggerId": "3",
-        "accountId": "0",
-        "containerId": "0",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "triggerId": "203",
+        "name": "Page View - Thank You Page",
+        "type": "PAGEVIEW",
+        "filter": [
+          {
+            "type": "CONTAINS",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{Page Path}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "{{CONST - Thank You Page Path}}"
+              }
+            ]
+          }
+        ],
+        "fingerprint": "1780135800638",
+        "parentFolderId": "205"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "triggerId": "204",
         "name": "CE - purchase",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
           {
             "type": "EQUALS",
             "parameter": [
-              { "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" },
-              { "type": "TEMPLATE", "key": "arg1", "value": "purchase" }
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "purchase"
+              }
             ]
           }
-        ]
+        ],
+        "fingerprint": "1780135800638",
+        "parentFolderId": "205"
       },
       {
-        "triggerId": "4",
-        "accountId": "0",
-        "containerId": "0",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "triggerId": "205",
         "name": "CE - add_to_cart",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
           {
             "type": "EQUALS",
             "parameter": [
-              { "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" },
-              { "type": "TEMPLATE", "key": "arg1", "value": "add_to_cart" }
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "add_to_cart"
+              }
             ]
           }
-        ]
+        ],
+        "fingerprint": "1780135800638",
+        "parentFolderId": "205"
       },
       {
-        "triggerId": "5",
-        "accountId": "0",
-        "containerId": "0",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "triggerId": "206",
         "name": "CE - begin_checkout",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
           {
             "type": "EQUALS",
             "parameter": [
-              { "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" },
-              { "type": "TEMPLATE", "key": "arg1", "value": "begin_checkout" }
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "begin_checkout"
+              }
             ]
           }
-        ]
+        ],
+        "fingerprint": "1780135800638",
+        "parentFolderId": "205"
       },
       {
-        "triggerId": "6",
-        "accountId": "0",
-        "containerId": "0",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "triggerId": "207",
         "name": "CE - view_item",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
           {
             "type": "EQUALS",
             "parameter": [
-              { "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" },
-              { "type": "TEMPLATE", "key": "arg1", "value": "view_item" }
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "view_item"
+              }
             ]
           }
-        ]
+        ],
+        "fingerprint": "1780135800638",
+        "parentFolderId": "205"
       },
       {
-        "triggerId": "7",
-        "accountId": "0",
-        "containerId": "0",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "triggerId": "208",
         "name": "CE - view_item_list",
         "type": "CUSTOM_EVENT",
         "customEventFilter": [
           {
             "type": "EQUALS",
             "parameter": [
-              { "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" },
-              { "type": "TEMPLATE", "key": "arg1", "value": "view_item_list" }
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "view_item_list"
+              }
             ]
           }
-        ]
+        ],
+        "fingerprint": "1780135800638",
+        "parentFolderId": "205"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "triggerId": "209",
+        "name": "LC - form_submit",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "form_submit"
+              }
+            ]
+          }
+        ],
+        "fingerprint": "1780135800638",
+        "parentFolderId": "205"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "triggerId": "210",
+        "name": "LC - email_click",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "email_click"
+              }
+            ]
+          }
+        ],
+        "fingerprint": "1780135800638",
+        "parentFolderId": "205"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "triggerId": "211",
+        "name": "LC - phone_click",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "phone_click"
+              }
+            ]
+          }
+        ],
+        "fingerprint": "1780135800638",
+        "parentFolderId": "205"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "triggerId": "212",
+        "name": "LC - whatsapp_click",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "whatsapp_click"
+              }
+            ]
+          }
+        ],
+        "fingerprint": "1780135800638",
+        "parentFolderId": "205"
       }
     ],
     "tag": [
       {
-        "tagId": "1",
-        "accountId": "0",
-        "containerId": "0",
-        "name": "Consent Mode — Defaults",
-        "type": "html",
-        "parameter": [
-          {
-            "type": "TEMPLATE",
-            "key": "html",
-            "value": "<script>\nwindow.dataLayer = window.dataLayer || [];\nfunction gtag(){dataLayer.push(arguments);}\ngtag('consent', 'default', {\n  'ad_storage': 'denied',\n  'analytics_storage': 'denied',\n  'ad_user_data': 'denied',\n  'ad_personalization': 'denied',\n  'wait_for_update': 500\n});\ngtag('set', 'ads_data_redaction', true);\ngtag('set', 'url_passthrough', true);\n</script>"
-          },
-          { "type": "BOOLEAN", "key": "supportDocumentWrite", "value": "false" }
-        ],
-        "firingTriggerId": ["2"],
-        "parentFolderId": "3",
-        "notes": "Sets consent defaults before any other tags fire. Adjust defaults to match your CMP. ClickTrail updates consent via the Consent Bridge."
-      },
-      {
-        "tagId": "2",
-        "accountId": "0",
-        "containerId": "0",
-        "name": "Google tag — Config",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "tagId": "201",
+        "name": "GA4 - Config",
         "type": "googtag",
         "parameter": [
-          { "type": "TEMPLATE", "key": "tagId", "value": "{{CONST - GA4 Measurement ID}}" }
-        ],
-        "firingTriggerId": ["1"],
-        "parentFolderId": "3"
-      },
-      {
-        "tagId": "3",
-        "accountId": "0",
-        "containerId": "0",
-        "name": "Conversion Linker",
-        "type": "clt",
-        "parameter": [
-          { "type": "BOOLEAN", "key": "enableCrossDomain", "value": "false" }
-        ],
-        "firingTriggerId": ["1"],
-        "parentFolderId": "3",
-        "notes": "Required for gclid to survive cross-domain hops. ClickTrail's link decoration handles the UTM/click-ID passthrough; this tag handles Google's own linker protocol."
-      },
-      {
-        "tagId": "4",
-        "accountId": "0",
-        "containerId": "0",
-        "name": "Meta Pixel — PageView",
-        "type": "html",
-        "parameter": [
           {
             "type": "TEMPLATE",
-            "key": "html",
-            "value": "<script>\n!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?\nn.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;\nn.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;\nt.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,\ndocument,'script','https://connect.facebook.net/en_US/fbevents.js');\nfbq('init', '{{CONST - Meta Pixel ID}}');\nfbq('track', 'PageView');\n</script>"
+            "key": "tagId",
+            "value": "{{CONST - GA4 Measurement ID}}"
           },
-          { "type": "BOOLEAN", "key": "supportDocumentWrite", "value": "false" }
-        ],
-        "firingTriggerId": ["1"],
-        "parentFolderId": "3",
-        "notes": "Basic Meta Pixel base code. Only fires if CONST - Meta Pixel ID is set."
-      },
-      {
-        "tagId": "5",
-        "accountId": "0",
-        "containerId": "0",
-        "name": "GA4 Event — purchase",
-        "type": "gaawc",
-        "parameter": [
-          { "type": "BOOLEAN", "key": "sendEcommerceData", "value": "true" },
-          { "type": "TEMPLATE", "key": "getEcommerceData", "value": "dataLayer" },
-          { "type": "TEMPLATE", "key": "eventName", "value": "purchase" },
-          { "type": "TEMPLATE", "key": "measurementIdOverride", "value": "{{CONST - GA4 Measurement ID}}" },
           {
             "type": "LIST",
-            "key": "eventParameters",
+            "key": "configSettingsTable",
             "list": [
-              { "type": "MAP", "map": [
-                { "type": "TEMPLATE", "key": "name",  "value": "transaction_id" },
-                { "type": "TEMPLATE", "key": "value", "value": "{{DLV - transaction_id}}" }
-              ]},
-              { "type": "MAP", "map": [
-                { "type": "TEMPLATE", "key": "name",  "value": "event_id" },
-                { "type": "TEMPLATE", "key": "value", "value": "{{DLV - event_id}}" }
-              ]},
-              { "type": "MAP", "map": [
-                { "type": "TEMPLATE", "key": "name",  "value": "ft_source" },
-                { "type": "TEMPLATE", "key": "value", "value": "{{DLV - ft_source}}" }
-              ]},
-              { "type": "MAP", "map": [
-                { "type": "TEMPLATE", "key": "name",  "value": "lt_source" },
-                { "type": "TEMPLATE", "key": "value", "value": "{{DLV - lt_source}}" }
-              ]},
-              { "type": "MAP", "map": [
-                { "type": "TEMPLATE", "key": "name",  "value": "ft_medium" },
-                { "type": "TEMPLATE", "key": "value", "value": "{{DLV - ft_medium}}" }
-              ]},
-              { "type": "MAP", "map": [
-                { "type": "TEMPLATE", "key": "name",  "value": "lt_medium" },
-                { "type": "TEMPLATE", "key": "value", "value": "{{DLV - lt_medium}}" }
-              ]},
-              { "type": "MAP", "map": [
-                { "type": "TEMPLATE", "key": "name",  "value": "ft_campaign" },
-                { "type": "TEMPLATE", "key": "value", "value": "{{DLV - ft_campaign}}" }
-              ]},
-              { "type": "MAP", "map": [
-                { "type": "TEMPLATE", "key": "name",  "value": "lt_campaign" },
-                { "type": "TEMPLATE", "key": "value", "value": "{{DLV - lt_campaign}}" }
-              ]},
-              { "type": "MAP", "map": [
-                { "type": "TEMPLATE", "key": "name",  "value": "ft_channel" },
-                { "type": "TEMPLATE", "key": "value", "value": "{{DLV - ft_channel}}" }
-              ]},
-              { "type": "MAP", "map": [
-                { "type": "TEMPLATE", "key": "name",  "value": "lt_channel" },
-                { "type": "TEMPLATE", "key": "value", "value": "{{DLV - lt_channel}}" }
-              ]},
-              { "type": "MAP", "map": [
-                { "type": "TEMPLATE", "key": "name",  "value": "gclid" },
-                { "type": "TEMPLATE", "key": "value", "value": "{{DLV - gclid}}" }
-              ]},
-              { "type": "MAP", "map": [
-                { "type": "TEMPLATE", "key": "name",  "value": "fbclid" },
-                { "type": "TEMPLATE", "key": "value", "value": "{{DLV - fbclid}}" }
-              ]}
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "server_container_url"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{CONST - sGTM Endpoint}}"
+                  }
+                ]
+              }
             ]
           }
         ],
-        "firingTriggerId": ["3"],
-        "parentFolderId": "3",
-        "notes": "Fires on ClickTrail's purchase event. All attribution fields (ft_/lt_ series) are included as custom event parameters and will appear in GA4 Explorations and BigQuery exports."
-      },
-      {
-        "tagId": "6",
-        "accountId": "0",
-        "containerId": "0",
-        "name": "Google Ads — Purchase Conversion",
-        "type": "awct",
-        "parameter": [
-          { "type": "TEMPLATE", "key": "conversionId",    "value": "{{CONST - Ads Conversion ID}}" },
-          { "type": "TEMPLATE", "key": "conversionLabel", "value": "{{CONST - Ads Purchase Label}}" },
-          { "type": "TEMPLATE", "key": "conversionValue", "value": "{{DLV - value}}" },
-          { "type": "TEMPLATE", "key": "currencyCode",    "value": "{{DLV - currency}}" },
-          { "type": "TEMPLATE", "key": "orderId",         "value": "{{DLV - transaction_id}}" },
-          { "type": "BOOLEAN",  "key": "enableDynamicRemarketing", "value": "false" }
+        "fingerprint": "1780135800638",
+        "firingTriggerId": [
+          "201"
         ],
-        "firingTriggerId": ["3"],
-        "parentFolderId": "3"
+        "priority": {
+          "type": "INTEGER",
+          "value": "20"
+        },
+        "parentFolderId": "202",
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        },
+        "notes": "Initializes GA4 via the Google tag. All GA4 event tags use measurementIdOverride."
       },
       {
-        "tagId": "7",
-        "accountId": "0",
-        "containerId": "0",
-        "name": "Meta Pixel — Purchase",
-        "type": "html",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "tagId": "202",
+        "name": "Google Ads - Config",
+        "type": "googtag",
         "parameter": [
           {
             "type": "TEMPLATE",
-            "key": "html",
-            "value": "<script>\nfbq('track', 'Purchase', {\n  value: {{DLV - value}},\n  currency: '{{DLV - currency}}',\n  order_id: '{{DLV - transaction_id}}',\n  content_type: 'product'\n}, {\n  eventID: '{{DLV - event_id}}'\n});\n</script>"
+            "key": "tagId",
+            "value": "{{CONST - Ads Conversion ID (AW-)}}"
+          }
+        ],
+        "fingerprint": "1780135800638",
+        "firingTriggerId": [
+          "201"
+        ],
+        "priority": {
+          "type": "INTEGER",
+          "value": "15"
+        },
+        "parentFolderId": "204",
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "tagId": "203",
+        "name": "Google Ads - Conversion Linker",
+        "type": "gclidw",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "enableCrossDomain",
+            "value": "false"
+          }
+        ],
+        "fingerprint": "1780135800638",
+        "firingTriggerId": [
+          "201"
+        ],
+        "parentFolderId": "204",
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        },
+        "setupTag": [
+          {
+            "tagName": "Google Ads - Config",
+            "stopOnSetupFailure": false
+          }
+        ]
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "tagId": "204",
+        "name": "Google Ads - Purchase Conversion",
+        "type": "awct",
+        "parameter": [
+          {
+            "type": "TEMPLATE",
+            "key": "conversionId",
+            "value": "{{CONST - Ads Conversion ID}}"
           },
-          { "type": "BOOLEAN", "key": "supportDocumentWrite", "value": "false" }
+          {
+            "type": "TEMPLATE",
+            "key": "conversionLabel",
+            "value": "{{CONST - Ads Purchase Label}}"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "conversionValue",
+            "value": "{{DLV - value}}"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "currencyCode",
+            "value": "{{DLV - currency}}"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "orderId",
+            "value": "{{DLV - transaction_id}}"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "enableNewCustomerReporting",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "enableConversionLinker",
+            "value": "true"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "enableProductReporting",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "enableShippingData",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "rdp",
+            "value": "false"
+          }
         ],
-        "firingTriggerId": ["3"],
-        "parentFolderId": "3",
-        "notes": "Uses event_id from ClickTrail for server-side deduplication against Meta's Conversions API."
+        "fingerprint": "1780135800638",
+        "firingTriggerId": [
+          "204"
+        ],
+        "parentFolderId": "204",
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        },
+        "setupTag": [
+          {
+            "tagName": "Google Ads - Config",
+            "stopOnSetupFailure": false
+          }
+        ]
       },
       {
-        "tagId": "8",
-        "accountId": "0",
-        "containerId": "0",
-        "name": "GA4 Event — add_to_cart",
-        "type": "gaawc",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "tagId": "205",
+        "name": "Google Ads - Thank You Conversion",
+        "type": "awct",
         "parameter": [
-          { "type": "BOOLEAN",  "key": "sendEcommerceData",     "value": "true" },
-          { "type": "TEMPLATE", "key": "getEcommerceData",      "value": "dataLayer" },
-          { "type": "TEMPLATE", "key": "eventName",             "value": "add_to_cart" },
-          { "type": "TEMPLATE", "key": "measurementIdOverride", "value": "{{CONST - GA4 Measurement ID}}" }
+          {
+            "type": "TEMPLATE",
+            "key": "conversionId",
+            "value": "{{CONST - Ads Conversion ID}}"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "conversionLabel",
+            "value": "{{CONST - Ads Thank You Label}}"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "enableNewCustomerReporting",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "enableConversionLinker",
+            "value": "true"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "enableProductReporting",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "enableShippingData",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "rdp",
+            "value": "false"
+          }
         ],
-        "firingTriggerId": ["4"],
-        "parentFolderId": "3"
+        "fingerprint": "1780135800638",
+        "firingTriggerId": [
+          "203"
+        ],
+        "parentFolderId": "204",
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        },
+        "setupTag": [
+          {
+            "tagName": "Google Ads - Config",
+            "stopOnSetupFailure": false
+          }
+        ],
+        "notes": "Fires when the user reaches a page whose path contains {{CONST - Thank You Page Path}}. Use this when your form submit or booking completion redirects to a thank-you page and that page IS the main Google Ads conversion (lead-gen pattern). Set CONST - Ads Thank You Label and CONST - Thank You Page Path before publishing."
       },
       {
-        "tagId": "9",
-        "accountId": "0",
-        "containerId": "0",
-        "name": "GA4 Event — begin_checkout",
-        "type": "gaawc",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "tagId": "206",
+        "name": "GA4 Event - purchase",
+        "type": "gaawe",
         "parameter": [
-          { "type": "BOOLEAN",  "key": "sendEcommerceData",     "value": "true" },
-          { "type": "TEMPLATE", "key": "getEcommerceData",      "value": "dataLayer" },
-          { "type": "TEMPLATE", "key": "eventName",             "value": "begin_checkout" },
-          { "type": "TEMPLATE", "key": "measurementIdOverride", "value": "{{CONST - GA4 Measurement ID}}" }
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "enhancedUserId",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "purchase"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "{{CONST - GA4 Measurement ID}}"
+          },
+          {
+            "type": "LIST",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "currency"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - currency}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "value"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - value}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "transaction_id"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - transaction_id}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "coupon"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - coupon}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "shipping"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - shipping}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "tax"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - tax}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "items"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - items}}"
+                  }
+                ]
+              }
+            ]
+          }
         ],
-        "firingTriggerId": ["5"],
-        "parentFolderId": "3"
+        "fingerprint": "1780135800638",
+        "firingTriggerId": [
+          "204"
+        ],
+        "parentFolderId": "202",
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
       },
       {
-        "tagId": "10",
-        "accountId": "0",
-        "containerId": "0",
-        "name": "GA4 Event — view_item",
-        "type": "gaawc",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "tagId": "207",
+        "name": "GA4 Event - add_to_cart",
+        "type": "gaawe",
         "parameter": [
-          { "type": "BOOLEAN",  "key": "sendEcommerceData",     "value": "true" },
-          { "type": "TEMPLATE", "key": "getEcommerceData",      "value": "dataLayer" },
-          { "type": "TEMPLATE", "key": "eventName",             "value": "view_item" },
-          { "type": "TEMPLATE", "key": "measurementIdOverride", "value": "{{CONST - GA4 Measurement ID}}" }
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "enhancedUserId",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "add_to_cart"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "{{CONST - GA4 Measurement ID}}"
+          },
+          {
+            "type": "LIST",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "currency"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - currency}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "value"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - value}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "items"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - items}}"
+                  }
+                ]
+              }
+            ]
+          }
         ],
-        "firingTriggerId": ["6"],
-        "parentFolderId": "3",
-        "notes": "Requires ClickTrail storefront events enabled."
+        "fingerprint": "1780135800638",
+        "firingTriggerId": [
+          "205"
+        ],
+        "parentFolderId": "202",
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
       },
       {
-        "tagId": "11",
-        "accountId": "0",
-        "containerId": "0",
-        "name": "GA4 Event — view_item_list",
-        "type": "gaawc",
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "tagId": "208",
+        "name": "GA4 Event - begin_checkout",
+        "type": "gaawe",
         "parameter": [
-          { "type": "BOOLEAN",  "key": "sendEcommerceData",     "value": "true" },
-          { "type": "TEMPLATE", "key": "getEcommerceData",      "value": "dataLayer" },
-          { "type": "TEMPLATE", "key": "eventName",             "value": "view_item_list" },
-          { "type": "TEMPLATE", "key": "measurementIdOverride", "value": "{{CONST - GA4 Measurement ID}}" }
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "enhancedUserId",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "begin_checkout"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "{{CONST - GA4 Measurement ID}}"
+          },
+          {
+            "type": "LIST",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "currency"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - currency}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "value"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - value}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "items"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - items}}"
+                  }
+                ]
+              }
+            ]
+          }
         ],
-        "firingTriggerId": ["7"],
-        "parentFolderId": "3",
-        "notes": "Requires ClickTrail storefront events enabled."
+        "fingerprint": "1780135800638",
+        "firingTriggerId": [
+          "206"
+        ],
+        "parentFolderId": "202",
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "tagId": "209",
+        "name": "GA4 Event - view_item",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "enhancedUserId",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "view_item"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "{{CONST - GA4 Measurement ID}}"
+          },
+          {
+            "type": "LIST",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "currency"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - currency}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "value"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - value}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "items"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - items}}"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "fingerprint": "1780135800638",
+        "firingTriggerId": [
+          "207"
+        ],
+        "parentFolderId": "202",
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "tagId": "210",
+        "name": "GA4 Event - view_item_list",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "enhancedUserId",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "view_item_list"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "{{CONST - GA4 Measurement ID}}"
+          },
+          {
+            "type": "LIST",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "items"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - items}}"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "fingerprint": "1780135800638",
+        "firingTriggerId": [
+          "208"
+        ],
+        "parentFolderId": "202",
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "tagId": "211",
+        "name": "GA4 Event - form_submit",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "enhancedUserId",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "form_submit"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "{{CONST - GA4 Measurement ID}}"
+          }
+        ],
+        "fingerprint": "1780135800638",
+        "firingTriggerId": [
+          "209"
+        ],
+        "parentFolderId": "202",
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "tagId": "212",
+        "name": "GA4 Event - email_click",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "enhancedUserId",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "email_click"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "{{CONST - GA4 Measurement ID}}"
+          }
+        ],
+        "fingerprint": "1780135800638",
+        "firingTriggerId": [
+          "210"
+        ],
+        "parentFolderId": "202",
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "tagId": "213",
+        "name": "GA4 Event - phone_click",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "enhancedUserId",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "phone_click"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "{{CONST - GA4 Measurement ID}}"
+          }
+        ],
+        "fingerprint": "1780135800638",
+        "firingTriggerId": [
+          "211"
+        ],
+        "parentFolderId": "202",
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "tagId": "214",
+        "name": "GA4 Event - whatsapp_click",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "sendEcommerceData",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "enhancedUserId",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "whatsapp_click"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "measurementIdOverride",
+            "value": "{{CONST - GA4 Measurement ID}}"
+          }
+        ],
+        "fingerprint": "1780135800638",
+        "firingTriggerId": [
+          "212"
+        ],
+        "parentFolderId": "202",
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "tagId": "215",
+        "name": "Meta Pixel - PageView",
+        "type": "cvt_187414573_21",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "disablePushState",
+            "value": "true"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "pixelId",
+            "value": "{{CONST - Meta Pixel ID}}"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "standardEventName",
+            "value": "PageView"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "disableAutoConfig",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "enhancedEcommerce",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "dpoLDU",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "standard"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "objectPropertiesFromVariable",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "consent",
+            "value": "true"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "advancedMatching",
+            "value": "false"
+          }
+        ],
+        "fingerprint": "1780135800638",
+        "firingTriggerId": [
+          "202"
+        ],
+        "parentFolderId": "203",
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "tagId": "216",
+        "name": "Meta Pixel - Purchase",
+        "type": "cvt_187414573_21",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "disablePushState",
+            "value": "true"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "pixelId",
+            "value": "{{CONST - Meta Pixel ID}}"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "standardEventName",
+            "value": "Purchase"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "disableAutoConfig",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "enhancedEcommerce",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "dpoLDU",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "standard"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "objectPropertiesFromVariable",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "consent",
+            "value": "true"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "advancedMatching",
+            "value": "false"
+          }
+        ],
+        "fingerprint": "1780135800638",
+        "firingTriggerId": [
+          "204"
+        ],
+        "parentFolderId": "203",
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "tagId": "217",
+        "name": "Meta Pixel - Lead",
+        "type": "cvt_187414573_21",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "disablePushState",
+            "value": "true"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "pixelId",
+            "value": "{{CONST - Meta Pixel ID}}"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "standardEventName",
+            "value": "Lead"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "disableAutoConfig",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "enhancedEcommerce",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "dpoLDU",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "standard"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "objectPropertiesFromVariable",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "consent",
+            "value": "true"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "advancedMatching",
+            "value": "false"
+          }
+        ],
+        "fingerprint": "1780135800639",
+        "firingTriggerId": [
+          "209"
+        ],
+        "parentFolderId": "203",
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "tagId": "218",
+        "name": "Meta Pixel - AddToCart",
+        "type": "cvt_187414573_21",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "disablePushState",
+            "value": "true"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "pixelId",
+            "value": "{{CONST - Meta Pixel ID}}"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "standardEventName",
+            "value": "AddToCart"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "disableAutoConfig",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "enhancedEcommerce",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "dpoLDU",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "standard"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "objectPropertiesFromVariable",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "consent",
+            "value": "true"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "advancedMatching",
+            "value": "false"
+          }
+        ],
+        "fingerprint": "1780135800639",
+        "firingTriggerId": [
+          "205"
+        ],
+        "parentFolderId": "203",
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "tagId": "219",
+        "name": "Meta Pixel - InitiateCheckout",
+        "type": "cvt_187414573_21",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "disablePushState",
+            "value": "true"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "pixelId",
+            "value": "{{CONST - Meta Pixel ID}}"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "standardEventName",
+            "value": "InitiateCheckout"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "disableAutoConfig",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "enhancedEcommerce",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "dpoLDU",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "standard"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "objectPropertiesFromVariable",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "consent",
+            "value": "true"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "advancedMatching",
+            "value": "false"
+          }
+        ],
+        "fingerprint": "1780135800639",
+        "firingTriggerId": [
+          "206"
+        ],
+        "parentFolderId": "203",
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "tagId": "220",
+        "name": "Meta Pixel - ViewContent",
+        "type": "cvt_187414573_21",
+        "parameter": [
+          {
+            "type": "BOOLEAN",
+            "key": "disablePushState",
+            "value": "true"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "pixelId",
+            "value": "{{CONST - Meta Pixel ID}}"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "standardEventName",
+            "value": "ViewContent"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "disableAutoConfig",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "enhancedEcommerce",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "dpoLDU",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "standard"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "objectPropertiesFromVariable",
+            "value": "false"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "consent",
+            "value": "true"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "advancedMatching",
+            "value": "false"
+          }
+        ],
+        "fingerprint": "1780135800639",
+        "firingTriggerId": [
+          "207"
+        ],
+        "parentFolderId": "203",
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "monitoringMetadata": {
+          "type": "MAP"
+        },
+        "consentSettings": {
+          "consentStatus": "NOT_SET"
+        }
       }
-    ],
-    "builtInVariable": [
-      { "accountId": "0", "containerId": "0", "type": "PAGE_URL",      "name": "Page URL" },
-      { "accountId": "0", "containerId": "0", "type": "PAGE_HOSTNAME", "name": "Page Hostname" },
-      { "accountId": "0", "containerId": "0", "type": "PAGE_PATH",     "name": "Page Path" },
-      { "accountId": "0", "containerId": "0", "type": "REFERRER",      "name": "Referrer" },
-      { "accountId": "0", "containerId": "0", "type": "EVENT",         "name": "Event" }
     ]
   }
 }
