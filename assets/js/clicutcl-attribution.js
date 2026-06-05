@@ -289,6 +289,28 @@
         };
     }
 
+    // utm_medium values that mark a visit as PAID — keeps a visit classified as
+    // paid even when the click ID was consent-stripped or never present. This
+    // file is a reference mirror of the canonical Apointoo TS classifier
+    // (apointoo-dashboard/src/shared/lib/channel-classify.ts `PAID_MEDIUMS`).
+    var PAID_MEDIUMS = ['cpc', 'ppc', 'paid', 'paidsearch', 'paid_social'];
+
+    // Map a paid visit's utm_source onto its ad-network label; coarse Paid
+    // Social / Paid Search fallback so a paid visit never degrades to organic.
+    // Mirror of the Apointoo TS `paidLabelFromSource()`.
+    function paidLabelFromSource(source, medium) {
+        if (['google', 'google ads', 'googleads', 'youtube', 'gdn'].indexOf(source) !== -1) return 'Google Ads';
+        if (['bing', 'microsoft', 'msn'].indexOf(source) !== -1) return 'Microsoft Ads';
+        if (['facebook', 'meta', 'instagram', 'fb', 'ig'].indexOf(source) !== -1) return 'Facebook Ads';
+        if (source === 'linkedin') return 'LinkedIn Ads';
+        if (['twitter', 'x'].indexOf(source) !== -1) return 'X Ads';
+        if (source === 'reddit') return 'Reddit Ads';
+        if (source === 'tiktok') return 'TikTok Ads';
+        if (source === 'pinterest') return 'Pinterest Ads';
+        if (['snapchat', 'snap'].indexOf(source) !== -1) return 'Snapchat Ads';
+        return medium === 'paid_social' ? 'Paid Social' : 'Paid Search';
+    }
+
     function resolveChannelLabel(params, referrer) {
         // Paid click IDs — highest priority, checked before referrer
         if (params.gclid || params.gbraid || params.wbraid) return 'Google Ads';
@@ -302,10 +324,8 @@
         if (params.dclid) return 'Display & Video 360';
 
         // fbclid: Ads only when a paid medium is also present
-        if (params.fbclid) {
-            var med = sanitizeValue(params.utm_medium || '', 64).toLowerCase();
-            if (med === 'cpc' || med === 'paid_social' || med === 'paid') return 'Facebook Ads';
-        }
+        var med = sanitizeValue(params.utm_medium || '', 64).toLowerCase();
+        if (params.fbclid && PAID_MEDIUMS.indexOf(med) !== -1) return 'Facebook Ads';
 
         // Email platform signals
         if (params.mc_cid || params.mc_eid) return 'Mailchimp';
@@ -313,6 +333,10 @@
         if (utmSrc === 'hubspot' || params.hs_cta) return 'HubSpot';
         if (utmSrc === 'pardot' || params.pi_u) return 'Salesforce Pardot';
         if (utmSrc === 'constantcontact') return 'Constant Contact';
+
+        // Paid medium with no surviving click ID — classify by source before the
+        // referrer block so a paid Google visit does not fall through to organic
+        if (PAID_MEDIUMS.indexOf(med) !== -1) return paidLabelFromSource(utmSrc, med);
 
         // Referrer-based classification
         var refUrl = parseUrlSafely(referrer);
