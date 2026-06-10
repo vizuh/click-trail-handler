@@ -147,7 +147,7 @@ class Plugin {
 		// Reactivate when in-plugin distribution is ready.
 		// if ( class_exists( 'CLICUTCL\\Admin\\GTM_Lead_Magnet' ) ) {
 		// \CLICUTCL\Admin\GTM_Lead_Magnet::init();
-		// }
+		// }.
 	}
 
 	/**

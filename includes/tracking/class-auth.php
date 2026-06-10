@@ -191,7 +191,7 @@ class Auth {
 	 * @return string
 	 */
 	private static function base64url_encode( string $data ): string {
-		return rtrim( strtr( base64_encode( $data ), '+/', '-_' ), '=' );
+		return rtrim( strtr( base64_encode( $data ), '+/', '-_' ), '=' ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Base64URL token encoding for signed payloads, not code obfuscation.
 	}
 
 	/**
@@ -206,7 +206,7 @@ class Auth {
 			$data .= str_repeat( '=', 4 - $remainder );
 		}
 
-		$decoded = base64_decode( strtr( $data, '-_', '+/' ), true );
+		$decoded = base64_decode( strtr( $data, '-_', '+/' ), true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Base64URL token decoding for signed payloads, not code obfuscation.
 		return false === $decoded ? '' : $decoded;
 	}
 }

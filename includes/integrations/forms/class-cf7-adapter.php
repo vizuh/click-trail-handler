@@ -42,7 +42,7 @@ class CF7_Adapter extends Abstract_Form_Adapter {
 	public function register_hooks() {
 		add_filter( 'wpcf7_form_hidden_fields', array( $this, 'add_hidden_fields' ) );
 
-		// Log submission
+		// Log submission.
 		add_action( 'wpcf7_before_send_mail', array( $this, 'on_submission' ), 10, 3 );
 	}
 
@@ -69,7 +69,7 @@ class CF7_Adapter extends Abstract_Form_Adapter {
 	/**
 	 * Interface compliance.
 	 *
-	 * @param mixed $form_or_context
+	 * @param mixed $form_or_context Form or context passed through unchanged.
 	 * @return mixed
 	 */
 	public function populate_fields( $form_or_context ) {
@@ -107,9 +107,9 @@ class CF7_Adapter extends Abstract_Form_Adapter {
 
 		$attribution = array();
 
-		// Check provider existence to prevent fatal if core is messed up
+		// Check provider existence to prevent fatal if core is messed up.
 		if ( class_exists( 'CLICUTCL\Core\Attribution_Provider' ) && is_callable( array( 'CLICUTCL\Core\Attribution_Provider', 'get_field_mapping' ) ) ) {
-			// We iterate our known mapping to extract
+			// We iterate our known mapping to extract.
 			$keys = Attribution_Provider::get_field_mapping();
 			foreach ( $keys as $key ) {
 				$prefixed = $this->get_field_name( $key );

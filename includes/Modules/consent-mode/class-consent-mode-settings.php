@@ -180,7 +180,7 @@ class Consent_Mode_Settings extends Setting {
 	/**
 	 * Whether runtime attribution/event collection should require consent now.
 	 *
-	 * strict  => always required.
+	 * Strict  => always required.
 	 * relaxed => never required.
 	 * geo     => required only when request region matches configured regions.
 	 *

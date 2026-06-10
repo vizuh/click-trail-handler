@@ -49,11 +49,11 @@ class Log_List_Table extends \WP_List_Table {
 
 		$this->_column_headers = array( $columns, $hidden, $sortable );
 
-		// Pagination
+		// Pagination.
 		$current_page = $this->get_pagenum();
 		$offset       = ( $current_page - 1 ) * $per_page;
 
-		// Sorting
+		// Sorting.
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- List table sorting only, no state change; validated via whitelist below.
 		$orderby_raw = isset( $_GET['orderby'] ) ? wp_unslash( $_GET['orderby'] ) : 'created_at';
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- List table sorting only, no state change; validated via whitelist below.
@@ -63,13 +63,13 @@ class Log_List_Table extends \WP_List_Table {
 		$orderby       = in_array( $orderby_raw, $valid_orderby, true ) ? $orderby_raw : 'created_at';
 		$order         = ( 'ASC' === strtoupper( $order_raw ) ) ? 'ASC' : 'DESC';
 
-		// Count total items
-		// Count total items
+		// Count total items.
+		// Count total items.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned and escaped; cannot be parameterized as a value.
 		$total_items = (int) $wpdb->get_var( "SELECT COUNT(id) FROM {$table_name_escaped}" );
 
-		// Fetch items
-		// Fetch items
+		// Fetch items.
+		// Fetch items.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Admin-only query: table is plugin-owned and escaped; ORDER BY identifiers are whitelisted; LIMIT/OFFSET use placeholders.
 		$this->items = $wpdb->get_results(
 			$wpdb->prepare(
@@ -111,7 +111,7 @@ class Log_List_Table extends \WP_List_Table {
 	 */
 	protected function get_sortable_columns() {
 		return array(
-			'created_at' => array( 'created_at', true ), // True means already sorted
+			'created_at' => array( 'created_at', true ), // True means already sorted.
 			'event_type' => array( 'event_type', false ),
 		);
 	}

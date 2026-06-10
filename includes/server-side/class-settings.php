@@ -43,7 +43,7 @@ class Settings {
 		$site = is_array( $site_cache ) ? $site_cache : array();
 
 		if ( is_multisite() ) {
-			$use_network = ! isset( $site['use_network'] ) || (int) $site['use_network'] === 1;
+			$use_network = ! isset( $site['use_network'] ) || 1 === (int) $site['use_network'];
 			if ( null === $network_cache ) {
 				$network_cache = get_site_option( self::OPTION_NETWORK, array() );
 			}

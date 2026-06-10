@@ -223,8 +223,8 @@ trait Tracking_Controller_Security_Trait {
 		list( $subnet, $mask_bits ) = explode( '/', $cidr, 2 );
 		$mask_bits                  = (int) $mask_bits;
 
-		$ip_bin     = @inet_pton( $ip );
-		$subnet_bin = @inet_pton( $subnet );
+		$ip_bin     = @inet_pton( $ip ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Suppress warning on malformed IP input; false return is checked below.
+		$subnet_bin = @inet_pton( $subnet ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged -- Suppress warning on malformed subnet input; false return is checked below.
 		if ( false === $ip_bin || false === $subnet_bin || strlen( $ip_bin ) !== strlen( $subnet_bin ) ) {
 			return false;
 		}

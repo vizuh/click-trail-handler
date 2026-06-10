@@ -54,6 +54,8 @@ interface Form_Adapter_Interface {
 	 *
 	 * Note: Arguments vary by platform.
 	 *
+	 * @param mixed $arg1 First submission argument (varies by platform).
+	 * @param mixed $arg2 Second submission argument (varies by platform).
 	 * @return void
 	 */
 	public function on_submission( $arg1, $arg2 );

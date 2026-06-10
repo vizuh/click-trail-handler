@@ -759,7 +759,7 @@ class Settings {
 			return $value;
 		}
 
-		$payload = base64_encode( $iv . $tag . $ciphertext );
+		$payload = base64_encode( $iv . $tag . $ciphertext ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Encoding binary AES-GCM ciphertext for safe storage, not code obfuscation.
 		if ( ! is_string( $payload ) || '' === $payload ) {
 			return $value;
 		}
@@ -783,7 +783,7 @@ class Settings {
 		}
 
 		$payload = substr( $value, strlen( self::ENCRYPTED_PREFIX ) );
-		$raw     = base64_decode( $payload, true );
+		$raw     = base64_decode( $payload, true ); // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Decoding stored binary AES-GCM ciphertext, not code obfuscation.
 		if ( false === $raw || strlen( $raw ) < 29 ) {
 			return $value;
 		}

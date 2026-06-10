@@ -28,7 +28,7 @@ class Attribution {
 
 		foreach ( $keys as $key ) {
 			if ( filter_input( INPUT_COOKIE, $key, FILTER_DEFAULT ) ) {
-				// Don't sanitize JSON string - decode first, then sanitize the data
+				// Don't sanitize JSON string - decode first, then sanitize the data.
 				// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- JSON string is decoded and then sanitized.
 				$cookie_value = wp_unslash( filter_input( INPUT_COOKIE, $key, FILTER_DEFAULT ) );
 				$data         = json_decode( $cookie_value, true );

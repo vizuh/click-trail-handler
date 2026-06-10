@@ -1,4 +1,9 @@
 <?php
+/**
+ * Site Health integration for ClickTrail.
+ *
+ * @package ClickTrail
+ */
 
 namespace CLICUTCL\Admin;
 
@@ -6,15 +11,29 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+/**
+ * Registers ClickTrail Site Health tests and supporting AJAX handlers.
+ */
 class SiteHealth {
 	private const OPTION_STATUS = 'clicutcl_sitehealth_status';
 
+	/**
+	 * Registers Site Health filters and hooks.
+	 *
+	 * @return void
+	 */
 	public function register(): void {
 		add_filter( 'site_status_tests', array( $this, 'add_tests' ) );
 		add_action( 'admin_init', array( $this, 'maybe_schedule_status_update' ) );
 		add_action( 'wp_ajax_clicutcl_sitehealth_ping', array( $this, 'ajax_ping' ) );
 	}
 
+	/**
+	 * Adds ClickTrail tests to the Site Health test list.
+	 *
+	 * @param array $tests Existing Site Health tests.
+	 * @return array Tests array with ClickTrail tests appended.
+	 */
 	public function add_tests( array $tests ): array {
 		$tests['direct']['clicutcl_cache_detect'] = array(
 			'label' => __( 'ClickTrail: Caching/conflicts detected', 'click-trail-handler' ),
@@ -34,6 +53,11 @@ class SiteHealth {
 		return $tests;
 	}
 
+	/**
+	 * Detects caching or conflicting optimization plugins and host caching.
+	 *
+	 * @return array Site Health result describing detected caching layers.
+	 */
 	public function test_cache_conflicts(): array {
 		$found = array();
 
@@ -80,6 +104,11 @@ class SiteHealth {
 		);
 	}
 
+	/**
+	 * Reports whether the admin diagnostics script has pinged recently.
+	 *
+	 * @return array Site Health result describing the heartbeat status.
+	 */
 	public function test_js_seen(): array {
 		$status    = get_option( self::OPTION_STATUS, array() );
 		$last_seen = isset( $status['js_last_seen'] ) ? absint( $status['js_last_seen'] ) : 0;
@@ -99,6 +128,11 @@ class SiteHealth {
 		);
 	}
 
+	/**
+	 * Reports whether the attribution cookie was received in the request.
+	 *
+	 * @return array Site Health result describing the cookie status.
+	 */
 	public function test_cookie_seen(): array {
 		// Server-side can only check if the cookie arrives in requests (best-effort).
 		$cookie_name  = sanitize_key( (string) apply_filters( 'clicutcl_cookie_name', 'attribution' ) );
@@ -130,10 +164,20 @@ class SiteHealth {
 		);
 	}
 
+	/**
+	 * Placeholder for scheduling status updates; pings are stored from admin JS.
+	 *
+	 * @return void
+	 */
 	public function maybe_schedule_status_update(): void {
 		// No cron needed; we store pings from admin JS.
 	}
 
+	/**
+	 * Handles the admin AJAX heartbeat ping and records the last-seen time.
+	 *
+	 * @return void
+	 */
 	public function ajax_ping(): void {
 		check_ajax_referer( 'clicutcl_sitehealth', 'nonce' );
 

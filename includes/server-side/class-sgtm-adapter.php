@@ -1,6 +1,6 @@
 <?php
 /**
- * sGTM Adapter
+ * SGTM Adapter
  *
  * @package ClickTrail
  */

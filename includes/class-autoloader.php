@@ -32,7 +32,7 @@ class Autoloader {
 	 *
 	 * @param string $class Class name.
 	 */
-	private static function autoload( $class ) {
+	private static function autoload( $class ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.classFound -- Parameter mirrors spl_autoload_register's fully-qualified class name argument.
 		// Only load CLICUTCL classes.
 		if ( 0 !== strpos( $class, 'CLICUTCL\\' ) ) {
 			return;
@@ -41,7 +41,7 @@ class Autoloader {
 		// Remove the root namespace.
 		$relative_class = str_replace( 'CLICUTCL\\', '', $class );
 
-		// Explode parts
+		// Explode parts.
 		$parts = explode( '\\', $relative_class );
 
 		// The last part is the file name.
@@ -50,7 +50,7 @@ class Autoloader {
 		// Format file name: class-{class-name}.php, lowercase, hyphens.
 		$file_name = 'class-' . str_replace( '_', '-', strtolower( $class_name ) ) . '.php';
 
-		// Build directory candidates (Original vs Lowercase-Kebab)
+		// Build directory candidates (Original vs Lowercase-Kebab).
 		$path_segments = array();
 		foreach ( $parts as $part ) {
 			$options   = array();
@@ -63,8 +63,8 @@ class Autoloader {
 			$path_segments[] = array_unique( $options );
 		}
 
-		// Calculate cartesian product of directories
-		// Start with an empty path
+		// Calculate cartesian product of directories.
+		// Start with an empty path.
 		$paths = array( '' );
 		foreach ( $path_segments as $segment_options ) {
 			$new_paths = array();
@@ -76,9 +76,9 @@ class Autoloader {
 			$paths = $new_paths;
 		}
 
-		// Check all candidate paths
+		// Check all candidate paths.
 		foreach ( $paths as $dir ) {
-			// Handle root includes (no subdirectory)
+			// Handle root includes (no subdirectory).
 			if ( empty( $dir ) ) {
 				$path = CLICUTCL_DIR . 'includes' . DIRECTORY_SEPARATOR . $file_name;
 			} else {

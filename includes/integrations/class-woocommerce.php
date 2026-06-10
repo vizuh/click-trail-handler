@@ -37,7 +37,7 @@ class WooCommerce {
 	 * Initialize hooks.
 	 */
 	public function init() {
-		// Safety check: ensure WooCommerce is active
+		// Safety check: ensure WooCommerce is active.
 		if ( ! class_exists( 'WooCommerce' ) ) {
 			return;
 		}
@@ -49,7 +49,7 @@ class WooCommerce {
 		add_action( 'woocommerce_order_status_refunded', array( $this, 'track_refunded_milestone' ), 20, 2 );
 		add_action( 'woocommerce_order_status_cancelled', array( $this, 'track_cancelled_milestone' ), 20, 2 );
 
-		// Output hidden fields for JS Injection (Cache Resilience)
+		// Output hidden fields for JS Injection (Cache Resilience).
 		add_action( 'woocommerce_after_order_notes', array( $this, 'output_hidden_checkout_fields' ) );
 	}
 
@@ -59,7 +59,7 @@ class WooCommerce {
 	 *
 	 * @param \WC_Checkout $checkout Checkout object.
 	 */
-	public function output_hidden_checkout_fields( $checkout ) {
+	public function output_hidden_checkout_fields( $checkout ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- Parameter provided by the woocommerce_after_order_notes hook signature.
 		$fields = array_map(
 			static function ( $key ) {
 				return 'ct_' . $key;
@@ -69,7 +69,7 @@ class WooCommerce {
 
 		echo '<div class="clicutcl-checkout-fields" style="display:none;">';
 		foreach ( $fields as $field ) {
-			// Output empty inputs; JS Injector will fill them
+			// Output empty inputs; JS Injector will fill them.
 			echo '<input type="hidden" name="' . esc_attr( $field ) . '" value="" />';
 		}
 		echo '</div>';
@@ -82,7 +82,7 @@ class WooCommerce {
 	 * @param array     $data  Request Data.
 	 */
 	public function save_order_attribution( $order, $data ) {
-		// 1. Try server-side cookie first (most reliable if not stripped)
+		// 1. Try server-side cookie first (most reliable if not stripped).
 		$attribution = Attribution::get();
 
 		// 2. Fallback to POST data (Client-Side Injection)
@@ -139,8 +139,8 @@ class WooCommerce {
 	 * @param array $data Request data.
 	 * @return array|null
 	 */
-	private function collect_from_post_data( $data ) {
-		// Nonce check for WooCommerce checkout security
+	private function collect_from_post_data( $data ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- Signature kept for the data-fallback contract; values are read from $_POST.
+		// Nonce check for WooCommerce checkout security.
 		if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'woocommerce-process_checkout' ) ) {
 			return null;
 		}

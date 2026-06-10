@@ -60,7 +60,7 @@ class Queue {
 	 * @return void
 	 */
 	public static function register() {
-		add_filter( 'cron_schedules', array( __CLASS__, 'register_schedule' ) );
+		add_filter( 'cron_schedules', array( __CLASS__, 'register_schedule' ) ); // phpcs:ignore WordPress.WP.CronInterval.CronSchedulesInterval -- Sub-15-minute interval is required for timely server-side event queue dispatch.
 		add_action( self::CRON_HOOK, array( __CLASS__, 'process' ) );
 		self::ensure_schedule();
 	}
@@ -359,7 +359,7 @@ class Queue {
 			return $ready;
 		}
 
-		$ready      = (int) $stored === 1;
+		$ready      = 1 === (int) $stored;
 		$checked_at = (int) get_option( self::DB_READY_CHECKED_AT_OPTION, 0 );
 		if ( ! $checked_at ) {
 			$checked_at = (int) get_option( 'clicutcl_db_ready_checked_at', 0 );
