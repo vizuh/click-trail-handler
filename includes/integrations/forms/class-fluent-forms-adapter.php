@@ -66,7 +66,7 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 		}
 
 		$payload = $this->get_attribution_payload();
-		
+
 		foreach ( $payload as $key => $value ) {
 			echo '<input type="hidden" name="' . esc_attr( $this->get_field_name( $key ) ) . '" value="' . esc_attr( $value ) . '">';
 		}
@@ -92,26 +92,26 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 	/**
 	 * Handle submission (log to DB and Fluent Meta).
 	 *
-	 * @param int   $arg1 Submission ID (mapped to arg1).
-	 * @param array $arg2 Posted data (mapped to arg2).
+	 * @param int    $arg1 Submission ID (mapped to arg1).
+	 * @param array  $arg2 Posted data (mapped to arg2).
 	 * @param object $arg3 Form object (optional).
 	 */
 	public function on_submission( $arg1, $arg2, $arg3 = null ) {
 		static $logged = array();
-		$entry_id = (int) $arg1;
+		$entry_id      = (int) $arg1;
 		if ( isset( $logged[ $entry_id ] ) ) {
 			return;
 		}
 		$logged[ $entry_id ] = true;
 
 		$form_data = $arg2;
-		$form = $arg3;
+		$form      = $arg3;
 		// Use payload from cookie or form_data?
 		// form_data should contain our hidden fields if they were submitted.
-		
-		$keys = Attribution_Provider::get_field_mapping();
+
+		$keys        = Attribution_Provider::get_field_mapping();
 		$attribution = array();
-		
+
 		foreach ( $keys as $key ) {
 			$prefixed = $this->get_field_name( $key );
 			if ( isset( $form_data[ $prefixed ] ) ) {
@@ -129,9 +129,9 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 		}
 
 		// 1. Persist to Fluent Forms submission meta so attribution values are
-		//    accessible in the Fluent Forms entry detail view and via its API.
-		//    wpFluent() is Fluent's own DB wrapper and is always available when the
-		//    plugin is active. The table is created by Fluent on activation.
+		// accessible in the Fluent Forms entry detail view and via its API.
+		// wpFluent() is Fluent's own DB wrapper and is always available when the
+		// plugin is active. The table is created by Fluent on activation.
 		if ( function_exists( 'wpFluent' ) ) {
 			$now = current_time( 'mysql' );
 			foreach ( $attribution as $key => $value ) {

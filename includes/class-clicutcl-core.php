@@ -146,7 +146,7 @@ class Plugin {
 		// GTM Starter Kit lead magnet — disabled in 1.8.8; kit offered on the website instead.
 		// Reactivate when in-plugin distribution is ready.
 		// if ( class_exists( 'CLICUTCL\\Admin\\GTM_Lead_Magnet' ) ) {
-		// 	\CLICUTCL\Admin\GTM_Lead_Magnet::init();
+		// \CLICUTCL\Admin\GTM_Lead_Magnet::init();
 		// }
 	}
 

@@ -62,12 +62,12 @@ class Consent_Mode {
 	 * Prints the gtag consent snippet.
 	 */
 	public function render_gtag_consent_data_layer_snippet() {
-		$mode            = $this->consent_mode_settings->get_mode();
-		$wait_for_update = 500;
-		$strict_defaults = $this->build_consent_defaults( 'strict', $wait_for_update );
+		$mode             = $this->consent_mode_settings->get_mode();
+		$wait_for_update  = 500;
+		$strict_defaults  = $this->build_consent_defaults( 'strict', $wait_for_update );
 		$relaxed_defaults = $this->build_consent_defaults( 'relaxed', $wait_for_update );
-		$global_defaults = $strict_defaults;
-		$region_defaults = array();
+		$global_defaults  = $strict_defaults;
+		$region_defaults  = array();
 
 		if ( 'relaxed' === $mode ) {
 			$global_defaults = $relaxed_defaults;
@@ -86,7 +86,7 @@ class Consent_Mode {
 		}
 
 		printf( "<!-- %s -->\n", esc_html__( 'Google tag (gtag.js) consent mode dataLayer added by ClickTrail', 'click-trail-handler' ) );
-		
+
 		echo '<script id="clicktrail-consent-mode">';
 		echo 'window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}';
 		if ( ! empty( $region_defaults ) ) {
@@ -94,7 +94,7 @@ class Consent_Mode {
 		}
 		printf( "gtag('consent', 'default', %s);", wp_json_encode( $global_defaults ) );
 		echo '</script>';
-		
+
 		printf( "<!-- %s -->\n", esc_html__( 'End Google tag (gtag.js) consent mode dataLayer added by ClickTrail', 'click-trail-handler' ) );
 	}
 

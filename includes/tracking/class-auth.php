@@ -28,11 +28,11 @@ class Auth {
 	 * @return string
 	 */
 	public static function mint_client_token(): string {
-		$now = time();
+		$now          = time();
 		$settings_ttl = Settings::get()['security']['token_ttl_seconds'] ?? self::TOKEN_TTL;
-		$ttl = (int) apply_filters( 'clicutcl_v2_token_ttl', (int) $settings_ttl );
-		$ttl = max( 60, min( 7 * DAY_IN_SECONDS, $ttl ) );
-		$home_host = self::current_host();
+		$ttl          = (int) apply_filters( 'clicutcl_v2_token_ttl', (int) $settings_ttl );
+		$ttl          = max( 60, min( 7 * DAY_IN_SECONDS, $ttl ) );
+		$home_host    = self::current_host();
 
 		$claims = array(
 			'v'     => 2,

@@ -70,9 +70,9 @@ class Adapter_Result {
 	/**
 	 * Success result.
 	 *
-	 * @param int   $status Status.
+	 * @param int    $status Status.
 	 * @param string $message Message.
-	 * @param array $meta Meta.
+	 * @param array  $meta Meta.
 	 * @return Adapter_Result
 	 */
 	public static function success( $status = 200, $message = 'ok', $meta = array() ) {
@@ -82,9 +82,9 @@ class Adapter_Result {
 	/**
 	 * Error result.
 	 *
-	 * @param int   $status Status.
+	 * @param int    $status Status.
 	 * @param string $message Message.
-	 * @param array $meta Meta.
+	 * @param array  $meta Meta.
 	 * @return Adapter_Result
 	 */
 	public static function error( $status, $message, $meta = array() ) {

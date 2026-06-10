@@ -40,10 +40,10 @@ class Feature_Registry {
 		$data = is_array( $data ) ? $data : array();
 
 		self::$registry = array(
-			'schema_version'   => absint( $data['schema_version'] ?? 0 ),
-			'delivery_adapters'=> isset( $data['delivery_adapters'] ) && is_array( $data['delivery_adapters'] ) ? $data['delivery_adapters'] : array(),
-			'destinations'     => isset( $data['destinations'] ) && is_array( $data['destinations'] ) ? $data['destinations'] : array(),
-			'features'         => isset( $data['features'] ) && is_array( $data['features'] ) ? $data['features'] : array(),
+			'schema_version'    => absint( $data['schema_version'] ?? 0 ),
+			'delivery_adapters' => isset( $data['delivery_adapters'] ) && is_array( $data['delivery_adapters'] ) ? $data['delivery_adapters'] : array(),
+			'destinations'      => isset( $data['destinations'] ) && is_array( $data['destinations'] ) ? $data['destinations'] : array(),
+			'features'          => isset( $data['features'] ) && is_array( $data['features'] ) ? $data['features'] : array(),
 		);
 
 		return self::$registry;

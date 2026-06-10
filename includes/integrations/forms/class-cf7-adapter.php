@@ -41,7 +41,7 @@ class CF7_Adapter extends Abstract_Form_Adapter {
 	 */
 	public function register_hooks() {
 		add_filter( 'wpcf7_form_hidden_fields', array( $this, 'add_hidden_fields' ) );
-		
+
 		// Log submission
 		add_action( 'wpcf7_before_send_mail', array( $this, 'on_submission' ), 10, 3 );
 	}
@@ -58,7 +58,7 @@ class CF7_Adapter extends Abstract_Form_Adapter {
 		}
 
 		$payload = $this->get_attribution_payload();
-		
+
 		foreach ( $payload as $key => $value ) {
 			$fields[ $this->get_field_name( $key ) ] = $value;
 		}
@@ -92,21 +92,21 @@ class CF7_Adapter extends Abstract_Form_Adapter {
 	 */
 	public function on_submission( $arg1, $arg2 = null, $arg3 = null ) {
 		$contact_form = $arg1;
-		$abort = $arg2;
-		$submission = $arg3;
+		$abort        = $arg2;
+		$submission   = $arg3;
 		// If $submission is not passed (older CF7 versions), get instances.
 		if ( ! $submission ) {
 			$submission = \WPCF7_Submission::get_instance();
 		}
-		
+
 		if ( ! $submission ) {
 			return;
 		}
 
 		$posted_data = $submission->get_posted_data();
-		
+
 		$attribution = array();
-		
+
 		// Check provider existence to prevent fatal if core is messed up
 		if ( class_exists( 'CLICUTCL\Core\Attribution_Provider' ) && is_callable( array( 'CLICUTCL\Core\Attribution_Provider', 'get_field_mapping' ) ) ) {
 			// We iterate our known mapping to extract
@@ -118,7 +118,7 @@ class CF7_Adapter extends Abstract_Form_Adapter {
 				}
 			}
 		}
-		
+
 		if ( empty( $attribution ) ) {
 			// If empty, maybe try getting payload directly.
 			$attribution = $this->get_attribution_payload();

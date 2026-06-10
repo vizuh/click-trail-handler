@@ -38,4 +38,3 @@ interface DestinationAdapterInterfaceV2 {
 	 */
 	public function send_mapped( array $mapped_payload );
 }
-

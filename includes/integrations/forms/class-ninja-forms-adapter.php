@@ -56,7 +56,7 @@ class Ninja_Forms_Adapter extends Abstract_Form_Adapter {
 	public function register_hooks() {
 		// Server-side injection
 		add_filter( 'ninja_forms_submit_data', array( $this, 'inject_attribution' ), 10, 2 );
-		
+
 		// Client-side tracking JS
 		add_action( 'wp_footer', array( $this, 'enqueue_ninja_js' ) );
 
@@ -82,7 +82,7 @@ class Ninja_Forms_Adapter extends Abstract_Form_Adapter {
 		}
 
 		$payload = $this->normalize_attribution_payload( $this->get_attribution_payload() );
-		
+
 		if ( empty( $payload ) ) {
 			return $form_data;
 		}
@@ -98,7 +98,7 @@ class Ninja_Forms_Adapter extends Abstract_Form_Adapter {
 
 	/**
 	 * Interface compliance.
-	 * 
+	 *
 	 * @param mixed $form_or_context
 	 * @return mixed
 	 */

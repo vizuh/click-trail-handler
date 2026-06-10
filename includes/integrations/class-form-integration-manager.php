@@ -56,14 +56,14 @@ class Form_Integration_Manager {
 		}
 
 		// List of available adapters
-		$potential_adapters = [
-			'CLICUTCL\Integrations\Forms\CF7_Adapter'           => 'forms/class-cf7-adapter.php',
+		$potential_adapters = array(
+			'CLICUTCL\Integrations\Forms\CF7_Adapter'     => 'forms/class-cf7-adapter.php',
 			'CLICUTCL\Integrations\Forms\Elementor_Forms_Adapter' => 'forms/class-elementor-forms-adapter.php',
-			'CLICUTCL\Integrations\Forms\Fluent_Forms_Adapter'  => 'forms/class-fluent-forms-adapter.php',
+			'CLICUTCL\Integrations\Forms\Fluent_Forms_Adapter' => 'forms/class-fluent-forms-adapter.php',
 			'CLICUTCL\Integrations\Forms\Gravity_Forms_Adapter' => 'forms/class-gravity-forms-adapter.php',
-			'CLICUTCL\Integrations\Forms\Ninja_Forms_Adapter'   => 'forms/class-ninja-forms-adapter.php',
-			'CLICUTCL\Integrations\Forms\WPForms_Adapter'       => 'forms/class-wpforms-adapter.php',
-		];
+			'CLICUTCL\Integrations\Forms\Ninja_Forms_Adapter' => 'forms/class-ninja-forms-adapter.php',
+			'CLICUTCL\Integrations\Forms\WPForms_Adapter' => 'forms/class-wpforms-adapter.php',
+		);
 
 		foreach ( $potential_adapters as $class => $file ) {
 			// Require the file manually if class doesn't exist

@@ -24,9 +24,9 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class GTM_Lead_Magnet {
 
-	const DISMISSED_OPTION  = 'clicutcl_gtm_offer_dismissed';
-	const SUBSCRIBED_OPTION = 'clicutcl_gtm_offer_subscribed';
-	const ACTIVATED_OPTION  = 'clicutcl_activated_at';
+	const DISMISSED_OPTION   = 'clicutcl_gtm_offer_dismissed';
+	const SUBSCRIBED_OPTION  = 'clicutcl_gtm_offer_subscribed';
+	const ACTIVATED_OPTION   = 'clicutcl_activated_at';
 	const FIRST_ORDER_OPTION = 'clicutcl_first_order_tracked_at';
 	const DOWNLOAD_TRANSIENT = 'clicutcl_gtm_dl_token';
 
@@ -34,16 +34,16 @@ class GTM_Lead_Magnet {
 	 * Register hooks.
 	 */
 	public static function init(): void {
-		add_action( 'admin_notices',                          array( static::class, 'maybe_render_banner' ) );
-		add_action( 'wp_ajax_clicutcl_gtm_subscribe',        array( static::class, 'ajax_subscribe' ) );
-		add_action( 'wp_ajax_clicutcl_gtm_dismiss',          array( static::class, 'ajax_dismiss' ) );
-		add_action( 'wp_ajax_clicutcl_gtm_download',         array( static::class, 'ajax_download' ) );
+		add_action( 'admin_notices', array( static::class, 'maybe_render_banner' ) );
+		add_action( 'wp_ajax_clicutcl_gtm_subscribe', array( static::class, 'ajax_subscribe' ) );
+		add_action( 'wp_ajax_clicutcl_gtm_dismiss', array( static::class, 'ajax_dismiss' ) );
+		add_action( 'wp_ajax_clicutcl_gtm_download', array( static::class, 'ajax_download' ) );
 
 		// Mark the first order when WooCommerce attribution is saved.
-		add_action( 'clicutcl_order_attribution_saved',      array( static::class, 'mark_first_order' ) );
+		add_action( 'clicutcl_order_attribution_saved', array( static::class, 'mark_first_order' ) );
 
 		// Lazy-init the activation timestamp on first admin load.
-		add_action( 'admin_init',                            array( static::class, 'maybe_init_activated_at' ) );
+		add_action( 'admin_init', array( static::class, 'maybe_init_activated_at' ) );
 	}
 
 	/**
@@ -82,9 +82,9 @@ class GTM_Lead_Magnet {
 		}
 
 		// Show only after plugin has been active for 3+ days OR a real order has been tracked.
-		$activated_at    = (int) get_option( self::ACTIVATED_OPTION, 0 );
-		$first_order_at  = (int) get_option( self::FIRST_ORDER_OPTION, 0 );
-		$three_days_ago  = time() - ( 3 * DAY_IN_SECONDS );
+		$activated_at   = (int) get_option( self::ACTIVATED_OPTION, 0 );
+		$first_order_at = (int) get_option( self::FIRST_ORDER_OPTION, 0 );
+		$three_days_ago = time() - ( 3 * DAY_IN_SECONDS );
 
 		if ( ! $first_order_at && $activated_at > $three_days_ago ) {
 			return;
@@ -338,8 +338,8 @@ class GTM_Lead_Magnet {
 	 * @param string $email Validated email address.
 	 */
 	private static function brevo_subscribe( string $email ): void {
-		$api_key = defined( 'CLICUTCL_BREVO_KEY' )  ? (string) CLICUTCL_BREVO_KEY  : '';
-		$list_id = defined( 'CLICUTCL_BREVO_LIST' ) ? (int)    CLICUTCL_BREVO_LIST : 0;
+		$api_key = defined( 'CLICUTCL_BREVO_KEY' ) ? (string) CLICUTCL_BREVO_KEY : '';
+		$list_id = defined( 'CLICUTCL_BREVO_LIST' ) ? (int) CLICUTCL_BREVO_LIST : 0;
 
 		if ( ! $api_key || ! $list_id ) {
 			// Credentials not configured — skip silently.

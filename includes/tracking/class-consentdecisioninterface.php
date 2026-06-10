@@ -31,4 +31,3 @@ interface ConsentDecisionInterface {
 	 */
 	public function allowed_identity_fields( array $context = array() ): array;
 }
-

@@ -452,10 +452,10 @@ trait Admin_Diagnostics_Ajax_Trait {
 				continue;
 			}
 
-			$event_name = sanitize_key( (string) $event_name );
-			$event_id   = isset( $trace['event_id'] ) ? sanitize_text_field( (string) $trace['event_id'] ) : '';
-			$queue_row  = $event_id ? Queue::find_event_row( $event_name, $event_id ) : array();
-			$queue      = array(
+			$event_name          = sanitize_key( (string) $event_name );
+			$event_id            = isset( $trace['event_id'] ) ? sanitize_text_field( (string) $trace['event_id'] ) : '';
+			$queue_row           = $event_id ? Queue::find_event_row( $event_name, $event_id ) : array();
+			$queue               = array(
 				'state'  => empty( $queue_row ) ? __( 'not_queued', 'click-trail-handler' ) : __( 'queued', 'click-trail-handler' ),
 				'detail' => empty( $queue_row )
 					? __( 'No pending retry row found.', 'click-trail-handler' )
@@ -629,7 +629,6 @@ trait Admin_Diagnostics_Ajax_Trait {
 			}
 		}
 
-
 		// Check GF / WPForms for missing ct_* hidden fields.
 		foreach ( $this->check_form_attribution_fields() as $item ) {
 			$findings[] = $item;
@@ -682,9 +681,9 @@ trait Admin_Diagnostics_Ajax_Trait {
 
 					$has_ct = false;
 					foreach ( $fields as $field ) {
-						$admin_label   = isset( $field->adminLabel ) ? strtolower( (string) $field->adminLabel ) : '';
-						$field_label   = isset( $field->label ) ? strtolower( (string) $field->label ) : '';
-						$css_class     = isset( $field->cssClass ) ? strtolower( (string) $field->cssClass ) : '';
+						$admin_label = isset( $field->adminLabel ) ? strtolower( (string) $field->adminLabel ) : '';
+						$field_label = isset( $field->label ) ? strtolower( (string) $field->label ) : '';
+						$css_class   = isset( $field->cssClass ) ? strtolower( (string) $field->cssClass ) : '';
 						if (
 							str_starts_with( $admin_label, 'ct_' ) ||
 							str_starts_with( $field_label, 'ct_' ) ||
@@ -696,7 +695,7 @@ trait Admin_Diagnostics_Ajax_Trait {
 					}
 
 					if ( ! $has_ct ) {
-						$edit_url = admin_url( 'admin.php?page=gf_edit_forms&id=' . $form_id );
+						$edit_url   = admin_url( 'admin.php?page=gf_edit_forms&id=' . $form_id );
 						$findings[] = array(
 							'severity' => 'medium',
 							'title'    => sprintf(
@@ -739,7 +738,7 @@ trait Admin_Diagnostics_Ajax_Trait {
 						}
 
 						if ( ! $has_ct ) {
-							$edit_url = admin_url( 'admin.php?page=wpforms-builder&action=edit&form_id=' . $form_id );
+							$edit_url   = admin_url( 'admin.php?page=wpforms-builder&action=edit&form_id=' . $form_id );
 							$findings[] = array(
 								'severity' => 'medium',
 								'title'    => sprintf(
@@ -800,12 +799,12 @@ trait Admin_Diagnostics_Ajax_Trait {
 	 * @return array<string,mixed>
 	 */
 	private function build_sgtm_preview_report( array $settings ): array {
-		$events             = isset( $settings['events'] ) && is_array( $settings['events'] ) ? $settings['events'] : array();
-		$delivery           = isset( $settings['delivery']['server'] ) && is_array( $settings['delivery']['server'] ) ? $settings['delivery']['server'] : array();
-		$destinations       = isset( $events['destinations'] ) && is_array( $events['destinations'] ) ? $events['destinations'] : array();
-		$container_id       = sanitize_text_field( (string) ( $events['gtm_container_id'] ?? '' ) );
-		$mode               = sanitize_key( (string) ( $events['gtm_mode'] ?? 'standard' ) );
-		$gtm_payload        = GTM_Settings::sanitize(
+		$events              = isset( $settings['events'] ) && is_array( $settings['events'] ) ? $settings['events'] : array();
+		$delivery            = isset( $settings['delivery']['server'] ) && is_array( $settings['delivery']['server'] ) ? $settings['delivery']['server'] : array();
+		$destinations        = isset( $events['destinations'] ) && is_array( $events['destinations'] ) ? $events['destinations'] : array();
+		$container_id        = sanitize_text_field( (string) ( $events['gtm_container_id'] ?? '' ) );
+		$mode                = sanitize_key( (string) ( $events['gtm_mode'] ?? 'standard' ) );
+		$gtm_payload         = GTM_Settings::sanitize(
 			array(
 				'container_id'           => $container_id,
 				'mode'                   => $mode,
@@ -817,13 +816,13 @@ trait Admin_Diagnostics_Ajax_Trait {
 				'woo_include_user_data'  => ! empty( $events['woo_include_user_data'] ) ? 1 : 0,
 			)
 		);
-		$tagging_server_url = (string) ( $gtm_payload['tagging_server_url'] ?? '' );
-		$loader_url         = GTM_Settings::build_script_src( $gtm_payload, $container_id );
-		$current_adapter    = sanitize_key( (string) ( $delivery['adapter'] ?? 'generic' ) );
-		$endpoint_url       = esc_url_raw( (string) ( $delivery['endpoint_url'] ?? '' ) );
-		$delivery_enabled   = ! empty( $delivery['enabled'] );
-		$first_party_on     = ! empty( $gtm_payload['first_party_script'] );
-		$custom_loader_on   = ! empty( $gtm_payload['custom_loader_enabled'] );
+		$tagging_server_url  = (string) ( $gtm_payload['tagging_server_url'] ?? '' );
+		$loader_url          = GTM_Settings::build_script_src( $gtm_payload, $container_id );
+		$current_adapter     = sanitize_key( (string) ( $delivery['adapter'] ?? 'generic' ) );
+		$endpoint_url        = esc_url_raw( (string) ( $delivery['endpoint_url'] ?? '' ) );
+		$delivery_enabled    = ! empty( $delivery['enabled'] );
+		$first_party_on      = ! empty( $gtm_payload['first_party_script'] );
+		$custom_loader_on    = ! empty( $gtm_payload['custom_loader_enabled'] );
 		$native_destinations = count( array_filter( $destinations ) );
 
 		$checks = array(

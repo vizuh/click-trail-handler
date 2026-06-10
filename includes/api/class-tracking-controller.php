@@ -38,6 +38,7 @@ class Tracking_Controller extends WP_REST_Controller {
 	use Tracking_Controller_Attribution_Token_Trait;
 	use Tracking_Controller_Security_Trait;
 	use Tracking_Controller_Debug_Trait;
+
 	/**
 	 * Transient key for v2 debug intake ring buffer.
 	 */
@@ -263,13 +264,13 @@ class Tracking_Controller extends WP_REST_Controller {
 			$result = $this->process_single_event( $raw_event, $index );
 			switch ( $result['status'] ) {
 				case 'accepted':
-					$accepted++;
+					++$accepted;
 					break;
 				case 'duplicate':
-					$duplicates++;
+					++$duplicates;
 					break;
 				case 'skipped':
-					$skipped++;
+					++$skipped;
 					break;
 				case 'error':
 					$errors[] = $result['error'];
@@ -607,7 +608,7 @@ class Tracking_Controller extends WP_REST_Controller {
 			return new WP_Error( 'invalid_stage', 'Invalid lifecycle stage', array( 'status' => 400 ) );
 		}
 
-		$lead_id = isset( $payload['lead_id'] ) ? sanitize_text_field( (string) $payload['lead_id'] ) : '';
+		$lead_id  = isset( $payload['lead_id'] ) ? sanitize_text_field( (string) $payload['lead_id'] ) : '';
 		$event_id = isset( $payload['event_id'] ) ? sanitize_text_field( (string) $payload['event_id'] ) : '';
 		if ( '' === $event_id ) {
 			$event_id = 'lifecycle_' . md5( $stage . '|' . $lead_id . '|' . wp_json_encode( $payload ) );

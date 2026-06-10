@@ -6,7 +6,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 /**
  * ClickTrail WooCommerce Admin Enhancements
- * 
+ *
  * Adds attribution display features to the WooCommerce admin interface.
  */
 class CLICUTCL_WooCommerce_Admin {
@@ -22,14 +22,14 @@ class CLICUTCL_WooCommerce_Admin {
 
 	/**
 	 * Add "Source" column to orders list table
-	 * 
+	 *
 	 * @param array $columns Existing columns
 	 * @return array Modified columns
 	 */
 	public function add_source_column( $columns ) {
 		// Insert "Source" column before "Total"
 		$new_columns = array();
-		
+
 		foreach ( $columns as $key => $value ) {
 			if ( 'order_total' === $key ) {
 				$new_columns['clicutcl_source'] = __( 'Source', 'click-trail-handler' );
@@ -42,9 +42,9 @@ class CLICUTCL_WooCommerce_Admin {
 
 	/**
 	 * Render "Source" column content
-	 * 
+	 *
 	 * @param string $column Column key
-	 * @param int $post_id Order ID
+	 * @param int    $post_id Order ID
 	 */
 	public function render_source_column( $column, $post_id ) {
 		if ( 'clicutcl_source' !== $column ) {
@@ -63,11 +63,11 @@ class CLICUTCL_WooCommerce_Admin {
 
 		if ( $ft_source || $ft_medium ) {
 			$display = array();
-			
+
 			if ( $ft_source ) {
 				$display[] = esc_html( $ft_source );
 			}
-			
+
 			if ( $ft_medium ) {
 				$display[] = esc_html( $ft_medium );
 			}
@@ -94,7 +94,7 @@ class CLICUTCL_WooCommerce_Admin {
 
 	/**
 	 * Render attribution meta box content
-	 * 
+	 *
 	 * @param WP_Post $post Order post object
 	 */
 	public function render_attribution_meta_box( $post ) {
@@ -106,20 +106,20 @@ class CLICUTCL_WooCommerce_Admin {
 
 		// Get all attribution metadata
 		$attribution_fields = array(
-			'ft_source'      => __( 'Source', 'click-trail-handler' ),
-			'ft_medium'      => __( 'Medium', 'click-trail-handler' ),
-			'ft_campaign'    => __( 'Campaign', 'click-trail-handler' ),
-			'ft_term'        => __( 'Term', 'click-trail-handler' ),
-			'ft_content'     => __( 'Content', 'click-trail-handler' ),
-			'ft_gclid'       => __( 'Google Click ID', 'click-trail-handler' ),
-			'ft_fbclid'      => __( 'Facebook Click ID', 'click-trail-handler' ),
-			'ft_li_fat_id'   => __( 'LinkedIn Click ID', 'click-trail-handler' ),
+			'ft_source'       => __( 'Source', 'click-trail-handler' ),
+			'ft_medium'       => __( 'Medium', 'click-trail-handler' ),
+			'ft_campaign'     => __( 'Campaign', 'click-trail-handler' ),
+			'ft_term'         => __( 'Term', 'click-trail-handler' ),
+			'ft_content'      => __( 'Content', 'click-trail-handler' ),
+			'ft_gclid'        => __( 'Google Click ID', 'click-trail-handler' ),
+			'ft_fbclid'       => __( 'Facebook Click ID', 'click-trail-handler' ),
+			'ft_li_fat_id'    => __( 'LinkedIn Click ID', 'click-trail-handler' ),
 			'ft_landing_page' => __( 'Landing Page', 'click-trail-handler' ),
 		);
 
 		echo '<div style="margin-bottom: 15px;">';
 		echo '<h4 style="margin: 0 0 10px 0;">' . esc_html__( 'First Touch', 'click-trail-handler' ) . '</h4>';
-		
+
 		$has_data = false;
 		foreach ( $attribution_fields as $key => $label ) {
 			$value = $order->get_meta( '_clicutcl_' . $key );
@@ -127,13 +127,13 @@ class CLICUTCL_WooCommerce_Admin {
 				$has_data = true;
 				echo '<p style="margin: 5px 0; font-size: 12px;">';
 				echo '<strong>' . esc_html( $label ) . ':</strong> ';
-				
+
 				if ( 'ft_landing_page' === $key ) {
 					echo '<a href="' . esc_url( $value ) . '" target="_blank" style="word-break: break-all;">' . esc_html( $value ) . '</a>';
 				} else {
 					echo esc_html( $value );
 				}
-				
+
 				echo '</p>';
 			}
 		}
@@ -141,24 +141,24 @@ class CLICUTCL_WooCommerce_Admin {
 		if ( ! $has_data ) {
 			echo '<p style="color: #999; font-size: 12px;">' . esc_html__( 'No first-touch data available', 'click-trail-handler' ) . '</p>';
 		}
-		
+
 		echo '</div>';
 
 		// Last Touch
 		$lt_source = $order->get_meta( '_clicutcl_lt_source' );
 		$lt_medium = $order->get_meta( '_clicutcl_lt_medium' );
-		
+
 		if ( $lt_source || $lt_medium ) {
 			echo '<div>';
 			echo '<h4 style="margin: 0 0 10px 0;">' . esc_html__( 'Last Touch', 'click-trail-handler' ) . '</h4>';
-			
+
 			if ( $lt_source ) {
 				echo '<p style="margin: 5px 0; font-size: 12px;"><strong>' . esc_html__( 'Source', 'click-trail-handler' ) . ':</strong> ' . esc_html( $lt_source ) . '</p>';
 			}
 			if ( $lt_medium ) {
 				echo '<p style="margin: 5px 0; font-size: 12px;"><strong>' . esc_html__( 'Medium', 'click-trail-handler' ) . ':</strong> ' . esc_html( $lt_medium ) . '</p>';
 			}
-			
+
 			echo '</div>';
 		}
 	}

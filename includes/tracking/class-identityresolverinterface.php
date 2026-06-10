@@ -24,4 +24,3 @@ interface IdentityResolverInterface {
 	 */
 	public function resolve( array $input, array $context = array() ): array;
 }
-

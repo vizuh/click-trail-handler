@@ -56,7 +56,7 @@ class Admin {
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_notices', array( $this, 'display_pii_warning' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
-		
+
 		// AJAX hooks for Admin/Settings functionality
 		add_action( 'wp_ajax_clicutcl_log_pii_risk', array( $this, 'ajax_log_pii_risk' ) );
 		add_action( 'wp_ajax_clicutcl_test_endpoint', array( $this, 'ajax_test_endpoint' ) );
@@ -76,7 +76,7 @@ class Admin {
 			add_action( 'network_admin_menu', array( $this, 'network_admin_menu' ) );
 			add_action( 'network_admin_edit_clicutcl_network_settings', array( $this, 'save_network_settings' ) );
 		}
-		
+
 		// Site Health
 		require_once CLICUTCL_DIR . 'includes/admin/class-site-health.php';
 		$site_health = new SiteHealth();
@@ -101,19 +101,19 @@ class Admin {
 	 * Display Dashboard Widget content.
 	 */
 	public function display_dashboard_widget() {
-		$options = get_option( 'clicutcl_attribution_settings', array() );
-		$js_enabled = isset( $options['enable_js_injection'] ) ? $options['enable_js_injection'] : 1;
-		$link_decor = isset( $options['enable_link_decoration'] ) ? $options['enable_link_decoration'] : 0;
-		$domains = isset( $options['link_allowed_domains'] ) ? $options['link_allowed_domains'] : '';
+		$options      = get_option( 'clicutcl_attribution_settings', array() );
+		$js_enabled   = isset( $options['enable_js_injection'] ) ? $options['enable_js_injection'] : 1;
+		$link_decor   = isset( $options['enable_link_decoration'] ) ? $options['enable_link_decoration'] : 0;
+		$domains      = isset( $options['link_allowed_domains'] ) ? $options['link_allowed_domains'] : '';
 		$domain_count = $domains ? count( array_filter( explode( ',', $domains ) ) ) : 0;
-		
+
 		// Cookie check (server-side only)
-		$cookie_name = 'attribution'; // Default
-		$cookie_status = isset( $_COOKIE[$cookie_name] ) ? '✅ Detected' : '❌ Not Detected (Visit site with UTMs)';
-		
+		$cookie_name   = 'attribution'; // Default
+		$cookie_status = isset( $_COOKIE[ $cookie_name ] ) ? '✅ Detected' : '❌ Not Detected (Visit site with UTMs)';
+
 		// Caching check
 		$caching = 'None Detected';
-		if ( defined('WP_ROCKET_VERSION') || defined('LSCWP_V') || defined('WPCACHEHOME') || defined('AUTOPTIMIZE_PLUGIN_VERSION') ) {
+		if ( defined( 'WP_ROCKET_VERSION' ) || defined( 'LSCWP_V' ) || defined( 'WPCACHEHOME' ) || defined( 'AUTOPTIMIZE_PLUGIN_VERSION' ) ) {
 			$caching = '⚠️ Caching Plugin Detected';
 		}
 
@@ -234,29 +234,29 @@ class Admin {
 					'ajaxUrl' => admin_url( 'admin-ajax.php' ),
 					'nonce'   => wp_create_nonce( 'clicutcl_diag' ),
 					'strings' => array(
-						'testing'             => __( 'Testing...', 'click-trail-handler' ),
-						'test_failed'         => __( 'Test failed', 'click-trail-handler' ),
+						'testing'               => __( 'Testing...', 'click-trail-handler' ),
+						'test_failed'           => __( 'Test failed', 'click-trail-handler' ),
 						'clipboard_unavailable' => __( 'Clipboard unavailable', 'click-trail-handler' ),
-						'copied'              => __( 'Copied', 'click-trail-handler' ),
-						'copy_failed'         => __( 'Copy failed', 'click-trail-handler' ),
-						'saving'              => __( 'Saving...', 'click-trail-handler' ),
-						'failed'              => __( 'Failed', 'click-trail-handler' ),
-						'disable_debug'       => __( 'Disable Debug', 'click-trail-handler' ),
-						'enable_debug_window' => __( 'Enable 15 Minutes', 'click-trail-handler' ),
-						'confirm_purge'       => __( 'Purge local tracking data now? This cannot be undone.', 'click-trail-handler' ),
-						'purging'             => __( 'Purging...', 'click-trail-handler' ),
-						'purged'              => __( 'Purged', 'click-trail-handler' ),
-						'purge_failed'        => __( 'Purge failed', 'click-trail-handler' ),
-						'running_scan'        => __( 'Scanning...', 'click-trail-handler' ),
-						'scan_failed'         => __( 'Conflict scan failed.', 'click-trail-handler' ),
-						'exporting'           => __( 'Preparing backup...', 'click-trail-handler' ),
-						'export_failed'       => __( 'Backup export failed.', 'click-trail-handler' ),
-						'importing'           => __( 'Importing backup...', 'click-trail-handler' ),
-						'import_failed'       => __( 'Backup import failed.', 'click-trail-handler' ),
-						'choose_backup'       => __( 'Choose a ClickTrail backup file first.', 'click-trail-handler' ),
-						'confirm_import'      => __( 'Restore this ClickTrail backup now? Current settings will be replaced.', 'click-trail-handler' ),
-						'looking_up'          => __( 'Looking up order...', 'click-trail-handler' ),
-						'lookup_failed'       => __( 'Order lookup failed.', 'click-trail-handler' ),
+						'copied'                => __( 'Copied', 'click-trail-handler' ),
+						'copy_failed'           => __( 'Copy failed', 'click-trail-handler' ),
+						'saving'                => __( 'Saving...', 'click-trail-handler' ),
+						'failed'                => __( 'Failed', 'click-trail-handler' ),
+						'disable_debug'         => __( 'Disable Debug', 'click-trail-handler' ),
+						'enable_debug_window'   => __( 'Enable 15 Minutes', 'click-trail-handler' ),
+						'confirm_purge'         => __( 'Purge local tracking data now? This cannot be undone.', 'click-trail-handler' ),
+						'purging'               => __( 'Purging...', 'click-trail-handler' ),
+						'purged'                => __( 'Purged', 'click-trail-handler' ),
+						'purge_failed'          => __( 'Purge failed', 'click-trail-handler' ),
+						'running_scan'          => __( 'Scanning...', 'click-trail-handler' ),
+						'scan_failed'           => __( 'Conflict scan failed.', 'click-trail-handler' ),
+						'exporting'             => __( 'Preparing backup...', 'click-trail-handler' ),
+						'export_failed'         => __( 'Backup export failed.', 'click-trail-handler' ),
+						'importing'             => __( 'Importing backup...', 'click-trail-handler' ),
+						'import_failed'         => __( 'Backup import failed.', 'click-trail-handler' ),
+						'choose_backup'         => __( 'Choose a ClickTrail backup file first.', 'click-trail-handler' ),
+						'confirm_import'        => __( 'Restore this ClickTrail backup now? Current settings will be replaced.', 'click-trail-handler' ),
+						'looking_up'            => __( 'Looking up order...', 'click-trail-handler' ),
+						'lookup_failed'         => __( 'Order lookup failed.', 'click-trail-handler' ),
 					),
 				)
 			);
@@ -317,7 +317,7 @@ class Admin {
 			'clicutcl_general_tab',
 			'clicutcl_core_section',
 			array(
-				'label_for' => 'enable_attribution',
+				'label_for'   => 'enable_attribution',
 				'option_name' => 'clicutcl_attribution_settings',
 				'description' => __( 'Capture campaign and referral data for each visit.', 'click-trail-handler' ),
 			)
@@ -351,9 +351,9 @@ class Admin {
 			'clicutcl_general_tab',
 			'clicutcl_reliability_section',
 			array(
-				'label_for' => 'enable_js_injection',
+				'label_for'   => 'enable_js_injection',
 				'option_name' => 'clicutcl_attribution_settings',
-				'class' => 'clicutcl-field-enable-js-injection',
+				'class'       => 'clicutcl-field-enable-js-injection',
 				'description' => __( 'Recommended for cached or highly optimized pages.', 'click-trail-handler' ),
 			)
 		);
@@ -365,9 +365,9 @@ class Admin {
 			'clicutcl_general_tab',
 			'clicutcl_reliability_section',
 			array(
-				'label_for' => 'inject_mutation_observer',
+				'label_for'   => 'inject_mutation_observer',
 				'option_name' => 'clicutcl_attribution_settings',
-				'class' => 'clicutcl-field-inject-mutation-observer',
+				'class'       => 'clicutcl-field-inject-mutation-observer',
 				'description' => __( 'Recommended when forms or links appear after page load.', 'click-trail-handler' ),
 			)
 		);
@@ -387,9 +387,9 @@ class Admin {
 			'clicutcl_general_tab',
 			'clicutcl_cross_domain_section',
 			array(
-				'label_for' => 'enable_link_decoration',
+				'label_for'   => 'enable_link_decoration',
 				'option_name' => 'clicutcl_attribution_settings',
-				'class' => 'clicutcl-field-enable-link-decoration',
+				'class'       => 'clicutcl-field-enable-link-decoration',
 				'description' => __( 'Append attribution parameters to approved links.', 'click-trail-handler' ),
 			)
 		);
@@ -401,9 +401,9 @@ class Admin {
 			'clicutcl_general_tab',
 			'clicutcl_cross_domain_section',
 			array(
-				'label_for' => 'link_allowed_domains',
+				'label_for'   => 'link_allowed_domains',
 				'option_name' => 'clicutcl_attribution_settings',
-				'class' => 'clicutcl-field-link-allowed-domains',
+				'class'       => 'clicutcl-field-link-allowed-domains',
 				'description' => __( 'Domains where attribution parameters may be added.', 'click-trail-handler' ),
 				'placeholder' => 'app.example.com, checkout.example.com',
 			)
@@ -416,9 +416,9 @@ class Admin {
 			'clicutcl_general_tab',
 			'clicutcl_cross_domain_section',
 			array(
-				'label_for' => 'link_skip_signed',
+				'label_for'   => 'link_skip_signed',
 				'option_name' => 'clicutcl_attribution_settings',
-				'class' => 'clicutcl-field-link-skip-signed',
+				'class'       => 'clicutcl-field-link-skip-signed',
 				'description' => __( 'Recommended when links contain temporary signatures or protected access tokens.', 'click-trail-handler' ),
 			)
 		);
@@ -430,9 +430,9 @@ class Admin {
 			'clicutcl_general_tab',
 			'clicutcl_cross_domain_section',
 			array(
-				'label_for' => 'enable_cross_domain_token',
+				'label_for'   => 'enable_cross_domain_token',
 				'option_name' => 'clicutcl_attribution_settings',
-				'class' => 'clicutcl-field-enable-cross-domain-token',
+				'class'       => 'clicutcl-field-enable-cross-domain-token',
 				'description' => __( 'Adds a temporary token to preserve attribution across approved domains. No personal data is included.', 'click-trail-handler' ),
 			)
 		);
@@ -459,7 +459,6 @@ class Admin {
 			)
 		);
 
-
 		// WhatsApp Section (on Attribution tab, same option group)
 		add_settings_section(
 			'clicutcl_whatsapp_section',
@@ -475,9 +474,9 @@ class Admin {
 			'clicutcl_general_tab',
 			'clicutcl_whatsapp_section',
 			array(
-				'label_for' => 'enable_whatsapp',
+				'label_for'   => 'enable_whatsapp',
 				'option_name' => 'clicutcl_attribution_settings',
-				'class' => 'clicutcl-field-enable-whatsapp',
+				'class'       => 'clicutcl-field-enable-whatsapp',
 				'description' => __( 'Track clicks on WhatsApp links and buttons.', 'click-trail-handler' ),
 			)
 		);
@@ -489,9 +488,9 @@ class Admin {
 			'clicutcl_general_tab',
 			'clicutcl_whatsapp_section',
 			array(
-				'label_for' => 'whatsapp_append_attribution',
+				'label_for'   => 'whatsapp_append_attribution',
 				'option_name' => 'clicutcl_attribution_settings',
-				'class' => 'clicutcl-field-whatsapp-append-attribution',
+				'class'       => 'clicutcl-field-whatsapp-append-attribution',
 				'description' => __( 'Add attribution details to the pre-filled WhatsApp message.', 'click-trail-handler' ),
 			)
 		);
@@ -683,8 +682,8 @@ class Admin {
 	 */
 	public function render_text_field( $args ) {
 		$option_name = $args['option_name'];
-		$options = get_option( $option_name );
-		$value = isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : '';
+		$options     = get_option( $option_name );
+		$value       = isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : '';
 		$description = isset( $args['description'] ) ? $args['description'] : '';
 		$placeholder = isset( $args['placeholder'] ) ? $args['placeholder'] : '';
 		?>
@@ -975,17 +974,17 @@ class Admin {
 			}
 		}
 
-		$forms_active  = ! empty( $attr_options['enable_js_injection'] ) || ! empty( $attr_options['enable_whatsapp'] ) || $providers_active;
-		$events_active = ! empty( $feature_flags['event_v2'] );
+		$forms_active      = ! empty( $attr_options['enable_js_injection'] ) || ! empty( $attr_options['enable_whatsapp'] ) || $providers_active;
+		$events_active     = ! empty( $feature_flags['event_v2'] );
 		$destination_state = array();
 
 		foreach ( Feature_Registry::destinations() as $destination_key => $destination_row ) {
-			$destination_key                      = sanitize_key( (string) $destination_key );
+			$destination_key                       = sanitize_key( (string) $destination_key );
 			$destination_state[ $destination_key ] = ! empty( $destinations[ $destination_key ]['enabled'] ) ? 1 : 0;
 		}
 
 		return array(
-			'capture'  => array(
+			'capture'         => array(
 				'enabled'          => ! empty( $attr_options['enable_attribution'] ) ? 1 : 0,
 				'retention_days'   => absint( $attr_options['cookie_days'] ?? 90 ),
 				'decorate_links'   => ! empty( $attr_options['enable_link_decoration'] ) ? 1 : 0,
@@ -993,7 +992,7 @@ class Admin {
 				'skip_signed_urls' => ! empty( $attr_options['link_skip_signed'] ) ? 1 : 0,
 				'pass_token'       => ! empty( $attr_options['enable_cross_domain_token'] ) ? 1 : 0,
 			),
-			'forms'    => array(
+			'forms'           => array(
 				'client_fallback'         => ! empty( $attr_options['enable_js_injection'] ) ? 1 : 0,
 				'watch_dynamic_content'   => ! empty( $attr_options['inject_mutation_observer'] ) ? 1 : 0,
 				'replace_existing_values' => ! empty( $attr_options['inject_overwrite'] ) ? 1 : 0,
@@ -1018,7 +1017,7 @@ class Admin {
 					),
 				),
 			),
-			'events'   => array(
+			'events'          => array(
 				'browser_pipeline'              => ! empty( $feature_flags['event_v2'] ) ? 1 : 0,
 				'woocommerce_storefront_events' => ! empty( $feature_flags['woocommerce_storefront_events'] ) ? 1 : 0,
 				'gtm_container_id'              => isset( $gtm_settings['container_id'] ) ? (string) $gtm_settings['container_id'] : '',
@@ -1030,13 +1029,13 @@ class Admin {
 				'woo_enhanced_datalayer'        => ! empty( $gtm_settings['woo_enhanced_datalayer'] ) ? 1 : 0,
 				'woo_include_user_data'         => ! empty( $gtm_settings['woo_include_user_data'] ) ? 1 : 0,
 				'destinations'                  => $destination_state,
-				'lifecycle'        => array(
+				'lifecycle'                     => array(
 					'accept_updates'   => ! empty( $feature_flags['lifecycle_ingestion'] ) ? 1 : 0,
 					'endpoint_enabled' => ! empty( $lifecycle['enabled'] ) ? 1 : 0,
 					'token'            => isset( $lifecycle['token'] ) ? (string) $lifecycle['token'] : '',
 				),
 			),
-			'delivery' => array(
+			'delivery'        => array(
 				'server'     => array(
 					'enabled'                  => ! empty( $server_effective['enabled'] ) ? 1 : 0,
 					'endpoint_url'             => isset( $server_effective['endpoint_url'] ) ? (string) $server_effective['endpoint_url'] : '',
@@ -1071,7 +1070,7 @@ class Admin {
 				),
 				'operations' => $this->get_delivery_operations_summary(),
 			),
-			'status'   => array(
+			'status'          => array(
 				array(
 					'key'   => 'capture',
 					'label' => __( 'Capture', 'click-trail-handler' ),
@@ -1118,7 +1117,7 @@ class Admin {
 				$destination_state,
 				$providers_active
 			),
-			'urls'     => array(
+			'urls'            => array(
 				'logs'        => admin_url( 'admin.php?page=clicutcl-logs' ),
 				'diagnostics' => admin_url( 'admin.php?page=clicutcl-diagnostics' ),
 				'settings'    => admin_url( 'admin.php?page=clicutcl-settings' ),
@@ -1151,27 +1150,27 @@ class Admin {
 		$domains_raw        = isset( $attr_options['link_allowed_domains'] ) ? (string) $attr_options['link_allowed_domains'] : '';
 		$domains_configured = ! empty( trim( $domains_raw ) );
 
-		$capture_ready    = ! empty( $attr_options['enable_attribution'] );
-		$forms_ready      = ! empty( $attr_options['enable_js_injection'] ) || ! empty( $attr_options['enable_whatsapp'] ) || $providers_active;
-		$events_ready     = ! empty( $feature_flags['event_v2'] );
-		$delivery_ready   = ! empty( $server_effective['enabled'] ) && ! empty( $server_effective['endpoint_url'] );
-		$consent_enabled  = ! empty( $consent_settings['enabled'] );
-		$woo_installed    = class_exists( 'WooCommerce' );
-		$woo_ready        = $woo_installed && ! empty( $feature_flags['woocommerce_storefront_events'] );
+		$capture_ready   = ! empty( $attr_options['enable_attribution'] );
+		$forms_ready     = ! empty( $attr_options['enable_js_injection'] ) || ! empty( $attr_options['enable_whatsapp'] ) || $providers_active;
+		$events_ready    = ! empty( $feature_flags['event_v2'] );
+		$delivery_ready  = ! empty( $server_effective['enabled'] ) && ! empty( $server_effective['endpoint_url'] );
+		$consent_enabled = ! empty( $consent_settings['enabled'] );
+		$woo_installed   = class_exists( 'WooCommerce' );
+		$woo_ready       = $woo_installed && ! empty( $feature_flags['woocommerce_storefront_events'] );
 
 		// Detect WooCommerce checkout on a different host (subdomain or external domain).
 		$wc_checkout_host = '';
 		if ( $woo_installed && function_exists( 'wc_get_checkout_url' ) ) {
-			$checkout_url     = wc_get_checkout_url();
-			$parsed_checkout  = wp_parse_url( $checkout_url, PHP_URL_HOST );
-			$parsed_site      = wp_parse_url( home_url(), PHP_URL_HOST );
+			$checkout_url    = wc_get_checkout_url();
+			$parsed_checkout = wp_parse_url( $checkout_url, PHP_URL_HOST );
+			$parsed_site     = wp_parse_url( home_url(), PHP_URL_HOST );
 			if ( $parsed_checkout && $parsed_site && $parsed_checkout !== $parsed_site ) {
 				$wc_checkout_host = (string) $parsed_checkout;
 			}
 		}
 		$destination_count = count( array_filter( $destination_state ) );
-		$sgtm_mode        = isset( $gtm_settings['mode'] ) ? sanitize_key( (string) $gtm_settings['mode'] ) : 'standard';
-		$sgtm_ready       = 'sgtm' === $sgtm_mode
+		$sgtm_mode         = isset( $gtm_settings['mode'] ) ? sanitize_key( (string) $gtm_settings['mode'] ) : 'standard';
+		$sgtm_ready        = 'sgtm' === $sgtm_mode
 			&& ! empty( $gtm_settings['container_id'] )
 			&& (
 				! empty( $gtm_settings['tagging_server_url'] )
@@ -1359,23 +1358,23 @@ class Admin {
 	 * @return array<string, mixed>
 	 */
 	private function save_unified_admin_settings( $payload ) {
-		$payload              = is_array( $payload ) ? wp_unslash( $payload ) : array();
-		$capture              = isset( $payload['capture'] ) && is_array( $payload['capture'] ) ? $payload['capture'] : array();
-		$forms                = isset( $payload['forms'] ) && is_array( $payload['forms'] ) ? $payload['forms'] : array();
-		$events               = isset( $payload['events'] ) && is_array( $payload['events'] ) ? $payload['events'] : array();
-		$delivery             = isset( $payload['delivery'] ) && is_array( $payload['delivery'] ) ? $payload['delivery'] : array();
-		$delivery_server      = isset( $delivery['server'] ) && is_array( $delivery['server'] ) ? $delivery['server'] : array();
-		$delivery_privacy     = isset( $delivery['privacy'] ) && is_array( $delivery['privacy'] ) ? $delivery['privacy'] : array();
-		$delivery_advanced    = isset( $delivery['advanced'] ) && is_array( $delivery['advanced'] ) ? $delivery['advanced'] : array();
-		$forms_whatsapp       = isset( $forms['whatsapp'] ) && is_array( $forms['whatsapp'] ) ? $forms['whatsapp'] : array();
-		$forms_providers      = isset( $forms['providers'] ) && is_array( $forms['providers'] ) ? $forms['providers'] : array();
-		$events_destinations  = isset( $events['destinations'] ) && is_array( $events['destinations'] ) ? $events['destinations'] : array();
-		$events_lifecycle     = isset( $events['lifecycle'] ) && is_array( $events['lifecycle'] ) ? $events['lifecycle'] : array();
-		$gtm_current          = ( new GTM_Settings() )->get();
+		$payload             = is_array( $payload ) ? wp_unslash( $payload ) : array();
+		$capture             = isset( $payload['capture'] ) && is_array( $payload['capture'] ) ? $payload['capture'] : array();
+		$forms               = isset( $payload['forms'] ) && is_array( $payload['forms'] ) ? $payload['forms'] : array();
+		$events              = isset( $payload['events'] ) && is_array( $payload['events'] ) ? $payload['events'] : array();
+		$delivery            = isset( $payload['delivery'] ) && is_array( $payload['delivery'] ) ? $payload['delivery'] : array();
+		$delivery_server     = isset( $delivery['server'] ) && is_array( $delivery['server'] ) ? $delivery['server'] : array();
+		$delivery_privacy    = isset( $delivery['privacy'] ) && is_array( $delivery['privacy'] ) ? $delivery['privacy'] : array();
+		$delivery_advanced   = isset( $delivery['advanced'] ) && is_array( $delivery['advanced'] ) ? $delivery['advanced'] : array();
+		$forms_whatsapp      = isset( $forms['whatsapp'] ) && is_array( $forms['whatsapp'] ) ? $forms['whatsapp'] : array();
+		$forms_providers     = isset( $forms['providers'] ) && is_array( $forms['providers'] ) ? $forms['providers'] : array();
+		$events_destinations = isset( $events['destinations'] ) && is_array( $events['destinations'] ) ? $events['destinations'] : array();
+		$events_lifecycle    = isset( $events['lifecycle'] ) && is_array( $events['lifecycle'] ) ? $events['lifecycle'] : array();
+		$gtm_current         = ( new GTM_Settings() )->get();
 
 		$tracking_destinations = array();
 		foreach ( Feature_Registry::destinations() as $destination_key => $destination_row ) {
-			$destination_key = sanitize_key( (string) $destination_key );
+			$destination_key                           = sanitize_key( (string) $destination_key );
 			$tracking_destinations[ $destination_key ] = array(
 				'enabled' => ! empty( $events_destinations[ $destination_key ] ) ? 1 : 0,
 			);
@@ -1423,7 +1422,7 @@ class Admin {
 		$server_network = Settings::get_network();
 		$use_network    = is_multisite() && ! empty( $server_network ) && ! empty( $delivery_server['use_network'] );
 		if ( $use_network ) {
-			$server_input = $server_current;
+			$server_input                = $server_current;
 			$server_input['use_network'] = 1;
 		} else {
 			$server_input = array(
@@ -1439,12 +1438,12 @@ class Admin {
 
 		$tracking_input = array(
 			'feature_flags'  => array(
-				'event_v2'                     => ! empty( $events['browser_pipeline'] ) ? 1 : 0,
+				'event_v2'                      => ! empty( $events['browser_pipeline'] ) ? 1 : 0,
 				'woocommerce_storefront_events' => ! empty( $events['woocommerce_storefront_events'] ) ? 1 : 0,
-				'external_webhooks'            => ! empty( $forms['webhook_sources_enabled'] ) ? 1 : 0,
-				'connector_native'             => ! empty( $delivery_advanced['use_native_adapters'] ) ? 1 : 0,
-				'diagnostics_v2'               => ! empty( $delivery_advanced['store_event_diagnostics'] ) ? 1 : 0,
-				'lifecycle_ingestion'          => ! empty( $events_lifecycle['accept_updates'] ) ? 1 : 0,
+				'external_webhooks'             => ! empty( $forms['webhook_sources_enabled'] ) ? 1 : 0,
+				'connector_native'              => ! empty( $delivery_advanced['use_native_adapters'] ) ? 1 : 0,
+				'diagnostics_v2'                => ! empty( $delivery_advanced['store_event_diagnostics'] ) ? 1 : 0,
+				'lifecycle_ingestion'           => ! empty( $events_lifecycle['accept_updates'] ) ? 1 : 0,
 			),
 			'destinations'   => array(
 				...$tracking_destinations,
@@ -1631,7 +1630,7 @@ class Admin {
 			'consent'      => array(
 				'label'       => __( 'Consent', 'click-trail-handler' ),
 				'title'       => __( 'Consent', 'click-trail-handler' ),
-				'description' => __( "Control when tracking is allowed to start, which regions require explicit opt-in, and which consent platform ClickTrail should listen to.", 'click-trail-handler' ),
+				'description' => __( 'Control when tracking is allowed to start, which regions require explicit opt-in, and which consent platform ClickTrail should listen to.', 'click-trail-handler' ),
 				'icon'        => 'dashicons-privacy',
 			),
 			'destinations' => array(
@@ -1896,10 +1895,10 @@ class Admin {
 	 */
 	public function render_checkbox_field( $args ) {
 		$option_name = $args['option_name'];
-		$options = get_option( $option_name );
-		$value = isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : 0;
-		$tooltip = isset( $args['tooltip'] ) ? $args['tooltip'] : '';
-		$field_name = $option_name . '[' . $args['label_for'] . ']';
+		$options     = get_option( $option_name );
+		$value       = isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : 0;
+		$tooltip     = isset( $args['tooltip'] ) ? $args['tooltip'] : '';
+		$field_name  = $option_name . '[' . $args['label_for'] . ']';
 		?>
 		<div class="clicktrail-toggle-wrapper">
 			<label class="clicktrail-toggle">
@@ -1919,8 +1918,8 @@ class Admin {
 
 	public function render_number_field( $args ) {
 		$option_name = $args['option_name'];
-		$options = get_option( $option_name );
-		$value = isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : '';
+		$options     = get_option( $option_name );
+		$value       = isset( $options[ $args['label_for'] ] ) ? $options[ $args['label_for'] ] : '';
 		$description = isset( $args['description'] ) ? $args['description'] : '';
 		?>
 		<input type="number" name="<?php echo esc_attr( $option_name . '[' . $args['label_for'] . ']' ); ?>" value="<?php echo esc_attr( $value ); ?>" class="regular-text clicktrail-field-input clicktrail-field-input--narrow" />
@@ -1929,15 +1928,15 @@ class Admin {
 		<?php endif; ?>
 		<?php
 	}
-	
+
 	public function render_gtm_text_field( $args ) {
-		$settings = new GTM_Settings();
-		$value = $settings->get();
-		$id = isset($value['container_id']) ? $value['container_id'] : '';
+		$settings    = new GTM_Settings();
+		$value       = $settings->get();
+		$id          = isset( $value['container_id'] ) ? $value['container_id'] : '';
 		$description = isset( $args['description'] ) ? $args['description'] : '';
 		$placeholder = isset( $args['placeholder'] ) ? $args['placeholder'] : 'GTM-XXXXXXX';
 		?>
-		<input type="text" name="clicutcl_gtm[container_id]" value="<?php echo esc_attr($id); ?>" class="regular-text clicktrail-field-input clicktrail-field-input--mono" placeholder="<?php echo esc_attr( $placeholder ); ?>" />
+		<input type="text" name="clicutcl_gtm[container_id]" value="<?php echo esc_attr( $id ); ?>" class="regular-text clicktrail-field-input clicktrail-field-input--mono" placeholder="<?php echo esc_attr( $placeholder ); ?>" />
 		<?php if ( $description ) : ?>
 			<p class="description"><?php echo wp_kses_post( $description ); ?></p>
 		<?php endif; ?>
@@ -1977,47 +1976,47 @@ class Admin {
 	 */
 	private function get_attribution_settings_schema() {
 		return array(
-			'enable_attribution'         => array(
+			'enable_attribution'          => array(
 				'default'  => 1,
 				'sanitize' => array( $this, 'sanitize_toggle' ),
 			),
-			'cookie_days'                => array(
+			'cookie_days'                 => array(
 				'default'  => 90,
 				'sanitize' => array( $this, 'sanitize_cookie_days' ),
 			),
-			'enable_js_injection'        => array(
+			'enable_js_injection'         => array(
 				'default'  => 1,
 				'sanitize' => array( $this, 'sanitize_toggle' ),
 			),
-			'inject_overwrite'           => array(
+			'inject_overwrite'            => array(
 				'default'  => 0,
 				'sanitize' => array( $this, 'sanitize_toggle' ),
 			),
-			'inject_mutation_observer'   => array(
+			'inject_mutation_observer'    => array(
 				'default'  => 1,
 				'sanitize' => array( $this, 'sanitize_toggle' ),
 			),
-			'inject_observer_target'     => array(
+			'inject_observer_target'      => array(
 				'default'  => 'body',
 				'sanitize' => array( $this, 'sanitize_observer_target' ),
 			),
-			'enable_link_decoration'     => array(
+			'enable_link_decoration'      => array(
 				'default'  => 0,
 				'sanitize' => array( $this, 'sanitize_toggle' ),
 			),
-			'link_allowed_domains'       => array(
+			'link_allowed_domains'        => array(
 				'default'  => '',
 				'sanitize' => array( $this, 'sanitize_domains_csv' ),
 			),
-			'link_skip_signed'           => array(
+			'link_skip_signed'            => array(
 				'default'  => 1,
 				'sanitize' => array( $this, 'sanitize_toggle' ),
 			),
-			'enable_cross_domain_token'  => array(
+			'enable_cross_domain_token'   => array(
 				'default'  => 0,
 				'sanitize' => array( $this, 'sanitize_toggle' ),
 			),
-			'enable_whatsapp'            => array(
+			'enable_whatsapp'             => array(
 				'default'  => 1,
 				'sanitize' => array( $this, 'sanitize_toggle' ),
 			),
@@ -2026,15 +2025,15 @@ class Admin {
 				'sanitize' => array( $this, 'sanitize_toggle' ),
 			),
 			// Backward compatibility for legacy keys still read in some installs.
-			'enable_consent_banner'      => array(
+			'enable_consent_banner'       => array(
 				'default'  => 0,
 				'sanitize' => array( $this, 'sanitize_toggle' ),
 			),
-			'require_consent'            => array(
+			'require_consent'             => array(
 				'default'  => 1,
 				'sanitize' => array( $this, 'sanitize_toggle' ),
 			),
-			'consent_mode_region'        => array(
+			'consent_mode_region'         => array(
 				'default'  => '',
 				'sanitize' => 'sanitize_text_field',
 			),
@@ -2188,13 +2187,13 @@ class Admin {
 		}
 
 		if ( isset( $input['adapter'] ) ) {
-			$adapter = sanitize_key( $input['adapter'] );
-			$allowed = \CLICUTCL\Server_Side\Dispatcher::allowed_adapters();
+			$adapter              = sanitize_key( $input['adapter'] );
+			$allowed              = \CLICUTCL\Server_Side\Dispatcher::allowed_adapters();
 			$new_input['adapter'] = isset( $allowed[ $adapter ] ) ? $adapter : 'generic';
 		}
 
 		if ( isset( $input['timeout'] ) ) {
-			$timeout = absint( $input['timeout'] );
+			$timeout              = absint( $input['timeout'] );
 			$new_input['timeout'] = $timeout > 0 ? min( 15, $timeout ) : 5;
 		}
 

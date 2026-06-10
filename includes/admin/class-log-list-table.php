@@ -39,13 +39,13 @@ class Log_List_Table extends \WP_List_Table {
 	public function prepare_items() {
 		global $wpdb;
 
-		$table_name = $wpdb->prefix . 'clicutcl_events';
+		$table_name         = $wpdb->prefix . 'clicutcl_events';
 		$table_name_escaped = esc_sql( $table_name ); // Internal table name.
 
-		$per_page   = 20;
-		$columns    = $this->get_columns();
-		$hidden     = array();
-		$sortable   = $this->get_sortable_columns();
+		$per_page = 20;
+		$columns  = $this->get_columns();
+		$hidden   = array();
+		$sortable = $this->get_sortable_columns();
 
 		$this->_column_headers = array( $columns, $hidden, $sortable );
 
@@ -57,8 +57,8 @@ class Log_List_Table extends \WP_List_Table {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- List table sorting only, no state change; validated via whitelist below.
 		$orderby_raw = isset( $_GET['orderby'] ) ? wp_unslash( $_GET['orderby'] ) : 'created_at';
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- List table sorting only, no state change; validated via whitelist below.
-		$order_raw   = isset( $_GET['order'] ) ? wp_unslash( $_GET['order'] ) : 'DESC';
-		
+		$order_raw = isset( $_GET['order'] ) ? wp_unslash( $_GET['order'] ) : 'DESC';
+
 		$valid_orderby = array( 'id', 'created_at', 'event_type' );
 		$orderby       = in_array( $orderby_raw, $valid_orderby, true ) ? $orderby_raw : 'created_at';
 		$order         = ( 'ASC' === strtoupper( $order_raw ) ) ? 'ASC' : 'DESC';
@@ -161,17 +161,17 @@ class Log_List_Table extends \WP_List_Table {
 			return '-';
 		}
 
-		$output = [];
-		
+		$output = array();
+
 		if ( isset( $data['wa_target_type'] ) || isset( $data['wa_target_path'] ) ) {
-			$target = ( $data['wa_target_type'] ?? '' ) . ( $data['wa_target_path'] ?? '' );
+			$target   = ( $data['wa_target_type'] ?? '' ) . ( $data['wa_target_path'] ?? '' );
 			$output[] = '<strong>Target:</strong> ' . esc_html( $target );
 		}
 
 		if ( isset( $data['page_path'] ) ) {
 			$output[] = '<strong>Page:</strong> ' . esc_html( $data['page_path'] );
 		}
-		
+
 		if ( isset( $data['attribution'] ) && is_array( $data['attribution'] ) ) {
 			$attr = $data['attribution'];
 			if ( ! empty( $attr['ft_source'] ) ) {

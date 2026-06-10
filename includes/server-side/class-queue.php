@@ -135,7 +135,7 @@ class Queue {
 	public static function enqueue( Event $event, $adapter_key, $endpoint, $error_message = '' ) {
 		global $wpdb;
 
-		$data = $event->to_array();
+		$data       = $event->to_array();
 		$event_name = isset( $data['event_name'] ) ? sanitize_text_field( (string) $data['event_name'] ) : '';
 		$event_id   = isset( $data['event_id'] ) ? sanitize_text_field( (string) $data['event_id'] ) : '';
 
@@ -350,7 +350,7 @@ class Queue {
 		if ( null === $stored ) {
 			$stored = get_option( 'clicutcl_db_ready', null );
 		}
-		$now    = time();
+		$now = time();
 
 		if ( null === $stored ) {
 			$ready = self::table_exists_fast();
@@ -466,11 +466,11 @@ class Queue {
 		global $wpdb;
 
 		$stats = array(
-			'ready'       => false,
-			'pending'     => 0,
-			'due_now'     => 0,
-			'max_attempts'=> 0,
-			'oldest_next' => '',
+			'ready'        => false,
+			'pending'      => 0,
+			'due_now'      => 0,
+			'max_attempts' => 0,
+			'oldest_next'  => '',
 		);
 
 		if ( ! self::table_exists() ) {
@@ -522,7 +522,7 @@ class Queue {
 
 		$table_name = esc_sql( self::get_table_name() );
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Live queue lookup for diagnostics.
-		$row        = $wpdb->get_row(
+		$row = $wpdb->get_row(
 			$wpdb->prepare(
 				"SELECT event_name, event_id, adapter, attempts, next_attempt_at, last_error FROM {$table_name} WHERE event_name = %s AND event_id = %s LIMIT 1", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table.
 				$event_name,

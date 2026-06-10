@@ -41,7 +41,7 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 	 */
 	public function register_hooks() {
 		$keys = Attribution_Provider::get_field_mapping();
-		
+
 		foreach ( $keys as $key ) {
 			// Filter name format: wpforms_field_value_{parameter_name}
 			// When using Smart Tag {query_var key="ct_ft_source"} this hooks in?
@@ -67,30 +67,30 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 			return $value;
 		}
 
-		// We need to identify which key triggered this. 
-		// Since we registered specific hooks, we can't easily know strictly from arguments 
-		// unless we closures or just check the current filter name, 
+		// We need to identify which key triggered this.
+		// Since we registered specific hooks, we can't easily know strictly from arguments
+		// unless we closures or just check the current filter name,
 		// but checking current filter is hacky.
 		// A better way is to use a method that returns a closure, or `current_filter()`.
-		
+
 		$filter = current_filter();
 		// Format: wpforms_field_value_ct_ft_source
 		$prefix = 'wpforms_field_value_' . $this->field_prefix;
-		
+
 		if ( strpos( $filter, $prefix ) !== 0 ) {
 			return $value;
 		}
 
 		$key = str_replace( $prefix, '', $filter );
-		
+
 		$payload = $this->get_attribution_payload();
-		
+
 		return isset( $payload[ $key ] ) ? $payload[ $key ] : $value;
 	}
 
 	/**
 	 * Interface compliance.
-	 * 
+	 *
 	 * @param mixed $form_or_context
 	 * @return mixed
 	 */

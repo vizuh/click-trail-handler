@@ -43,19 +43,19 @@ class Autoloader {
 
 		// Explode parts
 		$parts = explode( '\\', $relative_class );
-		
+
 		// The last part is the file name.
 		$class_name = array_pop( $parts );
-		
+
 		// Format file name: class-{class-name}.php, lowercase, hyphens.
 		$file_name = 'class-' . str_replace( '_', '-', strtolower( $class_name ) ) . '.php';
-		
+
 		// Build directory candidates (Original vs Lowercase-Kebab)
 		$path_segments = array();
 		foreach ( $parts as $part ) {
-			$options = array();
+			$options   = array();
 			$options[] = $part; // 1. Original Case (e.g. "Modules")
-			
+
 			$lower_kebab = strtolower( str_replace( '_', '-', $part ) );
 			if ( $lower_kebab !== $part ) {
 				$options[] = $lower_kebab; // 2. Lowercase Kebab (e.g. "consent-mode")
@@ -84,7 +84,7 @@ class Autoloader {
 			} else {
 				$path = CLICUTCL_DIR . 'includes' . DIRECTORY_SEPARATOR . $dir . $file_name;
 			}
-			
+
 			if ( file_exists( $path ) ) {
 				require_once $path;
 				return;

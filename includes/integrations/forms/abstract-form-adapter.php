@@ -67,9 +67,9 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 
 		$event_id = Event::generate_id( 'form' );
 		$identity = $this->resolve_identity_payload( $identity_input );
-		
+
 		$event_data = array(
-			'event_id'   => $event_id,
+			'event_id'    => $event_id,
 			'platform'    => $platform,
 			'form_id'     => $form_id,
 			'attribution' => $attribution,
@@ -171,8 +171,8 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 				continue;
 			}
 
-			$key_name  = strtolower( sanitize_key( (string) $key ) );
-			$string    = trim( (string) $value );
+			$key_name = strtolower( sanitize_key( (string) $key ) );
+			$string   = trim( (string) $value );
 
 			if ( '' === $string ) {
 				continue;

@@ -60,4 +60,3 @@ class Identity_Resolver implements IdentityResolverInterface {
 		return $out;
 	}
 }
-

@@ -41,14 +41,14 @@ class WooCommerce {
 		if ( ! class_exists( 'WooCommerce' ) ) {
 			return;
 		}
-		
+
 		add_action( 'woocommerce_checkout_create_order', array( $this, 'save_order_attribution' ), 10, 2 );
 		add_action( 'woocommerce_thankyou', array( $this, 'push_purchase_event' ), 20, 1 );
 		add_action( 'woocommerce_payment_complete', array( $this, 'track_paid_milestone' ), 20, 1 );
 		add_action( 'woocommerce_order_status_changed', array( $this, 'track_paid_milestone_from_status_change' ), 20, 4 );
 		add_action( 'woocommerce_order_status_refunded', array( $this, 'track_refunded_milestone' ), 20, 2 );
 		add_action( 'woocommerce_order_status_cancelled', array( $this, 'track_cancelled_milestone' ), 20, 2 );
-		
+
 		// Output hidden fields for JS Injection (Cache Resilience)
 		add_action( 'woocommerce_after_order_notes', array( $this, 'output_hidden_checkout_fields' ) );
 	}
@@ -61,7 +61,7 @@ class WooCommerce {
 	 */
 	public function output_hidden_checkout_fields( $checkout ) {
 		$fields = array_map(
-			static function( $key ) {
+			static function ( $key ) {
 				return 'ct_' . $key;
 			},
 			Attribution_Provider::get_field_mapping()
@@ -84,12 +84,12 @@ class WooCommerce {
 	public function save_order_attribution( $order, $data ) {
 		// 1. Try server-side cookie first (most reliable if not stripped)
 		$attribution = Attribution::get();
-		
+
 		// 2. Fallback to POST data (Client-Side Injection)
 		if ( empty( $attribution ) ) {
 			$attribution = $this->collect_from_post_data( $data );
 		}
-		
+
 		if ( ! $attribution ) {
 			return;
 		}
@@ -142,7 +142,7 @@ class WooCommerce {
 	private function collect_from_post_data( $data ) {
 		// Nonce check for WooCommerce checkout security
 		if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'woocommerce-process_checkout' ) ) {
-			return null; 
+			return null;
 		}
 
 		$attr = array();
@@ -199,7 +199,7 @@ class WooCommerce {
 		 */
 		$payload   = apply_filters( 'clicutcl_woocommerce_purchase_payload', $payload, $order );
 		$payload   = is_array( $payload ) ? wp_parse_args( $payload, $defaults ) : $defaults;
-		$datalayer   = $this->build_purchase_datalayer_payload( $payload, $flat_attr );
+		$datalayer = $this->build_purchase_datalayer_payload( $payload, $flat_attr );
 
 		$result = $this->dispatch_order_payload( $order, $payload, 'purchase', 'woocommerce_thankyou' );
 		?>
@@ -233,10 +233,10 @@ class WooCommerce {
 	/**
 	 * Track a paid-order milestone from a status change fallback.
 	 *
-	 * @param int              $order_id Order ID.
-	 * @param string           $from_status Previous status.
-	 * @param string           $to_status Current status.
-	 * @param \WC_Order|mixed  $order Order instance.
+	 * @param int             $order_id Order ID.
+	 * @param string          $from_status Previous status.
+	 * @param string          $to_status Current status.
+	 * @param \WC_Order|mixed $order Order instance.
 	 * @return void
 	 */
 	public function track_paid_milestone_from_status_change( $order_id, $from_status, $to_status, $order ): void {
@@ -371,7 +371,7 @@ class WooCommerce {
 		$items = array();
 
 		foreach ( $order->get_items() as $item_id => $item ) {
-			$product_id = method_exists( $item, 'get_product_id' ) ? absint( $item->get_product_id() ) : 0;
+			$product_id   = method_exists( $item, 'get_product_id' ) ? absint( $item->get_product_id() ) : 0;
 			$variation_id = method_exists( $item, 'get_variation_id' ) ? absint( $item->get_variation_id() ) : 0;
 			$product      = $item->get_product();
 			$resolved_id  = $product ? absint( $product->get_id() ) : ( $variation_id ? $variation_id : $product_id );
@@ -397,9 +397,9 @@ class WooCommerce {
 	 * @return array<string, mixed>
 	 */
 	private function build_purchase_meta( $order ): array {
-		$customer_id = method_exists( $order, 'get_customer_id' ) ? absint( $order->get_customer_id() ) : 0;
-		$order_date  = method_exists( $order, 'get_date_created' ) ? $order->get_date_created() : null;
-		$created_at  = $order_date ? $order_date->date( DATE_ATOM ) : '';
+		$customer_id         = method_exists( $order, 'get_customer_id' ) ? absint( $order->get_customer_id() ) : 0;
+		$order_date          = method_exists( $order, 'get_date_created' ) ? $order->get_date_created() : null;
+		$created_at          = $order_date ? $order_date->date( DATE_ATOM ) : '';
 		$customer_created_at = '';
 
 		if ( $customer_id ) {
@@ -470,9 +470,9 @@ class WooCommerce {
 			return;
 		}
 
-		$attribution = $this->collect_order_attribution( $order );
-		$identity    = $this->resolve_purchase_identity( $order );
-		$payload     = $this->build_purchase_payload( $order, $attribution, $identity );
+		$attribution           = $this->collect_order_attribution( $order );
+		$identity              = $this->resolve_purchase_identity( $order );
+		$payload               = $this->build_purchase_payload( $order, $attribution, $identity );
 		$payload['event_name'] = sanitize_key( $event_name );
 		$payload['event_id']   = sanitize_key( $event_name ) . '_' . absint( $order->get_id() );
 		$payload['meta']       = array_merge(
@@ -491,7 +491,7 @@ class WooCommerce {
 		$defaults = $payload;
 		$payload  = apply_filters( 'clicutcl_woocommerce_order_milestone_payload', $payload, $order, $event_name, $source_hook );
 		$payload  = is_array( $payload ) ? wp_parse_args( $payload, $defaults ) : $defaults;
-		$result  = $this->dispatch_order_payload( $order, $payload, $event_name, $source_hook );
+		$result   = $this->dispatch_order_payload( $order, $payload, $event_name, $source_hook );
 
 		if ( $this->should_mark_milestone_sent( $result ) ) {
 			$order->update_meta_data( $this->get_milestone_marker_key( $event_name ), current_time( 'mysql' ) );
@@ -515,13 +515,13 @@ class WooCommerce {
 			'attempted_at' => current_time( 'mysql' ),
 			'payload'      => Event_Translator_V1_To_V2::translate(
 				array(
-					'event_name'   => sanitize_key( $event_name ),
-					'event_id'     => isset( $payload['event_id'] ) ? sanitize_text_field( (string) $payload['event_id'] ) : '',
-					'source'       => 'server',
-					'attribution'  => isset( $payload['attribution'] ) && is_array( $payload['attribution'] ) ? $payload['attribution'] : array(),
-					'identity'     => isset( $payload['identity'] ) && is_array( $payload['identity'] ) ? $payload['identity'] : array(),
-					'commerce'     => isset( $payload['commerce'] ) && is_array( $payload['commerce'] ) ? $payload['commerce'] : array(),
-					'meta'         => isset( $payload['meta'] ) && is_array( $payload['meta'] ) ? $payload['meta'] : array(),
+					'event_name'  => sanitize_key( $event_name ),
+					'event_id'    => isset( $payload['event_id'] ) ? sanitize_text_field( (string) $payload['event_id'] ) : '',
+					'source'      => 'server',
+					'attribution' => isset( $payload['attribution'] ) && is_array( $payload['attribution'] ) ? $payload['attribution'] : array(),
+					'identity'    => isset( $payload['identity'] ) && is_array( $payload['identity'] ) ? $payload['identity'] : array(),
+					'commerce'    => isset( $payload['commerce'] ) && is_array( $payload['commerce'] ) ? $payload['commerce'] : array(),
+					'meta'        => isset( $payload['meta'] ) && is_array( $payload['meta'] ) ? $payload['meta'] : array(),
 				)
 			),
 			'dispatch'     => array(
@@ -542,8 +542,8 @@ class WooCommerce {
 	 * @return void
 	 */
 	private function store_trace_snapshot( $order, string $event_name, array $snapshot ): void {
-		$traces = $order->get_meta( self::TRACE_META_KEY, true );
-		$traces = is_array( $traces ) ? $traces : array();
+		$traces                                = $order->get_meta( self::TRACE_META_KEY, true );
+		$traces                                = is_array( $traces ) ? $traces : array();
 		$traces[ sanitize_key( $event_name ) ] = $snapshot;
 		$order->update_meta_data( self::TRACE_META_KEY, $traces );
 	}
@@ -766,7 +766,7 @@ class WooCommerce {
 		return array_values(
 			array_filter(
 				array_map(
-					static function( $term_name ) {
+					static function ( $term_name ) {
 						return sanitize_text_field( (string) $term_name );
 					},
 					$terms
@@ -884,14 +884,14 @@ class WooCommerce {
 		$flat = array_fill_keys(
 			array_filter(
 				Attribution_Provider::get_field_mapping(),
-				static function( $key ) {
+				static function ( $key ) {
 					return 0 === strpos( $key, 'ft_' ) || 0 === strpos( $key, 'lt_' );
 				}
 			),
 			''
 		);
 
-		$map_key = function( $key ) {
+		$map_key = function ( $key ) {
 			$map = array(
 				'utm_source'   => 'source',
 				'utm_medium'   => 'medium',
@@ -903,7 +903,7 @@ class WooCommerce {
 			return isset( $map[ $key ] ) ? $map[ $key ] : $key;
 		};
 
-		$assign_touch = function( $touch_key, $prefix ) use ( &$flat, $attribution, $map_key ) {
+		$assign_touch = function ( $touch_key, $prefix ) use ( &$flat, $attribution, $map_key ) {
 			if ( isset( $attribution[ $touch_key ] ) && is_array( $attribution[ $touch_key ] ) ) {
 				foreach ( $attribution[ $touch_key ] as $key => $value ) {
 					$mapped                    = $map_key( $key );
@@ -981,5 +981,4 @@ class WooCommerce {
 		// phpcs:enable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
 		return $normalized;
 	}
-
 }

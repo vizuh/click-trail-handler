@@ -56,7 +56,7 @@ class Generic_Collector_Adapter implements Adapter_Interface {
 	 * @return Adapter_Result
 	 */
 	public function send( Event $event ) {
-		$body = $event->to_array();
+		$body                   = $event->to_array();
 		$body['schema_version'] = 1;
 
 		$response = wp_remote_post(

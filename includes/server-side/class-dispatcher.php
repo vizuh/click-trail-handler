@@ -47,12 +47,12 @@ class Dispatcher {
 	 * @var array<string,true>
 	 */
 	public const ALLOWED_ADAPTERS = array(
-		'generic'      => true,
-		'sgtm'         => true,
-		'meta_capi'    => true,
-		'google_ads'   => true,
-		'linkedin_capi' => true,
-		'pinterest_capi' => true,
+		'generic'           => true,
+		'sgtm'              => true,
+		'meta_capi'         => true,
+		'google_ads'        => true,
+		'linkedin_capi'     => true,
+		'pinterest_capi'    => true,
 		'tiktok_events_api' => true,
 	);
 
@@ -176,10 +176,10 @@ class Dispatcher {
 			return Adapter_Result::error( 0, 'missing_adapter' );
 		}
 
-		$event_payload    = $event->to_array();
-		$event_name       = isset( $event_payload['event_name'] ) ? sanitize_key( (string) $event_payload['event_name'] ) : '';
-		$event_id         = isset( $event_payload['event_id'] ) ? sanitize_text_field( (string) $event_payload['event_id'] ) : '';
-		$destination_key  = method_exists( $adapter, 'get_name' ) ? sanitize_key( (string) $adapter->get_name() ) : 'adapter';
+		$event_payload   = $event->to_array();
+		$event_name      = isset( $event_payload['event_name'] ) ? sanitize_key( (string) $event_payload['event_name'] ) : '';
+		$event_id        = isset( $event_payload['event_id'] ) ? sanitize_text_field( (string) $event_payload['event_id'] ) : '';
+		$destination_key = method_exists( $adapter, 'get_name' ) ? sanitize_key( (string) $adapter->get_name() ) : 'adapter';
 		if ( $event_name && $event_id && Dedup_Store::is_duplicate( $destination_key, $event_name, $event_id ) ) {
 			return Adapter_Result::skipped( 'duplicate_event' );
 		}
@@ -189,8 +189,8 @@ class Dispatcher {
 		if ( ! $result->success && ! $result->skipped ) {
 			self::record_last_error( 'adapter_error', $result->message );
 			self::record_failure( 'adapter_error' );
-			$queued = Queue::enqueue( $event, $adapter->get_name(), self::get_endpoint(), $result->message );
-			$result->meta = is_array( $result->meta ) ? $result->meta : array();
+			$queued                 = Queue::enqueue( $event, $adapter->get_name(), self::get_endpoint(), $result->message );
+			$result->meta           = is_array( $result->meta ) ? $result->meta : array();
 			$result->meta['queued'] = (bool) $queued;
 		}
 		if ( $result->success && ! $result->skipped && $event_name && $event_id ) {
@@ -214,14 +214,14 @@ class Dispatcher {
 		}
 
 		$legacy = array(
-			'event_name'   => $event_name,
-			'event_id'     => $event_id,
-			'timestamp'    => isset( $event_v2['event_time'] ) ? absint( $event_v2['event_time'] ) : time(),
-			'source'       => isset( $event_v2['source_channel'] ) ? sanitize_text_field( (string) $event_v2['source_channel'] ) : 'web',
-			'page'         => isset( $event_v2['page_context'] ) && is_array( $event_v2['page_context'] ) ? $event_v2['page_context'] : array(),
-			'attribution'  => isset( $event_v2['attribution'] ) && is_array( $event_v2['attribution'] ) ? $event_v2['attribution'] : array(),
-			'consent'      => isset( $event_v2['consent'] ) && is_array( $event_v2['consent'] ) ? $event_v2['consent'] : array(),
-			'meta'         => isset( $event_v2['meta'] ) && is_array( $event_v2['meta'] ) ? $event_v2['meta'] : array(),
+			'event_name'  => $event_name,
+			'event_id'    => $event_id,
+			'timestamp'   => isset( $event_v2['event_time'] ) ? absint( $event_v2['event_time'] ) : time(),
+			'source'      => isset( $event_v2['source_channel'] ) ? sanitize_text_field( (string) $event_v2['source_channel'] ) : 'web',
+			'page'        => isset( $event_v2['page_context'] ) && is_array( $event_v2['page_context'] ) ? $event_v2['page_context'] : array(),
+			'attribution' => isset( $event_v2['attribution'] ) && is_array( $event_v2['attribution'] ) ? $event_v2['attribution'] : array(),
+			'consent'     => isset( $event_v2['consent'] ) && is_array( $event_v2['consent'] ) ? $event_v2['consent'] : array(),
+			'meta'        => isset( $event_v2['meta'] ) && is_array( $event_v2['meta'] ) ? $event_v2['meta'] : array(),
 		);
 
 		if ( isset( $event_v2['lead_context'] ) && is_array( $event_v2['lead_context'] ) ) {
@@ -451,7 +451,7 @@ class Dispatcher {
 		if ( ! isset( self::$failure_deltas[ $code ] ) ) {
 			self::$failure_deltas[ $code ] = 0;
 		}
-		self::$failure_deltas[ $code ]++;
+		++self::$failure_deltas[ $code ];
 
 		if ( ! self::$failure_flush_registered ) {
 			self::$failure_flush_registered = true;
@@ -469,12 +469,12 @@ class Dispatcher {
 			return;
 		}
 
-		$deltas = self::$failure_deltas;
+		$deltas               = self::$failure_deltas;
 		self::$failure_deltas = array();
 
 		$flush_interval_default = self::get_tracking_diagnostics_value( 'failure_flush_interval', 10 );
-		$flush_interval = (int) apply_filters( 'clicutcl_failure_telemetry_flush_interval', $flush_interval_default );
-		$flush_interval = max( 0, $flush_interval );
+		$flush_interval         = (int) apply_filters( 'clicutcl_failure_telemetry_flush_interval', $flush_interval_default );
+		$flush_interval         = max( 0, $flush_interval );
 
 		if ( $flush_interval > 0 && get_transient( self::FAILURE_TELEMETRY_FLUSH_LOCK ) ) {
 			self::log_failure_telemetry_line( $deltas, true );
@@ -514,9 +514,9 @@ class Dispatcher {
 
 		krsort( $telemetry, SORT_STRING );
 		$bucket_limit_default = self::get_tracking_diagnostics_value( 'failure_bucket_retention', 72 );
-		$bucket_limit = (int) apply_filters( 'clicutcl_failure_telemetry_bucket_limit', $bucket_limit_default );
-		$bucket_limit = max( 1, min( 720, $bucket_limit ) );
-		$telemetry    = array_slice( $telemetry, 0, $bucket_limit, true );
+		$bucket_limit         = (int) apply_filters( 'clicutcl_failure_telemetry_bucket_limit', $bucket_limit_default );
+		$bucket_limit         = max( 1, min( 720, $bucket_limit ) );
+		$telemetry            = array_slice( $telemetry, 0, $bucket_limit, true );
 
 		$ttl = (int) apply_filters( 'clicutcl_failure_telemetry_ttl', 7 * DAY_IN_SECONDS );
 		$ttl = max( HOUR_IN_SECONDS, $ttl );
@@ -548,7 +548,7 @@ class Dispatcher {
 	public static function get_delivery_diagnostics() {
 		$last_error = get_transient( self::LAST_ERROR_TRANSIENT );
 		if ( ! is_array( $last_error ) ) {
-			$legacy    = get_option( 'clicutcl_last_error', array() );
+			$legacy     = get_option( 'clicutcl_last_error', array() );
 			$last_error = is_array( $legacy ) ? $legacy : array();
 		}
 
@@ -588,9 +588,9 @@ class Dispatcher {
 	/**
 	 * Record dispatch for diagnostics.
 	 *
-	 * @param Event            $event Event.
+	 * @param Event             $event Event.
 	 * @param Adapter_Interface $adapter Adapter instance.
-	 * @param Adapter_Result   $result Result.
+	 * @param Adapter_Result    $result Result.
 	 * @return void
 	 */
 	public static function log_dispatch( Event $event, $adapter, Adapter_Result $result ) {
@@ -630,13 +630,13 @@ class Dispatcher {
 
 		$dispatches = get_transient( self::DISPATCH_BUFFER_TRANSIENT );
 		if ( ! is_array( $dispatches ) ) {
-			$legacy = get_option( 'clicutcl_dispatch_log', array() );
+			$legacy     = get_option( 'clicutcl_dispatch_log', array() );
 			$dispatches = is_array( $legacy ) ? $legacy : array();
 		}
 
 		$max_default = self::get_tracking_diagnostics_value( 'dispatch_buffer_size', 20 );
-		$max = (int) apply_filters( 'clicutcl_diag_dispatch_buffer_size', $max_default );
-		$max = max( 1, min( 200, $max ) );
+		$max         = (int) apply_filters( 'clicutcl_diag_dispatch_buffer_size', $max_default );
+		$max         = max( 1, min( 200, $max ) );
 
 		array_unshift( $dispatches, $entry );
 		$dispatches = array_slice( $dispatches, 0, $max );

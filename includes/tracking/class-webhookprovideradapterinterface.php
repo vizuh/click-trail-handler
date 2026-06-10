@@ -38,4 +38,3 @@ interface WebhookProviderAdapterInterface {
 	 */
 	public function map_to_canonical( array $payload ): array;
 }
-

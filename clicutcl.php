@@ -29,7 +29,7 @@ define( 'CLICUTCL_PII_NONCE_ACTION', 'clicutcl_pii_nonce' );
 
 add_action(
 	'before_woocommerce_init',
-	function() {
+	function () {
 		if ( ! class_exists( 'Automattic\\WooCommerce\\Utilities\\FeaturesUtil' ) ) {
 			return;
 		}
@@ -86,8 +86,8 @@ function clicutcl_bootstrap(): void {
 		$cache_key   = 'context_fallback_file';
 
 		if ( null === $context_fallback_file ) {
-			$cache_hit = false;
-			$cached    = wp_cache_get( $cache_key, $cache_group, false, $cache_hit );
+			$cache_hit             = false;
+			$cached                = wp_cache_get( $cache_key, $cache_group, false, $cache_hit );
 			$context_fallback_file = ( $cache_hit && is_string( $cached ) ) ? $cached : '';
 		}
 
@@ -135,30 +135,36 @@ require_once CLICUTCL_DIR . 'includes/clicutcl-canonical.php';
 // See: https://developer.wordpress.org/plugins/internationalization/how-to-internationalize-your-plugin/#loading-text-domain
 
 // Activation Hook
-register_activation_hook( __FILE__, function() {
-	// Autoloader is already loaded globally
-	require_once CLICUTCL_DIR . 'includes/database/class-installer.php';
-	CLICUTCL\Database\Installer::run();
+register_activation_hook(
+	__FILE__,
+	function () {
+		// Autoloader is already loaded globally
+		require_once CLICUTCL_DIR . 'includes/database/class-installer.php';
+		CLICUTCL\Database\Installer::run();
 
-	if ( ! wp_next_scheduled( 'clicutcl_daily_cleanup' ) ) {
-		wp_schedule_event( time(), 'daily', 'clicutcl_daily_cleanup' );
+		if ( ! wp_next_scheduled( 'clicutcl_daily_cleanup' ) ) {
+			wp_schedule_event( time(), 'daily', 'clicutcl_daily_cleanup' );
+		}
+
+		if ( class_exists( 'CLICUTCL\\Server_Side\\Queue' ) ) {
+			CLICUTCL\Server_Side\Queue::ensure_schedule();
+		}
+
+		// Trigger the setup wizard on the next admin page load (new installs only).
+		// The wizard checks clicutcl_setup_complete and skips the redirect if already done.
+		set_transient( 'clicutcl_activation_redirect', true, 30 );
 	}
+);
 
-	if ( class_exists( 'CLICUTCL\\Server_Side\\Queue' ) ) {
-		CLICUTCL\Server_Side\Queue::ensure_schedule();
+register_deactivation_hook(
+	__FILE__,
+	function () {
+		wp_clear_scheduled_hook( 'clicutcl_daily_cleanup' );
+		if ( class_exists( 'CLICUTCL\\Server_Side\\Queue' ) ) {
+			CLICUTCL\Server_Side\Queue::clear_schedule();
+		}
 	}
-
-	// Trigger the setup wizard on the next admin page load (new installs only).
-	// The wizard checks clicutcl_setup_complete and skips the redirect if already done.
-	set_transient( 'clicutcl_activation_redirect', true, 30 );
-} );
-
-register_deactivation_hook( __FILE__, function() {
-	wp_clear_scheduled_hook( 'clicutcl_daily_cleanup' );
-	if ( class_exists( 'CLICUTCL\\Server_Side\\Queue' ) ) {
-		CLICUTCL\Server_Side\Queue::clear_schedule();
-	}
-} );
+);
 
 /**
  * Initialize the plugin
@@ -188,17 +194,20 @@ function clicutcl_init() {
 		|| ! class_exists( 'CLICUTCL\\Modules\\GTM\\Web_Tag' )
 		|| ! class_exists( 'CLICUTCL\\Plugin' )
 	) {
-		add_action( 'admin_notices', function() {
-			if ( ! current_user_can( 'activate_plugins' ) ) {
-				return;
+		add_action(
+			'admin_notices',
+			function () {
+				if ( ! current_user_can( 'activate_plugins' ) ) {
+					return;
+				}
+				echo '<div class="notice notice-error"><p>';
+				echo esc_html__(
+					'ClickTrail could not start because a required class is missing. This usually means the release ZIP is missing files or the autoloader mapping is incorrect.',
+					'click-trail-handler'
+				);
+				echo '</p></div>';
 			}
-			echo '<div class="notice notice-error"><p>';
-			echo esc_html__(
-				'ClickTrail could not start because a required class is missing. This usually means the release ZIP is missing files or the autoloader mapping is incorrect.',
-				'click-trail-handler'
-			);
-			echo '</p></div>';
-		} );
+		);
 		return;
 	}
 

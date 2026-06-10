@@ -33,7 +33,7 @@ class Event {
 	 * @param array $data Event data.
 	 */
 	public function __construct( $data ) {
-		$data = is_array( $data ) ? $data : array();
+		$data       = is_array( $data ) ? $data : array();
 		$normalized = self::normalize( $data );
 
 		if ( ! self::validate( $normalized ) ) {
@@ -144,14 +144,14 @@ class Event {
 		$payload = is_array( $payload ) ? $payload : array();
 
 		$data = array(
-			'event_name' => 'wa_click',
-			'event_id'   => $payload['event_id'] ?? '',
-			'timestamp'  => isset( $payload['ts'] ) ? absint( $payload['ts'] ) : time(),
-			'source'     => 'web',
-			'page'       => array(
+			'event_name'  => 'wa_click',
+			'event_id'    => $payload['event_id'] ?? '',
+			'timestamp'   => isset( $payload['ts'] ) ? absint( $payload['ts'] ) : time(),
+			'source'      => 'web',
+			'page'        => array(
 				'path' => $payload['page_path'] ?? '',
 			),
-			'wa'         => array(
+			'wa'          => array(
 				'target_type' => $payload['wa_target_type'] ?? '',
 				'target_path' => $payload['wa_target_path'] ?? '',
 			),
@@ -198,11 +198,11 @@ class Event {
 		}
 
 		$data = array(
-			'event_name' => 'form_submission',
-			'event_id'   => $event_id,
-			'timestamp'  => $timestamp,
-			'source'     => 'server',
-			'form'       => array(
+			'event_name'  => 'form_submission',
+			'event_id'    => $event_id,
+			'timestamp'   => $timestamp,
+			'source'      => 'server',
+			'form'        => array(
 				'platform' => $platform,
 				'id'       => $form_id,
 			),
@@ -237,13 +237,13 @@ class Event {
 		$commerce_source = isset( $payload['commerce'] ) && is_array( $payload['commerce'] ) ? $payload['commerce'] : array();
 		$event_name      = isset( $payload['event_name'] ) ? sanitize_key( (string) $payload['event_name'] ) : 'purchase';
 		$event_name      = '' !== $event_name ? $event_name : 'purchase';
-		$order_id       = isset( $payload['order_id'] ) ? absint( $payload['order_id'] ) : 0;
-		$transaction_id = isset( $commerce_source['transaction_id'] )
+		$order_id        = isset( $payload['order_id'] ) ? absint( $payload['order_id'] ) : 0;
+		$transaction_id  = isset( $commerce_source['transaction_id'] )
 			? sanitize_text_field( (string) $commerce_source['transaction_id'] )
 			: ( isset( $payload['transaction_id'] ) ? sanitize_text_field( (string) $payload['transaction_id'] ) : '' );
-		$event_id       = isset( $payload['event_id'] ) ? sanitize_text_field( (string) $payload['event_id'] ) : '';
-		$event_id       = $event_id ? $event_id : ( $transaction_id ? $event_name . '_' . $transaction_id : ( $order_id ? $event_name . '_' . $order_id : self::generate_id( $event_name ) ) );
-		$timestamp      = isset( $payload['timestamp'] ) ? absint( $payload['timestamp'] ) : time();
+		$event_id        = isset( $payload['event_id'] ) ? sanitize_text_field( (string) $payload['event_id'] ) : '';
+		$event_id        = $event_id ? $event_id : ( $transaction_id ? $event_name . '_' . $transaction_id : ( $order_id ? $event_name . '_' . $order_id : self::generate_id( $event_name ) ) );
+		$timestamp       = isset( $payload['timestamp'] ) ? absint( $payload['timestamp'] ) : time();
 
 		$items_source = isset( $commerce_source['items'] ) && is_array( $commerce_source['items'] )
 			? $commerce_source['items']
@@ -299,11 +299,11 @@ class Event {
 		}
 
 		$data = array(
-			'event_name' => $event_name,
-			'event_id'   => $event_id,
-			'timestamp'  => $timestamp,
-			'source'     => isset( $payload['source'] ) ? sanitize_text_field( (string) $payload['source'] ) : 'server',
-			'commerce'   => $commerce,
+			'event_name'  => $event_name,
+			'event_id'    => $event_id,
+			'timestamp'   => $timestamp,
+			'source'      => isset( $payload['source'] ) ? sanitize_text_field( (string) $payload['source'] ) : 'server',
+			'commerce'    => $commerce,
 			'attribution' => isset( $payload['attribution'] ) && is_array( $payload['attribution'] ) ? self::sanitize_nested_array( $payload['attribution'] ) : array(),
 			'identity'    => isset( $payload['identity'] ) && is_array( $payload['identity'] ) ? self::sanitize_nested_array( $payload['identity'] ) : array(),
 			'meta'        => array_merge(
@@ -384,11 +384,11 @@ class Event {
 				continue;
 			}
 
-			$row = self::sanitize_nested_array( $item );
-			$row['item_id'] = isset( $item['item_id'] ) ? sanitize_text_field( (string) $item['item_id'] ) : '';
+			$row              = self::sanitize_nested_array( $item );
+			$row['item_id']   = isset( $item['item_id'] ) ? sanitize_text_field( (string) $item['item_id'] ) : '';
 			$row['item_name'] = isset( $item['item_name'] ) ? sanitize_text_field( (string) $item['item_name'] ) : '';
-			$row['price'] = isset( $item['price'] ) ? (float) $item['price'] : 0.0;
-			$row['quantity'] = isset( $item['quantity'] ) ? absint( $item['quantity'] ) : 0;
+			$row['price']     = isset( $item['price'] ) ? (float) $item['price'] : 0.0;
+			$row['quantity']  = isset( $item['quantity'] ) ? absint( $item['quantity'] ) : 0;
 
 			if ( isset( $item['product_id'] ) ) {
 				$row['product_id'] = absint( $item['product_id'] );
@@ -425,7 +425,7 @@ class Event {
 		return array_values(
 			array_filter(
 				array_map(
-					static function( $value ) {
+					static function ( $value ) {
 						return sanitize_text_field( (string) $value );
 					},
 					$values
