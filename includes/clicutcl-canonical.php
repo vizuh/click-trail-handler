@@ -1,6 +1,8 @@
 <?php
 /**
  * Canonical helpers to keep tracking parameters out of canonical URLs.
+ *
+ * @package ClickTrail
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -96,7 +98,7 @@ add_filter( 'wpseo_canonical', 'clicutcl_clean_yoast_canonical', 20 );
  * @param int|WP_Post $post      Current post object or ID.
  * @return string Filtered canonical URL.
  */
-function clicutcl_clean_core_canonical( $canonical, $post ) {
+function clicutcl_clean_core_canonical( $canonical, $post ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- $post is required by the get_canonical_url filter signature.
 	if ( ! $canonical ) {
 			return $canonical;
 	}

@@ -581,7 +581,7 @@ class Dispatcher {
 	 * @param Adapter_Result $result Adapter result.
 	 * @return bool
 	 */
-	private static function should_log_dispatch( Adapter_Result $result ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+	private static function should_log_dispatch( Adapter_Result $result ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- Typed $result documents the call contract and keeps a stable signature for callers.
 		return self::is_debug_enabled();
 	}
 
@@ -702,7 +702,7 @@ class Dispatcher {
 	 * @param int    $default Default value.
 	 * @return int
 	 */
-	private static function get_tracking_diagnostics_value( $key, $default ) {
+	private static function get_tracking_diagnostics_value( $key, $default ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.defaultFound -- Conventional fallback-value parameter name matching surrounding diagnostics API.
 		$key     = sanitize_key( (string) $key );
 		$default = (int) $default;
 

@@ -46,11 +46,11 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 	 * even when both aliases fire on an installation that preserves both.
 	 */
 	public function register_hooks() {
-		// Slash-style (Fluent Forms v5+, current docs)
+		// Slash-style (Fluent Forms v5+, current docs).
 		add_action( 'fluentform/form_element_start', array( $this, 'add_hidden_fields' ), 10, 1 );
 		add_action( 'fluentform/submission_inserted', array( $this, 'on_submission' ), 10, 3 );
 
-		// Underscore-style (legacy aliases, v4 and below)
+		// Underscore-style (legacy aliases, v4 and below).
 		add_action( 'fluentform_form_element_start', array( $this, 'add_hidden_fields' ), 10, 1 );
 		add_action( 'fluentform_submission_inserted', array( $this, 'on_submission' ), 10, 3 );
 	}
@@ -75,7 +75,7 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 	/**
 	 * Interface compliance.
 	 *
-	 * @param mixed $form_or_context
+	 * @param mixed $form_or_context Form or context passed through unchanged.
 	 * @return mixed
 	 */
 	public function populate_fields( $form_or_context ) {
@@ -119,7 +119,7 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 			}
 		}
 
-		// Fallback
+		// Fallback.
 		if ( empty( $attribution ) ) {
 			$attribution = $this->get_attribution_payload();
 		}

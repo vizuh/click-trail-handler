@@ -1,4 +1,9 @@
 <?php
+/**
+ * ClickTrail WooCommerce admin enhancements.
+ *
+ * @package ClickTrail
+ */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -11,23 +16,28 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class CLICUTCL_WooCommerce_Admin {
 
+	/**
+	 * Registers the WooCommerce admin hooks for attribution display.
+	 *
+	 * @return void
+	 */
 	public function init() {
-		// Add "Source" column to orders list
+		// Add "Source" column to orders list.
 		add_filter( 'manage_edit-shop_order_columns', array( $this, 'add_source_column' ), 20 );
 		add_action( 'manage_shop_order_posts_custom_column', array( $this, 'render_source_column' ), 10, 2 );
 
-		// Add attribution meta box to order edit page
+		// Add attribution meta box to order edit page.
 		add_action( 'add_meta_boxes', array( $this, 'add_attribution_meta_box' ) );
 	}
 
 	/**
 	 * Add "Source" column to orders list table
 	 *
-	 * @param array $columns Existing columns
-	 * @return array Modified columns
+	 * @param array $columns Existing columns.
+	 * @return array Modified columns.
 	 */
 	public function add_source_column( $columns ) {
-		// Insert "Source" column before "Total"
+		// Insert "Source" column before "Total".
 		$new_columns = array();
 
 		foreach ( $columns as $key => $value ) {
@@ -43,8 +53,8 @@ class CLICUTCL_WooCommerce_Admin {
 	/**
 	 * Render "Source" column content
 	 *
-	 * @param string $column Column key
-	 * @param int    $post_id Order ID
+	 * @param string $column Column key.
+	 * @param int    $post_id Order ID.
 	 */
 	public function render_source_column( $column, $post_id ) {
 		if ( 'clicutcl_source' !== $column ) {
@@ -57,7 +67,7 @@ class CLICUTCL_WooCommerce_Admin {
 			return;
 		}
 
-		// Get first-touch or last-touch attribution
+		// Get first-touch or last-touch attribution.
 		$ft_source = $order->get_meta( '_clicutcl_ft_source' );
 		$ft_medium = $order->get_meta( '_clicutcl_ft_medium' );
 
@@ -95,7 +105,7 @@ class CLICUTCL_WooCommerce_Admin {
 	/**
 	 * Render attribution meta box content
 	 *
-	 * @param WP_Post $post Order post object
+	 * @param WP_Post $post Order post object.
 	 */
 	public function render_attribution_meta_box( $post ) {
 		$order = wc_get_order( $post->ID );
@@ -104,7 +114,7 @@ class CLICUTCL_WooCommerce_Admin {
 			return;
 		}
 
-		// Get all attribution metadata
+		// Get all attribution metadata.
 		$attribution_fields = array(
 			'ft_source'       => __( 'Source', 'click-trail-handler' ),
 			'ft_medium'       => __( 'Medium', 'click-trail-handler' ),
@@ -144,7 +154,7 @@ class CLICUTCL_WooCommerce_Admin {
 
 		echo '</div>';
 
-		// Last Touch
+		// Last Touch.
 		$lt_source = $order->get_meta( '_clicutcl_lt_source' );
 		$lt_medium = $order->get_meta( '_clicutcl_lt_medium' );
 

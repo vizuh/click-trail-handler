@@ -72,7 +72,7 @@ class Ninja_Forms_Submission_Extra_Handler {
 	 * @param mixed $nf_sub      Ninja Forms submission object.
 	 * @return object|null
 	 */
-	public function handle( $extra_value, $nf_sub = null ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
+	public function handle( $extra_value, $nf_sub = null ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- Parameter required by the Ninja Forms extra value handler signature.
 		if ( ! class_exists( '\NinjaForms\Includes\Entities\MetaboxOutputEntity' ) ) {
 			return null;
 		}

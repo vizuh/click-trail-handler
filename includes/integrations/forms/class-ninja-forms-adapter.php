@@ -54,13 +54,13 @@ class Ninja_Forms_Adapter extends Abstract_Form_Adapter {
 	 * Register hooks.
 	 */
 	public function register_hooks() {
-		// Server-side injection
+		// Server-side injection.
 		add_filter( 'ninja_forms_submit_data', array( $this, 'inject_attribution' ), 10, 2 );
 
-		// Client-side tracking JS
+		// Client-side tracking JS.
 		add_action( 'wp_footer', array( $this, 'enqueue_ninja_js' ) );
 
-		// Log using custom table after submission
+		// Log using custom table after submission.
 		add_action( 'ninja_forms_after_submission', array( $this, 'on_submission' ), 10, 1 );
 		add_filter( 'nf_react_table_extra_value_keys', array( $this, 'register_extra_value_handler' ) );
 	}
@@ -99,7 +99,7 @@ class Ninja_Forms_Adapter extends Abstract_Form_Adapter {
 	/**
 	 * Interface compliance.
 	 *
-	 * @param mixed $form_or_context
+	 * @param mixed $form_or_context Form or context passed by the integration manager.
 	 * @return mixed
 	 */
 	public function populate_fields( $form_or_context ) {

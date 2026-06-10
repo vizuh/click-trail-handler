@@ -1,4 +1,9 @@
 <?php
+/**
+ * Event logging for the Events module.
+ *
+ * @package ClickTrail
+ */
 
 namespace CLICUTCL\Modules\Events;
 
@@ -93,7 +98,7 @@ class Events_Logger {
 	 * @param int $comment_approved Comment Approved Status.
 	 */
 	public function log_comment_event( $comment_id, $comment_approved ) {
-		// Only track if approved or pending (not spam)
+		// Only track if approved or pending (not spam).
 		if ( 'spam' === $comment_approved ) {
 			return;
 		}
@@ -117,7 +122,7 @@ class Events_Logger {
 	 * @param array  $data  Event data.
 	 */
 	private function set_event_cookie( $name, $data ) {
-		// Set cookie for 1 minute with security flags
+		// Set cookie for 1 minute with security flags.
 		setcookie(
 			$name,
 			wp_json_encode( $data ),
@@ -145,7 +150,7 @@ class Events_Logger {
 
 				if ( $event_data ) {
 					$queued_events[] = $this->normalize_event_cookie_payload( $event_data );
-					// Clear the cookie after reading
+					// Clear the cookie after reading.
 					setcookie(
 						$cookie_name,
 						'',

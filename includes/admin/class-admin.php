@@ -57,7 +57,7 @@ class Admin {
 		add_action( 'admin_notices', array( $this, 'display_pii_warning' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 
-		// AJAX hooks for Admin/Settings functionality
+		// AJAX hooks for Admin/Settings functionality.
 		add_action( 'wp_ajax_clicutcl_log_pii_risk', array( $this, 'ajax_log_pii_risk' ) );
 		add_action( 'wp_ajax_clicutcl_test_endpoint', array( $this, 'ajax_test_endpoint' ) );
 		add_action( 'wp_ajax_clicutcl_toggle_debug', array( $this, 'ajax_toggle_debug' ) );
@@ -77,12 +77,12 @@ class Admin {
 			add_action( 'network_admin_edit_clicutcl_network_settings', array( $this, 'save_network_settings' ) );
 		}
 
-		// Site Health
-		require_once CLICUTCL_DIR . 'includes/admin/class-site-health.php';
+		// Site Health.
+		require_once CLICUTCL_DIR . 'includes/admin/class-sitehealth.php';
 		$site_health = new SiteHealth();
 		$site_health->register();
 
-		// Dashboard Widget
+		// Dashboard Widget.
 		add_action( 'wp_dashboard_setup', array( $this, 'add_dashboard_widget' ) );
 	}
 
@@ -107,11 +107,11 @@ class Admin {
 		$domains      = isset( $options['link_allowed_domains'] ) ? $options['link_allowed_domains'] : '';
 		$domain_count = $domains ? count( array_filter( explode( ',', $domains ) ) ) : 0;
 
-		// Cookie check (server-side only)
-		$cookie_name   = 'attribution'; // Default
+		// Cookie check (server-side only).
+		$cookie_name   = 'attribution'; // Default.
 		$cookie_status = isset( $_COOKIE[ $cookie_name ] ) ? '✅ Detected' : '❌ Not Detected (Visit site with UTMs)';
 
-		// Caching check
+		// Caching check.
 		$caching = 'None Detected';
 		if ( defined( 'WP_ROCKET_VERSION' ) || defined( 'LSCWP_V' ) || defined( 'WPCACHEHOME' ) || defined( 'AUTOPTIMIZE_PLUGIN_VERSION' ) ) {
 			$caching = '⚠️ Caching Plugin Detected';
@@ -139,10 +139,10 @@ class Admin {
 			'clicutcl-settings',
 			array( $this, 'render_settings_app_page' ),
 			'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAyMCI+PHBhdGggZD0iTTIuNSAxNkw3IDEwLjVMMTAuNSAxMi41TDE3IDQuNSIgc3Ryb2tlPSIjMDAwIiBzdHJva2Utd2lkdGg9IjEuNiIgZmlsbD0ibm9uZSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+PGNpcmNsZSBjeD0iMi41IiBjeT0iMTYiIHI9IjEuOCIgZmlsbD0iIzAwMCIvPjxjaXJjbGUgY3g9IjciIGN5PSIxMC41IiByPSIxLjgiIGZpbGw9IiMwMDAiLz48Y2lyY2xlIGN4PSIxMC41IiBjeT0iMTIuNSIgcj0iMS44IiBmaWxsPSIjMDAwIi8+PGNpcmNsZSBjeD0iMTciIGN5PSI0LjUiIHI9IjEuOCIgZmlsbD0iIzAwMCIvPjwvc3ZnPg==', // phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- base64 SVG data URI for admin menu icon
-			56 // Analytics plugin zone (after Plugins, near Yoast/MonsterInsights)
+			56 // Analytics plugin zone (after Plugins, near Yoast/MonsterInsights).
 		);
 
-		// Override the first submenu item to be "Settings" instead of repeating "ClickTrail"
+		// Override the first submenu item to be "Settings" instead of repeating "ClickTrail".
 		add_submenu_page(
 			'clicutcl-settings',
 			__( 'Settings', 'click-trail-handler' ),
@@ -302,7 +302,7 @@ class Admin {
 		);
 		register_setting( 'clicutcl_tracking_v2', 'clicutcl_tracking_v2', array( 'CLICUTCL\\Tracking\\Settings', 'sanitize' ) );
 
-		// Core Attribution Section
+		// Core Attribution Section.
 		add_settings_section(
 			'clicutcl_core_section',
 			__( 'Core Attribution Settings', 'click-trail-handler' ),
@@ -336,7 +336,7 @@ class Admin {
 			)
 		);
 
-		// Reliability Section
+		// Reliability Section.
 		add_settings_section(
 			'clicutcl_reliability_section',
 			__( 'Reliability Settings', 'click-trail-handler' ),
@@ -372,7 +372,7 @@ class Admin {
 			)
 		);
 
-		// Cross-domain Section
+		// Cross-domain Section.
 		add_settings_section(
 			'clicutcl_cross_domain_section',
 			__( 'Cross-domain Settings', 'click-trail-handler' ),
@@ -437,7 +437,7 @@ class Admin {
 			)
 		);
 
-		// Advanced Section
+		// Advanced Section.
 		add_settings_section(
 			'clicutcl_advanced_section',
 			__( 'Advanced Settings', 'click-trail-handler' ),
@@ -459,7 +459,7 @@ class Admin {
 			)
 		);
 
-		// WhatsApp Section (on Attribution tab, same option group)
+		// WhatsApp Section (on Attribution tab, same option group).
 		add_settings_section(
 			'clicutcl_whatsapp_section',
 			__( 'WhatsApp', 'click-trail-handler' ),
@@ -1916,6 +1916,12 @@ class Admin {
 		<?php
 	}
 
+	/**
+	 * Renders a settings number input field.
+	 *
+	 * @param array $args Field arguments including option_name, label_for, and description.
+	 * @return void
+	 */
 	public function render_number_field( $args ) {
 		$option_name = $args['option_name'];
 		$options     = get_option( $option_name );
@@ -1929,6 +1935,12 @@ class Admin {
 		<?php
 	}
 
+	/**
+	 * Renders the GTM container ID text input field.
+	 *
+	 * @param array $args Field arguments including optional description and placeholder.
+	 * @return void
+	 */
 	public function render_gtm_text_field( $args ) {
 		$settings    = new GTM_Settings();
 		$value       = $settings->get();
@@ -1943,6 +1955,12 @@ class Admin {
 		<?php
 	}
 
+	/**
+	 * Sanitizes the attribution settings against the canonical schema.
+	 *
+	 * @param array $input Raw settings input submitted by the user.
+	 * @return array Sanitized settings merged with defaults and current values.
+	 */
 	public function sanitize_settings( $input ) {
 		$current  = get_option( 'clicutcl_attribution_settings', array() );
 		$defaults = $this->get_attribution_settings_defaults();
@@ -2162,6 +2180,16 @@ class Admin {
 		return implode( ',', $out );
 	}
 
+	/**
+	 * Sanitize the server-side settings submitted from the admin form.
+	 *
+	 * Merges the submitted values over the current stored settings and
+	 * normalizes each field (enabled flag, endpoint URL, adapter, timeout,
+	 * network usage and remote failure telemetry).
+	 *
+	 * @param mixed $input Raw settings input, expected to be an array.
+	 * @return array The sanitized settings array.
+	 */
 	public function sanitize_server_side_settings( $input ) {
 		// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- local variables inside a class method, not globals.
 		$current = is_network_admin() ? Settings::get_network() : get_option( 'clicutcl_server_side', array() );

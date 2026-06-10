@@ -42,7 +42,7 @@ class Form_Integration_Manager {
 	 * Register available adapters.
 	 */
 	private function register_adapters() {
-		// Ensure Interface and Abstract are loaded first
+		// Ensure Interface and Abstract are loaded first.
 		if ( ! interface_exists( 'CLICUTCL\Integrations\Forms\Form_Adapter_Interface' ) ) {
 			if ( file_exists( __DIR__ . '/forms/interface-form-adapter.php' ) ) {
 				require_once __DIR__ . '/forms/interface-form-adapter.php';
@@ -50,12 +50,12 @@ class Form_Integration_Manager {
 		}
 
 		if ( ! class_exists( 'CLICUTCL\Integrations\Forms\Abstract_Form_Adapter' ) ) {
-			if ( file_exists( __DIR__ . '/forms/abstract-form-adapter.php' ) ) {
-				require_once __DIR__ . '/forms/abstract-form-adapter.php';
+			if ( file_exists( __DIR__ . '/forms/class-abstract-form-adapter.php' ) ) {
+				require_once __DIR__ . '/forms/class-abstract-form-adapter.php';
 			}
 		}
 
-		// List of available adapters
+		// List of available adapters.
 		$potential_adapters = array(
 			'CLICUTCL\Integrations\Forms\CF7_Adapter'     => 'forms/class-cf7-adapter.php',
 			'CLICUTCL\Integrations\Forms\Elementor_Forms_Adapter' => 'forms/class-elementor-forms-adapter.php',
@@ -66,7 +66,7 @@ class Form_Integration_Manager {
 		);
 
 		foreach ( $potential_adapters as $class => $file ) {
-			// Require the file manually if class doesn't exist
+			// Require the file manually if class doesn't exist.
 			if ( ! class_exists( $class ) ) {
 				$path = __DIR__ . '/' . $file;
 				if ( file_exists( $path ) ) {
@@ -74,7 +74,7 @@ class Form_Integration_Manager {
 				}
 			}
 
-			// Instantiate if class exists after require
+			// Instantiate if class exists after require.
 			if ( class_exists( $class ) ) {
 				$this->adapters[] = new $class();
 			}

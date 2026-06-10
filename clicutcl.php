@@ -13,13 +13,15 @@
  * Domain Path: /languages
  * Requires at least: 6.5
  * Requires PHP:      8.1
+ *
+ * @package ClickTrail
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// Define Constants
+// Define Constants.
 define( 'CLICUTCL_VERSION', '1.8.9' );
 define( 'CLICUTCL_DIR', plugin_dir_path( __FILE__ ) );
 define( 'CLICUTCL_URL', plugin_dir_url( __FILE__ ) );
@@ -64,13 +66,13 @@ function clicutcl_script_args( $in_footer = false, $strategy = '' ) {
 function clicutcl_bootstrap(): void {
 	static $context_fallback_file = null;
 
-	// Composer autoloader (if you ship /vendor in releases)
+	// Composer autoloader (if you ship /vendor in releases).
 	$composer = CLICUTCL_DIR . 'vendor/autoload.php';
 	if ( file_exists( $composer ) ) {
 		require_once $composer;
 	}
 
-	// Plugin autoloader
+	// Plugin autoloader.
 	$autoloader = CLICUTCL_DIR . 'includes/class-autoloader.php';
 	if ( file_exists( $autoloader ) ) {
 		require_once $autoloader;
@@ -126,19 +128,19 @@ if ( class_exists( 'CLICUTCL\\Core\\Storage\\Option_Cache' ) ) {
 	CLICUTCL\Core\Storage\Option_Cache::register_hooks();
 }
 
-// Include Core Class
+// Include Core Class.
 require_once CLICUTCL_DIR . 'includes/class-clicutcl-core.php';
-// require_once CLICUTCL_DIR . 'includes/clicutcl-attribution-functions.php'; // Moved to CLICUTCL\Utils\Attribution
+// require_once CLICUTCL_DIR . 'includes/clicutcl-attribution-functions.php'; // Moved to CLICUTCL\Utils\Attribution.
 require_once CLICUTCL_DIR . 'includes/clicutcl-canonical.php';
 
 // Translations are loaded automatically by WordPress 4.6+ for plugins hosted on WordPress.org.
-// See: https://developer.wordpress.org/plugins/internationalization/how-to-internationalize-your-plugin/#loading-text-domain
+// See: https://developer.wordpress.org/plugins/internationalization/how-to-internationalize-your-plugin/#loading-text-domain .
 
-// Activation Hook
+// Activation Hook.
 register_activation_hook(
 	__FILE__,
 	function () {
-		// Autoloader is already loaded globally
+		// Autoloader is already loaded globally.
 		require_once CLICUTCL_DIR . 'includes/database/class-installer.php';
 		CLICUTCL\Database\Installer::run();
 
@@ -170,7 +172,7 @@ register_deactivation_hook(
  * Initialize the plugin
  */
 function clicutcl_init() {
-	// Ensure bootstrap has run (in case another file called init directly)
+	// Ensure bootstrap has run (in case another file called init directly).
 	if ( ! class_exists( 'CLICUTCL\\Core\\Context' ) ) {
 		clicutcl_bootstrap();
 	}

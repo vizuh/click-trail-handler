@@ -1,4 +1,9 @@
 <?php
+/**
+ * Google Tag Manager web container tag rendering.
+ *
+ * @package ClickTrail
+ */
 
 namespace CLICUTCL\Modules\GTM;
 
@@ -55,7 +60,7 @@ class Web_Tag {
 			// GTM snippet must stay outside any consent gate and load as early as possible.
 			add_action( 'wp_head', array( $this, 'render' ), 1 );
 			add_action( 'wp_body_open', array( $this, 'render_no_js' ), 1 );
-			add_action( 'wp_footer', array( $this, 'render_no_js' ), 1 ); // Fallback
+			add_action( 'wp_footer', array( $this, 'render_no_js' ), 1 ); // Fallback.
 		}
 	}
 
@@ -90,7 +95,7 @@ class Web_Tag {
 	 * Outputs Tag Manager iframe for when the browser has JavaScript disabled.
 	 */
 	public function render_no_js() {
-		// Prevent double rendering if wp_body_open triggered and footer also runs
+		// Prevent double rendering if wp_body_open triggered and footer also runs.
 		if ( defined( 'CLICUTCL_GTM_NOSCRIPT_RENDERED' ) ) {
 			return;
 		}

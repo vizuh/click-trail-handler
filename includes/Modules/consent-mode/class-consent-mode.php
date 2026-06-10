@@ -1,4 +1,9 @@
 <?php
+/**
+ * Consent Mode module.
+ *
+ * @package ClickTrail
+ */
 
 namespace CLICUTCL\Modules\Consent_Mode;
 

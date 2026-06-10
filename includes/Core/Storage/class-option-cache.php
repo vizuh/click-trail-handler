@@ -59,7 +59,7 @@ class Option_Cache {
 	 * @param mixed  $default Default value.
 	 * @return mixed
 	 */
-	public static function get( string $option, $default = false ) {
+	public static function get( string $option, $default = false ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.defaultFound -- Conventional name mirroring WordPress get_option()'s $default parameter.
 		self::register_hooks();
 
 		if ( array_key_exists( $option, self::$request_cache ) ) {

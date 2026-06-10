@@ -50,7 +50,7 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 			add_filter( "wpforms_field_value_{$prefixed_key}", array( $this, 'populate_field' ), 10, 3 );
 		}
 
-		// Submission processing
+		// Submission processing.
 		add_action( 'wpforms_process_complete', array( $this, 'on_submission' ), 10, 4 );
 	}
 
@@ -74,7 +74,7 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 		// A better way is to use a method that returns a closure, or `current_filter()`.
 
 		$filter = current_filter();
-		// Format: wpforms_field_value_ct_ft_source
+		// Format: wpforms_field_value_ct_ft_source.
 		$prefix = 'wpforms_field_value_' . $this->field_prefix;
 
 		if ( strpos( $filter, $prefix ) !== 0 ) {
@@ -91,7 +91,7 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 	/**
 	 * Interface compliance.
 	 *
-	 * @param mixed $form_or_context
+	 * @param mixed $form_or_context Form or context passed by the integration manager.
 	 * @return mixed
 	 */
 	public function populate_fields( $form_or_context ) {
@@ -147,7 +147,7 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 			}
 		}
 
-		// Log to ClickTrail
+		// Log to ClickTrail.
 		$this->log_submission( 'wpforms', $form_id, $payload, $this->extract_identity_from_fields( $fields ) );
 	}
 

@@ -15,6 +15,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 trait Admin_Consent_Mode_Trait {
 
+	/**
+	 * Render the consent mode enable/disable toggle checkbox.
+	 *
+	 * @param array $args Settings field arguments passed by WordPress.
+	 * @return void
+	 */
 	public function render_consent_checkbox( $args ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 		$settings = new Consent_Mode_Settings();
 		$value    = $settings->get();
@@ -30,6 +36,12 @@ trait Admin_Consent_Mode_Trait {
 		<?php
 	}
 
+	/**
+	 * Render the consent mode behavior select field.
+	 *
+	 * @param array $args Settings field arguments passed by WordPress.
+	 * @return void
+	 */
 	public function render_consent_mode_field( $args ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 		$settings = new Consent_Mode_Settings();
 		$value    = $settings->get();
@@ -53,6 +65,12 @@ trait Admin_Consent_Mode_Trait {
 		<?php
 	}
 
+	/**
+	 * Render the consent regions text input field.
+	 *
+	 * @param array $args Settings field arguments passed by WordPress.
+	 * @return void
+	 */
 	public function render_regions_field( $args ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 		$settings = new Consent_Mode_Settings();
 		$value    = $settings->get();
@@ -66,6 +84,12 @@ trait Admin_Consent_Mode_Trait {
 		<?php
 	}
 
+	/**
+	 * Render the consent management platform source select field.
+	 *
+	 * @param array $args Settings field arguments passed by WordPress.
+	 * @return void
+	 */
 	public function render_cmp_source_field( $args ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 		$settings   = new Consent_Mode_Settings();
 		$value      = $settings->get();
@@ -93,6 +117,12 @@ trait Admin_Consent_Mode_Trait {
 		<?php
 	}
 
+	/**
+	 * Render the consent management platform timeout number input field.
+	 *
+	 * @param array $args Settings field arguments passed by WordPress.
+	 * @return void
+	 */
 	public function render_cmp_timeout_field( $args ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
 		$settings = new Consent_Mode_Settings();
 		$value    = $settings->get();

@@ -17,6 +17,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 trait Admin_Pages_Trait {
+	/**
+	 * Register the network admin menu page for multisite installs.
+	 *
+	 * @return void
+	 */
 	public function network_admin_menu() {
 		add_menu_page(
 			__( 'ClickTrail Network', 'click-trail-handler' ),
@@ -29,6 +34,11 @@ trait Admin_Pages_Trait {
 		);
 	}
 
+	/**
+	 * Render the network settings page markup.
+	 *
+	 * @return void
+	 */
 	public function render_network_settings_page() {
 		if ( ! current_user_can( 'manage_network_options' ) ) {
 			return;
@@ -97,6 +107,11 @@ trait Admin_Pages_Trait {
 		<?php
 	}
 
+	/**
+	 * Validate and persist the submitted network settings.
+	 *
+	 * @return void
+	 */
 	public function save_network_settings() {
 		if ( ! current_user_can( 'manage_network_options' ) ) {
 			wp_die( esc_html__( 'Forbidden', 'click-trail-handler' ) );
@@ -115,6 +130,11 @@ trait Admin_Pages_Trait {
 		exit;
 	}
 
+	/**
+	 * Render the diagnostics admin page.
+	 *
+	 * @return void
+	 */
 	public function diagnostics_page() {
 		$last_error = get_transient( 'clicutcl_last_error' );
 		if ( ! is_array( $last_error ) ) {
@@ -558,6 +578,11 @@ trait Admin_Pages_Trait {
 		<?php
 	}
 
+	/**
+	 * Render the ClickTrail logs admin page.
+	 *
+	 * @return void
+	 */
 	public function logs_page() {
 		require_once CLICUTCL_DIR . 'includes/admin/class-log-list-table.php';
 		$table = new Log_List_Table();

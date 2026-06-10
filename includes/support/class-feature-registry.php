@@ -35,7 +35,7 @@ class Feature_Registry {
 		$path = defined( 'CLICUTCL_DIR' )
 			? CLICUTCL_DIR . 'config/feature-registry.json'
 			: dirname( __DIR__, 2 ) . '/config/feature-registry.json';
-		$raw  = is_readable( $path ) ? file_get_contents( $path ) : false;
+		$raw  = is_readable( $path ) ? file_get_contents( $path ) : false; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents -- Reading a local bundled config file by filesystem path, not a remote URL.
 		$data = is_string( $raw ) ? json_decode( $raw, true ) : array();
 		$data = is_array( $data ) ? $data : array();
 

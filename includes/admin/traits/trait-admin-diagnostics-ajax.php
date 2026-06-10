@@ -21,6 +21,11 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 trait Admin_Diagnostics_Ajax_Trait {
 
+	/**
+	 * Handle the AJAX request that records whether PII risk was detected.
+	 *
+	 * @return void
+	 */
 	public function ajax_log_pii_risk() {
 		check_ajax_referer( 'clicutcl_pii_nonce', 'nonce' );
 
@@ -42,6 +47,11 @@ trait Admin_Diagnostics_Ajax_Trait {
 		wp_send_json_error();
 	}
 
+	/**
+	 * Render the admin notice warning about detected PII risk.
+	 *
+	 * @return void
+	 */
 	public function display_pii_warning() {
 		if ( get_option( 'clicutcl_pii_risk_detected' ) ) {
 			$diagnostics_url = admin_url( 'admin.php?page=clicutcl-diagnostics' );
@@ -62,6 +72,11 @@ trait Admin_Diagnostics_Ajax_Trait {
 		}
 	}
 
+	/**
+	 * Handle the AJAX request that performs a server-side endpoint health check.
+	 *
+	 * @return void
+	 */
 	public function ajax_test_endpoint() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( array( 'message' => __( 'Forbidden', 'click-trail-handler' ) ), 403 );
@@ -95,6 +110,11 @@ trait Admin_Diagnostics_Ajax_Trait {
 		);
 	}
 
+	/**
+	 * Handle the AJAX request that toggles temporary debug mode on or off.
+	 *
+	 * @return void
+	 */
 	public function ajax_toggle_debug() {
 		if ( ! current_user_can( 'manage_options' ) ) {
 			wp_send_json_error( array( 'message' => __( 'Forbidden', 'click-trail-handler' ) ), 403 );
@@ -672,7 +692,7 @@ trait Admin_Diagnostics_Ajax_Trait {
 
 		// --- Gravity Forms ---
 		if ( class_exists( 'GFForms' ) && class_exists( 'GFAPI' ) ) {
-			$gf_forms = GFAPI::get_forms( true ); // active forms only
+			$gf_forms = GFAPI::get_forms( true ); // active forms only.
 			if ( is_array( $gf_forms ) ) {
 				foreach ( $gf_forms as $form ) {
 					$form_id    = isset( $form['id'] ) ? (int) $form['id'] : 0;
@@ -681,9 +701,9 @@ trait Admin_Diagnostics_Ajax_Trait {
 
 					$has_ct = false;
 					foreach ( $fields as $field ) {
-						$admin_label = isset( $field->adminLabel ) ? strtolower( (string) $field->adminLabel ) : '';
+						$admin_label = isset( $field->adminLabel ) ? strtolower( (string) $field->adminLabel ) : ''; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- Gravity Forms external API property name.
 						$field_label = isset( $field->label ) ? strtolower( (string) $field->label ) : '';
-						$css_class   = isset( $field->cssClass ) ? strtolower( (string) $field->cssClass ) : '';
+						$css_class   = isset( $field->cssClass ) ? strtolower( (string) $field->cssClass ) : ''; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- Gravity Forms external API property name.
 						if (
 							str_starts_with( $admin_label, 'ct_' ) ||
 							str_starts_with( $field_label, 'ct_' ) ||
@@ -761,6 +781,11 @@ trait Admin_Diagnostics_Ajax_Trait {
 		return $findings;
 	}
 
+	/**
+	 * Detect active caching or optimization plugins that may conflict with tracking.
+	 *
+	 * @return array List of detected cache/optimization provider labels.
+	 */
 	private function detect_cache_conflict_labels(): array {
 		$found = array();
 		if ( defined( 'WP_ROCKET_VERSION' ) ) {
