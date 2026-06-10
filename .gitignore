@@ -4,6 +4,9 @@ dist/
 node_modules/
 vendor/
 
+# Reference GTM container exports (not plugin source)
+assets/shopify-gtm-container-templates-master/*.json
+
 # Claude Code
 .claude/
 
