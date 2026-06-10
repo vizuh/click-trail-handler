@@ -249,6 +249,22 @@
         "woo-view-item-list"
       ]
     },
+    "woo_funnel_server_events": {
+      "label": "WooCommerce server-side funnel events",
+      "support_level": "shipped",
+      "runtime_surface": [
+        "events",
+        "delivery",
+        "woo"
+      ],
+      "enablement_path": "events.woocommerce_funnel_server_events",
+      "docs_target": "docs/reference/INTEGRATIONS.md",
+      "smoke_test_ids": [
+        "woo-server-view-item",
+        "woo-server-add-to-cart",
+        "woo-server-begin-checkout"
+      ]
+    },
     "woo_order_milestones": {
       "label": "WooCommerce order milestones",
       "support_level": "shipped",

@@ -897,6 +897,9 @@
                     renderToggle('events.woocommerce_storefront_events', __('Enable WooCommerce storefront events', 'click-trail-handler'), __('Emit GA4-style `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` events through ClickTrail\'s browser event layer. Existing installs keep this off until you enable it.', 'click-trail-handler'), {
                         disabled: !browserPipelineEnabled
                     }),
+                    renderToggle('events.woocommerce_funnel_server_events', __('Server-side funnel events (view_item, add_to_cart, begin_checkout)', 'click-trail-handler'), __('Emit `view_item`, `add_to_cart`, and `begin_checkout` from PHP through the same server-side delivery pipeline as purchase events. Requires server-side delivery to be enabled under Delivery; browser pushes keep flowing to the dataLayer while ClickTrail suppresses the duplicate browser transport.', 'click-trail-handler'), {
+                        disabled: !serverEnabled
+                    }),
                     renderToggle('events.woo_enhanced_datalayer', __('Use the richer Woo dataLayer contract', 'click-trail-handler'), __('Add `event_id` to Woo purchase pushes and make richer Woo browser events available for GTM-first setups.', 'click-trail-handler')),
                     renderToggle('events.woo_include_user_data', __('Include consent-aware Woo user_data', 'click-trail-handler'), __('Emit `user_data` objects with browser identifiers and purchase identity only when the richer contract is on and marketing consent is granted.', 'click-trail-handler'), {
                         disabled: !wooEnhancedDataLayerEnabled

@@ -78,7 +78,21 @@
             this.debugLog('ClickTrail Event:', eventName, eventData);
 
             window.dataLayer.push(eventData);
+
+            if (this.shouldSuppressServerTransport(eventName)) {
+                this.debugLog('Server transport suppressed (server-side funnel events own delivery):', eventName);
+                return;
+            }
+
             this.sendServerEvent(eventName, eventData, eventId);
+        }
+
+        shouldSuppressServerTransport(eventName) {
+            if (!this.wooCommerce || !this.wooCommerce.serverFunnelEvents) {
+                return false;
+            }
+
+            return eventName === 'view_item' || eventName === 'add_to_cart' || eventName === 'begin_checkout';
         }
 
         debugLog(...args) {
@@ -788,6 +802,8 @@
             this.pushEvent('view_item', {
                 ecommerce,
                 ...this.buildWooEventExtras()
+            }, {
+                eventId: this.wooCommerce.product && this.wooCommerce.product.event_id ? String(this.wooCommerce.product.event_id) : ''
             });
         }
 
@@ -812,6 +828,8 @@
             this.pushEvent('begin_checkout', {
                 ecommerce,
                 ...this.buildWooEventExtras()
+            }, {
+                eventId: this.wooCommerce.checkout && this.wooCommerce.checkout.event_id ? String(this.wooCommerce.checkout.event_id) : ''
             });
         }
 
@@ -1877,6 +1895,7 @@
 
             return {
                 enabled: !!source.enabled,
+                serverFunnelEvents: !!source.serverFunnelEvents,
                 pageType: this.safeText(source.pageType || 'other', 32) || 'other',
                 currency: this.safeText(source.currency || '', 16),
                 product: source.product && typeof source.product === 'object' ? source.product : {},

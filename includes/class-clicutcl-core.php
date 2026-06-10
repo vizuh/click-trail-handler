@@ -497,14 +497,15 @@ class Plugin {
 	 */
 	private function build_woocommerce_events_config(): array {
 		$config = array(
-			'enabled'        => false,
-			'pageType'       => 'other',
-			'currency'       => '',
-			'product'        => array(),
-			'cart'           => array(),
-			'checkout'       => array(),
-			'catalogContext' => array(),
-			'dataLayer'      => array(
+			'enabled'            => false,
+			'serverFunnelEvents' => false,
+			'pageType'           => 'other',
+			'currency'           => '',
+			'product'            => array(),
+			'cart'               => array(),
+			'checkout'           => array(),
+			'catalogContext'     => array(),
+			'dataLayer'          => array(
 				'enhancedContract' => false,
 				'includeUserData'  => false,
 			),
@@ -528,6 +529,8 @@ class Plugin {
 			: '';
 		$config['enabled']  = Tracking_Settings::woocommerce_storefront_events_enabled();
 
+		$config['serverFunnelEvents'] = Tracking_Settings::woocommerce_funnel_server_events_enabled();
+
 		if ( ! $config['enabled'] ) {
 			return $config;
 		}
@@ -542,6 +545,11 @@ class Plugin {
 			if ( ! empty( $ecommerce ) ) {
 				$config['pageType'] = 'product';
 				$config['product']  = $ecommerce;
+
+				$session_id = $config['serverFunnelEvents'] ? $this->get_woocommerce_funnel_session_id() : '';
+				if ( '' !== $session_id ) {
+					$config['product']['event_id'] = WooCommerce::build_storefront_event_id( 'view_item', array( $product_id, $session_id ) );
+				}
 			}
 		}
 
@@ -569,10 +577,37 @@ class Plugin {
 			if ( ! empty( $ecommerce ) ) {
 				$config['pageType'] = 'checkout';
 				$config['checkout'] = $ecommerce;
+
+				$session_id = $config['serverFunnelEvents'] ? $this->get_woocommerce_funnel_session_id() : '';
+				if ( '' !== $session_id && function_exists( 'WC' ) && WC()->cart && method_exists( WC()->cart, 'get_cart_hash' ) ) {
+					$config['checkout']['event_id'] = WooCommerce::build_storefront_event_id(
+						'begin_checkout',
+						array( $session_id, substr( (string) WC()->cart->get_cart_hash(), 0, 8 ) )
+					);
+				}
 			}
 		}
 
 		return $config;
+	}
+
+	/**
+	 * Resolve the ct session ID used for deterministic Woo funnel event IDs.
+	 *
+	 * Returns an empty string when no ct session is available; in that case
+	 * the server-side emitter falls back to a random ID, so the browser
+	 * config intentionally omits `event_id` instead of shipping a mismatch.
+	 *
+	 * @return string
+	 */
+	private function get_woocommerce_funnel_session_id(): string {
+		if ( ! class_exists( 'CLICUTCL\\Core\\Attribution_Provider' ) ) {
+			return '';
+		}
+
+		$session = Core\Attribution_Provider::get_session();
+
+		return ! empty( $session['session_id'] ) ? sanitize_text_field( (string) $session['session_id'] ) : '';
 	}
 
 	/**

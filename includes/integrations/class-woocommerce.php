@@ -49,6 +49,11 @@ class WooCommerce {
 		add_action( 'woocommerce_order_status_refunded', array( $this, 'track_refunded_milestone' ), 20, 2 );
 		add_action( 'woocommerce_order_status_cancelled', array( $this, 'track_cancelled_milestone' ), 20, 2 );
 
+		// Server-side funnel events (opt-in; callbacks self-guard on the flag).
+		add_action( 'template_redirect', array( $this, 'track_view_item' ) );
+		add_action( 'woocommerce_add_to_cart', array( $this, 'track_add_to_cart' ), 10, 6 );
+		add_action( 'woocommerce_before_checkout_form', array( $this, 'track_begin_checkout' ) );
+
 		// Output hidden fields for JS Injection (Cache Resilience).
 		add_action( 'woocommerce_after_order_notes', array( $this, 'output_hidden_checkout_fields' ) );
 	}
@@ -296,6 +301,289 @@ class WooCommerce {
 		}
 
 		$this->maybe_dispatch_order_milestone( $order, 'order_cancelled', 'woocommerce_order_status_cancelled' );
+	}
+
+	/**
+	 * Emit a server-side view_item funnel event on single product pages.
+	 *
+	 * @return void
+	 */
+	public function track_view_item(): void {
+		if ( is_admin() || wp_doing_ajax() ) {
+			return;
+		}
+
+		if ( ! function_exists( 'is_product' ) || ! is_product() ) {
+			return;
+		}
+
+		if ( ! $this->storefront_server_events_enabled() ) {
+			return;
+		}
+
+		$product_id = absint( get_queried_object_id() );
+		$product    = $product_id && function_exists( 'wc_get_product' ) ? wc_get_product( $product_id ) : null;
+		if ( ! $product ) {
+			return;
+		}
+
+		$price    = function_exists( 'wc_get_price_to_display' ) ? (float) wc_get_price_to_display( $product ) : (float) $product->get_price();
+		$currency = function_exists( 'get_woocommerce_currency' ) ? sanitize_text_field( (string) get_woocommerce_currency() ) : '';
+		$commerce = array(
+			'value'         => $price,
+			'currency'      => $currency,
+			'item_quantity' => 1,
+			'items'         => array(
+				array(
+					'item_id'    => $product_id,
+					'item_name'  => sanitize_text_field( (string) $product->get_name() ),
+					'price'      => $price,
+					'quantity'   => 1,
+					'product_id' => $product_id,
+					'sku'        => sanitize_text_field( (string) $product->get_sku() ),
+					'categories' => $this->get_product_categories( $product ),
+				),
+			),
+		);
+
+		$event_id = self::build_storefront_event_id( 'view_item', array( $product_id, $this->get_storefront_session_id() ) );
+		$payload  = $this->build_storefront_payload( 'view_item', $event_id, $commerce, 'template_redirect' );
+		$this->dispatch_storefront_payload( $payload, 'view_item', 'template_redirect' );
+	}
+
+	/**
+	 * Emit a server-side add_to_cart funnel event when an item enters the cart.
+	 *
+	 * The event ID buckets the cart item key per minute: legitimate repeat
+	 * adds in later minutes stay distinct while redirect + AJAX double-fires
+	 * within the same minute collapse into one deduplicated event.
+	 *
+	 * @param string $cart_item_key  Cart item key.
+	 * @param int    $product_id     Product ID.
+	 * @param int    $quantity       Quantity added.
+	 * @param int    $variation_id   Variation ID when a variation was added.
+	 * @param array  $variation      Variation attribute selections.
+	 * @param array  $cart_item_data Extra cart item data.
+	 * @return void
+	 */
+	public function track_add_to_cart( $cart_item_key, $product_id, $quantity, $variation_id, $variation, $cart_item_data ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter -- Parameters provided by the woocommerce_add_to_cart hook signature.
+		if ( ! $this->storefront_server_events_enabled() ) {
+			return;
+		}
+
+		$resolved_id = $variation_id ? absint( $variation_id ) : absint( $product_id );
+		$product     = $resolved_id && function_exists( 'wc_get_product' ) ? wc_get_product( $resolved_id ) : null;
+		if ( ! $product ) {
+			return;
+		}
+
+		$quantity = max( 1, absint( $quantity ) );
+		$price    = function_exists( 'wc_get_price_to_display' ) ? (float) wc_get_price_to_display( $product ) : (float) $product->get_price();
+		$currency = function_exists( 'get_woocommerce_currency' ) ? sanitize_text_field( (string) get_woocommerce_currency() ) : '';
+		$commerce = array(
+			'value'         => $price * $quantity,
+			'currency'      => $currency,
+			'item_quantity' => $quantity,
+			'items'         => array(
+				array(
+					'item_id'    => $resolved_id,
+					'item_name'  => sanitize_text_field( (string) $product->get_name() ),
+					'price'      => $price,
+					'quantity'   => $quantity,
+					'product_id' => $resolved_id,
+					'sku'        => sanitize_text_field( (string) $product->get_sku() ),
+					'variant'    => $this->get_product_variant( $product ),
+					'categories' => $this->get_product_categories( $product ),
+				),
+			),
+		);
+
+		$event_id = self::build_storefront_event_id(
+			'add_to_cart',
+			array( $cart_item_key, $this->get_storefront_session_id(), absint( time() / 60 ) )
+		);
+		$payload  = $this->build_storefront_payload( 'add_to_cart', $event_id, $commerce, 'woocommerce_add_to_cart' );
+		$this->dispatch_storefront_payload( $payload, 'add_to_cart', 'woocommerce_add_to_cart' );
+	}
+
+	/**
+	 * Emit a server-side begin_checkout funnel event when the checkout form renders.
+	 *
+	 * @param mixed $checkout Checkout object provided by the hook.
+	 * @return void
+	 */
+	public function track_begin_checkout( $checkout = null ): void { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- Parameter provided by the woocommerce_before_checkout_form hook signature.
+		if ( ! $this->storefront_server_events_enabled() ) {
+			return;
+		}
+
+		if ( ! function_exists( 'WC' ) || ! WC()->cart || WC()->cart->is_empty() ) {
+			return;
+		}
+
+		$items         = array();
+		$item_quantity = 0;
+
+		foreach ( WC()->cart->get_cart() as $cart_item ) {
+			$product = isset( $cart_item['data'] ) ? $cart_item['data'] : null;
+			if ( ! is_object( $product ) || ! method_exists( $product, 'get_id' ) ) {
+				continue;
+			}
+
+			$line_product_id = absint( $product->get_id() );
+			$line_quantity   = isset( $cart_item['quantity'] ) ? max( 1, absint( $cart_item['quantity'] ) ) : 1;
+			$items[]         = array(
+				'item_id'    => $line_product_id,
+				'item_name'  => sanitize_text_field( (string) $product->get_name() ),
+				'price'      => (float) $product->get_price(),
+				'quantity'   => $line_quantity,
+				'product_id' => $line_product_id,
+				'sku'        => method_exists( $product, 'get_sku' ) ? sanitize_text_field( (string) $product->get_sku() ) : '',
+			);
+			$item_quantity  += $line_quantity;
+		}
+
+		if ( empty( $items ) ) {
+			return;
+		}
+
+		$commerce = array(
+			'value'         => (float) WC()->cart->get_total( 'edit' ),
+			'currency'      => function_exists( 'get_woocommerce_currency' ) ? sanitize_text_field( (string) get_woocommerce_currency() ) : '',
+			'item_quantity' => $item_quantity,
+			'items'         => $items,
+		);
+
+		$cart_hash = method_exists( WC()->cart, 'get_cart_hash' ) ? (string) WC()->cart->get_cart_hash() : '';
+		$event_id  = self::build_storefront_event_id(
+			'begin_checkout',
+			array( $this->get_storefront_session_id(), substr( $cart_hash, 0, 8 ) )
+		);
+		$payload   = $this->build_storefront_payload( 'begin_checkout', $event_id, $commerce, 'woocommerce_before_checkout_form' );
+		$this->dispatch_storefront_payload( $payload, 'begin_checkout', 'woocommerce_before_checkout_form' );
+	}
+
+	/**
+	 * Build a deterministic storefront funnel event ID from sanitized parts.
+	 *
+	 * Each scalar part is normalized to the sanitize_key() character set
+	 * (lowercase a-z, 0-9, underscore, hyphen), empty parts are dropped, and
+	 * the remaining parts are joined with underscores behind the event name.
+	 *
+	 * @param string $event_name Canonical event name prefix.
+	 * @param array  $parts      ID parts (product ID, session ID, buckets, ...).
+	 * @return string
+	 */
+	public static function build_storefront_event_id( string $event_name, array $parts ): string {
+		$pieces = array( sanitize_key( $event_name ) );
+
+		foreach ( $parts as $part ) {
+			if ( ! is_scalar( $part ) ) {
+				continue;
+			}
+
+			$part = sanitize_key( (string) $part );
+			if ( '' === $part ) {
+				continue;
+			}
+
+			$pieces[] = $part;
+		}
+
+		return implode( '_', array_filter( $pieces, 'strlen' ) );
+	}
+
+	/**
+	 * Build a server-side payload for a pre-purchase storefront funnel event.
+	 *
+	 * Mirrors build_purchase_payload() but intentionally carries no identity
+	 * block — no email or phone exists pre-purchase — so only attribution,
+	 * commerce, and meta ship to the dispatcher.
+	 *
+	 * @param string $event_name  Canonical event name.
+	 * @param string $event_id    Deterministic event ID.
+	 * @param array  $commerce    Commerce payload (value, currency, items, ...).
+	 * @param string $source_hook Source hook name.
+	 * @return array<string, mixed>
+	 */
+	private function build_storefront_payload( string $event_name, string $event_id, array $commerce, string $source_hook ): array {
+		$attribution = $this->normalize_attribution_structure( Attribution::get() );
+
+		return array(
+			'event_name'  => sanitize_key( $event_name ),
+			'event_id'    => sanitize_text_field( $event_id ),
+			'value'       => isset( $commerce['value'] ) ? (float) $commerce['value'] : 0.0,
+			'currency'    => isset( $commerce['currency'] ) ? sanitize_text_field( (string) $commerce['currency'] ) : '',
+			'items'       => isset( $commerce['items'] ) && is_array( $commerce['items'] ) ? $commerce['items'] : array(),
+			'attribution' => $attribution,
+			'identity'    => array(),
+			'commerce'    => $commerce,
+			'meta'        => array(
+				'source_hook' => sanitize_key( $source_hook ),
+				'funnel'      => true,
+			),
+		);
+	}
+
+	/**
+	 * Filter and dispatch a storefront funnel payload through the shared dispatcher.
+	 *
+	 * No trace snapshot or milestone marker is stored — there is no order to
+	 * attach state to — so dispatcher-level dedup is the idempotency layer.
+	 *
+	 * @param array  $payload     Funnel event payload.
+	 * @param string $event_name  Canonical event name.
+	 * @param string $source_hook Source hook name.
+	 * @return void
+	 */
+	private function dispatch_storefront_payload( array $payload, string $event_name, string $source_hook ): void {
+		$defaults = $payload;
+
+		/**
+		 * Filter the WooCommerce storefront funnel payload before ClickTrail
+		 * hands it to the server-side dispatcher.
+		 *
+		 * @param array  $payload     Funnel event payload.
+		 * @param string $event_name  Event name.
+		 * @param string $source_hook Source hook name.
+		 */
+		$payload = apply_filters( 'clicutcl_woocommerce_storefront_event_payload', $payload, $event_name, $source_hook );
+		$payload = is_array( $payload ) ? wp_parse_args( $payload, $defaults ) : $defaults;
+
+		Dispatcher::dispatch_commerce_event( $payload );
+	}
+
+	/**
+	 * Resolve the ClickTrail session ID used in storefront funnel event IDs.
+	 *
+	 * Falls back to a random per-request ID when the ct session cookie is
+	 * unavailable, which intentionally disables cross-request dedup for that
+	 * visitor instead of collapsing unrelated visitors onto one event ID.
+	 *
+	 * @return string
+	 */
+	private function get_storefront_session_id(): string {
+		if ( class_exists( 'CLICUTCL\\Core\\Attribution_Provider' ) ) {
+			$session = Attribution_Provider::get_session();
+			if ( ! empty( $session['session_id'] ) ) {
+				return sanitize_text_field( (string) $session['session_id'] );
+			}
+		}
+
+		return 'nosession' . wp_rand( 100000000, 999999999 );
+	}
+
+	/**
+	 * Whether server-side WooCommerce funnel events are enabled.
+	 *
+	 * @return bool
+	 */
+	private function storefront_server_events_enabled(): bool {
+		if ( ! class_exists( 'CLICUTCL\\Tracking\\Settings' ) ) {
+			return false;
+		}
+
+		return \CLICUTCL\Tracking\Settings::woocommerce_funnel_server_events_enabled();
 	}
 
 	/**

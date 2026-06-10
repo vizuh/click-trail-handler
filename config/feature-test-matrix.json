@@ -606,6 +606,99 @@
         }
       ]
     },
+    "woo-server-view-item": {
+      "label": "WooCommerce server-side view_item funnel event",
+      "expected_behavior": "Product pages emit one server-side view_item event with a deterministic session-scoped event ID, and the browser layer suppresses its duplicate REST transport.",
+      "prerequisites": [
+        "WooCommerce is active.",
+        "Server-side delivery is enabled.",
+        "WooCommerce server-side funnel events are enabled."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Open a product page and confirm a view_item event reaches the server-side queue or adapter logs with a view_item_<product>_<session> event ID.",
+        "With storefront events also enabled, confirm the dataLayer view_item push carries the same event_id and no duplicate REST intake request is sent."
+      ],
+      "evidence": [
+        {
+          "file": "includes/integrations/class-woocommerce.php",
+          "patterns": [
+            "track_view_item",
+            "build_storefront_event_id",
+            "'view_item'"
+          ]
+        },
+        {
+          "file": "assets/js/clicutcl-events.js",
+          "patterns": [
+            "shouldSuppressServerTransport",
+            "serverFunnelEvents"
+          ]
+        }
+      ]
+    },
+    "woo-server-add-to-cart": {
+      "label": "WooCommerce server-side add_to_cart funnel event",
+      "expected_behavior": "Cart additions emit one server-side add_to_cart event with a minute-bucketed event ID that collapses redirect and AJAX double-fires while allowing legitimate repeat adds.",
+      "prerequisites": [
+        "WooCommerce is active.",
+        "Server-side delivery is enabled.",
+        "WooCommerce server-side funnel events are enabled."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Add a product to the cart and confirm one add_to_cart event reaches the server-side queue or adapter logs.",
+        "Add the same product again within the same minute and confirm dedup collapses the second event; repeat after a minute and confirm a new event is accepted."
+      ],
+      "evidence": [
+        {
+          "file": "includes/integrations/class-woocommerce.php",
+          "patterns": [
+            "track_add_to_cart",
+            "woocommerce_add_to_cart",
+            "'add_to_cart'"
+          ]
+        },
+        {
+          "file": "assets/js/clicutcl-events.js",
+          "patterns": [
+            "shouldSuppressServerTransport",
+            "serverFunnelEvents"
+          ]
+        }
+      ]
+    },
+    "woo-server-begin-checkout": {
+      "label": "WooCommerce server-side begin_checkout funnel event",
+      "expected_behavior": "Checkout pages emit one server-side begin_checkout event keyed by session and cart hash so reloads deduplicate while cart changes produce a fresh event.",
+      "prerequisites": [
+        "WooCommerce is active.",
+        "Server-side delivery is enabled.",
+        "WooCommerce server-side funnel events are enabled."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Open the checkout page with items in the cart and confirm one begin_checkout event reaches the server-side queue or adapter logs.",
+        "Reload checkout and confirm dedup collapses the repeat; change the cart contents and confirm a new begin_checkout event is accepted."
+      ],
+      "evidence": [
+        {
+          "file": "includes/integrations/class-woocommerce.php",
+          "patterns": [
+            "track_begin_checkout",
+            "woocommerce_before_checkout_form",
+            "'begin_checkout'"
+          ]
+        },
+        {
+          "file": "assets/js/clicutcl-events.js",
+          "patterns": [
+            "shouldSuppressServerTransport",
+            "serverFunnelEvents"
+          ]
+        }
+      ]
+    },
     "woo-order-paid": {
       "label": "WooCommerce order_paid milestone",
       "expected_behavior": "Paid orders emit one server-side order_paid milestone with deterministic event IDs and order markers.",

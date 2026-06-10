@@ -64,12 +64,13 @@ class Settings {
 	public static function defaults(): array {
 		return array(
 			'feature_flags'   => array(
-				'event_v2'                      => 1,
-				'woocommerce_storefront_events' => 0,
-				'external_webhooks'             => 1,
-				'connector_native'              => 1,
-				'diagnostics_v2'                => 1,
-				'lifecycle_ingestion'           => 1,
+				'event_v2'                         => 1,
+				'woocommerce_storefront_events'    => 0,
+				'woocommerce_funnel_server_events' => 0,
+				'external_webhooks'                => 1,
+				'connector_native'                 => 1,
+				'diagnostics_v2'                   => 1,
+				'lifecycle_ingestion'              => 1,
 			),
 			'destinations'    => Feature_Registry::destination_defaults(),
 			'identity_policy' => array(
@@ -351,6 +352,19 @@ class Settings {
 		}
 
 		return self::feature_enabled( 'woocommerce_storefront_events' );
+	}
+
+	/**
+	 * Check whether WooCommerce server-side funnel events are enabled.
+	 *
+	 * Unlike storefront events this gate does not require the browser
+	 * pipeline: emission happens entirely in PHP through the dispatcher,
+	 * which applies its own delivery, consent, and dedup gates.
+	 *
+	 * @return bool
+	 */
+	public static function woocommerce_funnel_server_events_enabled(): bool {
+		return self::feature_enabled( 'woocommerce_funnel_server_events' );
 	}
 
 	/**
