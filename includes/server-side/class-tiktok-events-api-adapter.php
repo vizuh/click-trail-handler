@@ -59,6 +59,7 @@ class TikTok_Events_Api_Adapter implements Adapter_Interface {
 		$body                   = $event->to_array();
 		$body['schema_version'] = 2;
 		$body['collector']      = 'tiktok_events_api';
+		$body                   = \CLICUTCL\Tracking\Event_Name_Map::decorate_body( $body, $this->get_name() );
 
 		$response = wp_remote_post(
 			$this->endpoint,

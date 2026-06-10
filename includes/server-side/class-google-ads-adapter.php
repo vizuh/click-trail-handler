@@ -59,6 +59,7 @@ class Google_Ads_Adapter implements Adapter_Interface {
 		$body                   = $event->to_array();
 		$body['schema_version'] = 2;
 		$body['collector']      = 'google_ads';
+		$body                   = \CLICUTCL\Tracking\Event_Name_Map::decorate_body( $body, $this->get_name() );
 
 		$response = wp_remote_post(
 			$this->endpoint,

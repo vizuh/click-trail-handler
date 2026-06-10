@@ -58,6 +58,7 @@ class Generic_Collector_Adapter implements Adapter_Interface {
 	public function send( Event $event ) {
 		$body                   = $event->to_array();
 		$body['schema_version'] = 1;
+		$body                   = \CLICUTCL\Tracking\Event_Name_Map::decorate_body( $body, $this->get_name() );
 
 		$response = wp_remote_post(
 			$this->endpoint,

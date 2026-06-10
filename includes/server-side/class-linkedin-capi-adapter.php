@@ -59,6 +59,7 @@ class LinkedIn_Capi_Adapter implements Adapter_Interface {
 		$body                   = $event->to_array();
 		$body['schema_version'] = 2;
 		$body['collector']      = 'linkedin_capi';
+		$body                   = \CLICUTCL\Tracking\Event_Name_Map::decorate_body( $body, $this->get_name() );
 
 		$response = wp_remote_post(
 			$this->endpoint,
