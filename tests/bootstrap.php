@@ -41,4 +41,28 @@ if ( ! function_exists( 'sanitize_text_field' ) ) {
 	}
 }
 
+if ( ! function_exists( 'sanitize_key' ) ) {
+	/**
+	 * Lowercase and strip to [a-z0-9_-]; mirrors core's basic shape.
+	 *
+	 * @param mixed $value Value.
+	 * @return string
+	 */
+	function sanitize_key( $value ) {
+		return preg_replace( '/[^a-z0-9_\-]/', '', strtolower( (string) $value ) );
+	}
+}
+
+if ( ! function_exists( 'absint' ) ) {
+	/**
+	 * Absolute integer; mirrors core.
+	 *
+	 * @param mixed $value Value.
+	 * @return int
+	 */
+	function absint( $value ) {
+		return abs( (int) $value );
+	}
+}
+
 // Each test file is responsible for `require_once`-ing its target classes.
