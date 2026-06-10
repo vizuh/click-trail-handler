@@ -33,17 +33,17 @@ class Cleanup {
 
 		$settings = new Attribution_Settings();
 		$days     = $settings->get_cookie_duration(); // Use cookie duration as retention period, or default to 90.
-		
+
 		if ( $days < 1 ) {
 			$days = 90;
 		}
 
-		$table_name = $wpdb->prefix . 'clicutcl_events';
+		$table_name         = $wpdb->prefix . 'clicutcl_events';
 		$table_name_escaped = esc_sql( $table_name ); // Internal, but still escape.
 
 		// Safety check: Ensure table exists
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Lightweight metadata check on plugin-owned table; no core wrapper available.
-		if ( $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $table_name ) ) !== $table_name ) {
+		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) ) !== $table_name ) {
 			return;
 		}
 
@@ -61,11 +61,11 @@ class Cleanup {
 			$queue_days = 7;
 		}
 
-		$queue_table = $wpdb->prefix . 'clicutcl_queue';
+		$queue_table         = $wpdb->prefix . 'clicutcl_queue';
 		$queue_table_escaped = esc_sql( $queue_table );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Lightweight metadata check on plugin-owned table; no core wrapper available.
-		if ( $wpdb->get_var( $wpdb->prepare( "SHOW TABLES LIKE %s", $queue_table ) ) !== $queue_table ) {
+		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $queue_table ) ) !== $queue_table ) {
 			return;
 		}
 

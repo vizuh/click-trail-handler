@@ -71,4 +71,3 @@ class CalendlyWebhookAdapter implements WebhookProviderAdapterInterface {
 		);
 	}
 }
-

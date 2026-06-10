@@ -46,18 +46,18 @@ class Webhook_Auth {
 			return new WP_Error( 'webhook_timestamp_invalid', 'Invalid webhook timestamp', array( 'status' => 401 ) );
 		}
 
-		$drift = abs( time() - (int) $timestamp );
+		$drift        = abs( time() - (int) $timestamp );
 		$settings_max = Settings::get()['security']['webhook_replay_window'] ?? 300;
-		$max   = (int) apply_filters( 'clicutcl_webhook_replay_window', (int) $settings_max );
-		$max   = max( 60, min( 3600, $max ) );
+		$max          = (int) apply_filters( 'clicutcl_webhook_replay_window', (int) $settings_max );
+		$max          = max( 60, min( 3600, $max ) );
 
 		if ( $drift > $max ) {
 			return new WP_Error( 'webhook_timestamp_expired', 'Webhook timestamp expired', array( 'status' => 401 ) );
 		}
 
-		$body      = (string) $request->get_body();
-		$message   = $timestamp . '.' . $body;
-		$expected  = hash_hmac( 'sha256', $message, $secret );
+		$body     = (string) $request->get_body();
+		$message  = $timestamp . '.' . $body;
+		$expected = hash_hmac( 'sha256', $message, $secret );
 
 		if ( ! hash_equals( $expected, $signature ) ) {
 			return new WP_Error( 'webhook_signature_invalid', 'Invalid webhook signature', array( 'status' => 401 ) );

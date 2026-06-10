@@ -65,4 +65,3 @@ class HubSpotWebhookAdapter implements WebhookProviderAdapterInterface {
 		);
 	}
 }
-

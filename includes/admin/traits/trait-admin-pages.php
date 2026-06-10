@@ -165,13 +165,13 @@ trait Admin_Pages_Trait {
 				human_time_diff( $latest_dispatch_time, time() )
 			)
 			: __( 'No delivery attempts recorded.', 'click-trail-handler' );
-		$queue_pending        = absint( $queue_stats['pending'] ?? 0 );
-		$queue_due_now        = absint( $queue_stats['due_now'] ?? 0 );
-		$queue_tone           = $queue_pending > 0 ? 'warn' : 'ok';
-		$last_error_code      = isset( $last_error['code'] ) ? sanitize_key( (string) $last_error['code'] ) : '';
-		$last_error_message   = isset( $last_error['message'] ) ? sanitize_text_field( (string) $last_error['message'] ) : '';
-		$last_error_tone      = $last_error_code ? 'err' : 'ok';
-		$failure_total        = 0;
+		$queue_pending      = absint( $queue_stats['pending'] ?? 0 );
+		$queue_due_now      = absint( $queue_stats['due_now'] ?? 0 );
+		$queue_tone         = $queue_pending > 0 ? 'warn' : 'ok';
+		$last_error_code    = isset( $last_error['code'] ) ? sanitize_key( (string) $last_error['code'] ) : '';
+		$last_error_message = isset( $last_error['message'] ) ? sanitize_text_field( (string) $last_error['message'] ) : '';
+		$last_error_tone    = $last_error_code ? 'err' : 'ok';
+		$failure_total      = 0;
 
 		foreach ( $failure_telemetry as $bucket ) {
 			$failure_total += absint( $bucket['total'] ?? 0 );
@@ -652,13 +652,13 @@ trait Admin_Pages_Trait {
 		</div>
 		<?php foreach ( $traces as $trace ) : ?>
 			<?php
-			$event_name = isset( $trace['event_name'] ) ? sanitize_text_field( (string) $trace['event_name'] ) : '';
-			$event_id   = isset( $trace['event_id'] ) ? sanitize_text_field( (string) $trace['event_id'] ) : '';
-			$source_hook = isset( $trace['source_hook'] ) ? sanitize_text_field( (string) $trace['source_hook'] ) : '';
+			$event_name   = isset( $trace['event_name'] ) ? sanitize_text_field( (string) $trace['event_name'] ) : '';
+			$event_id     = isset( $trace['event_id'] ) ? sanitize_text_field( (string) $trace['event_id'] ) : '';
+			$source_hook  = isset( $trace['source_hook'] ) ? sanitize_text_field( (string) $trace['source_hook'] ) : '';
 			$attempted_at = isset( $trace['attempted_at'] ) ? sanitize_text_field( (string) $trace['attempted_at'] ) : '';
-			$dispatch = isset( $trace['dispatch'] ) && is_array( $trace['dispatch'] ) ? $trace['dispatch'] : array();
-			$queue    = isset( $trace['queue'] ) && is_array( $trace['queue'] ) ? $trace['queue'] : array();
-			$payload  = isset( $trace['payload'] ) && is_array( $trace['payload'] ) ? $trace['payload'] : array();
+			$dispatch     = isset( $trace['dispatch'] ) && is_array( $trace['dispatch'] ) ? $trace['dispatch'] : array();
+			$queue        = isset( $trace['queue'] ) && is_array( $trace['queue'] ) ? $trace['queue'] : array();
+			$payload      = isset( $trace['payload'] ) && is_array( $trace['payload'] ) ? $trace['payload'] : array();
 			?>
 			<section class="clicktrail-card" style="margin-top:16px;">
 				<div class="clicktrail-card__header clicktrail-card__header--static">

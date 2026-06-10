@@ -38,4 +38,3 @@ interface CanonicalEventInterfaceV2 {
 	 */
 	public static function validate( array $payload ): bool;
 }
-

@@ -75,20 +75,20 @@ class EventV2 implements CanonicalEventInterfaceV2 {
 		}
 
 		$normalized = array(
-			'event_name'      => $event_name,
-			'event_id'        => $event_id,
-			'event_time'      => $event_time,
-			'funnel_stage'    => isset( $payload['funnel_stage'] ) ? sanitize_key( (string) $payload['funnel_stage'] ) : 'unknown',
-			'session_id'      => $session_id,
-			'source_channel'  => isset( $payload['source_channel'] ) ? sanitize_key( (string) $payload['source_channel'] ) : 'web',
-			'page_context'    => self::sanitize_array( $payload['page_context'] ?? array() ),
-			'attribution'     => self::normalize_click_ids( self::sanitize_array( $payload['attribution'] ?? array() ) ),
-			'consent'         => self::sanitize_consent( $payload['consent'] ?? array() ),
-			'lead_context'    => self::sanitize_array( $payload['lead_context'] ?? array() ),
-			'commerce_context'=> self::sanitize_array( $payload['commerce_context'] ?? array() ),
-			'identity'        => self::sanitize_array( $payload['identity'] ?? array() ),
-			'delivery_context'=> self::sanitize_array( $payload['delivery_context'] ?? array() ),
-			'meta'            => self::sanitize_array( $payload['meta'] ?? array() ),
+			'event_name'       => $event_name,
+			'event_id'         => $event_id,
+			'event_time'       => $event_time,
+			'funnel_stage'     => isset( $payload['funnel_stage'] ) ? sanitize_key( (string) $payload['funnel_stage'] ) : 'unknown',
+			'session_id'       => $session_id,
+			'source_channel'   => isset( $payload['source_channel'] ) ? sanitize_key( (string) $payload['source_channel'] ) : 'web',
+			'page_context'     => self::sanitize_array( $payload['page_context'] ?? array() ),
+			'attribution'      => self::normalize_click_ids( self::sanitize_array( $payload['attribution'] ?? array() ) ),
+			'consent'          => self::sanitize_consent( $payload['consent'] ?? array() ),
+			'lead_context'     => self::sanitize_array( $payload['lead_context'] ?? array() ),
+			'commerce_context' => self::sanitize_array( $payload['commerce_context'] ?? array() ),
+			'identity'         => self::sanitize_array( $payload['identity'] ?? array() ),
+			'delivery_context' => self::sanitize_array( $payload['delivery_context'] ?? array() ),
+			'meta'             => self::sanitize_array( $payload['meta'] ?? array() ),
 		);
 
 		$normalized['meta']['schema_version'] = self::VERSION;

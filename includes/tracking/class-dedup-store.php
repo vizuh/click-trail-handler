@@ -108,11 +108,11 @@ class Dedup_Store {
 		$stats = get_transient( self::STATS_KEY );
 		if ( ! is_array( $stats ) ) {
 			return array(
-				'total_checks' => 0,
-				'hits'         => 0,
-				'misses'       => 0,
+				'total_checks'   => 0,
+				'hits'           => 0,
+				'misses'         => 0,
 				'by_destination' => array(),
-				'updated_at'   => 0,
+				'updated_at'     => 0,
 			);
 		}
 
@@ -145,11 +145,11 @@ class Dedup_Store {
 	private static function record_stats( bool $hit, string $destination ): void {
 		$stats = get_transient( self::STATS_KEY );
 		$stats = is_array( $stats ) ? $stats : array(
-			'total_checks' => 0,
-			'hits'         => 0,
-			'misses'       => 0,
+			'total_checks'   => 0,
+			'hits'           => 0,
+			'misses'         => 0,
 			'by_destination' => array(),
-			'updated_at'   => 0,
+			'updated_at'     => 0,
 		);
 
 		$stats['total_checks'] = absint( $stats['total_checks'] ) + 1;

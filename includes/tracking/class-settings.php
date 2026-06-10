@@ -63,47 +63,56 @@ class Settings {
 	 */
 	public static function defaults(): array {
 		return array(
-			'feature_flags' => array(
-				'event_v2'                     => 1,
+			'feature_flags'   => array(
+				'event_v2'                      => 1,
 				'woocommerce_storefront_events' => 0,
-				'external_webhooks'            => 1,
-				'connector_native'             => 1,
-				'diagnostics_v2'               => 1,
-				'lifecycle_ingestion'          => 1,
+				'external_webhooks'             => 1,
+				'connector_native'              => 1,
+				'diagnostics_v2'                => 1,
+				'lifecycle_ingestion'           => 1,
 			),
-			'destinations'  => Feature_Registry::destination_defaults(),
+			'destinations'    => Feature_Registry::destination_defaults(),
 			'identity_policy' => array(
 				'mode' => 'consent_gated_minimal',
 			),
-			'external_forms' => array(
+			'external_forms'  => array(
 				'providers' => array(
-					'calendly' => array( 'enabled' => 0, 'secret' => '' ),
-					'hubspot'  => array( 'enabled' => 0, 'secret' => '' ),
-					'typeform' => array( 'enabled' => 0, 'secret' => '' ),
+					'calendly' => array(
+						'enabled' => 0,
+						'secret'  => '',
+					),
+					'hubspot'  => array(
+						'enabled' => 0,
+						'secret'  => '',
+					),
+					'typeform' => array(
+						'enabled' => 0,
+						'secret'  => '',
+					),
 				),
 			),
-			'lifecycle' => array(
+			'lifecycle'       => array(
 				'crm_ingestion' => array(
 					'enabled' => 0,
 					'token'   => '',
 				),
 			),
-			'security' => array(
-				'token_ttl_seconds'     => 7 * DAY_IN_SECONDS,
-				'token_nonce_limit'     => 0,
-				'webhook_replay_window' => 300,
-				'rate_limit_window'     => 60,
-				'rate_limit_limit'      => 60,
-				'trusted_proxies'       => array(),
-				'allowed_token_hosts'   => array(),
+			'security'        => array(
+				'token_ttl_seconds'       => 7 * DAY_IN_SECONDS,
+				'token_nonce_limit'       => 0,
+				'webhook_replay_window'   => 300,
+				'rate_limit_window'       => 60,
+				'rate_limit_limit'        => 60,
+				'trusted_proxies'         => array(),
+				'allowed_token_hosts'     => array(),
 				'encrypt_secrets_at_rest' => 0,
 			),
-			'diagnostics' => array(
-				'dispatch_buffer_size'    => 20,
-				'failure_flush_interval'  => 10,
-				'failure_bucket_retention'=> 72,
+			'diagnostics'     => array(
+				'dispatch_buffer_size'     => 20,
+				'failure_flush_interval'   => 10,
+				'failure_bucket_retention' => 72,
 			),
-			'dedup' => array(
+			'dedup'           => array(
 				'ttl_seconds' => 7 * DAY_IN_SECONDS,
 			),
 		);
@@ -145,8 +154,8 @@ class Settings {
 					$merged['destinations'][ $destination ]['enabled'] = ! empty( $row['enabled'] ) ? 1 : 0;
 				}
 				if ( isset( $row['credentials'] ) && is_array( $row['credentials'] ) ) {
-					$current_credentials = $merged['destinations'][ $destination ]['credentials'];
-					$current_credentials = is_array( $current_credentials ) ? $current_credentials : array();
+					$current_credentials                                   = $merged['destinations'][ $destination ]['credentials'];
+					$current_credentials                                   = is_array( $current_credentials ) ? $current_credentials : array();
 					$merged['destinations'][ $destination ]['credentials'] = self::sanitize_credentials_update( $row['credentials'], $current_credentials );
 				}
 			}
@@ -154,8 +163,8 @@ class Settings {
 
 		// Identity policy.
 		if ( isset( $input['identity_policy']['mode'] ) ) {
-			$mode    = sanitize_key( (string) $input['identity_policy']['mode'] );
-			$allowed = array( 'consent_gated_minimal' );
+			$mode                              = sanitize_key( (string) $input['identity_policy']['mode'] );
+			$allowed                           = array( 'consent_gated_minimal' );
 			$merged['identity_policy']['mode'] = in_array( $mode, $allowed, true ) ? $mode : 'consent_gated_minimal';
 		}
 
@@ -184,7 +193,7 @@ class Settings {
 				$merged['lifecycle']['crm_ingestion']['enabled'] = ! empty( $crm['enabled'] ) ? 1 : 0;
 			}
 			if ( array_key_exists( 'token', $crm ) ) {
-				$current_token = isset( $merged['lifecycle']['crm_ingestion']['token'] ) ? (string) $merged['lifecycle']['crm_ingestion']['token'] : '';
+				$current_token                                 = isset( $merged['lifecycle']['crm_ingestion']['token'] ) ? (string) $merged['lifecycle']['crm_ingestion']['token'] : '';
 				$merged['lifecycle']['crm_ingestion']['token'] = self::sanitize_secret_update( $crm['token'], $current_token );
 			}
 		}
@@ -193,23 +202,23 @@ class Settings {
 		if ( isset( $input['security'] ) && is_array( $input['security'] ) ) {
 			$security = $input['security'];
 			if ( array_key_exists( 'token_ttl_seconds', $security ) ) {
-				$ttl = absint( $security['token_ttl_seconds'] );
+				$ttl                                     = absint( $security['token_ttl_seconds'] );
 				$merged['security']['token_ttl_seconds'] = max( 60, min( 7 * DAY_IN_SECONDS, $ttl ) );
 			}
 			if ( array_key_exists( 'token_nonce_limit', $security ) ) {
-				$limit = absint( $security['token_nonce_limit'] );
+				$limit                                   = absint( $security['token_nonce_limit'] );
 				$merged['security']['token_nonce_limit'] = max( 0, min( 5000, $limit ) );
 			}
 			if ( array_key_exists( 'webhook_replay_window', $security ) ) {
-				$window = absint( $security['webhook_replay_window'] );
+				$window                                      = absint( $security['webhook_replay_window'] );
 				$merged['security']['webhook_replay_window'] = max( 60, min( 3600, $window ) );
 			}
 			if ( array_key_exists( 'rate_limit_window', $security ) ) {
-				$window = absint( $security['rate_limit_window'] );
+				$window                                  = absint( $security['rate_limit_window'] );
 				$merged['security']['rate_limit_window'] = max( 5, min( 3600, $window ) );
 			}
 			if ( array_key_exists( 'rate_limit_limit', $security ) ) {
-				$limit = absint( $security['rate_limit_limit'] );
+				$limit                                  = absint( $security['rate_limit_limit'] );
 				$merged['security']['rate_limit_limit'] = max( 1, min( 2000, $limit ) );
 			}
 			if ( array_key_exists( 'trusted_proxies', $security ) ) {
@@ -231,7 +240,7 @@ class Settings {
 				$merged['diagnostics']['dispatch_buffer_size'] = max( 1, min( 200, $size ) );
 			}
 			if ( array_key_exists( 'failure_flush_interval', $diag ) ) {
-				$interval = absint( $diag['failure_flush_interval'] );
+				$interval                                        = absint( $diag['failure_flush_interval'] );
 				$merged['diagnostics']['failure_flush_interval'] = min( 300, $interval );
 			}
 			if ( array_key_exists( 'failure_bucket_retention', $diag ) ) {
@@ -242,7 +251,7 @@ class Settings {
 
 		// Dedup.
 		if ( isset( $input['dedup'] ) && is_array( $input['dedup'] ) && array_key_exists( 'ttl_seconds', $input['dedup'] ) ) {
-			$ttl = absint( $input['dedup']['ttl_seconds'] );
+			$ttl                            = absint( $input['dedup']['ttl_seconds'] );
 			$merged['dedup']['ttl_seconds'] = max( DAY_IN_SECONDS, min( 30 * DAY_IN_SECONDS, $ttl ) );
 		}
 
@@ -494,7 +503,7 @@ class Settings {
 
 			$value = sanitize_text_field( (string) $item );
 			if ( self::looks_like_secret_key( $key ) ) {
-				$existing = isset( $current[ $key ] ) && ( is_scalar( $current[ $key ] ) || null === $current[ $key ] )
+				$existing    = isset( $current[ $key ] ) && ( is_scalar( $current[ $key ] ) || null === $current[ $key ] )
 					? (string) $current[ $key ]
 					: '';
 				$out[ $key ] = self::sanitize_secret_update( $value, $existing );

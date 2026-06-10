@@ -221,7 +221,7 @@ trait Tracking_Controller_Security_Trait {
 		}
 
 		list( $subnet, $mask_bits ) = explode( '/', $cidr, 2 );
-		$mask_bits = (int) $mask_bits;
+		$mask_bits                  = (int) $mask_bits;
 
 		$ip_bin     = @inet_pton( $ip );
 		$subnet_bin = @inet_pton( $subnet );

@@ -4,7 +4,7 @@
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
-        exit;
+		exit;
 }
 
 /**
@@ -14,44 +14,64 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @return string URL without tracking parameters.
  */
 function clicutcl_strip_tracking_params_from_url( $url ) {
-        if ( ! $url ) {
-                return $url;
-        }
+	if ( ! $url ) {
+			return $url;
+	}
 
-        $parts = wp_parse_url( $url );
-        if ( ! $parts ) {
-                return $url;
-        }
+		$parts = wp_parse_url( $url );
+	if ( ! $parts ) {
+			return $url;
+	}
 
-        $base = ( isset( $parts['scheme'] ) ? $parts['scheme'] . '://' : '' )
-                . ( isset( $parts['host'] ) ? $parts['host'] : '' )
-                . ( isset( $parts['port'] ) ? ':' . $parts['port'] : '' )
-                . ( isset( $parts['path'] ) ? $parts['path'] : '' );
+		$base = ( isset( $parts['scheme'] ) ? $parts['scheme'] . '://' : '' )
+				. ( isset( $parts['host'] ) ? $parts['host'] : '' )
+				. ( isset( $parts['port'] ) ? ':' . $parts['port'] : '' )
+				. ( isset( $parts['path'] ) ? $parts['path'] : '' );
 
-        if ( empty( $parts['query'] ) ) {
-                return $base;
-        }
+	if ( empty( $parts['query'] ) ) {
+			return $base;
+	}
 
-        parse_str( $parts['query'], $query_vars );
+		parse_str( $parts['query'], $query_vars );
 
 		$tracking_keys = array(
-				'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
-				'utm_id', 'utm_source_platform', 'utm_creative_format', 'utm_marketing_tactic',
-				'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid',
-				'twclid', 'li_fat_id', 'ScCid', 'sccid', 'sc_click_id', 'epik',
-				'campaign_id', 'adgroup_id', 'ad_id', 'target_id',
+			'utm_source',
+			'utm_medium',
+			'utm_campaign',
+			'utm_term',
+			'utm_content',
+			'utm_id',
+			'utm_source_platform',
+			'utm_creative_format',
+			'utm_marketing_tactic',
+			'gclid',
+			'fbclid',
+			'msclkid',
+			'ttclid',
+			'wbraid',
+			'gbraid',
+			'twclid',
+			'li_fat_id',
+			'ScCid',
+			'sccid',
+			'sc_click_id',
+			'epik',
+			'campaign_id',
+			'adgroup_id',
+			'ad_id',
+			'target_id',
 		);
 
-        foreach ( $tracking_keys as $key ) {
-                unset( $query_vars[ $key ] );
-        }
+		foreach ( $tracking_keys as $key ) {
+				unset( $query_vars[ $key ] );
+		}
 
-        $query = http_build_query( $query_vars );
-        if ( $query ) {
-                $base .= '?' . $query;
-        }
+		$query = http_build_query( $query_vars );
+		if ( $query ) {
+				$base .= '?' . $query;
+		}
 
-        return $base;
+		return $base;
 }
 
 /**
@@ -61,11 +81,11 @@ function clicutcl_strip_tracking_params_from_url( $url ) {
  * @return string Filtered canonical URL.
  */
 function clicutcl_clean_yoast_canonical( $canonical ) {
-        if ( ! $canonical ) {
-                return $canonical;
-        }
+	if ( ! $canonical ) {
+			return $canonical;
+	}
 
-        return clicutcl_strip_tracking_params_from_url( $canonical );
+		return clicutcl_strip_tracking_params_from_url( $canonical );
 }
 add_filter( 'wpseo_canonical', 'clicutcl_clean_yoast_canonical', 20 );
 
@@ -77,10 +97,10 @@ add_filter( 'wpseo_canonical', 'clicutcl_clean_yoast_canonical', 20 );
  * @return string Filtered canonical URL.
  */
 function clicutcl_clean_core_canonical( $canonical, $post ) {
-        if ( ! $canonical ) {
-                return $canonical;
-        }
+	if ( ! $canonical ) {
+			return $canonical;
+	}
 
-        return clicutcl_strip_tracking_params_from_url( $canonical );
+		return clicutcl_strip_tracking_params_from_url( $canonical );
 }
 add_filter( 'get_canonical_url', 'clicutcl_clean_core_canonical', 20, 2 );

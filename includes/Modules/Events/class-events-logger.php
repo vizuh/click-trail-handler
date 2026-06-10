@@ -142,7 +142,7 @@ class Events_Logger {
 		foreach ( $events as $cookie_name ) {
 			if ( isset( $_COOKIE[ $cookie_name ] ) ) {
 				$event_data = json_decode( sanitize_text_field( wp_unslash( $_COOKIE[ $cookie_name ] ) ), true );
-				
+
 				if ( $event_data ) {
 					$queued_events[] = $this->normalize_event_cookie_payload( $event_data );
 					// Clear the cookie after reading

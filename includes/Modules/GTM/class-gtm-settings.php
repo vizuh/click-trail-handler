@@ -55,14 +55,14 @@ class GTM_Settings extends Setting {
 	 */
 	public static function defaults(): array {
 		return array(
-			'container_id'            => '',
-			'mode'                    => 'standard',
-			'tagging_server_url'      => '',
-			'first_party_script'      => 0,
-			'custom_loader_enabled'   => 0,
-			'custom_loader_url'       => '',
-			'woo_enhanced_datalayer'  => 0,
-			'woo_include_user_data'   => 0,
+			'container_id'           => '',
+			'mode'                   => 'standard',
+			'tagging_server_url'     => '',
+			'first_party_script'     => 0,
+			'custom_loader_enabled'  => 0,
+			'custom_loader_url'      => '',
+			'woo_enhanced_datalayer' => 0,
+			'woo_include_user_data'  => 0,
 		);
 	}
 
@@ -341,7 +341,7 @@ class GTM_Settings extends Setting {
 			$fragment = '';
 			if ( false !== strpos( $url, '#' ) ) {
 				list( $url, $fragment ) = explode( '#', $url, 2 );
-				$fragment = '#' . $fragment;
+				$fragment               = '#' . $fragment;
 			}
 
 			$separator = false !== strpos( $url, '?' ) ? '&' : '?';

@@ -130,16 +130,16 @@ class Consent_Mode_Settings extends Setting {
 				$new_value['regions'] = array_keys( $region_codes );
 			}
 
-			$cmp_source = isset( $value['cmp_source'] ) ? sanitize_key( (string) $value['cmp_source'] ) : 'auto';
+			$cmp_source              = isset( $value['cmp_source'] ) ? sanitize_key( (string) $value['cmp_source'] ) : 'auto';
 			$new_value['cmp_source'] = isset( self::ALLOWED_CMP_SOURCES[ $cmp_source ] ) ? $cmp_source : 'auto';
 
-			$cmp_timeout_ms = isset( $value['cmp_timeout_ms'] ) ? absint( $value['cmp_timeout_ms'] ) : 3000;
+			$cmp_timeout_ms              = isset( $value['cmp_timeout_ms'] ) ? absint( $value['cmp_timeout_ms'] ) : 3000;
 			$new_value['cmp_timeout_ms'] = min( 10000, max( 500, $cmp_timeout_ms ) );
 
-			$cookie_name = isset( $value['cookie_name'] ) ? sanitize_key( (string) $value['cookie_name'] ) : 'ct_consent';
+			$cookie_name              = isset( $value['cookie_name'] ) ? sanitize_key( (string) $value['cookie_name'] ) : 'ct_consent';
 			$new_value['cookie_name'] = '' !== $cookie_name ? $cookie_name : 'ct_consent';
 
-			$gcm_analytics_key = isset( $value['gcm_analytics_key'] ) ? sanitize_key( (string) $value['gcm_analytics_key'] ) : 'analytics_storage';
+			$gcm_analytics_key              = isset( $value['gcm_analytics_key'] ) ? sanitize_key( (string) $value['gcm_analytics_key'] ) : 'analytics_storage';
 			$new_value['gcm_analytics_key'] = '' !== $gcm_analytics_key ? $gcm_analytics_key : 'analytics_storage';
 
 			return $new_value;
@@ -163,7 +163,7 @@ class Consent_Mode_Settings extends Setting {
 	 */
 	public function get_mode() {
 		$settings = $this->get();
-		$mode = isset( $settings['mode'] ) ? sanitize_key( (string) $settings['mode'] ) : 'strict';
+		$mode     = isset( $settings['mode'] ) ? sanitize_key( (string) $settings['mode'] ) : 'strict';
 		return isset( self::ALLOWED_MODES[ $mode ] ) ? $mode : 'strict';
 	}
 

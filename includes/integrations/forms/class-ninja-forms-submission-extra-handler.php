@@ -183,7 +183,7 @@ class Ninja_Forms_Submission_Extra_Handler {
 
 		$parts = explode( '_', $key );
 		$parts = array_map(
-			static function( $part ) {
+			static function ( $part ) {
 				$acronyms = array( 'utm', 'ga', 'id', 'tt', 'fb', 'li', 'gc' );
 				if ( in_array( $part, $acronyms, true ) ) {
 					return strtoupper( $part );

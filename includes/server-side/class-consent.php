@@ -26,7 +26,7 @@ class Consent {
 		}
 
 		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- JSON decode below.
-		$raw = wp_unslash( $_COOKIE['ct_consent'] );
+		$raw  = wp_unslash( $_COOKIE['ct_consent'] );
 		$data = json_decode( $raw, true );
 
 		if ( ! is_array( $data ) ) {

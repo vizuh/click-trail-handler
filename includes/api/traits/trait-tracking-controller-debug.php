@@ -103,8 +103,8 @@ trait Tracking_Controller_Debug_Trait {
 		$buffer = self::get_debug_event_buffer();
 		array_unshift( $buffer, $entry );
 
-		$max = (int) apply_filters( 'clicutcl_v2_event_buffer_size', self::INTAKE_DEBUG_MAX );
-		$max = max( 1, min( 200, $max ) );
+		$max    = (int) apply_filters( 'clicutcl_v2_event_buffer_size', self::INTAKE_DEBUG_MAX );
+		$max    = max( 1, min( 200, $max ) );
 		$buffer = array_slice( $buffer, 0, $max );
 
 		$ttl = (int) apply_filters( 'clicutcl_v2_event_buffer_ttl', 6 * HOUR_IN_SECONDS );

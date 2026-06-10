@@ -73,20 +73,20 @@ class Event_Translator_V1_To_V2 {
 		$session_id = isset( $input['session_id'] ) ? sanitize_text_field( (string) $input['session_id'] ) : '';
 
 		$canonical = array(
-			'event_name'      => $event_name,
-			'event_id'        => $event_id,
-			'event_time'      => $event_time,
-			'funnel_stage'    => $funnel_stage,
-			'session_id'      => $session_id,
-			'source_channel'  => $source,
-			'page_context'    => $page_context,
-			'attribution'     => isset( $input['attribution'] ) && is_array( $input['attribution'] ) ? $input['attribution'] : array(),
-			'consent'         => $consent,
-			'lead_context'    => isset( $input['lead_context'] ) && is_array( $input['lead_context'] ) ? $input['lead_context'] : ( isset( $input['form'] ) && is_array( $input['form'] ) ? $input['form'] : array() ),
-			'commerce_context'=> isset( $input['commerce_context'] ) && is_array( $input['commerce_context'] ) ? $input['commerce_context'] : ( isset( $input['commerce'] ) && is_array( $input['commerce'] ) ? $input['commerce'] : array() ),
-			'identity'        => isset( $input['identity'] ) && is_array( $input['identity'] ) ? $input['identity'] : array(),
-			'delivery_context'=> isset( $input['delivery_context'] ) && is_array( $input['delivery_context'] ) ? $input['delivery_context'] : array(),
-			'meta'            => isset( $input['meta'] ) && is_array( $input['meta'] ) ? $input['meta'] : array(),
+			'event_name'       => $event_name,
+			'event_id'         => $event_id,
+			'event_time'       => $event_time,
+			'funnel_stage'     => $funnel_stage,
+			'session_id'       => $session_id,
+			'source_channel'   => $source,
+			'page_context'     => $page_context,
+			'attribution'      => isset( $input['attribution'] ) && is_array( $input['attribution'] ) ? $input['attribution'] : array(),
+			'consent'          => $consent,
+			'lead_context'     => isset( $input['lead_context'] ) && is_array( $input['lead_context'] ) ? $input['lead_context'] : ( isset( $input['form'] ) && is_array( $input['form'] ) ? $input['form'] : array() ),
+			'commerce_context' => isset( $input['commerce_context'] ) && is_array( $input['commerce_context'] ) ? $input['commerce_context'] : ( isset( $input['commerce'] ) && is_array( $input['commerce'] ) ? $input['commerce'] : array() ),
+			'identity'         => isset( $input['identity'] ) && is_array( $input['identity'] ) ? $input['identity'] : array(),
+			'delivery_context' => isset( $input['delivery_context'] ) && is_array( $input['delivery_context'] ) ? $input['delivery_context'] : array(),
+			'meta'             => isset( $input['meta'] ) && is_array( $input['meta'] ) ? $input['meta'] : array(),
 		);
 
 		$canonical['meta']['schema_version'] = 2;
@@ -134,7 +134,7 @@ class Event_Translator_V1_To_V2 {
 	 * @return string
 	 */
 	private static function infer_intent_level( string $funnel_stage, string $event_name ): string {
-		$event_name = sanitize_key( $event_name );
+		$event_name   = sanitize_key( $event_name );
 		$funnel_stage = sanitize_key( $funnel_stage );
 
 		if ( in_array( $event_name, array( 'lead', 'book_appointment', 'qualified_lead', 'client_won', 'purchase', 'order_paid', 'order_refunded', 'order_cancelled', 'login', 'sign_up' ), true ) ) {

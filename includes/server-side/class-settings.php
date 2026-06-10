@@ -33,7 +33,7 @@ class Settings {
 	 * @return array
 	 */
 	public static function get() {
-		static $site_cache = null;
+		static $site_cache    = null;
 		static $network_cache = null;
 
 		if ( null === $site_cache ) {

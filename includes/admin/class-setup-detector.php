@@ -38,24 +38,24 @@ class Setup_Detector {
 	 * @return array<string,mixed>
 	 */
 	public static function run(): array {
-		$forms        = static::detect_forms();
-		$caching      = static::detect_caching();
-		$cmp          = static::detect_cmp();
+		$forms         = static::detect_forms();
+		$caching       = static::detect_caching();
+		$cmp           = static::detect_cmp();
 		$call_tracking = static::detect_call_tracking();
 
 		return array(
-			'forms'           => $forms,
-			'woocommerce'     => static::detect_woocommerce(),
-			'caching'         => $caching,
-			'cmp'             => $cmp,
-			'call_tracking'   => $call_tracking,
+			'forms'             => $forms,
+			'woocommerce'       => static::detect_woocommerce(),
+			'caching'           => $caching,
+			'cmp'               => $cmp,
+			'call_tracking'     => $call_tracking,
 			// Convenience booleans for template conditionals.
-			'has_active_forms'    => ! empty(
+			'has_active_forms'  => ! empty(
 				array_filter( $forms, static fn( $f ) => $f['active'] )
 			),
-			'has_caching'         => ! empty( $caching ),
-			'has_cmp'             => ! empty( $cmp ),
-			'has_call_tracking'   => ! empty( $call_tracking ),
+			'has_caching'       => ! empty( $caching ),
+			'has_cmp'           => ! empty( $cmp ),
+			'has_call_tracking' => ! empty( $call_tracking ),
 		);
 	}
 
@@ -298,10 +298,10 @@ class Setup_Detector {
 		$active_plugins = (array) get_option( 'active_plugins', array() );
 
 		$known_slugs = array(
-			'callrail'              => 'CallRail',
-			'call-tracking-metrics' => 'CallTrackingMetrics',
-			'whatconverts'          => 'WhatConverts',
-			'retreaver'             => 'Retreaver',
+			'callrail'               => 'CallRail',
+			'call-tracking-metrics'  => 'CallTrackingMetrics',
+			'whatconverts'           => 'WhatConverts',
+			'retreaver'              => 'Retreaver',
 			'infinity-call-tracking' => 'Infinity',
 		);
 

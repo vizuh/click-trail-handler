@@ -69,7 +69,7 @@ class Elementor_Forms_Adapter extends Abstract_Form_Adapter {
 			return;
 		}
 
-		$fields = $this->extract_record_fields( $record );
+		$fields      = $this->extract_record_fields( $record );
 		$attribution = array();
 
 		foreach ( Attribution_Provider::get_field_mapping() as $key ) {
@@ -116,7 +116,7 @@ class Elementor_Forms_Adapter extends Abstract_Form_Adapter {
 				continue;
 			}
 
-			$keys = array();
+			$keys   = array();
 			$keys[] = sanitize_key( (string) $field_id );
 
 			if ( ! empty( $field['id'] ) && is_scalar( $field['id'] ) ) {
@@ -185,7 +185,7 @@ class Elementor_Forms_Adapter extends Abstract_Form_Adapter {
 				', ',
 				array_filter(
 					array_map(
-						static function( $item ) {
+						static function ( $item ) {
 							return is_scalar( $item ) ? sanitize_text_field( (string) $item ) : '';
 						},
 						$value
