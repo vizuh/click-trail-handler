@@ -70,6 +70,7 @@
             const eventData = {
                 ...(params && typeof params === 'object' ? params : {}),
                 event: eventName,
+                ga4_event_name: this.toGa4EventName(eventName),
                 event_id: eventId,
                 session_id: this.sessionId,
                 visitor_id: this.visitorId
@@ -85,6 +86,21 @@
             }
 
             this.sendServerEvent(eventName, eventData, eventId);
+        }
+
+        toGa4EventName(eventName) {
+            // Mirrors the PHP Event_Name_Map GA4 vocabulary; unknown names pass through.
+            const ga4Map = {
+                lead: 'generate_lead',
+                form_submission: 'generate_lead',
+                qualified_lead: 'qualify_lead',
+                book_appointment: 'working_lead',
+                client_won: 'close_convert_lead',
+                order_refunded: 'refund'
+            };
+
+            const key = String(eventName || '');
+            return ga4Map[key] || key;
         }
 
         shouldSuppressServerTransport(eventName) {
@@ -180,6 +196,7 @@
                 meta: {
                     schema_version: 2,
                     source_event: eventName,
+                    ga4_event_name: this.toGa4EventName(mapped.event_name),
                     device_type: (function () {
                         const w = window.innerWidth || 0;
                         const touch = navigator.maxTouchPoints > 0;
