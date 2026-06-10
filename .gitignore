@@ -22,3 +22,6 @@ AGENTS.md
 ROADMAP.md
 docs/PLAN-*.md
 docs/guides/TRACKING-ATTRIBUTION-PORTABLE-PROMPT.md
+
+# PHPUnit
+.phpunit.result.cache
