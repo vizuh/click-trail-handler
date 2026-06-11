@@ -1,6 +1,8 @@
 # ClickTrail
 
-Keep campaign context attached to WooCommerce orders, WordPress forms, and event flows across cached pages, dynamic forms, cross-domain journeys, repeat visits, and consent-aware sites.
+Attribution usually breaks somewhere between the ad click and the conversion. ClickTrail makes it survive: cached pages, dynamic forms, cross-domain journeys, repeat visits, and consent requirements.
+
+ClickTrail keeps the source of the visit, not a profile of the visitor — first-party, consent-aware capture with no external identification or enrichment calls.
 
 [![GitHub release](https://img.shields.io/github/v/release/vizuh/click-trail-handler?label=version&color=blue)](https://github.com/vizuh/click-trail-handler/releases)
 [![License](https://img.shields.io/badge/license-GPL--2.0--or--later-green)](LICENSE)
@@ -21,11 +23,11 @@ Keep campaign context attached to WooCommerce orders, WordPress forms, and event
 
 ## What ClickTrail Solves
 
-- WooCommerce orders lose campaign context before revenue is reported.
-- UTMs and click IDs disappear after the landing page.
-- Cached or dynamic forms submit without attribution.
-- Cross-domain flows reset the source trail.
-- Teams need consent-aware capture and optional server-side delivery in one plugin.
+- No WooCommerce order loses campaign context before revenue is reported.
+- No UTM or click ID disappears after the landing page.
+- No cached or dynamic form submits without attribution.
+- No cross-domain flow resets the source trail.
+- Consent-aware capture and optional server-side delivery live in one plugin.
 
 ClickTrail is designed to keep first-touch and last-touch context alive until the point where WordPress actually needs it: WooCommerce orders, form submissions, browser events, and optional downstream delivery.
 
