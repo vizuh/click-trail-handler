@@ -323,9 +323,19 @@ class Event {
 			);
 		}
 
-		$consent = Consent::get_state();
-		if ( ! empty( $consent ) ) {
-			$data['consent'] = $consent;
+		// Prefer the consent snapshot persisted with the payload (e.g. captured
+		// at checkout and stored on the order). Payment webhooks and cron have
+		// no visitor cookie, so the live cookie is only a fallback.
+		if ( isset( $payload['consent'] ) && is_array( $payload['consent'] ) && array_key_exists( 'marketing', $payload['consent'] ) ) {
+			$data['consent'] = array(
+				'marketing' => ! empty( $payload['consent']['marketing'] ),
+				'analytics' => ! empty( $payload['consent']['analytics'] ),
+			);
+		} else {
+			$consent = Consent::get_state();
+			if ( ! empty( $consent ) ) {
+				$data['consent'] = $consent;
+			}
 		}
 
 		return new self( $data );

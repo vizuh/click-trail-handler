@@ -252,6 +252,31 @@ class Consent_Mode_Settings extends Setting {
 	 * @return string
 	 */
 	private function get_request_country_code() {
+		/**
+		 * Authoritative request country code (ISO 3166-1 alpha-2), e.g. resolved by a
+		 * server-side GeoIP provider. Returning a valid 2-letter code bypasses the
+		 * spoofable request-header lookup entirely and is the recommended source.
+		 *
+		 * @param string $country Pre-resolved country code ('' if unknown).
+		 */
+		$authoritative = strtoupper( trim( (string) apply_filters( 'clicutcl_request_country_code', '' ) ) );
+		if ( preg_match( '/^[A-Z]{2}$/', $authoritative ) ) {
+			return $authoritative;
+		}
+
+		/**
+		 * Whether to trust client-supplied geo headers (CF-IPCOUNTRY, X-Country-Code,
+		 * GeoIP-*). These headers are spoofable unless the site sits behind an edge/CDN
+		 * that strips and re-sets them, so they are NOT trusted by default — an unknown
+		 * country then fails safe to requiring consent. Enable only when a trusted proxy
+		 * is guaranteed to set them.
+		 *
+		 * @param bool $trust Default false.
+		 */
+		if ( ! apply_filters( 'clicutcl_trust_geo_request_headers', false ) ) {
+			return '';
+		}
+
 		$candidates = array(
 			'HTTP_CF_IPCOUNTRY',
 			'HTTP_X_COUNTRY_CODE',

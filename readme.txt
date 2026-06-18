@@ -5,7 +5,7 @@ Author URI: https://vizuh.com
 Tags: attribution, utm, consent mode, woocommerce, server-side tracking
 Requires at least: 6.5
 Tested up to: 7.0
-Stable tag: 1.8.2
+Stable tag: 1.8.7
 Requires PHP: 8.1
 WC requires at least: 10.4.2
 License: GPLv2 or later
@@ -211,6 +211,15 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 4. Diagnostics and delivery health for verifying event intake and transport behavior.
 
 == Changelog ==
+
+= 1.8.10 =
+*   **Security: server-side delivery endpoint is validated against SSRF**: The collector / server-side GTM endpoint URL is now checked on save (internal, loopback, and non-public addresses are rejected), and every outbound delivery request rejects unsafe URLs, so a misconfigured or hostile endpoint can no longer be pointed at internal network resources.
+*   **Security: webhook signature and secret handling hardened**: Inbound webhook signatures are compared on the raw value with strict format validation, and provider secrets are stored exactly as entered (they are no longer truncated or whitespace-stripped, which previously could corrupt long secrets and break verification). Replay protection is now race-safe on sites with a persistent object cache.
+*   **Security: cross-domain attribution-token verification now requires the page token**, matching the signing endpoint and removing an unauthenticated request path.
+*   **Privacy: visitor IP is anonymized in the diagnostic event log** (the full IP is still used only transiently for server-side conversion matching). The personal-data eraser now also clears queued server-side delivery records.
+*   **Privacy: geo-based consent no longer trusts client-supplied country headers by default**, since those headers can be spoofed unless set by a trusted CDN. An unknown region now safely defaults to requiring consent. Sites behind a trusted edge can re-enable header trust with the `clicutcl_trust_geo_request_headers` filter, or provide an authoritative country with `clicutcl_request_country_code`.
+*   **Security: Gravity Forms attribution merge tags are always HTML-escaped** in output.
+*   **Admin: a warning now appears when "encrypt secrets at rest" is enabled but the server cannot support it**, so secrets are not silently stored unencrypted.
 
 = 1.8.9 =
 *   **i18n: German (de_DE) JavaScript translations now load**: Added the script-translation JSON for the React settings app. Without this file, the de_DE locale shipped in v1.8.7 only translated PHP-side strings; the JS-side React UI (Capture/Forms/Events/Delivery tabs) stayed in English. Generated via `wp i18n make-json` for `assets/js/admin-settings-app.js`.

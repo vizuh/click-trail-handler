@@ -262,6 +262,17 @@ class Privacy_Handler {
 			$messages = array_merge( $messages, $related['messages'] );
 		}
 
+		$queue = $this->erase_queue_records( $email );
+		if ( ! empty( $queue['items_removed'] ) ) {
+			$removed_any = true;
+		}
+		if ( ! empty( $queue['items_retained'] ) ) {
+			$retained = true;
+		}
+		if ( ! empty( $queue['messages'] ) && is_array( $queue['messages'] ) ) {
+			$messages = array_merge( $messages, $queue['messages'] );
+		}
+
 		return array(
 			'items_removed'  => $removed_any,
 			'items_retained' => $retained,
@@ -490,6 +501,56 @@ class Privacy_Handler {
 			'items_removed'  => $removed_any,
 			'items_retained' => $retained,
 			'messages'       => array_values( array_unique( $messages ) ),
+		);
+	}
+
+	/**
+	 * Erase queued server-side delivery records for a subject.
+	 *
+	 * The `clicutcl_queue` payload carries the SHA-256 hashed email (CAPI identity) and
+	 * may carry the raw email plus a transient IP; match both hashed and raw email and
+	 * delete the rows so no identifiable delivery payload lingers at rest.
+	 *
+	 * @param string $email Email address.
+	 * @return array{items_removed:bool,items_retained:bool,messages:array<int,string>}
+	 */
+	private function erase_queue_records( string $email ): array {
+		global $wpdb;
+
+		$table = $wpdb->prefix . 'clicutcl_queue';
+		if ( ! $this->table_exists( $table ) ) {
+			return array(
+				'items_removed'  => false,
+				'items_retained' => false,
+				'messages'       => array(),
+			);
+		}
+		$table_escaped = esc_sql( $table );
+
+		$hashed_email = hash( 'sha256', strtolower( trim( $email ) ) );
+		$like_email   = '%' . $this->escape_like( $email ) . '%';
+		$like_hash    = '%' . $this->escape_like( $hashed_email ) . '%';
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned.
+		$delete_query = "DELETE FROM {$table_escaped} WHERE payload LIKE %s OR payload LIKE %s";
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Required for privacy erasure callbacks.
+		$deleted = $wpdb->query(
+			$wpdb->prepare( $delete_query, $like_email, $like_hash ) // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $delete_query built above.
+		);
+
+		if ( false === $deleted ) {
+			return array(
+				'items_removed'  => false,
+				'items_retained' => true,
+				'messages'       => array( __( 'Some ClickTrail queued delivery records could not be deleted.', 'click-trail-handler' ) ),
+			);
+		}
+
+		return array(
+			'items_removed'  => $deleted > 0,
+			'items_retained' => false,
+			'messages'       => array(),
 		);
 	}
 

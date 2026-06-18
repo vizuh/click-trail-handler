@@ -270,7 +270,9 @@ class Settings {
 
 		$secret = '';
 		if ( ! empty( $settings['external_forms']['providers'][ $provider ]['secret'] ) ) {
-			$secret = sanitize_text_field( (string) $settings['external_forms']['providers'][ $provider ]['secret'] );
+			// Return the stored secret verbatim — it was sanitized on write. Re-running
+			// sanitize_text_field here would corrupt long/structured secrets and break HMAC.
+			$secret = (string) $settings['external_forms']['providers'][ $provider ]['secret'];
 		}
 
 		/**
@@ -280,7 +282,7 @@ class Settings {
 		 * @param string $provider Provider key.
 		 */
 		$secret = apply_filters( 'clicutcl_external_provider_secret', $secret, $provider );
-		return sanitize_text_field( (string) $secret );
+		return (string) $secret;
 	}
 
 	/**
@@ -453,12 +455,18 @@ class Settings {
 	 * @param int    $max_length    Max length.
 	 * @return string
 	 */
-	private static function sanitize_secret_update( $value, string $existing, int $max_length = 255 ): string {
+	private static function sanitize_secret_update( $value, string $existing, int $max_length = 1024 ): string {
 		if ( is_array( $value ) || is_object( $value ) ) {
 			return $existing;
 		}
 
-		$secret = sanitize_text_field( (string) $value );
+		// Preserve the secret's exact bytes (length, case, symbols). sanitize_text_field
+		// would strip tags and collapse whitespace, silently corrupting long/structured
+		// secrets (base64/hex keys, JWTs) and breaking HMAC verification. Only trim the
+		// surrounding whitespace and remove control characters (header-injection safety).
+		$secret = trim( (string) $value );
+		$secret = (string) preg_replace( '/[\x00-\x1F\x7F]/', '', $secret );
+
 		if ( '' === $secret || self::is_secret_mask_value( $secret ) ) {
 			return $existing;
 		}
@@ -501,16 +509,17 @@ class Settings {
 				continue;
 			}
 
-			$value = sanitize_text_field( (string) $item );
 			if ( self::looks_like_secret_key( $key ) ) {
-				$existing    = isset( $current[ $key ] ) && ( is_scalar( $current[ $key ] ) || null === $current[ $key ] )
+				$existing = isset( $current[ $key ] ) && ( is_scalar( $current[ $key ] ) || null === $current[ $key ] )
 					? (string) $current[ $key ]
 					: '';
-				$out[ $key ] = self::sanitize_secret_update( $value, $existing );
+				// Pass the raw item, not a sanitize_text_field-mangled copy, so the secret
+				// reaches sanitize_secret_update intact.
+				$out[ $key ] = self::sanitize_secret_update( (string) $item, $existing );
 				continue;
 			}
 
-			$out[ $key ] = $value;
+			$out[ $key ] = sanitize_text_field( (string) $item );
 		}
 
 		return $out;
@@ -721,6 +730,24 @@ class Settings {
 		}
 
 		return in_array( 'aes-256-gcm', $ciphers, true );
+	}
+
+	/**
+	 * Whether secret-at-rest encryption is requested in settings but cannot actually be
+	 * applied on this server (missing OpenSSL / AES-256-GCM). When true the toggle is
+	 * inert and secrets are stored in plaintext — the admin UI should warn about it.
+	 *
+	 * @return bool
+	 */
+	public static function encryption_requested_but_unavailable(): bool {
+		$settings  = self::get();
+		$requested = (bool) apply_filters(
+			'clicutcl_encrypt_settings_secrets',
+			! empty( $settings['security']['encrypt_secrets_at_rest'] ),
+			$settings
+		);
+
+		return $requested && ! self::should_encrypt_secrets( $settings );
 	}
 
 	/**

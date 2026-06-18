@@ -69,17 +69,21 @@ trait Tracking_Controller_Security_Trait {
 	 * Optional replay-limit keyed by token nonce and client IP.
 	 *
 	 * @param array $claims Verified token claims.
+	 * @param int   $default_limit Limit applied when the setting is 0/unset (0 disables).
 	 * @return true|WP_Error
 	 */
-	private function check_token_nonce_limit( array $claims ) {
+	private function check_token_nonce_limit( array $claims, int $default_limit = 0 ) {
 		$nonce = isset( $claims['nonce'] ) ? sanitize_text_field( (string) $claims['nonce'] ) : '';
 		if ( '' === $nonce ) {
 			return true;
 		}
 
-		$settings_limit = Tracking_Settings::get()['security']['token_nonce_limit'] ?? 0;
-		$limit          = (int) apply_filters( 'clicutcl_v2_token_nonce_limit', (int) $settings_limit );
-		$limit          = max( 0, min( 5000, $limit ) );
+		$settings_limit = (int) ( Tracking_Settings::get()['security']['token_nonce_limit'] ?? 0 );
+		if ( $settings_limit < 1 ) {
+			$settings_limit = $default_limit;
+		}
+		$limit = (int) apply_filters( 'clicutcl_v2_token_nonce_limit', $settings_limit );
+		$limit = max( 0, min( 5000, $limit ) );
 		if ( 0 === $limit ) {
 			return true;
 		}

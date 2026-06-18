@@ -17,6 +17,17 @@ if ( ! defined( 'ABSPATH' ) ) {
 class Installer {
 
 	/**
+	 * Schema version. Bump when table definitions change; `maybe_upgrade()`
+	 * re-runs dbDelta on existing installs until the stored version matches.
+	 */
+	public const DB_VERSION = 2;
+
+	/**
+	 * Option key for the installed schema version.
+	 */
+	public const DB_VERSION_OPTION = 'clicutcl_db_version';
+
+	/**
 	 * Events table readiness option key.
 	 */
 	private const EVENTS_READY_OPTION = 'clicutcl_events_table_ready';
@@ -40,6 +51,22 @@ class Installer {
 	 * Run the installer.
 	 */
 	public static function run() {
+		self::create_tables();
+	}
+
+	/**
+	 * Upgrade the schema when the stored version is behind DB_VERSION.
+	 *
+	 * Cheap option read on the happy path; runs dbDelta only when behind.
+	 *
+	 * @return void
+	 */
+	public static function maybe_upgrade() {
+		$installed = (int) get_option( self::DB_VERSION_OPTION, 0 );
+		if ( $installed >= self::DB_VERSION ) {
+			return;
+		}
+
 		self::create_tables();
 	}
 
@@ -72,10 +99,12 @@ class Installer {
 			attempts int unsigned NOT NULL DEFAULT 0,
 			next_attempt_at datetime NOT NULL,
 			last_error text,
+			status varchar(20) NOT NULL DEFAULT 'pending',
 			created_at datetime DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY  (id),
 			UNIQUE KEY event_name_event_id (event_name, event_id),
-			KEY next_attempt_at (next_attempt_at)
+			KEY next_attempt_at (next_attempt_at),
+			KEY status (status)
 		) $charset_collate;";
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
@@ -94,6 +123,12 @@ class Installer {
 		// Backward-compatible aggregate readiness flags.
 		update_option( 'clicutcl_db_ready', ( $events_ready && $queue_ready ) ? 1 : 0, false );
 		update_option( 'clicutcl_db_ready_checked_at', $checked_at, false );
+
+		// Record schema version only when the queue status column verifiably
+		// exists, so maybe_upgrade() retries on the next request if dbDelta failed.
+		if ( $queue_ready && self::column_exists( $queue_table, 'status' ) ) {
+			update_option( self::DB_VERSION_OPTION, self::DB_VERSION, false );
+		}
 
 		// Seed tracking v2 option surfaces once (feature flags, destinations, lifecycle, external providers).
 		if ( class_exists( 'CLICUTCL\\Tracking\\Settings' ) ) {
@@ -116,5 +151,21 @@ class Installer {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		$found = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table_name ) );
 		return is_string( $found ) && $found === $table_name;
+	}
+
+	/**
+	 * Column existence check.
+	 *
+	 * @param string $table_name Table name.
+	 * @param string $column Column name.
+	 * @return bool
+	 */
+	private static function column_exists( $table_name, $column ) {
+		global $wpdb;
+
+		$table_name = esc_sql( $table_name );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table name, escaped above.
+		$found = $wpdb->get_var( $wpdb->prepare( "SHOW COLUMNS FROM {$table_name} LIKE %s", $column ) );
+		return is_string( $found ) && $found === $column;
 	}
 }

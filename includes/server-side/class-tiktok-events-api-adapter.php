@@ -63,11 +63,12 @@ class TikTok_Events_Api_Adapter implements Adapter_Interface {
 		$response = wp_remote_post(
 			$this->endpoint,
 			array(
-				'timeout' => $this->timeout,
-				'headers' => array(
+				'reject_unsafe_urls' => true,
+				'timeout'            => $this->timeout,
+				'headers'            => array(
 					'content-type' => 'application/json',
 				),
-				'body'    => wp_json_encode( $body ),
+				'body'               => wp_json_encode( $body ),
 			)
 		);
 
@@ -75,9 +76,11 @@ class TikTok_Events_Api_Adapter implements Adapter_Interface {
 			return Adapter_Result::error( 0, $response->get_error_message(), array( 'endpoint' => $this->endpoint ) );
 		}
 
-		$status = (int) wp_remote_retrieve_response_code( $response );
-		$ok     = $status >= 200 && $status < 300;
-		return new Adapter_Result( $ok, $status, $ok ? 'sent' : 'error', array( 'endpoint' => $this->endpoint ) );
+		return Adapter_Result::from_http(
+			(int) wp_remote_retrieve_response_code( $response ),
+			(string) wp_remote_retrieve_body( $response ),
+			array( 'endpoint' => $this->endpoint )
+		);
 	}
 
 	/**
@@ -89,8 +92,9 @@ class TikTok_Events_Api_Adapter implements Adapter_Interface {
 		$response = wp_remote_request(
 			$this->endpoint,
 			array(
-				'timeout' => $this->timeout,
-				'method'  => 'GET',
+				'reject_unsafe_urls' => true,
+				'timeout'            => $this->timeout,
+				'method'             => 'GET',
 			)
 		);
 

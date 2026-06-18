@@ -147,7 +147,7 @@ class Gf_Merge_Tags {
 				$value = (string) apply_filters( 'clicutcl_gf_merge_tag_default_value', '', $tag );
 			}
 
-			$formatted = $this->format_value( $value, $url_encode, $esc_html, $nl2br );
+			$formatted = $this->format_value( $value, $url_encode, $nl2br );
 			$formatted = (string) apply_filters( 'clicutcl_gf_merge_tag_formatted_value', $formatted, $tag, $entry, $form, $url_encode, $esc_html, $format );
 			$text      = str_replace( $placeholder, $formatted, $text );
 		}
@@ -168,7 +168,7 @@ class Gf_Merge_Tags {
 				$click_value = (string) apply_filters( 'clicutcl_gf_merge_tag_default_value', '', 'clicutcl_click_id' );
 			}
 
-			$click_formatted = $this->format_value( $click_value, $url_encode, $esc_html, $nl2br );
+			$click_formatted = $this->format_value( $click_value, $url_encode, $nl2br );
 			$click_formatted = (string) apply_filters( 'clicutcl_gf_merge_tag_formatted_value', $click_formatted, 'clicutcl_click_id', $entry, $form, $url_encode, $esc_html, $format );
 			$text            = str_replace( '{clicutcl_click_id}', $click_formatted, $text );
 		}
@@ -181,20 +181,22 @@ class Gf_Merge_Tags {
 	 *
 	 * @param string $value      Raw value.
 	 * @param bool   $url_encode URL-encode the value.
-	 * @param bool   $esc_html   HTML-escape the value.
 	 * @param bool   $nl2br      Convert newlines to HTML line breaks.
 	 * @return string
 	 */
-	private function format_value( $value, $url_encode, $esc_html, $nl2br ) {
+	private function format_value( $value, $url_encode, $nl2br ) {
 		if ( '' === $value ) {
 			return '';
 		}
-		if ( $esc_html ) {
-			$value = esc_html( $value );
-		}
+		// ClickTrail merge-tag values are untrusted visitor input (UTMs, referrer, click
+		// IDs). GF passes $esc_html = false for some output contexts (e.g. HTML email
+		// bodies), so we escape unconditionally here rather than trust that flag. URL-encoded
+		// output is already safe in both URL and HTML contexts, so it skips esc_html.
 		if ( $url_encode ) {
 			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.urlencode_urlencode -- GF merge tag convention requires urlencode.
 			$value = urlencode( $value );
+		} else {
+			$value = esc_html( $value );
 		}
 		if ( $nl2br ) {
 			$value = nl2br( $value );
