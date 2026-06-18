@@ -138,8 +138,13 @@ class Adapter_Result {
 			}
 		}
 
-		$result            = new self( $ok, $status, $message, $meta, false );
-		$result->retryable = $ok || self::is_retryable_status( $status );
+		$result = new self( $ok, $status, $message, $meta, false );
+
+		// A 2xx means the collector received the request. Whether or not the body
+		// reported a per-event error, re-sending would duplicate the event at the
+		// destination, so 2xx is never retried — a body-level error on a 2xx is a
+		// terminal failure. Only non-2xx transport/server failures are retryable.
+		$result->retryable = ( $status >= 200 && $status < 300 ) ? false : self::is_retryable_status( $status );
 
 		return $result;
 	}

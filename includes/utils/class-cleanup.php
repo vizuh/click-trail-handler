@@ -69,13 +69,35 @@ class Cleanup {
 			return;
 		}
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned and escaped.
-		$queue_sql = "DELETE FROM {$queue_table_escaped} WHERE created_at < DATE_SUB(UTC_TIMESTAMP(), INTERVAL %d DAY) LIMIT 1000";
+		// Dead-letter rows (status = 'failed') are kept longer than ordinary queue rows
+		// so they stay replayable via Queue::requeue_failed() instead of being silently
+		// purged with the short retention.
+		$dead_letter_days = (int) apply_filters( 'clicutcl_queue_dead_letter_retention_days', 30 );
+		if ( $dead_letter_days < $queue_days ) {
+			$dead_letter_days = $queue_days;
+		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Cron cleanup on plugin-owned table.
-		$wpdb->query(
-			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- The query string is constructed safely above.
-			$wpdb->prepare( $queue_sql, $queue_days )
-		);
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Lightweight metadata check on plugin-owned escaped table.
+		$has_status = (bool) $wpdb->get_var( $wpdb->prepare( "SHOW COLUMNS FROM {$queue_table_escaped} LIKE %s", 'status' ) );
+
+		if ( $has_status ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned and escaped.
+			$queue_sql = "DELETE FROM {$queue_table_escaped} WHERE ( status <> 'failed' AND created_at < DATE_SUB(UTC_TIMESTAMP(), INTERVAL %d DAY) ) OR ( status = 'failed' AND created_at < DATE_SUB(UTC_TIMESTAMP(), INTERVAL %d DAY) ) LIMIT 1000";
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Cron cleanup on plugin-owned table.
+			$wpdb->query(
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- The query string is constructed safely above.
+				$wpdb->prepare( $queue_sql, $queue_days, $dead_letter_days )
+			);
+		} else {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned and escaped.
+			$queue_sql = "DELETE FROM {$queue_table_escaped} WHERE created_at < DATE_SUB(UTC_TIMESTAMP(), INTERVAL %d DAY) LIMIT 1000";
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Cron cleanup on plugin-owned table.
+			$wpdb->query(
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- The query string is constructed safely above.
+				$wpdb->prepare( $queue_sql, $queue_days )
+			);
+		}
 	}
 }

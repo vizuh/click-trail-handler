@@ -67,6 +67,14 @@ class Installer {
 			return;
 		}
 
+		// Throttle retries: when an upgrade cannot complete (e.g. dbDelta could not add the
+		// queue `status` column), DB_VERSION_OPTION is never recorded, so without this guard
+		// create_tables() would re-run its 2x dbDelta + probes + option writes on every request.
+		if ( get_transient( 'clicutcl_db_upgrade_attempt' ) ) {
+			return;
+		}
+		set_transient( 'clicutcl_db_upgrade_attempt', 1, HOUR_IN_SECONDS );
+
 		self::create_tables();
 	}
 

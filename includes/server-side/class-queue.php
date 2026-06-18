@@ -242,34 +242,37 @@ class Queue {
 			return;
 		}
 
-		$table_name = self::get_table_name();
-		if ( ! self::table_exists() ) {
+		// try/finally so an exception inside process_row() (adapter, JSON, DB) cannot leave
+		// the lock held until LOCK_TTL, which would block all queue processing in between.
+		try {
+			$table_name = self::get_table_name();
+			if ( ! self::table_exists() ) {
+				return;
+			}
+
+			$now = current_time( 'mysql', true );
+
+			if ( self::db_supports_status() ) {
+				$query = $wpdb->prepare(
+					"SELECT * FROM {$table_name} WHERE status = 'pending' AND next_attempt_at <= %s ORDER BY next_attempt_at ASC LIMIT 10", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned.
+					$now
+				);
+			} else {
+				$query = $wpdb->prepare(
+					"SELECT * FROM {$table_name} WHERE next_attempt_at <= %s ORDER BY next_attempt_at ASC LIMIT 10", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned.
+					$now
+				);
+			}
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above; variable passed for readability.
+			$rows = $wpdb->get_results( $query, ARRAY_A );
+
+			foreach ( $rows as $row ) {
+				self::process_row( $row );
+			}
+		} finally {
 			self::release_lock();
-			return;
 		}
-
-		$now = current_time( 'mysql', true );
-
-		if ( self::db_supports_status() ) {
-			$query = $wpdb->prepare(
-				"SELECT * FROM {$table_name} WHERE status = 'pending' AND next_attempt_at <= %s ORDER BY next_attempt_at ASC LIMIT 10", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned.
-				$now
-			);
-		} else {
-			$query = $wpdb->prepare(
-				"SELECT * FROM {$table_name} WHERE next_attempt_at <= %s ORDER BY next_attempt_at ASC LIMIT 10", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned.
-				$now
-			);
-		}
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above; variable passed for readability.
-		$rows = $wpdb->get_results( $query, ARRAY_A );
-
-		foreach ( $rows as $row ) {
-			self::process_row( $row );
-		}
-
-		self::release_lock();
 	}
 
 	/**
@@ -586,16 +589,21 @@ class Queue {
 		);
 
 		if ( $held_at && ( time() - $held_at ) > self::LOCK_TTL ) {
-			self::release_lock();
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Atomicity requires a direct INSERT; option APIs are get-then-set.
-			$acquired = $wpdb->query(
+			// Atomic compare-and-swap takeover of a stale lock: the UPDATE only succeeds if
+			// the row still holds the exact stale timestamp we observed. This avoids the
+			// destructive DELETE-then-INSERT, which let a second worker delete another
+			// worker's freshly-acquired lock and double-process the queue.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Atomic CAS; option APIs are get-then-set.
+			$taken = $wpdb->query(
 				$wpdb->prepare(
-					"INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')",
+					"UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND option_value = %s",
+					(string) time(),
 					self::LOCK_OPTION,
-					(string) time()
+					(string) $held_at
 				)
 			);
-			return (bool) $acquired;
+			wp_cache_delete( self::LOCK_OPTION, 'options' );
+			return (bool) $taken;
 		}
 
 		return false;

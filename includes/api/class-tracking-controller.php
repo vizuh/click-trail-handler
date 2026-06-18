@@ -333,6 +333,16 @@ class Tracking_Controller extends WP_REST_Controller {
 			return array( 'status' => 'duplicate' );
 		}
 
+		// Consent on a client-posted event is attacker-controllable (the beacon supplies
+		// it), so derive it from this request's server-side ct_consent cookie instead of
+		// trusting the payload. Without this, a modified beacon could self-assert
+		// marketing=true and bypass the server-side consent gate in Dispatcher.
+		$server_consent       = \CLICUTCL\Server_Side\Consent::get_state();
+		$canonical['consent'] = array(
+			'marketing' => ! empty( $server_consent['marketing'] ),
+			'analytics' => ! empty( $server_consent['analytics'] ),
+		);
+
 		$resolver              = new Identity_Resolver();
 		$canonical['identity'] = $resolver->resolve(
 			$raw_event['identity'] ?? array(),
