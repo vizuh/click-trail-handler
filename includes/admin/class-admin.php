@@ -63,6 +63,7 @@ class Admin {
 		add_action( 'wp_ajax_clicutcl_test_endpoint', array( $this, 'ajax_test_endpoint' ) );
 		add_action( 'wp_ajax_clicutcl_toggle_debug', array( $this, 'ajax_toggle_debug' ) );
 		add_action( 'wp_ajax_clicutcl_purge_tracking_data', array( $this, 'ajax_purge_tracking_data' ) );
+		add_action( 'wp_ajax_clicutcl_requeue_failed_deliveries', array( $this, 'ajax_requeue_failed_deliveries' ) );
 		add_action( 'wp_ajax_clicutcl_get_admin_settings', array( $this, 'ajax_get_admin_settings' ) );
 		add_action( 'wp_ajax_clicutcl_save_admin_settings', array( $this, 'ajax_save_admin_settings' ) );
 		add_action( 'wp_ajax_clicutcl_get_tracking_v2_settings', array( $this, 'ajax_get_tracking_v2_settings' ) );
@@ -271,6 +272,9 @@ class Admin {
 						'purging'               => __( 'Purging...', 'click-trail-handler' ),
 						'purged'                => __( 'Purged', 'click-trail-handler' ),
 						'purge_failed'          => __( 'Purge failed', 'click-trail-handler' ),
+						'requeueing'            => __( 'Requeueing...', 'click-trail-handler' ),
+						'requeued'              => __( 'Requeued', 'click-trail-handler' ),
+						'requeue_failed'        => __( 'Retry failed', 'click-trail-handler' ),
 						'running_scan'          => __( 'Scanning...', 'click-trail-handler' ),
 						'scan_failed'           => __( 'Conflict scan failed.', 'click-trail-handler' ),
 						'exporting'             => __( 'Preparing backup...', 'click-trail-handler' ),

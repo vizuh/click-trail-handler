@@ -199,6 +199,32 @@ trait Admin_Diagnostics_Ajax_Trait {
 	}
 
 	/**
+	 * AJAX: requeue dead-letter (failed) delivery rows for another round of attempts.
+	 *
+	 * @return void
+	 */
+	public function ajax_requeue_failed_deliveries() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Forbidden', 'click-trail-handler' ) ), 403 );
+		}
+		check_ajax_referer( 'clicutcl_diag', 'nonce' );
+
+		if ( ! class_exists( 'CLICUTCL\\Server_Side\\Queue' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Queue is unavailable.', 'click-trail-handler' ) ) );
+		}
+
+		$requeued = \CLICUTCL\Server_Side\Queue::requeue_failed();
+
+		wp_send_json_success(
+			array(
+				/* translators: %d: number of failed delivery rows requeued for retry. */
+				'message'  => sprintf( _n( '%d failed delivery requeued.', '%d failed deliveries requeued.', $requeued, 'click-trail-handler' ), $requeued ),
+				'requeued' => $requeued,
+			)
+		);
+	}
+
+	/**
 	 * Return unified admin settings via AJAX.
 	 *
 	 * @return void
