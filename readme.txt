@@ -212,6 +212,9 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 
 == Changelog ==
 
+= 1.8.11 =
+*   **Maintenance**: internal code cleanup. No functional changes.
+
 = 1.8.10 =
 *   **Security: server-side delivery endpoint is validated against SSRF**: The collector / server-side GTM endpoint URL is now checked on save (internal, loopback, and non-public addresses are rejected), and every outbound delivery request rejects unsafe URLs, so a misconfigured or hostile endpoint can no longer be pointed at internal network resources.
 *   **Security: webhook signature and secret handling hardened**: Inbound webhook signatures are compared on the raw value with strict format validation, and provider secrets are stored exactly as entered (they are no longer truncated or whitespace-stripped, which previously could corrupt long secrets and break verification). Replay protection is now race-safe on sites with a persistent object cache.

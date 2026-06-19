@@ -1174,9 +1174,7 @@ class Admin {
 		array $destination_state,
 		bool $providers_active
 	): array {
-		$link_decor_on      = ! empty( $attr_options['enable_link_decoration'] );
-		$domains_raw        = isset( $attr_options['link_allowed_domains'] ) ? (string) $attr_options['link_allowed_domains'] : '';
-		$domains_configured = ! empty( trim( $domains_raw ) );
+		$link_decor_on = ! empty( $attr_options['enable_link_decoration'] );
 
 		$capture_ready   = ! empty( $attr_options['enable_attribution'] );
 		$forms_ready     = ! empty( $attr_options['enable_js_injection'] ) || ! empty( $attr_options['enable_whatsapp'] ) || $providers_active;

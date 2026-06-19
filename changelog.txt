@@ -1,6 +1,9 @@
 Changelog
 ========
 
+= 1.8.11 =
+*   **Maintenance**: removed unused local variables from the settings setup-checklist builder (`includes/admin/class-admin.php`) and reconciled `ROADMAP.md` against the shipped code (GF/WPForms diagnostic, cross-domain checklist, Action Scheduler migration, and call-tracking conflict scan are all implemented). No functional or behavioral change.
+
 = 1.8.10 =
 *   **Security (SSRF): validate the server-side delivery endpoint** (`includes/admin/class-admin.php` server-side settings sanitizer; all `includes/server-side/class-*-adapter.php`): `endpoint_url` is now validated with `wp_http_validate_url()` plus an `http(s)`-only scheme allowlist on save — loopback, link-local, and private IP ranges, disallowed ports, and userinfo are rejected; the previous value is kept and an admin error is surfaced on rejection. All seven delivery adapters' `wp_remote_post()` / `wp_remote_request()` calls now set `reject_unsafe_urls => true`, so the URL is re-validated at request time as defense against DNS-rebinding and programmatic option overrides.
 *   **Security (webhooks): harden signature and secret handling** (`includes/tracking/class-webhook-auth.php`, `includes/tracking/class-settings.php`): the inbound webhook signature is read raw (no `sanitize_text_field` before the constant-time `hash_equals`) and validated as exactly 64 lowercase hex characters; provider secrets are now stored verbatim — the prior `sanitize_text_field` + 255-character truncation silently corrupted long, base64, or structured secrets and could break HMAC verification entirely; replay protection now uses an atomic `wp_cache_add()` claim when a persistent object cache is present (closing the check-then-set race and the eviction fail-open), falling back to the durable DB transient otherwise.

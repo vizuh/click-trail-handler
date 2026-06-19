@@ -2,7 +2,7 @@
 
 Product plan for free and Pro development. Covers features, UI/UX, security, data accuracy, and code quality goals.
 
-Last updated: 2026-05-05
+Last updated: 2026-06-19 (statuses reconciled against shipped code)
 
 ---
 
@@ -43,7 +43,7 @@ The MutationObserver that watches for dynamically inserted links now bails early
 ---
 
 ### 3. GF / WPForms setup diagnostic
-**Status:** Planned
+**Status:** Implemented (`trait-admin-diagnostics-ajax.php` `check_form_attribution_fields()`, wired into the conflict scan)
 
 **Problem:** Gravity Forms and WPForms require manually added `ct_*` hidden fields. If those fields are absent, attribution silently fails — no error, no warning.
 
@@ -56,7 +56,7 @@ The MutationObserver that watches for dynamically inserted links now bails early
 ---
 
 ### 4. Third-party checkout limitation
-**Status:** Planned
+**Status:** Implemented (`cross_domain_decoration` setup-checklist item covers the guidance incl. the Stripe/PayPal/Mollie caveat). The "decoration will not fire without approved domains" warning was dropped — subdomains are now decorated automatically without the allowed list.
 
 **Problem:** Cross-domain link decoration cannot cover external payment domains (Stripe, PayPal, Mollie). Attribution survives these redirects only if the cookie was written before checkout. This is documented nowhere visible to the user.
 
@@ -69,7 +69,7 @@ Docs — add an explicit "Cross-domain limitations" section to `docs/guides/IMPL
 ---
 
 ### 5. Action Scheduler migration
-**Status:** Planned
+**Status:** Implemented (`class-queue.php` `ensure_schedule()`/`clear_schedule()` use Action Scheduler with a WP-cron fallback; `uninstall.php` cancels AS actions)
 
 **Problem:** The server-side delivery retry queue runs on WP-cron. On shared hosting, WP-cron is unreliable (traffic-triggered, can be disabled). Queue backs up silently.
 
