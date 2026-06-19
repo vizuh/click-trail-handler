@@ -15,30 +15,32 @@ Consent-aware attribution for WooCommerce, WordPress forms, and event flows. Cap
 
 == Description ==
 
-ClickTrail stores attribution data from landing pages and keeps it available for later form submissions, WooCommerce orders, and event flows.
+Attribution usually breaks somewhere between the ad click and the conversion. ClickTrail makes it survive: cached pages, dynamic forms, multi-page journeys, repeat visits, and consent requirements.
 
-In WooCommerce, ClickTrail stores attribution on the order, pushes enriched purchase events on the thank-you page, and can optionally emit GA4-style storefront events for `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout`, plus post-purchase milestones, through the same ClickTrail pipeline.
+ClickTrail keeps the source of the visit, not a profile of the visitor. Capture is first-party and consent-aware: the plugin does not call external services to identify or enrich visitors, and data only leaves your site through integrations you enable yourself (GTM, webhooks, server-side delivery).
 
-It is designed for cases where attribution often breaks in practice: cached pages, dynamic forms, multi-page journeys, repeat visits, consent requirements, and optional server-side delivery.
-
-The plugin keeps first-touch and last-touch context available until the conversion point and makes that context usable inside WordPress.
-
-It captures first-touch and last-touch source data, keeps it available during the user journey, and makes that data usable where conversions actually happen:
+ClickTrail stores first-touch and last-touch attribution from the landing page and keeps it available until the conversion point, where it becomes usable inside WordPress:
 
 * WooCommerce orders
 * supported forms
 * browser events
 * optional server-side delivery
 
-Teams can start with order or form attribution first, then add browser events, consent handling, or server-side transport when needed.
+In WooCommerce, ClickTrail stores attribution on the order, pushes enriched purchase events on the thank-you page, and can optionally emit GA4-style storefront events for `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout`, plus post-purchase milestones, through the same ClickTrail pipeline.
+
+= Pick a starting path =
+
+* **WooCommerce store**: enable Capture and WooCommerce. Orders carry campaign context from day one; add storefront events later if you want funnel signals.
+* **Lead-gen forms**: enable Capture and Forms. Contact Form 7 and Fluent Forms get hidden fields automatically; Gravity Forms and WPForms fill the `ct_*` fields you add.
+* **GTM / sGTM stack**: enable Capture, Events, and Delivery. Browser events push to the `dataLayer`, and the server-side adapters feed sGTM or platform APIs directly.
 
 = What problems it solves =
 
-* **WooCommerce orders losing source data**: Paid traffic often ends up looking like direct traffic by the time an order is placed. ClickTrail stores attribution on the order and keeps purchase reporting tied to campaign context.
-* **Checkout continuity breaking before purchase**: WooCommerce storefront journeys can now emit opt-in `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` signals through the same ClickTrail event layer used elsewhere in the plugin.
-* **Cached or dynamic forms**: Hidden fields often break on cached pages or AJAX-rendered forms. ClickTrail includes client-side fallback and dynamic-content support.
-* **Cross-domain breaks**: Approved link decoration and attribution tokens help keep continuity between domains or subdomains.
-* **Consent and transport complexity**: Consent controls, browser events, webhook intake, and server-side transport live in the same plugin.
+* **No paid order reports as "direct"**: Paid traffic often ends up looking like direct traffic by the time an order is placed. ClickTrail stores attribution on the order and keeps purchase reporting tied to campaign context.
+* **No checkout journey goes dark**: WooCommerce storefront journeys can emit opt-in `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` signals through the same ClickTrail event layer used elsewhere in the plugin.
+* **No cached or AJAX-rendered form drops attribution**: Hidden fields often break on cached pages or dynamically rendered forms. ClickTrail includes client-side fallback and dynamic-content support.
+* **No cross-domain hop breaks continuity**: Approved link decoration and attribution tokens keep continuity between domains or subdomains.
+* **No consent signal is ignored**: Consent controls, browser events, webhook intake, and server-side transport live in the same plugin and respect the same consent state.
 
 = Core capabilities =
 
@@ -48,9 +50,9 @@ Teams can start with order or form attribution first, then add browser events, c
 * **Events**: browser event collection with `dataLayer` pushes, canonical REST intake, webhook ingestion, lifecycle updates, one-time WordPress follow-up events such as `login`, `sign_up`, and `comment_submit`, and optional WooCommerce storefront events.
 * **Delivery**: optional server-side transport, retry queue, diagnostics, consent-aware dispatch, and failure telemetry.
 
-= What is new in 1.6.0 =
+= Recent additions =
 
-This release extends the Gravity Forms integration with channel classification, merge tags, and per-form controls:
+Recent releases extended the Gravity Forms integration with channel classification, merge tags, and per-form controls:
 
 * **Channel classification**: every GF entry now receives a `ct_ft_channel` value — a human-readable label such as Google Ads, ChatGPT, or Mailchimp — derived from click IDs, UTM parameters, or referrer context. A server-side fallback covers sessions where JS attribution was unavailable.
 * **Expanded click ID capture**: six additional click IDs (Reddit `rdt_cid`, Pinterest `pin_cid`, Snapchat `snap_cid`, Mailchimp `mc_cid` / `mc_eid`, and Display & Video 360 `dclid`) are now captured and stored.

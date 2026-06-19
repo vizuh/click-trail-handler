@@ -10,6 +10,8 @@
 [![CodeQL](https://github.com/vizuh/click-trail-handler/actions/workflows/codeql.yml/badge.svg)](https://github.com/vizuh/click-trail-handler/actions/workflows/codeql.yml)
 [![Dependency Review](https://github.com/vizuh/click-trail-handler/actions/workflows/dependency-review.yml/badge.svg)](https://github.com/vizuh/click-trail-handler/actions/workflows/dependency-review.yml)
 
+Attribution usually breaks somewhere between the ad click and the conversion. ClickTrail makes it survive.
+
 ClickTrail is a WordPress attribution plugin for sites that need reliable marketing source data to survive real-world user journeys, especially when WooCommerce orders or lead forms happen several pages after the landing page.
 
 It is built for the problems that usually break attribution in production:
@@ -22,6 +24,8 @@ It is built for the problems that usually break attribution in production:
 - optional server-side delivery
 
 Instead of capturing a UTM once and hoping it survives, ClickTrail keeps first-touch and last-touch context available until WooCommerce orders, forms, browser events, or downstream delivery flows actually need it.
+
+ClickTrail keeps the source of the visit, not a profile of the visitor. Capture is first-party and consent-aware: the plugin does not call external services to identify or enrich visitors, and data only leaves your site through integrations you enable yourself (GTM, webhooks, server-side delivery).
 
 ## What ClickTrail Does
 

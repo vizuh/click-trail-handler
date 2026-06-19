@@ -2,6 +2,8 @@
 
 [![WordPress tested](https://img.shields.io/badge/WordPress-v7.0%20tested-3858e9.svg)](https://wordpress.org)
 
+A atribuicao costuma quebrar em algum ponto entre o clique no anuncio e a conversao. O ClickTrail faz com que ela sobreviva.
+
 ClickTrail e um plugin de atribuicao para WordPress feito para sites que precisam manter a origem real das conversoes ao longo da jornada completa, especialmente quando pedidos do WooCommerce ou formularios acontecem varias paginas depois da landing page.
 
 Ele foi pensado para os problemas que normalmente quebram a atribuicao em producao:
@@ -14,6 +16,8 @@ Ele foi pensado para os problemas que normalmente quebram a atribuicao em produc
 - entrega opcional server-side
 
 Em vez de capturar uma UTM uma vez e torcer para que ela sobreviva, o ClickTrail mantem o contexto de primeiro toque e ultimo toque disponivel ate o momento em que pedidos do WooCommerce, formularios, eventos no navegador ou fluxos de entrega realmente precisam dele.
+
+O ClickTrail guarda a origem da visita, nao um perfil do visitante. A captura e first-party e respeita o consentimento: o plugin nao chama servicos externos para identificar ou enriquecer visitantes, e os dados so saem do site por integracoes ativadas explicitamente (GTM, webhooks, entrega server-side).
 
 ## O Que o ClickTrail Faz
 

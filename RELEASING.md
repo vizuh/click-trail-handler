@@ -58,7 +58,16 @@ Each release folder is created when the version is cut. The zip is built from th
    dist/releases/VERSION/click-trail-handler-VERSION.zip
    dist/releases/VERSION/CHANGELOG.md
    ```
-5. **Test on staging** (tallk.me or equivalent) for 3–5 days.
+5. **Tag and publish the GitHub release** (GitHub always releases immediately at cut time — it runs ahead of WP.org by design):
+   ```bash
+   git tag vVERSION && git push origin vVERSION
+   gh release create vVERSION dist/releases/VERSION/click-trail-handler-VERSION.zip \
+     --title "vVERSION — <one-line summary>" \
+     --notes-file dist/releases/VERSION/CHANGELOG.md
+   ```
+6. **Test on staging** (tallk.me or equivalent) for 3–5 days.
+
+The cadence: every cut version is released on GitHub the same day; WP.org only ever receives the oldest staged version after its 3–5 day window. GitHub stays a few versions ahead, WP.org users get the most-tested build.
 
 ---
 
