@@ -212,6 +212,9 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 
 == Changelog ==
 
+= 1.8.12 =
+*   **UX**: clearer in-app explanation of how ClickTrail preserves landing-page attribution across the consent banner.
+
 = 1.8.11 =
 *   **Maintenance**: internal code cleanup. No functional changes.
 

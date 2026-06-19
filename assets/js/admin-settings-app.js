@@ -1070,7 +1070,7 @@
                         rows: 3,
                         placeholder: 'EEA\nUK'
                     }),
-                    renderSelect('delivery.privacy.cmp_source', __('Consent source', 'click-trail-handler'), __('Which consent platform ClickTrail should listen to.', 'click-trail-handler'), {
+                    renderSelect('delivery.privacy.cmp_source', __('Consent source', 'click-trail-handler'), __('Which consent platform ClickTrail should listen to. ClickTrail buffers landing-page attribution to sessionStorage before consent resolves, so first-touch UTMs and click IDs are preserved even when the banner is accepted on a later page.', 'click-trail-handler'), {
                         disabled: !consentEnabled
                     }, [
                         { label: __('Auto-detect', 'click-trail-handler'), value: 'auto' },
