@@ -93,7 +93,7 @@ The plugin header Description in `clicutcl.php` was updated (2026-05-05). A full
 Goal: a user who has never read the docs should be able to configure the plugin correctly from the settings screen alone.
 
 ### Consent timing — inline help
-The two-phase capture fix resolves the data loss. The settings screen should add a one-line contextual note under the consent source selector explaining that ClickTrail buffers attribution to sessionStorage before consent fires, so landing page UTMs are preserved even when the banner is accepted on a later page. Reduces support questions from users who see the consent gate behaviour as a bug.
+The two-phase capture fix resolves the data loss. The settings screen should add a one-line contextual note under the consent source selector explaining that ClickTrail buffers attribution to sessionStorage before consent fires, so landing page UTMs are preserved even when the banner is accepted on a later page. Reduces support questions from users who see the consent gate behaviour as a bug. **(Implemented in v1.8.12.)**
 
 ### Call tracking conflict scan
 The conflict scan in Diagnostics currently checks for cache plugins and known JS conflicts. Add detection for active call tracking scripts (CallRail, CTM, WhatConverts) by checking for known global variables (`window.CallTrk`, `window.__ctml`, etc.) or script src patterns. When detected, surface an informational note: "A call tracking script was detected. ClickTrail skips tel: link decoration automatically. No action needed unless you are seeing unexpected behaviour."
