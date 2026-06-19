@@ -165,7 +165,7 @@ class Dispatcher {
 			return Adapter_Result::skipped( 'missing_endpoint' );
 		}
 
-		if ( ! self::consent_allows() ) {
+		if ( ! self::consent_allows( $event ) ) {
 			return Adapter_Result::skipped( 'consent_denied' );
 		}
 
@@ -189,9 +189,16 @@ class Dispatcher {
 		if ( ! $result->success && ! $result->skipped ) {
 			self::record_last_error( 'adapter_error', $result->message );
 			self::record_failure( 'adapter_error' );
-			$queued                 = Queue::enqueue( $event, $adapter->get_name(), self::get_endpoint(), $result->message );
-			$result->meta           = is_array( $result->meta ) ? $result->meta : array();
-			$result->meta['queued'] = (bool) $queued;
+			$result->meta = is_array( $result->meta ) ? $result->meta : array();
+			if ( $result->retryable ) {
+				$queued                 = Queue::enqueue( $event, $adapter->get_name(), self::get_endpoint(), $result->message );
+				$result->meta['queued'] = (bool) $queued;
+			} else {
+				// Terminal client error (4xx other than 408/425/429): retrying the
+				// same payload cannot succeed, so do not enqueue.
+				self::record_failure( 'adapter_rejected' );
+				$result->meta['queued'] = false;
+			}
 		}
 		if ( $result->success && ! $result->skipped && $event_name && $event_id ) {
 			Dedup_Store::mark( $destination_key, $event_name, $event_id );
@@ -391,9 +398,16 @@ class Dispatcher {
 	/**
 	 * Consent gate for sending.
 	 *
+	 * Prefers the consent snapshot carried on the event itself (captured in the
+	 * buyer's browser context and persisted, e.g. to order meta). The live
+	 * cookie is only a fallback: payment webhooks, cron, and admin requests
+	 * have no visitor cookie, and reading it there would silently drop
+	 * conversions from buyers who did consent at capture time.
+	 *
+	 * @param Event|null $event Event being dispatched, when available.
 	 * @return bool
 	 */
-	private static function consent_allows() {
+	private static function consent_allows( ?Event $event = null ) {
 		$attr_options    = Attribution_Settings::get_all();
 		$require_consent = ! empty( $attr_options['require_consent'] );
 		if ( class_exists( 'CLICUTCL\\Modules\\Consent_Mode\\Consent_Mode_Settings' ) ) {
@@ -405,6 +419,13 @@ class Dispatcher {
 
 		if ( ! $require_consent ) {
 			return true;
+		}
+
+		if ( $event instanceof Event ) {
+			$data = $event->to_array();
+			if ( isset( $data['consent'] ) && is_array( $data['consent'] ) && array_key_exists( 'marketing', $data['consent'] ) ) {
+				return ! empty( $data['consent']['marketing'] );
+			}
 		}
 
 		return Consent::marketing_allowed();

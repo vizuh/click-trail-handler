@@ -235,6 +235,10 @@ class GTM_Lead_Magnet {
 	public static function ajax_subscribe(): void {
 		check_ajax_referer( 'clicutcl_gtm_subscribe', 'nonce' );
 
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'click-trail-handler' ) ), 403 );
+		}
+
 		$email   = sanitize_email( wp_unslash( $_POST['email'] ?? '' ) );   // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
 		$consent = ! empty( $_POST['consent'] );
 
@@ -272,6 +276,11 @@ class GTM_Lead_Magnet {
 	 */
 	public static function ajax_dismiss(): void {
 		check_ajax_referer( 'clicutcl_gtm_dismiss', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'click-trail-handler' ) ), 403 );
+		}
+
 		update_option( self::DISMISSED_OPTION, 1, false );
 		wp_send_json_success();
 	}
@@ -281,6 +290,14 @@ class GTM_Lead_Magnet {
 	 */
 	public static function ajax_download(): void {
 		check_ajax_referer( 'clicutcl_gtm_download', 'nonce' );
+
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_die(
+				esc_html__( 'Insufficient permissions.', 'click-trail-handler' ),
+				esc_html__( 'Forbidden', 'click-trail-handler' ),
+				array( 'response' => 403 )
+			);
+		}
 
 		$token  = sanitize_text_field( wp_unslash( $_GET['token'] ?? '' ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
 		$stored = get_transient( self::DOWNLOAD_TRANSIENT );

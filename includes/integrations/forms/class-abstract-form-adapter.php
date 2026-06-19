@@ -76,7 +76,9 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 		);
 
 		if ( ! empty( $identity ) ) {
-			$event_data['identity'] = $identity;
+			// Persist an IP-anonymized copy in the diagnostic log; the full identity below
+			// still flows to server-side dispatch where the raw IP aids CAPI match quality.
+			$event_data['identity'] = $this->anonymize_identity_for_log( $identity );
 		}
 
 		$wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Intentional insert into custom plugin table.
@@ -145,6 +147,23 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 				'include_ip_ua'     => true,
 			)
 		);
+	}
+
+	/**
+	 * Return an identity payload with the IP anonymized, for at-rest logging.
+	 *
+	 * Zeroes the last octet (IPv4) / last 80 bits (IPv6) via WordPress core so the
+	 * diagnostic events table does not retain a full personal IP address.
+	 *
+	 * @param array $identity Resolved identity payload.
+	 * @return array
+	 */
+	protected function anonymize_identity_for_log( $identity ) {
+		$identity = is_array( $identity ) ? $identity : array();
+		if ( ! empty( $identity['ip_address'] ) ) {
+			$identity['ip_address'] = wp_privacy_anonymize_ip( (string) $identity['ip_address'] );
+		}
+		return $identity;
 	}
 
 	/**

@@ -34,6 +34,11 @@ class WooCommerce {
 	public const MILESTONE_META_PREFIX = '_clicutcl_woo_milestone_sent_';
 
 	/**
+	 * Order meta key for the consent snapshot captured at checkout.
+	 */
+	public const CONSENT_META_KEY = '_clicutcl_consent';
+
+	/**
 	 * Initialize hooks.
 	 */
 	public function init() {
@@ -47,6 +52,7 @@ class WooCommerce {
 		add_action( 'woocommerce_payment_complete', array( $this, 'track_paid_milestone' ), 20, 1 );
 		add_action( 'woocommerce_order_status_changed', array( $this, 'track_paid_milestone_from_status_change' ), 20, 4 );
 		add_action( 'woocommerce_order_status_refunded', array( $this, 'track_refunded_milestone' ), 20, 2 );
+		add_action( 'woocommerce_order_refunded', array( $this, 'track_order_refund' ), 20, 2 );
 		add_action( 'woocommerce_order_status_cancelled', array( $this, 'track_cancelled_milestone' ), 20, 2 );
 
 		// Output hidden fields for JS Injection (Cache Resilience).
@@ -82,6 +88,14 @@ class WooCommerce {
 	 * @param array     $data  Request Data.
 	 */
 	public function save_order_attribution( $order, $data ) {
+		// Persist the buyer's consent snapshot regardless of attribution presence.
+		// Payment webhooks and cron later have no visitor cookie; this stored
+		// snapshot is what allows those contexts to honor checkout-time consent.
+		$consent = Consent::get_state();
+		if ( ! empty( $consent ) ) {
+			$order->update_meta_data( self::CONSENT_META_KEY, wp_json_encode( $consent ) );
+		}
+
 		// 1. Try server-side cookie first (most reliable if not stripped).
 		$attribution = Attribution::get();
 
@@ -283,6 +297,64 @@ class WooCommerce {
 	}
 
 	/**
+	 * Track an individual refund (partial or full) with the refunded amount.
+	 *
+	 * Unlike the status-based `order_refunded` milestone (which only fires on
+	 * full refunds and carries the original order value), this fires once per
+	 * refund object with the actual refunded amount, so collectors can apply
+	 * value adjustments. The event_id includes the refund ID, making each
+	 * refund idempotent on its own.
+	 *
+	 * @param int $order_id Order ID.
+	 * @param int $refund_id Refund ID.
+	 * @return void
+	 */
+	public function track_order_refund( $order_id, $refund_id ): void {
+		$order = wc_get_order( $order_id );
+		if ( ! $order ) {
+			return;
+		}
+
+		$refund = wc_get_order( $refund_id );
+		if ( ! $refund || ! is_callable( array( $refund, 'get_amount' ) ) ) {
+			return;
+		}
+
+		$refund_amount  = abs( (float) $refund->get_amount() );
+		$total_refunded = (float) $order->get_total_refunded();
+		$order_total    = (float) $order->get_total();
+
+		$attribution           = $this->collect_order_attribution( $order );
+		$identity              = $this->resolve_purchase_identity( $order );
+		$payload               = $this->build_purchase_payload( $order, $attribution, $identity );
+		$payload['event_name'] = 'order_refund';
+		$payload['event_id']   = 'order_refund_' . absint( $order->get_id() ) . '_' . absint( $refund_id );
+		$payload['value']      = $refund_amount;
+		$payload['meta']       = array_merge(
+			isset( $payload['meta'] ) && is_array( $payload['meta'] ) ? $payload['meta'] : array(),
+			array(
+				'refund_id'      => absint( $refund_id ),
+				'refund_amount'  => $refund_amount,
+				'refund_reason'  => sanitize_text_field( (string) $refund->get_reason() ),
+				'total_refunded' => $total_refunded,
+				'order_total'    => $order_total,
+				'is_partial'     => $total_refunded < $order_total,
+				'source_hook'    => 'woocommerce_order_refunded',
+			)
+		);
+		if ( isset( $payload['commerce'] ) && is_array( $payload['commerce'] ) ) {
+			$payload['commerce']['value']  = $refund_amount;
+			$payload['commerce']['status'] = sanitize_key( (string) $order->get_status() );
+		}
+
+		$defaults = $payload;
+		$payload  = apply_filters( 'clicutcl_woocommerce_order_refund_payload', $payload, $order, $refund );
+		$payload  = is_array( $payload ) ? wp_parse_args( $payload, $defaults ) : $defaults;
+
+		$this->dispatch_order_payload( $order, $payload, 'order_refund', 'woocommerce_order_refunded' );
+	}
+
+	/**
 	 * Track a cancelled-order milestone.
 	 *
 	 * @param int             $order_id Order ID.
@@ -310,7 +382,7 @@ class WooCommerce {
 	private function build_purchase_payload( $order, array $attribution, array $identity ): array {
 		$commerce = $this->build_purchase_commerce( $order );
 
-		return array(
+		$payload = array(
 			'event_id'       => 'purchase_' . (int) $order->get_id(),
 			'order_id'       => (int) $order->get_id(),
 			'transaction_id' => (string) $order->get_order_number(),
@@ -321,6 +393,36 @@ class WooCommerce {
 			'identity'       => $identity,
 			'commerce'       => $commerce,
 			'meta'           => $this->build_purchase_meta( $order ),
+		);
+
+		$consent = $this->get_order_consent_snapshot( $order );
+		if ( ! empty( $consent ) ) {
+			$payload['consent'] = $consent;
+		}
+
+		return $payload;
+	}
+
+	/**
+	 * Read the consent snapshot persisted on the order at checkout.
+	 *
+	 * @param \WC_Order $order Order instance.
+	 * @return array Empty array when no snapshot was stored.
+	 */
+	private function get_order_consent_snapshot( $order ): array {
+		$raw = (string) $order->get_meta( self::CONSENT_META_KEY, true );
+		if ( '' === $raw ) {
+			return array();
+		}
+
+		$decoded = json_decode( $raw, true );
+		if ( ! is_array( $decoded ) || ! array_key_exists( 'marketing', $decoded ) ) {
+			return array();
+		}
+
+		return array(
+			'marketing' => ! empty( $decoded['marketing'] ),
+			'analytics' => ! empty( $decoded['analytics'] ),
 		);
 	}
 
@@ -493,7 +595,7 @@ class WooCommerce {
 		$payload  = is_array( $payload ) ? wp_parse_args( $payload, $defaults ) : $defaults;
 		$result   = $this->dispatch_order_payload( $order, $payload, $event_name, $source_hook );
 
-		if ( $this->should_mark_milestone_sent( $result ) ) {
+		if ( $this->should_mark_milestone_sent( $result, false ) ) {
 			$order->update_meta_data( $this->get_milestone_marker_key( $event_name ), current_time( 'mysql' ) );
 			$order->save();
 		}
@@ -576,19 +678,30 @@ class WooCommerce {
 	/**
 	 * Determine whether an attempted dispatch should mark the milestone as sent.
 	 *
+	 * When `$skips_count_as_sent` is false (server-context milestones), skip
+	 * results such as `consent_denied`, `disabled`, or `missing_endpoint` do
+	 * NOT mark the milestone: the event was never delivered, and marking it
+	 * would permanently suppress the conversion even after the blocker is
+	 * resolved. Only a confirmed duplicate counts as already handled.
+	 *
 	 * @param \CLICUTCL\Server_Side\Adapter_Result $result Dispatch result.
+	 * @param bool                                 $skips_count_as_sent Treat any skipped result as sent (thankyou-page behavior).
 	 * @return bool
 	 */
-	private function should_mark_milestone_sent( $result ): bool {
+	private function should_mark_milestone_sent( $result, bool $skips_count_as_sent = true ): bool {
 		if ( ! is_object( $result ) ) {
 			return false;
 		}
 
-		if ( ! empty( $result->success ) ) {
-			return true;
+		if ( ! empty( $result->skipped ) ) {
+			if ( $skips_count_as_sent ) {
+				return true;
+			}
+
+			return 'duplicate_event' === (string) $result->message;
 		}
 
-		if ( ! empty( $result->skipped ) ) {
+		if ( ! empty( $result->success ) ) {
 			return true;
 		}
 
@@ -804,13 +917,16 @@ class WooCommerce {
 
 			if ( 0 === strpos( $key, '_clicutcl_' ) ) {
 				$meta_key = substr( $key, 10 );
-				if ( '' !== $meta_key && ! in_array( $meta_key, array( 'tracking_sent' ), true ) ) {
+				if ( '' !== $meta_key && ! in_array( $meta_key, array( 'tracking_sent', 'consent' ), true ) ) {
 					$attribution[ $meta_key ] = $value;
 				}
 			}
 		}
 
-		if ( empty( $attribution['first_touch'] ) && empty( $attribution['last_touch'] ) ) {
+		// Cookie fallback only in customer-context requests (e.g. thankyou page).
+		// Admin order edits, cron, and REST/AJAX run with a different person's
+		// cookies (or none) and would misattribute the order to that visitor.
+		if ( empty( $attribution['first_touch'] ) && empty( $attribution['last_touch'] ) && $this->is_customer_request_context() ) {
 			$cookie_attr = Attribution::get();
 			if ( $cookie_attr ) {
 				$attribution = wp_parse_args( $cookie_attr, $attribution );
@@ -818,6 +934,29 @@ class WooCommerce {
 		}
 
 		return $this->normalize_attribution_structure( $attribution );
+	}
+
+	/**
+	 * Whether the current request plausibly belongs to the customer whose
+	 * order is being processed (front-end page view, not admin/cron/API).
+	 *
+	 * @return bool
+	 */
+	private function is_customer_request_context(): bool {
+		if ( is_admin() ) {
+			return false;
+		}
+		if ( function_exists( 'wp_doing_cron' ) && wp_doing_cron() ) {
+			return false;
+		}
+		if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+			return false;
+		}
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**

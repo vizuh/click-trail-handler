@@ -38,6 +38,26 @@ class Queue {
 	const MAX_ATTEMPTS = 5;
 
 	/**
+	 * Processing lock TTL in seconds. Must comfortably exceed a worst-case
+	 * batch (10 sends at the default 5s timeout plus overhead).
+	 */
+	const LOCK_TTL = 120;
+
+	/**
+	 * Lock option name (options table is used for an atomic INSERT-based lock;
+	 * transients are get-then-set and allow concurrent crons to double-send).
+	 */
+	private const LOCK_OPTION = 'clicutcl_queue_lock';
+
+	/**
+	 * The exact option_value this worker wrote when it acquired the lock, so
+	 * release_lock() only deletes a lock it still owns and never a successor's.
+	 *
+	 * @var string
+	 */
+	private static $lock_value = '';
+
+	/**
 	 * DB readiness option key.
 	 */
 	private const DB_READY_OPTION = 'clicutcl_queue_table_ready';
@@ -62,6 +82,9 @@ class Queue {
 	public static function register() {
 		add_filter( 'cron_schedules', array( __CLASS__, 'register_schedule' ) ); // phpcs:ignore WordPress.WP.CronInterval.CronSchedulesInterval -- Sub-15-minute interval is required for timely server-side event queue dispatch.
 		add_action( self::CRON_HOOK, array( __CLASS__, 'process' ) );
+		if ( class_exists( 'CLICUTCL\\Database\\Installer' ) ) {
+			\CLICUTCL\Database\Installer::maybe_upgrade();
+		}
 		self::ensure_schedule();
 	}
 
@@ -95,6 +118,12 @@ class Queue {
 		if ( function_exists( 'as_schedule_recurring_action' ) ) {
 			if ( ! as_next_scheduled_action( self::CRON_HOOK, array(), self::AS_GROUP ) ) {
 				as_schedule_recurring_action( time() + 300, 300, self::CRON_HOOK, array(), self::AS_GROUP );
+			}
+
+			// Clear any WP-cron event scheduled before Action Scheduler became
+			// available; otherwise both schedulers fire the hook every 5 minutes.
+			if ( wp_next_scheduled( self::CRON_HOOK ) ) {
+				wp_clear_scheduled_hook( self::CRON_HOOK );
 			}
 			return;
 		}
@@ -153,16 +182,33 @@ class Queue {
 
 		$table_name = self::get_table_name();
 
-		// Avoid duplicates.
+		// Avoid duplicates. A dead-letter row for the same event is revived for
+		// a fresh round of attempts instead of silently blocking the retry.
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter
-		$existing = $wpdb->get_var(
+		$existing = $wpdb->get_row(
 			$wpdb->prepare(
-				"SELECT id FROM {$table_name} WHERE event_name = %s AND event_id = %s LIMIT 1", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned.
+				"SELECT * FROM {$table_name} WHERE event_name = %s AND event_id = %s LIMIT 1", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned.
 				$event_name,
 				$event_id
-			)
+			),
+			ARRAY_A
 		);
-		if ( $existing ) {
+		if ( is_array( $existing ) ) {
+			if ( self::db_supports_status() && isset( $existing['status'] ) && 'failed' === $existing['status'] ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table; queue mutation.
+				$wpdb->update(
+					$table_name,
+					array(
+						'status'          => 'pending',
+						'attempts'        => 0,
+						'next_attempt_at' => gmdate( 'Y-m-d H:i:s', time() + self::get_backoff_seconds( 0 ) ),
+						'last_error'      => sanitize_text_field( (string) $error_message ),
+					),
+					array( 'id' => (int) $existing['id'] ),
+					array( '%s', '%d', '%s', '%s' ),
+					array( '%d' )
+				);
+			}
 			return true;
 		}
 
@@ -204,27 +250,37 @@ class Queue {
 			return;
 		}
 
-		$table_name = self::get_table_name();
-		if ( ! self::table_exists() ) {
+		// try/finally so an exception inside process_row() (adapter, JSON, DB) cannot leave
+		// the lock held until LOCK_TTL, which would block all queue processing in between.
+		try {
+			$table_name = self::get_table_name();
+			if ( ! self::table_exists() ) {
+				return;
+			}
+
+			$now = current_time( 'mysql', true );
+
+			if ( self::db_supports_status() ) {
+				$query = $wpdb->prepare(
+					"SELECT * FROM {$table_name} WHERE status = 'pending' AND next_attempt_at <= %s ORDER BY next_attempt_at ASC LIMIT 10", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned.
+					$now
+				);
+			} else {
+				$query = $wpdb->prepare(
+					"SELECT * FROM {$table_name} WHERE next_attempt_at <= %s ORDER BY next_attempt_at ASC LIMIT 10", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned.
+					$now
+				);
+			}
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above; variable passed for readability.
+			$rows = $wpdb->get_results( $query, ARRAY_A );
+
+			foreach ( $rows as $row ) {
+				self::process_row( $row );
+			}
+		} finally {
 			self::release_lock();
-			return;
 		}
-
-		$now = current_time( 'mysql', true );
-
-		$query = $wpdb->prepare(
-			"SELECT * FROM {$table_name} WHERE next_attempt_at <= %s ORDER BY next_attempt_at ASC LIMIT 10", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned.
-			$now
-		);
-
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above; variable passed for readability.
-		$rows = $wpdb->get_results( $query, ARRAY_A );
-
-		foreach ( $rows as $row ) {
-			self::process_row( $row );
-		}
-
-		self::release_lock();
 	}
 
 	/**
@@ -249,6 +305,9 @@ class Queue {
 			$endpoint = Dispatcher::get_endpoint();
 		}
 		if ( ! $endpoint ) {
+			// Count as a failed attempt; a bare return would retry this row on
+			// every run without ever exhausting it.
+			self::update_row_failure( $row, 'missing_endpoint' );
 			return;
 		}
 
@@ -282,26 +341,33 @@ class Queue {
 			return;
 		}
 
-		self::update_row_failure( $row, $result->message );
+		self::update_row_failure( $row, $result->message, (bool) $result->retryable );
 	}
 
 	/**
 	 * Update row after failed attempt.
 	 *
+	 * Exhausted or terminally rejected rows are kept with status `failed`
+	 * (dead-letter) instead of deleted, so an outage longer than the backoff
+	 * window no longer destroys conversions unrecoverably. Failed rows are
+	 * visible in diagnostics, replayable via `requeue_failed()`, and bounded
+	 * by the existing created_at cleanup cron.
+	 *
 	 * @param array  $row Row data.
 	 * @param string $message Error message.
+	 * @param bool   $retryable Whether the failure may succeed on retry.
 	 * @return void
 	 */
-	private static function update_row_failure( $row, $message ) {
+	private static function update_row_failure( $row, $message, $retryable = true ) {
 		global $wpdb;
 
 		$attempts = isset( $row['attempts'] ) ? absint( $row['attempts'] ) + 1 : 1;
 		Dispatcher::record_failure( 'queue_retry_failed' );
 
-		if ( $attempts >= self::MAX_ATTEMPTS ) {
-			self::delete_row( (int) $row['id'] );
+		if ( ! $retryable || $attempts >= self::MAX_ATTEMPTS ) {
+			self::mark_row_failed( $row, $attempts, $message );
 			Dispatcher::record_last_error( 'queue_failed', $message );
-			Dispatcher::record_failure( 'queue_dropped' );
+			Dispatcher::record_failure( $retryable ? 'queue_dropped' : 'queue_rejected' );
 			return;
 		}
 
@@ -320,6 +386,80 @@ class Queue {
 			array( '%d', '%s', '%s' ),
 			array( '%d' )
 		);
+	}
+
+	/**
+	 * Move a row to the dead-letter state (or delete on pre-v2 schemas).
+	 *
+	 * @param array  $row Row data.
+	 * @param int    $attempts Attempt count to record.
+	 * @param string $message Error message.
+	 * @return void
+	 */
+	private static function mark_row_failed( $row, $attempts, $message ) {
+		global $wpdb;
+
+		if ( ! self::db_supports_status() ) {
+			self::delete_row( (int) $row['id'] );
+			return;
+		}
+
+		$table_name = self::get_table_name();
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table; no cache for queue mutation.
+		$wpdb->update(
+			$table_name,
+			array(
+				'status'     => 'failed',
+				'attempts'   => absint( $attempts ),
+				'last_error' => sanitize_text_field( (string) $message ),
+			),
+			array( 'id' => (int) $row['id'] ),
+			array( '%s', '%d', '%s' ),
+			array( '%d' )
+		);
+	}
+
+	/**
+	 * Requeue dead-letter rows for another round of attempts.
+	 *
+	 * @param int $limit Max rows to requeue.
+	 * @return int Number of rows requeued.
+	 */
+	public static function requeue_failed( $limit = 50 ) {
+		global $wpdb;
+
+		if ( ! self::db_supports_status() || ! self::table_exists() ) {
+			return 0;
+		}
+
+		$limit      = max( 1, min( 500, absint( $limit ) ) );
+		$table_name = self::get_table_name();
+		$now        = current_time( 'mysql', true );
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Plugin-owned table; queue mutation.
+		$updated = $wpdb->query(
+			$wpdb->prepare(
+				"UPDATE {$table_name} SET status = 'pending', attempts = 0, next_attempt_at = %s WHERE status = 'failed' ORDER BY id ASC LIMIT %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned.
+				$now,
+				$limit
+			)
+		);
+
+		return (int) $updated;
+	}
+
+	/**
+	 * Whether the queue table has the v2 `status` column.
+	 *
+	 * @return bool
+	 */
+	private static function db_supports_status() {
+		if ( ! class_exists( 'CLICUTCL\\Database\\Installer' ) ) {
+			return false;
+		}
+
+		return (int) get_option( \CLICUTCL\Database\Installer::DB_VERSION_OPTION, 0 ) >= 2;
 	}
 
 	/**
@@ -425,15 +565,64 @@ class Queue {
 	/**
 	 * Acquire a short-lived lock to prevent concurrent runs.
 	 *
+	 * Uses an atomic INSERT into the options table (unique key on
+	 * option_name): exactly one of two concurrent crons can win. The previous
+	 * transient get-then-set allowed both to pass and double-send events.
+	 *
 	 * @return bool
 	 */
 	private static function acquire_lock() {
-		$lock_key = 'clicutcl_queue_lock';
-		if ( get_transient( $lock_key ) ) {
+		global $wpdb;
+
+		$token = (string) time();
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Atomicity requires a direct INSERT; option APIs are get-then-set.
+		$acquired = $wpdb->query(
+			$wpdb->prepare(
+				"INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')",
+				self::LOCK_OPTION,
+				$token
+			)
+		);
+
+		if ( $acquired ) {
+			self::$lock_value = $token;
+			return true;
+		}
+
+		// Lock row exists: recover it when stale (holder crashed mid-run).
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Direct read paired with the atomic lock insert above.
+		$held_at = (int) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT option_value FROM {$wpdb->options} WHERE option_name = %s",
+				self::LOCK_OPTION
+			)
+		);
+
+		if ( $held_at && ( time() - $held_at ) > self::LOCK_TTL ) {
+			// Atomic compare-and-swap takeover of a stale lock: the UPDATE only succeeds if
+			// the row still holds the exact stale timestamp we observed. This avoids the
+			// destructive DELETE-then-INSERT, which let a second worker delete another
+			// worker's freshly-acquired lock and double-process the queue.
+			$token = (string) time();
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Atomic CAS; option APIs are get-then-set.
+			$taken = $wpdb->query(
+				$wpdb->prepare(
+					"UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND option_value = %s",
+					$token,
+					self::LOCK_OPTION,
+					(string) $held_at
+				)
+			);
+			wp_cache_delete( self::LOCK_OPTION, 'options' );
+			if ( $taken ) {
+				self::$lock_value = $token;
+				return true;
+			}
 			return false;
 		}
-		set_transient( $lock_key, 1, 60 );
-		return true;
+
+		return false;
 	}
 
 	/**
@@ -442,7 +631,26 @@ class Queue {
 	 * @return void
 	 */
 	private static function release_lock() {
-		delete_transient( 'clicutcl_queue_lock' );
+		global $wpdb;
+
+		// Only delete the lock if it still holds the exact value this worker wrote. A
+		// worker that overran LOCK_TTL must not delete a lock a successor has taken over,
+		// which would let two crons process the queue concurrently.
+		if ( '' === self::$lock_value ) {
+			return;
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Paired with the atomic lock insert; bypasses the options cache deliberately.
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM {$wpdb->options} WHERE option_name = %s AND option_value = %s",
+				self::LOCK_OPTION,
+				self::$lock_value
+			)
+		);
+		self::$lock_value = '';
+		wp_cache_delete( self::LOCK_OPTION, 'options' );
+		wp_cache_delete( 'notoptions', 'options' );
 	}
 
 	/**
@@ -468,6 +676,7 @@ class Queue {
 		$stats = array(
 			'ready'        => false,
 			'pending'      => 0,
+			'failed'       => 0,
 			'due_now'      => 0,
 			'max_attempts' => 0,
 			'oldest_next'  => '',
@@ -480,17 +689,25 @@ class Queue {
 		$table_name = self::get_table_name();
 		$now        = current_time( 'mysql', true );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is plugin-owned; live stats query.
-		$pending = (int) $wpdb->get_var( "SELECT COUNT(id) FROM {$table_name}" );
+		if ( self::db_supports_status() ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is plugin-owned; live stats query.
+			$pending = (int) $wpdb->get_var( "SELECT COUNT(id) FROM {$table_name} WHERE status = 'pending'" );
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is plugin-owned; live stats query.
+			$stats['failed'] = max( 0, (int) $wpdb->get_var( "SELECT COUNT(id) FROM {$table_name} WHERE status = 'failed'" ) );
+		} else {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is plugin-owned; live stats query.
+			$pending = (int) $wpdb->get_var( "SELECT COUNT(id) FROM {$table_name}" );
+		}
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is plugin-owned; live stats query.
 		$max_attempts = (int) $wpdb->get_var( "SELECT MAX(attempts) FROM {$table_name}" );
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name is plugin-owned; live stats query.
 		$oldest_next = (string) $wpdb->get_var( "SELECT MIN(next_attempt_at) FROM {$table_name}" );
 
+		$due_filter = self::db_supports_status() ? "status = 'pending' AND " : '';
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Live stats query.
 		$due_now = (int) $wpdb->get_var(
 			$wpdb->prepare(
-				"SELECT COUNT(id) FROM {$table_name} WHERE next_attempt_at <= %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned.
+				"SELECT COUNT(id) FROM {$table_name} WHERE {$due_filter}next_attempt_at <= %s", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name plugin-owned; filter is a fixed literal.
 				$now
 			)
 		);

@@ -55,6 +55,7 @@ class Admin {
 		add_action( 'admin_menu', array( $this, 'admin_menu' ), 1 );
 		add_action( 'admin_init', array( $this, 'register_settings' ) );
 		add_action( 'admin_notices', array( $this, 'display_pii_warning' ) );
+		add_action( 'admin_notices', array( $this, 'display_encryption_notice' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_assets' ) );
 
 		// AJAX hooks for Admin/Settings functionality.
@@ -62,6 +63,7 @@ class Admin {
 		add_action( 'wp_ajax_clicutcl_test_endpoint', array( $this, 'ajax_test_endpoint' ) );
 		add_action( 'wp_ajax_clicutcl_toggle_debug', array( $this, 'ajax_toggle_debug' ) );
 		add_action( 'wp_ajax_clicutcl_purge_tracking_data', array( $this, 'ajax_purge_tracking_data' ) );
+		add_action( 'wp_ajax_clicutcl_requeue_failed_deliveries', array( $this, 'ajax_requeue_failed_deliveries' ) );
 		add_action( 'wp_ajax_clicutcl_get_admin_settings', array( $this, 'ajax_get_admin_settings' ) );
 		add_action( 'wp_ajax_clicutcl_save_admin_settings', array( $this, 'ajax_save_admin_settings' ) );
 		add_action( 'wp_ajax_clicutcl_get_tracking_v2_settings', array( $this, 'ajax_get_tracking_v2_settings' ) );
@@ -84,6 +86,29 @@ class Admin {
 
 		// Dashboard Widget.
 		add_action( 'wp_dashboard_setup', array( $this, 'add_dashboard_widget' ) );
+	}
+
+	/**
+	 * Warn admins when secret-at-rest encryption is enabled in settings but the server
+	 * lacks OpenSSL AES-256-GCM, so provider secrets are silently stored in plaintext.
+	 */
+	public function display_encryption_notice() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$screen = get_current_screen();
+		if ( ! $screen || false === strpos( $screen->id, 'click-trail' ) ) {
+			return;
+		}
+
+		if ( ! Tracking_Settings::encryption_requested_but_unavailable() ) {
+			return;
+		}
+
+		echo '<div class="notice notice-warning"><p>';
+		echo esc_html__( 'ClickTrail: "Encrypt secrets at rest" is enabled, but this server is missing OpenSSL AES-256-GCM support, so provider secrets are stored in plaintext. Enable the OpenSSL extension on your host, or treat the stored secrets as unencrypted.', 'click-trail-handler' );
+		echo '</p></div>';
 	}
 
 	/**
@@ -247,6 +272,9 @@ class Admin {
 						'purging'               => __( 'Purging...', 'click-trail-handler' ),
 						'purged'                => __( 'Purged', 'click-trail-handler' ),
 						'purge_failed'          => __( 'Purge failed', 'click-trail-handler' ),
+						'requeueing'            => __( 'Requeueing...', 'click-trail-handler' ),
+						'requeued'              => __( 'Requeued', 'click-trail-handler' ),
+						'requeue_failed'        => __( 'Retry failed', 'click-trail-handler' ),
 						'running_scan'          => __( 'Scanning...', 'click-trail-handler' ),
 						'scan_failed'           => __( 'Conflict scan failed.', 'click-trail-handler' ),
 						'exporting'             => __( 'Preparing backup...', 'click-trail-handler' ),
@@ -2211,7 +2239,24 @@ class Admin {
 		$new_input['enabled'] = isset( $input['enabled'] ) ? absint( $input['enabled'] ) : 0;
 
 		if ( isset( $input['endpoint_url'] ) ) {
-			$new_input['endpoint_url'] = esc_url_raw( trim( (string) $input['endpoint_url'] ) );
+			$candidate = esc_url_raw( trim( (string) $input['endpoint_url'] ), array( 'http', 'https' ) );
+
+			if ( '' === $candidate ) {
+				$new_input['endpoint_url'] = '';
+			} elseif ( false !== wp_http_validate_url( $candidate ) ) {
+				// SSRF guard: wp_http_validate_url() rejects loopback/link-local/private
+				// IP ranges, disallowed ports, and userinfo — keep only validated URLs.
+				$new_input['endpoint_url'] = $candidate;
+			} else {
+				// Unsafe/internal target: preserve the prior value rather than store an SSRF endpoint.
+				$new_input['endpoint_url'] = isset( $current['endpoint_url'] ) ? (string) $current['endpoint_url'] : '';
+				add_settings_error(
+					'clicutcl_server_side',
+					'clicutcl_endpoint_url_unsafe',
+					__( 'The server-side endpoint URL was rejected because it resolves to a disallowed or internal address. The previous value was kept.', 'click-trail-handler' ),
+					'error'
+				);
+			}
 		}
 
 		if ( isset( $input['adapter'] ) ) {

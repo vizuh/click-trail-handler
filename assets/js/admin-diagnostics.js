@@ -125,6 +125,30 @@
             });
         }
 
+        const requeueBtn = document.getElementById('clicutcl-requeue-failed');
+        const requeueStatus = document.getElementById('clicutcl-requeue-failed-status');
+        if (requeueBtn && requeueStatus) {
+            requeueBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                requeueStatus.textContent = getString('requeueing', 'Requeueing...');
+                post(window.clicutclDiagnostics.ajaxUrl, {
+                    action: 'clicutcl_requeue_failed_deliveries',
+                    nonce: window.clicutclDiagnostics.nonce
+                })
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        if (data && data.success) {
+                            requeueStatus.textContent = data.data && data.data.message ? data.data.message : getString('requeued', 'Requeued');
+                            return;
+                        }
+                        requeueStatus.textContent = data && data.data && data.data.message ? data.data.message : getString('requeue_failed', 'Retry failed');
+                    })
+                    .catch(function () {
+                        requeueStatus.textContent = getString('requeue_failed', 'Retry failed');
+                    });
+            });
+        }
+
         const scanBtn = document.getElementById('clicutcl-run-conflict-scan');
         const scanStatus = document.getElementById('clicutcl-conflict-scan-status');
         const scanResults = document.getElementById('clicutcl-conflict-scan-results');

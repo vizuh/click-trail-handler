@@ -187,6 +187,7 @@ trait Admin_Pages_Trait {
 			: __( 'No delivery attempts recorded.', 'click-trail-handler' );
 		$queue_pending      = absint( $queue_stats['pending'] ?? 0 );
 		$queue_due_now      = absint( $queue_stats['due_now'] ?? 0 );
+		$queue_failed       = absint( $queue_stats['failed'] ?? 0 );
 		$queue_tone         = $queue_pending > 0 ? 'warn' : 'ok';
 		$last_error_code    = isset( $last_error['code'] ) ? sanitize_key( (string) $last_error['code'] ) : '';
 		$last_error_message = isset( $last_error['message'] ) ? sanitize_text_field( (string) $last_error['message'] ) : '';
@@ -466,8 +467,16 @@ trait Admin_Pages_Trait {
 								<th><?php esc_html_e( 'Oldest Next Attempt', 'click-trail-handler' ); ?></th>
 								<td><?php echo ! empty( $queue_stats['oldest_next'] ) ? esc_html( $queue_stats['oldest_next'] ) : '-'; ?></td>
 							</tr>
+							<tr>
+								<th><?php esc_html_e( 'Failed (dead-letter)', 'click-trail-handler' ); ?></th>
+								<td><?php echo esc_html( (string) $queue_failed ); ?></td>
+							</tr>
 						</tbody>
 					</table>
+					<div class="clicktrail-action-row">
+						<button class="button button-secondary" id="clicutcl-requeue-failed"<?php disabled( $queue_failed, 0 ); ?>><?php esc_html_e( 'Retry Failed Deliveries', 'click-trail-handler' ); ?></button>
+						<span id="clicutcl-requeue-failed-status" class="clicktrail-action-status"></span>
+					</div>
 				</div>
 			</section>
 

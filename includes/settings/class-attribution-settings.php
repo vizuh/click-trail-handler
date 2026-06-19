@@ -70,10 +70,14 @@ class Attribution_Settings {
 	/**
 	 * Is Consent Required?
 	 *
+	 * Defaults to false to match the dispatcher and Attribution_Provider:
+	 * no consent gate unless the legacy `require_consent` option was saved
+	 * or Consent Mode is explicitly enabled.
+	 *
 	 * @return bool
 	 */
 	public function is_consent_required() {
-		return isset( $this->settings['require_consent'] ) ? (bool) $this->settings['require_consent'] : true;
+		return ! empty( $this->settings['require_consent'] );
 	}
 
 	/**

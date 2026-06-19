@@ -333,6 +333,16 @@ class Tracking_Controller extends WP_REST_Controller {
 			return array( 'status' => 'duplicate' );
 		}
 
+		// Consent on a client-posted event is attacker-controllable (the beacon supplies
+		// it), so derive it from this request's server-side ct_consent cookie instead of
+		// trusting the payload. Without this, a modified beacon could self-assert
+		// marketing=true and bypass the server-side consent gate in Dispatcher.
+		$server_consent       = \CLICUTCL\Server_Side\Consent::get_state();
+		$canonical['consent'] = array(
+			'marketing' => ! empty( $server_consent['marketing'] ),
+			'analytics' => ! empty( $server_consent['analytics'] ),
+		);
+
 		$resolver              = new Identity_Resolver();
 		$canonical['identity'] = $resolver->resolve(
 			$raw_event['identity'] ?? array(),
@@ -386,7 +396,11 @@ class Tracking_Controller extends WP_REST_Controller {
 			return $verified;
 		}
 
-		$nonce_limit = $this->check_token_nonce_limit( $verified );
+		// The sign endpoint is reachable by any visitor holding the
+		// page-embedded client token, so enforce a per-token-nonce replay
+		// limit by default (legit flows re-sign only when attribution
+		// changes); 0 in settings no longer disables it for this route.
+		$nonce_limit = $this->check_token_nonce_limit( $verified, 20 );
 		if ( is_wp_error( $nonce_limit ) ) {
 			return $nonce_limit;
 		}
@@ -409,6 +423,17 @@ class Tracking_Controller extends WP_REST_Controller {
 		$rate = $this->check_rate_limit( 'attribution_token_verify' );
 		if ( is_wp_error( $rate ) ) {
 			return $rate;
+		}
+
+		// Require the same page-embedded client token that the sign route enforces.
+		// Verify is only meaningful on the install that signed the token (the HMAC key
+		// derives from this site's salts), and that install's frontend always holds a
+		// client token — so this closes the unauthenticated-flood gap without breaking
+		// the same-site / cross-subdomain attribution handoff.
+		$token    = $this->extract_token_from_request( $request );
+		$verified = Auth::verify_client_token( $token );
+		if ( is_wp_error( $verified ) ) {
+			return $verified;
 		}
 
 		return true;

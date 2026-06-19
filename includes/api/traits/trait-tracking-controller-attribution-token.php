@@ -7,7 +7,6 @@
 
 namespace CLICUTCL\Api;
 
-use CLICUTCL\Settings\Attribution_Settings;
 use CLICUTCL\Tracking\Settings as Tracking_Settings;
 use WP_Error;
 use WP_REST_Request;
@@ -263,16 +262,19 @@ trait Tracking_Controller_Attribution_Token_Trait {
 	/**
 	 * Attribution token TTL.
 	 *
+	 * Signed ct_tokens only need to survive the cross-domain navigation they
+	 * decorate, so the default is 15 minutes. Any anonymous visitor can mint
+	 * these tokens via the public sign endpoint; a long-lived token is a
+	 * long-lived attribution-poisoning vector when its URL is shared.
+	 * Override via the `clicutcl_attribution_token_ttl` filter if a longer
+	 * window is genuinely required (clamped to 90 days).
+	 *
 	 * @return int
 	 */
 	private function get_attribution_token_ttl(): int {
-		$options = Attribution_Settings::get_all();
-		$days    = isset( $options['cookie_days'] ) ? absint( $options['cookie_days'] ) : 90;
-		$days    = max( 1, min( 90, $days ) );
-		$ttl     = $days * DAY_IN_SECONDS;
-		$ttl     = (int) apply_filters( 'clicutcl_attribution_token_ttl', $ttl );
+		$ttl = (int) apply_filters( 'clicutcl_attribution_token_ttl', 15 * MINUTE_IN_SECONDS );
 
-		return max( HOUR_IN_SECONDS, min( 90 * DAY_IN_SECONDS, $ttl ) );
+		return max( MINUTE_IN_SECONDS, min( 90 * DAY_IN_SECONDS, $ttl ) );
 	}
 
 	/**
