@@ -50,6 +50,14 @@ class Queue {
 	private const LOCK_OPTION = 'clicutcl_queue_lock';
 
 	/**
+	 * The exact option_value this worker wrote when it acquired the lock, so
+	 * release_lock() only deletes a lock it still owns and never a successor's.
+	 *
+	 * @var string
+	 */
+	private static $lock_value = '';
+
+	/**
 	 * DB readiness option key.
 	 */
 	private const DB_READY_OPTION = 'clicutcl_queue_table_ready';
@@ -566,16 +574,19 @@ class Queue {
 	private static function acquire_lock() {
 		global $wpdb;
 
+		$token = (string) time();
+
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Atomicity requires a direct INSERT; option APIs are get-then-set.
 		$acquired = $wpdb->query(
 			$wpdb->prepare(
 				"INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')",
 				self::LOCK_OPTION,
-				(string) time()
+				$token
 			)
 		);
 
 		if ( $acquired ) {
+			self::$lock_value = $token;
 			return true;
 		}
 
@@ -593,17 +604,22 @@ class Queue {
 			// the row still holds the exact stale timestamp we observed. This avoids the
 			// destructive DELETE-then-INSERT, which let a second worker delete another
 			// worker's freshly-acquired lock and double-process the queue.
+			$token = (string) time();
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Atomic CAS; option APIs are get-then-set.
 			$taken = $wpdb->query(
 				$wpdb->prepare(
 					"UPDATE {$wpdb->options} SET option_value = %s WHERE option_name = %s AND option_value = %s",
-					(string) time(),
+					$token,
 					self::LOCK_OPTION,
 					(string) $held_at
 				)
 			);
 			wp_cache_delete( self::LOCK_OPTION, 'options' );
-			return (bool) $taken;
+			if ( $taken ) {
+				self::$lock_value = $token;
+				return true;
+			}
+			return false;
 		}
 
 		return false;
@@ -617,13 +633,22 @@ class Queue {
 	private static function release_lock() {
 		global $wpdb;
 
+		// Only delete the lock if it still holds the exact value this worker wrote. A
+		// worker that overran LOCK_TTL must not delete a lock a successor has taken over,
+		// which would let two crons process the queue concurrently.
+		if ( '' === self::$lock_value ) {
+			return;
+		}
+
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Paired with the atomic lock insert; bypasses the options cache deliberately.
 		$wpdb->query(
 			$wpdb->prepare(
-				"DELETE FROM {$wpdb->options} WHERE option_name = %s",
-				self::LOCK_OPTION
+				"DELETE FROM {$wpdb->options} WHERE option_name = %s AND option_value = %s",
+				self::LOCK_OPTION,
+				self::$lock_value
 			)
 		);
+		self::$lock_value = '';
 		wp_cache_delete( self::LOCK_OPTION, 'options' );
 		wp_cache_delete( 'notoptions', 'options' );
 	}

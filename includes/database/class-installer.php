@@ -76,6 +76,12 @@ class Installer {
 		set_transient( 'clicutcl_db_upgrade_attempt', 1, HOUR_IN_SECONDS );
 
 		self::create_tables();
+
+		// Clear the throttle once the upgrade has completed, so a later legitimate
+		// upgrade is not delayed by a stale attempt marker.
+		if ( (int) get_option( self::DB_VERSION_OPTION, 0 ) >= self::DB_VERSION ) {
+			delete_transient( 'clicutcl_db_upgrade_attempt' );
+		}
 	}
 
 	/**
