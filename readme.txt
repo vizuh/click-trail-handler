@@ -5,7 +5,7 @@ Author URI: https://vizuh.com
 Tags: attribution, utm, consent mode, woocommerce, server-side tracking
 Requires at least: 6.5
 Tested up to: 7.0
-Stable tag: 1.8.7
+Stable tag: 1.8.13
 Requires PHP: 8.1
 WC requires at least: 10.4.2
 License: GPLv2 or later
@@ -213,6 +213,12 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 4. Diagnostics and delivery health for verifying event intake and transport behavior.
 
 == Changelog ==
+
+= 1.8.13 =
+*   **Security and consent hardening**: browser REST intake now accepts only ClickTrail's real browser events, applies a per-page-token replay limit, preserves separate analytics and marketing consent categories across supported CMPs, honors custom consent cookies server-side, and never lets an external CMP re-enable gating when Consent Mode is disabled.
+*   **Attribution reliability**: cross-domain verification now sends the required page token; attribution cookies are encoded, size-bounded, and cleared instead of leaving stale server values; pre-consent attribution is not persisted while consent is required.
+*   **Webhook and privacy fixes**: Typeform and HubSpot use their native signatures, HubSpot batches are handled item by item, consent-skipped webhook/lifecycle responses report their real status, retry rows no longer persist raw IP or user agent, and consent withdrawal removes pending attribution plus browser identifiers.
+*   **Maintenance and tests**: removed dead legacy tracking-v2 AJAX handlers and added focused PHP/JavaScript boundary regressions.
 
 = 1.8.12 =
 *   **UX**: clearer in-app explanation of how ClickTrail preserves landing-page attribution across the consent banner.

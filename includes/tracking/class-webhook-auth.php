@@ -19,59 +19,49 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Webhook_Auth {
 	/**
-	 * Verify webhook signature and timestamp.
-	 *
-	 * Expected signature: hex(HMAC_SHA256("timestamp.raw_body", secret)).
+	 * Verify the provider's native webhook signature.
 	 *
 	 * @param WP_REST_Request $request Request.
 	 * @param string          $secret  Shared secret.
+	 * @param string          $provider Provider key.
 	 * @return true|WP_Error
 	 */
-	public static function verify_request( WP_REST_Request $request, string $secret ) {
+	public static function verify_request( WP_REST_Request $request, string $secret, string $provider = '' ) {
 		$secret = trim( $secret );
 		if ( '' === $secret ) {
 			return new WP_Error( 'webhook_secret_missing', 'Webhook secret is not configured', array( 'status' => 401 ) );
 		}
 
-		// Do not run signature/timestamp through sanitize_text_field: it would mutate the
-		// attacker-controlled value before the constant-time compare. Trim only, then
-		// validate the exact expected shape (digits / lowercase hex) before hash_equals.
-		$timestamp = trim( (string) $request->get_header( 'x-clicutcl-timestamp' ) );
-		$signature = trim( (string) $request->get_header( 'x-clicutcl-signature' ) );
-
-		if ( '' === $timestamp || '' === $signature ) {
-			return new WP_Error( 'webhook_signature_missing', 'Missing webhook signature headers', array( 'status' => 401 ) );
-		}
-
-		if ( ! ctype_digit( $timestamp ) ) {
-			return new WP_Error( 'webhook_timestamp_invalid', 'Invalid webhook timestamp', array( 'status' => 401 ) );
-		}
-
-		// Expected signature is hex(HMAC_SHA256(...)) — reject anything not 64 lowercase hex chars.
-		if ( ! preg_match( '/^[a-f0-9]{64}$/', $signature ) ) {
-			return new WP_Error( 'webhook_signature_invalid', 'Invalid webhook signature', array( 'status' => 401 ) );
-		}
-
-		$drift        = abs( time() - (int) $timestamp );
-		$settings_max = Settings::get()['security']['webhook_replay_window'] ?? 300;
+		$provider     = sanitize_key( $provider );
+		$body         = (string) $request->get_body();
+		$settings_max = class_exists( Settings::class ) ? ( Settings::get()['security']['webhook_replay_window'] ?? 300 ) : 300;
 		$max          = (int) apply_filters( 'clicutcl_webhook_replay_window', (int) $settings_max );
 		$max          = max( 60, min( 3600, $max ) );
+		$signature    = '';
 
-		if ( $drift > $max ) {
-			return new WP_Error( 'webhook_timestamp_expired', 'Webhook timestamp expired', array( 'status' => 401 ) );
+		if ( 'typeform' === $provider ) {
+			$signature = trim( (string) $request->get_header( 'typeform-signature' ) );
+			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Typeform requires a base64-encoded HMAC.
+			$expected = 'sha256=' . base64_encode( hash_hmac( 'sha256', $body, $secret, true ) );
+		} elseif ( 'hubspot' === $provider ) {
+			$signature = trim( (string) $request->get_header( 'x-hubspot-signature' ) );
+			$expected  = hash( 'sha256', $secret . $body );
+		} else {
+			$timestamp = trim( (string) $request->get_header( 'x-clicutcl-timestamp' ) );
+			$signature = trim( (string) $request->get_header( 'x-clicutcl-signature' ) );
+			if ( ! ctype_digit( $timestamp ) || abs( time() - (int) $timestamp ) > $max ) {
+				return new WP_Error( 'webhook_timestamp_invalid', 'Invalid or expired webhook timestamp', array( 'status' => 401 ) );
+			}
+			$expected = hash_hmac( 'sha256', $timestamp . '.' . $body, $secret );
 		}
 
-		$body     = (string) $request->get_body();
-		$message  = $timestamp . '.' . $body;
-		$expected = hash_hmac( 'sha256', $message, $secret );
-
-		if ( ! hash_equals( $expected, $signature ) ) {
+		if ( '' === $signature || ! hash_equals( $expected, $signature ) ) {
 			return new WP_Error( 'webhook_signature_invalid', 'Invalid webhook signature', array( 'status' => 401 ) );
 		}
 
 		$enforce_replay = (bool) apply_filters( 'clicutcl_webhook_replay_protection', true, $request );
 		if ( $enforce_replay ) {
-			$replay_key = 'clicutcl_wh_replay_' . md5( $timestamp . '|' . $signature . '|' . $request->get_route() );
+			$replay_key = 'clicutcl_wh_replay_' . md5( $provider . '|' . $signature . '|' . $request->get_route() );
 
 			if ( wp_using_ext_object_cache() ) {
 				// Persistent cache present: wp_cache_add() is an atomic claim that returns

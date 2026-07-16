@@ -23,8 +23,8 @@
                 : [];
             this.formStarts = new WeakSet();
             this.externalMarkers = new Set();
-            this.sessionId = this.getOrCreateSessionId();
-            this.visitorId = this.getOrCreateVisitorId();
+            this.sessionId = '';
+            this.visitorId = '';
             this.wooListSeen = new Set();
             this.wooCartViewSeen = new Set();
             this.wooCartObserverTargets = new WeakSet();
@@ -39,6 +39,11 @@
                 this.debugLog('Browser event collection disabled.');
                 return;
             }
+
+            document.addEventListener('ct:consentResolved', (event) => {
+                const detail = event && event.detail ? event.detail : {};
+                if (!detail.marketing) this.clearIdentity();
+            });
 
             this.trackSearch();
             this.trackDownloads();
@@ -61,6 +66,8 @@
                 this.debugLog('Event blocked (no consent):', eventName);
                 return;
             }
+
+            this.ensureIdentity();
 
             window.dataLayer = window.dataLayer || [];
             const providedEventId = options && typeof options === 'object'
@@ -418,10 +425,11 @@
                 typeof consentBridge.isGranted === 'function' &&
                 consentBridge.isResolved()
             ) {
+                const state = typeof consentBridge.getState === 'function' ? consentBridge.getState() : null;
                 const bridgeGranted = !!consentBridge.isGranted();
                 return {
-                    marketing: bridgeGranted,
-                    analytics: bridgeGranted
+                    marketing: state && typeof state.marketing !== 'undefined' ? !!state.marketing : bridgeGranted,
+                    analytics: state && typeof state.analytics !== 'undefined' ? !!state.analytics : bridgeGranted
                 };
             }
 
@@ -465,6 +473,25 @@
             }
             const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
             document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/; SameSite=Lax" + secureFlag;
+        }
+
+        removeCookie(name) {
+            const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
+            document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; path=/; SameSite=Lax' + secureFlag;
+        }
+
+        ensureIdentity() {
+            if (!this.sessionId) this.sessionId = this.getOrCreateSessionId();
+            if (!this.visitorId) this.visitorId = this.getOrCreateVisitorId();
+        }
+
+        clearIdentity() {
+            try { sessionStorage.removeItem('ct_session_id'); } catch (e) {}
+            try { localStorage.removeItem('ct_visitor_id'); } catch (e) {}
+            this.removeCookie('ct_session_id');
+            this.removeCookie('ct_visitor_id');
+            this.sessionId = '';
+            this.visitorId = '';
         }
 
         generateEventId(prefix = 'evt') {

@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
 
 const root = path.resolve(__dirname, '..', '..');
 
@@ -87,6 +88,54 @@ function validateMatrixEvidence(matrix, failures) {
   });
 }
 
+function resolveConsent(config, cookie = '', windowOverrides = {}) {
+  const document = {
+    cookie,
+    readyState: 'complete',
+    addEventListener() {},
+    dispatchEvent() {}
+  };
+  const window = {
+    ctConsentBridgeConfig: config,
+    location: { protocol: 'https:' },
+    console,
+    dataLayer: [],
+    dispatchEvent() {},
+    addEventListener() {},
+    setTimeout(callback) { callback(); },
+    ...windowOverrides
+  };
+  const context = {
+    window,
+    document,
+    CustomEvent: class CustomEvent {
+      constructor(type, options) {
+        this.type = type;
+        this.detail = options && options.detail;
+      }
+    }
+  };
+
+  vm.runInNewContext(readFile('assets/js/clicutcl-consent-bridge.js'), context);
+  return window.ClickTrailConsent.getState();
+}
+
+function validateConsentRuntime(failures) {
+  const disabled = resolveConsent({ enabled: false, fallbackGranted: true });
+  assert(disabled.marketing && disabled.analytics, 'Disabled consent mode must bypass CMP gating', failures);
+
+  const encoded = encodeURIComponent(JSON.stringify({ marketing: false, analytics: true }));
+  const custom = resolveConsent({ enabled: true, cookieName: 'custom_consent' }, `custom_consent=${encoded}`);
+  assert(!custom.marketing && custom.analytics, 'Custom consent cookie must preserve categories', failures);
+
+  const cookiebot = resolveConsent(
+    { enabled: true, cmpSource: 'cookiebot', cookieName: 'missing' },
+    '',
+    { Cookiebot: { hasResponse: true, consent: { statistics: true, marketing: false } } }
+  );
+  assert(!cookiebot.marketing && cookiebot.analytics, 'CMP analytics consent must not imply marketing consent', failures);
+}
+
 function main() {
   const failures = [];
   const registry = loadJson('config/feature-registry.json');
@@ -96,6 +145,7 @@ function main() {
   validateDocsTargets(registry, failures);
   validateMatrixCoverage(registryIds, matrix, failures);
   validateMatrixEvidence(matrix, failures);
+  validateConsentRuntime(failures);
 
   if (failures.length > 0) {
     console.error('Smoke coverage check failed:');

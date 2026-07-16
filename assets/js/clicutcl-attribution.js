@@ -10,6 +10,7 @@
     const DEBUG_ENABLED = !!CONFIG.debug;
     const STORAGE_ENVELOPE_VERSION = 1;
     const PENDING_SS_KEY = 'ct_pending_v1';
+    const MAX_COOKIE_VALUE_BYTES = 3800;
     const TOUCH_QUERY_FIELD_MAP = Object.freeze({
         utm_source: 'source',
         utm_medium: 'medium',
@@ -448,10 +449,21 @@
 
         getCookie: function (name) {
             const match = document.cookie.match(new RegExp("(^| )" + name + "=([^;]+)"));
-            return match ? decodeURIComponent(match[2]) : null;
+            if (!match) return null;
+            try {
+                return decodeURIComponent(match[2]);
+            } catch (e) {
+                return null;
+            }
         },
 
         setCookie: function (name, value, days) {
+            const rawValue = String(value || '');
+            const encodedValue = encodeURIComponent(rawValue);
+            if (encodedValue.length > MAX_COOKIE_VALUE_BYTES) {
+                this.removeCookie(name);
+                return false;
+            }
             let expires = "";
             if (days) {
                 const date = new Date();
@@ -459,7 +471,8 @@
                 expires = "; expires=" + date.toUTCString();
             }
             const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
-            document.cookie = name + "=" + (value || "") + expires + "; path=/; SameSite=Lax" + secureFlag;
+            document.cookie = name + "=" + encodedValue + expires + "; path=/; SameSite=Lax" + secureFlag;
+            return this.getCookie(name) === rawValue;
         },
 
         removeCookie: function (name) {
@@ -592,10 +605,10 @@
                 return;
             }
             const dataStr = JSON.stringify(sanitized);
-            this.setCookie(CONFIG.cookieName, dataStr, CONFIG.cookieDays);
+            const cookiePersisted = this.setCookie(CONFIG.cookieName, dataStr, CONFIG.cookieDays);
             this.setLocalData(sanitized);
-            // If cookie was not persisted (blocked), fall back to sessionStorage
-            if (!this.getCookie(CONFIG.cookieName)) {
+            // Keep the browser copy when the server cookie is blocked or too large.
+            if (!cookiePersisted) {
                 this.setSessionData(sanitized);
             }
         },
@@ -712,7 +725,8 @@
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'X-Clicutcl-Token': String(CONFIG.eventsToken || '')
                 },
                 body: JSON.stringify({ token: rawToken }),
                 keepalive: true
@@ -1281,6 +1295,13 @@
 
     // --- 4.5 IDENTITY ---
     const Identity = {
+        clear: function () {
+            try { sessionStorage.removeItem('ct_session_id'); } catch (e) {}
+            try { localStorage.removeItem('ct_visitor_id'); } catch (e) {}
+            Store.removeCookie('ct_session_id');
+            Store.removeCookie('ct_visitor_id');
+        },
+
         eventId: function (prefix = 'evt') {
             if (window.crypto && typeof window.crypto.randomUUID === 'function') {
                 return window.crypto.randomUUID();
@@ -1506,11 +1527,11 @@
 
         init() {
             const requiresConsent = CONFIG.requireConsent === true || CONFIG.requireConsent === '1';
-            // Phase 1: buffer URL signals to sessionStorage immediately — no consent required.
-            // sessionStorage is ephemeral and tab-scoped; does not require consent under GDPR/ePrivacy.
-            PendingCapture.save();
             this.bindConsentListener();
             const consent = this.getConsent();
+            if (!requiresConsent || (consent && consent.resolved && consent.marketing)) {
+                PendingCapture.save();
+            }
 
             if (consent && consent.resolved) {
                 if (consent.marketing) {
@@ -1551,11 +1572,12 @@
                 typeof bridge.isGranted === 'function' &&
                 bridge.isResolved()
             ) {
+                const state = typeof bridge.getState === 'function' ? bridge.getState() : null;
                 const granted = !!bridge.isGranted();
                 return {
                     resolved: true,
-                    marketing: granted,
-                    analytics: granted
+                    marketing: state && typeof state.marketing !== 'undefined' ? !!state.marketing : granted,
+                    analytics: state && typeof state.analytics !== 'undefined' ? !!state.analytics : granted
                 };
             }
 
@@ -1596,7 +1618,9 @@
         handleConsentDenied() {
             const existingData = Store.getData() || {};
             Store.clearData();
+            PendingCapture.clear();
             SessionManager.clear();
+            Identity.clear();
             Injector.clear();
             API.install({ withIdentity: false });
             this.hasRunAttribution = false;

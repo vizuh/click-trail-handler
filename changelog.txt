@@ -1,6 +1,13 @@
 Changelog
 ========
 
+= 1.8.13 =
+*   **Browser intake security** (`includes/tracking/class-eventv2.php`, `includes/api/class-tracking-controller.php`): added a canonical allowlist for the events ClickTrail genuinely emits in the browser, kept `purchase`, `qualified_lead`, and `client_won` on trusted server/lifecycle routes, and applied a default 20-request nonce limit per page token.
+*   **Consent correctness and withdrawal cleanup** (`assets/js/clicutcl-consent-bridge.js`, `assets/js/clicutcl-consent.js`, `assets/js/clicutcl-attribution.js`, `assets/js/clicutcl-events.js`, `includes/server-side/class-consent.php`): preserve analytics and marketing categories, honor configured consent-cookie names, synchronize external CMP state for PHP, bypass CMP detection when Consent Mode is disabled, avoid pre-consent persistent buffering when consent is required, create browser identifiers lazily, and remove identifiers plus pending attribution on denial.
+*   **Attribution reliability** (`assets/js/clicutcl-attribution.js`): encode cookie values, reject values above the safe cookie budget instead of retaining stale data, and send the page client token separately when verifying signed cross-domain attribution.
+*   **Provider webhooks** (`includes/tracking/class-webhook-auth.php`, `includes/api/class-tracking-controller.php`): verify native Typeform and HubSpot signatures, retain the existing timestamped HMAC contract for Calendly until its native format is verified, process HubSpot arrays item by item, and return truthful `skipped` details without forcing provider retries.
+*   **Privacy, cleanup, and regression coverage** (`includes/server-side/class-queue.php`, `includes/admin/class-admin.php`, `includes/admin/traits/trait-admin-diagnostics-ajax.php`, `tests/unit/BoundarySecurityTest.php`, `tools/qa/smoke.js`): strip raw IP/user-agent fields before retry persistence, remove dead tracking-v2 AJAX settings surfaces, and add PHP/Node boundary checks.
+
 = 1.8.12 =
 *   **UX**: the Consent source help text now explains that ClickTrail buffers landing-page attribution to sessionStorage before consent resolves, so first-touch UTMs and click IDs are preserved even when the consent banner is accepted on a later page (`assets/js/admin-settings-app.js`). Reduces support questions about consent-gate timing. The new sentence falls back to English on de_DE/pt_BR until translations are regenerated.
 

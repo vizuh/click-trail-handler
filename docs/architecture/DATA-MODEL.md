@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, and reviewers
 - **Canonical for**: option keys, cookies, tables, transients, cron hooks, and persistence surfaces
 - **Update when**: stored keys, retention behavior, queue schema, or cookie/storage usage changes
-- **Last verified against version**: `1.8.5`
+- **Last verified against version**: `1.8.13`
 
 This document summarizes the active storage surfaces used by ClickTrail.
 
@@ -193,7 +193,9 @@ Notes:
 
 - `ct_session` stores the structured session object used by the current session manager and server-side readers
 - `ct_session_id` and `ct_visitor_id` remain lightweight browser identity fallbacks used by event helpers and compatibility paths
+- these identifiers are created only after marketing consent and are removed again on denial or withdrawal
 - the richer session object is not stored in `sessionStorage['ct_session_id']`
+- pending attribution is not written to `sessionStorage` while consent is required and unresolved
 
 ## Diagnostics and Queue Transients
 

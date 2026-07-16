@@ -66,8 +66,6 @@ class Admin {
 		add_action( 'wp_ajax_clicutcl_requeue_failed_deliveries', array( $this, 'ajax_requeue_failed_deliveries' ) );
 		add_action( 'wp_ajax_clicutcl_get_admin_settings', array( $this, 'ajax_get_admin_settings' ) );
 		add_action( 'wp_ajax_clicutcl_save_admin_settings', array( $this, 'ajax_save_admin_settings' ) );
-		add_action( 'wp_ajax_clicutcl_get_tracking_v2_settings', array( $this, 'ajax_get_tracking_v2_settings' ) );
-		add_action( 'wp_ajax_clicutcl_save_tracking_v2_settings', array( $this, 'ajax_save_tracking_v2_settings' ) );
 		add_action( 'wp_ajax_clicutcl_conflict_scan', array( $this, 'ajax_conflict_scan' ) );
 		add_action( 'wp_ajax_clicutcl_sgtm_preview_check', array( $this, 'ajax_sgtm_preview_check' ) );
 		add_action( 'wp_ajax_clicutcl_export_settings_backup', array( $this, 'ajax_export_settings_backup' ) );
@@ -328,8 +326,6 @@ class Admin {
 				'default'           => $this->get_attribution_settings_defaults(),
 			)
 		);
-		register_setting( 'clicutcl_tracking_v2', 'clicutcl_tracking_v2', array( 'CLICUTCL\\Tracking\\Settings', 'sanitize' ) );
-
 		// Core Attribution Section.
 		add_settings_section(
 			'clicutcl_core_section',

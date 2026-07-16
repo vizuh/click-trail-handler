@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, integrators, and reviewers
 - **Canonical for**: active routes, auth model, diagnostics endpoints, and REST-side constraints
 - **Update when**: routes, auth headers, body limits, or intake behavior changes
-- **Last verified against version**: `1.3.9`
+- **Last verified against version**: `1.8.13`
 
 Active REST namespace:
 
@@ -35,7 +35,16 @@ Important constraints:
 - browser event collection must be enabled
 - request body size is capped
 - request rate limiting is enforced
-- token nonce replay limits can be enforced
+- each page token is limited to 20 browser-batch requests by default
+- only the browser events emitted by `clicutcl-events.js` are accepted; purchase and lifecycle outcomes use trusted server routes
+
+Allowed canonical browser events:
+
+- behavior: `search`, `view_content`, `scroll_depth`, `key_page_view`, `cta_click`, `contact_call_click`, `contact_chat_start`
+- storefront: `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, `begin_checkout`
+- forms and milestones confirmed in the browser: `form_start`, `form_submit_attempt`, `lead`, `book_appointment`, `login`, `sign_up`, `comment_submit`
+
+`purchase`, `qualified_lead`, and `client_won` are rejected by this route and must come from WooCommerce or lifecycle ingestion.
 
 Notes:
 
@@ -54,7 +63,8 @@ Used by:
 
 Auth model:
 
-- signed client token or admin/debug flow as allowed by the controller
+- page client token in `X-Clicutcl-Token`
+- signed attribution token in the JSON `token` field
 
 ## `POST /clicutcl/v2/attribution-token/verify`
 
@@ -80,9 +90,13 @@ Purpose:
 
 Auth model:
 
-- webhook signature verification
+- native Typeform `Typeform-Signature` verification
+- native HubSpot `X-HubSpot-Signature` verification
+- ClickTrail timestamp/signature verification for Calendly until a native contract is verified
 - replay-window enforcement
 - provider enablement and secret checks
+
+HubSpot webhook arrays are processed item by item. Consent-blocked webhook and lifecycle requests still return HTTP success to prevent retries, but their JSON body reports `success: false`, `skipped: true`, and the skip reason.
 
 ## `POST /clicutcl/v2/lifecycle/update`
 

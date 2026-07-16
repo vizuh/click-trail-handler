@@ -365,13 +365,15 @@ class Plugin {
 
 		return array(
 			'bridge'          => array(
-				'cookieName'      => $cookie_name,
-				'cmpSource'       => $cmp_source,
-				'gtmConsentKey'   => $gcm_analytics_key,
-				'timeout'         => $cmp_timeout,
-				'mode'            => $consent_mode,
-				'fallbackGranted' => ! $require_consent,
-				'debug'           => $bridge_debug,
+				'enabled'          => $enable_consent,
+				'cookieName'       => $cookie_name,
+				'serverCookieName' => 'ct_consent_state',
+				'cmpSource'        => $cmp_source,
+				'gtmConsentKey'    => $gcm_analytics_key,
+				'timeout'          => $cmp_timeout,
+				'mode'             => $consent_mode,
+				'fallbackGranted'  => ! $require_consent,
+				'debug'            => $bridge_debug,
 			),
 			'cookie_name'     => $cookie_name,
 			'require_consent' => $require_consent,

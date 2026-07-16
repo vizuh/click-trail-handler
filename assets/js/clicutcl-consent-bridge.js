@@ -16,7 +16,9 @@
     'use strict';
 
     var CONFIG = window.ctConsentBridgeConfig || {
+        enabled: true,
         cookieName: 'ct_consent',
+        serverCookieName: 'ct_consent_state',
         cmpSource: 'auto',
         gtmConsentKey: 'analytics_storage',
         timeout: 3000,
@@ -28,13 +30,23 @@
     window.ctDebug = !!window.ctDebug || !!CONFIG.debug;
 
     var resolved = false;
-    var granted = false;
+    var consentState = { marketing: false, analytics: false };
     var resolvedBy = 'unknown';
+
+    function normalizeConsent(value) {
+        if (typeof value === 'boolean') {
+            return { marketing: value, analytics: value };
+        }
+        return {
+            marketing: !!(value && value.marketing),
+            analytics: !!(value && value.analytics)
+        };
+    }
 
     function dispatchLegacyEvents() {
         var detail = {
-            marketing: !!granted,
-            analytics: !!granted,
+            marketing: consentState.marketing,
+            analytics: consentState.analytics,
             source: resolvedBy
         };
 
@@ -42,7 +54,7 @@
             detail: detail
         }));
 
-        if (granted) {
+        if (consentState.marketing) {
             window.dispatchEvent(new CustomEvent('consent_granted', {
                 detail: detail
             }));
@@ -63,30 +75,48 @@
     function dispatchResolved() {
         document.dispatchEvent(new CustomEvent('ct:consentResolved', {
             detail: {
-                granted: granted,
+                granted: consentState.marketing,
+                marketing: consentState.marketing,
+                analytics: consentState.analytics,
                 resolvedBy: resolvedBy
             },
             bubbles: false
         }));
         dispatchLegacyEvents();
-        debugLog('Consent resolved:', granted, 'via', resolvedBy);
+        debugLog('Consent resolved:', consentState, 'via', resolvedBy);
     }
 
-    function resolve(isGranted, source, force) {
+    function writeServerCookie() {
+        var name = String(CONFIG.serverCookieName || 'ct_consent_state');
+        var value = encodeURIComponent(JSON.stringify(consentState));
+        var expires = new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)).toUTCString();
+        var secure = window.location && window.location.protocol === 'https:' ? '; Secure' : '';
+        document.cookie = name + '=' + value + '; expires=' + expires + '; path=/; SameSite=Lax' + secure;
+    }
+
+    function resolve(nextConsent, source, force) {
         if (resolved && !force) {
             return;
         }
 
-        var nextGranted = !!isGranted;
+        var normalized = normalizeConsent(nextConsent);
         var nextSource = String(source || 'unknown');
 
-        if (resolved && granted === nextGranted && resolvedBy === nextSource) {
+        if (
+            resolved &&
+            consentState.marketing === normalized.marketing &&
+            consentState.analytics === normalized.analytics &&
+            resolvedBy === nextSource
+        ) {
             return;
         }
 
         resolved = true;
-        granted = nextGranted;
+        consentState = normalized;
         resolvedBy = nextSource;
+        if (CONFIG.enabled !== false && nextSource !== 'plugin-cookie') {
+            writeServerCookie();
+        }
         dispatchResolved();
     }
 
@@ -96,20 +126,18 @@
 
         var lowered = value.toLowerCase();
         if (lowered === 'granted' || lowered === '1' || lowered === 'true' || lowered === 'yes') {
-            return true;
+            return normalizeConsent(true);
         }
         if (lowered === 'denied' || lowered === '0' || lowered === 'false' || lowered === 'no') {
-            return false;
+            return normalizeConsent(false);
         }
 
         // Backward compatibility: ct_consent stored as JSON object.
         try {
             var parsed = JSON.parse(value);
-            if (typeof parsed === 'boolean') return parsed;
+            if (typeof parsed === 'boolean') return normalizeConsent(parsed);
             if (parsed && typeof parsed === 'object') {
-                var marketing = !!parsed.marketing;
-                var analytics = !!parsed.analytics;
-                return marketing || analytics;
+                return normalizeConsent(parsed);
             }
         } catch (e) {
             // no-op
@@ -149,7 +177,10 @@
         function readState() {
             var cb = window.Cookiebot;
             if (cb && cb.consent) {
-                resolve(!!cb.consent.statistics, 'cookiebot');
+                resolve({
+                    analytics: !!cb.consent.statistics,
+                    marketing: !!cb.consent.marketing
+                }, 'cookiebot', true);
             } else {
                 resolve(false, 'cookiebot');
             }
@@ -171,7 +202,10 @@
 
         function readState() {
             var groups = String(window.OnetrustActiveGroups || '');
-            resolve(groups.indexOf('C0002') !== -1, 'onetrust');
+            resolve({
+                analytics: groups.indexOf('C0002') !== -1,
+                marketing: groups.indexOf('C0004') !== -1
+            }, 'onetrust', true);
         }
 
         var originalWrapper = window.OptanonWrapper;
@@ -196,11 +230,14 @@
 
         document.addEventListener('cmplz_fire_categories', function (e) {
             var cats = (e && e.detail) || {};
-            resolve(!!cats.statistics, 'complianz');
-        }, { once: true });
+            resolve({ analytics: !!cats.statistics, marketing: !!cats.marketing }, 'complianz', true);
+        });
 
         if (window.complianz && window.complianz.consent_data) {
-            resolve(!!window.complianz.consent_data.statistics, 'complianz-sync');
+            resolve({
+                analytics: !!window.complianz.consent_data.statistics,
+                marketing: !!window.complianz.consent_data.marketing
+            }, 'complianz-sync', true);
         }
 
         return true;
@@ -235,8 +272,15 @@
         var dl = window.dataLayer;
         var targetKey = String(CONFIG.gtmConsentKey || 'analytics_storage');
 
+        function readState(entry) {
+            var analytics = extractGcmState(entry, targetKey);
+            var marketing = extractGcmState(entry, 'ad_storage');
+            if (analytics === null && marketing === null) return null;
+            return { analytics: analytics === true, marketing: marketing === true };
+        }
+
         for (var i = 0; i < dl.length; i++) {
-            var state = extractGcmState(dl[i], targetKey);
+            var state = readState(dl[i]);
             if (state !== null) {
                 resolve(state, 'gcm-datalayer');
                 return true;
@@ -246,8 +290,11 @@
         // Optional bridge from external code (for custom integrations).
         document.addEventListener('ct:gtmConsentUpdate', function (e) {
             var detail = e && e.detail ? e.detail : {};
-            if (typeof detail[targetKey] !== 'undefined') {
-                resolve(detail[targetKey] === 'granted', 'gcm-event');
+            if (typeof detail[targetKey] !== 'undefined' || typeof detail.ad_storage !== 'undefined') {
+                resolve({
+                    analytics: detail[targetKey] === 'granted',
+                    marketing: detail.ad_storage === 'granted'
+                }, 'gcm-event', true);
             }
         });
 
@@ -256,9 +303,9 @@
             var self = this;
             if (!self) return;
 
-            var state = extractGcmState(self, targetKey);
+            var state = readState(self);
             if (state !== null) {
-                resolve(state, 'gcm-datalayer-push');
+                resolve(state, 'gcm-datalayer-push', true);
             }
         });
 
@@ -280,6 +327,11 @@
     }
 
     function autoDetect() {
+        if (CONFIG.enabled === false) {
+            resolve(true, 'mode-disabled');
+            return;
+        }
+
         var source = String(CONFIG.cmpSource || 'auto').toLowerCase();
 
         var cookieState = readPluginCookie();
@@ -305,15 +357,18 @@
             return;
         }
         if (source === 'cookiebot') {
-            if (!tryCookiebot()) startTimeoutFallback();
+            tryCookiebot();
+            startTimeoutFallback();
             return;
         }
         if (source === 'onetrust') {
-            if (!tryOneTrust()) startTimeoutFallback();
+            tryOneTrust();
+            startTimeoutFallback();
             return;
         }
         if (source === 'complianz') {
-            if (!tryComplianz()) startTimeoutFallback();
+            tryComplianz();
+            startTimeoutFallback();
             return;
         }
         if (source === 'gtm') {
@@ -323,16 +378,25 @@
         }
 
         // Auto detect mode.
-        if (tryCookiebot()) return;
-        if (tryOneTrust()) return;
-        if (tryComplianz()) return;
+        if (tryCookiebot()) {
+            startTimeoutFallback();
+            return;
+        }
+        if (tryOneTrust()) {
+            startTimeoutFallback();
+            return;
+        }
+        if (tryComplianz()) {
+            startTimeoutFallback();
+            return;
+        }
         tryGoogleConsentMode();
         startTimeoutFallback();
     }
 
     window.ClickTrailConsent = {
         isGranted: function () {
-            return !!(resolved && granted);
+            return !!(resolved && consentState.marketing);
         },
         isResolved: function () {
             return !!resolved;
@@ -340,9 +404,14 @@
         getState: function () {
             return {
                 resolved: !!resolved,
-                granted: !!granted,
+                granted: !!consentState.marketing,
+                marketing: !!consentState.marketing,
+                analytics: !!consentState.analytics,
                 source: resolvedBy
             };
+        },
+        update: function (preferences, source) {
+            resolve(preferences, source || 'manual', true);
         },
         grant: function (source) {
             resolve(true, source || 'manual', true);

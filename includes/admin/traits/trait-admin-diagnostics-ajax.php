@@ -273,65 +273,6 @@ trait Admin_Diagnostics_Ajax_Trait {
 	}
 
 	/**
-	 * Return tracking v2 settings via AJAX.
-	 *
-	 * @return void
-	 */
-	public function ajax_get_tracking_v2_settings() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Forbidden', 'click-trail-handler' ) ), 403 );
-		}
-		check_ajax_referer( 'clicutcl_tracking_v2', 'nonce' );
-
-		if ( ! class_exists( 'CLICUTCL\\Tracking\\Settings' ) ) {
-			wp_send_json_error( array( 'message' => 'tracking_settings_class_missing' ), 500 );
-		}
-
-		wp_send_json_success(
-			array(
-				'settings' => \CLICUTCL\Tracking\Settings::get_for_admin(),
-			)
-		);
-	}
-
-	/**
-	 * Save tracking v2 settings via AJAX.
-	 *
-	 * @return void
-	 */
-	public function ajax_save_tracking_v2_settings() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			wp_send_json_error( array( 'message' => __( 'Forbidden', 'click-trail-handler' ) ), 403 );
-		}
-		check_ajax_referer( 'clicutcl_tracking_v2', 'nonce' );
-
-		if ( ! class_exists( 'CLICUTCL\\Tracking\\Settings' ) ) {
-			wp_send_json_error( array( 'message' => 'tracking_settings_class_missing' ), 500 );
-		}
-
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above.
-		$raw = isset( $_POST['settings'] ) ? sanitize_text_field( wp_unslash( $_POST['settings'] ) ) : '';
-		if ( is_string( $raw ) ) {
-			$decoded = json_decode( $raw, true );
-			$raw     = is_array( $decoded ) ? $decoded : array();
-		}
-
-		if ( ! is_array( $raw ) ) {
-			$raw = array();
-		}
-
-		$clean = \CLICUTCL\Tracking\Settings::sanitize( $raw );
-		update_option( \CLICUTCL\Tracking\Settings::OPTION, $clean, false );
-
-		wp_send_json_success(
-			array(
-				'message'  => __( 'Advanced event settings saved.', 'click-trail-handler' ),
-				'settings' => \CLICUTCL\Tracking\Settings::get_for_admin(),
-			)
-		);
-	}
-
-	/**
 	 * Run the interactive conflict scan.
 	 *
 	 * @return void

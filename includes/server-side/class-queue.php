@@ -164,7 +164,7 @@ class Queue {
 	public static function enqueue( Event $event, $adapter_key, $endpoint, $error_message = '' ) {
 		global $wpdb;
 
-		$data       = $event->to_array();
+		$data       = self::redact_retry_payload( $event->to_array() );
 		$event_name = isset( $data['event_name'] ) ? sanitize_text_field( (string) $data['event_name'] ) : '';
 		$event_id   = isset( $data['event_id'] ) ? sanitize_text_field( (string) $data['event_id'] ) : '';
 
@@ -232,6 +232,20 @@ class Queue {
 		);
 
 		return false !== $inserted;
+	}
+
+	/**
+	 * Remove transport-only identity before persisting a retry payload.
+	 *
+	 * @param array $data Event payload.
+	 * @return array
+	 */
+	public static function redact_retry_payload( array $data ): array {
+		foreach ( array( 'ip_address', 'user_agent' ) as $field ) {
+			unset( $data['identity'][ $field ], $data['meta']['identity'][ $field ] );
+		}
+
+		return $data;
 	}
 
 	/**

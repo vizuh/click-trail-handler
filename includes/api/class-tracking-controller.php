@@ -15,6 +15,7 @@ use CLICUTCL\Tracking\EventV2;
 use CLICUTCL\Tracking\Identity_Resolver;
 use CLICUTCL\Tracking\Settings as Tracking_Settings;
 use CLICUTCL\Tracking\Webhook_Auth;
+use CLICUTCL\Tracking\WebhookProviderAdapterInterface;
 use CLICUTCL\Tracking\Webhooks\CalendlyWebhookAdapter;
 use CLICUTCL\Tracking\Webhooks\HubSpotWebhookAdapter;
 use CLICUTCL\Tracking\Webhooks\TypeformWebhookAdapter;
@@ -228,7 +229,7 @@ class Tracking_Controller extends WP_REST_Controller {
 			return $verified;
 		}
 
-		$nonce_limit = $this->check_token_nonce_limit( $verified );
+		$nonce_limit = $this->check_token_nonce_limit( $verified, 20 );
 		if ( is_wp_error( $nonce_limit ) ) {
 			$this->record_gate_debug( 'rejected', $nonce_limit->get_error_code(), array() );
 			return $nonce_limit;
@@ -324,6 +325,18 @@ class Tracking_Controller extends WP_REST_Controller {
 					'index'  => $index,
 					'code'   => 'invalid_schema',
 					'detail' => 'Event does not satisfy canonical schema',
+				),
+			);
+		}
+
+		if ( ! EventV2::is_browser_event_allowed( (string) $canonical['event_name'] ) ) {
+			$this->record_intake_debug( $canonical, 'error', 'event_not_allowed' );
+			return array(
+				'status' => 'error',
+				'error'  => array(
+					'index'  => $index,
+					'code'   => 'event_not_allowed',
+					'detail' => 'Event is not accepted from the browser route',
 				),
 			);
 		}
@@ -521,7 +534,7 @@ class Tracking_Controller extends WP_REST_Controller {
 		}
 
 		$secret = Tracking_Settings::get_provider_secret( $provider );
-		$valid  = Webhook_Auth::verify_request( $request, $secret );
+		$valid  = Webhook_Auth::verify_request( $request, $secret, $provider );
 		if ( is_wp_error( $valid ) ) {
 			return $valid;
 		}
@@ -542,8 +555,43 @@ class Tracking_Controller extends WP_REST_Controller {
 			return new WP_Error( 'provider_not_supported', 'Provider not supported', array( 'status' => 400 ) );
 		}
 
-		$payload = $request->get_json_params();
-		$payload = is_array( $payload ) ? $payload : array();
+		$payload  = $request->get_json_params();
+		$payload  = is_array( $payload ) ? $payload : array();
+		$payloads = 'hubspot' === $provider && array_is_list( $payload )
+			? array_slice( $payload, 0, self::MAX_BATCH_EVENTS )
+			: array( $payload );
+		$results  = array();
+		if ( empty( $payloads ) ) {
+			return new WP_Error( 'invalid_provider_payload', 'Provider payload is empty', array( 'status' => 400 ) );
+		}
+
+		foreach ( $payloads as $provider_payload ) {
+			$result = $this->ingest_webhook_payload( $provider, $adapter, is_array( $provider_payload ) ? $provider_payload : array() );
+			if ( is_wp_error( $result ) ) {
+				return $result;
+			}
+			$results[] = $result;
+		}
+
+		if ( 1 === count( $results ) ) {
+			return $results[0];
+		}
+
+		return array(
+			'success' => ! array_filter( $results, static fn( $result ) => empty( $result['success'] ) ),
+			'events'  => $results,
+		);
+	}
+
+	/**
+	 * Validate and dispatch one provider webhook payload.
+	 *
+	 * @param string                          $provider Provider key.
+	 * @param WebhookProviderAdapterInterface $adapter Provider adapter.
+	 * @param array                           $payload Provider payload.
+	 * @return array|WP_Error
+	 */
+	private function ingest_webhook_payload( string $provider, WebhookProviderAdapterInterface $adapter, array $payload ) {
 		if ( ! $adapter->supports( $payload ) ) {
 			return new WP_Error( 'invalid_provider_payload', 'Payload not supported by provider adapter', array( 'status' => 400 ) );
 		}
@@ -572,7 +620,9 @@ class Tracking_Controller extends WP_REST_Controller {
 		}
 
 		return array(
-			'success'    => true,
+			'success'    => (bool) $dispatch->success && ! $dispatch->skipped,
+			'skipped'    => (bool) $dispatch->skipped,
+			'detail'     => sanitize_key( (string) $dispatch->message ),
 			'duplicate'  => false,
 			'event_id'   => $canonical['event_id'],
 			'event_name' => $canonical['event_name'],
@@ -661,7 +711,9 @@ class Tracking_Controller extends WP_REST_Controller {
 		}
 
 		return array(
-			'success'    => true,
+			'success'    => (bool) $dispatch->success && ! $dispatch->skipped,
+			'skipped'    => (bool) $dispatch->skipped,
+			'detail'     => sanitize_key( (string) $dispatch->message ),
 			'event_id'   => $canonical['event_id'],
 			'event_name' => $canonical['event_name'],
 		);

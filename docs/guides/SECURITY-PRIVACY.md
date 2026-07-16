@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, reviewers, and security-focused integrators
 - **Canonical for**: consent behavior, token handling, replay protection, and secret treatment
 - **Update when**: consent flow, auth, signing, secret storage, or privacy behavior changes
-- **Last verified against version**: `1.8.10`
+- **Last verified against version**: `1.8.13`
 
 ClickTrail is designed to capture attribution and events without treating privacy and delivery as separate concerns.
 
@@ -116,7 +116,10 @@ Controls include:
 
 Verification hardening:
 
-- the signature header is compared raw (not sanitized) and validated as 64 lowercase hex chars before the constant-time `hash_equals`
+- Typeform uses its native base64 HMAC `Typeform-Signature`
+- HubSpot uses its native SHA-256 `X-HubSpot-Signature`
+- Calendly currently retains ClickTrail's timestamped HMAC contract until its native signing format is verified
+- every signature is compared on the raw value with constant-time `hash_equals`
 - provider secrets are stored verbatim (not truncated or whitespace-stripped), so long/base64/structured secrets verify correctly
 - replay protection uses an atomic `wp_cache_add()` claim where a persistent object cache exists, falling back to a durable DB transient
 

@@ -16,6 +16,43 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class EventV2 implements CanonicalEventInterfaceV2 {
 	/**
+	 * Canonical names accepted from the public browser route.
+	 * Purchase and lifecycle outcomes stay on trusted server routes.
+	 */
+	private const BROWSER_EVENT_NAMES = array(
+		'search'              => true,
+		'view_item'           => true,
+		'view_item_list'      => true,
+		'view_cart'           => true,
+		'view_content'        => true,
+		'scroll_depth'        => true,
+		'key_page_view'       => true,
+		'add_to_cart'         => true,
+		'remove_from_cart'    => true,
+		'begin_checkout'      => true,
+		'cta_click'           => true,
+		'form_start'          => true,
+		'form_submit_attempt' => true,
+		'lead'                => true,
+		'login'               => true,
+		'sign_up'             => true,
+		'comment_submit'      => true,
+		'contact_call_click'  => true,
+		'contact_chat_start'  => true,
+		'book_appointment'    => true,
+	);
+
+	/**
+	 * Whether a canonical event may enter through the public browser route.
+	 *
+	 * @param string $event_name Canonical event name.
+	 * @return bool
+	 */
+	public static function is_browser_event_allowed( string $event_name ): bool {
+		return isset( self::BROWSER_EVENT_NAMES[ sanitize_key( $event_name ) ] );
+	}
+
+	/**
 	 * Schema version.
 	 */
 	const VERSION = 2;
