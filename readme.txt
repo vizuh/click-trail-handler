@@ -214,6 +214,10 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 
 == Changelog ==
 
+= 1.8.17 =
+*   **Diagnostics**: the Conflict Scan now detects active call tracking scripts (CallRail, CallTrackingMetrics, WhatConverts, and others) and surfaces an informational note explaining that ClickTrail already skips `tel:` link decoration automatically — no action needed.
+*   **UX**: corrected the Conflict Scan card description on the Diagnostics screen, which had fallen out of sync with what the scan actually checks.
+
 = 1.8.16 =
 *   **Diagnostics UX**: the "Lookup Order" tool now explains when an order's attribution is empty because marketing consent was denied at capture time, instead of just showing empty first-touch/last-touch data. Closes GitHub issue #44, where a consent-denied order correctly fell back to "Direct" but the diagnostics gave no indication why.
 

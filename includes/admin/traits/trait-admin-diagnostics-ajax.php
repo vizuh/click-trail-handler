@@ -501,6 +501,19 @@ trait Admin_Diagnostics_Ajax_Trait {
 			);
 		}
 
+		$detected_call_tracking = $this->detect_call_tracking_labels();
+		if ( ! empty( $detected_call_tracking ) ) {
+			$findings[] = array(
+				'severity' => 'info',
+				'title'    => sprintf(
+					/* translators: %s: detected call tracking provider labels. */
+					__( 'Call tracking script detected: %s', 'click-trail-handler' ),
+					implode( ', ', $detected_call_tracking )
+				),
+				'detail'   => __( 'A call tracking script was detected. ClickTrail skips tel: link decoration automatically. No action needed unless you are seeing unexpected behaviour.', 'click-trail-handler' ),
+			);
+		}
+
 		if ( defined( 'NITROPACK_VERSION' ) ) {
 			$findings[] = array(
 				'severity'       => 'warn',
@@ -789,6 +802,18 @@ trait Admin_Diagnostics_Ajax_Trait {
 		}
 
 		return array_values( array_unique( $found ) );
+	}
+
+	/**
+	 * Detect active call tracking scripts (CallRail, CallTrackingMetrics, WhatConverts, etc.).
+	 *
+	 * Delegates to `Setup_Detector::detect_call_tracking()` so the conflict
+	 * scan and the setup wizard share one detection source.
+	 *
+	 * @return array<int,string>
+	 */
+	private function detect_call_tracking_labels(): array {
+		return Setup_Detector::detect_call_tracking();
 	}
 
 	/**

@@ -275,7 +275,7 @@ trait Admin_Pages_Trait {
 						<span class="clicktrail-card__icon dashicons dashicons-search" aria-hidden="true"></span>
 						<span class="clicktrail-card__heading">
 							<span class="clicktrail-card__title"><?php esc_html_e( 'Conflict Scan', 'click-trail-handler' ); ?></span>
-							<span class="clicktrail-card__description"><?php esc_html_e( 'Run deterministic checks for caching, duplicate ownership, Woo gaps, and delivery mismatches.', 'click-trail-handler' ); ?></span>
+							<span class="clicktrail-card__description"><?php esc_html_e( 'Run deterministic checks for caching, call tracking scripts, duplicate ownership, Woo gaps, and delivery mismatches.', 'click-trail-handler' ); ?></span>
 						</span>
 					</span>
 				</div>
