@@ -14,6 +14,11 @@ assets/shopify-gtm-container-templates-master/*.json
 # spec-kit ephemeral state (current active feature directory)
 .specify/feature.json
 
+# Understand Anything — scratch/ephemeral output (knowledge-graph.json itself is committed)
+.understand-anything/intermediate/
+.understand-anything/tmp/
+.understand-anything/diff-overlay.json
+
 # Internal notes
 readme_header_update.txt
 AGENTS.md
