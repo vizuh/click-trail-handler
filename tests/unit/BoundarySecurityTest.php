@@ -21,7 +21,9 @@ namespace {
 	require_once dirname( __DIR__, 2 ) . '/includes/server-side/class-consent.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/server-side/class-queue.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-webhook-auth.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/Core/class-attribution-provider.php';
 
+	use CLICUTCL\Core\Attribution_Provider;
 	use CLICUTCL\Server_Side\Consent;
 	use CLICUTCL\Server_Side\Queue;
 	use CLICUTCL\Tracking\EventV2;
@@ -94,6 +96,21 @@ namespace {
 			);
 
 			$this->assertTrue( Webhook_Auth::verify_request( $request, $secret, 'calendly' ) );
+		}
+
+		public function test_attribution_sanitize_truncates_long_field_values(): void {
+			$long = str_repeat( 'a', 400 );
+
+			$sanitized = Attribution_Provider::sanitize( array( 'campaign' => $long ) );
+
+			$this->assertSame( 255, strlen( $sanitized['campaign'] ) );
+			$this->assertSame( str_repeat( 'a', 255 ), $sanitized['campaign'] );
+		}
+
+		public function test_attribution_sanitize_leaves_short_field_values_untouched(): void {
+			$sanitized = Attribution_Provider::sanitize( array( 'campaign' => 'spring_sale' ) );
+
+			$this->assertSame( 'spring_sale', $sanitized['campaign'] );
 		}
 	}
 }
