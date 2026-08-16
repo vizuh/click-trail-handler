@@ -21,6 +21,15 @@ Keep this file limited to Claude Flow or Claude-specific operating notes.
 - Do not treat `CLAUDE.md` as the canonical repo guide.
 - When planning or reviewing, follow the same docs-update matrix defined in `AGENTS.md`.
 
+## Understand Anything
+
+- Installed 2026-08-16. Knowledge graph of the codebase lives in
+  `.understand-anything/knowledge-graph.json` (committed; scratch/intermediate output under
+  `.understand-anything/` is gitignored). Dev-only, excluded from the WordPress.org release via
+  `.distignore`.
+- `/understand-dashboard` opens the interactive graph view. `/understand` re-runs the analysis
+  incrementally against the current commit.
+
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan

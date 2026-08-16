@@ -1,0 +1,25 @@
+# .understandignore
+# --- From .gitignore ---
+
+# assets/js/ct-consent.js
+# includes/integrations/class-form-integrations.php
+# assets/shopify-gtm-container-templates-master/*.json
+# .mcp.json
+# .tools/
+# .specify/feature.json
+# readme_header_update.txt
+# AGENTS.md
+# ROADMAP.md
+# docs/PLAN-*.md
+# docs/guides/TRACKING-ATTRIBUTION-PORTABLE-PROMPT.md
+
+# --- Detected directories ---
+
+# tests/
+# docs/
+
+# --- Test file patterns ---
+
+# *.test.*
+# *.spec.*
+# *.snap

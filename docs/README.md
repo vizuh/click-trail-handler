@@ -29,6 +29,7 @@ If you are new to the plugin, read these in order:
 - [architecture/EVENT-PIPELINE.md](architecture/EVENT-PIPELINE.md): browser, form, webhook, lifecycle, WooCommerce, and delivery flow
 - [architecture/DATA-MODEL.md](architecture/DATA-MODEL.md): options, tables, cookies, transients, cron hooks, and persistence surfaces
 - [architecture/CODE-MAP.md](architecture/CODE-MAP.md): active file layout and compatibility leftovers
+- `.understand-anything/knowledge-graph.json`: machine-readable knowledge graph of the codebase (nodes, edges, architectural layers, guided tour) — open with `/understand-dashboard`
 
 ## I want to change admin UI, settings, or UX behavior
 
