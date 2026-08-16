@@ -214,6 +214,12 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 
 == Changelog ==
 
+= 1.8.14 =
+*   **Packaging fix**: `config/feature-registry.json` was accidentally excluded from every shipped release build, including the current WordPress.org version, causing the delivery-adapter dropdown and destinations list to render empty. The config directory now ships again.
+*   **Security UX**: the settings backup export now carries an explicit on-screen warning that the downloaded file contains live, unmasked webhook secrets and should be handled like a credentials file.
+*   **Docs**: corrected a stale reference to a removed legacy API file in the REST API reference.
+*   **Maintenance**: internal dev-tooling cleanup (removed unused local Claude Flow tooling, added GitHub Spec Kit for planning). No functional or user-facing changes.
+
 = 1.8.13 =
 *   **Security and consent hardening**: browser REST intake now accepts only ClickTrail's real browser events, applies a per-page-token replay limit, preserves separate analytics and marketing consent categories across supported CMPs, honors custom consent cookies server-side, and never lets an external CMP re-enable gating when Consent Mode is disabled.
 *   **Attribution reliability**: cross-domain verification now sends the required page token; attribution cookies are encoded, size-bounded, and cleared instead of leaving stale server values; pre-consent attribution is not persisted while consent is required.
