@@ -661,10 +661,11 @@ trait Admin_Pages_Trait {
 	 * @return string
 	 */
 	protected function render_woo_order_lookup_results( array $lookup, string $message = '' ): string {
-		$order_id = isset( $lookup['order_id'] ) ? absint( $lookup['order_id'] ) : 0;
-		$status   = isset( $lookup['status'] ) ? sanitize_key( (string) $lookup['status'] ) : '';
-		$traces   = isset( $lookup['traces'] ) && is_array( $lookup['traces'] ) ? $lookup['traces'] : array();
-		$message  = '' !== $message ? $message : __( 'Lookup an order to inspect stored purchase and milestone traces.', 'click-trail-handler' );
+		$order_id          = isset( $lookup['order_id'] ) ? absint( $lookup['order_id'] ) : 0;
+		$status            = isset( $lookup['status'] ) ? sanitize_key( (string) $lookup['status'] ) : '';
+		$traces            = isset( $lookup['traces'] ) && is_array( $lookup['traces'] ) ? $lookup['traces'] : array();
+		$consent_marketing = array_key_exists( 'consent_marketing', $lookup ) ? $lookup['consent_marketing'] : null;
+		$message           = '' !== $message ? $message : __( 'Lookup an order to inspect stored purchase and milestone traces.', 'click-trail-handler' );
 
 		ob_start();
 		if ( ! $order_id ) {
@@ -687,13 +688,16 @@ trait Admin_Pages_Trait {
 		</div>
 		<?php foreach ( $traces as $trace ) : ?>
 			<?php
-			$event_name   = isset( $trace['event_name'] ) ? sanitize_text_field( (string) $trace['event_name'] ) : '';
-			$event_id     = isset( $trace['event_id'] ) ? sanitize_text_field( (string) $trace['event_id'] ) : '';
-			$source_hook  = isset( $trace['source_hook'] ) ? sanitize_text_field( (string) $trace['source_hook'] ) : '';
-			$attempted_at = isset( $trace['attempted_at'] ) ? sanitize_text_field( (string) $trace['attempted_at'] ) : '';
-			$dispatch     = isset( $trace['dispatch'] ) && is_array( $trace['dispatch'] ) ? $trace['dispatch'] : array();
-			$queue        = isset( $trace['queue'] ) && is_array( $trace['queue'] ) ? $trace['queue'] : array();
-			$payload      = isset( $trace['payload'] ) && is_array( $trace['payload'] ) ? $trace['payload'] : array();
+			$event_name         = isset( $trace['event_name'] ) ? sanitize_text_field( (string) $trace['event_name'] ) : '';
+			$event_id           = isset( $trace['event_id'] ) ? sanitize_text_field( (string) $trace['event_id'] ) : '';
+			$source_hook        = isset( $trace['source_hook'] ) ? sanitize_text_field( (string) $trace['source_hook'] ) : '';
+			$attempted_at       = isset( $trace['attempted_at'] ) ? sanitize_text_field( (string) $trace['attempted_at'] ) : '';
+			$dispatch           = isset( $trace['dispatch'] ) && is_array( $trace['dispatch'] ) ? $trace['dispatch'] : array();
+			$queue              = isset( $trace['queue'] ) && is_array( $trace['queue'] ) ? $trace['queue'] : array();
+			$payload            = isset( $trace['payload'] ) && is_array( $trace['payload'] ) ? $trace['payload'] : array();
+			$attribution        = isset( $payload['attribution'] ) && is_array( $payload['attribution'] ) ? $payload['attribution'] : array();
+			$consent_suppressed = empty( $attribution['first_touch'] ) && empty( $attribution['last_touch'] )
+				&& false === $consent_marketing;
 			?>
 			<section class="clicktrail-card" style="margin-top:16px;">
 				<div class="clicktrail-card__header clicktrail-card__header--static">
@@ -705,6 +709,19 @@ trait Admin_Pages_Trait {
 					</span>
 				</div>
 				<div class="clicktrail-card__body">
+					<?php if ( $consent_suppressed ) : ?>
+						<div class="clicktrail-inline-notice clicktrail-inline-notice--warning">
+							<span class="dashicons dashicons-shield" aria-hidden="true"></span>
+							<span>
+								<?php
+								esc_html_e(
+									'No attribution was captured for this order because marketing consent was not granted when it fired. This is expected when "Enable consent mode" is on under Settings → Delivery → Privacy & consent. Turn it off there if you don\'t need consent-gated attribution.',
+									'click-trail-handler'
+								);
+								?>
+							</span>
+						</div>
+					<?php endif; ?>
 					<table class="widefat striped clicktrail-data-table">
 						<tbody>
 							<tr>
