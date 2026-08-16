@@ -161,6 +161,15 @@ When `encrypt_secrets_at_rest` is enabled but the server lacks OpenSSL AES-256-G
 toggle is inert (secrets stay plaintext); an admin notice surfaces this so it does not
 fail silently.
 
+**Settings backup export contains unmasked secrets.** The "Export Backup" action (Settings
+> Diagnostics) reads secrets via the decrypted/unmasked accessor, not the masked one used by
+the admin UI, so the downloaded JSON contains the Calendly/HubSpot/Typeform webhook secrets
+and the CRM lifecycle token in cleartext — even when `encrypt_secrets_at_rest` is on. The
+action is capability- and nonce-gated, so this is not an access-control issue, but the
+downloaded file itself should be handled like a credentials file: store it in a secrets
+manager or encrypted storage, never commit it to a repository, and avoid sending it over
+unencrypted channels. The admin UI carries an on-screen warning to this effect as of 1.8.14.
+
 ## Environment Safeguards
 
 Server-side dispatch is blocked by default in:

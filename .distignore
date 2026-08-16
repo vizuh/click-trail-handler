@@ -2,7 +2,7 @@
 .git
 .github
 .claude
-.claude-flow
+.specify
 .tools
 .editorconfig
 .gitignore
@@ -24,9 +24,6 @@ package-lock.json
 composer.json
 composer.lock
 vendor/
-
-# Project config
-config/
 
 # Contributor docs
 CONTRIBUTING.md
