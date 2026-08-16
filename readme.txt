@@ -214,6 +214,9 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 
 == Changelog ==
 
+= 1.8.19 =
+*   **Maintenance**: removed dead Settings API code left over from before the unified settings screen (`includes/admin/class-admin.php`, ~890 lines removed). Verified against every live admin page before removal. No functional or user-facing changes.
+
 = 1.8.18 =
 *   **Maintenance**: expanded the automated test suite to cover REST API auth boundaries (token validation, webhook signatures, CRM lifecycle tokens) and queue retry-backoff logic. No functional or user-facing changes.
 

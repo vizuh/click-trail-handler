@@ -3,7 +3,7 @@
 - **Audience**: maintainers, reviewers, and cleanup-focused contributors
 - **Canonical for**: current maintenance posture, known dead paths, and cleanup hotspots
 - **Update when**: legacy paths are removed, major cleanup lands, or quality risks materially change
-- **Last verified against version**: `1.8.18`
+- **Last verified against version**: `1.8.19`
 
 This document summarizes the current quality posture of the repository and the main maintenance concerns worth watching.
 
@@ -19,15 +19,13 @@ This document summarizes the current quality posture of the repository and the m
 
 ## Current Maintenance Hotspots
 
-## 1. Compatibility admin logic inside `class-admin.php`
+## 1. ~~Compatibility admin logic inside `class-admin.php`~~ — resolved
 
-The active admin UX now runs through the unified settings app, but `includes/admin/class-admin.php` still carries older Settings API registrations and callback helpers alongside the live screen bootstrap.
+The dead Settings API registrations and renderer callbacks have been removed from `includes/admin/class-admin.php` (2276 → 1383 lines). `register_settings()` (and its `admin_init` hook), `render_settings_page()` and everything only reachable from it (`get_settings_tabs()`, `get_settings_form_config()`, `get_settings_cards()`, `render_settings_status_bar()`, `render_status_pill()`, `render_settings_card()`, `render_settings_save_bar()`), and the field renderers `render_text_field()`, `render_select_field()`, `render_checkbox_field()`, `render_number_field()`, `render_gtm_text_field()` are gone — none had a live caller; `render_settings_page()` was never wired up as any menu page's callback.
 
-Examples:
+The sanitization helpers that back the live unified-settings save path — `sanitize_settings()`, `sanitize_server_side_settings()`, `normalize_settings_input()`, the per-field `sanitize_*` helpers, and `get_attribution_settings_schema()`/`get_attribution_settings_defaults()` — were kept; they're called from `save_unified_admin_settings()` and the diagnostics import/export handlers independent of the removed Settings API scaffolding.
 
-- old settings renderer methods in `includes/admin/class-admin.php`
-
-Treat the file as runtime-critical, but do not assume every renderer/helper inside it defines the current UX contract.
+Treat the remainder of the file as runtime-critical; it now backs only the live screens (`render_settings_app_page()`, `logs_page()`, `diagnostics_page()`) and the unified settings save/load path.
 
 ## 2. ~~Internal naming that still reflects older architecture~~ — resolved
 
