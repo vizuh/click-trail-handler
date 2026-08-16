@@ -14,8 +14,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 /**
  * Writes one row per touch/conversion event to `{prefix}clicutcl_touch_events`.
  *
- * build_row() is pure (no $wpdb access) so it is unit-testable without a DB
- * harness; record()/insert() are the thin impure wrapper around it.
+ * The build_row() method is pure (no $wpdb access) so it is unit-testable
+ * without a DB harness; record()/insert() are the thin impure wrapper around it.
  */
 class Touch_Events_Store {
 
