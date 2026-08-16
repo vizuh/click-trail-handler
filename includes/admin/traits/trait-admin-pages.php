@@ -296,7 +296,8 @@ trait Admin_Pages_Trait {
 						<span class="clicktrail-card__icon dashicons dashicons-backup" aria-hidden="true"></span>
 						<span class="clicktrail-card__heading">
 							<span class="clicktrail-card__title"><?php esc_html_e( 'Backup Restore', 'click-trail-handler' ); ?></span>
-							<span class="clicktrail-card__description"><?php esc_html_e( 'Export or restore the five main ClickTrail option stores, including masked secrets through privileged server-side actions.', 'click-trail-handler' ); ?></span>
+							<span class="clicktrail-card__description"><?php esc_html_e( 'Export or restore the five main ClickTrail option stores through privileged server-side actions.', 'click-trail-handler' ); ?></span>
+							<span class="clicktrail-card__description clicktrail-card__description--warning"><?php esc_html_e( 'Warning: the exported backup file contains live, unmasked webhook secrets and CRM tokens in plaintext. Treat it like a credentials file — store and share it accordingly.', 'click-trail-handler' ); ?></span>
 						</span>
 					</span>
 				</div>

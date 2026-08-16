@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, integrators, and reviewers
 - **Canonical for**: active routes, auth model, diagnostics endpoints, and REST-side constraints
 - **Update when**: routes, auth headers, body limits, or intake behavior changes
-- **Last verified against version**: `1.8.13`
+- **Last verified against version**: `1.8.14`
 
 Active REST namespace:
 
@@ -165,10 +165,10 @@ See also:
 
 ## Legacy API Status
 
-`includes/api/class-log-controller.php` still exists in the repository, but the current bootstrap registers only `Tracking_Controller`.
+The legacy v1 log controller (`includes/api/class-log-controller.php`) has been removed from the codebase entirely. `clicutcl/v2` via `Tracking_Controller` is the only registered REST surface.
 
 Legacy API status:
 
-- disabled by default
+- removed from the repository
 - not part of the active GitHub-facing product surface
-- can only be reintroduced intentionally via code-level changes
+- would require reintroduction from an earlier tag to bring back
