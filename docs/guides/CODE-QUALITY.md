@@ -3,7 +3,7 @@
 - **Audience**: maintainers, reviewers, and cleanup-focused contributors
 - **Canonical for**: current maintenance posture, known dead paths, and cleanup hotspots
 - **Update when**: legacy paths are removed, major cleanup lands, or quality risks materially change
-- **Last verified against version**: `1.8.13`
+- **Last verified against version**: `1.8.18`
 
 This document summarizes the current quality posture of the repository and the main maintenance concerns worth watching.
 
@@ -53,12 +53,11 @@ The repository no longer keeps a duplicate redirect layer under `docs/`, so stal
 
 The repository now exposes a lightweight smoke harness through `npm run smoke`, backed by `config/feature-registry.json`, `config/feature-test-matrix.json`, and `tools/qa/smoke.js`.
 
-That improves breadth safety, but it is still not a full WordPress runtime or integration test suite. These areas remain especially sensitive to regressions:
+That improves breadth safety, but it is still not a full WordPress runtime or integration test suite. `tests/unit/RestAuthPermissionsTest.php` and `tests/unit/QueueRetryTest.php` (added in 1.8.18) now cover the REST `permission_callback` boundary (client/CRM/webhook token validation) and the queue's pure retry-backoff calculation, but the following areas remain especially sensitive to regressions:
 
 - grouped admin save/load mapping
 - form adapter behavior
-- REST auth edge cases
-- queue retry semantics
+- queue DB-backed paths (`Queue::process()`, `update_row_failure()`, `mark_row_failed()`, `requeue_failed()`) — all require a live `$wpdb`/WordPress test harness, which the current unit suite deliberately does not stand up
 - WooCommerce browser events and milestone hooks
 - adapter payload translation against real downstream endpoints
 
