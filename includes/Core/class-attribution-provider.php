@@ -230,6 +230,9 @@ class Attribution_Provider {
 				if ( preg_match( '/^\{\{.+\}\}$/', $clean ) ) {
 					continue;
 				}
+				if ( strlen( $clean ) > 255 ) {
+					$clean = substr( $clean, 0, 255 );
+				}
 				$sanitized[ $meta_key ] = $clean;
 			}
 		}

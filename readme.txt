@@ -214,6 +214,10 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 
 == Changelog ==
 
+= 1.8.15 =
+*   **Security (informational hardening)**: the per-IP rate limiter now uses an atomic increment-then-check when a persistent object cache is available, closing a small burst-margin race under concurrent requests from the same IP; falls back to the existing transient-based check otherwise.
+*   **Security (informational hardening)**: classic UTM/click-ID attribution fields are now capped at 255 characters before being stored in the attribution cookie, session storage, and WooCommerce order meta, matching the length cap already used for the signed cross-domain attribution token.
+
 = 1.8.14 =
 *   **Packaging fix**: `config/feature-registry.json` was accidentally excluded from every shipped release build, including the current WordPress.org version, causing the delivery-adapter dropdown and destinations list to render empty. The config directory now ships again.
 *   **Security UX**: the settings backup export now carries an explicit on-screen warning that the downloaded file contains live, unmasked webhook secrets and should be handled like a credentials file.

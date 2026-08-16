@@ -56,6 +56,25 @@ trait Tracking_Controller_Security_Trait {
 
 		$ip  = $this->get_client_ip();
 		$key = 'clicutcl_v2_rl_' . md5( $scope . '|' . $ip );
+
+		if ( wp_using_ext_object_cache() ) {
+			// Persistent cache present: seed then atomically increment, so every
+			// concurrent caller gets a distinct, correctly-serialized count instead
+			// of racing on a plain read-then-write.
+			wp_cache_add( $key, 0, 'clicutcl_ratelimit', $window );
+			$count = wp_cache_incr( $key, 1, 'clicutcl_ratelimit' );
+			if ( false === $count ) {
+				// Key evicted between the add and the incr: treat as first hit of a new window.
+				wp_cache_add( $key, 1, 'clicutcl_ratelimit', $window );
+				$count = 1;
+			}
+			if ( $count > $limit ) {
+				return new WP_Error( 'rate_limited', 'Too many requests', array( 'status' => 429 ) );
+			}
+			return true;
+		}
+
+		// No persistent object cache: best-effort, non-atomic transient fallback.
 		$hit = (int) get_transient( $key );
 		if ( $hit >= $limit ) {
 			return new WP_Error( 'rate_limited', 'Too many requests', array( 'status' => 429 ) );

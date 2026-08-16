@@ -163,11 +163,18 @@ disabled legacy route. The file does not exist anywhere in the current tree. Fix
    security.php`, function `check_rate_limit()`. Replace the `get_transient` / `set_transient`
    read-then-write with the atomic `wp_cache_add()` claim pattern already used in
    `includes/tracking/class-webhook-auth.php`'s `verify_request()`.
+   **Shipped in 1.8.15** — `check_rate_limit()` now seeds via `wp_cache_add()` and bumps via
+   `wp_cache_incr()` when `wp_using_ext_object_cache()` is true, comparing the returned count
+   against the limit; the non-object-cache transient path is unchanged as a documented
+   best-effort fallback.
 2. **No per-field length cap on the classic attribution capture path.** File:
    `includes/Core/class-attribution-provider.php`, function `sanitize()`. Add a length cap per
    UTM/click-ID field (mirror the 128-char cap already enforced on the `/attribution-token/sign`
    REST path) before persistence into the `ct_attribution` cookie, session storage, and
    WooCommerce order meta.
+   **Shipped in 1.8.15** — `sanitize()` now truncates each field to 255 characters (looser than
+   the 128-char token cap, since these are general UTM/campaign fields, not the click-ID-heavy
+   token payload) right after `sanitize_text_field()` and before assignment.
 
 (The HubSpot/Typeform webhook replay timestamp-freshness idea is a hardening opportunity noted
 above under Findings, not a concrete tracked item — no ClickTrail-side code change was
