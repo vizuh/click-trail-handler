@@ -56,6 +56,25 @@ class Cleanup {
 			$wpdb->prepare( $sql, $days )
 		);
 
+		// ponytail: LIMIT 1000/day mirrors the clicutcl_events batch style, but this
+		// table takes a row per browser event (not just form submissions), so a
+		// busy site can out-insert this ceiling and the 90-day retention never
+		// fully catches up. Bump the LIMIT or loop the delete if that happens.
+		$touch_events_table         = $wpdb->prefix . 'clicutcl_touch_events';
+		$touch_events_table_escaped = esc_sql( $touch_events_table ); // Internal, but still escape.
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Lightweight metadata check on plugin-owned table; no core wrapper available.
+		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $touch_events_table ) ) === $touch_events_table ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned and escaped.
+			$touch_events_sql = "DELETE FROM {$touch_events_table_escaped} WHERE created_at < DATE_SUB(UTC_TIMESTAMP(), INTERVAL %d DAY) LIMIT 1000";
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Cron cleanup on plugin-owned table.
+			$wpdb->query(
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- The query string is constructed safely above.
+				$wpdb->prepare( $touch_events_sql, $days )
+			);
+		}
+
 		$queue_days = (int) apply_filters( 'clicutcl_queue_retention_days', 7 );
 		if ( $queue_days < 1 ) {
 			$queue_days = 7;

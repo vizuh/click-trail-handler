@@ -214,6 +214,9 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 
 == Changelog ==
 
+= 1.9.0 =
+*   **New foundation (no visible UI change)**: ClickTrail now writes a structured, queryable record of every touch event and conversion to its own database table, in addition to the existing diagnostics log. This lays the groundwork for future reporting features and is subject to the same consent rules as the rest of ClickTrail — no attribution or identity data is recorded without marketing consent when consent is required. Records are automatically cleaned up after 90 days and are fully covered by the existing "export my data" / "erase my data" privacy tools.
+
 = 1.8.19 =
 *   **Maintenance**: removed dead Settings API code left over from before the unified settings screen (`includes/admin/class-admin.php`, ~890 lines removed). Verified against every live admin page before removal. No functional or user-facing changes.
 

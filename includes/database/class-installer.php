@@ -20,7 +20,7 @@ class Installer {
 	 * Schema version. Bump when table definitions change; `maybe_upgrade()`
 	 * re-runs dbDelta on existing installs until the stored version matches.
 	 */
-	public const DB_VERSION = 2;
+	public const DB_VERSION = 3;
 
 	/**
 	 * Option key for the installed schema version.
@@ -46,6 +46,16 @@ class Installer {
 	 * Queue table readiness checked timestamp option key.
 	 */
 	private const QUEUE_READY_CHECKED_AT_OPTION = 'clicutcl_queue_table_checked_at';
+
+	/**
+	 * Touch events table readiness option key.
+	 */
+	private const TOUCH_EVENTS_READY_OPTION = 'clicutcl_touch_events_table_ready';
+
+	/**
+	 * Touch events table readiness checked timestamp option key.
+	 */
+	private const TOUCH_EVENTS_READY_CHECKED_AT_OPTION = 'clicutcl_touch_events_table_checked_at';
 
 	/**
 	 * Run the installer.
@@ -90,9 +100,10 @@ class Installer {
 	private static function create_tables() {
 		global $wpdb;
 
-		$table_name      = $wpdb->prefix . 'clicutcl_events';
-		$queue_table     = $wpdb->prefix . 'clicutcl_queue';
-		$charset_collate = $wpdb->get_charset_collate();
+		$table_name         = $wpdb->prefix . 'clicutcl_events';
+		$queue_table        = $wpdb->prefix . 'clicutcl_queue';
+		$touch_events_table = $wpdb->prefix . 'clicutcl_touch_events';
+		$charset_collate    = $wpdb->get_charset_collate();
 
 		$sql = "CREATE TABLE $table_name (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -121,26 +132,60 @@ class Installer {
 			KEY status (status)
 		) $charset_collate;";
 
+		// Structured, queryable touch-event log -- the Pro-reporting foundation.
+		// Separate from clicutcl_events (the JSON-blob debug/admin log): both
+		// tables coexist permanently, this one is written on every touch event
+		// and conversion regardless of server-side delivery configuration.
+		$touch_events_sql = "CREATE TABLE $touch_events_table (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			blog_id bigint(20) unsigned NOT NULL DEFAULT 1,
+			visitor_id varchar(64) NOT NULL DEFAULT '',
+			session_id varchar(64) NOT NULL DEFAULT '',
+			event_name varchar(64) NOT NULL,
+			funnel_stage varchar(20) NOT NULL DEFAULT 'unknown',
+			source_channel varchar(20) NOT NULL DEFAULT 'web',
+			touch_source varchar(128) DEFAULT NULL,
+			touch_medium varchar(128) DEFAULT NULL,
+			touch_campaign varchar(255) DEFAULT NULL,
+			ft_source varchar(128) DEFAULT NULL,
+			ft_medium varchar(128) DEFAULT NULL,
+			ft_campaign varchar(255) DEFAULT NULL,
+			order_id bigint(20) unsigned DEFAULT NULL,
+			amount decimal(12,4) DEFAULT NULL,
+			currency varchar(8) DEFAULT NULL,
+			created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+			PRIMARY KEY  (id),
+			KEY visitor_id (visitor_id),
+			KEY order_id (order_id),
+			KEY blog_id (blog_id),
+			KEY created_at (created_at)
+		) $charset_collate;";
+
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 		dbDelta( $queue_sql );
+		dbDelta( $touch_events_sql );
 
-		$events_ready = self::table_exists( $table_name );
-		$queue_ready  = self::table_exists( $queue_table );
-		$checked_at   = time();
+		$events_ready       = self::table_exists( $table_name );
+		$queue_ready        = self::table_exists( $queue_table );
+		$touch_events_ready = self::table_exists( $touch_events_table );
+		$checked_at         = time();
 
 		update_option( self::EVENTS_READY_OPTION, $events_ready ? 1 : 0, false );
 		update_option( self::EVENTS_READY_CHECKED_AT_OPTION, $checked_at, false );
 		update_option( self::QUEUE_READY_OPTION, $queue_ready ? 1 : 0, false );
 		update_option( self::QUEUE_READY_CHECKED_AT_OPTION, $checked_at, false );
+		update_option( self::TOUCH_EVENTS_READY_OPTION, $touch_events_ready ? 1 : 0, false );
+		update_option( self::TOUCH_EVENTS_READY_CHECKED_AT_OPTION, $checked_at, false );
 
 		// Backward-compatible aggregate readiness flags.
-		update_option( 'clicutcl_db_ready', ( $events_ready && $queue_ready ) ? 1 : 0, false );
+		update_option( 'clicutcl_db_ready', ( $events_ready && $queue_ready && $touch_events_ready ) ? 1 : 0, false );
 		update_option( 'clicutcl_db_ready_checked_at', $checked_at, false );
 
 		// Record schema version only when the queue status column verifiably
-		// exists, so maybe_upgrade() retries on the next request if dbDelta failed.
-		if ( $queue_ready && self::column_exists( $queue_table, 'status' ) ) {
+		// exists and the touch events table is up, so maybe_upgrade() retries
+		// on the next request if dbDelta failed to fully apply.
+		if ( $queue_ready && self::column_exists( $queue_table, 'status' ) && $touch_events_ready ) {
 			update_option( self::DB_VERSION_OPTION, self::DB_VERSION, false );
 		}
 

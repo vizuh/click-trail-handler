@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, reviewers, and security-focused integrators
 - **Canonical for**: consent behavior, token handling, replay protection, and secret treatment
 - **Update when**: consent flow, auth, signing, secret storage, or privacy behavior changes
-- **Last verified against version**: `1.8.13`
+- **Last verified against version**: `1.9.0`
 
 ClickTrail is designed to capture attribution and events without treating privacy and delivery as separate concerns.
 
@@ -68,8 +68,10 @@ Identity exposure is additionally filterable through:
 
 - `clicutcl_identity_fields_allowed`
 
-The personal-data eraser removes matching rows from the events table **and** the
-server-side delivery queue (`clicutcl_queue`, matched on raw and SHA-256-hashed email).
+The personal-data eraser removes matching rows from the events table, the structured touch
+events table (`clicutcl_touch_events`, matched on the exact hashed-email `visitor_id`, added
+in `1.9.0`), **and** the server-side delivery queue (`clicutcl_queue`, matched on raw and
+SHA-256-hashed email).
 
 ## Client Token Security
 
