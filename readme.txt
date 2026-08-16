@@ -214,6 +214,9 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 
 == Changelog ==
 
+= 1.8.16 =
+*   **Diagnostics UX**: the "Lookup Order" tool now explains when an order's attribution is empty because marketing consent was denied at capture time, instead of just showing empty first-touch/last-touch data. Closes GitHub issue #44, where a consent-denied order correctly fell back to "Direct" but the diagnostics gave no indication why.
+
 = 1.8.15 =
 *   **Security (informational hardening)**: the per-IP rate limiter now uses an atomic increment-then-check when a persistent object cache is available, closing a small burst-margin race under concurrent requests from the same IP; falls back to the existing transient-based check otherwise.
 *   **Security (informational hardening)**: classic UTM/click-ID attribution fields are now capped at 255 characters before being stored in the attribution cookie, session storage, and WooCommerce order meta, matching the length cap already used for the signed cross-domain attribution token.

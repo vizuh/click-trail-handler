@@ -428,10 +428,17 @@ trait Admin_Diagnostics_Ajax_Trait {
 			);
 		}
 
+		$consent_raw       = (string) $order->get_meta( \CLICUTCL\Integrations\WooCommerce::CONSENT_META_KEY, true );
+		$consent_decoded   = '' !== $consent_raw ? json_decode( $consent_raw, true ) : null;
+		$consent_marketing = ( is_array( $consent_decoded ) && array_key_exists( 'marketing', $consent_decoded ) )
+			? ! empty( $consent_decoded['marketing'] )
+			: null;
+
 		$lookup = array(
-			'order_id' => $order_id,
-			'status'   => sanitize_key( (string) $order->get_status() ),
-			'traces'   => array(),
+			'order_id'          => $order_id,
+			'status'            => sanitize_key( (string) $order->get_status() ),
+			'consent_marketing' => $consent_marketing,
+			'traces'            => array(),
 		);
 
 		foreach ( $trace_meta as $event_name => $trace ) {
