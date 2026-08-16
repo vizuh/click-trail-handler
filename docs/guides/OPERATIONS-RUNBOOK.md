@@ -212,6 +212,7 @@ Diagnostics conflict scan calls:
 It is designed for deterministic local checks such as:
 
 - cache or optimization plugins detected while client fallback is off
+- active call tracking scripts detected (informational only; ClickTrail already skips `tel:` link decoration automatically)
 - Woo storefront events enabled without WooCommerce
 - sGTM mode enabled without a container or loader source
 - sGTM mode enabled while Delivery is not using the sGTM adapter
