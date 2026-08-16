@@ -137,6 +137,18 @@ class Dispatcher {
 	 * @return Adapter_Result
 	 */
 	public static function dispatch( Event $event ) {
+		// Structured touch-events write: fires for every event source (browser,
+		// WooCommerce, forms, webhooks, lifecycle) regardless of whether
+		// server-side delivery is configured -- most free users never
+		// configure an adapter, and the roadmap is explicit this must collect
+		// silently on every touch event and conversion. Placed ahead of the
+		// is_enabled()/endpoint gates below on purpose.
+		\CLICUTCL\Database\Touch_Events_Store::record(
+			$event->to_array(),
+			self::consent_allows( $event ),
+			function_exists( 'get_current_blog_id' ) ? (int) get_current_blog_id() : 1
+		);
+
 		if ( ! self::is_enabled() ) {
 			return Adapter_Result::skipped( 'disabled' );
 		}

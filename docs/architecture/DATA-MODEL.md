@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, and reviewers
 - **Canonical for**: option keys, cookies, tables, transients, cron hooks, and persistence surfaces
 - **Update when**: stored keys, retention behavior, queue schema, or cookie/storage usage changes
-- **Last verified against version**: `1.8.13`
+- **Last verified against version**: `1.9.0`
 
 This document summarizes the active storage surfaces used by ClickTrail.
 
@@ -28,6 +28,9 @@ Operational and readiness keys:
 - `clicutcl_events_table_checked_at`
 - `clicutcl_queue_table_ready`
 - `clicutcl_queue_table_checked_at`
+- `clicutcl_touch_events_table_ready`
+- `clicutcl_touch_events_table_checked_at`
+- `clicutcl_db_version` (schema version; `Installer::maybe_upgrade()` re-runs `dbDelta` on existing installs until it matches `Installer::DB_VERSION`)
 
 ## Option Responsibilities
 
@@ -156,6 +159,48 @@ Columns:
 - `last_error`
 - `created_at`
 
+## `wp_clicutcl_touch_events`
+
+Added in `1.9.0`. This is a separate, permanent table from `wp_clicutcl_events` above (which
+remains the JSON-blob admin Logs / GDPR source) -- it is the structured, queryable touch-event
+log the Pro reporting layer will read from. Written by `Dispatcher::dispatch()` (via
+`CLICUTCL\Database\Touch_Events_Store`) for every event source -- browser events, WooCommerce
+purchases and milestones, form submissions, webhooks, and lifecycle updates -- regardless of
+whether server-side delivery is configured or enabled. No free-tier UI reads this table yet.
+
+Consent gating: when marketing consent is required and not granted (per the same
+`Dispatcher::consent_allows()` gate used for delivery), the write is skipped entirely rather
+than persisting a partial or anonymous row.
+
+Columns:
+
+- `id`
+- `blog_id` -- multisite blog ID (`1` on single-site)
+- `visitor_id` -- pseudonymous key: the resolved `hashed_email` (SHA-256) when identity is
+  available, else the session ID; never a raw email or IP
+- `session_id`
+- `event_name` -- canonical event name (e.g. `purchase`, `view_item`, `lead`)
+- `funnel_stage` -- `top` / `mid` / `bottom` / `unknown`
+- `source_channel`
+- `touch_source`, `touch_medium`, `touch_campaign` -- "current touch": last-touch when present,
+  else first-touch, derived from whichever attribution shape the source uses (WooCommerce's
+  nested `first_touch`/`last_touch`, or the flat `ft_*`/`lt_*` keys browser events and forms use)
+- `ft_source`, `ft_medium`, `ft_campaign` -- first-touch, kept alongside the derived "current
+  touch" fields for first-touch vs. last-touch reporting
+- `order_id`
+- `amount`, `currency`
+- `created_at` -- the event's own occurrence time (`event_time`/`timestamp`), not insert time
+
+Retention: 90 days by default (same cookie-duration-based retention as `wp_clicutcl_events`),
+cleaned up by the existing `clicutcl_daily_cleanup` cron in `includes/utils/class-cleanup.php`.
+
+GDPR: exported and erased by `Privacy_Handler`, matched on `visitor_id = <hashed_email>` (an
+exact match against the same hash format `Identity_Resolver` and the queue matcher use).
+Rows whose `visitor_id` fell back to a session ID (no identity was ever resolved for that
+visitor, e.g. anonymous browsing that never converted) are not reachable by an email-keyed
+erasure request -- inherent to hashed-only matching, same limitation the queue eraser already
+has.
+
 ## WooCommerce Order Meta Surfaces
 
 WooCommerce order-level tracking state now also uses order meta for traceability:
@@ -227,6 +272,7 @@ Scheduled hooks:
 Cleanup behavior:
 
 - event rows retained according to attribution retention days
+- touch event rows retained for the same attribution retention days (default 90)
 - queue rows retained according to `clicutcl_queue_retention_days` filter
 
 ## Secret Handling
@@ -255,7 +301,7 @@ When the richer Woo `dataLayer` contract is enabled, thank-you page purchase pus
 - removes plugin options
 - clears scheduled hooks
 - clears ClickTrail transients
-- drops queue and events tables by default
+- drops the queue, events, and touch events tables by default
 
 Data preservation can be overridden with:
 

@@ -155,9 +155,12 @@ class Privacy_Handler {
 			);
 		}
 
+		$touch_items  = $this->export_touch_events_items( $email, $page );
+		$export_items = array_merge( $export_items, $touch_items['items'] );
+
 		return array(
 			'data' => $export_items,
-			'done' => count( $rows ) < self::PAGE_SIZE,
+			'done' => count( $rows ) < self::PAGE_SIZE && $touch_items['done'],
 		);
 	}
 
@@ -273,6 +276,17 @@ class Privacy_Handler {
 			$messages = array_merge( $messages, $queue['messages'] );
 		}
 
+		$touch_events = $this->erase_touch_events( $email );
+		if ( ! empty( $touch_events['items_removed'] ) ) {
+			$removed_any = true;
+		}
+		if ( ! empty( $touch_events['items_retained'] ) ) {
+			$retained = true;
+		}
+		if ( ! empty( $touch_events['messages'] ) && is_array( $touch_events['messages'] ) ) {
+			$messages = array_merge( $messages, $touch_events['messages'] );
+		}
+
 		return array(
 			'items_removed'  => $removed_any,
 			'items_retained' => $retained,
@@ -289,6 +303,16 @@ class Privacy_Handler {
 	private function get_events_table_name(): string {
 		global $wpdb;
 		return $wpdb->prefix . 'clicutcl_events';
+	}
+
+	/**
+	 * Build touch events table name.
+	 *
+	 * @return string
+	 */
+	private function get_touch_events_table_name(): string {
+		global $wpdb;
+		return $wpdb->prefix . 'clicutcl_touch_events';
 	}
 
 	/**
@@ -544,6 +568,146 @@ class Privacy_Handler {
 				'items_removed'  => false,
 				'items_retained' => true,
 				'messages'       => array( __( 'Some ClickTrail queued delivery records could not be deleted.', 'click-trail-handler' ) ),
+			);
+		}
+
+		return array(
+			'items_removed'  => $deleted > 0,
+			'items_retained' => false,
+			'messages'       => array(),
+		);
+	}
+
+	/**
+	 * Export touch-event rows matched by hashed-identity visitor key.
+	 *
+	 * The touch events table stores a pseudonymous `visitor_id` (the same
+	 * SHA-256 hashed-email format Identity_Resolver and the queue matcher
+	 * use), so matching is an exact-value lookup rather than the LIKE-based
+	 * best-effort match `clicutcl_events` needs against its JSON blob.
+	 *
+	 * @param string $email Email address.
+	 * @param int    $page  Page number (this table paginates independently of
+	 *                      the main events table, since a single visitor can
+	 *                      accumulate far more than PAGE_SIZE browser-event rows).
+	 * @return array{items:array<int,array<string,mixed>>,done:bool}
+	 */
+	private function export_touch_events_items( string $email, int $page = 1 ): array {
+		global $wpdb;
+
+		$table = $this->get_touch_events_table_name();
+		if ( ! $this->table_exists( $table ) ) {
+			return array(
+				'items' => array(),
+				'done'  => true,
+			);
+		}
+		$table_escaped = esc_sql( $table );
+		$hashed_email  = hash( 'sha256', strtolower( trim( $email ) ) );
+		$offset        = ( max( 1, $page ) - 1 ) * self::PAGE_SIZE;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Required for privacy export callbacks.
+		$rows = $wpdb->get_results(
+			$wpdb->prepare(
+				// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned and escaped.
+				"SELECT id, event_name, funnel_stage, source_channel, touch_source, touch_medium, touch_campaign, order_id, amount, currency, created_at FROM {$table_escaped} WHERE visitor_id = %s ORDER BY created_at DESC LIMIT %d OFFSET %d",
+				$hashed_email,
+				self::PAGE_SIZE,
+				$offset
+			),
+			ARRAY_A
+		);
+
+		$items = array();
+		foreach ( $rows as $row ) {
+			$items[] = array(
+				'group_id'    => 'clicutcl_touch_events',
+				'group_label' => __( 'ClickTrail Touch Events', 'click-trail-handler' ),
+				'item_id'     => 'clicutcl-touch-event-' . absint( $row['id'] ?? 0 ),
+				'data'        => array(
+					array(
+						'name'  => __( 'Event', 'click-trail-handler' ),
+						'value' => sanitize_text_field( (string) ( $row['event_name'] ?? '' ) ),
+					),
+					array(
+						'name'  => __( 'Funnel Stage', 'click-trail-handler' ),
+						'value' => sanitize_text_field( (string) ( $row['funnel_stage'] ?? '' ) ),
+					),
+					array(
+						'name'  => __( 'Source Channel', 'click-trail-handler' ),
+						'value' => sanitize_text_field( (string) ( $row['source_channel'] ?? '' ) ),
+					),
+					array(
+						'name'  => __( 'Touch Source', 'click-trail-handler' ),
+						'value' => sanitize_text_field( (string) ( $row['touch_source'] ?? '' ) ),
+					),
+					array(
+						'name'  => __( 'Touch Medium', 'click-trail-handler' ),
+						'value' => sanitize_text_field( (string) ( $row['touch_medium'] ?? '' ) ),
+					),
+					array(
+						'name'  => __( 'Touch Campaign', 'click-trail-handler' ),
+						'value' => sanitize_text_field( (string) ( $row['touch_campaign'] ?? '' ) ),
+					),
+					array(
+						'name'  => __( 'Order ID', 'click-trail-handler' ),
+						'value' => absint( $row['order_id'] ?? 0 ),
+					),
+					array(
+						'name'  => __( 'Amount', 'click-trail-handler' ),
+						'value' => sanitize_text_field( (string) ( $row['amount'] ?? '' ) ),
+					),
+					array(
+						'name'  => __( 'Currency', 'click-trail-handler' ),
+						'value' => sanitize_text_field( (string) ( $row['currency'] ?? '' ) ),
+					),
+					array(
+						'name'  => __( 'Date', 'click-trail-handler' ),
+						'value' => sanitize_text_field( (string) ( $row['created_at'] ?? '' ) ),
+					),
+				),
+			);
+		}
+
+		return array(
+			'items' => $items,
+			'done'  => count( $rows ) < self::PAGE_SIZE,
+		);
+	}
+
+	/**
+	 * Erase touch-event rows matched by hashed-identity visitor key.
+	 *
+	 * @param string $email Email address.
+	 * @return array{items_removed:bool,items_retained:bool,messages:array<int,string>}
+	 */
+	private function erase_touch_events( string $email ): array {
+		global $wpdb;
+
+		$table = $this->get_touch_events_table_name();
+		if ( ! $this->table_exists( $table ) ) {
+			return array(
+				'items_removed'  => false,
+				'items_retained' => false,
+				'messages'       => array(),
+			);
+		}
+		$table_escaped = esc_sql( $table );
+		$hashed_email  = hash( 'sha256', strtolower( trim( $email ) ) );
+
+		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned.
+		$delete_query = "DELETE FROM {$table_escaped} WHERE visitor_id = %s";
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Required for privacy erasure callbacks.
+		$deleted = $wpdb->query(
+			$wpdb->prepare( $delete_query, $hashed_email ) // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $delete_query built above.
+		);
+
+		if ( false === $deleted ) {
+			return array(
+				'items_removed'  => false,
+				'items_retained' => true,
+				'messages'       => array( __( 'Some ClickTrail touch event records could not be deleted.', 'click-trail-handler' ) ),
 			);
 		}
 
