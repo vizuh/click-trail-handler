@@ -7,15 +7,12 @@ vendor/
 # Reference GTM container exports (not plugin source)
 assets/shopify-gtm-container-templates-master/*.json
 
-# Claude Code
-.claude/
-
-# Claude Flow
-.claude-flow/
-
 # Local dev configs
 .mcp.json
 .tools/
+
+# spec-kit ephemeral state (current active feature directory)
+.specify/feature.json
 
 # Internal notes
 readme_header_update.txt
