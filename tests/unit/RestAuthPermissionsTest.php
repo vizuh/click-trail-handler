@@ -474,6 +474,31 @@ final class RestAuthPermissionsTest extends TestCase {
 		$this->assertSame( 'crm_unauthorized', $result->get_error_code() );
 	}
 
+	public function test_lifecycle_wrong_token_is_rate_limited(): void {
+		Option_Cache::set(
+			'clicutcl_tracking_v2',
+			array(
+				'lifecycle' => array( 'crm_ingestion' => array( 'token' => 'correct-crm-token' ) ),
+				'security'  => array( 'rate_limit_limit' => 1, 'rate_limit_window' => 60 ),
+			)
+		);
+
+		$controller = new Tracking_Controller();
+		$request    = new \WP_REST_Request(
+			array( 'X-Clicutcl-Crm-Token' => 'wrong-crm-token' ),
+			'{}',
+			'/clicutcl/v2/lifecycle/update'
+		);
+
+		$first = $controller->lifecycle_permissions_check( $request );
+		$this->assertTrue( is_wp_error( $first ) );
+		$this->assertSame( 'crm_unauthorized', $first->get_error_code() );
+
+		$second = $controller->lifecycle_permissions_check( $request );
+		$this->assertTrue( is_wp_error( $second ) );
+		$this->assertSame( 'rate_limited', $second->get_error_code() );
+	}
+
 	public function test_lifecycle_accepts_correct_token(): void {
 		Option_Cache::set(
 			'clicutcl_tracking_v2',

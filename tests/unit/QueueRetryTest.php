@@ -13,8 +13,16 @@
 
 declare(strict_types=1);
 
+require_once dirname( __DIR__, 2 ) . '/includes/Core/Storage/class-option-cache.php';
+require_once dirname( __DIR__, 2 ) . '/includes/settings/class-attribution-settings.php';
+require_once dirname( __DIR__, 2 ) . '/includes/server-side/class-consent.php';
+require_once dirname( __DIR__, 2 ) . '/includes/server-side/class-event.php';
+require_once dirname( __DIR__, 2 ) . '/includes/server-side/class-dispatcher.php';
 require_once dirname( __DIR__, 2 ) . '/includes/server-side/class-queue.php';
 
+use CLICUTCL\Core\Storage\Option_Cache;
+use CLICUTCL\Server_Side\Dispatcher;
+use CLICUTCL\Server_Side\Event;
 use CLICUTCL\Server_Side\Queue;
 use PHPUnit\Framework\TestCase;
 
@@ -88,5 +96,21 @@ final class QueueRetryTest extends TestCase {
 		$result = Queue::redact_retry_payload( $payload );
 
 		$this->assertSame( $payload, $result );
+	}
+
+	public function test_consent_gate_rejects_queued_event_without_marketing_consent(): void {
+		Option_Cache::set( 'clicutcl_attribution_settings', array( 'require_consent' => true ) );
+
+		$event = new Event(
+			array(
+				'event_name' => 'lead',
+				'event_id'   => 'lead_123',
+				'timestamp'  => 1_700_000_000,
+				'source'     => 'server',
+				'consent'    => array( 'marketing' => false ),
+			)
+		);
+
+		$this->assertFalse( Dispatcher::consent_allows( $event ) );
 	}
 }
