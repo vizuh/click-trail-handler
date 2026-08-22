@@ -215,6 +215,9 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 == Changelog ==
 
 = 1.8.17 =
+* Security: hardened the sGTM preview probe against internal or unsafe URL requests.
+* Security: rate-limited CRM lifecycle token authentication.
+* Privacy: queued delivery now re-checks the shared consent gate before sending.
 *   **Diagnostics**: the Conflict Scan now detects active call tracking scripts (CallRail, CallTrackingMetrics, WhatConverts, and others) and surfaces an informational note explaining that ClickTrail already skips `tel:` link decoration automatically — no action needed.
 *   **UX**: corrected the Conflict Scan card description on the Diagnostics screen, which had fallen out of sync with what the scan actually checks.
 

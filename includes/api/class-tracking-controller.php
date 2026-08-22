@@ -654,6 +654,11 @@ class Tracking_Controller extends WP_REST_Controller {
 			return new WP_Error( 'lifecycle_disabled', 'Lifecycle ingestion is disabled', array( 'status' => 403 ) );
 		}
 
+		$rate = $this->check_rate_limit( 'lifecycle_update' );
+		if ( is_wp_error( $rate ) ) {
+			return $rate;
+		}
+
 		$token = $request->get_header( 'x-clicutcl-crm-token' );
 		if ( ! $token ) {
 			$body  = $request->get_json_params();

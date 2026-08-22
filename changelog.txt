@@ -2,6 +2,9 @@ Changelog
 ========
 
 = 1.8.17 =
+*   **Security: hardened the sGTM preview probe** (`includes/admin/traits/trait-admin-diagnostics-ajax.php`): preview URLs now pass WordPress's unsafe-URL validation and HTTP transport safety flag before ClickTrail makes a server-side request.
+*   **Security: rate-limited CRM lifecycle authentication** (`includes/api/class-tracking-controller.php`): lifecycle token guesses now use the existing per-IP REST limiter.
+*   **Privacy: re-check consent before retry delivery** (`includes/server-side/class-dispatcher.php`, `includes/server-side/class-queue.php`): queued events are discarded instead of being sent when the shared consent gate denies delivery.
 *   **Diagnostics: Conflict Scan now detects active call tracking scripts** (`includes/admin/traits/trait-admin-diagnostics-ajax.php` `build_conflict_scan_report()`, new `detect_call_tracking_labels()` delegating to the already-existing but previously unwired `includes/admin/class-setup-detector.php` `Setup_Detector::detect_call_tracking()`): the scan checks active plugin slugs and known constants for CallRail, CallTrackingMetrics, WhatConverts, Retreaver, and Infinity Call Tracking, and — when one is found — surfaces an `info`-severity note (not a warning) explaining that ClickTrail already skips `tel:` link decoration automatically, so no action is needed. Matches the existing detection style used for cache/optimization plugins (`detect_cache_conflict_labels()`); no new detection mechanism was invented. `docs/guides/OPERATIONS-RUNBOOK.md`'s Conflict Scan check list was updated to match.
 *   **UX: corrected a stale Conflict Scan description** (`includes/admin/traits/trait-admin-pages.php` `diagnostics_page()`): the Diagnostics screen's Conflict Scan card description listed the categories the scan checks, but omitted the newly-added call tracking check. Updated to keep the description accurate.
 

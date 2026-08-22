@@ -968,12 +968,22 @@ trait Admin_Diagnostics_Ajax_Trait {
 	 * @return array<string,string>
 	 */
 	private function run_sgtm_http_preview_check( string $key, string $label, string $url, string $fallback_error ): array {
+		if ( false === wp_http_validate_url( $url ) ) {
+			return array(
+				'key'    => sanitize_key( $key ),
+				'label'  => $label,
+				'status' => 'attention',
+				'detail' => $fallback_error,
+			);
+		}
+
 		$response = wp_remote_request(
 			$url,
 			array(
-				'timeout'     => 5,
-				'method'      => 'GET',
-				'redirection' => 2,
+				'reject_unsafe_urls' => true,
+				'timeout'            => 5,
+				'method'             => 'GET',
+				'redirection'        => 2,
 			)
 		);
 

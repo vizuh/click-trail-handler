@@ -313,6 +313,10 @@ class Queue {
 		}
 
 		$event = new Event( $payload );
+		if ( ! Dispatcher::consent_allows( $event ) ) {
+			self::delete_row( (int) $row['id'] );
+			return;
+		}
 
 		$endpoint = isset( $row['endpoint'] ) ? esc_url_raw( (string) $row['endpoint'] ) : '';
 		if ( ! $endpoint ) {

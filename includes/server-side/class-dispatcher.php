@@ -407,7 +407,7 @@ class Dispatcher {
 	 * @param Event|null $event Event being dispatched, when available.
 	 * @return bool
 	 */
-	private static function consent_allows( ?Event $event = null ) {
+	public static function consent_allows( ?Event $event = null ) {
 		$attr_options    = Attribution_Settings::get_all();
 		$require_consent = ! empty( $attr_options['require_consent'] );
 		if ( class_exists( 'CLICUTCL\\Modules\\Consent_Mode\\Consent_Mode_Settings' ) ) {
