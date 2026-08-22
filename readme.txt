@@ -11,18 +11,25 @@ WC requires at least: 10.4.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Consent-aware attribution for WooCommerce, WordPress forms, and event flows. Capture UTMs and click IDs across conversion paths.
+> **Current integration verification (2026-08-19):** source registry entries are not provider-support proof.
+> PHP/WordPress/provider E2E verification was unavailable. Platform-named server adapters are **source-present /
+> runtime-unverified configured-endpoint adapters**. GTM can mediate site-owned provider tags, but ClickTrail does
+> not inject Meta/Facebook Pixel, Google tag, TikTok Pixel, LinkedIn Insight, Pinterest Tag, or Reddit Pixel SDKs.
+> Reddit has a **relay-only** destination toggle and `rdt_cid` capture, not a native delivery adapter. See
+> `docs/reference/INTEGRATIONS.md` and `docs/reference/integration-capabilities.json` in the repository.
+
+Consent-controlled attribution for WooCommerce, WordPress forms, and event flows. Capture UTMs and click IDs across conversion paths.
 
 == Description ==
 
 Attribution usually breaks somewhere between the ad click and the conversion. ClickTrail makes it survive: cached pages, dynamic forms, multi-page journeys, repeat visits, and consent requirements.
 
-ClickTrail keeps the source of the visit, not a profile of the visitor. Capture is first-party and consent-aware: the plugin does not call external services to identify or enrich visitors, and data only leaves your site through integrations you enable yourself (GTM, webhooks, server-side delivery).
+ClickTrail keeps the source of the visit, not a profile of the visitor. Capture is first-party and includes consent controls; by default the plugin does not call external services to identify or enrich visitors, and data leaves only through integrations you enable. Current consent, revocation, queue, WooCommerce, and purge blockers are documented in the repository security guide.
 
 ClickTrail stores first-touch and last-touch attribution from the landing page and keeps it available until the conversion point, where it becomes usable inside WordPress:
 
 * WooCommerce orders
-* supported forms
+* configured form paths
 * browser events
 * optional server-side delivery
 
@@ -32,7 +39,7 @@ In WooCommerce, ClickTrail stores attribution on the order, pushes enriched purc
 
 * **WooCommerce store**: enable Capture and WooCommerce. Orders carry campaign context from day one; add storefront events later if you want funnel signals.
 * **Lead-gen forms**: enable Capture and Forms. Contact Form 7 and Fluent Forms get hidden fields automatically; Gravity Forms and WPForms fill the `ct_*` fields you add.
-* **GTM / sGTM stack**: enable Capture, Events, and Delivery. Browser events push to the `dataLayer`, and the server-side adapters feed sGTM or platform APIs directly.
+* **GTM / sGTM stack**: enable Capture, Events, and Delivery. Browser events push to the `dataLayer`; configured endpoint adapters send canonical JSON, while provider tags/API authentication remain separately owned and verified.
 
 = What problems it solves =
 
@@ -40,7 +47,7 @@ In WooCommerce, ClickTrail stores attribution on the order, pushes enriched purc
 * **No checkout journey goes dark**: WooCommerce storefront journeys can emit opt-in `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` signals through the same ClickTrail event layer used elsewhere in the plugin.
 * **No cached or AJAX-rendered form drops attribution**: Hidden fields often break on cached pages or dynamically rendered forms. ClickTrail includes client-side fallback and dynamic-content support.
 * **No cross-domain hop breaks continuity**: Approved link decoration and attribution tokens keep continuity between domains or subdomains.
-* **No consent signal is ignored**: Consent controls, browser events, webhook intake, and server-side transport live in the same plugin and respect the same consent state.
+* **Consent boundary is documented**: Consent controls, browser events, webhook intake, and server-side transport live in the same plugin, but the current audit identifies unresolved legacy-gate, revocation, queue, form, WooCommerce, and dataLayer edge cases.
 
 = Core capabilities =
 
@@ -48,7 +55,7 @@ In WooCommerce, ClickTrail stores attribution on the order, pushes enriched purc
 * **WooCommerce**: checkout attribution persistence, thank-you purchase event push, enriched commerce payloads, optional storefront commerce events, and optional order-status milestones.
 * **Forms**: automatic hidden-field enrichment for Contact Form 7 and Fluent Forms, compatible hidden-field population for Gravity Forms and WPForms, client-side fallback, dynamic form support, and WhatsApp attribution continuity.
 * **Events**: browser event collection with `dataLayer` pushes, canonical REST intake, webhook ingestion, lifecycle updates, one-time WordPress follow-up events such as `login`, `sign_up`, and `comment_submit`, and optional WooCommerce storefront events.
-* **Delivery**: optional server-side transport, retry queue, diagnostics, consent-aware dispatch, and failure telemetry.
+* **Delivery**: optional server-side transport, retry queue, diagnostics, and consent-gated dispatch with known edge cases documented for the next release.
 
 = Recent additions =
 
@@ -76,13 +83,15 @@ Operational screens stay separate:
 * Logs
 * Diagnostics
 
-= Supported integrations =
+= Integration inventory and status =
 
 * **Forms**: Contact Form 7, Elementor Forms (Pro), Fluent Forms, Gravity Forms, Ninja Forms, WPForms
 * **Commerce**: WooCommerce
 * **CMP sources**: ClickTrail banner, Cookiebot, OneTrust, Complianz, GTM, custom
 * **Webhook providers**: Calendly, HubSpot, Typeform
-* **Server-side adapters**: Generic collector, sGTM, Meta CAPI, Google Ads / GA4, LinkedIn CAPI, Pinterest Conversions API, TikTok Events API
+* **Server-side adapter keys (source-present / runtime-unverified)**: Generic collector, sGTM, Meta CAPI, Google Ads / GA4, LinkedIn CAPI, Pinterest Conversions API, TikTok Events API. These currently serialize canonical JSON to configured endpoints; provider API/authentication and acceptance are not proven by registry presence.
+* **Browser/GTM-mediated only:** Meta/Facebook Pixel, Google tag/GA4, TikTok Pixel, LinkedIn Insight, Pinterest Tag, and Reddit Pixel. ClickTrail does not inject these SDKs.
+* **Reddit:** relay-only destination toggle and `rdt_cid` capture; no native Reddit delivery adapter.
 
 = Forms behavior by plugin =
 
@@ -147,7 +156,7 @@ ClickTrail can be rolled out in layers. A basic attribution setup for forms or W
 = How to verify your setup =
 
 1. Visit your site with a test URL such as `?utm_source=test&utm_medium=cpc&utm_campaign=clicktrail-install-check`.
-2. Browse to another page, then place a test WooCommerce order or submit a supported form.
+2. Browse to another page, then place a test WooCommerce order or submit a configured form.
 3. Confirm the expected result:
    * the WooCommerce order or form entry contains attribution values
    * Woo purchase events appear in your GTM preview or `dataLayer`
@@ -183,7 +192,7 @@ No. ClickTrail complements them. It preserves attribution inside WordPress, push
 
 = Does it work only with WooCommerce? =
 
-No. WooCommerce is one supported conversion surface, but ClickTrail also supports lead forms, external webhook providers, and broader attribution capture for WordPress sites.
+No. WooCommerce is one documented conversion surface; ClickTrail also has lead-form, webhook-ingress, and broader WordPress attribution paths.
 
 = What happens if my site uses aggressive caching? =
 
@@ -199,11 +208,16 @@ Yes. Attribution capture, WooCommerce order attribution, purchase event pushes, 
 
 = Is consent mode required? =
 
-No. Consent mode is optional. When enabled, ClickTrail can gate attribution and event handling according to the configured consent behavior.
+Consent mode is optional in configuration. When enabled, ClickTrail applies the configured behavior; the current audit found a legacy `require_consent` mismatch when mode is disabled, so optional mode is not a compliance or delivery guarantee until the next runtime release passes its tests.
 
 = Can I keep using my existing consent platform? =
 
 Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GTM, or a custom source. You do not need to replace an existing CMP just to use the plugin.
+
+== Release phasing and evidence ==
+
+The repository [release-phasing plan](docs/guides/RELEASE-PHASING-AND-INTEGRATION-DOCS.md) separates truth-containment
+docs, consent/privacy remediation, delivery integrity, provider-contract releases, and later reach work.
 
 == Screenshots ==
 
@@ -214,8 +228,13 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 
 == Changelog ==
 
+The entries below are historical release notes. They do not replace the current source/evidence status in
+`docs/reference/INTEGRATIONS.md` and `docs/guides/SECURITY-PRIVACY.md`; earlier claims may describe intended
+behavior that still requires current runtime verification.
+
+
 = 1.9.0 =
-*   **New foundation (no visible UI change)**: ClickTrail now writes a structured, queryable record of every touch event and conversion to its own database table, in addition to the existing diagnostics log. This lays the groundwork for future reporting features and is subject to the same consent rules as the rest of ClickTrail — no attribution or identity data is recorded without marketing consent when consent is required. Records are automatically cleaned up after 90 days and are fully covered by the existing "export my data" / "erase my data" privacy tools.
+*   **New foundation (no visible UI change)**: ClickTrail writes structured touch-event records in `clicutcl_touch_events` alongside the legacy diagnostics table. This is a reporting foundation, not a complete privacy certificate: the current audit found hashed-identity matching gaps, WooCommerce order-meta lifecycle gaps, retention coupling, and queue/revocation boundaries. See `docs/architecture/DATA-MODEL.md` and `docs/guides/SECURITY-PRIVACY.md` for the current evidence status.
 
 = 1.8.19 =
 *   **Maintenance**: removed dead Settings API code left over from before the unified settings screen (`includes/admin/class-admin.php`, ~890 lines removed). Verified against every live admin page before removal. No functional or user-facing changes.

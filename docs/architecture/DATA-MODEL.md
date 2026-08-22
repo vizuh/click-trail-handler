@@ -7,6 +7,10 @@
 
 This document summarizes the active storage surfaces used by ClickTrail.
 
+> **Retention boundary:** source inventory is not complete deletion proof. WooCommerce order-meta keys such as
+> `_clicutcl_woo_trace_snapshot`, attribution fields, consent snapshots, and milestone markers require their own
+> export, erase, retention, purge, and uninstall handling. The current audit did not verify that lifecycle.
+
 ## WordPress Options
 
 Primary option keys:

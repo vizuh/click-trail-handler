@@ -3,7 +3,16 @@
 - **Audience**: maintainers, support engineers, and reviewers
 - **Canonical for**: activation checks, queue behavior, diagnostics, and common failure handling
 - **Update when**: operational troubleshooting, queue behavior, diagnostics surfaces, or recovery steps change
-- **Last verified against version**: `1.8.5`
+- **Source baseline**: plugin code `1.9.0`, commit `a45aa9e`
+- **Runtime verification**: structural smoke only; live WordPress/queue/provider operations were not exercised in the 2026-08-19 audit
+
+## Current release boundary
+
+This runbook documents source-observed operations, not a production safety certificate. Before the next runtime
+release, test consent withdrawal immediately before queue retry, Woo order-meta purge/export/erase/uninstall,
+provider error responses, and sGTM preview URL rejection. The current queue path and purge scope remain release
+gates; do not interpret a visible Diagnostics result or a successful HTTP smoke check as proof of complete
+privacy deletion or exactly-once delivery.
 
 ## Activation and Boot
 

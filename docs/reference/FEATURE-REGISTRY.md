@@ -3,11 +3,18 @@
 - **Audience**: contributors, maintainers, reviewers, and release engineers
 - **Canonical for**: internal capability registry, destination metadata, adapter metadata, and smoke-test IDs
 - **Update when**: a capability, destination, adapter, docs target, or smoke ID is added, renamed, or removed
-- **Last verified against version**: `1.8.5`
+- **Source baseline**: plugin code `1.9.0`, commit `a45aa9e`
+- **Runtime verification**: structural registry/smoke checks only; provider E2E was not completed
 
 This document describes the internal feature registry used to keep ClickTrail's growing surface area aligned across admin UI, diagnostics, docs, and QA.
 
-The registry is not a public API. It is an internal source of truth for capability metadata.
+The registry is not a public API or a provider-support certificate. It is an internal source of truth for
+capability metadata, admin wiring, adapter class selection, and smoke ownership. A registry entry proves
+that ClickTrail knows about a key; it does not prove provider credentials, payload acceptance, consent
+transitions, retry safety, or purge behavior.
+
+For public status and provider boundaries, use [`INTEGRATIONS.md`](INTEGRATIONS.md) and the
+[`integration-capabilities.json`](integration-capabilities.json) evidence ledger.
 
 ## Source Files
 
@@ -32,7 +39,8 @@ Current consumers include:
 
 ## `delivery_adapters`
 
-Defines the supported server-side adapter menu and dispatcher mapping.
+Defines the selectable server-side adapter menu and dispatcher mapping. Public documentation must label
+these entries `source-present / runtime-unverified` until provider contract tests pass.
 
 Each entry declares:
 
@@ -56,7 +64,8 @@ Current shipped keys:
 
 ## `destinations`
 
-Defines the destination toggles shown in `Settings > Events`.
+Defines the destination toggles shown in `Settings > Events`. A destination toggle may be a relay marker
+rather than a native provider delivery path; Reddit is currently `relay_only` with no adapter key.
 
 Each entry declares:
 

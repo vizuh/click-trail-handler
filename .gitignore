@@ -10,6 +10,7 @@ assets/shopify-gtm-container-templates-master/*.json
 # Local dev configs
 .mcp.json
 .tools/
+/.claude*
 
 # spec-kit ephemeral state (current active feature directory)
 .specify/feature.json

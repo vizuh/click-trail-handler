@@ -1,18 +1,141 @@
 # ClickTrail Integrations Reference
 
 - **Audience**: contributors, maintainers, reviewers, and solution engineers
-- **Canonical for**: supported integrations, providers, CMP sources, webhook sources, and delivery adapters
-- **Update when**: integration support level, adapter list, provider list, or capability messaging changes
-- **Last verified against version**: `1.8.5`
+- **Canonical for**: integration roles, source evidence, status boundaries, providers, forms, webhooks, GTM, and delivery adapter keys
+- **Update when**: integration support level, adapter list, provider contract, evidence status, or capability messaging changes
+- **Source baseline**: plugin code `1.9.0`, commit `a45aa9e`
+- **Runtime verification**: not completed in the 2026-08-19 audit; PHP/WordPress/provider E2E tooling was unavailable
+- **Machine-readable ledger**: [`integration-capabilities.json`](integration-capabilities.json)
 
-This document lists the active integrations and external-facing connection points in the current codebase.
-
-Use this file when a team needs to answer two questions:
-
-1. "Is this platform or provider supported?"
-2. "How does ClickTrail attach value to it in practice?"
+This document is an evidence boundary, not a promise that every registry entry is production-ready. The
+registry proves internal wiring and smoke ownership. It does not prove provider credentials, provider API
+acceptance, consent transitions, retry safety, or deletion behavior.
 
 For rollout guidance by site type, see [../guides/IMPLEMENTATION-PLAYBOOK.md](../guides/IMPLEMENTATION-PLAYBOOK.md).
+For release gates, see [RELEASE-PHASING-AND-INTEGRATION-DOCS.md](../guides/RELEASE-PHASING-AND-INTEGRATION-DOCS.md).
+
+## Status vocabulary
+
+Use these labels in README copy, support answers, screenshots, and future provider pages:
+
+- **Source-present / runtime-unverified** — the registry and source path exist; provider acceptance,
+  credentials, consent transitions, retries, and purge are not proven here.
+- **GTM-mediated** — ClickTrail exposes browser/dataLayer or consent signals; the site owner configures
+the provider tag in GTM.
+- **Relay-only** — a destination marker/toggle exists, but no native ClickTrail delivery adapter exists.
+- **Webhook ingress** — provider data enters ClickTrail; this is not outbound provider delivery.
+- **Source connector / runtime-unverified** — a WordPress form, WooCommerce, or webhook source exists;
+live hook, consent, identity, and retention behavior still require testing.
+- **Not observed / planned / unsupported** — do not describe as available.
+
+### Capability matrix
+
+| Surface | Current status | What is present | What is not proven or not present |
+| --- | --- | --- | --- |
+| Generic Collector | Source-present / runtime-unverified | Configured-endpoint JSON collector (`schema_version: 1`) | Provider contract and destination acceptance |
+| sGTM adapter | Source-present / runtime-unverified | Configured-endpoint relay (`schema_version: 1`, `collector: sgtm`) | Secure preview, provider/tagging contract, and runtime delivery |
+| Meta CAPI adapter | Source-present / runtime-unverified | Registry key and adapter class posting canonical JSON (`collector: meta_capi`) | Turnkey Meta API authentication/acceptance; runtime delivery |
+| Google Ads / GA4 adapter | Source-present / runtime-unverified | Registry key and adapter class posting canonical JSON (`collector: google_ads`) | Turnkey Google API authentication/acceptance; runtime delivery |
+| LinkedIn CAPI adapter | Source-present / runtime-unverified | Registry key and adapter class posting canonical JSON (`collector: linkedin_capi`) | Turnkey LinkedIn API authentication/acceptance; runtime delivery |
+| Pinterest Conversions API adapter | Source-present / runtime-unverified | Registry key and adapter class posting canonical JSON (`collector: pinterest_capi`) | Turnkey Pinterest API authentication/acceptance; runtime delivery |
+| TikTok Events API adapter | Source-present / runtime-unverified | Registry key and adapter class posting canonical JSON (`collector: tiktok_events_api`) | Turnkey TikTok API authentication/acceptance; runtime delivery |
+| Google Tag Manager | GTM-mediated | Optional container injection, consent commands, browser/dataLayer events | Provider tags, consent configuration, and destination delivery owned by the site |
+| Meta/Facebook Pixel | GTM-mediated only; direct SDK not observed | Can consume site-owned GTM/dataLayer configuration | ClickTrail does not inject `fbq` or a Meta Pixel SDK |
+| Google tag / GA4 browser tag | GTM-mediated only; direct SDK not observed | Can consume site-owned GTM/dataLayer configuration | ClickTrail does not replace a site-owned Google tag setup |
+| TikTok Pixel, LinkedIn Insight, Pinterest Tag, Reddit Pixel | GTM-mediated only; direct SDKs not observed | Possible through a site-owned GTM container | No direct pixel/SDK injection or provider setup in ClickTrail |
+| Reddit destination | Relay-only | Destination toggle and `rdt_cid`/Reddit source classification | No native Reddit delivery adapter; no Reddit conversion-delivery claim |
+| Forms | Source connector / runtime-unverified | CF7, Elementor Pro, Fluent, Gravity, Ninja, and WPForms paths | Live plugin-hook, consent, posted-field, submission-storage, and erasure proof |
+| WooCommerce | Source connector / runtime-unverified | Order attribution, storefront events, purchase/milestones, traces | Purchase consent/dataLayer, order-meta cleanup, and retry-marker proof |
+| Calendly, HubSpot, Typeform | Webhook ingress / runtime-unverified | Signed inbound routes and canonical translation | Provider timestamp, identity minimization, replay, consent, and E2E proof |
+
+### Important platform boundary
+
+The platform-named delivery classes currently receive an endpoint and timeout, serialize the canonical event,
+and add a schema/collector marker before an HTTP request. They do not, by themselves, demonstrate a complete
+provider SDK/API integration with provider-specific authentication, payload acceptance, or account-level
+conversion verification. Treat the adapter keys as **source-present / runtime-unverified** until the relevant
+provider contract fixture and staged delivery test are recorded in the ledger.
+
+ClickTrail also does **not** inject Meta/Facebook Pixel, Google tag, TikTok Pixel, LinkedIn Insight,
+Pinterest Tag, or Reddit Pixel SDKs. Those are GTM-mediated/site-owned paths and need their own provider
+consent, tag, payload, and verification setup.
+
+## Adapter evidence cards
+
+Each card follows the same contract: role → trigger/input → consent → identity/data → transport/auth →
+retry/replay/dedup → retention/purge → setup → evidence and limitations.
+
+### Generic Collector — `generic`
+
+- **Role:** configured-endpoint delivery adapter.
+- **Input:** canonical ClickTrail event; POST JSON with `schema_version: 1`.
+- **Transport:** `Generic_Collector_Adapter`; outbound requests use WordPress HTTP with unsafe URLs rejected.
+- **Auth:** no provider-specific auth is constructed by this class; configure/authenticate the collector separately.
+- **Reliability:** shared Dispatcher/Queue/Diagnostics path; runtime retry and purge behavior remains under the
+  L1/L2 release gates.
+- **Evidence:** `config/feature-registry.json`, `includes/server-side/class-generic-collector-adapter.php`,
+  smoke ID `delivery-adapter-generic`.
+
+### sGTM — `sgtm`
+
+- **Role:** configured sGTM endpoint relay plus browser compatibility mode.
+- **Input:** canonical event; POST JSON with `schema_version: 1`, `collector: sgtm`.
+- **Transport:** `Sgtm_Adapter`; GTM web-tag settings also control tagging-server URL, loader, and preview paths.
+- **Auth:** no provider authentication is proven by the adapter class; sGTM container/server configuration remains external.
+- **Reliability/security:** shared queue/diagnostics path; the sGTM preview SSRF/private-network gate is an open
+  release blocker, so do not describe preview as secure-by-default.
+- **Evidence:** `includes/server-side/class-sgtm-adapter.php`, `includes/Modules/GTM/class-web-tag.php`,
+  smoke ID `delivery-adapter-sgtm`.
+
+### Meta CAPI — `meta_capi`
+
+- **Role:** registry-backed configured-endpoint adapter key.
+- **Input:** canonical event; POST JSON with `schema_version: 2`, `collector: meta_capi`.
+- **Transport/auth:** the reviewed class does not construct Meta credentials or a verified Meta API request;
+  endpoint/account configuration and provider acceptance are unverified.
+- **Browser boundary:** Meta/Facebook Pixel is not injected by ClickTrail; use a site-owned GTM tag if needed.
+- **Evidence:** `includes/server-side/class-meta-capi-adapter.php`, smoke ID `delivery-adapter-meta`.
+
+### Google Ads / GA4 — `google_ads`
+
+- **Role:** registry-backed configured-endpoint adapter key.
+- **Input:** canonical event; POST JSON with `schema_version: 2`, `collector: google_ads`.
+- **Transport/auth:** the reviewed class does not construct a verified Google Ads or GA4 API request/auth contract.
+- **Browser boundary:** Google tags remain site-owned/GTM-mediated.
+- **Evidence:** `includes/server-side/class-google-ads-adapter.php`, smoke ID `delivery-adapter-google`.
+
+### LinkedIn CAPI — `linkedin_capi`
+
+- **Role:** registry-backed configured-endpoint adapter key.
+- **Input:** canonical event; POST JSON with `schema_version: 2`, `collector: linkedin_capi`.
+- **Transport/auth:** LinkedIn API acceptance and authentication are not verified by the reviewed class.
+- **Browser boundary:** LinkedIn Insight Tag remains site-owned/GTM-mediated.
+- **Evidence:** `includes/server-side/class-linkedin-capi-adapter.php`, smoke ID `delivery-adapter-linkedin`.
+
+### Pinterest Conversions API — `pinterest_capi`
+
+- **Role:** registry-backed configured-endpoint adapter key.
+- **Input:** canonical event; POST JSON with `schema_version: 2`, `collector: pinterest_capi`.
+- **Transport/auth:** Pinterest API acceptance and authentication are not verified by the reviewed class.
+- **Browser boundary:** Pinterest Tag remains site-owned/GTM-mediated.
+- **Evidence:** `includes/server-side/class-pinterest-capi-adapter.php`, smoke ID `delivery-adapter-pinterest`.
+
+### TikTok Events API — `tiktok_events_api`
+
+- **Role:** registry-backed configured-endpoint adapter key.
+- **Input:** canonical event; POST JSON with `schema_version: 2`, `collector: tiktok_events_api`.
+- **Transport/auth:** TikTok Events API acceptance and authentication are not verified by the reviewed class.
+- **Browser boundary:** TikTok Pixel remains site-owned/GTM-mediated.
+- **Evidence:** `includes/server-side/class-tiktok-events-api-adapter.php`, smoke ID `delivery-adapter-tiktok`.
+
+### Reddit — relay-only destination
+
+- **What exists:** Events destination toggle, `rdt_cid` capture, and Reddit source/referrer classification.
+- **What does not exist:** native Reddit delivery adapter or direct Reddit Pixel SDK.
+- **Correct setup language:** route canonical events through a separately verified collector/GTM relay; do not
+  claim that enabling the Reddit toggle sends conversions to Reddit.
+- **Evidence:** `config/feature-registry.json`, `config/feature-test-matrix.json`,
+  `assets/js/admin-settings-app.js`, `assets/js/clicutcl-attribution.js`; smoke ID `destination-reddit-toggle`.
 
 ## Integration Pattern Cheatsheet
 
@@ -32,7 +155,7 @@ Managed by:
 
 - `includes/integrations/class-form-integration-manager.php`
 
-Supported form adapters:
+Source-present form adapters (runtime-unverified in this audit):
 
 - Contact Form 7
 - Elementor Forms (Pro)
@@ -107,7 +230,7 @@ Where teams see value:
 
 ## Consent and CMP Sources
 
-Supported consent sources:
+Configured consent sources (source-present; runtime precedence still requires verification):
 
 - ClickTrail plugin banner
 - Cookiebot
@@ -151,7 +274,7 @@ Implementation note:
 
 ## External Form Source Webhooks
 
-Supported providers:
+Webhook ingress providers (runtime-unverified in this audit):
 
 - Calendly
 - HubSpot
@@ -181,13 +304,13 @@ Where teams see value:
 
 - lifecycle stages such as `qualified_lead` or `client_won` can re-enter the same event model used by browser and form-originated events
 
-## Server-Side Delivery Adapters
+## Server-Side Delivery Adapter Registry
 
 Dispatcher:
 
 - `CLICUTCL\Server_Side\Dispatcher`
 
-Supported adapter keys:
+Registry adapter keys (source-present; not provider-contract verified):
 
 - `generic`
 - `sgtm`
@@ -203,9 +326,12 @@ Current role of adapters:
 - share queueing, retry, diagnostics, and consent gates
 - stay selectable through the shared feature registry instead of hard-coded admin lists
 
+The registry and smoke IDs prove wiring/document ownership, not provider delivery. See the evidence cards above
+and `docs/reference/integration-capabilities.json` before using a provider name in public copy.
+
 Important constraint:
 
-- ClickTrail still uses one selected native adapter at a time. Destination toggles are capability markers and diagnostics inputs, not multi-send fan-out controls.
+- ClickTrail still uses one selected adapter key at a time. Destination toggles are capability markers and diagnostics inputs, not multi-send fan-out controls or provider-delivery proof.
 
 Operational note:
 

@@ -3,9 +3,28 @@
 - **Audience**: contributors, maintainers, reviewers, and security-focused integrators
 - **Canonical for**: consent behavior, token handling, replay protection, and secret treatment
 - **Update when**: consent flow, auth, signing, secret storage, or privacy behavior changes
-- **Last verified against version**: `1.9.0`
+- **Source baseline**: plugin code `1.9.0`, commit `a45aa9e`
+- **Runtime verification**: not completed in the 2026-08-19 audit; PHP/WordPress/browser/provider E2E tooling was unavailable
 
 ClickTrail is designed to capture attribution and events without treating privacy and delivery as separate concerns.
+This document separates policy intent from verified runtime behavior. The current source audit found unresolved
+consent, queue, WooCommerce metadata, dataLayer, webhook, purge, and sGTM-preview boundaries; see the
+[release-phasing plan](RELEASE-PHASING-AND-INTEGRATION-DOCS.md) and
+[integration evidence ledger](../reference/integration-capabilities.json).
+
+## Current security-status blockers
+
+These are not claims that the behavior is fixed. They are release gates for the next runtime changes:
+
+- Consent Mode disabled and legacy `require_consent` can disagree between browser/core and `Dispatcher`.
+- Stale plugin consent cookies can outrank a current CMP decision; cross-tab synchronization and revocation are incomplete.
+- Form/Woo posted attribution, Woo order metadata, purchase dataLayer output, and queued retries need independent consent/revocation tests.
+- Woo traces can retain identity metadata; ClickTrail purge/export/erase/uninstall does not yet cover every Woo order-meta key.
+- Browser conversion tokens and external form messages do not prove a real action or provider confirmation.
+- Webhook identity/timestamp/replay semantics and sGTM preview SSRF still require hardening.
+
+Until these gates pass in PHP/WordPress/browser/provider tests, use `source-present / runtime-unverified`,
+not `privacy compliant`, `secure`, `guaranteed`, or `production-ready`.
 
 ## Consent Model
 
@@ -17,15 +36,19 @@ Supported behavior modes:
 - `relaxed`
 - `geo`
 
-Runtime behavior:
+Current source behavior (audit status):
 
-- if consent mode is disabled, attribution uses the legacy required-consent fallback logic
-- if consent mode is enabled, the runtime asks `Consent_Mode_Settings` whether the current request requires consent
-- frontend attribution now consumes the consent bridge as its primary runtime contract instead of hardcoding the legacy plugin cookie path
+- when consent mode is disabled, browser/core paths disable the legacy gate, but `Dispatcher` still reads a saved
+  `require_consent` value; this mismatch is unresolved
+- when consent mode is enabled, the runtime asks `Consent_Mode_Settings` whether the current request requires consent
+- frontend attribution consumes the consent bridge as its primary runtime contract, but stale-cookie/CMP precedence
+  and cross-tab synchronization remain runtime test requirements
 - consent resolution is normalized through `ct:consentResolved`, with compatibility events still emitted for older listeners
-- when consent resolves to denied, client-side attribution storage is cleared so previously captured values are not reused
-- browser event collection checks consent before pushing tracked events
-- server-side dispatch checks consent before sending events
+- when consent resolves to denied, local attribution storage is cleared; prior `dataLayer` entries, durable rows,
+  order metadata, queued deliveries, and third-party deliveries are not automatically erased
+- most browser event paths check consent before pushing tracked events, but follow-up logger, form, and Woo paths
+  require independent verification
+- initial server-side dispatch checks consent; queue retries currently require a separate pre-send consent check
 
 ## Consent Sources
 
@@ -62,16 +85,18 @@ Current design goals:
 - avoid storing unnecessary identity data by default
 - omit identity data when consent logic requires it
 - keep remote failure telemetry aggregated and payload-free
-- anonymize the visitor IP at rest in the diagnostic events log via `wp_privacy_anonymize_ip()`; the full IP is used only transiently for server-side delivery (CAPI match quality)
+- anonymize the visitor IP at rest in the diagnostic events log via `wp_privacy_anonymize_ip()`; some WooCommerce
+  trace snapshots can still copy raw IP/user-agent identity data and require separate retention/erasure handling
 
 Identity exposure is additionally filterable through:
 
 - `clicutcl_identity_fields_allowed`
 
-The personal-data eraser removes matching rows from the events table, the structured touch
-events table (`clicutcl_touch_events`, matched on the exact hashed-email `visitor_id`, added
-in `1.9.0`), **and** the server-side delivery queue (`clicutcl_queue`, matched on raw and
-SHA-256-hashed email).
+The personal-data eraser currently targets matching rows from the events table, the structured touch
+events table (`clicutcl_touch_events`, matched on the exact hashed-email `visitor_id`), and the server-side
+delivery queue (`clicutcl_queue`, matched on raw and SHA-256-hashed email). This is not complete erasure proof:
+legacy event matching does not cover every stored hashed identity shape, and ClickTrail has no verified generic
+export/erase/uninstall coverage for WooCommerce order-meta trace and attribution keys.
 
 ## Client Token Security
 
@@ -120,7 +145,8 @@ Verification hardening:
 
 - Typeform uses its native base64 HMAC `Typeform-Signature`
 - HubSpot uses its native SHA-256 `X-HubSpot-Signature`
-- Calendly currently retains ClickTrail's timestamped HMAC contract until its native signing format is verified
+- Calendly currently retains ClickTrail's timestamped HMAC contract until its native signing format is verified;
+  the adapter's raw identity, provider timestamp, and downstream retention behavior still require review
 - every signature is compared on the raw value with constant-time `hash_equals`
 - provider secrets are stored verbatim (not truncated or whitespace-stripped), so long/base64/structured secrets verify correctly
 - replay protection uses an atomic `wp_cache_add()` claim where a persistent object cache exists, falling back to a durable DB transient
@@ -130,6 +156,17 @@ Supported providers:
 - Calendly
 - HubSpot
 - Typeform
+
+## Queue, Revocation, and Retention Boundary
+
+The initial dispatcher consent decision is not the same as a complete lifecycle privacy guarantee. Before a
+runtime-remediation release is called ready, tests must prove that:
+
+- consent withdrawal blocks queued sends immediately before adapter invocation;
+- browser dataLayer history, pending capture, ClickTrail tables, Woo order metadata, debug buffers, and provider
+  deliveries have an explicit documented behavior;
+- retention is independent of the attribution cookie duration and cleanup continues when one table is unavailable;
+- purge/export/erase/uninstall cover every ClickTrail-owned storage key, including WooCommerce order meta.
 
 ## Trusted Proxies and Request Identity
 

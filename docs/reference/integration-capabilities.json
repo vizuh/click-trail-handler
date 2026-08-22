@@ -1,0 +1,518 @@
+{
+  "schema_version": 1,
+  "purpose": "Evidence ledger for ClickTrail integration documentation. This file is documentation metadata, not runtime configuration.",
+  "source_baseline": {
+    "commit": "a45aa9e",
+    "plugin_code_version": "1.9.0",
+    "reviewed_on": "2026-08-19",
+    "runtime_verification": "not completed in this audit",
+    "php_wordpress_e2e": "unavailable in this environment"
+  },
+  "status_definitions": {
+    "source_present_runtime_unverified": "The registry and source path exist; provider acceptance, credentials, consent transitions, retries, and purge are not proven here.",
+    "gtm_mediated": "ClickTrail exposes browser/dataLayer or consent signals; the site owner configures the provider tag in GTM.",
+    "relay_only": "A toggle or routing marker exists, but ClickTrail has no native delivery adapter for the destination.",
+    "webhook_ingress": "ClickTrail accepts provider-originated requests as an event source; this is not outbound provider delivery.",
+    "source_connector_runtime_unverified": "A WordPress source integration exists in code; live plugin-hook and privacy behavior still require runtime verification.",
+    "not_observed": "No direct provider SDK or native adapter was found in the reviewed source.",
+    "planned_or_unsupported": "Do not advertise as available."
+  },
+  "entries": [
+    {
+      "id": "transport.gtm",
+      "label": "Google Tag Manager / browser dataLayer",
+      "role": "browser_mediation",
+      "status": "gtm_mediated",
+      "provider_contract": "site-owned GTM container",
+      "what_exists": "Optional container injection, consent commands, browser events, and Woo dataLayer pushes.",
+      "what_does_not_exist": "ClickTrail does not inject Meta Pixel, Google tag, TikTok Pixel, LinkedIn Insight, Pinterest Tag, or Reddit Pixel SDKs.",
+      "evidence": [
+        "includes/Modules/GTM/class-web-tag.php",
+        "includes/Modules/GTM/class-gtm-settings.php",
+        "assets/js/clicutcl-events.js"
+      ],
+      "test_ids": [
+        "signed-intake-gate"
+      ],
+      "runtime_tests": [],
+      "known_limits": [
+        "GTM loading and tag configuration are separate consent/runtime boundaries."
+      ]
+    },
+    {
+      "id": "delivery.generic",
+      "label": "Generic Collector",
+      "role": "delivery_adapter",
+      "registry_key": "generic",
+      "status": "source_present_runtime_unverified",
+      "provider_contract": "configured endpoint relay",
+      "what_exists": "POSTs canonical JSON with schema_version 1 to the configured endpoint.",
+      "evidence": [
+        "config/feature-registry.json",
+        "includes/server-side/class-generic-collector-adapter.php"
+      ],
+      "test_ids": [
+        "delivery-adapter-generic"
+      ],
+      "runtime_tests": [],
+      "known_limits": [
+        "No provider-specific authentication or acceptance is established by this class."
+      ]
+    },
+    {
+      "id": "delivery.sgtm",
+      "label": "Server-side Google Tag Manager",
+      "role": "delivery_adapter",
+      "registry_key": "sgtm",
+      "status": "source_present_runtime_unverified",
+      "provider_contract": "configured sGTM endpoint relay",
+      "what_exists": "POSTs canonical JSON with schema_version 1 and collector=sgtm; browser compatibility mode supports tagging-server URL and loader options.",
+      "evidence": [
+        "config/feature-registry.json",
+        "includes/server-side/class-sgtm-adapter.php",
+        "includes/Modules/GTM/class-web-tag.php"
+      ],
+      "test_ids": [
+        "delivery-adapter-sgtm"
+      ],
+      "runtime_tests": [],
+      "known_limits": [
+        "sGTM preview SSRF hardening remains a release blocker; this is not a secure-by-default claim."
+      ]
+    },
+    {
+      "id": "delivery.meta",
+      "label": "Meta CAPI",
+      "role": "delivery_adapter",
+      "registry_key": "meta_capi",
+      "status": "source_present_runtime_unverified",
+      "provider_contract": "configured endpoint adapter; provider API contract not verified",
+      "what_exists": "POSTs canonical JSON with schema_version 2 and collector=meta_capi to the configured endpoint.",
+      "what_does_not_exist": "The reviewed adapter class does not construct provider credentials, provider-specific request authentication, or a verified provider acceptance contract.",
+      "evidence": [
+        "config/feature-registry.json",
+        "includes/server-side/class-meta-capi-adapter.php"
+      ],
+      "test_ids": [
+        "delivery-adapter-meta"
+      ],
+      "runtime_tests": [],
+      "known_limits": [
+        "Do not describe this as turnkey native provider delivery until provider contract and runtime tests pass."
+      ]
+    },
+    {
+      "id": "delivery.google",
+      "label": "Google Ads / GA4",
+      "role": "delivery_adapter",
+      "registry_key": "google_ads",
+      "status": "source_present_runtime_unverified",
+      "provider_contract": "configured endpoint adapter; provider API contract not verified",
+      "what_exists": "POSTs canonical JSON with schema_version 2 and collector=google_ads to the configured endpoint.",
+      "what_does_not_exist": "The reviewed adapter class does not construct provider credentials, provider-specific request authentication, or a verified provider acceptance contract.",
+      "evidence": [
+        "config/feature-registry.json",
+        "includes/server-side/class-google-ads-adapter.php"
+      ],
+      "test_ids": [
+        "delivery-adapter-google"
+      ],
+      "runtime_tests": [],
+      "known_limits": [
+        "Do not describe this as turnkey native provider delivery until provider contract and runtime tests pass."
+      ]
+    },
+    {
+      "id": "delivery.linkedin",
+      "label": "LinkedIn CAPI",
+      "role": "delivery_adapter",
+      "registry_key": "linkedin_capi",
+      "status": "source_present_runtime_unverified",
+      "provider_contract": "configured endpoint adapter; provider API contract not verified",
+      "what_exists": "POSTs canonical JSON with schema_version 2 and collector=linkedin_capi to the configured endpoint.",
+      "what_does_not_exist": "The reviewed adapter class does not construct provider credentials, provider-specific request authentication, or a verified provider acceptance contract.",
+      "evidence": [
+        "config/feature-registry.json",
+        "includes/server-side/class-linkedin-capi-adapter.php"
+      ],
+      "test_ids": [
+        "delivery-adapter-linkedin"
+      ],
+      "runtime_tests": [],
+      "known_limits": [
+        "Do not describe this as turnkey native provider delivery until provider contract and runtime tests pass."
+      ]
+    },
+    {
+      "id": "delivery.pinterest",
+      "label": "Pinterest Conversions API",
+      "role": "delivery_adapter",
+      "registry_key": "pinterest_capi",
+      "status": "source_present_runtime_unverified",
+      "provider_contract": "configured endpoint adapter; provider API contract not verified",
+      "what_exists": "POSTs canonical JSON with schema_version 2 and collector=pinterest_capi to the configured endpoint.",
+      "what_does_not_exist": "The reviewed adapter class does not construct provider credentials, provider-specific request authentication, or a verified provider acceptance contract.",
+      "evidence": [
+        "config/feature-registry.json",
+        "includes/server-side/class-pinterest-capi-adapter.php"
+      ],
+      "test_ids": [
+        "delivery-adapter-pinterest"
+      ],
+      "runtime_tests": [],
+      "known_limits": [
+        "Do not describe this as turnkey native provider delivery until provider contract and runtime tests pass."
+      ]
+    },
+    {
+      "id": "delivery.tiktok",
+      "label": "TikTok Events API",
+      "role": "delivery_adapter",
+      "registry_key": "tiktok_events_api",
+      "status": "source_present_runtime_unverified",
+      "provider_contract": "configured endpoint adapter; provider API contract not verified",
+      "what_exists": "POSTs canonical JSON with schema_version 2 and collector=tiktok_events_api to the configured endpoint.",
+      "what_does_not_exist": "The reviewed adapter class does not construct provider credentials, provider-specific request authentication, or a verified provider acceptance contract.",
+      "evidence": [
+        "config/feature-registry.json",
+        "includes/server-side/class-tiktok-events-api-adapter.php"
+      ],
+      "test_ids": [
+        "delivery-adapter-tiktok"
+      ],
+      "runtime_tests": [],
+      "known_limits": [
+        "Do not describe this as turnkey native provider delivery until provider contract and runtime tests pass."
+      ]
+    },
+    {
+      "id": "destination.meta_pixel",
+      "label": "Meta / Facebook Pixel",
+      "role": "browser_destination",
+      "status": "gtm_mediated",
+      "provider_contract": "site-owned GTM/container configuration",
+      "what_exists": "ClickTrail can expose browser/dataLayer signals for a site-owned Meta tag setup.",
+      "what_does_not_exist": "No direct provider pixel/SDK injection was observed in the reviewed ClickTrail source.",
+      "evidence": [
+        "assets/js/clicutcl-events.js",
+        "includes/Modules/GTM/class-web-tag.php"
+      ],
+      "test_ids": [],
+      "runtime_tests": [],
+      "known_limits": [
+        "Provider tag consent, configuration, payload mapping, and delivery remain outside ClickTrail until independently verified."
+      ]
+    },
+    {
+      "id": "destination.google_tags",
+      "label": "Google tag / GA4 browser tags",
+      "role": "browser_destination",
+      "status": "gtm_mediated",
+      "provider_contract": "site-owned GTM/container configuration",
+      "what_exists": "ClickTrail can expose browser/dataLayer signals for a site-owned Google tag setup.",
+      "what_does_not_exist": "No direct provider pixel/SDK injection was observed in the reviewed ClickTrail source.",
+      "evidence": [
+        "assets/js/clicutcl-events.js",
+        "includes/Modules/GTM/class-web-tag.php"
+      ],
+      "test_ids": [],
+      "runtime_tests": [],
+      "known_limits": [
+        "Provider tag consent, configuration, payload mapping, and delivery remain outside ClickTrail until independently verified."
+      ]
+    },
+    {
+      "id": "destination.tiktok_pixel",
+      "label": "TikTok Pixel",
+      "role": "browser_destination",
+      "status": "gtm_mediated",
+      "provider_contract": "site-owned GTM/container configuration",
+      "what_exists": "ClickTrail can expose browser/dataLayer signals for a site-owned TikTok tag setup.",
+      "what_does_not_exist": "No direct provider pixel/SDK injection was observed in the reviewed ClickTrail source.",
+      "evidence": [
+        "assets/js/clicutcl-events.js",
+        "includes/Modules/GTM/class-web-tag.php"
+      ],
+      "test_ids": [],
+      "runtime_tests": [],
+      "known_limits": [
+        "Provider tag consent, configuration, payload mapping, and delivery remain outside ClickTrail until independently verified."
+      ]
+    },
+    {
+      "id": "destination.linkedin_insight",
+      "label": "LinkedIn Insight Tag",
+      "role": "browser_destination",
+      "status": "gtm_mediated",
+      "provider_contract": "site-owned GTM/container configuration",
+      "what_exists": "ClickTrail can expose browser/dataLayer signals for a site-owned LinkedIn tag setup.",
+      "what_does_not_exist": "No direct provider pixel/SDK injection was observed in the reviewed ClickTrail source.",
+      "evidence": [
+        "assets/js/clicutcl-events.js",
+        "includes/Modules/GTM/class-web-tag.php"
+      ],
+      "test_ids": [],
+      "runtime_tests": [],
+      "known_limits": [
+        "Provider tag consent, configuration, payload mapping, and delivery remain outside ClickTrail until independently verified."
+      ]
+    },
+    {
+      "id": "destination.pinterest_tag",
+      "label": "Pinterest Tag",
+      "role": "browser_destination",
+      "status": "gtm_mediated",
+      "provider_contract": "site-owned GTM/container configuration",
+      "what_exists": "ClickTrail can expose browser/dataLayer signals for a site-owned Pinterest tag setup.",
+      "what_does_not_exist": "No direct provider pixel/SDK injection was observed in the reviewed ClickTrail source.",
+      "evidence": [
+        "assets/js/clicutcl-events.js",
+        "includes/Modules/GTM/class-web-tag.php"
+      ],
+      "test_ids": [],
+      "runtime_tests": [],
+      "known_limits": [
+        "Provider tag consent, configuration, payload mapping, and delivery remain outside ClickTrail until independently verified."
+      ]
+    },
+    {
+      "id": "destination.reddit_pixel",
+      "label": "Reddit Pixel",
+      "role": "browser_destination",
+      "status": "gtm_mediated",
+      "provider_contract": "site-owned GTM/container configuration",
+      "what_exists": "ClickTrail can expose browser/dataLayer signals for a site-owned Reddit tag setup.",
+      "what_does_not_exist": "No direct provider pixel/SDK injection was observed in the reviewed ClickTrail source.",
+      "evidence": [
+        "assets/js/clicutcl-events.js",
+        "includes/Modules/GTM/class-web-tag.php"
+      ],
+      "test_ids": [],
+      "runtime_tests": [],
+      "known_limits": [
+        "Provider tag consent, configuration, payload mapping, and delivery remain outside ClickTrail until independently verified."
+      ]
+    },
+    {
+      "id": "destination.reddit",
+      "label": "Reddit destination",
+      "role": "destination_toggle",
+      "registry_key": "reddit",
+      "status": "relay_only",
+      "provider_contract": "downstream relay or collector owned by the site",
+      "what_exists": "Relay-only destination toggle and Reddit click-ID/referrer classification, including rdt_cid.",
+      "what_does_not_exist": "No Reddit native delivery adapter or direct Reddit Pixel SDK was observed.",
+      "evidence": [
+        "config/feature-registry.json",
+        "config/feature-test-matrix.json",
+        "assets/js/admin-settings-app.js",
+        "assets/js/clicutcl-attribution.js"
+      ],
+      "test_ids": [
+        "destination-reddit-toggle"
+      ],
+      "runtime_tests": [],
+      "known_limits": [
+        "Do not list Reddit under native server adapters or claim Reddit conversion delivery."
+      ]
+    },
+    {
+      "id": "source.form.cf7",
+      "label": "Contact Form 7",
+      "role": "wordpress_source",
+      "status": "source_connector_runtime_unverified",
+      "provider_contract": "WordPress form hooks and/or hidden-field/submission metadata",
+      "what_exists": "Attribution capture and form-event paths are present; exact population, successful-submission, consent, and third-party retention behavior requires live plugin tests.",
+      "evidence": [
+        "includes/integrations/class-form-integration-manager.php",
+        "includes/integrations/forms/class-cf7-adapter.php"
+      ],
+      "test_ids": [],
+      "runtime_tests": [],
+      "known_limits": [
+        "Posted attribution and form-owned submission metadata are separate privacy boundaries."
+      ]
+    },
+    {
+      "id": "source.form.elementor",
+      "label": "Elementor Forms Pro",
+      "role": "wordpress_source",
+      "status": "source_connector_runtime_unverified",
+      "provider_contract": "WordPress form hooks and/or hidden-field/submission metadata",
+      "what_exists": "Attribution capture and form-event paths are present; exact population, successful-submission, consent, and third-party retention behavior requires live plugin tests.",
+      "evidence": [
+        "includes/integrations/class-form-integration-manager.php",
+        "includes/integrations/forms/class-elementor-forms-adapter.php"
+      ],
+      "test_ids": [],
+      "runtime_tests": [],
+      "known_limits": [
+        "Posted attribution and form-owned submission metadata are separate privacy boundaries."
+      ]
+    },
+    {
+      "id": "source.form.fluent",
+      "label": "Fluent Forms",
+      "role": "wordpress_source",
+      "status": "source_connector_runtime_unverified",
+      "provider_contract": "WordPress form hooks and/or hidden-field/submission metadata",
+      "what_exists": "Attribution capture and form-event paths are present; exact population, successful-submission, consent, and third-party retention behavior requires live plugin tests.",
+      "evidence": [
+        "includes/integrations/class-form-integration-manager.php",
+        "includes/integrations/forms/class-fluent-forms-adapter.php"
+      ],
+      "test_ids": [],
+      "runtime_tests": [],
+      "known_limits": [
+        "Posted attribution and form-owned submission metadata are separate privacy boundaries."
+      ]
+    },
+    {
+      "id": "source.form.gravity",
+      "label": "Gravity Forms",
+      "role": "wordpress_source",
+      "status": "source_connector_runtime_unverified",
+      "provider_contract": "WordPress form hooks and/or hidden-field/submission metadata",
+      "what_exists": "Attribution capture and form-event paths are present; exact population, successful-submission, consent, and third-party retention behavior requires live plugin tests.",
+      "evidence": [
+        "includes/integrations/class-form-integration-manager.php",
+        "includes/integrations/forms/class-gravity-forms-adapter.php"
+      ],
+      "test_ids": [],
+      "runtime_tests": [],
+      "known_limits": [
+        "Posted attribution and form-owned submission metadata are separate privacy boundaries."
+      ]
+    },
+    {
+      "id": "source.form.ninja",
+      "label": "Ninja Forms",
+      "role": "wordpress_source",
+      "status": "source_connector_runtime_unverified",
+      "provider_contract": "WordPress form hooks and/or hidden-field/submission metadata",
+      "what_exists": "Attribution capture and form-event paths are present; exact population, successful-submission, consent, and third-party retention behavior requires live plugin tests.",
+      "evidence": [
+        "includes/integrations/class-form-integration-manager.php",
+        "includes/integrations/forms/class-ninja-forms-adapter.php"
+      ],
+      "test_ids": [],
+      "runtime_tests": [],
+      "known_limits": [
+        "Posted attribution and form-owned submission metadata are separate privacy boundaries."
+      ]
+    },
+    {
+      "id": "source.form.wpforms",
+      "label": "WPForms",
+      "role": "wordpress_source",
+      "status": "source_connector_runtime_unverified",
+      "provider_contract": "WordPress form hooks and/or hidden-field/submission metadata",
+      "what_exists": "Attribution capture and form-event paths are present; exact population, successful-submission, consent, and third-party retention behavior requires live plugin tests.",
+      "evidence": [
+        "includes/integrations/class-form-integration-manager.php",
+        "includes/integrations/forms/class-wpforms-adapter.php"
+      ],
+      "test_ids": [],
+      "runtime_tests": [],
+      "known_limits": [
+        "Posted attribution and form-owned submission metadata are separate privacy boundaries."
+      ]
+    },
+    {
+      "id": "source.woocommerce",
+      "label": "WooCommerce",
+      "role": "wordpress_source",
+      "status": "source_connector_runtime_unverified",
+      "provider_contract": "Woo hooks, order meta, thank-you dataLayer, order milestones",
+      "what_exists": "Order attribution, storefront events, purchase/milestone pipeline, and Diagnostics trace surfaces.",
+      "evidence": [
+        "includes/integrations/class-woocommerce.php",
+        "config/feature-registry.json"
+      ],
+      "test_ids": [
+        "woo-view-item",
+        "woo-add-to-cart",
+        "woo-remove-from-cart",
+        "woo-begin-checkout",
+        "woo-order-paid",
+        "woo-order-refunded",
+        "woo-order-cancelled"
+      ],
+      "runtime_tests": [],
+      "known_limits": [
+        "Purchase dataLayer gating, skipped-delivery markers, order-meta erasure, and trace identity minimization remain release blockers."
+      ]
+    },
+    {
+      "id": "source.webhook.calendly",
+      "label": "Calendly",
+      "role": "webhook_ingress",
+      "status": "webhook_ingress",
+      "provider_contract": "signed inbound webhook route",
+      "what_exists": "Provider-specific webhook route, enablement, signature/replay controls, and canonical event translation.",
+      "evidence": [
+        "includes/api/class-tracking-controller.php",
+        "includes/tracking/webhooks/class-calendlywebhookadapter.php",
+        "includes/tracking/class-webhook-auth.php"
+      ],
+      "test_ids": [],
+      "runtime_tests": [],
+      "known_limits": [
+        "Provider timestamp freshness, raw identity minimization, consent provenance, and retry semantics require runtime/provider verification."
+      ]
+    },
+    {
+      "id": "source.webhook.hubspot",
+      "label": "HubSpot",
+      "role": "webhook_ingress",
+      "status": "webhook_ingress",
+      "provider_contract": "signed inbound webhook route",
+      "what_exists": "Provider-specific webhook route, enablement, signature/replay controls, and canonical event translation.",
+      "evidence": [
+        "includes/api/class-tracking-controller.php",
+        "includes/tracking/webhooks/class-hubspotwebhookadapter.php",
+        "includes/tracking/class-webhook-auth.php"
+      ],
+      "test_ids": [],
+      "runtime_tests": [],
+      "known_limits": [
+        "Provider timestamp freshness, raw identity minimization, consent provenance, and retry semantics require runtime/provider verification."
+      ]
+    },
+    {
+      "id": "source.webhook.typeform",
+      "label": "Typeform",
+      "role": "webhook_ingress",
+      "status": "webhook_ingress",
+      "provider_contract": "signed inbound webhook route",
+      "what_exists": "Provider-specific webhook route, enablement, signature/replay controls, and canonical event translation.",
+      "evidence": [
+        "includes/api/class-tracking-controller.php",
+        "includes/tracking/webhooks/class-typeformwebhookadapter.php",
+        "includes/tracking/class-webhook-auth.php"
+      ],
+      "test_ids": [],
+      "runtime_tests": [],
+      "known_limits": [
+        "Provider timestamp freshness, raw identity minimization, consent provenance, and retry semantics require runtime/provider verification."
+      ]
+    },
+    {
+      "id": "source.lifecycle",
+      "label": "Lifecycle REST updates",
+      "role": "backend_source",
+      "status": "source_present_runtime_unverified",
+      "provider_contract": "CRM/backend bearer-token REST ingress",
+      "what_exists": "Lifecycle endpoint and canonical pipeline entry point.",
+      "evidence": [
+        "includes/api/class-tracking-controller.php",
+        "includes/server-side/class-dispatcher.php"
+      ],
+      "test_ids": [],
+      "runtime_tests": [],
+      "known_limits": [
+        "Token identity/action binding, consent provenance, replay and retention need dedicated tests."
+      ]
+    }
+  ]
+}

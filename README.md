@@ -2,7 +2,7 @@
 
 Attribution usually breaks somewhere between the ad click and the conversion. ClickTrail makes it survive: cached pages, dynamic forms, cross-domain journeys, repeat visits, and consent requirements.
 
-ClickTrail keeps the source of the visit, not a profile of the visitor — first-party, consent-aware capture with no external identification or enrichment calls.
+ClickTrail keeps the source of the visit, not a profile of the visitor — first-party capture with consent controls. The current security-status blockers and their verification boundary are documented in [Security and Privacy](docs/guides/SECURITY-PRIVACY.md).
 
 [![GitHub release](https://img.shields.io/github/v/release/vizuh/click-trail-handler?label=version&color=blue)](https://github.com/vizuh/click-trail-handler/releases)
 [![License](https://img.shields.io/badge/license-GPL--2.0--or--later-green)](LICENSE)
@@ -21,13 +21,20 @@ ClickTrail keeps the source of the visit, not a profile of the visitor — first
 [Technical Docs](docs/README.md)  
 [WordPress Readme](readme.txt)
 
+> **Integration verification status (2026-08-19):** The registry and source paths are documented in
+> [the integration reference](docs/reference/INTEGRATIONS.md), but PHP/WordPress/provider E2E verification
+> was not available for this audit. The platform-named server adapters are currently **source-present /
+> runtime-unverified configured-endpoint adapters**. GTM can mediate site-owned platform tags; ClickTrail does
+> not inject Meta/Facebook Pixel, Google tag, TikTok Pixel, LinkedIn Insight, Pinterest Tag, or Reddit Pixel
+> SDKs. Reddit has a **relay-only** destination toggle and `rdt_cid` capture, not a native delivery adapter.
+
 ## What ClickTrail Solves
 
-- No WooCommerce order loses campaign context before revenue is reported.
-- No UTM or click ID disappears after the landing page.
-- No cached or dynamic form submits without attribution.
-- No cross-domain flow resets the source trail.
-- Consent-aware capture and optional server-side delivery live in one plugin.
+- Keeps campaign context available for WooCommerce orders when the configured path captures it.
+- Persists UTMs and click IDs across the configured attribution journey.
+- Provides client-side fallback paths for cached or dynamic forms.
+- Provides approved cross-domain continuity paths with documented limitations.
+- Consent controls and optional server-side delivery live in one plugin; end-to-end consent/revocation behavior remains under the release gates.
 
 ClickTrail is designed to keep first-touch and last-touch context alive until the point where WordPress actually needs it: WooCommerce orders, form submissions, browser events, and optional downstream delivery.
 
@@ -37,17 +44,14 @@ ClickTrail is designed to keep first-touch and last-touch context alive until th
 - **WooCommerce**: order attribution, enriched purchase payloads, thank-you page purchase pushes, optional list-view and cart storefront events, richer Woo `dataLayer` support, and post-purchase milestones.
 - **Forms**: automatic hidden-field enrichment for Contact Form 7 and Fluent Forms, compatible hidden-field population for Gravity Forms and WPForms, cached-page fallback, dynamic-content support, and WhatsApp continuity.
 - **Events**: browser collection, `dataLayer` pushes, sGTM compatibility mode, webhook intake, lifecycle updates, and optional Woo storefront signals.
-- **Delivery**: optional server-side transport, retries, diagnostics, conflict scanning, backup/restore, and consent-aware dispatch.
+- **Delivery**: optional server-side transport, retries, diagnostics, conflict scanning, backup/restore, and a consent gate whose end-to-end edge cases are documented for the next release.
 
-## Latest Release: 1.7.0
+## Repository release status
 
-- GF helper classes committed (Gf_Channel_Resolver, Gf_Form_Settings_Tab, Gf_Merge_Tags, Gf_Minification_Protector)
-- Admin QA cookie priority fix; `wp_logout` now clears it immediately
-- `lt_channel` server-side fallback added alongside `ft_channel`
-- Channel classifier extended: `dclid` → Display & Video 360, `epik` → Pinterest Ads, `sccid` → Snapchat Ads
-- `visitor_id` + `session_id` persisted to GF entry meta and WooCommerce order meta
-- Legacy code removed: dead v1 API controller, URL alias remapping, `enable_consent_banner`, `log_whatsapp_clicks()` stub
-- Full release notes: [changelog.txt](changelog.txt)
+- **Source baseline:** plugin code `1.9.0` at commit `a45aa9e`.
+- **Release metadata:** README, WordPress.org stable tag, and generated release artifacts still need alignment before the next package is published.
+- **Current phase:** truth-containment documentation only; no runtime remediation or new provider adapter is implied by this README update.
+- Full release history: [changelog.txt](changelog.txt).
 
 ## Documentation By Audience
 
@@ -60,7 +64,9 @@ ClickTrail is designed to keep first-touch and last-touch context alive until th
 - [docs/README.md](docs/README.md): engineering index by task and subsystem
 - [docs/guides/IMPLEMENTATION-PLAYBOOK.md](docs/guides/IMPLEMENTATION-PLAYBOOK.md): practical rollout guide for lead-gen, WooCommerce, cross-domain, consent-aware, and server-side setups
 - [docs/architecture/PLUGIN-OVERVIEW.md](docs/architecture/PLUGIN-OVERVIEW.md): runtime architecture and module map
-- [docs/reference/INTEGRATIONS.md](docs/reference/INTEGRATIONS.md): forms, commerce, consent, webhook, and delivery integrations
+- [docs/reference/INTEGRATIONS.md](docs/reference/INTEGRATIONS.md): evidence-labelled forms, commerce, consent, webhook, GTM, platform, and delivery paths
+- [docs/reference/integration-capabilities.json](docs/reference/integration-capabilities.json): machine-readable integration status and evidence ledger
+- [docs/guides/RELEASE-PHASING-AND-INTEGRATION-DOCS.md](docs/guides/RELEASE-PHASING-AND-INTEGRATION-DOCS.md): separately gated release plan
 - [docs/guides/SETTINGS-AND-ADMIN.md](docs/guides/SETTINGS-AND-ADMIN.md): current admin IA and option mapping
 - [changelog.txt](changelog.txt): full plain-English release history aligned with the WordPress readme
 - [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md): PR checklist for repo changes

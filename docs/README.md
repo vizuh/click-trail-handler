@@ -3,9 +3,12 @@
 - **Audience**: implementers, contributors, maintainers, support teams, reviewers, and AI agents
 - **Canonical for**: engineering navigation, adoption guidance, and source-of-truth lookup
 - **Update when**: docs move, ownership changes, or a new subsystem or rollout pattern needs a canonical reference
-- **Last verified against version**: `1.8.5`
+- **Source baseline**: plugin code `1.9.0`, commit `a45aa9e`
+- **Runtime verification**: not completed in the 2026-08-19 audit; PHP/WordPress/provider E2E tooling was unavailable
 
 This is the docs home for GitHub readers. Use it to find the right document by role, task, or rollout goal. Canonical docs live under `docs/architecture`, `docs/guides`, and `docs/reference`.
+
+> **Current verification boundary:** the integration registry proves source wiring, not production provider support. Read the [integration capability ledger](reference/integration-capabilities.json) and [integration reference](reference/INTEGRATIONS.md) before treating any adapter or destination as available. Reddit is relay-only in the current source; GTM-mediated platform tags are not native ClickTrail adapters.
 
 ## Start Here
 
@@ -21,7 +24,9 @@ If you are new to the plugin, read these in order:
 
 - [guides/IMPLEMENTATION-PLAYBOOK.md](guides/IMPLEMENTATION-PLAYBOOK.md): phased rollout patterns for lead-gen, WooCommerce, cross-domain, consent-aware, and server-side setups
 - [guides/SETTINGS-AND-ADMIN.md](guides/SETTINGS-AND-ADMIN.md): current settings IA and option mapping
-- [reference/INTEGRATIONS.md](reference/INTEGRATIONS.md): supported forms, commerce, consent, webhook, and delivery integrations
+- [reference/INTEGRATIONS.md](reference/INTEGRATIONS.md): evidence-labelled forms, commerce, consent, webhook, GTM, platform, and delivery integration paths
+- [reference/integration-capabilities.json](reference/integration-capabilities.json): machine-readable status, source evidence, smoke IDs, and known limitations
+- [RELEASE-PHASING-AND-INTEGRATION-DOCS.md](guides/RELEASE-PHASING-AND-INTEGRATION-DOCS.md): separately gated documentation, privacy, delivery, adapter, and reach releases
 
 ## I want to understand the runtime architecture
 
@@ -39,13 +44,15 @@ If you are new to the plugin, read these in order:
 
 ## I want to benchmark ClickTrail against another tracking plugin
 
-- [guides/FULL-PICTURE-COMPARISON.md](guides/FULL-PICTURE-COMPARISON.md): attribution-first comparison of ClickTrail vs WP Full Picture, including feature matrix, architecture tradeoffs, and roadmap
+- [reference/INTEGRATIONS.md](reference/INTEGRATIONS.md): current evidence-labelled capability boundaries and adapter roles
+- [guides/RELEASE-PHASING-AND-INTEGRATION-DOCS.md](guides/RELEASE-PHASING-AND-INTEGRATION-DOCS.md): release gates before making comparative or reach claims
 
 ## I want to extend routes, hooks, or integrations
 
 - [reference/REST-API.md](reference/REST-API.md): active routes, auth model, and diagnostics endpoints
 - [reference/HOOKS-REFERENCE.md](reference/HOOKS-REFERENCE.md): public actions and filters
-- [reference/INTEGRATIONS.md](reference/INTEGRATIONS.md): current support model and integration-specific implementation notes
+- [reference/INTEGRATIONS.md](reference/INTEGRATIONS.md): current evidence-labelled integration model and implementation notes
+- [reference/integration-capabilities.json](reference/integration-capabilities.json): capability/evidence ledger used before public claims
 - [reference/FEATURE-REGISTRY.md](reference/FEATURE-REGISTRY.md): internal capability and destination registry used by admin, dispatcher, docs, and smoke coverage
 
 ## I need to operate, debug, or support a live install
@@ -79,4 +86,5 @@ If you are new to the plugin, read these in order:
 - Admin truth belongs in `guides/SETTINGS-AND-ADMIN.md`.
 - API truth belongs in `reference/REST-API.md`.
 - Storage truth belongs in `architecture/DATA-MODEL.md`.
-- Integration truth belongs in `reference/INTEGRATIONS.md`.
+- Integration truth belongs in `reference/INTEGRATIONS.md` and its machine-readable evidence ledger.
+- Public integration claims must not outrun the ledger's runtime status or the release gates in the phasing plan.

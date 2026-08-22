@@ -3,7 +3,8 @@
 - **Audience**: maintainers, reviewers, QA contributors, and release engineers
 - **Canonical for**: ClickTrail smoke-test IDs, evidence-backed regression checks, and manual verification coverage
 - **Update when**: registry smoke IDs change or a shipped capability needs new regression coverage
-- **Last verified against version**: `1.8.5`
+- **Source baseline**: plugin code `1.9.0`, commit `a45aa9e`
+- **Runtime verification**: structural smoke plus consent-bridge checks only; provider/WordPress E2E was not completed
 
 ClickTrail now keeps a small evidence-backed smoke matrix so capability breadth can grow without silent docs or QA drift.
 
@@ -21,14 +22,17 @@ Implementation:
 
 ## What the Smoke Harness Covers
 
-The current smoke harness is structural, not end-to-end. It verifies that shipped capabilities still have:
+The current smoke harness is primarily structural, not provider end-to-end. It verifies that registry and
+source-backed capabilities still have:
 
 - registry coverage
 - canonical docs ownership
 - code evidence in the expected runtime files
 - smoke IDs that stay aligned between the feature registry and the matrix
 
-This is intentionally lighter than a WordPress integration test suite, but it is strong enough to catch common breadth regressions such as:
+The consent-bridge checks also exercise a small JavaScript boundary. This is intentionally lighter than a
+WordPress integration or provider contract suite, and it must not be used as proof of production delivery,
+privacy compliance, or native platform support. It is strong enough to catch common breadth regressions such as:
 
 - new adapters added in one place but not wired into the dispatcher
 - new destination toggles added in admin without registry coverage
@@ -104,6 +108,11 @@ These checks defend the deterministic conflict scan and the queue retry/backoff 
 ## Manual QA Still Required
 
 The smoke harness does not replace real runtime validation. Releases should still include targeted manual checks for:
+
+- provider-specific adapter contract fixtures and staged account delivery
+- consent withdrawal immediately before queue retry, including zero-send assertions
+- Woo order-meta export, erase, uninstall, and purge drills
+- rendered-docs claims review so registry status is not presented as provider support
 
 - Woo shop, product, cart, checkout, and thank-you flows
 - queue retries against a real or staged failing endpoint

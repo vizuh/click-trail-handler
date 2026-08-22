@@ -2,9 +2,17 @@
 
 [![WordPress tested](https://img.shields.io/badge/WordPress-v7.0%20tested-3858e9.svg)](https://wordpress.org)
 
+> **Status de verificacao das integracoes (2026-08-19):** o registry e o codigo comprovam wiring, nao suporte
+> de producao nos provedores. Os testes E2E de PHP/WordPress/provedores nao estavam disponiveis nesta auditoria.
+> Os adaptadores server-side com nome de plataforma estao **presentes no codigo / runtime nao verificado** e
+> enviam JSON para endpoint configurado. O GTM pode mediar tags do site; o ClickTrail nao injeta SDKs de Meta/
+> Facebook Pixel, Google tag, TikTok Pixel, LinkedIn Insight, Pinterest Tag ou Reddit Pixel. Reddit possui apenas
+> um destino **relay-only** e captura de `rdt_cid`, nao um adaptador nativo. Veja a [referencia de integracoes](docs/reference/INTEGRATIONS.md)
+> e o [ledger de evidencias](docs/reference/integration-capabilities.json).
+
 A atribuicao costuma quebrar em algum ponto entre o clique no anuncio e a conversao. O ClickTrail faz com que ela sobreviva.
 
-ClickTrail e um plugin de atribuicao para WordPress feito para sites que precisam manter a origem real das conversoes ao longo da jornada completa, especialmente quando pedidos do WooCommerce ou formularios acontecem varias paginas depois da landing page.
+ClickTrail e um plugin de atribuicao para WordPress feito para sites que precisam manter os dados de origem da campanha disponiveis ao longo da jornada, especialmente quando pedidos do WooCommerce ou formularios acontecem varias paginas depois da landing page.
 
 Ele foi pensado para os problemas que normalmente quebram a atribuicao em producao:
 
@@ -12,12 +20,12 @@ Ele foi pensado para os problemas que normalmente quebram a atribuicao em produc
 - formularios dinamicos ou carregados via AJAX
 - jornadas com varias paginas ou varias sessoes
 - fluxos entre dominios
-- necessidade de tracking com consentimento
-- entrega opcional server-side
+- necessidade de tracking com controles de consentimento e limites documentados
+- entrega opcional server-side, sujeita a verificacao de runtime
 
 Em vez de capturar uma UTM uma vez e torcer para que ela sobreviva, o ClickTrail mantem o contexto de primeiro toque e ultimo toque disponivel ate o momento em que pedidos do WooCommerce, formularios, eventos no navegador ou fluxos de entrega realmente precisam dele.
 
-O ClickTrail guarda a origem da visita, nao um perfil do visitante. A captura e first-party e respeita o consentimento: o plugin nao chama servicos externos para identificar ou enriquecer visitantes, e os dados so saem do site por integracoes ativadas explicitamente (GTM, webhooks, entrega server-side).
+O ClickTrail guarda a origem da visita, nao um perfil do visitante. A captura e first-party e possui controles de consentimento; por padrao, o plugin nao chama servicos externos para identificar ou enriquecer visitantes, e os dados saem apenas por integracoes ativadas. Consulte os bloqueios atuais de seguranca antes de tratar qualquer caminho como completo em privacidade.
 
 ## O Que o ClickTrail Faz
 
@@ -29,10 +37,10 @@ Ele combina:
 - atribuicao em pedidos do WooCommerce com payload de compra enriquecido
 - enriquecimento de formularios
 - coleta de eventos no navegador
-- controles de consentimento
+- controles de consentimento com limites de verificacao documentados
 - transporte server-side opcional com fila e diagnosticos
 
-Isso permite comecar por pedidos do WooCommerce com atribuicao confiavel ou por formularios, e adicionar eventos no navegador, integracoes de consentimento ou entrega server-side depois, quando a operacao realmente precisar.
+Isso permite comecar por pedidos do WooCommerce com atribuicao de campanha ou por formularios, e adicionar eventos no navegador, integracoes de consentimento ou entrega server-side depois, quando a operacao realmente precisar.
 
 ## Problemas Que Ele Resolve
 
@@ -46,9 +54,9 @@ O ClickTrail mantem a trilha da origem disponivel em formularios, checkout e pay
 
 Muitos plugins de atribuicao dependem apenas de campos hidden renderizados no servidor. Isso falha quando a pagina esta em cache ou quando o formulario entra depois do carregamento.
 
-O ClickTrail inclui fallback client-side e observacao de conteudo dinamico para continuar levando a atribuicao aos formularios suportados e aos campos hidden compativeis.
+O ClickTrail inclui fallback client-side e observacao de conteudo dinamico para continuar levando a atribuicao aos formularios configurados e aos campos hidden compativeis.
 
-### 3. Pedidos do WooCommerce sem origem confiavel
+### 3. Pedidos do WooCommerce sem origem de campanha
 
 Trafego pago frequentemente acaba aparecendo como direto dentro dos pedidos.
 
@@ -108,7 +116,7 @@ Identificadores adicionais de browser incluem:
 - deteccao de formularios dinamicos
 - opcao para substituir valores de atribuicao ja existentes
 - suporte para append de atribuicao no WhatsApp
-- intake de webhooks de fontes externas suportadas
+- intake de webhooks de fontes externas documentadas; runtime ainda nao verificado
 
 ### Events
 
@@ -128,7 +136,7 @@ Identificadores adicionais de browser incluem:
 - bloqueio por consentimento quando necessario
 - visao de backlog da fila e teste de endpoint
 
-## Integracoes Suportadas
+## Inventario de integracoes e status
 
 ### WordPress e frontend
 
@@ -138,7 +146,7 @@ Identificadores adicionais de browser incluem:
 - injecao opcional de container do GTM
 - modo de compatibilidade sGTM com URL do tagging server, entrega first-party do script e suporte a custom loader
 
-### Formularios
+### Formularios (conectores de origem; runtime nao verificado nesta auditoria)
 
 - Contact Form 7
 - Elementor Forms (Pro)
@@ -154,7 +162,7 @@ Comportamento por plugin:
 - Elementor Forms (Pro) usam hooks de submissao e fallback de atribuicao, nao injecao automatica de campos hidden
 - Ninja Forms grava a atribuicao junto da submissao e mostra esses dados no detalhe do registro, em vez de injecao automatica de campos hidden
 
-### Comercio
+### Comercio (origem; runtime nao verificado nesta auditoria)
 
 - atribuicao em pedidos do WooCommerce
 - push enriquecido do evento de compra para o `dataLayer`
@@ -163,28 +171,41 @@ Comportamento por plugin:
 - dispatch server-side opcional para compras
 - declaracao de compatibilidade com WooCommerce HPOS para armazenamento/rastreamento de pedidos
 
-### Provedores externos
+### Fontes de webhook (presentes no codigo; runtime nao verificado)
 
 - Calendly
 - HubSpot
 - Typeform
 
-### Adaptadores server-side
+### Chaves de adaptadores server-side (presentes no codigo / runtime nao verificado)
 
-- Generic collector
-- sGTM
-- Meta CAPI
-- Google Ads / GA4
-- LinkedIn CAPI
-- Pinterest Conversions API
-- TikTok Events API
+- Generic collector — relay para endpoint configurado
+- sGTM — relay para endpoint configurado; hardening de SSRF do preview ainda esta pendente
+- Meta CAPI — chave presente; contrato de API/autenticacao nao verificado em runtime
+- Google Ads / GA4 — chave presente; contrato de API/autenticacao nao verificado em runtime
+- LinkedIn CAPI — chave presente; contrato de API/autenticacao nao verificado em runtime
+- Pinterest Conversions API — chave presente; contrato de API/autenticacao nao verificado em runtime
+- TikTok Events API — chave presente; contrato de API/autenticacao nao verificado em runtime
+
+Essas classes serializam o evento canonico para um endpoint configurado. Nao sao integracoes turnkey das
+APIs dos provedores ate que fixtures especificas e evidencia de entrega em ambiente de teste passem.
+
+### Destinos mediados por browser e GTM
+
+- Google Tag Manager e configuracao do `dataLayer` do proprio site
+- Meta/Facebook Pixel, Google tag/GA4, TikTok Pixel, LinkedIn Insight, Pinterest Tag e Reddit Pixel somente
+  por um container GTM configurado pelo site; o ClickTrail nao injeta esses SDKs
+- destino Reddit e captura de `rdt_cid` sao relay-only; nao existe adaptador nativo de entrega Reddit
+
+Veja a [matriz completa](docs/reference/INTEGRATIONS.md#capability-matrix) para formularios, WooCommerce,
+webhooks, consentimento e IDs de evidencia.
 
 ## Experiencia no Admin
 
 A tela principal de configuracao agora e organizada por capacidade, e nao por nomes internos de implementacao:
 
 - **Capture**: captura de origem, retencao e continuidade entre dominios
-- **Forms**: confiabilidade de formularios, WhatsApp e fontes externas
+- **Forms**: diagnostico de formularios, WhatsApp e fontes externas
 - **Events**: coleta no navegador, GTM, destinos e lifecycle
 - **Delivery**: transporte server-side, privacidade e protecoes operacionais
 
@@ -204,7 +225,7 @@ Isso deixa a configuracao principal mais clara sem esconder saude de fila e ferr
 
 ## Privacidade e Consentimento
 
-O ClickTrail oferece suporte a atribuicao e eventos com regras de consentimento.
+O ClickTrail possui controles de consentimento para atribuicao e eventos, mas a auditoria atual encontrou limites nao resolvidos em estado legado, revogacao, filas, WooCommerce, formularios e saida no dataLayer.
 
 - Consent mode pode ser ligado ou desligado.
 - O comportamento aceita `strict`, `relaxed` e `geo`.
@@ -237,7 +258,7 @@ O ClickTrail pode ser adotado por partes. Uma configuracao basica para formulari
 ### Como validar que esta funcionando
 
 1. Acesse o site com uma URL de teste, como `?utm_source=test&utm_medium=cpc&utm_campaign=clicktrail-install-check`.
-2. Navegue para outra pagina e depois envie um formulario suportado ou faca um pedido de teste no WooCommerce.
+2. Navegue para outra pagina e depois envie um formulario configurado ou faca um pedido de teste no WooCommerce.
 3. Confirme o resultado esperado:
    - a entrada do formulario ou o pedido do WooCommerce contem os valores de atribuicao
    - os eventos aparecem no preview do GTM ou no `dataLayer` se `Events` estiver ligado
@@ -250,11 +271,16 @@ Comece por `Capture` e pelas integracoes que ja estao em uso. Adicione `Events` 
 ## Casos de Uso Comuns
 
 - agencias que precisam da origem dentro dos leads
-- lojas WooCommerce que querem pedidos com atribuicao confiavel
+- lojas WooCommerce que querem pedidos com atribuicao de campanha
 - lojas WooCommerce que querem payloads de compra mais ricos sem trocar toda a stack de tracking
 - sites com cache agressivo ou formularios dinamicos
 - negocios com funis em multiplos dominios
 - equipes que querem tracking browser + server-side no mesmo plugin
+
+## Fases de release e evidencias
+
+O [plano de fases](docs/guides/RELEASE-PHASING-AND-INTEGRATION-DOCS.md) separa documentacao de verdade,
+remediacao de consentimento/privacidade, integridade de entrega, releases por provedor e o trabalho posterior de alcance.
 
 ## Documentacao do Repositorio
 
