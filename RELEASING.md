@@ -132,3 +132,4 @@ svn ci -m "Release VERSION"
 - [ ] Setup wizard redirect fires on activation
 - [ ] At least one form submit confirmed with `ct_utm_source` in the entry
 - [ ] `Stable tag` in `readme.txt` updated to the version being released
+- [ ] WordPress.org asset validator above passes against the SVN checkout
