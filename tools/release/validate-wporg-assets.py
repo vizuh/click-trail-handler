@@ -18,11 +18,8 @@ EXPECTED_IMAGES = {
     "icon-128x128.png": ((128, 128), 1_000_000),
     "icon-256x256.png": ((256, 256), 1_000_000),
 }
-INVALID_ALIASES = {
-    "banner_772x250.png",
-    "icon_128x128.png",
-    "icon_256x256.png",
-}
+INVALID_ALIASES = {name.replace("-", "_", 1) for name in EXPECTED_IMAGES}
+SCREENSHOT_SIZE_LIMIT = 10_000_000
 
 
 def png_dimensions(path: Path) -> tuple[int, int]:
@@ -73,6 +70,21 @@ def validate_checkout(checkout: Path) -> list[str]:
     if not assets.is_dir():
         return [f"missing top-level assets directory: {assets}"]
 
+    listing_names = EXPECTED_IMAGES.keys() | INVALID_ALIASES
+    for root_name in ("trunk", "tags"):
+        root = checkout / root_name
+        if not root.is_dir():
+            continue
+        for path in sorted(root.rglob("*")):
+            if path.is_file() and (
+                path.name in listing_names
+                or re.fullmatch(r"screenshot-\d+\.png", path.name)
+            ):
+                errors.append(
+                    "listing asset must exist only in top-level assets/: "
+                    f"{path.relative_to(checkout).as_posix()}"
+                )
+
     for alias in sorted(INVALID_ALIASES):
         if (assets / alias).exists():
             errors.append(f"invalid underscore alias exists: assets/{alias}")
@@ -103,16 +115,24 @@ def validate_checkout(checkout: Path) -> list[str]:
     else:
         try:
             caption_numbers = screenshot_numbers(readme)
-            asset_numbers = {
-                int(match.group(1))
+            screenshot_paths = {
+                int(match.group(1)): path
                 for path in assets.glob("screenshot-*.png")
                 if (match := re.fullmatch(r"screenshot-(\d+)\.png", path.name))
             }
+            asset_numbers = set(screenshot_paths)
             if asset_numbers != caption_numbers:
                 errors.append(
                     "screenshot assets do not match readme captions: "
                     f"assets={sorted(asset_numbers)}, captions={sorted(caption_numbers)}"
                 )
+            for number, path in sorted(screenshot_paths.items()):
+                size = path.stat().st_size
+                if size > SCREENSHOT_SIZE_LIMIT:
+                    errors.append(
+                        f"assets/screenshot-{number}.png: {size} bytes exceeds "
+                        f"{SCREENSHOT_SIZE_LIMIT}-byte limit"
+                    )
         except (OSError, UnicodeError, ValueError) as exc:
             errors.append(str(exc))
 
