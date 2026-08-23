@@ -10,14 +10,17 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Dependency Review
-        uses: actions/dependency-review-action@v4
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
         with:
-          fail-on-severity: high
-          comment-summary-in-pr: always
+          php-version: '8.3'
+          tools: composer
+          coverage: none
+
+      - name: Audit Composer dependencies
+        run: composer audit --locked --no-interaction --ignore-severity=low --ignore-severity=moderate
