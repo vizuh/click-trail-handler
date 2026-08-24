@@ -14,6 +14,18 @@ Use this file when a team needs to answer two questions:
 
 For rollout guidance by site type, see [../guides/IMPLEMENTATION-PLAYBOOK.md](../guides/IMPLEMENTATION-PLAYBOOK.md).
 
+## Normalized marketing trail envelope
+
+WP browser events, `ct_page_view`, server-side events, and form submissions
+now carry a backward-compatible `marketing_trail` envelope. It standardizes
+event, trail, anonymous, and lead IDs; first-touch/latest-touch attribution;
+click IDs; capture-time consent; site routing; and form provider context.
+
+The envelope is also the contract emitted by the free `@vizuh/clicktrail`
+browser package. See [MARKETING-TRAIL-ENVELOPE.md](MARKETING-TRAIL-ENVELOPE.md)
+for fields, ID namespaces, and the v1 example. Runtime provider delivery and
+WordPress E2E status remain governed by the evidence labels above.
+
 ## Integration Pattern Cheatsheet
 
 Form integrations fall into three patterns:

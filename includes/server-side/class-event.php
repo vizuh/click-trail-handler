@@ -92,6 +92,10 @@ class Event {
 		}
 
 		$event['meta']['schema_version'] = self::VERSION;
+		$event['marketing_trail'] = self::normalize_marketing_trail(
+			isset( $data['marketing_trail'] ) && is_array( $data['marketing_trail'] ) ? $data['marketing_trail'] : array(),
+			$event
+		);
 
 		return $event;
 	}
@@ -104,7 +108,7 @@ class Event {
 	public static function schema() {
 		return array(
 			'required' => array( 'event_name', 'event_id', 'timestamp', 'source' ),
-			'optional' => array( 'page', 'wa', 'form', 'commerce', 'attribution', 'identity', 'consent', 'meta' ),
+			'optional' => array( 'page', 'wa', 'form', 'commerce', 'attribution', 'identity', 'consent', 'marketing_trail', 'meta' ),
 			'version'  => self::VERSION,
 		);
 	}
@@ -132,6 +136,128 @@ class Event {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Normalize the shared marketing trail envelope without changing the
+	 * legacy event shape used by existing adapters.
+	 *
+	 * @param array $provided Explicit envelope values.
+	 * @param array $event     Normalized legacy event.
+	 * @return array
+	 */
+	private static function normalize_marketing_trail( $provided, $event ) {
+		$provided    = is_array( $provided ) ? $provided : array();
+		$attribution = isset( $event['attribution'] ) && is_array( $event['attribution'] ) ? $event['attribution'] : array();
+		$identity    = isset( $event['identity'] ) && is_array( $event['identity'] ) ? $event['identity'] : array();
+		$form        = isset( $event['form'] ) && is_array( $event['form'] ) ? $event['form'] : array();
+		$meta        = isset( $event['meta'] ) && is_array( $event['meta'] ) ? $event['meta'] : array();
+		$consent     = isset( $event['consent'] ) && is_array( $event['consent'] ) ? $event['consent'] : array();
+
+		$visitor_id = self::first_value(
+			isset( $provided['visitor_id'] ) ? $provided['visitor_id'] : '',
+			isset( $attribution['visitor_id'] ) ? $attribution['visitor_id'] : '',
+			isset( $identity['visitor_id'] ) ? $identity['visitor_id'] : ''
+		);
+		$event_id = self::prefixed_value( isset( $provided['event_id'] ) ? $provided['event_id'] : $event['event_id'], 'evt_' );
+		$is_lead  = in_array( $event['event_name'], array( 'lead', 'lead_submitted', 'form_submission' ), true ) || in_array( $provided['event_name'] ?? '', array( 'lead', 'lead_submitted', 'form_submission' ), true );
+		$lead_id  = self::first_value( isset( $provided['lead_id'] ) ? $provided['lead_id'] : '', $is_lead ? preg_replace( '/^evt_/', '', $event_id ) : '' );
+
+		$click_ids = array();
+		foreach ( array( 'gclid', 'wbraid', 'gbraid', 'fbclid', 'ttclid', 'msclkid', 'twclid', 'li_fat_id', 'sccid', 'epik' ) as $key ) {
+			$value = self::attribution_value( $attribution, $key );
+			if ( isset( $provided['click_ids'] ) && is_array( $provided['click_ids'] ) && ! empty( $provided['click_ids'][ $key ] ) ) {
+				$value = $provided['click_ids'][ $key ];
+			}
+			if ( '' !== $value ) {
+				$click_ids[ $key ] = $value;
+			}
+		}
+
+		$provider = isset( $form['provider'] ) ? $form['provider'] : ( isset( $form['platform'] ) ? $form['platform'] : '' );
+		$form_id  = isset( $form['form_id'] ) ? $form['form_id'] : ( isset( $form['id'] ) ? $form['id'] : '' );
+		$trail_event_name = 'form_submission' === $event['event_name'] ? 'lead_submitted' : $event['event_name'];
+		if ( isset( $provided['form'] ) && is_array( $provided['form'] ) ) {
+			$provider = self::first_value( $provided['form']['provider'] ?? '', $provider );
+			$form_id  = self::first_value( $provided['form']['form_id'] ?? '', $form_id );
+		}
+		$trail_event_name = self::first_value( $provided['event_name'] ?? '', $trail_event_name );
+
+		return array(
+			'schema_version' => 1,
+			'event_id'       => $event_id,
+			'trail_id'       => self::prefixed_value( self::first_value( $provided['trail_id'] ?? '', $attribution['trail_id'] ?? '', $visitor_id ), 'trl_' ),
+			'anonymous_id'   => self::prefixed_value( self::first_value( $provided['anonymous_id'] ?? '', $visitor_id ), 'anon_' ),
+			'lead_id'        => self::prefixed_value( $lead_id, 'lead_' ),
+			'workspace_id'   => self::first_value( $provided['workspace_id'] ?? '', $meta['workspace_id'] ?? '' ),
+			'site_id'        => self::first_value( $provided['site_id'] ?? '', $meta['site_id'] ?? '' ),
+			'event_name'     => $trail_event_name,
+			'occurred_at'    => self::first_value( $provided['occurred_at'] ?? '', gmdate( 'Y-m-d\TH:i:s\Z', $event['timestamp'] ) ),
+			'landing_page'   => self::first_value( $provided['landing_page'] ?? '', self::attribution_value( $attribution, 'landing_page' ), $event['page']['path'] ?? '' ),
+			'referrer'       => self::first_value( $provided['referrer'] ?? '', self::attribution_value( $attribution, 'referrer' ), $event['page']['referrer'] ?? '' ),
+			'source'         => self::first_value( $provided['source'] ?? '', self::attribution_value( $attribution, 'source' ) ),
+			'medium'         => self::first_value( $provided['medium'] ?? '', self::attribution_value( $attribution, 'medium' ) ),
+			'campaign'       => self::first_value( $provided['campaign'] ?? '', self::attribution_value( $attribution, 'campaign' ) ),
+			'click_ids'      => $click_ids,
+			'consent'        => array(
+				'analytics'   => ! empty( $provided['consent']['analytics'] ?? $consent['analytics'] ?? false ),
+				'advertising' => ! empty( $provided['consent']['advertising'] ?? $provided['consent']['marketing'] ?? $consent['marketing'] ?? false ),
+			),
+			'form'           => array(
+				'provider' => sanitize_text_field( (string) $provider ),
+				'form_id'  => sanitize_text_field( (string) $form_id ),
+			),
+		);
+	}
+
+	/**
+	 * Read a latest-touch value, then first-touch value, from either flat or
+	 * WooCommerce's nested attribution shape.
+	 *
+	 * @param array  $attribution Attribution payload.
+	 * @param string $key          Base field name.
+	 * @return string
+	 */
+	private static function attribution_value( $attribution, $key ) {
+		$last  = isset( $attribution['last_touch'] ) && is_array( $attribution['last_touch'] ) ? $attribution['last_touch'] : array();
+		$first = isset( $attribution['first_touch'] ) && is_array( $attribution['first_touch'] ) ? $attribution['first_touch'] : array();
+		return self::first_value(
+			$attribution[ 'lt_' . $key ] ?? '',
+			$last[ $key ] ?? '',
+			$attribution[ 'ft_' . $key ] ?? '',
+			$first[ $key ] ?? '',
+			$attribution[ $key ] ?? ''
+		);
+	}
+
+	/**
+	 * Return first non-empty scalar value as sanitized text.
+	 *
+	 * @param mixed ...$values Candidate values.
+	 * @return string
+	 */
+	private static function first_value( ...$values ) {
+		foreach ( $values as $value ) {
+			if ( is_scalar( $value ) && '' !== (string) $value ) {
+				return sanitize_text_field( (string) $value );
+			}
+		}
+		return '';
+	}
+
+	/**
+	 * Add an ID namespace once.
+	 *
+	 * @param mixed  $value  Raw ID.
+	 * @param string $prefix Namespace.
+	 * @return string
+	 */
+	private static function prefixed_value( $value, $prefix ) {
+		$value = self::first_value( $value );
+		if ( '' === $value ) {
+			return '';
+		}
+		return 0 === strpos( $value, $prefix ) ? $value : $prefix . $value;
 	}
 
 	/**

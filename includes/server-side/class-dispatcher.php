@@ -240,6 +240,7 @@ class Dispatcher {
 			'page'        => isset( $event_v2['page_context'] ) && is_array( $event_v2['page_context'] ) ? $event_v2['page_context'] : array(),
 			'attribution' => isset( $event_v2['attribution'] ) && is_array( $event_v2['attribution'] ) ? $event_v2['attribution'] : array(),
 			'consent'     => isset( $event_v2['consent'] ) && is_array( $event_v2['consent'] ) ? $event_v2['consent'] : array(),
+			'marketing_trail' => isset( $event_v2['marketing_trail'] ) && is_array( $event_v2['marketing_trail'] ) ? $event_v2['marketing_trail'] : array(),
 			'meta'        => isset( $event_v2['meta'] ) && is_array( $event_v2['meta'] ) ? $event_v2['meta'] : array(),
 		);
 

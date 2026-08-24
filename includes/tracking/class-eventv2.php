@@ -125,6 +125,7 @@ class EventV2 implements CanonicalEventInterfaceV2 {
 			'commerce_context' => self::sanitize_array( $payload['commerce_context'] ?? array() ),
 			'identity'         => self::sanitize_array( $payload['identity'] ?? array() ),
 			'delivery_context' => self::sanitize_array( $payload['delivery_context'] ?? array() ),
+			'marketing_trail'  => self::sanitize_array( $payload['marketing_trail'] ?? array() ),
 			'meta'             => self::sanitize_array( $payload['meta'] ?? array() ),
 		);
 
