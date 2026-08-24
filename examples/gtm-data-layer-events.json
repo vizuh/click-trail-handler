@@ -1,0 +1,56 @@
+{
+  "wordpress_page_view": {
+    "event": "ct_page_view",
+    "event_id": "evt_wp_page_001",
+    "marketing_trail": {
+      "schema_version": 1,
+      "event_id": "evt_wp_page_001",
+      "event_name": "page_view",
+      "consent": {
+        "analytics": true,
+        "advertising": true
+      }
+    }
+  },
+  "javascript_page_view": {
+    "event": "page_view",
+    "event_name": "page_view",
+    "event_id": "evt_js_page_001",
+    "marketing_trail": {
+      "schema_version": 1,
+      "event_id": "evt_js_page_001",
+      "event_name": "page_view",
+      "consent": {
+        "analytics": true,
+        "advertising": true
+      }
+    }
+  },
+  "purchase": {
+    "event": "purchase",
+    "event_name": "purchase",
+    "event_id": "evt_purchase_001",
+    "ecommerce": {
+      "transaction_id": "order-test-001",
+      "value": 49.9,
+      "currency": "EUR",
+      "items": [
+        {
+          "item_id": "sku-test-001",
+          "item_name": "Synthetic test item",
+          "price": 49.9,
+          "quantity": 1
+        }
+      ]
+    },
+    "marketing_trail": {
+      "schema_version": 1,
+      "event_id": "evt_purchase_001",
+      "event_name": "purchase",
+      "consent": {
+        "analytics": true,
+        "advertising": true
+      }
+    }
+  }
+}

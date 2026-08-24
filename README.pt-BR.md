@@ -289,6 +289,7 @@ Se voce precisa de call tracking, lead scoring, modelagem de receita multi-touch
 - [Atribuicao em formularios](docs/tutorials/01-lead-form-attribution.md)
 - [Atribuicao de pedidos WooCommerce](docs/tutorials/02-woocommerce-order-attribution.md)
 - [Consentimento e eventos no navegador](docs/tutorials/03-consent-and-events.md)
+- [Kit inicial do GTM](docs/tutorials/04-gtm-starter-kit.md)
 
 ## Fases de release e evidencias
 
