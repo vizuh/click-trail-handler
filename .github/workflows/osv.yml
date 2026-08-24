@@ -19,7 +19,7 @@ jobs:
       actions: read
       contents: read
       security-events: write
-    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@880d9b542cc66d36d91d51b3fbcc038f5f28cfc5 # v2.5.1
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@ffa0a5f39214d80778c9b494822d94d0d9668458 # v2.5.1
     with:
       scan-args: |-
         --include-git-root
