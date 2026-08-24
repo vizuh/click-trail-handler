@@ -398,7 +398,7 @@ class Plugin {
 	private function build_attribution_config( array $options, array $consent_config, int $cookie_days, bool $debug_active, string $events_batch_url, string $events_token, bool $enable_cross_domain_token ): array {
 		return array(
 			'cookieName'                => 'attribution',
-			'siteId'                   => function_exists( 'get_current_blog_id' ) ? (string) get_current_blog_id() : '',
+			'siteId'                    => function_exists( 'get_current_blog_id' ) ? (string) get_current_blog_id() : '',
 			'cookieDays'                => $cookie_days,
 			'consentCookieName'         => $consent_config['cookie_name'],
 			'requireConsent'            => $consent_config['require_consent'],

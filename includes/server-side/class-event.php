@@ -92,7 +92,7 @@ class Event {
 		}
 
 		$event['meta']['schema_version'] = self::VERSION;
-		$event['marketing_trail'] = self::normalize_marketing_trail(
+		$event['marketing_trail']        = self::normalize_marketing_trail(
 			isset( $data['marketing_trail'] ) && is_array( $data['marketing_trail'] ) ? $data['marketing_trail'] : array(),
 			$event
 		);
@@ -159,9 +159,9 @@ class Event {
 			isset( $attribution['visitor_id'] ) ? $attribution['visitor_id'] : '',
 			isset( $identity['visitor_id'] ) ? $identity['visitor_id'] : ''
 		);
-		$event_id = self::prefixed_value( isset( $provided['event_id'] ) ? $provided['event_id'] : $event['event_id'], 'evt_' );
-		$is_lead  = in_array( $event['event_name'], array( 'lead', 'lead_submitted', 'form_submission' ), true ) || in_array( $provided['event_name'] ?? '', array( 'lead', 'lead_submitted', 'form_submission' ), true );
-		$lead_id  = self::first_value( isset( $provided['lead_id'] ) ? $provided['lead_id'] : '', $is_lead ? preg_replace( '/^evt_/', '', $event_id ) : '' );
+		$event_id    = self::prefixed_value( isset( $provided['event_id'] ) ? $provided['event_id'] : $event['event_id'], 'evt_' );
+		$is_lead     = in_array( $event['event_name'], array( 'lead', 'lead_submitted', 'form_submission' ), true ) || in_array( $provided['event_name'] ?? '', array( 'lead', 'lead_submitted', 'form_submission' ), true );
+		$lead_id     = self::first_value( isset( $provided['lead_id'] ) ? $provided['lead_id'] : '', $is_lead ? preg_replace( '/^evt_/', '', $event_id ) : '' );
 
 		$click_ids = array();
 		foreach ( array( 'gclid', 'wbraid', 'gbraid', 'fbclid', 'ttclid', 'msclkid', 'twclid', 'li_fat_id', 'sccid', 'epik' ) as $key ) {

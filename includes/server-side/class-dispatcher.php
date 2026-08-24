@@ -233,15 +233,15 @@ class Dispatcher {
 		}
 
 		$legacy = array(
-			'event_name'  => $event_name,
-			'event_id'    => $event_id,
-			'timestamp'   => isset( $event_v2['event_time'] ) ? absint( $event_v2['event_time'] ) : time(),
-			'source'      => isset( $event_v2['source_channel'] ) ? sanitize_text_field( (string) $event_v2['source_channel'] ) : 'web',
-			'page'        => isset( $event_v2['page_context'] ) && is_array( $event_v2['page_context'] ) ? $event_v2['page_context'] : array(),
-			'attribution' => isset( $event_v2['attribution'] ) && is_array( $event_v2['attribution'] ) ? $event_v2['attribution'] : array(),
-			'consent'     => isset( $event_v2['consent'] ) && is_array( $event_v2['consent'] ) ? $event_v2['consent'] : array(),
+			'event_name'      => $event_name,
+			'event_id'        => $event_id,
+			'timestamp'       => isset( $event_v2['event_time'] ) ? absint( $event_v2['event_time'] ) : time(),
+			'source'          => isset( $event_v2['source_channel'] ) ? sanitize_text_field( (string) $event_v2['source_channel'] ) : 'web',
+			'page'            => isset( $event_v2['page_context'] ) && is_array( $event_v2['page_context'] ) ? $event_v2['page_context'] : array(),
+			'attribution'     => isset( $event_v2['attribution'] ) && is_array( $event_v2['attribution'] ) ? $event_v2['attribution'] : array(),
+			'consent'         => isset( $event_v2['consent'] ) && is_array( $event_v2['consent'] ) ? $event_v2['consent'] : array(),
 			'marketing_trail' => isset( $event_v2['marketing_trail'] ) && is_array( $event_v2['marketing_trail'] ) ? $event_v2['marketing_trail'] : array(),
-			'meta'        => isset( $event_v2['meta'] ) && is_array( $event_v2['meta'] ) ? $event_v2['meta'] : array(),
+			'meta'            => isset( $event_v2['meta'] ) && is_array( $event_v2['meta'] ) ? $event_v2['meta'] : array(),
 		);
 
 		if ( isset( $event_v2['lead_context'] ) && is_array( $event_v2['lead_context'] ) ) {
