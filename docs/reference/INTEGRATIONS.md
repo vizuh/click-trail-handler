@@ -360,6 +360,13 @@ Implementation note:
 
 - ClickTrail's sGTM mode only changes the loader path and rollout checks; it does not replace the canonical event pipeline with a generic GTM utility layer
 
+Starter-kit contract:
+
+- `assets/gtm-starter-kit.json` maps the ClickTrail `event_id` data-layer field to the Meta template's `eventId` input on every Meta tag
+- Meta tags read `marketing_trail.consent.advertising` through `DLV - marketing_trail.consent.advertising`, whose missing-value default is `false`; the PageView tag listens to both `ct_page_view` (WordPress) and `page_view` (JS) so it receives the same event ID and consent envelope
+- Google tags retain their native GTM consent behavior; the site's CMP or selected ClickTrail consent source must still publish the required Consent Mode state before publishing the container
+- These mappings prove container wiring only. They do not prove Meta/Google acceptance, provider credentials, consent-law compliance, or destination delivery
+
 ## External Form Source Webhooks
 
 Webhook ingress providers (runtime-unverified in this audit):

@@ -836,6 +836,32 @@
         ],
         "fingerprint": "1780135800638",
         "parentFolderId": "201"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "228",
+        "name": "DLV - marketing_trail.consent.advertising",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "marketing_trail.consent.advertising"
+          }
+        ],
+        "fingerprint": "1780135800638",
+        "parentFolderId": "201"
       }
     ],
     "trigger": [
@@ -1110,6 +1136,58 @@
                 "type": "TEMPLATE",
                 "key": "arg1",
                 "value": "whatsapp_click"
+              }
+            ]
+          }
+        ],
+        "fingerprint": "1780135800638",
+        "parentFolderId": "205"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "triggerId": "213",
+        "name": "CE - ct_page_view",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "ct_page_view"
+              }
+            ]
+          }
+        ],
+        "fingerprint": "1780135800638",
+        "parentFolderId": "205"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "triggerId": "214",
+        "name": "CE - page_view",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "page_view"
               }
             ]
           }
@@ -2075,19 +2153,25 @@
             "value": "false"
           },
           {
-            "type": "BOOLEAN",
+            "type": "TEMPLATE",
             "key": "consent",
-            "value": "true"
+            "value": "{{DLV - marketing_trail.consent.advertising}}"
           },
           {
             "type": "BOOLEAN",
             "key": "advancedMatching",
             "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventId",
+            "value": "{{DLV - event_id}}"
           }
         ],
         "fingerprint": "1780135800638",
         "firingTriggerId": [
-          "202"
+          "213",
+          "214"
         ],
         "parentFolderId": "203",
         "tagFiringOption": "ONCE_PER_EVENT",
@@ -2146,14 +2230,19 @@
             "value": "false"
           },
           {
-            "type": "BOOLEAN",
+            "type": "TEMPLATE",
             "key": "consent",
-            "value": "true"
+            "value": "{{DLV - marketing_trail.consent.advertising}}"
           },
           {
             "type": "BOOLEAN",
             "key": "advancedMatching",
             "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventId",
+            "value": "{{DLV - event_id}}"
           }
         ],
         "fingerprint": "1780135800638",
@@ -2217,14 +2306,19 @@
             "value": "false"
           },
           {
-            "type": "BOOLEAN",
+            "type": "TEMPLATE",
             "key": "consent",
-            "value": "true"
+            "value": "{{DLV - marketing_trail.consent.advertising}}"
           },
           {
             "type": "BOOLEAN",
             "key": "advancedMatching",
             "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventId",
+            "value": "{{DLV - event_id}}"
           }
         ],
         "fingerprint": "1780135800639",
@@ -2288,14 +2382,19 @@
             "value": "false"
           },
           {
-            "type": "BOOLEAN",
+            "type": "TEMPLATE",
             "key": "consent",
-            "value": "true"
+            "value": "{{DLV - marketing_trail.consent.advertising}}"
           },
           {
             "type": "BOOLEAN",
             "key": "advancedMatching",
             "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventId",
+            "value": "{{DLV - event_id}}"
           }
         ],
         "fingerprint": "1780135800639",
@@ -2359,14 +2458,19 @@
             "value": "false"
           },
           {
-            "type": "BOOLEAN",
+            "type": "TEMPLATE",
             "key": "consent",
-            "value": "true"
+            "value": "{{DLV - marketing_trail.consent.advertising}}"
           },
           {
             "type": "BOOLEAN",
             "key": "advancedMatching",
             "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventId",
+            "value": "{{DLV - event_id}}"
           }
         ],
         "fingerprint": "1780135800639",
@@ -2430,14 +2534,19 @@
             "value": "false"
           },
           {
-            "type": "BOOLEAN",
+            "type": "TEMPLATE",
             "key": "consent",
-            "value": "true"
+            "value": "{{DLV - marketing_trail.consent.advertising}}"
           },
           {
             "type": "BOOLEAN",
             "key": "advancedMatching",
             "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "eventId",
+            "value": "{{DLV - event_id}}"
           }
         ],
         "fingerprint": "1780135800639",

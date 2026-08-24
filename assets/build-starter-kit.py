@@ -4,7 +4,7 @@ Build ClickTrail GTM Starter Kit from Stape reference template.
 Takes the proven-importable Stape fb-ga4-gads-web.json as structural base,
 strips Shopify-specific content, adds ClickTrail attribution + engagement.
 
-Run: py -3 assets/build-starter-kit.py
+Run: python3 assets/build-starter-kit.py
 """
 import json
 import time
@@ -108,8 +108,10 @@ def make_fb_tag(tag_id, name, std_event, trigger_id, folder_id, extra_params=Non
         {"type": "BOOLEAN", "key": "dpoLDU", "value": "false"},
         {"type": "TEMPLATE", "key": "eventName", "value": "standard"},
         {"type": "BOOLEAN", "key": "objectPropertiesFromVariable", "value": "false"},
-        {"type": "BOOLEAN", "key": "consent", "value": "true"},
+        {"type": "TEMPLATE", "key": "consent",
+         "value": "{{DLV - marketing_trail.consent.advertising}}"},
         {"type": "BOOLEAN", "key": "advancedMatching", "value": "false"},
+        {"type": "TEMPLATE", "key": "eventId", "value": "{{DLV - event_id}}"},
     ]
     if extra_params:
         for k, v in extra_params.items():
@@ -233,6 +235,7 @@ attr_vars = [
     ("fbclid", "DLV - fbclid"),
     ("ga_client_id", "DLV - ga_client_id"),
     ("event_id", "DLV - event_id"),
+    ("marketing_trail.consent.advertising", "DLV - marketing_trail.consent.advertising"),
 ]
 for dl_path, name in attr_vars:
     variables.append(make_dlv(vid := vid + 1, name, dl_path, FOLDER_ATTR))
@@ -280,6 +283,15 @@ for evt in ["form_submit", "email_click", "phone_click", "whatsapp_click"]:
     tid += 1; engage_events[evt] = tid
 for evt, t_id in engage_events.items():
     triggers.append(make_ce_trigger(t_id, f"LC - {evt}", evt, FOLDER_TRIGS))
+
+tid += 1; TRIG_PAGE_VIEW = tid
+triggers.append(make_ce_trigger(
+    TRIG_PAGE_VIEW, "CE - ct_page_view", "ct_page_view", FOLDER_TRIGS
+))
+tid += 1; TRIG_JS_PAGE_VIEW = tid
+triggers.append(make_ce_trigger(
+    TRIG_JS_PAGE_VIEW, "CE - page_view", "page_view", FOLDER_TRIGS
+))
 
 # Store trigger IDs for tags
 TRIG = {**ecom_events, **engage_events}
@@ -428,10 +440,12 @@ for evt in ["form_submit", "email_click", "phone_click", "whatsapp_click"]:
     ))
 
 # --- Meta Pixel Tags ---
-tags.append(make_fb_tag(
+page_view_tag = make_fb_tag(
     tag_id := tag_id + 1, "Meta Pixel - PageView", "PageView",
-    TRIG_DOM_READY, FOLDER_META
-))
+    TRIG_PAGE_VIEW, FOLDER_META
+)
+page_view_tag["firingTriggerId"].append(str(TRIG_JS_PAGE_VIEW))
+tags.append(page_view_tag)
 tags.append(make_fb_tag(
     tag_id := tag_id + 1, "Meta Pixel - Purchase", "Purchase",
     TRIG["purchase"], FOLDER_META
@@ -522,6 +536,20 @@ with open(OUTPUT_FILE, "w", encoding="utf-8", newline="\n") as f:
 
 # Verify
 cv = output["containerVersion"]
+meta_tags = [tag for tag in cv["tag"] if tag["name"].startswith("Meta Pixel - ")]
+assert meta_tags and all(
+    any(param.get("key") == "eventId" and param.get("value") == "{{DLV - event_id}}"
+        for param in tag.get("parameter", []))
+    for tag in meta_tags
+)
+assert all(
+    any(param.get("key") == "consent" and
+        param.get("value") == "{{DLV - marketing_trail.consent.advertising}}"
+        for param in tag.get("parameter", []))
+    for tag in meta_tags
+)
+page_view_tag = next(tag for tag in meta_tags if tag["name"] == "Meta Pixel - PageView")
+assert {str(TRIG_PAGE_VIEW), str(TRIG_JS_PAGE_VIEW)} <= set(page_view_tag["firingTriggerId"])
 print(f"Written: {OUTPUT_FILE}")
 print(f"  Tags:       {len(cv['tag'])}")
 print(f"  Triggers:   {len(cv['trigger'])}")
