@@ -3,6 +3,7 @@ includes/integrations/class-form-integrations.php
 dist/
 node_modules/
 vendor/
+__pycache__/
 
 # Reference GTM container exports (not plugin source)
 assets/shopify-gtm-container-templates-master/*.json

@@ -75,6 +75,10 @@ The cadence: every cut version is released on GitHub the same day; WP.org only e
 
 Only run this when the version has passed staging. Replace `VERSION` with the version you are releasing.
 
+WordPress.org icons, banners, and screenshots are version-independent. Keep them only in the SVN checkout's
+top-level `assets/` directory; never copy them into `trunk/` or `tags/VERSION/`. Every release must run the
+asset validator below so future versions retain the canonical names, dimensions, size limits, and MIME types.
+
 ```bash
 # Check out the SVN repo (only needed once)
 svn co https://plugins.svn.wordpress.org/click-trail-handler/ /tmp/svn-clicktrail
@@ -90,6 +94,9 @@ rsync -a --delete /tmp/svn-clicktrail/tags/VERSION/ /tmp/svn-clicktrail/trunk/
 # Update Stable tag in readme.txt to VERSION
 # (edit trunk/readme.txt Stable tag line manually or via sed)
 sed -i "s/^Stable tag:.*/Stable tag: VERSION/" /tmp/svn-clicktrail/trunk/readme.txt
+
+# Validate the shared directory assets before every release commit
+python3 tools/release/validate-wporg-assets.py /tmp/svn-clicktrail
 
 # Commit
 cd /tmp/svn-clicktrail
@@ -125,3 +132,4 @@ svn ci -m "Release VERSION"
 - [ ] Setup wizard redirect fires on activation
 - [ ] At least one form submit confirmed with `ct_utm_source` in the entry
 - [ ] `Stable tag` in `readme.txt` updated to the version being released
+- [ ] WordPress.org asset validator above passes against the SVN checkout
