@@ -429,7 +429,7 @@ trait Admin_Diagnostics_Ajax_Trait {
 		}
 
 		$consent_raw       = (string) $order->get_meta( \CLICUTCL\Integrations\WooCommerce::CONSENT_META_KEY, true );
-		$consent_decoded   = '' !== $consent_raw ? json_decode( $consent_raw, true ) : null;
+		$consent_decoded   = \CLICUTCL\Consent\Snapshot_V1::normalize( $consent_raw );
 		$consent_marketing = ( is_array( $consent_decoded ) && array_key_exists( 'marketing', $consent_decoded ) )
 			? ! empty( $consent_decoded['marketing'] )
 			: null;
@@ -471,6 +471,246 @@ trait Admin_Diagnostics_Ajax_Trait {
 				'html'    => $this->render_woo_order_lookup_results( $lookup ),
 				'lookup'  => $lookup,
 			)
+		);
+	}
+
+	/**
+	 * Run the read-only Attribution Readiness analyzer against a test payload.
+	 *
+	 * The payload is never persisted or dispatched. The response is allowlisted
+	 * so a future analyzer change cannot expose click-ID values accidentally.
+	 *
+	 * @return void
+	 */
+	public function ajax_attribution_readiness() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'code' => 'forbidden' ), 403 );
+		}
+		check_ajax_referer( 'clicutcl_diag', 'nonce' );
+
+		$raw_payload = isset( $_POST['payload'] ) && is_scalar( $_POST['payload'] )
+			? (string) wp_unslash( $_POST['payload'] )
+			: '';
+		if ( strlen( $raw_payload ) > 65536 ) {
+			wp_send_json_error( array( 'code' => 'oversized_payload' ), 400 );
+		}
+
+		$payload = json_decode( $raw_payload, true );
+		if ( JSON_ERROR_NONE !== json_last_error() || ! is_array( $payload ) ) {
+			wp_send_json_error( array( 'code' => 'malformed_payload' ), 400 );
+		}
+
+		$referrer     = isset( $_POST['referrer'] ) && is_scalar( $_POST['referrer'] )
+			? substr( sanitize_text_field( (string) wp_unslash( $_POST['referrer'] ) ), 0, 2048 )
+			: '';
+		$current_host = isset( $_POST['current_host'] ) && is_scalar( $_POST['current_host'] )
+			? substr( sanitize_text_field( (string) wp_unslash( $_POST['current_host'] ) ), 0, 255 )
+			: '';
+
+		if ( ! class_exists( 'CLICUTCL\\Intelligence\\Attribution_Readiness_Analyzer' ) ) {
+			wp_send_json_error( array( 'code' => 'analyzer_unavailable' ), 500 );
+		}
+
+		$alias_result = $this->parse_attribution_source_aliases(
+			isset( $_POST['source_aliases'] ) && is_scalar( $_POST['source_aliases'] )
+				? (string) wp_unslash( $_POST['source_aliases'] )
+				: ''
+		);
+		if ( '' !== $alias_result['error_code'] ) {
+			wp_send_json_error( array( 'code' => $alias_result['error_code'] ), 400 );
+		}
+
+		$options  = ! empty( $alias_result['aliases'] ) ? array( 'source_aliases' => $alias_result['aliases'] ) : array();
+		$analyzer = new \CLICUTCL\Intelligence\Attribution_Readiness_Analyzer();
+		$result   = $analyzer->analyze( $payload, $referrer, $current_host, $options );
+
+		wp_send_json_success( $this->format_attribution_readiness_response( $result, $analyzer, home_url( '/' ) ) );
+	}
+
+	/**
+	 * Format the versioned Diagnostics response and optional copy-only test URL.
+	 *
+	 * @param array<string,mixed>                                   $result Analyzer result.
+	 * @param \CLICUTCL\Intelligence\Attribution_Readiness_Analyzer $analyzer Analyzer instance.
+	 * @param string                                                $base_url Site base URL.
+	 * @return array<string,mixed>
+	 */
+	private function format_attribution_readiness_response(
+		array $result,
+		\CLICUTCL\Intelligence\Attribution_Readiness_Analyzer $analyzer,
+		string $base_url
+	): array {
+		$analysis = $this->sanitize_attribution_readiness_result( $result );
+		$response = array(
+			'version'  => 1,
+			'analysis' => $analysis,
+		);
+		$test_url = $analyzer->build_test_url( $base_url, $analysis );
+		if ( null !== $test_url ) {
+			$response['test_url'] = $test_url;
+		}
+		return $response;
+	}
+
+	/**
+	 * Validate request-scoped source aliases for the readiness test harness.
+	 *
+	 * @param string $raw JSON object mapping recognized platforms to UTM source aliases.
+	 * @return array{aliases:array<string,string>,error_code:string}
+	 */
+	private function parse_attribution_source_aliases( string $raw ): array {
+		$result = array(
+			'aliases'    => array(),
+			'error_code' => '',
+		);
+
+		if ( '' === trim( $raw ) ) {
+			return $result;
+		}
+		if ( strlen( $raw ) > 4096 ) {
+			$result['error_code'] = 'source_aliases_too_large';
+			return $result;
+		}
+
+		$decoded = json_decode( $raw );
+		if ( JSON_ERROR_NONE !== json_last_error() ) {
+			$result['error_code'] = 'source_aliases_invalid_json';
+			return $result;
+		}
+		if ( ! is_object( $decoded ) ) {
+			$result['error_code'] = 'source_aliases_invalid_shape';
+			return $result;
+		}
+
+		$aliases = get_object_vars( $decoded );
+		if ( count( $aliases ) > 16 ) {
+			$result['error_code'] = 'source_aliases_too_many';
+			return $result;
+		}
+
+		$recognized = \CLICUTCL\Intelligence\Attribution_Readiness_Analyzer::source_alias_platforms();
+		foreach ( $aliases as $platform => $alias ) {
+			if ( ! in_array( $platform, $recognized, true ) ) {
+				$result['error_code'] = 'source_alias_unknown_platform';
+				return $result;
+			}
+			if ( ! is_string( $alias ) || '' === $alias || strlen( $alias ) > 64 || 1 !== preg_match( '/^[a-z0-9][a-z0-9_-]*$/D', $alias ) ) {
+				$result['error_code'] = 'source_alias_invalid_value';
+				return $result;
+			}
+			$result['aliases'][ $platform ] = $alias;
+		}
+
+		return $result;
+	}
+
+	/**
+	 * Allowlist the analyzer response for the admin diagnostics surface.
+	 *
+	 * @param array<string,mixed> $result Analyzer result.
+	 * @return array<string,mixed>
+	 */
+	private function sanitize_attribution_readiness_result( array $result ): array {
+		$policy       = \CLICUTCL\Intelligence\Attribution_Readiness_Analyzer::field_policy();
+		$field_names  = array_merge( (array) ( $policy['required'] ?? array() ), (array) ( $policy['optional'] ?? array() ) );
+		$raw_fields   = isset( $result['fields'] ) && is_array( $result['fields'] ) ? $result['fields'] : array();
+		$fields       = array();
+		$field_values = array( 'observed_value', 'suggested_value', 'suggestion_basis' );
+
+		foreach ( $field_names as $field_name ) {
+			$field_name = sanitize_key( (string) $field_name );
+			if ( '' === $field_name || ! isset( $raw_fields[ $field_name ] ) || ! is_array( $raw_fields[ $field_name ] ) ) {
+				continue;
+			}
+
+			$row   = $raw_fields[ $field_name ];
+			$clean = array(
+				'status'         => sanitize_key( (string) ( $row['status'] ?? '' ) ),
+				'required'       => ! empty( $row['required'] ),
+				'observed_key'   => sanitize_key( (string) ( $row['observed_key'] ?? '' ) ),
+				'observed_value' => null,
+				'selection_tier' => sanitize_key( (string) ( $row['selection_tier'] ?? 'none' ) ),
+			);
+
+			foreach ( $field_values as $value_key ) {
+				if ( ! array_key_exists( $value_key, $row ) || ! is_scalar( $row[ $value_key ] ) ) {
+					continue;
+				}
+				$clean[ $value_key ] = substr( sanitize_text_field( (string) $row[ $value_key ] ), 0, 255 );
+			}
+			if ( array_key_exists( 'deterministic', $row ) ) {
+				$clean['deterministic'] = (bool) $row['deterministic'];
+			}
+			$fields[ $field_name ] = $clean;
+		}
+
+		$click_ids = array(
+			'keys'      => array(),
+			'platforms' => array(),
+		);
+		if ( isset( $result['click_ids'] ) && is_array( $result['click_ids'] ) ) {
+			foreach ( array( 'keys', 'platforms' ) as $click_id_key ) {
+				$values                     = isset( $result['click_ids'][ $click_id_key ] ) && is_array( $result['click_ids'][ $click_id_key ] )
+					? $result['click_ids'][ $click_id_key ]
+					: array();
+				$click_ids[ $click_id_key ] = array_values(
+					array_unique(
+						array_map(
+							static function ( $value ): string {
+								return sanitize_key( (string) $value );
+							},
+							$values
+						)
+					)
+				);
+			}
+		}
+
+		$source_evidence = array();
+		foreach ( array( 'platform', 'basis', 'signal_type', 'referrer_host' ) as $key ) {
+			if ( isset( $result['source_evidence'][ $key ] ) && is_scalar( $result['source_evidence'][ $key ] ) ) {
+				$source_evidence[ $key ] = substr( sanitize_text_field( (string) $result['source_evidence'][ $key ] ), 0, 255 );
+			}
+		}
+
+		$issues = array();
+		foreach ( ( isset( $result['issues'] ) && is_array( $result['issues'] ) ? $result['issues'] : array() ) as $issue ) {
+			if ( ! is_array( $issue ) ) {
+				continue;
+			}
+			$clean_issue = array();
+			foreach ( array( 'code', 'field', 'severity', 'basis', 'platform' ) as $key ) {
+				if ( isset( $issue[ $key ] ) && is_scalar( $issue[ $key ] ) ) {
+					$clean_issue[ $key ] = substr( sanitize_text_field( (string) $issue[ $key ] ), 0, 255 );
+				}
+			}
+			$issues[] = $clean_issue;
+		}
+
+		$recommendations = array();
+		foreach ( ( isset( $result['recommendations'] ) && is_array( $result['recommendations'] ) ? $result['recommendations'] : array() ) as $recommendation ) {
+			if ( ! is_array( $recommendation ) ) {
+				continue;
+			}
+			$clean_recommendation = array();
+			foreach ( array( 'code', 'field', 'suggested_value', 'basis', 'value_type' ) as $key ) {
+				if ( isset( $recommendation[ $key ] ) && is_scalar( $recommendation[ $key ] ) ) {
+					$clean_recommendation[ $key ] = substr( sanitize_text_field( (string) $recommendation[ $key ] ), 0, 255 );
+				}
+			}
+			if ( array_key_exists( 'deterministic', $recommendation ) ) {
+				$clean_recommendation['deterministic'] = (bool) $recommendation['deterministic'];
+			}
+			$recommendations[] = $clean_recommendation;
+		}
+
+		return array(
+			'status'          => sanitize_key( (string) ( $result['status'] ?? '' ) ),
+			'fields'          => $fields,
+			'click_ids'       => $click_ids,
+			'source_evidence' => $source_evidence,
+			'issues'          => $issues,
+			'recommendations' => $recommendations,
 		);
 	}
 

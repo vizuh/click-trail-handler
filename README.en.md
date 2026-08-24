@@ -10,6 +10,8 @@
 [![CodeQL](https://github.com/vizuh/click-trail-handler/actions/workflows/codeql.yml/badge.svg)](https://github.com/vizuh/click-trail-handler/actions/workflows/codeql.yml)
 [![Dependency Review](https://github.com/vizuh/click-trail-handler/actions/workflows/dependency-review.yml/badge.svg)](https://github.com/vizuh/click-trail-handler/actions/workflows/dependency-review.yml)
 
+![ClickTrail](.github/clicktrail-cover.png)
+
 > **Integration verification status (2026-08-19):** The source registry shows wiring, not production provider support.
 > PHP/WordPress/provider E2E verification was unavailable for this audit. Platform-named server adapters are
 > **source-present / runtime-unverified configured-endpoint adapters**. GTM can mediate site-owned provider tags;
@@ -18,9 +20,11 @@
 > adapter. See the [integration evidence ledger](docs/reference/integration-capabilities.json) and
 > [integration reference](docs/reference/INTEGRATIONS.md).
 
-Attribution usually breaks somewhere between the ad click and the conversion. ClickTrail makes it survive.
+Attribution usually breaks somewhere between the ad click and the conversion. ClickTrail keeps campaign context alive through the journey to the WordPress conversion.
 
 ClickTrail is a WordPress attribution plugin for sites that need campaign source data to remain available through real-world journeys, especially when WooCommerce orders or lead forms happen several pages after the landing page.
+
+**What ClickTrail is not:** it is not an attribution dashboard, a hosted server-side GTM platform, a lead manager, or an ad optimizer. It complements GA4 and GTM. Browser tags remain site-owned, while configured-endpoint server adapters remain source-present/runtime-unverified in the current baseline.
 
 It is built for the problems that usually break attribution in production:
 
@@ -124,6 +128,12 @@ Additional browser identifiers include:
 - `ga_session_id`
 
 ### Forms (source connectors; runtime-unverified in this audit)
+
+ClickTrail connects to forms in three documented patterns. Confirm which pattern applies before testing:
+
+1. **Automatic hidden fields** — Contact Form 7 and Fluent Forms receive attribution fields through the documented path.
+2. **Matching hidden fields** — Gravity Forms and WPForms populate the `ct_*` fields you add to the form.
+3. **Submission storage** — Elementor Forms (Pro) and Ninja Forms attach attribution to the submission record instead of injecting hidden fields.
 
 - Automatic hidden-field enrichment for Contact Form 7 and Fluent Forms
 - Compatible hidden-field population for Gravity Forms and WPForms when matching hidden fields are present
@@ -286,12 +296,19 @@ Start with `Capture` and the integrations you already use. Add `Events` next if 
 
 ## Typical Use Cases
 
-- Agencies that need attribution inside lead forms
-- WooCommerce stores that want campaign-aware order data
-- WooCommerce stores that want richer purchase payloads without replacing their existing tracking stack
-- Sites with aggressive caching or dynamic form rendering
-- Businesses running multi-domain funnels
-- Teams that need browser and server-side tracking in one WordPress plugin
+- [Agencies and service businesses that need attribution inside lead forms](docs/guides/USE-CASES.md#lead-generation-forms)
+- [WooCommerce stores that want campaign-aware order data](docs/guides/USE-CASES.md#woocommerce-orders)
+- [Sites with aggressive caching or dynamic form rendering](docs/guides/USE-CASES.md#cached-and-dynamic-forms)
+- [Businesses running approved multi-domain funnels](docs/guides/USE-CASES.md#approved-multi-domain-funnels)
+- [Teams aligning capture with an existing consent source](docs/guides/USE-CASES.md#consent-aware-sites)
+
+If you need call tracking, lead scoring, multi-touch revenue modeling, or ad-spend optimization, ClickTrail is not that tool; pair it with the specialist platform you already use.
+
+## Tutorials
+
+- [Lead form attribution](docs/tutorials/01-lead-form-attribution.md)
+- [WooCommerce order attribution](docs/tutorials/02-woocommerce-order-attribution.md)
+- [Consent and browser events](docs/tutorials/03-consent-and-events.md)
 
 ## Release phasing and evidence
 
@@ -306,12 +323,13 @@ docs, consent/privacy remediation, delivery integrity, provider-contract release
 - [Integrations reference](docs/reference/INTEGRATIONS.md)
 - [Full changelog](changelog.txt)
 - [WordPress.org readme](readme.txt)
+- [Competitive positioning and acquisition roadmap](docs/guides/COMPETITIVE-POSITIONING-AND-ACQUISITION-ROADMAP-2026-08-22.md)
 
 ## Notes on Current Architecture
 
 - The public admin UI no longer uses "Tracking v2" terminology.
 - Internally, some runtime settings still live in the `clicutcl_tracking_v2` option for backward compatibility.
-- The legacy v1 API controller remains in the repository but is disabled by default unless `CLICUTCL_ENABLE_LEGACY_V1_API` is explicitly enabled.
+- The legacy v1 log controller has been removed; `clicutcl/v2` is the only active REST namespace. See [REST API](docs/reference/REST-API.md).
 
 ## License
 

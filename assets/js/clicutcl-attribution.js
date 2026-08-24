@@ -1006,6 +1006,7 @@
                 ['lt_landing_page', ['ct_lt_landing_page', 'ct_last_landing_page']],
                 ['ft_touch_timestamp', ['ct_ft_touch_timestamp', 'ct_first_touch_timestamp']],
                 ['lt_touch_timestamp', ['ct_lt_touch_timestamp', 'ct_last_touch_timestamp']],
+                ['trail_id', ['ct_trail_id']],
                 ['session_count', ['ct_session_count']]
             );
 
@@ -1028,8 +1029,15 @@
         run: function () {
             if (!CONFIG.injectEnabled) return;
 
-            const data = Store.getData();
-            if (!data || Object.keys(data).length === 0) return;
+            const data = Object.assign({}, Store.getData() || {});
+            const identity = Identity.get();
+            if (identity.visitor_id) {
+                data.visitor_id = data.visitor_id || identity.visitor_id;
+                data.session_id = data.session_id || identity.session_id;
+                data.session_number = data.session_number || identity.session_number;
+                data.trail_id = data.trail_id || ('trl_' + identity.visitor_id);
+            }
+            if (Object.keys(data).length === 0) return;
 
             this.map().forEach(([key, fieldNames]) => {
                 const val = data[key];
@@ -1731,13 +1739,42 @@
             // Push to DataLayer
             window.dataLayer = window.dataLayer || [];
             const identity = Identity.get();
+            const pageEventId = Identity.eventId('pv');
+            const pageTouch = (key) => storedData['lt_' + key] || storedData['ft_' + key] || storedData[key] || '';
+            const pageClickIds = {};
+            ['gclid', 'wbraid', 'gbraid', 'fbclid', 'ttclid', 'msclkid', 'twclid', 'li_fat_id', 'sccid', 'epik'].forEach((key) => {
+                const value = storedData[key] || storedData['lt_' + key] || storedData['ft_' + key] || '';
+                if (value) pageClickIds[key] = value;
+            });
             window.dataLayer.push({
                 event: 'ct_page_view',
-                event_id: Identity.eventId('pv'),
+                event_id: pageEventId,
                 session_id: session ? session.session_id : identity.session_id,
                 session_number: session ? session.session_number : undefined,
                 visitor_id: identity.visitor_id,
-                ct_attribution: storedData
+                ct_attribution: storedData,
+                marketing_trail: {
+                    schema_version: 1,
+                    event_id: 'evt_' + pageEventId,
+                    trail_id: identity.visitor_id ? 'trl_' + identity.visitor_id : '',
+                    anonymous_id: identity.visitor_id ? 'anon_' + identity.visitor_id : '',
+                    lead_id: '',
+                    workspace_id: '',
+                    site_id: CONFIG.siteId ? String(CONFIG.siteId) : '',
+                    event_name: 'page_view',
+                    occurred_at: new Date().toISOString(),
+                    landing_page: pageTouch('landing_page') || window.location.pathname,
+                    referrer: pageTouch('referrer') || document.referrer || '',
+                    source: pageTouch('source'),
+                    medium: pageTouch('medium'),
+                    campaign: pageTouch('campaign'),
+                    click_ids: pageClickIds,
+                    consent: {
+                        analytics: !!(this.getConsent() && this.getConsent().analytics),
+                        advertising: !!(this.getConsent() && this.getConsent().marketing)
+                    },
+                    form: { provider: '', form_id: '' }
+                }
             });
 
             this.initFormListeners(storedData);

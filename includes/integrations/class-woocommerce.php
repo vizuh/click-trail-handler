@@ -8,6 +8,7 @@
 namespace CLICUTCL\Integrations;
 
 use CLICUTCL\Core\Attribution_Provider;
+use CLICUTCL\Consent\Snapshot_V1;
 use CLICUTCL\Modules\GTM\GTM_Settings;
 use CLICUTCL\Server_Side\Dispatcher;
 use CLICUTCL\Server_Side\Consent;
@@ -48,6 +49,7 @@ class WooCommerce {
 		}
 
 		add_action( 'woocommerce_checkout_create_order', array( $this, 'save_order_attribution' ), 10, 2 );
+		add_action( 'woocommerce_store_api_checkout_order_processed', array( $this, 'save_order_attribution' ), 10, 1 );
 		add_action( 'woocommerce_thankyou', array( $this, 'push_purchase_event' ), 20, 1 );
 		add_action( 'woocommerce_payment_complete', array( $this, 'track_paid_milestone' ), 20, 1 );
 		add_action( 'woocommerce_order_status_changed', array( $this, 'track_paid_milestone_from_status_change' ), 20, 4 );
@@ -87,14 +89,11 @@ class WooCommerce {
 	 * @param \WC_Order $order Order.
 	 * @param array     $data  Request Data.
 	 */
-	public function save_order_attribution( $order, $data ) {
+	public function save_order_attribution( $order, $data = array() ) {
 		// Persist the buyer's consent snapshot regardless of attribution presence.
 		// Payment webhooks and cron later have no visitor cookie; this stored
 		// snapshot is what allows those contexts to honor checkout-time consent.
-		$consent = Consent::get_state();
-		if ( ! empty( $consent ) ) {
-			$order->update_meta_data( self::CONSENT_META_KEY, wp_json_encode( $consent ) );
-		}
+		$order->update_meta_data( self::CONSENT_META_KEY, wp_json_encode( Consent::snapshot() ) );
 
 		// 1. Try server-side cookie first (most reliable if not stripped).
 		$attribution = Attribution::get();
@@ -410,20 +409,7 @@ class WooCommerce {
 	 * @return array Empty array when no snapshot was stored.
 	 */
 	private function get_order_consent_snapshot( $order ): array {
-		$raw = (string) $order->get_meta( self::CONSENT_META_KEY, true );
-		if ( '' === $raw ) {
-			return array();
-		}
-
-		$decoded = json_decode( $raw, true );
-		if ( ! is_array( $decoded ) || ! array_key_exists( 'marketing', $decoded ) ) {
-			return array();
-		}
-
-		return array(
-			'marketing' => ! empty( $decoded['marketing'] ),
-			'analytics' => ! empty( $decoded['analytics'] ),
-		);
+		return Snapshot_V1::normalize( (string) $order->get_meta( self::CONSENT_META_KEY, true ) );
 	}
 
 	/**
@@ -554,6 +540,7 @@ class WooCommerce {
 				)
 			)
 		);
+		$order->save();
 
 		return $result;
 	}
@@ -1017,8 +1004,15 @@ class WooCommerce {
 	 * @return array
 	 */
 	private function flatten_attribution_for_event( $attribution ) {
-		$raw_attribution = Attribution_Provider::sanitize( is_array( $attribution ) ? $attribution : array() );
+		$raw_attribution = is_array( $attribution ) ? $attribution : array();
 		$attribution     = $this->normalize_attribution_structure( $raw_attribution );
+		$first_touch     = Attribution_Provider::sanitize( $attribution['first_touch'] ?? array() );
+		$last_touch      = Attribution_Provider::sanitize( $attribution['last_touch'] ?? array() );
+		$raw_attribution = Attribution_Provider::sanitize( array_merge( $first_touch, $last_touch, $raw_attribution ) );
+		$attribution     = array(
+			'first_touch' => $first_touch,
+			'last_touch'  => $last_touch,
+		);
 
 		$flat = array_fill_keys(
 			array_filter(

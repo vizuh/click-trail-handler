@@ -81,6 +81,7 @@
                 session_id: this.sessionId,
                 visitor_id: this.visitorId
             };
+            eventData.marketing_trail = this.buildMarketingTrailEnvelope(eventName, eventData, eventId);
 
             this.debugLog('ClickTrail Event:', eventName, eventData);
 
@@ -167,6 +168,7 @@
                 },
                 attribution,
                 consent,
+                marketing_trail: this.buildMarketingTrailEnvelope(eventName, eventData, eventId),
                 lead_context: leadContext,
                 commerce_context: commerceContext,
                 delivery_context: deliveryContext,
@@ -393,6 +395,71 @@
             return {};
         }
 
+        buildMarketingTrailEnvelope(eventName, eventData = {}, eventId = '') {
+            const attribution = this.getAttributionPayload();
+            const supplied = eventData && typeof eventData.marketing_trail === 'object' ? eventData.marketing_trail : {};
+            const leadEvent = ['lead', 'lead.submitted', 'lead_submitted', 'form_submission'].includes(eventName);
+            const prefix = (value, name) => {
+                const text = this.safeText(value, 255);
+                if (!text) return '';
+                return text.indexOf(name) === 0 ? text : name + text;
+            };
+            const first = (...values) => values.map((value) => this.safeText(value, 255)).find(Boolean) || '';
+            const touch = (key) => first(
+                eventData[key],
+                attribution['lt_' + key],
+                attribution['ft_' + key],
+                attribution[key]
+            );
+            const visitorId = first(eventData.visitor_id, attribution.visitor_id, this.visitorId);
+            const consent = this.getConsentState();
+            const suppliedConsent = supplied && typeof supplied.consent === 'object' ? supplied.consent : {};
+            const rawForm = eventData.form && typeof eventData.form === 'object'
+                ? eventData.form
+                : (eventData.lead_context && typeof eventData.lead_context === 'object' ? eventData.lead_context : {});
+            const clickIds = {};
+            ['gclid', 'wbraid', 'gbraid', 'fbclid', 'ttclid', 'msclkid', 'twclid', 'li_fat_id', 'sccid', 'epik'].forEach((key) => {
+                const value = first(
+                    supplied.click_ids && supplied.click_ids[key],
+                    eventData.click_ids && eventData.click_ids[key],
+                    attribution[key],
+                    attribution['lt_' + key],
+                    attribution['ft_' + key]
+                );
+                if (value) clickIds[key] = value;
+            });
+
+            const normalizedEventName = leadEvent ? 'lead_submitted' : String(eventName || '');
+            const normalizedEventId = prefix(supplied.event_id || eventId, 'evt_');
+            return {
+                schema_version: 1,
+                event_id: normalizedEventId,
+                trail_id: prefix(supplied.trail_id || eventData.trail_id || attribution.trail_id || visitorId, 'trl_'),
+                anonymous_id: prefix(supplied.anonymous_id || eventData.anonymous_id || visitorId, 'anon_'),
+                lead_id: prefix(supplied.lead_id || eventData.lead_id || (leadEvent ? normalizedEventId.replace(/^evt_/, '') : ''), 'lead_'),
+                workspace_id: first(supplied.workspace_id, eventData.workspace_id, window.clicutclEventsConfig && window.clicutclEventsConfig.workspaceId),
+                site_id: first(supplied.site_id, eventData.site_id, window.clicutclEventsConfig && window.clicutclEventsConfig.siteId),
+                event_name: first(supplied.event_name, normalizedEventName),
+                occurred_at: first(supplied.occurred_at, eventData.occurred_at, eventData.event_time, new Date().toISOString()),
+                landing_page: first(supplied.landing_page, touch('landing_page'), window.location.pathname),
+                referrer: first(supplied.referrer, touch('referrer'), document.referrer),
+                source: first(supplied.source, touch('source')),
+                medium: first(supplied.medium, touch('medium')),
+                campaign: first(supplied.campaign, touch('campaign')),
+                click_ids: clickIds,
+                consent: {
+                    analytics: typeof suppliedConsent.analytics !== 'undefined' ? !!suppliedConsent.analytics : !!consent.analytics,
+                    advertising: typeof suppliedConsent.advertising !== 'undefined'
+                        ? !!suppliedConsent.advertising
+                        : (typeof suppliedConsent.marketing !== 'undefined' ? !!suppliedConsent.marketing : !!consent.marketing)
+                },
+                form: {
+                    provider: first(supplied.form && supplied.form.provider, rawForm.provider, eventData.form_provider),
+                    form_id: first(supplied.form && supplied.form.form_id, rawForm.form_id, eventData.form_id)
+                }
+            };
+        }
+
         sanitizeAttribution(data) {
             const allow = [
                 'ft_source', 'ft_medium', 'ft_campaign', 'ft_term', 'ft_content',
@@ -405,7 +472,7 @@
                 'lt_twclid', 'lt_li_fat_id', 'lt_sccid', 'lt_sc_click_id', 'lt_epik',
                 'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid',
                 'twclid', 'li_fat_id', 'sccid', 'sc_click_id', 'epik',
-                'fbc', 'fbp', 'ttp', 'li_gc', 'ga_client_id', 'ga_session_id', 'ga_session_number'
+                'fbc', 'fbp', 'ttp', 'li_gc', 'ga_client_id', 'ga_session_id', 'ga_session_number', 'visitor_id', 'trail_id'
             ];
 
             const out = {};

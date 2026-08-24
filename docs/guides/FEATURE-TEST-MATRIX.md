@@ -73,8 +73,13 @@ Smoke IDs:
 - `woo-order-refunded`
 - `woo-order-cancelled`
 - `diagnostics-woo-lookup`
+- `woo-readiness-contract`
 
-These checks defend the opt-in Woo storefront browser layer, post-purchase milestones, and stored order-trace diagnostics.
+The first nine IDs are structural source checks with `automated: false`; they do
+not prove Woo runtime behavior. `woo-readiness-contract` is an automated pure
+comparator check across 16 synthetic scenarios. It proves only the closed M6-A
+contract, not hooks, order persistence, browser behavior, HPOS, provider
+acceptance, consent correctness, dedup concurrency, or privacy lifecycle.
 
 ## Delivery Adapters and Destinations
 
@@ -104,6 +109,17 @@ Smoke IDs:
 - `queue-retry-semantics`
 
 These checks defend the deterministic conflict scan and the queue retry/backoff contract used by the delivery layer.
+
+## Form-readiness contract
+
+Smoke ID:
+
+- `form-readiness-contract`
+
+This structural check pins the pure presence comparator, its privacy tests, and
+one versioned fixture for each of the six existing form adapters. It verifies
+fixture ownership only. It does not prove that a form hook fired, a provider
+record was written, a cache/AJAX path worked, or a browser completed a submit.
 
 ## Manual QA Still Required
 

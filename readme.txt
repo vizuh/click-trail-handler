@@ -26,6 +26,8 @@ Attribution usually breaks somewhere between the ad click and the conversion. Cl
 
 ClickTrail keeps the source of the visit, not a profile of the visitor. Capture is first-party and includes consent controls; by default the plugin does not call external services to identify or enrich visitors, and data leaves only through integrations you enable. Current consent, revocation, queue, WooCommerce, and purge blockers are documented in the repository security guide.
 
+ClickTrail is a WordPress capture-and-controlled-delivery layer, not an attribution dashboard, hosted server-side GTM platform, lead manager, or ad optimizer. It complements GA4 and GTM; configured-endpoint delivery and provider acceptance remain runtime-unverified in the current baseline.
+
 ClickTrail stores first-touch and last-touch attribution from the landing page and keeps it available until the conversion point, where it becomes usable inside WordPress:
 
 * WooCommerce orders
@@ -53,7 +55,7 @@ In WooCommerce, ClickTrail stores attribution on the order, pushes enriched purc
 
 * **Capture**: first-touch and last-touch UTMs, major ad click IDs, and referrers with automatic organic/social/referral fallback when UTMs are absent.
 * **WooCommerce**: checkout attribution persistence, thank-you purchase event push, enriched commerce payloads, optional storefront commerce events, and optional order-status milestones.
-* **Forms**: automatic hidden-field enrichment for Contact Form 7 and Fluent Forms, compatible hidden-field population for Gravity Forms and WPForms, client-side fallback, dynamic form support, and WhatsApp attribution continuity.
+* **Forms**: three documented patterns — automatic hidden fields for Contact Form 7 and Fluent Forms, matching `ct_*` hidden fields for Gravity Forms and WPForms, and submission-record storage for Elementor Forms (Pro) and Ninja Forms — plus client-side fallback, dynamic form support, and WhatsApp attribution continuity.
 * **Events**: browser event collection with `dataLayer` pushes, canonical REST intake, webhook ingestion, lifecycle updates, one-time WordPress follow-up events such as `login`, `sign_up`, and `comment_submit`, and optional WooCommerce storefront events.
 * **Delivery**: optional server-side transport, retry queue, diagnostics, and consent-gated dispatch with known edge cases documented for the next release.
 
@@ -109,8 +111,11 @@ Operational screens stay separate:
 * Microsoft: `msclkid`
 * X / Twitter: `twclid`
 * LinkedIn: `li_fat_id`
-* Snapchat: `sccid`
-* Pinterest: `epik`
+* Snapchat: `sccid`, `snap_cid`
+* Pinterest: `epik`, `pin_cid`
+* Reddit: `rdt_cid`
+* Mailchimp: `mc_cid`, `mc_eid`
+* Display & Video 360: `dclid`
 
 = Additional capture fields =
 
@@ -219,19 +224,35 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 The repository [release-phasing plan](docs/guides/RELEASE-PHASING-AND-INTEGRATION-DOCS.md) separates truth-containment
 docs, consent/privacy remediation, delivery integrity, provider-contract releases, and later reach work.
 
+== Common use cases ==
+
+* Lead-generation forms: keep campaign context attached to supported form entries.
+* WooCommerce orders: keep observed source context available on the order and purchase event path.
+* Cached or dynamic forms: use the client-side fallback and dynamic-form path when server-rendered fields are not enough.
+* Approved multi-domain funnels: continue attribution only across domains you control and configure.
+* Consent-aware sites: connect ClickTrail to one consent source and validate granted and denied paths before launch.
+
+See the [use-case guide](https://github.com/vizuh/click-trail-handler/blob/main/docs/guides/USE-CASES.md) and
+[tutorial index](https://github.com/vizuh/click-trail-handler/blob/main/docs/tutorials/README.md) for setup steps.
+
 == Screenshots ==
 
-1. WooCommerce order source visibility inside the Woo order list.
-2. WooCommerce order attribution detail for reviewing campaign context on a specific order.
-3. Unified ClickTrail settings organized into Capture, Forms, Events, and Delivery.
-4. Diagnostics and delivery health for verifying event intake and transport behavior.
+1. Forms settings for cached and dynamic form attribution.
+2. Delivery settings for optional configured-endpoint transport and consent controls.
+3. Events settings for browser collection and site-owned GTM/dataLayer paths.
 
 == Changelog ==
 
 The entries below are historical release notes. They do not replace the current source/evidence status in
 `docs/reference/INTEGRATIONS.md` and `docs/guides/SECURITY-PRIVACY.md`; earlier claims may describe intended
-behavior that still requires current runtime verification.
+behavior that still requires current runtime verification. In particular, older wording that calls platform-named
+server paths “first-class native delivery adapters” predates the current evidence classification: those paths are
+configured-endpoint relays whose provider authentication, acceptance, and runtime delivery remain unverified.
 
+= 1.10.0 =
+*   **Free capture layer**: normalized marketing-trail envelopes now carry stable event, trail, anonymous, lead, workspace, and site identifiers alongside first/last-touch attribution, UTMs, click IDs, landing page, referrer, consent, and form context.
+*   **Diagnostics and quality**: added readiness analyzers, consent snapshot contracts, WooCommerce classic/HPOS contract coverage, pinned supply-chain workflows, Dependabot, OSV, Scorecard, and contributor/security guidance.
+*   **Release boundary**: this GitHub release is ahead of the WordPress.org Stable tag by policy; provider acceptance, compliance, and complete runtime integration claims remain evidence-gated.
 
 = 1.9.0 =
 *   **New foundation (no visible UI change)**: ClickTrail writes structured touch-event records in `clicutcl_touch_events` alongside the legacy diagnostics table. This is a reporting foundation, not a complete privacy certificate: the current audit found hashed-identity matching gaps, WooCommerce order-meta lifecycle gaps, retention coupling, and queue/revocation boundaries. See `docs/architecture/DATA-MODEL.md` and `docs/guides/SECURITY-PRIVACY.md` for the current evidence status.

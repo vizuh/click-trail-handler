@@ -1,0 +1,57 @@
+{
+  "schema": "clicktrail/woo-readiness/request.v1",
+  "fixture_id": "F03",
+  "storage_mode": "classic",
+  "admin_surface": "classic_list_and_meta_box",
+  "source": {
+    "input": "cookie_fallback_frontend"
+  },
+  "consent": {
+    "snapshot_state": "absent",
+    "live_cookie_state": "granted",
+    "source_used": "live_cookie",
+    "datalayer_gate": "ungated"
+  },
+  "order": {
+    "status": "processing",
+    "transition_kind": "payment_complete",
+    "value_state": "positive",
+    "currency_state": "present_iso",
+    "reconciliation": "consistent"
+  },
+  "event": {
+    "name_form": "purchase_<order-id>",
+    "id_stability": "deterministic",
+    "dispatch_outcome": "success",
+    "marker_semantics": "set_on_terminal_only"
+  },
+  "dedup": {
+    "state": "marked_after_success",
+    "ttl_days": 7
+  },
+  "queue": {
+    "state": "not_enqueued",
+    "unique_key_scope": "event_name_event_id"
+  },
+  "refund": {
+    "shape": "none",
+    "amount_encoding": "not_applicable",
+    "sequence_order": "not_applicable"
+  },
+  "privacy": {
+    "fields": [
+      "none"
+    ],
+    "trace_persistence": "none",
+    "diagnostics_path": "none",
+    "erasure_coverage": "not_applicable"
+  },
+  "expect": {
+    "report_status": "fail",
+    "reason_codes": [
+      "purchase_datalayer_ungated",
+      "live_cookie_consent_used",
+      "consent_divergent"
+    ]
+  }
+}

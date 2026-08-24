@@ -71,6 +71,12 @@ This map is organized around the active code paths first, then compatibility and
 - `includes/tracking/webhooks/`
 - `includes/support/class-feature-registry.php`
 
+### Intelligence and evidence contracts
+
+- `includes/Intelligence/class-attribution-readiness-analyzer.php`: pure UTM/click-ID evidence analyzer and copy-only test URL builder
+- `includes/Intelligence/class-form-readiness-analyzer.php`: pure M5 form-presence comparator; contract-only, with no live form lookup or persistence
+- `includes/Intelligence/class-woo-readiness-analyzer.php`: pure M6-A Woo evidence classifier; 16 synthetic scenarios, no WordPress/Woo runtime dependency
+
 ### Server-side delivery
 
 - `includes/server-side/class-dispatcher.php`
@@ -142,6 +148,5 @@ This map is organized around the active code paths first, then compatibility and
 
 ## Compatibility and Legacy Surfaces
 
-- `includes/api/class-log-controller.php`: legacy controller present in repo, not bootstrapped by default
-
-This file remains as an opt-in compatibility path and is not part of the default runtime.
+- The legacy v1 log controller is absent from the current tree; `clicutcl/v2` via `Tracking_Controller` is the only registered REST surface.
+- The `clicutcl_tracking_v2` option remains as an internal settings-compatibility store; it is not a legacy REST route.

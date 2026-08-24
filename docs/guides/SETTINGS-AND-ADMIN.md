@@ -121,6 +121,7 @@ Primary controls:
 WooCommerce guidance now lives inside the `Events` tab rather than in a separate Woo settings screen. That card explains:
 
 - where WooCommerce order attribution is stored
+- that the `Source` column and `Marketing Attribution` order panel support classic and HPOS order screens
 - how purchase pushes work on the thank-you page
 - what the optional storefront events setting does, including `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout`
 - what the richer Woo `dataLayer` contract adds for GTM-first setups
@@ -338,6 +339,7 @@ Primary functions:
 
 - endpoint test
 - conflict scan
+- read-only attribution readiness analysis
 - settings backup export
 - settings backup restore
 - Woo order trace lookup
@@ -351,11 +353,16 @@ Key AJAX actions:
 
 - `clicutcl_test_endpoint`
 - `clicutcl_conflict_scan`
+- `clicutcl_attribution_readiness`
 - `clicutcl_export_settings_backup`
 - `clicutcl_import_settings_backup`
 - `clicutcl_lookup_woo_order_trace`
 - `clicutcl_toggle_debug`
 - `clicutcl_purge_tracking_data`
+
+Attribution Readiness accepts one bounded test JSON payload plus optional referrer, current host, and request-scoped source aliases. It can suggest only `utm_source` from one recognized click-ID platform. It never invents `utm_medium` or `utm_campaign`, overwrites an observed source, persists the test input, or dispatches an event. An unresolved source macro or multiple platform signals suppresses automatic source suggestion.
+
+Each field reports a `selection_tier`: `last_touch`, `direct`, `first_touch`, or `none`. Here `direct` means the bare current-payload key won the documented last-touch → direct → first-touch precedence; it is not a traffic-channel classification. Diagnostics may return a bounded copy-only test URL containing only observed core UTM values plus a deterministic source suggestion. Unsafe or ambiguous base URLs and invalid/macro core fields suppress the URL. The button copies only after an explicit operator action and never navigates or rewrites a live URL. This source path remains runtime-unverified until its WordPress/browser staging and browser/PHP parity checks are attached.
 
 The Woo order trace lookup is diagnostics-only. It reads stored purchase and milestone snapshots from Woo order meta and augments them with live queue state.
 

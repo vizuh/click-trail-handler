@@ -7,6 +7,9 @@
 
 namespace CLICUTCL\Server_Side;
 
+use CLICUTCL\Consent\Snapshot_V1;
+use CLICUTCL\Settings\Attribution_Settings;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -74,7 +77,32 @@ class Consent {
 	 * @return bool
 	 */
 	public static function marketing_allowed() {
-		$state = self::get_state();
-		return ! empty( $state['marketing'] );
+		return ! empty( self::snapshot()['marketing'] );
+	}
+
+	/**
+	 * Return the current policy requirement.
+	 *
+	 * @return bool
+	 */
+	public static function is_required(): bool {
+		if ( class_exists( 'CLICUTCL\\Modules\\Consent_Mode\\Consent_Mode_Settings' ) ) {
+			$settings = new \CLICUTCL\Modules\Consent_Mode\Consent_Mode_Settings();
+			if ( method_exists( $settings, 'is_consent_mode_enabled' ) ) {
+				return $settings->is_consent_mode_enabled() && $settings->is_consent_required_for_request();
+			}
+		}
+
+		$options = class_exists( Attribution_Settings::class ) ? Attribution_Settings::get_all() : array();
+		return ! empty( $options['require_consent'] );
+	}
+
+	/**
+	 * Return the current versioned consent snapshot.
+	 *
+	 * @return array
+	 */
+	public static function snapshot(): array {
+		return Snapshot_V1::capture( self::get_state(), self::is_required() );
 	}
 }

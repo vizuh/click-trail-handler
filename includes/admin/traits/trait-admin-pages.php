@@ -197,6 +197,13 @@ trait Admin_Pages_Trait {
 		foreach ( $failure_telemetry as $bucket ) {
 			$failure_total += absint( $bucket['total'] ?? 0 );
 		}
+		$readiness_sample = wp_json_encode(
+			array(
+				'gclid'        => 'redacted',
+				'utm_medium'   => 'cpc',
+				'utm_campaign' => 'example',
+			)
+		);
 		?>
 		<div class="wrap clicktrail-diagnostics-wrap">
 			<div class="clicktrail-page-header">
@@ -287,6 +294,46 @@ trait Admin_Pages_Trait {
 					<div id="clicutcl-conflict-scan-results" class="clicktrail-diagnostics-results">
 						<?php echo wp_kses_post( $this->render_conflict_scan_results( array() ) ); ?>
 					</div>
+				</div>
+			</section>
+
+			<section class="clicktrail-card" id="clicutcl-attribution-readiness">
+				<div class="clicktrail-card__header clicktrail-card__header--static">
+					<span class="clicktrail-card__header-main">
+						<span class="clicktrail-card__icon dashicons dashicons-chart-line" aria-hidden="true"></span>
+						<span class="clicktrail-card__heading">
+							<span class="clicktrail-card__title"><?php esc_html_e( 'Attribution Readiness', 'click-trail-handler' ); ?></span>
+							<span class="clicktrail-card__description"><?php esc_html_e( 'Run a read-only analysis against a test payload. Click-ID values are never returned or stored.', 'click-trail-handler' ); ?></span>
+						</span>
+					</span>
+				</div>
+				<div class="clicktrail-card__body">
+					<p>
+						<label for="clicutcl-attribution-readiness-payload"><strong><?php esc_html_e( 'Test payload (JSON)', 'click-trail-handler' ); ?></strong></label>
+						<textarea id="clicutcl-attribution-readiness-payload" class="large-text code" rows="7" maxlength="65536" spellcheck="false"><?php echo esc_textarea( (string) $readiness_sample ); ?></textarea>
+					</p>
+					<div class="clicktrail-action-row">
+						<label for="clicutcl-attribution-readiness-referrer"><?php esc_html_e( 'Referrer URL (optional)', 'click-trail-handler' ); ?></label>
+						<input type="url" id="clicutcl-attribution-readiness-referrer" class="regular-text" placeholder="https://www.google.com/" />
+						<label for="clicutcl-attribution-readiness-host"><?php esc_html_e( 'Current host (optional)', 'click-trail-handler' ); ?></label>
+						<input type="text" id="clicutcl-attribution-readiness-host" class="regular-text" placeholder="example.com" />
+					</div>
+					<p>
+						<label for="clicutcl-attribution-readiness-aliases"><strong><?php esc_html_e( 'Source aliases (optional test JSON)', 'click-trail-handler' ); ?></strong></label>
+						<textarea id="clicutcl-attribution-readiness-aliases" class="large-text code" rows="3" maxlength="4096" spellcheck="false" placeholder='{"linkedin":"linkedin_ads"}'></textarea>
+						<span class="description"><?php esc_html_e( 'Map recognized click-ID platform keys to bounded utm_source aliases. This input is used only for this check and is never stored.', 'click-trail-handler' ); ?></span>
+					</p>
+					<p class="description"><?php esc_html_e( 'Suggestions are read-only and apply only to utm_source; utm_medium and utm_campaign are never invented. An observed source, an unresolved macro, or signals from multiple platforms suppress automatic source suggestion.', 'click-trail-handler' ); ?></p>
+					<div class="clicktrail-action-row" style="margin-top:12px;">
+						<button class="button button-secondary" id="clicutcl-attribution-readiness-run" type="button"><?php esc_html_e( 'Run Readiness Check', 'click-trail-handler' ); ?></button>
+						<button class="button button-secondary" id="clicutcl-attribution-readiness-copy-url" type="button" disabled><?php esc_html_e( 'Copy Test URL', 'click-trail-handler' ); ?></button>
+						<span id="clicutcl-attribution-readiness-status" class="clicktrail-action-status" aria-live="polite"></span>
+					</div>
+					<p>
+						<label for="clicutcl-attribution-readiness-test-url"><strong><?php esc_html_e( 'Copy-only test URL', 'click-trail-handler' ); ?></strong></label>
+						<input type="text" id="clicutcl-attribution-readiness-test-url" class="large-text code" value="" readonly />
+					</p>
+					<pre id="clicutcl-attribution-readiness-output" class="clicktrail-json-preview" aria-live="polite"></pre>
 				</div>
 			</section>
 

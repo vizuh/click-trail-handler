@@ -136,6 +136,55 @@ function validateConsentRuntime(failures) {
   assert(!cookiebot.marketing && cookiebot.analytics, 'CMP analytics consent must not imply marketing consent', failures);
 }
 
+function validatePendingCaptureConsentGate(failures) {
+  const source = readFile('assets/js/clicutcl-attribution.js');
+  const initStart = source.indexOf('        init() {');
+  const initEnd = source.indexOf('        bindConsentListener() {', initStart);
+  const init = source.slice(initStart, initEnd);
+
+  assert(initStart >= 0 && initEnd > initStart, 'Attribution init consent gate is missing', failures);
+  assert(
+    /if \(\s*!requiresConsent \|\| \(consent && consent\.resolved && consent\.marketing\)\s*\) \{\s*PendingCapture\.save\(\);\s*\}/s.test(init),
+    'Pending capture must not write while required consent is unresolved',
+    failures
+  );
+}
+
+function validateWooRuntimeRemediations(failures) {
+  const integration = readFile('includes/integrations/class-woocommerce.php');
+  const admin = readFile('includes/admin/class-clicutcl-woocommerce-admin.php');
+
+  assert(
+    /store_trace_snapshot\([\s\S]+?array_merge\([\s\S]+?\);\s*\$order->save\(\);\s*return \$result;/m.test(integration),
+    'Woo dispatch result trace must be saved before returning',
+    failures
+  );
+  assert(
+    admin.includes('manage_woocommerce_page_wc-orders_columns') &&
+      admin.includes('manage_woocommerce_page_wc-orders_custom_column') &&
+      admin.includes("wc_get_page_screen_id( 'shop-order' )"),
+    'Woo admin must register HPOS list and order-screen surfaces',
+    failures
+  );
+}
+
+function validateWooConsentSnapshotV1(failures) {
+  const integration = readFile('includes/integrations/class-woocommerce.php');
+  const diagnostics = readFile('includes/admin/traits/trait-admin-diagnostics-ajax.php');
+
+  assert(
+    integration.includes("wp_json_encode( Consent::snapshot() )") &&
+      integration.includes('Snapshot_V1::normalize'),
+    'Woo checkout and dispatch must share the versioned consent snapshot contract',
+    failures
+  );
+  assert(
+    diagnostics.includes('Snapshot_V1::normalize'),
+    'Woo Diagnostics must read legacy and v1 consent snapshots through one normalizer',
+    failures
+  );
+}
+
 function main() {
   const failures = [];
   const registry = loadJson('config/feature-registry.json');
@@ -146,6 +195,9 @@ function main() {
   validateMatrixCoverage(registryIds, matrix, failures);
   validateMatrixEvidence(matrix, failures);
   validateConsentRuntime(failures);
+  validatePendingCaptureConsentGate(failures);
+  validateWooRuntimeRemediations(failures);
+  validateWooConsentSnapshotV1(failures);
 
   if (failures.length > 0) {
     console.error('Smoke coverage check failed:');

@@ -1,0 +1,56 @@
+{
+  "schema": "clicktrail/woo-readiness/request.v1",
+  "fixture_id": "F01",
+  "storage_mode": "classic",
+  "admin_surface": "classic_list_and_meta_box",
+  "source": {
+    "input": "cookie_primary"
+  },
+  "consent": {
+    "snapshot_state": "granted",
+    "live_cookie_state": "granted",
+    "source_used": "stored_order_snapshot",
+    "datalayer_gate": "ungated"
+  },
+  "order": {
+    "status": "processing",
+    "transition_kind": "created",
+    "value_state": "positive",
+    "currency_state": "present_iso",
+    "reconciliation": "explained_mismatch_allowed"
+  },
+  "event": {
+    "name_form": "purchase_<order-id>",
+    "id_stability": "deterministic",
+    "dispatch_outcome": "success",
+    "marker_semantics": "set_on_any_skip"
+  },
+  "dedup": {
+    "state": "marked_after_success",
+    "ttl_days": 7
+  },
+  "queue": {
+    "state": "not_enqueued",
+    "unique_key_scope": "event_name_event_id"
+  },
+  "refund": {
+    "shape": "none",
+    "amount_encoding": "not_applicable",
+    "sequence_order": "not_applicable"
+  },
+  "privacy": {
+    "fields": [
+      "none"
+    ],
+    "trace_persistence": "none",
+    "diagnostics_path": "none",
+    "erasure_coverage": "not_applicable"
+  },
+  "expect": {
+    "report_status": "fail",
+    "reason_codes": [
+      "purchase_datalayer_ungated",
+      "value_mismatch_explained"
+    ]
+  }
+}

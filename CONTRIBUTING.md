@@ -39,9 +39,11 @@ Recommended bootstrap:
 
 Recommended checks before opening a PR:
 
+- Run `composer validate --strict` and `composer audit --locked` for dependency metadata and advisories.
 - Run `composer phpcs` for the repository baseline coding-standard check.
 - Run `composer phpcompat` to flag PHP and WordPress deprecated/removed API usage (PHPCompatibilityWP).
-- Run the affected flow manually in WordPress because the repo does not currently ship an automated PHP or JS test suite.
+- Run `composer test` for PHPUnit unit/contract coverage and `node tools/qa/smoke.js` for registry, consent, WooCommerce, and docs evidence checks.
+- Run the affected flow manually in WordPress because stub-based tests do not replace a real-site runtime check.
 - Run `npm run make-zip` when your change affects packaging, release prep, or you want to validate the distributable plugin build. This command wraps `tools/release/make-zip.ps1`.
 
 Manual validation examples:

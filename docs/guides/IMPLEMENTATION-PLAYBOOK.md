@@ -3,7 +3,7 @@
 - **Audience**: implementation engineers, solution architects, technical PMs, support teams, and agency delivery teams
 - **Canonical for**: recommended rollout patterns, phased adoption, ownership handoff, and practical validation steps
 - **Update when**: capability boundaries, rollout guidance, or recommended setup patterns change
-- **Last verified against version**: `1.3.9`
+- **Last verified against version**: `1.9.0`
 
 Use this guide when a team asks "How should we actually deploy ClickTrail?" Start here before diving into the deeper architecture and reference docs.
 
@@ -249,6 +249,21 @@ Hand-off checklist:
 4. document the consent source of truth
 5. document whether server-side delivery is enabled and who owns the endpoint
 
+### Zapier or Make webhook recipe
+
+Use the existing **Generic Collector** when a Zapier or Make scenario exposes a
+webhook URL:
+
+1. create the webhook in Zapier or Make and copy its HTTPS URL;
+2. select **Generic Collector** under ClickTrail Delivery;
+3. enter the webhook URL and any authentication required by the receiving flow;
+4. send a synthetic event and inspect the received `schema_version: 1` JSON;
+5. keep Delivery off until consent, retries, deduplication, and field mapping
+   match the site's requirements.
+
+This is a generic configured-endpoint recipe, not a native Zapier/Make adapter
+or a guarantee that a downstream app accepted the event.
+
 ## Where to Look for Value
 
 If the implementation is working, teams should see value in at least one of these places:
@@ -301,6 +316,8 @@ When link decoration is on and no allowed domains are listed, ClickTrail surface
 
 ## Next Docs by Need
 
+- use-case selection: [USE-CASES.md](USE-CASES.md)
+- bounded tutorials: [../tutorials/README.md](../tutorials/README.md)
 - architecture: [../architecture/PLUGIN-OVERVIEW.md](../architecture/PLUGIN-OVERVIEW.md)
 - settings and option mapping: [SETTINGS-AND-ADMIN.md](SETTINGS-AND-ADMIN.md)
 - integrations and provider behavior: [../reference/INTEGRATIONS.md](../reference/INTEGRATIONS.md)

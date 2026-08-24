@@ -16,7 +16,7 @@ consent, queue, WooCommerce metadata, dataLayer, webhook, purge, and sGTM-previe
 
 These are not claims that the behavior is fixed. They are release gates for the next runtime changes:
 
-- Consent Mode disabled and legacy `require_consent` can disagree between browser/core and `Dispatcher`.
+- Browser/CMP authority still uses unversioned cookies; M7-B labels their Woo snapshots `legacy_unversioned` but does not resolve stale-cookie precedence.
 - Stale plugin consent cookies can outrank a current CMP decision; cross-tab synchronization and revocation are incomplete.
 - Form/Woo posted attribution, Woo order metadata, purchase dataLayer output, and queued retries need independent consent/revocation tests.
 - Woo traces can retain identity metadata; ClickTrail purge/export/erase/uninstall does not yet cover every Woo order-meta key.
@@ -38,9 +38,9 @@ Supported behavior modes:
 
 Current source behavior (audit status):
 
-- when consent mode is disabled, browser/core paths disable the legacy gate, but `Dispatcher` still reads a saved
-  `require_consent` value; this mismatch is unresolved
+- server snapshot capture and `Dispatcher` share one policy requirement helper; when consent mode is disabled, both treat consent as not required rather than reading the legacy hidden gate
 - when consent mode is enabled, the runtime asks `Consent_Mode_Settings` whether the current request requires consent
+- new Woo orders store a v1 decision snapshot; historical boolean order snapshots remain readable and are explicitly labeled `legacy_unversioned`
 - frontend attribution consumes the consent bridge as its primary runtime contract, but stale-cookie/CMP precedence
   and cross-tab synchronization remain runtime test requirements
 - consent resolution is normalized through `ct:consentResolved`, with compatibility events still emitted for older listeners
@@ -234,3 +234,36 @@ It does not store:
 - raw personal data
 
 Debug windows can temporarily increase visibility for troubleshooting, but production behavior is intentionally limited.
+
+### Form-readiness comparator boundary
+
+The M5 presence comparator is redacted by construction. It accepts field-name
+and presence snapshots, not attribution or submission values. Its report may
+contain only:
+
+- a closed adapter and pattern ID
+- allowlisted `ct_*` field names derived from the attribution field mapping
+- named evidence states for provider record, hook payload, and ClickTrail event
+- closed reason/status enums, booleans, and counts
+
+It must not accept or return raw attribution values, click IDs, browser or
+visitor identifiers, identity fields, full submissions, landing/referrer URLs,
+secrets, or provider records. Extra request properties are ignored and never
+echoed. No live lookup or new persistence surface exists in the first slice.
+
+### Woo-readiness comparator boundary
+
+The M6-A comparator is also redacted by construction. Its inputs are closed
+synthetic enums. Its output is limited to fixture IDs, placeholder event-name
+forms, contract status/reason enums, bounded integers such as `dedup_ttl_days`,
+constant value-basis labels, and counts. Unknown properties are ignored
+and invalid enum values fail closed.
+
+It must not accept or return real order/refund/customer IDs, identities,
+attribution values, IP addresses, user agents, purchase payloads, URLs, or
+secrets. It performs no WordPress/WooCommerce lookup and creates no storage.
+
+The contract records, but does not fix, the existing privacy-lifecycle gap:
+identity-bearing canonical Woo trace snapshots and Diagnostics surfaces do not
+yet have complete allowlisted erase, purge, export, and uninstall coverage.
+Runtime work remains blocked until that boundary is designed and verified.

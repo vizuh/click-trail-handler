@@ -7,7 +7,6 @@
 
 namespace CLICUTCL\Server_Side;
 
-use CLICUTCL\Settings\Attribution_Settings;
 use CLICUTCL\Support\Feature_Registry;
 use CLICUTCL\Tracking\Dedup_Store;
 
@@ -240,6 +239,7 @@ class Dispatcher {
 			'page'        => isset( $event_v2['page_context'] ) && is_array( $event_v2['page_context'] ) ? $event_v2['page_context'] : array(),
 			'attribution' => isset( $event_v2['attribution'] ) && is_array( $event_v2['attribution'] ) ? $event_v2['attribution'] : array(),
 			'consent'     => isset( $event_v2['consent'] ) && is_array( $event_v2['consent'] ) ? $event_v2['consent'] : array(),
+			'marketing_trail' => isset( $event_v2['marketing_trail'] ) && is_array( $event_v2['marketing_trail'] ) ? $event_v2['marketing_trail'] : array(),
 			'meta'        => isset( $event_v2['meta'] ) && is_array( $event_v2['meta'] ) ? $event_v2['meta'] : array(),
 		);
 
@@ -420,16 +420,7 @@ class Dispatcher {
 	 * @return bool
 	 */
 	private static function consent_allows( ?Event $event = null ) {
-		$attr_options    = Attribution_Settings::get_all();
-		$require_consent = ! empty( $attr_options['require_consent'] );
-		if ( class_exists( 'CLICUTCL\\Modules\\Consent_Mode\\Consent_Mode_Settings' ) ) {
-			$consent_settings = new \CLICUTCL\Modules\Consent_Mode\Consent_Mode_Settings();
-			if ( $consent_settings->is_consent_mode_enabled() ) {
-				$require_consent = $consent_settings->is_consent_required_for_request();
-			}
-		}
-
-		if ( ! $require_consent ) {
+		if ( ! Consent::is_required() ) {
 			return true;
 		}
 

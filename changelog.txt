@@ -1,6 +1,11 @@
 Changelog
 ========
 
+= 1.10.0 =
+*   **Free capture layer:** normalized marketing-trail envelopes now carry stable event, trail, anonymous, lead, workspace, and site identifiers alongside first/last-touch attribution, UTMs, click IDs, landing page, referrer, consent, and form context.
+*   **WordPress diagnostics and integrations:** added readiness analyzers, consent snapshot contracts, hidden-field/dataLayer coverage, WooCommerce classic/HPOS contract tests, and a local smoke gate that keeps source presence separate from runtime/provider proof.
+*   **Release quality:** added pinned GitHub Actions, Dependabot, dependency review, CodeQL, OSV, Scorecard, security reporting, issue templates, PHP syntax/Composer audit gates, and contributor guidance. This GitHub release remains ahead of the WordPress.org Stable tag by policy.
+
 = Unreleased — documentation and release-gate baseline =
 *   **Documentation truth boundary:** added a machine-readable integration capability ledger and synchronized the integration reference, product readmes, security/privacy notes, and release-phasing plan. This documentation-only change does not fix runtime behavior or add provider delivery.
 *   **Provider status correction:** the platform-named server classes are documented as source-present/configured-endpoint adapters whose provider authentication, payload acceptance, consent transitions, retries, and purge behavior remain runtime-unverified. GTM-mediated platform tags are separate; Reddit remains relay-only with click-ID capture and no native delivery adapter.

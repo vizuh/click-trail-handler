@@ -1,0 +1,71 @@
+# ClickTrail Phase Execution Ledger
+
+**Document state:** **Confirmed** as an execution record for this roadmap run; it does not replace the master specification or release metadata.
+**Product release tags:** **Decision needed**. Phase labels below are implementation milestones, not SemVer tags, until `RELEASING.md`, stable-tag state, and release ownership are verified.
+**Concurrency rule:** one Alpha lane plus local validation at most; no concurrent repository editors. Existing uncommitted work is preserved.
+**Approved checkpoint strategy (2026-08-23):** user authorized work on the preserved `c9dedab8` M1–M6 tree. No reset, commit, tag, or unrelated cleanup is permitted; M7-A stays additive and unreferenced, with path-specific diffs and tests as its review boundary.
+
+## Phase records
+
+| Phase label | Roadmap task | Alpha use | Evidence-backed state | Exit gate / next step |
+|---|---|---|---|---|
+| `phase-m1-utm-identify-v1` | Freeze UTM field policy, source precedence, click-ID map, referrer evidence, ambiguity behavior, and privacy boundary | Alpha reviewed the pure analyzer; its two critical findings were applied: ambiguous multi-platform signals suppress suggestions, and last-touch/direct/first-touch precedence is tested | **Confirmed — source candidate validated**; no UI or runtime claim | Targeted analyzer 17/17, full suite 89/89, privacy sweep, smoke 37/37. Continue to M2. |
+| `phase-m2-attribution-readiness-v1` | Add a privileged, read-only Diagnostics panel and bounded admin endpoint | Alpha supplied a review packet; incompatible repository assumptions were rejected. The implementation was adapted to the actual current hooks, classes, and registry schema | **Confirmed — source present / runtime unverified** | PHP lint, JS syntax, PHPCS, focused tests 19/19, full suite 91/91, smoke 38/38. Staging WordPress/browser proof remains required before a shipped claim. |
+| `phase-m3-deterministic-suggestions-v1` | Surface source-only deterministic suggestions and suppress ambiguous signals | Alpha supported strict request-scoped aliases and explicit UI boundaries; invented symbols and test assumptions were rejected in favor of current repository contracts | **Confirmed — local WordPress/browser staging verified; no release claim** | Contract/privacy tests pass. On isolated WordPress 6.8.2 + PHP 8.3, the privileged Diagnostics UI loaded and completed the AJAX request; anonymous `wp_ajax_nopriv` access was absent (`400` sentinel). The staged response suggested only `utm_source`, exposed the `gclid` key without its value, and retained the no-persistence boundary. |
+| `phase-m4-utm-hygiene-v1` | Add macro/empty/conflict checks and safe copy-test-URL guidance | Alpha approved the pure builder boundary after query, fragment, userinfo, port, macro, output-bound, and no-navigation rules were pinned | **Confirmed — local WordPress/browser and browser/PHP parity verified; no release claim** | Full suite 110/110 with 282 assertions, PHPCS 84/84, PHPCompatibilityWP 84/84, JS syntax, smoke 40/40, and diff checks pass. Isolated Chrome/WordPress fixtures proved first/last-touch parity, allowlisted copy URL output, click-ID key-only evidence, macro suppression, and one successful copy action without navigation. See the bounded evidence record below. |
+| `phase-m5-form-readiness-v1` | Compare expected, submitted, and named storage-surface evidence across the three form patterns | Alpha pre-review and post-implementation review completed. Pure presence-only comparator plus six versioned synthetic fixtures implemented; all four Important post-review findings fixed | **Source contract validated locally; runtime/admin/provider proof Future** | Contract scope is `contract_only`: no form hooks, provider readers, AJAX/UI, persistence, correlation IDs, or broad scans. Named provider-record, hook-payload, and ClickTrail-event states remain distinct. Focused PHPUnit: 18/18, 112 assertions. Full PHPUnit: 128/128, 394 assertions; PHPCS and PHPCompatibilityWP: 85/85 each; smoke: 41/41. Pinned form-plugin hook, record-readback, consent, cache, AJAX, and browser staging remain required before any adapter runtime claim. |
+| `phase-m6-woo-readiness-v1` | Explain source, consent, HPOS, order status, event ID, and dedup state at conversion | Ox Alpha pre-review and M6-B staging preflight completed. Pure analyzer plus 16 scenarios remain the source contract; local execution used two fresh isolated Woo stacks | **M6-A validated; M6-B classic/HPOS runtime reproduced; two blockers remediated** | WordPress 6.8.2, WooCommerce 10.7.0, PHP 8.3, and ClickTrail 1.9.0 ran in classic and HPOS modes. A shared post-dispatch save now persists successful refund traces as `sent`; native HPOS list hooks and order screen registration now expose attribution admin surfaces. Both fixes were re-run in fresh classic/HPOS stacks. Denied purchase still emits `dataLayer` and saves the purchase marker; M7 consent authority must resolve that path. Provider, browser-checkout, concurrency, queue/retry, privacy lifecycle, full-refund, cancellation, and release proof remain Future. |
+| `phase-m7-consent-foundation-v1` | Unify consent authority and withdrawal/retry/retention behavior | Ox Alpha read-only design review completed. It found divergent consent precedence, stale 365-day fallback artifacts, tab-local withdrawal, retry/requeue consent bypass, and incomplete owned-data lifecycle coverage | **M7-A contract validated; M7-B Woo snapshot runtime passed classic/HPOS** | M7-B adds `Snapshot_V1`, validated decision rehydration, one server-side consent-requirement helper, versioned Woo order writes, and legacy/v1 reads shared by dispatch and Diagnostics. Focused PHPUnit: 4/4, 44 assertions. Full PHPUnit: 165/165, 627 assertions. PHPCS/PHPCompatibilityWP and smoke 42/42 pass. Fresh WordPress 6.8.2, WooCommerce 10.7.0, PHP 8.3 classic/HPOS stacks stored matching granted/denied v1 snapshots with explicit `legacy_unversioned` provenance. Browser/CMP, top-level purchase emission, live identity, queue migration/recheck, privacy, partial-install, multisite, and legal-review gates remain mandatory. |
+| `phase-m8-delivery-integrity-v1` | Harden action binding, retries, deduplication, bounded payloads, and sGTM preview targets | Alpha review required before implementation | Future / release-gated | Negative-path and private-target fixtures required. |
+| `phase-m9-generic-collector-v1` | Promote one generic delivery path through a provider contract fixture | Alpha review required before implementation | Future / provider-gated | Mapping, auth, consent denial, redaction, retry, idempotency, response, and staged delivery evidence. |
+| `phase-m10-sgtm-staging-v1` | Verify ClickTrail → staging tagging server → owned destination | Alpha review required before implementation | Future / staging-gated | Staging end-to-end proof; ClickTrail remains a connector, not a host. |
+| `phase-m11-receipts-customer-attribution-v1` | Add delivery receipts and Woo renewal/customer attribution foundation | Alpha review required before implementation | Future | Receipt and renewal-order tests; no Pro UI claim. |
+| `phase-m12-reporting-reaudit-v1` | Re-audit touch-event quality and decide Pro reporting/reach publication | Alpha review required before implementation | Future / decision-gated | Annual evidence report and explicit publish/no-publish decision. |
+
+## M4 local staging evidence — 2026-08-23
+
+- **Environment:** isolated rootless Podman network; WordPress 6.8.2; PHP 8.3.26; MariaDB 11; ClickTrail 1.9.0 copied from the dirty worktree; separate Chrome profile with forced accessibility. No live site or repository runtime file was mutated.
+- **Diagnostics/UI:** the ClickTrail Diagnostics page and M4 panel rendered; the authenticated AJAX path returned a versioned analysis; the anonymous action was not registered (`HTTP 400`, WordPress `0` sentinel).
+- **Privacy:** the staged response exposed `gclid` only as a key/platform signal. The synthetic click-ID value did not appear in the analysis, PHP evidence JSON, or browser probe JSON.
+- **Valid parity fixture:** the browser stored matching `ft_*` and `lt_*` source/medium/campaign values. PHP selected the last-touch values and generated exactly `utm_source`, `utm_medium`, and `utm_campaign` in the copy-only URL.
+- **Macro fixture:** the browser omitted the unresolved source macro while retaining safe medium/campaign values; PHP marked the source `invalid_macro` and returned no test URL.
+- **Copy-only behavior:** the copy button produced `Test URL copied.` once while the Diagnostics page remained open. Repeated background-window attempts produced the expected clipboard-failure status because the desktop harness could not guarantee foreground focus; this is retained as a harness limitation, not treated as successful copy evidence.
+- **Local fixture accommodation:** the production builder correctly rejects explicit ports. A temporary local-only `home_url` filter supplied `http://clicktrail-m4.test/` only for the readiness AJAX action so the no-port copy path could be exercised. The filter was not added to the repository and was removed during cleanup.
+- **Evidence files before cleanup:** bounded JSON and accessibility captures were written under `HugoOS/tmp/clicktrail-m4-staging/`; credential-shaped files are deleted with the staging environment and are not retained as evidence.
+- **Boundary:** this closes the local M3/M4 execution gate. It does not create a Git tag, release archive, WordPress.org update, provider verification, or public “shipped” claim.
+
+## M6-B local staging evidence — 2026-08-23
+
+- **Environment:** two fresh rootless Podman stacks pinned to WordPress 6.8.2, WooCommerce 10.7.0, PHP 8.3, MariaDB 11, and ClickTrail 1.9.0 copied from the dirty worktree. One stack used classic order storage and one used HPOS. `WP_ENVIRONMENT_TYPE` was `staging`.
+- **Transport boundary:** a request preemption filter accepted only `https://m6b-sink.test/collect` and blocked every other HTTP request. No provider or public collector traffic was sent. Output contained only versions, storage mode, booleans, closed dispatch states/messages, event names, and coarse counts.
+- **Matching passes:** both modes emitted and sent one granted purchase, suppressed its reload in browser output and transport, sent one paid milestone despite a duplicate hook call, sent one partial-refund event, and suppressed denied transport with `consent_denied`.
+- **Reproduced blocker 1:** denied purchase still emitted `window.dataLayer.push` and saved `_clicutcl_tracking_sent`, matching the M6-A consent/marker warning.
+- **Remediated blocker 2:** the mock sink originally received `order_refund` while the reloaded order retained `pending`. A shared save after the post-dispatch trace update now persists `sent`; fresh classic and HPOS reruns both passed.
+- **Remediated blocker 3:** native HPOS order-list filter/action hooks and the HPOS order screen are now registered. Fresh classic and HPOS reruns confirmed both HPOS column hooks.
+- **Boundary:** synthetic direct-hook execution is not browser checkout, provider acceptance, concurrent dedup, queue/retry, privacy lifecycle, full-refund/status, cancellation, release, or compliance proof. Those gates remain open.
+
+## M7-B local staging evidence — 2026-08-23
+
+- **Environment:** two fresh isolated stacks pinned to WordPress 6.8.2, WooCommerce 10.7.0, PHP 8.3, MariaDB 11, and ClickTrail 1.9.0 from the dirty worktree; one classic order store and one HPOS order store.
+- **Granted capture:** both modes stored `schema_version: 1`, `decision: granted`, `basis: legacy_unversioned`, `marketing: true`, and the independent synthetic analytics category unchanged.
+- **Denied capture:** both modes stored `schema_version: 1`, `decision: denied`, `basis: legacy_unversioned`, `marketing: false`, and `analytics: false`.
+- **Privacy boundary:** output contained only pinned versions/storage mode and closed consent fields. Delivery stayed disabled; no provider request, identity, order ID, cookie value, or payload was retained.
+- **Boundary:** this proves Woo order-meta write/read parity for the pinned classic/HPOS stacks only. Browser/CMP precedence, stale-cookie expiry, cross-tab withdrawal, purchase `dataLayer`, queue retry/requeue, erasure, multisite, release, and legal compliance remain unproven.
+
+## Version policy
+
+- `phase-*` labels are the only versions created by this ledger.
+- No plugin header, WordPress.org stable tag, Git tag, or release ZIP version is changed here.
+- A product version may be created only after the release owner resolves the stable-tag discrepancy and the phase’s runtime/provider gates pass.
+- The M2 registry intentionally uses `source_present_runtime_unverified`; it must not be paraphrased as shipped, reliable, native provider support, or compliance evidence.
+
+## Alpha packet records
+
+- M1 review output: `/home/hugocarvalho/Desktop/HugoOS/tmp/clicktrail-m1-alpha-review-2026-08-22.md`.
+- M2 review output: `/home/hugocarvalho/Desktop/HugoOS/tmp/clicktrail-m2-alpha-review-2026-08-22.md`.
+- M3 review output: `/home/hugocarvalho/Desktop/HugoOS/tmp/clicktrail-m3-alpha-review-2026-08-22.md`.
+- M4 review output: `/home/hugocarvalho/Desktop/HugoOS/tmp/clicktrail-m4-alpha-review-2026-08-23.md`.
+- M5 review output: `/home/hugocarvalho/Desktop/HugoOS/tmp/clicktrail-m5-alpha-review-2026-08-23.md`.
+- M6-B staging preflight: `/home/hugocarvalho/Desktop/HugoOS/_ops/orchestrator/findings/RESEARCH-clicktrail-m6b-staging-preflight-2026-08-23.md`.
+- Alpha output is untrusted implementation advice. Repository evidence, tests, and release gates decide promotion.
+- M5 evidence-label review: `feature-test-matrix.json` uses `automated: true` for automated structural smoke checks, not PHPUnit or WordPress E2E; `FEATURE-TEST-MATRIX.md` already states this boundary. Registry `shipped` labels describe source/product availability, while `INTEGRATIONS.md` and `integration-capabilities.json` remain authoritative for runtime-verification status. No registry or matrix downgrade was made without a schema/owner decision.

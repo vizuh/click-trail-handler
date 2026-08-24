@@ -1,0 +1,706 @@
+# ClickTrail Master Specification Change Record
+
+**Document type:** Permanent chronological change record
+**Specification version:** `0.1.0`
+**Document state:** **Confirmed** as a source-preserving record of the repository changelog; release and legal authority remain with the repository and approved owners
+**Last updated:** 2026-08-22 (Europe/Lisbon)
+**Source:** [`changelog.txt`](../changelog.txt)
+**Master specification:** [MASTER-SPECIFICATION.md](MASTER-SPECIFICATION.md)
+
+## Record rules
+
+- **State: Confirmed.** Every version heading in `changelog.txt` is reproduced below, including the unreleased entry; no version heading is silently dropped.
+- **State: Confirmed.** A product release version and a specification document version are different namespaces. The current product code header is `1.9.0`; this specification set is `0.1.0`.
+- **State: Confirmed.** `Unreleased` describes repository-documented changes that are not a tagged production release. It must not be represented as shipped.
+- **State: Confirmed.** Historical bodies are preserved from `changelog.txt`; this record adds state/lifecycle metadata around them but does not rewrite their technical content.
+- **State: Decision needed.** Owners, release destinations, migration notes, costs, and verification artifacts should be added to future entries when the repository evidence establishes them.
+
+## Version index
+
+| Version | State | Lifecycle status | Source |
+|---|---|---|---|
+| Unreleased — documentation and release-gate baseline | Confirmed | Proposed / Unreleased | `changelog.txt` |
+| 1.9.0 | Confirmed | Completed | `changelog.txt` |
+| 1.8.19 | Confirmed | Completed | `changelog.txt` |
+| 1.8.18 | Confirmed | Completed | `changelog.txt` |
+| 1.8.17 | Confirmed | Completed | `changelog.txt` |
+| 1.8.16 | Confirmed | Completed | `changelog.txt` |
+| 1.8.15 | Confirmed | Completed | `changelog.txt` |
+| 1.8.14 | Confirmed | Completed | `changelog.txt` |
+| 1.8.13 | Confirmed | Completed | `changelog.txt` |
+| 1.8.12 | Confirmed | Completed | `changelog.txt` |
+| 1.8.11 | Confirmed | Completed | `changelog.txt` |
+| 1.8.10 | Confirmed | Completed | `changelog.txt` |
+| 1.8.9 | Confirmed | Completed | `changelog.txt` |
+| 1.8.8 | Confirmed | Completed | `changelog.txt` |
+| 1.8.7 | Confirmed | Completed | `changelog.txt` |
+| 1.8.6 | Confirmed | Completed | `changelog.txt` |
+| 1.8.5 | Confirmed | Completed | `changelog.txt` |
+| 1.8.2 | Confirmed | Completed | `changelog.txt` |
+| 1.8.1 | Confirmed | Completed | `changelog.txt` |
+| 1.8.0 | Confirmed | Completed | `changelog.txt` |
+| 1.7.9 | Confirmed | Completed | `changelog.txt` |
+| 1.7.8 | Confirmed | Completed | `changelog.txt` |
+| 1.7.7 | Confirmed | Completed | `changelog.txt` |
+| 1.7.6 | Confirmed | Completed | `changelog.txt` |
+| 1.7.5 | Confirmed | Completed | `changelog.txt` |
+| 1.7.4 | Confirmed | Completed | `changelog.txt` |
+| 1.7.3 | Confirmed | Completed | `changelog.txt` |
+| 1.7.2 | Confirmed | Completed | `changelog.txt` |
+| 1.7.1 | Confirmed | Completed | `changelog.txt` |
+| 1.7.0 | Confirmed | Completed | `changelog.txt` |
+| 1.5.2 | Confirmed | Completed | `changelog.txt` |
+| 1.5.1 | Confirmed | Completed | `changelog.txt` |
+| 1.5.0 | Confirmed | Completed | `changelog.txt` |
+| 1.3.9 | Confirmed | Completed | `changelog.txt` |
+| 1.3.8 | Confirmed | Completed | `changelog.txt` |
+| 1.3.7 | Confirmed | Completed | `changelog.txt` |
+| 1.3.6 | Confirmed | Completed | `changelog.txt` |
+| 1.3.5 | Confirmed | Completed | `changelog.txt` |
+| 1.3.4 | Confirmed | Completed | `changelog.txt` |
+| 1.3.3 | Confirmed | Completed | `changelog.txt` |
+| 1.3.2 | Confirmed | Completed | `changelog.txt` |
+| 1.3.1 | Confirmed | Completed | `changelog.txt` |
+| 1.3.0 | Confirmed | Completed | `changelog.txt` |
+| 1.2.3 | Confirmed | Completed | `changelog.txt` |
+| 1.2.2 | Confirmed | Completed | `changelog.txt` |
+| 1.2.1 | Confirmed | Completed | `changelog.txt` |
+| 1.2.0 | Confirmed | Completed | `changelog.txt` |
+| 1.1.1 | Confirmed | Completed | `changelog.txt` |
+| 1.1.0 | Confirmed | Completed | `changelog.txt` |
+| 1.0.0 | Confirmed | Completed | `changelog.txt` |
+
+## Specification-set update log
+
+| Version | Date | Change | Reason | Impact | Owner | State |
+|---|---|---|---|---|---|---|
+| Spec 0.1.0 | 2026-08-22 | Created complete master specification, compressed specification, and source-preserving change record; added explicit state vocabulary and 12-month roadmap | Make product, semantic, safety, business, and roadmap truth locally visible rather than dependent on chat history | Documentation navigation, requirements register, roadmap governance, release/change traceability | Product owner — Decision needed | Confirmed |
+
+## Chronological release history
+
+### Unreleased — documentation and release-gate baseline
+
+**State:** Confirmed
+**Lifecycle status:** Proposed / Unreleased
+**Source:** [`changelog.txt`](../changelog.txt)
+
+> This entry is documented in the working repository but is not a tagged production release.
+
+*   **Documentation truth boundary:** added a machine-readable integration capability ledger and synchronized the integration reference, product readmes, security/privacy notes, and release-phasing plan. This documentation-only change does not fix runtime behavior or add provider delivery.
+*   **Provider status correction:** the platform-named server classes are documented as source-present/configured-endpoint adapters whose provider authentication, payload acceptance, consent transitions, retries, and purge behavior remain runtime-unverified. GTM-mediated platform tags are separate; Reddit remains relay-only with click-ID capture and no native delivery adapter.
+*   **Release gate:** public claims of privacy compliance, complete deletion, guaranteed delivery, native Reddit support, secure sGTM preview, or reliable booking/purchase behavior remain blocked until PHP/WordPress/browser/provider evidence passes.
+
+### 1.9.0
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **New feature: structured touch-events table, the Pro-reporting foundation** (`includes/database/class-installer.php` `DB_VERSION` 2 → 3, new `includes/database/class-touch-events-store.php`, `includes/server-side/class-dispatcher.php`, `includes/utils/class-cleanup.php`, `includes/privacy/class-privacy-handler.php`, `uninstall.php`): `ROADMAP.md` calls the events table "the most important architectural decision in this roadmap" — every Pro reporting feature (attribution dashboard, LTV, conversion recovery, call tracking) depends on a queryable log of every touch event per visitor, and the current architecture (order meta plus the attribution cookie) is not queryable at scale. Added a new, permanent table `{prefix}clicutcl_touch_events` — deliberately separate from the pre-existing `{prefix}clicutcl_events` (the JSON-blob debug/admin-Logs table backing `Log_List_Table`, the GDPR exporter, and `Abstract_Form_Adapter::log_submission()`), which is unrenamed and unrepurposed; both tables coexist permanently. Columns are mapped to real fields the canonical event pipeline (`includes/tracking/class-eventv2.php`) already produces rather than the roadmap's proposed schema verbatim: `id`, `blog_id`, `visitor_id` (pseudonymous — resolved `hashed_email` when available, else `session_id`; never a raw email or IP), `session_id`, `event_name`, `funnel_stage` (`top`/`mid`/`bottom`/`unknown` — the real coarse-category field the pipeline already computes, standing in for the roadmap's invented `touch`/`conversion`/`renewal`/`call` typing), `source_channel`, `touch_source`/`touch_medium`/`touch_campaign` (derived "current touch": last-touch when present else first-touch — the roadmap's generic `source`/`medium`/`campaign` columns don't map cleanly onto the pipeline's `ft_*`/`lt_*` shape, so this derivation replaces them, documented here rather than left silent), `ft_source`/`ft_medium`/`ft_campaign`, `order_id`, `amount`, `currency`, `created_at` (the event's own occurrence time, not insert time). Indexed on `visitor_id`, `order_id`, `blog_id`, and `created_at` per the roadmap. New `CLICUTCL\Database\Touch_Events_Store::build_row()` is pure (no `$wpdb` access) and handles both attribution shapes live in the codebase — WooCommerce's nested `{first_touch:{...}, last_touch:{...}}` order-meta shape and the flat `ft_*`/`lt_*` keys browser events and forms use.
+    Write path: `Touch_Events_Store::record()` is called from `Dispatcher::dispatch()` — the single function every event source already funnels through (browser events, WooCommerce purchases/milestones, form submissions, webhooks, lifecycle updates) — placed ahead of the `is_enabled()`/endpoint gates so it fires "in the free version silently on every touch event and conversion" per the roadmap, not only when server-side delivery is configured (most free users never configure an adapter). Consent gating reuses the existing `Dispatcher::consent_allows()` (no new consent logic): when marketing consent is required and not granted, the write is skipped entirely rather than persisting a partial/anonymous row.
+    Lifecycle: table creation follows the exact `clicutcl_queue` dbDelta/readiness-option pattern in `Installer::create_tables()`; `DB_VERSION` bumped 2 → 3 so `Installer::maybe_upgrade()` (already invoked on every boot via `Queue::register()`) picks up existing installs automatically. Retention defaults to 90 days (matching the existing cookie-retention convention) via a new `LIMIT`-bounded batch delete in `Cleanup::run_cleanup()`, wired into the existing `clicutcl_daily_cleanup` cron. `uninstall.php` drops the new table alongside `clicutcl_queue`/`clicutcl_events`, respecting the existing `clicutcl_preserve_data_on_uninstall` filter.
+    GDPR: `Privacy_Handler` now exports and erases `clicutcl_touch_events` rows matched on `visitor_id = <hashed_email>` — an exact-value match against the same SHA-256 format `Identity_Resolver` and the queue's own eraser already use, more precise than the JSON-blob `LIKE` match the legacy events table needs. Export paginates the new table independently of `clicutcl_events` (`OFFSET`-based, `done` requires both sources exhausted) — this table takes a row per browser event, not just form submissions, so a single visitor can exceed the 50-row page size that was safe for the old table. Rows whose `visitor_id` fell back to a session ID (no identity ever resolved for that visitor) are not reachable by an email-keyed erasure request, same inherent limitation the queue eraser already has — documented in `DATA-MODEL.md` rather than left silent. Confirmed `Queue::process_row()` (retry path) calls the adapter directly and never re-enters `Dispatcher::dispatch()`, so failed-delivery retries do not produce duplicate touch-event rows.
+    Docs: `docs/architecture/DATA-MODEL.md` and `docs/guides/SECURITY-PRIVACY.md` updated to describe the new table and its GDPR coverage.
+    Tests: `tests/unit/TouchEventsStoreTest.php` covers `build_row()`'s consent gate, both attribution shapes, first/last-touch derivation, visitor-ID precedence, and order/commerce field mapping — the pure-logic slice reachable without a live `$wpdb`/DB harness, same constraint the existing suite operates under; `insert()` itself is not exercised here.
+    Out of scope (separate, later roadmap items): the Pro attribution reporting dashboard, LTV/subscriptions, conversion recovery, CRM field mapping, and call-tracking webhook intake — all read-only or additive layers on top of this table, none built here.
+    Minor version bump (`1.8.19` → `1.9.0`) per `RELEASING.md`'s versioning table: a new persistent table plus an always-on background write path is a backward-compatible new feature, not a patch, even though it has zero free-tier UI surface.
+
+Note: this release ships to GitHub only. WordPress.org's Stable tag stays at 1.8.13 per the
+3-version buffer policy documented in RELEASING.md.
+
+### 1.8.19
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Maintenance: removed dead Settings API code from the admin class** (`includes/admin/class-admin.php`, 2276 → 1383 lines): `docs/guides/CODE-QUALITY.md` flagged this file for carrying older Settings API registrations and callback helpers alongside the live screen bootstrap. Traced every `register_setting`/`add_settings_field`/`add_settings_section`/`render_*_field`/`render_*_section` call site against the live admin menu (`admin_menu()`, which only wires up `render_settings_app_page()`, `logs_page()`, and `diagnostics_page()`) and the unified settings app's save/load path (`get_unified_admin_settings()`/`save_unified_admin_settings()`). Removed `register_settings()` (and its `admin_init` hook), `render_settings_page()` and everything only reachable from it (`get_settings_tabs()`, `get_settings_form_config()`, `get_settings_cards()`, `render_settings_status_bar()`, `render_status_pill()`, `render_settings_card()`, `render_settings_save_bar()`), and the Settings-API field renderers `render_text_field()`, `render_select_field()`, `render_checkbox_field()`, `render_number_field()`, `render_gtm_text_field()` — none of these had a live caller; `render_settings_page()` was never registered as any menu page's callback. Kept `sanitize_settings()`, `sanitize_server_side_settings()`, `normalize_settings_input()`, `sanitize_toggle()`/`sanitize_cookie_days()`/`sanitize_observer_target()`/`sanitize_domains_csv()`, and `get_attribution_settings_schema()`/`get_attribution_settings_defaults()` — these back the live unified-settings save path (`save_unified_admin_settings()`) and the diagnostics import/export handlers, independent of the removed Settings API scaffolding. No functional or user-facing changes; the settings screens (General/Server-side/Logs/Diagnostics) render exactly as before.
+
+Note: this release ships to GitHub only. WordPress.org's Stable tag stays at 1.8.13 per the
+3-version buffer policy documented in RELEASING.md.
+
+### 1.8.18
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Test coverage: REST auth boundary and queue retry regressions** (`tests/unit/RestAuthPermissionsTest.php`, `tests/unit/QueueRetryTest.php`, `tests/bootstrap.php`): `docs/guides/CODE-QUALITY.md` flagged runtime test coverage as the lightest of the automated checks (2 test files covering 80 source files). Added `RestAuthPermissionsTest` covering the actual `permission_callback` methods wired up in `includes/api/class-tracking-controller.php` and its `trait-tracking-controller-attribution-token.php`/`trait-tracking-controller-security.php` traits — missing/malformed/expired/wrong-host/wrong-blog client tokens (`batch_events_permissions_check`, `attribution_token_sign_permissions_check`, `attribution_token_verify_permissions_check`), the `hash_equals()`-gated CRM token on `lifecycle_permissions_check`, and disabled-provider/missing-secret/valid-signature cases on `webhook_permissions_check`, plus a full sign/verify round trip through `create_attribution_token()`/`verify_attribution_token()`. Added `QueueRetryTest` covering `includes/server-side/class-queue.php`'s `get_backoff_seconds()` retry-interval growth and cap (via reflection, since it is `private`) and `redact_retry_payload()`; `process()`/`update_row_failure()`/`mark_row_failed()`/`requeue_failed()` require a live `$wpdb` and remain untested by this unit suite, same constraint the existing `BoundarySecurityTest.php` already operates under. `tests/bootstrap.php` gained the additional WordPress function/class stubs (`current_user_can`, `wp_verify_nonce`, `get_option`, `wp_cache_get`/`set`, `wp_salt`, `home_url`, `wp_parse_url`, `wp_json_encode`, `WP_REST_Controller`, and an `ArrayAccess`-capable `WP_REST_Request`) these new tests needed; no production code changed.
+
+### 1.8.17
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Diagnostics: Conflict Scan now detects active call tracking scripts** (`includes/admin/traits/trait-admin-diagnostics-ajax.php` `build_conflict_scan_report()`, new `detect_call_tracking_labels()` delegating to the already-existing but previously unwired `includes/admin/class-setup-detector.php` `Setup_Detector::detect_call_tracking()`): the scan checks active plugin slugs and known constants for CallRail, CallTrackingMetrics, WhatConverts, Retreaver, and Infinity Call Tracking, and — when one is found — surfaces an `info`-severity note (not a warning) explaining that ClickTrail already skips `tel:` link decoration automatically, so no action is needed. Matches the existing detection style used for cache/optimization plugins (`detect_cache_conflict_labels()`); no new detection mechanism was invented. `docs/guides/OPERATIONS-RUNBOOK.md`'s Conflict Scan check list was updated to match.
+*   **UX: corrected a stale Conflict Scan description** (`includes/admin/traits/trait-admin-pages.php` `diagnostics_page()`): the Diagnostics screen's Conflict Scan card description listed the categories the scan checks, but omitted the newly-added call tracking check. Updated to keep the description accurate.
+
+Note: this release ships to GitHub only. WordPress.org's Stable tag stays at 1.8.13 per the
+3-version buffer policy documented in RELEASING.md.
+
+### 1.8.16
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Diagnostics UX: explain consent-suppressed attribution in the order trace lookup** (`includes/admin/traits/trait-admin-diagnostics-ajax.php` `ajax_lookup_woo_order_trace()`, `includes/admin/traits/trait-admin-pages.php` `render_woo_order_lookup_results()`): when a looked-up order has an empty `attribution.first_touch`/`attribution.last_touch` trace and the order's checkout-time consent snapshot (`WooCommerce::CONSENT_META_KEY`) recorded `marketing: false`, the trace card now shows an inline notice explaining that no attribution was captured because marketing consent was not granted, and points to Settings → Delivery → Privacy & consent. Deliberately reads the order-level consent snapshot rather than each trace's own `payload.consent` — milestone traces built outside the customer's request (admin status changes, cron, REST) inherit whatever cookie state happened to be present on that later request, which is not the buyer's actual consent and would have produced false positives. Closes GitHub issue #44: the reporter's order correctly showed "Direct" because consent was denied at checkout (ClickTrail gates attribution capture on marketing consent by design, unlike WooCommerce's own native, non-consent-gated attribution) — that was correct behavior, not a bug, but the diagnostics gave no indication why the order looked "empty." Read-only diagnostics change; no consent or attribution logic was touched.
+
+Note: this release ships to GitHub only. WordPress.org's Stable tag stays at 1.8.13 per the
+3-version buffer policy documented in RELEASING.md.
+
+### 1.8.15
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Security (informational hardening): atomic per-IP rate limiter under a persistent object cache** (`includes/api/traits/trait-tracking-controller-security.php`, `check_rate_limit()`): when a persistent object cache is present, the rate limiter now seeds the counter with `wp_cache_add()` and bumps it with the atomic `wp_cache_incr()`, comparing the returned count against the limit instead of a separately-read value. This closes the concurrent-request race where two requests from the same IP in the same window could both read the same pre-increment count and both pass, letting a burst exceed the configured soft limit. Falls back to the existing best-effort transient read-then-write when no persistent object cache is available, matching the pattern already used by `includes/tracking/class-webhook-auth.php`'s webhook replay guard.
+*   **Security (informational hardening): length cap on classic attribution capture** (`includes/Core/class-attribution-provider.php`, `sanitize()`): UTM/click-ID field values are now truncated to 255 characters after sanitization and before being persisted into the `ct_attribution` cookie, session storage, and WooCommerce order meta, mirroring the 128-character cap already enforced on the `/attribution-token/sign` REST path (`includes/api/traits/trait-tracking-controller-attribution-token.php`). The looser 255-char bound reflects that these are general UTM/campaign fields rather than the click-ID-heavy cross-domain token payload.
+
+### 1.8.14
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Packaging fix: `config/feature-registry.json` was missing from every shipped release** (`.distignore`): a `48e6d17` change excluded the whole `config/` directory from the WP.org SVN build, grouped under a generic "Project config" comment alongside genuine build-only files like `composer.json`. This swept up `config/feature-registry.json`, which `Feature_Registry::all()` (`includes/support/class-feature-registry.php`) reads at runtime to resolve delivery-adapter classes/labels and the destination toggle list. Confirmed missing from `dist/click-trail-handler-1.8.13.zip`, `dist/releases/{1.8.10,1.8.11,1.8.12}`, and — critically — the live WordPress.org SVN tag `tags/1.8.13`, i.e. every real WP.org install today. Effect: `Feature_Registry::adapter_class()` returned `''` for every adapter key, so `Dispatcher::build_adapter()` silently fell back to `Generic_Collector_Adapter` for all destinations, and the admin "Delivery adapter" dropdown / "Destinations" toggle list rendered empty. Fixed by removing the `config/` line from `.distignore`; the directory now ships again.
+*   **Settings-backup export: explicit unmasked-secrets warning** (`includes/admin/traits/trait-admin-pages.php`, `docs/guides/SECURITY-PRIVACY.md`): the "Export Backup" action has always read secrets via the decrypted/unmasked accessor (not the masked one the admin UI uses), so the downloaded JSON contains the Calendly/HubSpot/Typeform webhook secrets and the CRM lifecycle token in cleartext, even with `encrypt_secrets_at_rest` on. The action was already capability- and nonce-gated (not an access-control bug), but there was no on-screen warning. Added an explicit warning next to the control and a documentation note in the Secret Storage section of `SECURITY-PRIVACY.md`. The masking behavior itself is unchanged — that remains a deliberate product decision, not addressed in this release.
+*   **Docs: removed a stale reference to a deleted file** (`docs/reference/REST-API.md`): the Legacy API Status section claimed `includes/api/class-log-controller.php` "still exists in the repository" as a disabled legacy route. It does not exist anywhere in the current tree; corrected the section to state the legacy v1 log controller has been fully removed and `clicutcl/v2` via `Tracking_Controller` is the only registered REST surface.
+*   **Repo hygiene (dev-tooling only, no user-facing change)**: removed the local-only Claude Flow tooling (`.claude/`, `.claude-flow/`, `.mcp.json`) — these were never committed or shipped, so this is pure local cleanup. Bootstrapped GitHub Spec Kit (`.claude/skills/speckit-*`, `.specify/`) for structured planning going forward; both directories are dev-only and already excluded from the WordPress.org release via `.distignore`.
+
+Note: this release ships to GitHub only. WordPress.org's Stable tag stays at 1.8.13 until this
+version and at least two more have shipped and soaked on GitHub, per the 3-version buffer
+policy documented in RELEASING.md.
+
+### 1.8.13
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Browser intake security** (`includes/tracking/class-eventv2.php`, `includes/api/class-tracking-controller.php`): added a canonical allowlist for the events ClickTrail genuinely emits in the browser, kept `purchase`, `qualified_lead`, and `client_won` on trusted server/lifecycle routes, and applied a default 20-request nonce limit per page token.
+*   **Consent correctness and withdrawal cleanup** (`assets/js/clicutcl-consent-bridge.js`, `assets/js/clicutcl-consent.js`, `assets/js/clicutcl-attribution.js`, `assets/js/clicutcl-events.js`, `includes/server-side/class-consent.php`): preserve analytics and marketing categories, honor configured consent-cookie names, synchronize external CMP state for PHP, bypass CMP detection when Consent Mode is disabled, avoid pre-consent persistent buffering when consent is required, create browser identifiers lazily, and remove identifiers plus pending attribution on denial.
+*   **Attribution reliability** (`assets/js/clicutcl-attribution.js`): encode cookie values, reject values above the safe cookie budget instead of retaining stale data, and send the page client token separately when verifying signed cross-domain attribution.
+*   **Provider webhooks** (`includes/tracking/class-webhook-auth.php`, `includes/api/class-tracking-controller.php`): verify native Typeform and HubSpot signatures, retain the existing timestamped HMAC contract for Calendly until its native format is verified, process HubSpot arrays item by item, and return truthful `skipped` details without forcing provider retries.
+*   **Privacy, cleanup, and regression coverage** (`includes/server-side/class-queue.php`, `includes/admin/class-admin.php`, `includes/admin/traits/trait-admin-diagnostics-ajax.php`, `tests/unit/BoundarySecurityTest.php`, `tools/qa/smoke.js`): strip raw IP/user-agent fields before retry persistence, remove dead tracking-v2 AJAX settings surfaces, and add PHP/Node boundary checks.
+
+### 1.8.12
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **UX**: the Consent source help text now explains that ClickTrail buffers landing-page attribution to sessionStorage before consent resolves, so first-touch UTMs and click IDs are preserved even when the consent banner is accepted on a later page (`assets/js/admin-settings-app.js`). Reduces support questions about consent-gate timing. The new sentence falls back to English on de_DE/pt_BR until translations are regenerated.
+
+### 1.8.11
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Maintenance**: removed unused local variables from the settings setup-checklist builder (`includes/admin/class-admin.php`) and reconciled `ROADMAP.md` against the shipped code (GF/WPForms diagnostic, cross-domain checklist, Action Scheduler migration, and call-tracking conflict scan are all implemented). No functional or behavioral change.
+
+### 1.8.10
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Security (SSRF): validate the server-side delivery endpoint** (`includes/admin/class-admin.php` server-side settings sanitizer; all `includes/server-side/class-*-adapter.php`): `endpoint_url` is now validated with `wp_http_validate_url()` plus an `http(s)`-only scheme allowlist on save — loopback, link-local, and private IP ranges, disallowed ports, and userinfo are rejected; the previous value is kept and an admin error is surfaced on rejection. All seven delivery adapters' `wp_remote_post()` / `wp_remote_request()` calls now set `reject_unsafe_urls => true`, so the URL is re-validated at request time as defense against DNS-rebinding and programmatic option overrides.
+*   **Security (webhooks): harden signature and secret handling** (`includes/tracking/class-webhook-auth.php`, `includes/tracking/class-settings.php`): the inbound webhook signature is read raw (no `sanitize_text_field` before the constant-time `hash_equals`) and validated as exactly 64 lowercase hex characters; provider secrets are now stored verbatim — the prior `sanitize_text_field` + 255-character truncation silently corrupted long, base64, or structured secrets and could break HMAC verification entirely; replay protection now uses an atomic `wp_cache_add()` claim when a persistent object cache is present (closing the check-then-set race and the eviction fail-open), falling back to the durable DB transient otherwise.
+*   **Security (REST): require the client token on `/attribution-token/verify`** (`includes/api/class-tracking-controller.php`): the verify endpoint now enforces the same page-embedded client token as `/attribution-token/sign`, closing a fully unauthenticated request path. This is safe for the same-site / cross-subdomain attribution handoff because verify is only meaningful on the install that signed the token.
+*   **Privacy: anonymize IP at rest in the diagnostic events log** (`includes/integrations/forms/class-abstract-form-adapter.php`): the events table now stores an IP-anonymized identity copy via WordPress core `wp_privacy_anonymize_ip()` (last IPv4 octet / last 80 IPv6 bits zeroed); the full IP still flows to server-side dispatch where it aids CAPI match quality. The personal-data eraser now also deletes matching `clicutcl_queue` delivery rows by raw and SHA-256-hashed email (`includes/privacy/class-privacy-handler.php`).
+*   **Privacy (behavior change): client-supplied geo headers are no longer trusted by default** (`includes/Modules/consent-mode/class-consent-mode-settings.php`): `CF-IPCOUNTRY`, `X-Country-Code`, and `GeoIP-*` request headers are spoofable unless set by a trusted edge, so they are no longer read by default and an unknown country fails safe to requiring consent. New filters: `clicutcl_request_country_code` (provide an authoritative server-resolved country) and `clicutcl_trust_geo_request_headers` (opt back into header trust when behind a trusted CDN). Sites that previously relied on these headers for region-scoped consent must set one of the two filters.
+*   **Security (XSS hardening): always HTML-escape Gravity Forms attribution merge tags** (`includes/integrations/forms/class-gf-merge-tags.php`): attribution merge-tag values are escaped for all non-URL-encoded output regardless of the `$esc_html` flag Gravity Forms passes (which is false in some HTML output contexts). Also, the events log-list checkbox column now renders the row id with `%d` / `absint()` (`includes/admin/class-log-list-table.php`).
+*   **Admin: surface inert secret encryption** (`includes/tracking/class-settings.php`, `includes/admin/class-admin.php`): an admin notice now warns when "encrypt secrets at rest" is enabled but the server lacks OpenSSL AES-256-GCM support, so the toggle can no longer silently store secrets in plaintext.
+*   **Hardening: GTM lead-magnet AJAX capability checks** (`includes/admin/class-gtm-lead-magnet.php`): added `current_user_can( 'manage_options' )` to the subscribe / dismiss / download handlers. This class is disabled at runtime and excluded from the WP.org build since 1.8.8; the change future-proofs any re-activation.
+
+### 1.8.9
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **i18n: German (de_DE) JavaScript translations now load** (`languages/click-trail-handler-de_DE-2df3d79fbe5b640838c0e2ef5fe5783c.json`): The de_DE locale shipped in v1.8.7 included `.po` and `.mo` files for PHP-side translations, but the React settings app uses WP's script-translation system which loads from separate JSON files (one per JavaScript file that calls `wp_set_script_translations()`). Without the matching de_DE JSON for `assets/js/admin-settings-app.js`, the admin UI's Capture / Forms / Events / Delivery tabs stayed in English on German-language sites. This commit adds the JSON (26 KB, 200+ entries) — generated via `wp i18n make-json languages/ --pretty-print` inside a `wordpress:cli` podman container against the current de_DE.po. Pairs naturally with the existing pt-BR script-translation JSONs.
+
+### 1.8.8
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Security: reject ad-platform macros in attribution capture** (`includes/Core/class-attribution-provider.php`, `assets/js/clicutcl-attribution.js`): Facebook (and other ad platforms') dynamic parameter macros — `{{campaign.name}}`, `{{adset.name}}`, `{{ad.name}}`, `{{placement}}`, etc. — appear literally in landing-page URLs when ads aren't actually served through the ad platform (manual preview, test traffic, misconfigured campaigns). Previously these unsubstituted placeholders flowed into the `wp_clicktrail_*` attribution tables and downstream destinations (GA4, Meta CAPI, Google Ads conversions) as if they were real campaign / adset / ad names, polluting reports. Now rejected via `^\{\{.+\}\}$` regex in both the server-side sanitize loop in `Attribution_Provider::sanitize_meta()` and the client-side `sanitizeValue()` helper. The two implementations are intentionally symmetric so both capture paths (REST batch + server-side enrichment) drop these strings.
+*   **Fix: consent gate no longer defaults to ON when Consent Mode is disabled** (`includes/Core/class-attribution-provider.php` `should_populate()`, `includes/class-clicutcl-core.php` `build_consent_bridge_config()`): Two paths previously read a `require_consent` option from `Attribution_Settings::get_all()`, defaulting to `true` when the option was unset. The legacy `require_consent` field was removed from the admin UI several releases ago, so on every site without Consent Mode + an active CMP, the implicit-true default silently blocked all attribution from being persisted. Both call sites now: (a) only consult Consent Mode when explicitly enabled, and (b) default to `false` (no gate) when Consent Mode is disabled. Sites running Consent Mode are unaffected — the consent decision still routes through `Consent_Mode_Settings::is_consent_required_for_request()`.
+*   **Housekeeping: GTM Starter Kit lead-magnet banner disabled at runtime** (`includes/class-clicutcl-core.php` `init_modules()`, `.distignore`): The GTM Starter Kit is now distributed via the marketing site rather than as an in-plugin banner. `GTM_Lead_Magnet::init()` runtime call commented out; the class file (`includes/admin/class-gtm-lead-magnet.php`), the kit JSON (`assets/gtm-starter-kit.json`), the build helper (`assets/build-starter-kit.py`), and the Shopify GTM templates dir (`assets/shopify-gtm-container-templates-master/`) added to `.distignore` so they're excluded from the WP.org SVN release. The class file stays in the repo for future re-activation.
+*   **`.distignore` cleanup**: Also added `README.md`, `dist/`, `assets/funnelsheet-logo.png`, and `assets/GTM-*.json` to the WP.org-SVN exclude list. These were leaking into prior releases without serving any user-facing purpose.
+
+Source: triage of the stashed pre-7.0 WIP — vault `01-projects/clicktrail/wip-triage-2026-05-28/triage-report.md`. The stash also carried 42 files of pure CRLF→LF re-encoding noise (no semantic intent), which is deliberately not applied. The triage agent's analysis is the authoritative record of why those files are out.
+
+### 1.8.7
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Brazilian Portuguese (pt_BR) translations refreshed** (`languages/click-trail-handler-pt_BR.po`, `languages/click-trail-handler-pt_BR.mo`): The pt_BR `.po` file was last regenerated at v1.5.2 (POT-Creation-Date 2025-12-26) and was missing every translatable string added in the 9 subsequent releases (1.6.0 → 1.8.6). Regenerated POT from current source via `xgettext` over PHP (`clicutcl.php`, `uninstall.php`, `includes/**.php`) and JS (`assets/js/*.js`) with the standard WP translation keyword set; merged into the existing pt_BR.po preserving prior translations; filled the new untranslated entries via AI translation pass; recompiled `.mo`. Final state: 533 fully-translated strings + 81 carried-over strings flagged `fuzzy` for human review where the source msgid changed since the original translation was made.
+*   **German (de_DE) translations added** (`languages/click-trail-handler-de_DE.po`, `languages/click-trail-handler-de_DE.mo`): First locale beyond Portuguese. Generated `de_DE.po` template from the regenerated POT via `msginit --locale=de_DE`; AI-translated all 614 strings with a formal-business register (Sie-form); recompiled `.mo`. Tech terms (ClickTrail, WooCommerce, GTM, GA4, UTM, sGTM, Click IDs), printf placeholders, and HTML tags preserved verbatim.
+*   **i18n process documented** (commit history on `agent/i18n-pot-regen`): The full POT regen → msgmerge → msginit → AI-translate → msgfmt pipeline is committed for reproducibility on future releases. `.mo` files are committed alongside `.po` so they ship in release zips without requiring `msgfmt` on the build host.
+
+### 1.8.6
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Block third-party promotional banners on ClickTrail admin screens** (`includes/admin/class-notice-suppressor.php`, `clicutcl.php`, `includes/admin/class-setup-wizard.php`): Other plugins (notably bundle-sale ads in the style of an `All-in-One WordPress Plugin Bundle` 82%-off promotion) were injecting promotional banners into the ClickTrail setup wizard via the global `admin_notices` action. New `CLICUTCL\Admin\Notice_Suppressor` class runs `remove_all_actions` against the four notice actions on both `current_screen` AND `in_admin_header` (priority 1 each) for every screen whose ID contains `clicutcl`, plus emits a defensive CSS rule at `admin_print_styles` priority 999 that hides `.notice` / `.updated` / `.error` / `.update-nag` markup placed directly under `#wpbody-content` unless it carries the opt-in `.clicutcl-notice` class. Covers settings, logs, diagnostics, and the hidden setup wizard. The wizard's narrower targeted suppressor (added in 1.7.1) is replaced by the global one.
+*   **Admin UI consistency pass** (`assets/css/admin.css`): Two-agent design review (Cal.com chosen as primary aesthetic reference from `awesome-design-md`, plus an exhaustive drift audit of `admin.css` and `wizard.css`) produced 40+ findings; this commit lands the highest impact-to-effort items. Expanded `:root` with `--clicktrail-status-{connected,disconnected,warning}-text` (replaces 3 hardcoded hex values that blocked theming), `--clicktrail-bg-secondary` / `--clicktrail-bg-hover` (consolidates two greys used in section backgrounds and card-header hover), `--clicktrail-border-light` (formalizes the inner card-header border), `--clicktrail-danger-border`, and an 8px-base spacing scale (`--clicktrail-space-2..8`). Tightened vertical rhythm: card-header padding `13px 16px` → `14px 16px`, section-header padding `15px 20px` → `14px 16px`. Removed a verbatim duplicate of the GTM-offer CSS block (was at lines 1208-1297, net -107 lines from `admin.css`).
+
+### 1.8.5
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **WordPress 7.0 compatibility** (`readme.txt`, `README.en.md`, `README.pt-BR.md`): Tested up to WordPress 7.0 "Armstrong" (released 2026-05-20). Added `WC requires at least: 10.4.2` to the WP plugin header — WooCommerce 10.4.2+ is required for WP 7.0 compatibility. Static audit confirmed all 7 `register_rest_route()` calls in `includes/api/class-tracking-controller.php` already declare `permission_callback` (the headline WP 7.0 enforcement); PHP minimum 8.1 sits above WP 7.0's 7.4 floor; no usage of removed `html5` script theme support or other deprecated surfaces.
+*   **Script enqueue refactor** (`clicutcl.php`): Removed dead pre-WP-6.3 fallback from `clicutcl_script_args()`. The function had returned a bare boolean for `$wp_version < 6.3` to match the legacy 5th-arg signature of `wp_register_script`, but the plugin has required WP 6.5+ since the 1.7 line, so the branch was unreachable. Function now always returns the WP 6.3+ array form including the optional `defer`/`async` strategy keys. All 8 call sites continue unchanged; one runtime `global $wp_version` lookup per enqueue eliminated.
+*   **Deprecation scan in CI** (`.github/workflows/phpcompatibility.yml`, `composer.json`, `docs/guides/CODE-QUALITY.md`, `CONTRIBUTING.md`, `CONTRIBUTING.pt-BR.md`): Added `composer phpcompat` script invoking PHPCompatibilityWP with `testVersion 8.1-` and a sibling GitHub Actions workflow next to `php-lint.yml`. Pinned `phpcompatibility/phpcompatibility-wp` to `^2.1` (was `*`). Workflow runs on every push and PR against `main` and flags any PHP or WordPress deprecated/removed API usage in `clicutcl.php`, `uninstall.php`, and `includes/`.
+
+### 1.8.2
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **UI polish — icon and alignment fixes** (`assets/css/admin.css`, `assets/css/wizard.css`, `includes/admin/class-admin.php`): Resolved several visual inconsistencies across the plugin UI. Wizard step-navigation buttons (Next / Back): dashicon arrow was slightly lower than the button text due to the WordPress default button `line-height: 2.15` bleeding through — fixed with `line-height: 1` on `.clicutcl-wizard__btn .dashicons`. Settings page: form-table `th` and `td` cells now use `vertical-align: middle` so toggle switches and their labels sit centered in each row. Card header icon badge and section-header dashicons: added `line-height: 1` and `vertical-align: middle` to prevent glyph offset from dashicons' built-in `vertical-align: top`. Admin sidebar icon: replaced `dashicons-chart-area` with a custom monochrome SVG trail icon — four connected nodes on an upward curve — which renders correctly across all WordPress admin colour schemes via WP's `filter: brightness(0) invert(1)` mechanism.
+
+### 1.8.1
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Plugin Checker clean pass — PHPCS false positives** (`includes/integrations/class-woocommerce.php`, `includes/class-clicutcl-core.php`): `WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound` warnings on local variables inside class methods (`$normalized`, `$key`, `$value`, `$touch_key` in `normalize_attribution_structure()`; `$term_product_id`, `$terms` in `get_woocommerce_product_categories()`) and a protected class property (`$booted`) are not globals. Silenced with scoped `phpcs:disable/enable` blocks and an inline `phpcs:ignore` respectively. No logic changes.
+
+### 1.8.0
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **GTM Starter Kit lead magnet** (`includes/admin/class-gtm-lead-magnet.php`, `assets/gtm-starter-kit.json`): Adds a dismissible settings-page banner that appears after the first WooCommerce order is tracked (or 3 days after activation, whichever comes first). Submitting an email with explicit opt-in consent subscribes the user to Brevo (fire-and-forget via `wp_remote_post` — failure is logged, never surfaced) and returns a single-use 10-minute signed download link for the pre-built GTM container JSON. The JSON ships 16 Data Layer Variables (full `ecommerce.*` object plus `ft_`/`lt_` attribution series, click IDs, and `event_id` for deduplication), 5 user-configurable Constant Variables (GA4 ID, Ads conversion ID/label, Meta Pixel ID, sGTM endpoint), 7 Custom Event triggers, 11 tags (GA4 Config, Conversion Linker, Meta Pixel base, GA4 purchase/add_to_cart/begin_checkout/view_item/view_item_list, Google Ads purchase, Meta Pixel purchase with `event_id` dedup), and Consent Mode v2 defaults. Brevo credentials configured via `CLICUTCL_BREVO_KEY` and `CLICUTCL_BREVO_LIST` constants.
+*   **WooCommerce integration** (`includes/integrations/class-woocommerce.php`): Added `do_action( 'clicutcl_order_attribution_saved', $order )` at the end of `save_order_attribution()` to provide a reliable hook for post-order attribution actions.
+
+### 1.7.9
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Cross-domain: sibling subdomain passthrough, zero config** (`assets/js/clicutcl-attribution.js`): Link decoration previously only auto-allowed targets that were direct children of the current host (e.g. `site.com` → `checkout.site.com`). Sibling subdomains (`shop.site.com` → `checkout.site.com`) required manually adding the destination to the allowed-domains list. A `getRegistrableDomain` helper now extracts the eTLD+1 from both hosts and compares them — if they share the same registrable domain (including common 2-part TLDs: `.co.uk`, `.com.br`, etc.) decoration fires automatically with no configuration needed.
+*   **Checklist: WooCommerce checkout subdomain detection** (`includes/admin/class-admin.php`): When WooCommerce is active and its checkout URL resolves to a different host than `home_url()`, the Cross-domain checklist row now surfaces as `attention` with a message naming the checkout hostname, prompting the user to enable link decoration. Previously showed a silent `neutral` regardless of checkout topology.
+*   **Checklist: cross-domain copy fix** (`includes/admin/class-admin.php`): The "decoration will not fire" warning was misleading — decoration fires for all same-registrable-domain targets without an allowed-domains entry. Replaced with accurate copy explaining that subdomains work automatically and the allowed-domains list is only needed for fully separate domains.
+
+### 1.7.8
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Critical: file truncation hotfix** (`includes/server-side/class-queue.php`, `uninstall.php`): Edit-tool writes during the v1.7.7 release had silently truncated both files, leaving `class-queue.php` missing the `find_event_row()` method and its closing class brace (PHP fatal: unclosed `{` on line 19), and `uninstall.php` missing the final `DROP TABLE` statement for `clicutcl_events` and its closing brace. Both files restored from verified source; brace balance confirmed (58/58 and 8/8 respectively). No logic changes.
+
+### 1.7.7
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Plugin Checker — zip exclusions** (`Makefile`/build): Previous releases included dev-only files (`.editorconfig`, `.gitignore`, `.mcp.json`, `.phpunit.result.cache`, `phpcs.xml.dist`, `phpunit.xml.dist`, `tools/`, `docs/`, `config/`, `AGENTS.md`, `CLAUDE.md`, `ROADMAP.md`, `RELEASING.md`, `README.*.md`). Zip build now fully honours `.distignore`; all those paths are excluded from the production archive. `.distignore` updated to add `.gitignore`, `.phpunit.result.cache`, and `RELEASING.md`.
+*   **Plugin Checker — PHPCS false positive** (`includes/server-side/class-queue.php`): `$table_exists_mem` is a `private static` class property, not a global variable. Added inline `phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound` with explanation to silence the false positive.
+
+### 1.7.6
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Hotfix — null byte corruption** (`assets/css/admin.css`, `includes/admin/class-admin.php`, `includes/admin/traits/trait-admin-diagnostics-ajax.php`): Trailing null bytes (`0x00`) introduced by the file-editing toolchain caused PHP parse errors (`unexpected character 0x00`) on the live server. Stripped all trailing nulls from all source files. Full PHP/JS/CSS scan confirmed zero null bytes remaining.
+
+### 1.7.5
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Hotfix — PHP parse error** (`includes/admin/class-admin.php`, line 1254): Three `\$` escape sequences in the cross-domain decoration checklist item were invalid PHP syntax outside a string context (bare `\` token). Corrected to `$link_decor_on` and `$domains_configured`. Plugin was fatal on sites where the cross-domain checklist card loaded.
+
+### 1.7.4
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **CSS audit — token coverage** (`assets/css/admin.css`): Added two new design tokens (`--clicktrail-border-medium: #c3c4c7` for WP medium-weight borders, `--clicktrail-radius-lg: 8px` for code-surface border-radius). Replaced all live hardcoded `#c3c4c7` (×3), `#646970` (×2), and status/notice color values with token references. Zero raw color values remain outside the `:root` block (excluding intentional surface-specific shades with no token equivalent).
+*   **CSS audit — cascade fix** (`assets/css/admin.css`): Resolved duplicate `.clicktrail-help-tip` selector. The compact override (15×15 px, tighter margin) is now scoped to `.clicktrail-card__table .clicktrail-help-tip` instead of overriding the base definition globally.
+*   **CSS audit — dead code removal** (`assets/css/admin.css`): Deleted orphaned `Setup Wizard (Phase 3)` and `Import/Export Section (Phase 3)` blocks (`clicktrail-wizard`, `clicktrail-wizard-step`, `clicktrail-wizard-progress`, `clicktrail-import-export`). Confirmed zero PHP/HTML references before removal. File reduced from 1174 to 1113 lines.
+*   **Consent banner color** (`assets/css/clicutcl-consent.css`): Updated `.ct-btn-primary` from WP 4.x blue (`#0073aa`) to WP 5.7+ blue (`#2271b1`), and hover state from `#005177` to `#135e96`. Consent banner CTA now matches every other branded element in the plugin.
+
+### 1.7.3
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Action Scheduler support** (`includes/server-side/class-queue.php`): `ensure_schedule()` now detects `as_schedule_recurring_action` at runtime and uses Action Scheduler's recurring action (group `clicktrail-delivery`, 300 s interval) when the library is present (WooCommerce 3.6+ or standalone). Falls back to WP-cron when AS is unavailable. `clear_schedule()` cancels both the AS group and the WP-cron hook so no orphaned entries remain after a scheduler switch.
+*   **Uninstall cleanup** (`uninstall.php`): Added guarded `as_unschedule_all_actions` call so AS actions are cancelled on plugin deletion when the library is present.
+*   **Syntax fix** (`trait-admin-diagnostics-ajax.php`): Escaped unescaped apostrophe in NitroPack diagnostic detail string that would cause a PHP parse error on sites with strict error reporting.
+
+### 1.7.2
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **NitroPack compatibility** (`includes/integrations/class-nitropack-compat.php` NEW): Detects `NITROPACK_VERSION` and registers two exclusion hooks — `nitropack_js_url_exclude` (URL-based API filter) and `script_loader_tag` (`data-nitropack-exclude="true"` attribute) — to prevent ClickTrail scripts from being postponed until user interaction.
+*   **NitroPack diagnostic warning** (`trait-admin-diagnostics-ajax.php`): Added `NITROPACK_VERSION` to `detect_cache_conflict_labels()` and a dedicated `warn` finding in `build_conflict_scan_report()` explaining the JS postpone risk with verification steps.
+*   **Core registration** (`class-clicutcl-core.php`): `NitroPack_Compat::register()` wired into `define_public_hooks()` after `Queue::register()`.
+*   **pt-BR playbook — Padrão 5 rewrite** (`docs/guides/IMPLEMENTATION-PLAYBOOK.pt-BR.md`): Expanded webhook/CRM section documents the three-layer architecture (script → webhook middleware → CRM), full attribution field table including `gclid`/`fbclid`/`fbc`/`fbp`/`wbraid`/`gbraid`, PipeRun custom field ID requirement, `ct_ready` event pattern, and three common errors.
+
+### 1.7.1
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Setup Wizard**: Added a 3-step onboarding wizard that fires automatically on first activation. Step 1 auto-detects active form plugins, WooCommerce, CMPs, and caching layers. Step 2 collects the GA4 Measurement ID. Step 3 confirms attribution is active with a quick-test link. All external admin notices are suppressed while the wizard is open. A permanent "Setup Wizard" link is added to the plugin action row on the Plugins screen.
+*   **Activation fix**: `Setup_Wizard::init()` now registers before the preflight class check so the activation redirect fires reliably on all environments.
+*   **Two-phase consent capture**: UTMs and click IDs are now buffered to `sessionStorage` immediately on page load before any consent banner fires. On consent grant the pending buffer is promoted to the attribution cookie, preserving first-touch even when the user accepts the banner on a later page.
+*   **Call tracking MutationObserver skip**: The MutationObserver watching for dynamically inserted links now bails early when every new anchor has a skippable scheme (`tel:`, `mailto:`, `#`). Eliminates wasted debounce cycles from Dynamic Number Insertion tools such as CallRail, CallTrackingMetrics, and WhatConverts.
+*   **GF / WPForms attribution field diagnostic**: The Diagnostics conflict scan now checks every active Gravity Forms and WPForms form for `ct_*` hidden fields. Forms without attribution fields surface a warning with a direct edit link. No new AJAX endpoints.
+*   **Cross-domain decoration checklist warning**: The setup checklist now shows a `warn` state when link decoration is on but no allowed domains are listed, and an informational note about external payment providers when decoration is correctly configured.
+*   **Cross-domain limitations documentation**: Added a "Cross-Domain Limitations" section to the Implementation Playbook and a payment provider table to the Integrations reference covering Stripe, PayPal, Mollie, and Square.
+*   **Portuguese (pt-BR) Implementation Playbook**: Added `IMPLEMENTATION-PLAYBOOK.pt-BR.md` covering all rollout patterns including webhook/CRM integrations, the `window.ClickTrail` JS API field reference, and external checkout limitations.
+*   **WP.org compliance**: Plugin zip folder renamed from `cth` to `click-trail-handler` to match the WordPress.org plugin slug requirement.
+*   **Elementor Forms popup fix**: Attribution data is now injected reliably when an Elementor popup opens and when new form inputs appear in the DOM after initial page load.
+*   **CI**: Fixed CodeQL workflow — removed PHP from the language matrix and updated action refs to v4.
+
+### 1.7.0
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Hardening release**. No user-visible feature changes; addresses ten findings from the 1.6.0 internal code review.
+*   Fixed admin QA mode cache-poisoning risk: `adminQaMode` is no longer baked into the localized attribution config where a full-page cache plugin could capture and serve it to anonymous visitors. Now a 1-hour `clicutcl_admin_qa` cookie set only for logged-in `manage_options` users.
+*   Fixed minification-exclusion attributes to use the canonical names each tool actually reads: `data-no-optimize`, `data-noptimize`, `data-cfasync`, `data-no-defer`, `data-no-minify`.
+*   Replaced `str_replace` script injection with regex-based injection robust to attribute order and whitespace.
+*   Refactored `Gravity_Forms_Adapter` from ~660 lines into four focused classes: `Gf_Channel_Resolver`, `Gf_Form_Settings_Tab`, `Gf_Merge_Tags`, `Gf_Minification_Protector`. All public method signatures preserved.
+*   Added PHPUnit unit-test suite for `Gf_Channel_Resolver` covering 10 classification rules.
+*   Added HOOKS-REFERENCE.md clarifications on `ct_*` entry meta registration and channel label storage.
+
+### 1.5.2
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Code quality (line endings)**: Normalized mixed line endings in the consent, attribution-token, and privacy handlers so standards checks and packaging behave consistently across environments.
+*   **Code quality (PHPCS cleanup)**: Resolved the remaining coding-standards issues in those handlers and documented the intentional exceptions for signed-token Base64URL helpers and the required WordPress privacy eraser callback signature.
+*   **Runtime behavior**: No functional changes intended; this patch is a maintenance and standards-compliance release.
+
+### 1.5.1
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Release metadata**: Bumped the public plugin version to `1.5.1` and aligned the main release surfaces across the plugin header, WordPress readme, product readmes, and technical docs.
+*   **Public release notes**: Cleaned up changelog wording to keep public release copy product-focused and competitor-neutral.
+*   **Runtime behavior**: No functional runtime changes from `1.5.0`; this patch is a release-metadata and documentation alignment update.
+
+### 1.5.0
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **WooCommerce (HPOS compatibility)**: Declared compatibility with WooCommerce custom order tables during bootstrap and moved purchase dedup state onto Woo order APIs, so the core Woo purchase flow stays aligned with HPOS-capable stores.
+*   **WooCommerce (purchase payload enrichment)**: Expanded the Woo purchase payload additively with `subtotal`, `tax_total`, `shipping_total`, `discount_total`, `discount_codes`, `status`, `order_currency`, `item_quantity`, plus richer item fields such as `product_id`, `sku`, `variant`, and `categories`.
+*   **WooCommerce (storefront list + cart coverage)**: Added opt-in `woocommerce_storefront_events` support for `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` through ClickTrail's existing browser event layer, including Woo loop/widget/block heuristics plus `item_list_name` and `item_list_index` context where list attribution is available.
+*   **GTM / sGTM compatibility**: Added a dedicated sGTM mode with tagging-server URL support, first-party or custom-loader GTM delivery, and an Events-tab setup wizard with preview probes and destination template hints for GTM-first rollouts.
+*   **WooCommerce (post-purchase milestones)**: Added server-side `order_paid`, `order_refunded`, and `order_cancelled` milestone dispatch on top of the existing purchase pipeline. Milestones reuse the purchase payload builder, use deterministic event IDs, persist per-milestone order markers, and stay inside the same dispatcher, dedup, queue, and diagnostics model.
+*   **WooCommerce (traceability)**: Persisted stored purchase and milestone trace snapshots on Woo orders and exposed a Diagnostics-only order trace lookup so maintainers can inspect payload snapshots and queue state without depending on a temporary debug window.
+*   **Admin UX (readiness + diagnostics)**: Added a read-only setup checklist to the unified settings app and expanded Diagnostics with an interactive conflict scan, privileged backup export/import, and Woo order trace lookup.
+*   **Delivery (selective adapter expansion)**: Added Pinterest Conversions API and TikTok Events API as first-class native delivery adapters, with registry-backed adapter labels and destination toggles in the admin experience.
+*   **Architecture (feature registry)**: Introduced a shared internal feature registry so adapter choices, destination toggles, diagnostics labels, docs targets, and allowlists stop drifting across the admin, dispatcher, and runtime.
+*   **QA / docs (smoke coverage)**: Added a lightweight smoke harness and feature test matrix tied to registry-backed smoke IDs, and updated the canonical admin, integrations, operations, data-model, and event-pipeline docs to reflect the shipped behavior.
+*   **Admin UX (Woo guidance)**: Added and expanded the WooCommerce guidance in the unified Events tab so users can see where order attribution is stored, how purchase pushes work, what storefront and milestone events do, and where to verify results.
+*   **Extensibility (Woo purchase filter)**: Added `clicutcl_woocommerce_purchase_payload` so integrators can extend the final Woo purchase payload in one place without replacing the integration boundary.
+*   **Internationalization**: Extended the `pt_BR` translation coverage to the new settings, diagnostics, Woo trace, backup/restore, and selective-destination admin strings, and regenerated the runtime translation artifacts.
+*   **Standards / deployment**: Included the WordPress.org packaging alignment, Plugin Check suppression cleanup, privacy-query hardening, and debug visibility improvements from the recent maintenance pass in the same public release.
+
+### 1.3.9
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Privacy erasure safety**: Tightened how WordPress privacy export and erasure requests match ClickTrail event records to a person. `LIKE` fragments that include a stored `user_id` are now escaped correctly, which prevents wildcard characters from over-matching unrelated rows during personal-data cleanup.
+*   **Privacy erasure performance**: Large privacy erasure requests no longer delete one event row at a time. Matching event IDs are now deleted in batches, which reduces database round-trips and makes privacy cleanup more practical on busy stores and lead-generation sites with larger event tables.
+*   **Runtime performance (settings caching)**: Added a lightweight option-cache layer for frequently read plugin settings. Attribution checks, consent checks, attribution-token TTL resolution, tracking settings, and server-side delivery settings now reuse cached values instead of repeatedly calling `get_option()` during the same request.
+*   **Runtime performance (conditional assets)**: The frontend consent bridge script now loads only when a page actually needs attribution capture, consent handling, or browser events. Sites that are not using those frontend runtime features avoid one unnecessary script load.
+*   **Bootstrap performance**: The autoloader fallback that looks for `CLICUTCL\Core\Context` now remembers the successful file path instead of probing the same candidate locations on every page load.
+*   **Debugging (token parsing)**: `base64url_decode()` now logs a diagnostic message to `error_log` when it receives an invalid base64 payload in debug mode, making broken or truncated attribution tokens easier to diagnose instead of failing silently.
+*   **Debugging (database errors)**: Privacy erasure now surfaces `$wpdb->last_error` in the erasure response messages when deletion fails and `WP_DEBUG` is enabled, so site owners can see the database-level reason instead of a generic failure.
+*   **Code quality (public runtime)**: Extracted consent-bridge config building into `build_consent_bridge_config()` and attribution config building into `build_attribution_config()`, making `enqueue_scripts()` shorter, easier to review, and easier to test.
+*   **Code quality (event intake)**: Extracted per-event processing logic into `process_single_event()`, reducing `batch_events()` to a clean dispatch loop and isolating validation, translation, dedup, identity resolution, and delivery into a single-responsibility method.
+
+### 1.3.8
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Attribution fallback (referrer classification)**: Added per-touch referrer classification for visits without UTMs or click IDs. ClickTrail now derives first-touch and last-touch `source` / `medium` from common search, social, and external referral domains, preserves the raw referrer, ignores internal subdomain hops, and keeps explicit tagged campaign signals as the winner when present.
+
+### 1.3.7
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Sessions (dedicated SessionManager)**: Decoupled session tracking from attribution signal detection. Sessions are now managed by a standalone `SessionManager` module with a 30-minute inactivity timeout, independent of UTM or click-ID changes. `session_count` inside `runAttribution()` is no longer incremented on attribution signals — session lifecycle is driven purely by user activity.
+*   **Sessions (separate storage)**: Session state (`session_id`, `session_number`, `session_started_at`, `last_activity_at`) is persisted in its own `ct_session` cookie and localStorage key, keeping attribution and session concerns fully separated.
+*   **Sessions (backward compatibility)**: On first run the SessionManager seeds `session_number` from the existing `session_count` in the attribution payload, then stops writing to attribution storage. `session_count` remains available as an alias of `session_number` in all outward-facing payloads (dataLayer, API, REST, form/purchase dispatch).
+*   **Sessions (API surface)**: Added `window.ClickTrail.getSession()` and `window.ClickTrailSession` for client-side access. `Identity.get()` now returns `session_number` alongside `session_id`. The dataLayer `ct_page_view` push includes `session_number`.
+*   **Sessions (server-side)**: Added `Attribution_Provider::get_session()` to read the `ct_session` cookie server-side. Form submission and purchase dispatch contexts now include `session_id` in event metadata when available.
+*   **Sessions (consent)**: Session state is cleared alongside attribution data when consent is denied or revoked, and the `clearData()` API method clears both stores.
+
+### 1.3.6
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Forms (Ninja Forms)**: Replaced the speculative Ninja Forms storage path with an explicit submission-extra contract on `extra.clicktrail_attribution`, added normalized payload handling with safe fallback to the current request attribution payload, and surfaced stored attribution in the Ninja Forms submission detail UI through `nf_react_table_extra_value_keys`.
+*   **Forms (Elementor Forms)**: Added a native Elementor Pro forms adapter using the official `elementor_pro/forms/new_record` submission hook. ClickTrail now logs Elementor form submissions on the same adapter contract as the other supported form plugins, reads submitted `ct_*` attribution fields when present, and falls back to the current consent-aware attribution payload when explicit hidden fields are not part of the form.
+*   **Attribution coverage (modern campaign + browser IDs)**: Expanded the capture schema beyond classic UTMs so ClickTrail now preserves `utm_id`, `utm_source_platform`, `utm_creative_format`, and `utm_marketing_tactic`, plus top-level browser/platform identifiers such as `fbc`, `fbp`, `ttp`, `li_gc`, `ga_client_id`, and `ga_session_id`. The same broader field set now flows through the runtime, browser events, WooCommerce checkout persistence, canonical URL cleanup, and cross-domain attribution token allowlists where appropriate.
+*   **Browser events (capability gating)**: Split browser event collection from browser delivery transport. `event_v2` now acts as the single capability gate for loading and booting `clicutcl-events.js`, while REST delivery remains a separate transport concern. Disabling browser event collection now stops browser event listeners and `dataLayer` pushes from the events runtime without affecting attribution capture.
+*   **Consent (frontend attribution parity)**: Switched the attribution runtime to the shared consent bridge contract instead of hardcoding the legacy `ct_consent` cookie and banner-only events. Cookiebot, OneTrust, Complianz, GTM, and custom bridge integrations now unblock attribution correctly when consent is granted.
+*   **Privacy / retention (client storage)**: Replaced indefinite localStorage attribution persistence with a TTL-bound mirror that honors `cookie_days`, drops legacy no-expiry payloads, and clears client-side attribution state when consent is denied or revoked.
+*   **Attribution schema (metadata consistency)**: Standardized attribution metadata on the same `ft_` / `lt_` prefix contract used by the rest of the payload. The runtime and PHP provider now normalize legacy `first_*` / `last_*` metadata aliases back to canonical keys such as `ft_touch_timestamp` and `ft_landing_page`, and the form injector now targets the canonical metadata fields consistently.
+*   **Identity enrichment (forms and purchases)**: Added consent-aware identity resolution to form submission and WooCommerce purchase dispatch paths. Server-side form and purchase events now carry the same top-level `identity` payload used by REST intake, with a temporary `meta.identity` mirror kept for backward compatibility with older collectors.
+*   **Forms (Fluent Forms — hooks)**: Registered both slash-style (`fluentform/form_element_start`, `fluentform/submission_inserted`) and underscore-style legacy hooks so the adapter fires on Fluent Forms v5+ and on installations still running v4 or below. A static dedup guard in `on_submission` ensures the entry is logged exactly once even if both aliases fire.
+*   **Forms (Fluent Forms — meta persistence)**: Implemented the previously commented-out Fluent Forms entry meta write. Attribution values are now inserted into `fluentform_submission_meta` via `wpFluent()` on each submission, making them accessible from the Fluent Forms entry detail view and its API. The insert is wrapped in a try/catch so a table-level error does not block ClickTrail's own event log.
+*   **Forms (Gravity Forms — entry meta registration)**: Added `gform_entry_meta` filter registration in the Gravity Forms adapter. Each attribution key (prefixed `ct_`) is now declared as a named meta entry, making attribution values visible in the Gravity Forms entry detail screen, exportable via the CSV/XLSX export tool, and searchable in the entries list — matching the behaviour of first-class Gravity Forms fields.
+*   **Admin (Diagnostics — copy)**: Renamed "Recent v2 Intake Events" card to "Recent Event Intake" and updated its description and empty-state text to remove internal "v2" terminology from user-facing diagnostic output.
+*   **Admin CSS (settings app utilities)**: Added `.clicktrail-setting-block` (with `.is-disabled` opacity state), `.clicktrail-setting-label` (inline-flex label layout), `.clicktrail-provider-block` (provider row separator), `.clicktrail-ops-links` (action link row), and `.clicktrail-diagnostics-grid--compact` (inset grid variant) to support the unified settings app layout.
+
+### 1.3.5
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Admin UX (final unified settings app)**: Replaced the split Settings API + separate advanced tracking UI with one modern WordPress-native settings shell for the main ClickTrail settings screen.
+*   **Admin IA (capability tabs)**: Reorganized settings into four capability-based tabs -- `Capture`, `Forms`, `Events`, and `Delivery` -- so users can configure ClickTrail by use case instead of internal implementation layers.
+*   **Admin copy (humanized language)**: Removed user-facing `Tracking v2` terminology from the main settings flow and translated developer-first labels into product-facing language.
+*   **Admin compatibility (legacy URLs)**: Added alias routing for old admin tabs so `general`, `whatsapp`, `trackingv2`, `advanced`, `server`, and `destinations` continue to land in the correct new capability tab.
+*   **Admin persistence (grouped save layer)**: Added unified admin AJAX load/save endpoints that group settings by capability in the UI while still writing back to the existing option stores.
+*   **Admin UX (delivery summary)**: Added a lightweight Delivery health summary inside Settings with queue backlog, last dispatch, last error, debug state, and direct links to Logs and Diagnostics.
+*   **Admin UX (unified identity)**: Replaced `wp.components` Card/CardBody/CardHeader in the Advanced tab React UI with the same `.clicktrail-card` shell used by all PHP-rendered settings tabs — eliminating the two-identity split.
+*   **Admin UX (tab consolidation)**: Reduced settings tabs from six to four — Attribution (core capture + JS fallback + cross-domain + WhatsApp), Consent, Destinations, and Advanced — each organized around a clear user intent rather than internal system names.
+*   **Admin UX (WhatsApp)**: Moved WhatsApp settings from a standalone tab into a collapsible card on the Attribution tab, where it belongs alongside the other capture settings it shares an option group with.
+*   **Admin UX (Destinations tab)**: Destinations tab now presents GTM, server-side delivery, and advertising platform toggles (Meta, Google, LinkedIn, Reddit, Pinterest) as a single unified configuration surface — two PHP forms followed by the React v2 destinations card.
+*   **Admin UX (humanized v2 notice)**: Replaced the generic "advanced tracking" notice with a plain-language explanation of why the Advanced tab exists and when it is needed, removing the term "v2" from user-facing copy.
+*   **Admin UX (tab icons)**: Updated tab icons to reflect each tab's purpose — chart-area for Attribution, privacy shield for Consent, share for Destinations, admin-tools for Advanced.
+*   **Admin JS (React card shell)**: Rewrote `admin-tracking-v2.js` to render cards using our `.clicktrail-card` / `.clicktrail-card__body--react` CSS classes, with icon + title + description in the header matching PHP-rendered cards exactly.
+*   **Admin JS (React controls)**: Gave each card a contextual icon, humanized title, and plain-English description. Feature flags card explains each flag inline via `help` text.
+*   **Admin CSS**: Added `.clicktrail-card__body--react` padding, row separators, and overrides for `wp.components` ToggleControl, TextControl, and TextareaControl to match our design tokens (border radius, border colour, blue focus ring, toggle pill sizing).
+
+### 1.3.4
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Admin UX (tab navigation)**: Renamed all settings tabs to plain-English labels — Attribution, Consent, Channels, Destinations, Advanced, Diagnostics — replacing internal developer slugs.
+*   **Admin UX (tab consolidation)**: Merged GTM and Server-side tabs into a single Destinations tab, reducing tab count and grouping related delivery settings together.
+*   **Admin UX (card layout)**: Replaced flat settings sections with a card-based layout — each card carries an icon, title, and description, with a hairline border and white background matching WP admin conventions.
+*   **Admin UX (status bar)**: Added a summary status bar on the Attribution tab showing live pills for Attribution, Consent Mode, JS Capture, Cross-domain, and Server-side states.
+*   **Admin UX (sticky save)**: Added a sticky save bar that remains visible at the bottom of the viewport while scrolling through long settings pages.
+*   **Admin UX (collapsible cards)**: Advanced sections (Cross-domain, Channels) can be collapsed to reduce visual noise; collapsed state driven by `aria-expanded` and a CSS `is-collapsed` toggle.
+*   **Admin UX (conditional dimming)**: Dependent fields dim and disable when their parent toggle is off — JS injection controls mutation observer and field overwrite rows; link decoration controls allowed domains, skip-signed, and cross-domain token; WhatsApp controls the append-attribution row; consent toggle controls all consent sub-fields.
+*   **Admin UX (diagnostics)**: Redesigned Diagnostics page with a stats-first grid (Queue Backlog, Last Dispatch, Last Error, Debug Logging) followed by action cards for testing, logging, data management, and telemetry.
+*   **Admin UX (field labels)**: Rewrote all settings field labels in plain English throughout Attribution and Consent tabs.
+*   **Admin UX (destinations card)**: Tracking v2 Destinations card (Meta, Google, LinkedIn, Reddit, Pinterest) now renders on the Destinations tab in addition to the Advanced tab.
+*   **Admin JS**: Added `admin-settings.js` to handle collapsible card toggle behaviour and all conditional field dependency bindings on settings screens.
+*   **Admin CSS**: Comprehensive stylesheet additions covering cards, status pills, save bar, diagnostic stat tiles, dimmed rows, field inputs, and responsive breakpoints.
+
+### 1.3.3
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Admin reliability**: Fixed `clicutcl_attribution_settings` persistence so checkbox/toggle values on the settings page now save correctly alongside scalar fields like `enable_attribution` and `cookie_days`.
+*   **Forms integration**: Fixed Fluent Forms hook registration for `fluentform_form_element_start` to accept the documented single argument, preventing fatal errors on form render.
+*   **Security (API hardening)**: Added request body-size guards (128KB) on public webhook and lifecycle endpoints to prevent oversized payload abuse (HTTP 413 on overflow).
+*   **Security (authz)**: Closed batch endpoint nonce bypass by requiring `manage_options` capability on the wp_rest nonce path.
+*   **Security (XSS)**: Replaced consent-banner `innerHTML` rendering with safe DOM API construction to eliminate DOM XSS sinks in active consent UI.
+*   **Security (legacy exposure)**: Removed deprecated `assets/js/ct-consent.js` from runtime and added ignore rules to prevent accidental reintroduction.
+*   **Security (secrets hygiene)**: Implemented masked admin reads and write-only secret updates for tracking v2 settings (`secret`/`token` fields are no longer exposed back to admin clients).
+*   **Security (optional at-rest protection)**: Added optional secret encryption-at-rest for tracking settings (`security.encrypt_secrets_at_rest`) with transparent decrypt-on-read.
+*   **Privacy (data minimization)**: Replaced raw WordPress user IDs in dataLayer payloads with salted one-way SHA-256 hashes.
+*   **Privacy (WP compliance)**: Added personal data exporter/eraser integration for ClickTrail tracking data via WordPress privacy APIs.
+*   **Consent (runtime architecture)**: Added consent bridge layer (`clicutcl-consent-bridge.js`) to normalize consent resolution across built-in banner, CMPs, GTM Consent Mode, and custom implementations.
+*   **Consent (event gating)**: Updated event initialization to wait for resolved consent and added dispatch-time guard to block event pushes when consent is denied/unresolved.
+*   **Consent (admin controls)**: Added consent source and CMP timeout settings, with sanitization and localized runtime bridge configuration.
+*   **GTM behavior**: Preserved unconditional GTM snippet loading while aligning ClickTrail event initialization with resolved consent signals.
+*   **Attribution integrity**: Hardened attribution token flows and canonical click-ID normalization (including Snapchat aliases to canonical `sccid` handling).
+*   **Attribution coverage**: Aligned click-ID handling across parsing/mapping paths for Google, Meta, TikTok, Microsoft, Twitter/X, LinkedIn, Snapchat aliases, and Pinterest identifiers.
+*   **WooCommerce logic**: Fixed fallback attribution path so flat-cookie attribution is normalized into first/last touch before purchase payload flattening.
+*   **Forms integration**: Corrected Ninja Forms attribution global usage to `window.ClickTrail` API.
+*   **Admin UX**: Replaced dead PII warning CTA with actionable links to diagnostics/settings.
+*   **Internationalization**: Replaced hardcoded admin error strings with translatable strings for consistency with WP i18n conventions.
+*   **Technical debt (modularization)**: Reduced blast radius by splitting oversized classes into bounded-context traits (admin pages/diagnostics, tracking controller security/debug/token internals, log controller WA/runtime internals).
+*   **Technical debt (legacy cleanup)**: Removed deprecated runtime integration class (`includes/integrations/class-form-integrations.php`) and updated ignore policy for archived artifacts.
+*   **Standards (boolean coercion fix)**: Fixed toggle sanitization so string values like `"false"` no longer coerce to enabled.
+*   **Standards (style consistency)**: Refactored `class-site-health.php` to consistent WordPress/PSR-friendly formatting and safer input handling patterns.
+*   **Standards (enforcement)**: Added `phpcs.xml.dist`, typing policy documentation, and QA script to enforce consistent repository typing policy.
+*   **Docs hygiene**: Removed duplicated Portuguese section in `README.md` to prevent documentation drift.
+*   **Docs truth-alignment**: Updated `readme.txt` claims to match shipped click-ID and consent-mode behavior exactly.
+
+### 1.3.2
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Security**: Enforced signed-token authorization for WA click ingestion, removed Origin/Referer as a security control, and added trusted-proxy-aware client IP handling.
+*   **Security**: Closed WA ingestion bypass paths and aligned authorization checks across endpoints.
+*   **Performance**: Removed hot-path option churn for WA diagnostics and moved attempt/dispatch traces to debug-only transient ring buffers.
+*   **Performance**: Eliminated per-request schema checks on the WA hot path with DB readiness flags and fail-fast handling when DB is not ready.
+*   **Reliability**: Added canonical click-ID normalization boundary (`lt_/ft_` to canonical IDs) before allowlist/signing flow.
+*   **Reliability**: Hardened settings sanitization with schema+merge behavior to prevent silent setting loss on partial saves.
+*   **Admin UX/Perf**: Scoped admin script loading to relevant screens instead of global wp-admin enqueue.
+*   **Polish**: Escaped DB-derived admin table output (`created_at`) and standardized safe output rendering.
+*   **Developer Experience**: Added debug-gated JS logging to avoid production console noise by default.
+*   **API**: WA endpoint contract now requires a signed `token` for accepted writes.
+*   **Internal**: Diagnostics storage now uses transient ring buffers instead of hot-path option-array rewrites.
+*   **Internal**: Added hardening config surfaces for token TTL, nonce replay limits, trusted proxies, and diagnostics buffering/throttling.
+
+### 1.3.1
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Performance**: Implemented conditional loading for `clicutcl-events.js` tracking script—now only loads on the front-end (excluding feeds, robots, and admin) to minimize overhead.
+*   **Security (Safety Check)**: Added existence check for `WooCommerce` class before instantiating the integration, preventing potential hooks from loading unnecessarily.
+*   **Improvement (Extensibility)**: Introduced `clicutcl_should_load_events_js` filter to allow granular control over when tracking scripts are enqueued.
+
+### 1.3.0
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Feature (Cache Resurrection)**: Implemented Client-Side Field Injection (`enable_js_injection`) to automatically populate hidden form fields via JavaScript, ensuring accurate attribution even on fully cached pages (WP Rocket, Cloudflare, local caching).
+*   **Feature (Cross-Domain)**: Introduced Link Decoration (`enable_link_decoration`) to safely pass attribution parameters to allowed domains, with automatic support for all subdomains of the current site.
+*   **Feature (Bot Protection)**: Added advanced bot detection to prevent attribution pollution from crawlers, webdrivers, and headless browsers.
+*   **Feature (DX/Insight)**: Integrated with WordPress Site Health to provide proactive diagnostics on caching conflicts and cookie blocking.
+*   **Feature (Dashboard)**: Added "ClickTrail Status" dashboard widget for real-time tracking health visibility.
+*   **Improvement**: Added JS Fallback for WooCommerce Checkout, ensuring order attribution is captured even when server-side cookies are stripped.
+*   **Improvement**: Renamed the primary settings submenu from "ClickTrail" to "Settings" to eliminate duplicate labels and improve UX.
+*   **Improvement**: Added official Portuguese (Brazil) translation (`pt_BR`) covering Admin, Consent Banner, and Site Health.
+*   **Improvement**: Fully refactored attribution frontend to remove jQuery dependency and expose a modern JS API (`window.ClickTrail`).
+
+### 1.2.3
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Fix**: Fixed Short Description formatting in readme.txt to comply with WordPress.org plugin guidelines.
+*   **Improvement**: Removed deprecated `load_plugin_textdomain()` call—WordPress 4.6+ handles translations automatically for plugins hosted on WordPress.org.
+*   **Improvement**: Added PHPCS ignore comment for intentional direct database query on custom plugin table.
+
+### 1.2.2
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Fix**: Resolved critical autoloading issues on Linux/Unix environments (case-sensitive paths) to prevent Fatal Errors during activation.
+*   **Fix**: Implemented strict PHP interface compatibility for all Form Adapters (CF7, WPForms, Gravity Forms, Ninja Forms, Fluent Forms) to resolve fatal errors on PHP 8+.
+*   **Fix**: Added robust "preflight" checks in the boot sequence to safely deactivate the plugin if files are corrupted or missing, instead of crashing the site.
+*   **Improvement**: Enhanced autoloader performance and added fallback for mixed naming conventions.
+*   **Improvement**: Updated plugin metadata and readme for better WordPress.org validation compliance.
+
+### 1.2.1
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Fix**: Fixed scroll tracking to use GTM's built-in variable names (`gtm.scrollThreshold`, `gtm.scrollUnits`, `gtm.scrollDirection`) instead of custom Data Layer Variables, making GTM setup simpler and more reliable.
+*   **Fix**: Fixed scroll percentage calculation bug that prevented scroll events from firing. Changed from string-based property access to direct property access with cross-browser fallbacks for better reliability.
+*   **Improvement**: Renamed `time_on_page` event to `user_engagement` with descriptive engagement levels (quick_view, browsing, engaged, interested, highly_engaged) and added detailed parameters (`engagement_time_msec`, `time_label`, `time_threshold`) for better analytics insights.
+*   **Fix**: Corrected typo in settings class name (`Attribution_Settings`) for consistency.
+*   **Docs**: Updated readme.txt and README.md with benefit-focused messaging emphasizing ROI and business value over technical features.
+
+### 1.2.0
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   **Security**: Hardened AJAX handlers with strict WhatsApp URL validation and optimized PII risk logging using nonce verification and state checks.
+*   **Feature**: Introduced Custom Database Table (`wp_clicutcl_events`) for scalable event logging, removing reliance on Custom Post Types.
+*   **Feature**: Implemented REST API Log Endpoint (`/wp-json/clicutcl/v1/log`) for faster and lighter tracking requests.
+*   **Feature**: Added Admin Log Viewer (`ClickTrail > Logs`) to view events from the custom database table.
+*   **Feature**: Implemented Automated Database Cleanup (Cron) to keep the events table healthy.
+*   **Refactor**: Major architectural improvements including Namespaced Admin class, decoupled AJAX Log Handler, and extracted CPT registration.
+*   **Refactor**: Standardized Integrations (WooCommerce & Forms) into namespaced classes (`CLICUTCL\Integrations`), cleaning up the global namespace and dependencies.
+*   **Refactor**: Centralized settings logic (`Attribution_Settings`) and Attribution Utilities (`Utils\Attribution`) for better maintainability.
+*   **Fix**: Fixed GTM Data Layer variables for Scroll Tracking—now uses GTM's built-in variable names (`gtm.scrollThreshold`, `gtm.scrollUnits`, `gtm.scrollDirection`) plus `percent_scrolled` for GA4 compatibility. No custom Data Layer Variables needed in GTM!
+*   **Fix**: Fixed scroll percentage calculation bug that prevented events from firing. Changed from string-based property access to direct property access with cross-browser fallbacks.
+*   **Fix**: Improved engagement tracking by renaming `time_on_page` event to `user_engagement` with descriptive engagement levels (quick_view, browsing, engaged, interested, highly_engaged) and added `engagement_time_msec`, `time_label`, and `time_threshold` parameters.
+*   **Cleanup**: Removed legacy `clicutcl_wa_click` Custom Post Type and associated AJAX handlers.
+*   **Cleanup**: Removed `CLICUTCL\Ajax\Log_Handler` and `CLICUTCL\Post_Types\WhatsApp_Click` classes.
+
+### 1.1.1
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   Refreshed readme copy and release guidance to align WordPress.org listing with latest documentation.
+*   Prepared for updated screenshots/assets to keep plugin visuals accurate.
+
+### 1.1.0
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   Added comprehensive Event Tracking (Searches, Downloads, Scroll Depth, Time on Page).
+*   Added Server-side Event Tracking for User Login, Signups, and Comments.
+*   Implemented Google Consent Mode v2 support with region-specific defaults.
+*   Added manual Google Tag Manager (GTM) Container ID injection.
+*   Refactored codebase for better modularity and performance.
+*   Enhanced WooCommerce integration with "Source" column and detailed meta box.
+
+### 1.0.0
+
+**State:** Confirmed
+**Lifecycle status:** Completed
+**Source:** [`changelog.txt`](../changelog.txt)
+
+*   Initial release with attribution capture, consent banner, and integrations for WooCommerce, Contact Form 7, Fluent Forms, and WhatsApp.
+
+## Verification control
+
+**State: Confirmed.** This record is complete when its version index contains the same headings as `changelog.txt`. A release entry is not evidence that PHP/WordPress/browser/provider E2E verification passed; use the integration ledger, test matrix, and release gates for that decision.

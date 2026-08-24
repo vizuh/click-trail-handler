@@ -1,8 +1,10 @@
 # ClickTrail
 
-Attribution usually breaks somewhere between the ad click and the conversion. ClickTrail makes it survive: cached pages, dynamic forms, cross-domain journeys, repeat visits, and consent requirements.
+![ClickTrail](.github/clicktrail-cover.png)
 
-ClickTrail keeps the source of the visit, not a profile of the visitor — first-party capture with consent controls. The current security-status blockers and their verification boundary are documented in [Security and Privacy](docs/guides/SECURITY-PRIVACY.md).
+Attribution usually breaks somewhere between the ad click and the conversion. ClickTrail keeps campaign context alive through cached pages, dynamic forms, cross-domain journeys, repeat visits, and configured consent rules.
+
+ClickTrail keeps the source of the visit, not a profile of the visitor — first-party capture with consent controls. It is a WordPress capture-and-controlled-delivery layer, not an attribution dashboard, hosting platform, lead manager, or ad optimizer. The current security-status blockers and verification boundary are documented in [Security and Privacy](docs/guides/SECURITY-PRIVACY.md).
 
 [![GitHub release](https://img.shields.io/github/v/release/vizuh/click-trail-handler?label=version&color=blue)](https://github.com/vizuh/click-trail-handler/releases)
 [![License](https://img.shields.io/badge/license-GPL--2.0--or--later-green)](LICENSE)
@@ -58,6 +60,7 @@ ClickTrail is designed to keep first-touch and last-touch context alive until th
 - **GitHub visitors**: start with [README.en.md](README.en.md) or [README.pt-BR.md](README.pt-BR.md).
 - **Contributors and reviewers**: use [CONTRIBUTING.md](CONTRIBUTING.md) or [CONTRIBUTING.pt-BR.md](CONTRIBUTING.pt-BR.md).
 - **Engineers and agents**: use [docs/README.md](docs/README.md) and [AGENTS.md](AGENTS.md).
+- **Implementation teams**: start with [use cases](docs/guides/USE-CASES.md) and the [tutorial index](docs/tutorials/README.md).
 
 ## Repository Map
 
@@ -67,6 +70,7 @@ ClickTrail is designed to keep first-touch and last-touch context alive until th
 - [docs/reference/INTEGRATIONS.md](docs/reference/INTEGRATIONS.md): evidence-labelled forms, commerce, consent, webhook, GTM, platform, and delivery paths
 - [docs/reference/integration-capabilities.json](docs/reference/integration-capabilities.json): machine-readable integration status and evidence ledger
 - [docs/guides/RELEASE-PHASING-AND-INTEGRATION-DOCS.md](docs/guides/RELEASE-PHASING-AND-INTEGRATION-DOCS.md): separately gated release plan
+- [docs/guides/COMPETITIVE-POSITIONING-AND-ACQUISITION-ROADMAP-2026-08-22.md](docs/guides/COMPETITIVE-POSITIONING-AND-ACQUISITION-ROADMAP-2026-08-22.md): proposition, copy, and client-acquisition roadmap
 - [docs/guides/SETTINGS-AND-ADMIN.md](docs/guides/SETTINGS-AND-ADMIN.md): current admin IA and option mapping
 - [changelog.txt](changelog.txt): full plain-English release history aligned with the WordPress readme
 - [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md): PR checklist for repo changes

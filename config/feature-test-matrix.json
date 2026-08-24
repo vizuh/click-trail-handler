@@ -494,7 +494,7 @@
         "WooCommerce is active.",
         "WooCommerce storefront events are enabled."
       ],
-      "automated": true,
+      "automated": false,
       "manual_verification": [
         "Open a product page and confirm a view_item event appears in dataLayer or debug output."
       ],
@@ -516,7 +516,7 @@
         "WooCommerce is active.",
         "WooCommerce storefront events are enabled."
       ],
-      "automated": true,
+      "automated": false,
       "manual_verification": [
         "Add a product to cart and confirm an add_to_cart event appears in dataLayer or debug output."
       ],
@@ -538,7 +538,7 @@
         "WooCommerce is active.",
         "WooCommerce storefront events are enabled."
       ],
-      "automated": true,
+      "automated": false,
       "manual_verification": [
         "Remove an item from the classic cart or block cart and confirm a remove_from_cart event appears in dataLayer or debug output."
       ],
@@ -560,7 +560,7 @@
         "WooCommerce is active.",
         "WooCommerce storefront events are enabled."
       ],
-      "automated": true,
+      "automated": false,
       "manual_verification": [
         "Open the checkout page and confirm a begin_checkout event appears in dataLayer or debug output."
       ],
@@ -582,7 +582,7 @@
         "WooCommerce is active.",
         "WooCommerce storefront events are enabled."
       ],
-      "automated": true,
+      "automated": false,
       "manual_verification": [
         "Open a shop, category, related-products, or cross-sell surface and confirm a view_item_list event appears with item_list_name and item_list_index fields."
       ],
@@ -613,7 +613,7 @@
         "WooCommerce is active.",
         "Server-side delivery is enabled."
       ],
-      "automated": true,
+      "automated": false,
       "manual_verification": [
         "Complete payment for a test order and confirm order_paid appears once in Diagnostics > Woo Order Trace Lookup."
       ],
@@ -635,7 +635,7 @@
         "WooCommerce is active.",
         "Server-side delivery is enabled."
       ],
-      "automated": true,
+      "automated": false,
       "manual_verification": [
         "Refund a test order and confirm order_refunded appears once in Diagnostics > Woo Order Trace Lookup."
       ],
@@ -657,7 +657,7 @@
         "WooCommerce is active.",
         "Server-side delivery is enabled."
       ],
-      "automated": true,
+      "automated": false,
       "manual_verification": [
         "Cancel a test order and confirm order_cancelled appears once in Diagnostics > Woo Order Trace Lookup."
       ],
@@ -714,7 +714,7 @@
         "WooCommerce is active.",
         "Open ClickTrail > Diagnostics."
       ],
-      "automated": true,
+      "automated": false,
       "manual_verification": [
         "Lookup a valid Woo order ID and confirm purchase or milestone trace snapshots render with queue details."
       ],
@@ -739,6 +739,177 @@
           "patterns": [
             "TRACE_META_KEY",
             "store_trace_snapshot"
+          ]
+        }
+      ]
+    },
+    "diagnostics-attribution-readiness": {
+      "label": "Attribution readiness diagnostics",
+      "expected_behavior": "Diagnostics accepts a bounded test payload and returns read-only UTM readiness evidence without persisting or dispatching it.",
+      "prerequisites": [
+        "Open ClickTrail > Diagnostics."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Run a valid sample and confirm field statuses, click-ID keys/platforms, issues, and recommendations render.",
+        "Run malformed and oversized payloads and confirm the endpoint returns an error code without echoing the payload.",
+        "Treat live WordPress/browser behavior as runtime-unverified until a staging fixture is attached."
+      ],
+      "evidence": [
+        {
+          "file": "includes/admin/class-admin.php",
+          "patterns": [
+            "wp_ajax_clicutcl_attribution_readiness",
+            "checking_readiness"
+          ]
+        },
+        {
+          "file": "includes/admin/traits/trait-admin-diagnostics-ajax.php",
+          "patterns": [
+            "ajax_attribution_readiness",
+            "sanitize_attribution_readiness_result",
+            "oversized_payload",
+            "malformed_payload"
+          ]
+        },
+        {
+          "file": "includes/admin/traits/trait-admin-pages.php",
+          "patterns": [
+            "Attribution Readiness",
+            "clicutcl-attribution-readiness-run"
+          ]
+        },
+        {
+          "file": "assets/js/admin-diagnostics.js",
+          "patterns": [
+            "clicutcl_attribution_readiness",
+            "readinessOutput.textContent"
+          ]
+        }
+      ]
+    },
+    "diagnostics-attribution-source-aliases": {
+      "label": "Deterministic attribution source suggestions",
+      "expected_behavior": "Diagnostics accepts bounded request-scoped aliases for recognized click-ID platforms and can suggest only utm_source without overwriting observed values, inventing medium or campaign, or persisting input.",
+      "prerequisites": [
+        "Open ClickTrail > Diagnostics."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Run a valid single-platform sample and confirm only utm_source receives a deterministic suggestion; utm_medium and utm_campaign remain configuration requests.",
+        "Run a valid recognized source alias and confirm the recommendation uses it without changing the click-ID evidence basis.",
+        "Run observed-source, unresolved-macro, and multiple-platform samples and confirm automatic source suggestion is suppressed.",
+        "Run malformed, oversized, unknown-platform, and invalid alias payloads and confirm the endpoint returns a bounded error code without echoing input.",
+        "Treat live WordPress/browser behavior as runtime-unverified until a staging fixture is attached."
+      ],
+      "evidence": [
+        {
+          "file": "includes/Intelligence/class-attribution-readiness-analyzer.php",
+          "patterns": [
+            "source_alias_platforms",
+            "source_aliases",
+            "configured_alias"
+          ]
+        },
+        {
+          "file": "includes/admin/traits/trait-admin-diagnostics-ajax.php",
+          "patterns": [
+            "parse_attribution_source_aliases",
+            "source_aliases_too_large",
+            "source_alias_unknown_platform",
+            "source_alias_invalid_value"
+          ]
+        },
+        {
+          "file": "includes/admin/traits/trait-admin-pages.php",
+          "patterns": [
+            "clicutcl-attribution-readiness-aliases",
+            "utm_medium and utm_campaign are never invented"
+          ]
+        },
+        {
+          "file": "assets/js/admin-diagnostics.js",
+          "patterns": [
+            "source_aliases: readinessAliases.value",
+            "readinessOutput.textContent"
+          ]
+        },
+        {
+          "file": "tests/unit/AttributionReadinessAnalyzerTest.php",
+          "patterns": [
+            "test_source_conflict_is_reported_without_overwriting_observed_value",
+            "test_unresolved_source_macro_blocks_click_id_alias_suggestion",
+            "test_multiple_platforms_suppress_deterministic_suggestion"
+          ]
+        },
+        {
+          "file": "tests/unit/AttributionReadinessDiagnosticsContractTest.php",
+          "patterns": [
+            "test_source_alias_parser_rejects_malformed_json",
+            "test_valid_alias_survives_analyzer_and_allowlist_without_click_id_value"
+          ]
+        }
+      ]
+    },
+    "diagnostics-utm-hygiene-test-url": {
+      "label": "UTM hygiene and copy-only test URL",
+      "expected_behavior": "Diagnostics exposes the selected last/direct/first-touch tier and returns an optional bounded test URL for explicit copying without navigation, persistence, click IDs, or invented medium/campaign values.",
+      "prerequisites": [
+        "Open ClickTrail > Diagnostics."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Run last-touch, direct, and first-touch fixtures and confirm selection_tier matches the winning key.",
+        "Run observed-core and deterministic-source-only fixtures and confirm the returned test URL contains only canonical UTM keys.",
+        "Run macro, non-scalar, unsafe-base, existing-query, fragment, userinfo, explicit-port, and over-bound fixtures and confirm no test URL is returned.",
+        "Confirm Copy Test URL remains disabled without a returned URL, copies only after an explicit click, and never navigates or rewrites the current page.",
+        "Treat browser/PHP parity and live WordPress behavior as blocked until staging evidence is attached."
+      ],
+      "evidence": [
+        {
+          "file": "includes/Intelligence/class-attribution-readiness-analyzer.php",
+          "patterns": [
+            "selection_tier_for_key",
+            "build_test_url",
+            "PHP_QUERY_RFC3986"
+          ]
+        },
+        {
+          "file": "includes/admin/traits/trait-admin-diagnostics-ajax.php",
+          "patterns": [
+            "format_attribution_readiness_response",
+            "home_url( '/' )",
+            "selection_tier"
+          ]
+        },
+        {
+          "file": "includes/admin/traits/trait-admin-pages.php",
+          "patterns": [
+            "Copy Test URL",
+            "clicutcl-attribution-readiness-test-url"
+          ]
+        },
+        {
+          "file": "assets/js/admin-diagnostics.js",
+          "patterns": [
+            "readinessCopyBtn.disabled",
+            "navigator.clipboard.writeText",
+            "data.data.test_url"
+          ]
+        },
+        {
+          "file": "tests/unit/AttributionReadinessAnalyzerTest.php",
+          "patterns": [
+            "test_test_url_builder_uses_only_observed_core_fields",
+            "test_test_url_builder_rejects_unsafe_or_ambiguous_base_urls",
+            "test_test_url_builder_blocks_unresolved_or_invalid_core_fields"
+          ]
+        },
+        {
+          "file": "tests/unit/AttributionReadinessDiagnosticsContractTest.php",
+          "patterns": [
+            "test_response_envelope_adds_only_bounded_copy_test_url",
+            "test_response_envelope_omits_test_url_when_builder_blocks"
           ]
         }
       ]
@@ -1024,6 +1195,159 @@
             "getSessionData",
             "setSessionData",
             "sessionStorage.setItem"
+          ]
+        }
+      ]
+    },
+    "form-readiness-contract": {
+      "label": "Versioned form-readiness presence comparator and six adapter fixtures",
+      "expected_behavior": "The pure M5 contract compares expected, submitted, provider-record, hook-payload, and ClickTrail-event field presence without accepting or returning attribution values. Fixture verification does not upgrade any adapter to runtime verified.",
+      "prerequisites": [
+        "No live form-plugin lookup or persistence is enabled by this contract.",
+        "Adapter runtime claims remain source-present / runtime-unverified until pinned integration and browser staging passes."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Review the comparator report and confirm it contains only adapter/pattern IDs, allowlisted ct_* field names, enums, booleans, and counts.",
+        "Run pinned WordPress/form-plugin hook, record-readback, cache, AJAX, and browser fixtures before promoting any adapter runtime status."
+      ],
+      "evidence": [
+        {
+          "file": "includes/Intelligence/class-form-readiness-analyzer.php",
+          "patterns": [
+            "clicktrail/form-readiness/request.v1",
+            "provider_record",
+            "clicktrail_event",
+            "contract_only"
+          ]
+        },
+        {
+          "file": "tests/fixtures/form-readiness/v1/cf7.json",
+          "patterns": [
+            "automatic_hidden",
+            "provider_record"
+          ]
+        },
+        {
+          "file": "tests/fixtures/form-readiness/v1/fluent.json",
+          "patterns": [
+            "automatic_hidden",
+            "write_result"
+          ]
+        },
+        {
+          "file": "tests/fixtures/form-readiness/v1/gravity.json",
+          "patterns": [
+            "matching_fields",
+            "provider_record"
+          ]
+        },
+        {
+          "file": "tests/fixtures/form-readiness/v1/wpforms.json",
+          "patterns": [
+            "matching_fields",
+            "provider_record"
+          ]
+        },
+        {
+          "file": "tests/fixtures/form-readiness/v1/elementor.json",
+          "patterns": [
+            "hook_storage",
+            "hook_payload"
+          ]
+        },
+        {
+          "file": "tests/fixtures/form-readiness/v1/ninja.json",
+          "patterns": [
+            "hook_storage",
+            "hook_payload"
+          ]
+        },
+        {
+          "file": "tests/unit/FormReadinessAnalyzerTest.php",
+          "patterns": [
+            "test_each_adapter_has_a_versioned_privacy_safe_fixture",
+            "test_adversarial_values_and_identifiers_never_round_trip"
+          ]
+        }
+      ]
+    },
+    "woo-readiness-contract": {
+      "label": "Versioned Woo conversion-readiness contract and 16 synthetic scenarios",
+      "expected_behavior": "The pure M6-A analyzer classifies declared source, consent, event, marker, dedup, queue, value/currency, refund, HPOS, and privacy evidence without reading WordPress, WooCommerce, orders, databases, cookies, or providers. Contract results do not prove runtime behavior.",
+      "prerequisites": [
+        "No WooCommerce runtime dependency, hook, order reader, persistence, provider call, admin UI, or AJAX endpoint is enabled by this contract.",
+        "Woo capability status remains source-present / runtime-unverified until isolated classic and HPOS staging passes."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Review contract output and confirm it contains only fixture IDs, placeholder event-name forms, closed enums/reason codes, and counts.",
+        "Run isolated synthetic-order staging across consent, reload, paid transition, refund sequence, duplicate, classic/HPOS, and privacy paths before any runtime promotion."
+      ],
+      "evidence": [
+        {
+          "file": "includes/Intelligence/class-woo-readiness-analyzer.php",
+          "patterns": [
+            "clicktrail/woo-readiness/request.v1",
+            "evidence_scope",
+            "contract_only",
+            "queue_consent_recheck_missing"
+          ]
+        },
+        {
+          "file": "tests/fixtures/woo-readiness/v1/F01-granted-classic-cookie-primary.json",
+          "patterns": [
+            "purchase_datalayer_ungated",
+            "cookie_primary"
+          ]
+        },
+        {
+          "file": "tests/fixtures/woo-readiness/v1/F06-payment-complete-milestone.json",
+          "patterns": [
+            "payment_complete",
+            "\"report_status\": \"pass\""
+          ]
+        },
+        {
+          "file": "tests/fixtures/woo-readiness/v1/F09-full-refund-sequence.json",
+          "patterns": [
+            "both_sequence",
+            "refund_sequence_conflict"
+          ]
+        },
+        {
+          "file": "tests/fixtures/woo-readiness/v1/F13-hpos-runtime-unverified.json",
+          "patterns": [
+            "hpos_runtime_unverified",
+            "hpos_admin_hooks_absent"
+          ]
+        },
+        {
+          "file": "tests/fixtures/woo-readiness/v1/F14-trace-privacy-lifecycle.json",
+          "patterns": [
+            "raw_identity_in_snapshot",
+            "erasure_coverage_incomplete"
+          ]
+        },
+        {
+          "file": "tests/fixtures/woo-readiness/v1/F15-adversarial-invalid-enum.json",
+          "patterns": [
+            "future_unknown_mode",
+            "fixture_invalid"
+          ]
+        },
+        {
+          "file": "tests/fixtures/woo-readiness/v1/F16-queued-replay-after-withdrawal.json",
+          "patterns": [
+            "replay_skips_consent_recheck",
+            "queue_destination_not_unique"
+          ]
+        },
+        {
+          "file": "tests/unit/WooReadinessAnalyzerTest.php",
+          "patterns": [
+            "test_fixture_corpus_pins_all_sixteen_scenarios_once",
+            "test_unknown_properties_and_values_never_round_trip"
           ]
         }
       ]

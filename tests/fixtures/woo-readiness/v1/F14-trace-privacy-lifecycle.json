@@ -1,0 +1,59 @@
+{
+  "schema": "clicktrail/woo-readiness/request.v1",
+  "fixture_id": "F14",
+  "storage_mode": "classic",
+  "admin_surface": "classic_list_and_meta_box",
+  "source": {
+    "input": "posted_hidden_fields"
+  },
+  "consent": {
+    "snapshot_state": "granted",
+    "live_cookie_state": "granted",
+    "source_used": "stored_order_snapshot",
+    "datalayer_gate": "gated"
+  },
+  "order": {
+    "status": "processing",
+    "transition_kind": "payment_complete",
+    "value_state": "positive",
+    "currency_state": "present_iso",
+    "reconciliation": "consistent"
+  },
+  "event": {
+    "name_form": "purchase_<order-id>",
+    "id_stability": "deterministic",
+    "dispatch_outcome": "success",
+    "marker_semantics": "set_on_terminal_only"
+  },
+  "dedup": {
+    "state": "marked_after_success",
+    "ttl_days": 7
+  },
+  "queue": {
+    "state": "not_enqueued",
+    "unique_key_scope": "event_name_event_id"
+  },
+  "refund": {
+    "shape": "none",
+    "amount_encoding": "not_applicable",
+    "sequence_order": "not_applicable"
+  },
+  "privacy": {
+    "fields": [
+      "hashed_email",
+      "hashed_phone",
+      "raw_ip",
+      "raw_ua"
+    ],
+    "trace_persistence": "canonical_snapshot_stored",
+    "diagnostics_path": "ajax_lookup_html_structured",
+    "erasure_coverage": "incomplete_meta_keys"
+  },
+  "expect": {
+    "report_status": "fail",
+    "reason_codes": [
+      "raw_identity_in_snapshot",
+      "erasure_coverage_incomplete"
+    ]
+  }
+}

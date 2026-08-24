@@ -188,6 +188,19 @@ Responsibilities:
 - WooCommerce order-status milestones
 - optional purchase and milestone dispatch into the delivery pipeline
 
+## 9. Pure evidence analyzers
+
+`includes/Intelligence/`
+
+Responsibilities:
+
+- analyze bounded UTM/click-ID evidence without persistence or delivery
+- build a copy-only test URL from allowlisted UTM fields
+- compare versioned form field-presence snapshots across submitted, provider-record, hook-payload, and ClickTrail-event surfaces
+- classify synthetic Woo source/consent/event/dedup/queue/value/refund/HPOS/privacy evidence across 16 scenarios
+
+All three pure analyzers use `evidence_scope: contract_only`. They have no live form or order reader, admin endpoint, persistence, provider call, or runtime-verification claim.
+
 ## Admin Surfaces
 
 Main admin class: `includes/admin/class-admin.php`
@@ -208,6 +221,7 @@ The admin surface now also includes:
 
 - a read-only setup checklist in Settings
 - Diagnostics conflict scanning
+- Attribution Readiness test-payload analysis and copy-only URL guidance
 - settings backup and restore
 - Diagnostics Woo order trace lookup
 
@@ -221,9 +235,10 @@ Active:
 
 Legacy or compatibility-only:
 
-- `includes/api/class-log-controller.php`
 - internal `clicutcl_tracking_v2` option name
 - some older admin assets still present in the repository but not used by the active settings screen
+
+The legacy v1 log controller is no longer present; `clicutcl/v2` is the only registered REST namespace.
 
 ## Recommended Reading Order
 

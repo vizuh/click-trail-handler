@@ -39,9 +39,11 @@ Bootstrap recomendado:
 
 Checks recomendados antes de abrir um PR:
 
+- Execute `composer validate --strict` e `composer audit --locked` para validar metadados e alertas de dependencias.
 - Execute `composer phpcs` como baseline de padrao de codigo do repositorio.
 - Execute `composer phpcompat` para sinalizar uso de APIs PHP e WordPress depreciadas/removidas (PHPCompatibilityWP).
-- Valide manualmente o fluxo afetado no WordPress, porque o repositorio ainda nao publica uma suite automatizada de testes PHP ou JS.
+- Execute `composer test` para cobertura PHPUnit unit/contract e `node tools/qa/smoke.js` para checks de registry, consentimento, WooCommerce e evidencia documental.
+- Valide manualmente o fluxo afetado no WordPress, porque testes stub nao substituem um runtime real.
 - Execute `npm run make-zip` quando a mudanca afetar empacotamento, preparacao de release ou quando voce quiser validar o build distribuivel do plugin. Esse comando encapsula `tools/release/make-zip.ps1`.
 
 Exemplos de validacao manual:

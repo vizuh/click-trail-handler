@@ -57,6 +57,7 @@ Diagnostics exposes:
 
 - endpoint test
 - conflict scan
+- read-only attribution readiness analysis
 - settings backup export and restore
 - Woo order trace lookup
 - queue backlog
@@ -197,6 +198,36 @@ Typical action:
 - confirm no new failures are being added
 - purge local diagnostics if you want a clean slate
 
+## Attribution Readiness
+
+Diagnostics attribution readiness calls:
+
+- admin AJAX `clicutcl_attribution_readiness`
+
+Use it with a bounded test JSON payload to inspect UTM field status, recognized click-ID keys/platforms, source evidence, issues, and recommendations. Optional source aliases are request-scoped JSON mappings from recognized platforms to lowercase UTM source tokens of at most 64 characters; they are validated and never stored.
+
+The analyzer can deterministically suggest only `utm_source` when exactly one recognized platform is present. It never invents `utm_medium` or `utm_campaign`. An observed source, unresolved source macro, or multiple platform signals suppresses automatic source suggestion. Referrer evidence remains non-deterministic.
+
+Field output includes `selection_tier` to explain whether the selected value came from `last_touch`, the bare `direct` payload tier, `first_touch`, or no valid tier. `direct` describes key precedence only; it is not a traffic-channel claim. When safe core values exist, the endpoint may also return a copy-only test URL. The builder accepts only a query-free, fragment-free HTTP(S) site URL without userinfo or an explicit port, emits at most the three canonical core UTM keys, and rejects invalid/macro or over-bound output. The admin action uses the Clipboard API only after an explicit click; it does not navigate, rewrite links, persist the URL, or change attribution state.
+
+The response does not include click-ID values and does not prove provider delivery, production runtime behavior, or compliance. An isolated WordPress 6.8.2 / PHP 8.3 / Chrome fixture verified the local admin and browser/PHP M4 contract on 2026-08-23; release and public runtime claims remain separately gated.
+
+## Form-readiness contract
+
+The M5 first slice is a pure comparator and fixture corpus, not an admin tool.
+It accepts only field-presence snapshots for `cf7`, `fluent`, `gravity`,
+`wpforms`, `elementor`, and `ninja`. It reports expected/submitted presence and
+keeps provider record, hook payload, and ClickTrail event evidence separate.
+
+Operational limits:
+
+- no live form definitions, entries, submissions, or provider stores are read
+- no form hook, AJAX endpoint, option, table, transient, or correlation ID is added
+- report scope `contract_only` means the comparator carries no runtime evidence; passing automated fixtures verifies only the comparator contract
+- adapter status stays source-present / runtime-unverified
+- pinned form-plugin versions plus hook, record-readback, consent, cache, AJAX,
+  and browser staging are required before runtime promotion
+
 ## Endpoint Test
 
 Diagnostics endpoint test calls:
@@ -252,11 +283,27 @@ Diagnostics Woo lookup calls:
 
 - admin AJAX `clicutcl_lookup_woo_order_trace`
 
-Use it to inspect:
+Source paths are present for inspecting:
 
 - stored purchase trace snapshots
 - stored `order_paid`, `order_refunded`, and `order_cancelled` milestone traces
 - queue retry status for matching event IDs
+
+This lookup remains runtime-unverified and can expose identity-bearing trace
+content to authorized administrators. Do not treat its structural smoke check as
+privacy-lifecycle or HPOS proof.
+
+## Woo conversion-readiness contract
+
+M6-A adds a pure source contract, not an operational endpoint. Sixteen synthetic
+scenarios cover granted/denied consent, reload markers, paid transitions,
+partial/full refunds, currency/value edges, dedup, classic/HPOS, trace privacy,
+invalid input, and queued replay after withdrawal.
+
+The report scope is always `contract_only`. No real order should be supplied to
+it. M6-B staging must use isolated synthetic orders and allowlisted evidence;
+it must not emit customer data, raw order/refund IDs, IP/user-agent values, or
+provider payloads.
 
 ## Debug Windows
 

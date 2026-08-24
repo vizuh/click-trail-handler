@@ -209,6 +209,7 @@ has.
 
 WooCommerce order-level tracking state now also uses order meta for traceability:
 
+- `_clicutcl_consent`: v1 decision snapshot for new orders (`schema_version`, decision, basis, revision, capture/expiry, source ID, marketing, analytics); historical boolean snapshots normalize as `legacy_unversioned`
 - `_clicutcl_tracking_sent`: purchase dedup marker written only after a successful, skipped, or confirmed queued purchase attempt
 - `_clicutcl_woo_trace_snapshot`: stored purchase and milestone trace snapshots
 - `_clicutcl_woo_milestone_sent_{event_name}`: per-milestone sent markers written only after a successful, skipped, or confirmed queued milestone attempt

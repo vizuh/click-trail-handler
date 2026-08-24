@@ -59,7 +59,6 @@ $excludeDirs = @(
     '.claude',
     '.claude-flow',
     '.tools',
-    'config',
     'dist',
     'docs',
     'tests',

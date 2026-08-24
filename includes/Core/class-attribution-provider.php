@@ -291,6 +291,7 @@ class Attribution_Provider {
 				'session_number',
 				'visitor_id',
 				'session_id',
+				'trail_id',
 			)
 		);
 	}

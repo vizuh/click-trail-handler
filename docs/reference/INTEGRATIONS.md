@@ -14,6 +14,18 @@ acceptance, consent transitions, retry safety, or deletion behavior.
 For rollout guidance by site type, see [../guides/IMPLEMENTATION-PLAYBOOK.md](../guides/IMPLEMENTATION-PLAYBOOK.md).
 For release gates, see [RELEASE-PHASING-AND-INTEGRATION-DOCS.md](../guides/RELEASE-PHASING-AND-INTEGRATION-DOCS.md).
 
+## Normalized marketing trail envelope
+
+WP browser events, `ct_page_view`, server-side events, and form submissions
+now carry a backward-compatible `marketing_trail` envelope. It standardizes
+event, trail, anonymous, and lead IDs; first-touch/latest-touch attribution;
+click IDs; capture-time consent; site routing; and form provider context.
+
+The envelope is also the contract emitted by the free `@vizuh/clicktrail`
+browser package. See [MARKETING-TRAIL-ENVELOPE.md](MARKETING-TRAIL-ENVELOPE.md)
+for fields, ID namespaces, and the v1 example. Runtime provider delivery and
+WordPress E2E status remain governed by the evidence labels above.
+
 ## Status vocabulary
 
 Use these labels in README copy, support answers, screenshots, and future provider pages:
@@ -75,6 +87,10 @@ retry/replay/dedup → retention/purge → setup → evidence and limitations.
   L1/L2 release gates.
 - **Evidence:** `config/feature-registry.json`, `includes/server-side/class-generic-collector-adapter.php`,
   smoke ID `delivery-adapter-generic`.
+- **Automation recipe:** Zapier and Make webhook URLs can receive this generic
+  JSON path. ClickTrail does not provide provider-specific authentication,
+  field mapping, app actions, or native Zapier/Make adapters; verify the
+  receiving workflow with a synthetic event before enabling Delivery.
 
 ### sGTM — `sgtm`
 
@@ -180,13 +196,44 @@ Where teams see value:
 - cached or dynamic form rendering stops breaking attribution as easily
 - the same attribution context can feed browser events and optional delivery flows
 
+### Form-readiness evidence contract (M5 first slice)
+
+The source tree contains a pure, versioned presence comparator at
+`includes/Intelligence/class-form-readiness-analyzer.php` and one synthetic v1
+fixture for each of the six adapters under `tests/fixtures/form-readiness/v1/`.
+This contract is **source-present / runtime-unverified**. It is not wired to an
+admin endpoint, does not read live submissions, and does not prove that a form
+provider durably stored a value.
+
+The report keeps three evidence surfaces separate:
+
+- `provider_record`: a provider-owned entry or submission record
+- `hook_payload`: values observed in the provider hook flow; not durability proof
+- `clicktrail_event`: ClickTrail's own event record; not provider persistence proof
+
+The comparator accepts field-presence snapshots only. Output is limited to
+adapter/pattern IDs, allowlisted `ct_*` field names, bounded enums, booleans,
+and counts. Raw attribution values, click/browser/visitor IDs, identity fields,
+submission bodies, landing/referrer URLs, and secrets are neither accepted as
+comparison data nor returned.
+
+Runtime promotion still requires pinned plugin/version fixtures for the named
+hook and provider record, plus consent, cache, AJAX, and browser staging. A
+passing synthetic fixture proves only the comparator contract.
+
 ## WooCommerce
+
+**Evidence boundary:** classic/HPOS synthetic runtime reproduced; consent
+remediation pending. Pinned local stacks exercised purchase, reload, paid,
+partial refund, denied-consent transport, and both order-storage modes without provider traffic.
+This does not prove browser checkout, provider delivery, dedup concurrency,
+queue/retry, privacy-lifecycle closure, or release compatibility.
 
 Managed by:
 
 - `includes/integrations/class-woocommerce.php`
 
-What ClickTrail does:
+What the current source paths implement:
 
 - save attribution on checkout
 - render attribution in WooCommerce admin
@@ -210,6 +257,35 @@ Where teams see value:
 - list merchandising surfaces can feed richer Woo browser events without adding destination-specific logic
 - `view_cart` can be emitted from the cart page, visible mini-cart surfaces, and supported cart-drawer flows when the runtime can resolve current cart contents
 - post-purchase milestones follow the same dispatcher, queue, dedup, and diagnostics model as purchases
+
+### Woo conversion-readiness contract (M6-A)
+
+`includes/Intelligence/class-woo-readiness-analyzer.php` is a pure, versioned
+contract analyzer with 16 synthetic scenarios under
+`tests/fixtures/woo-readiness/v1/`. It classifies declared source, stored/live
+consent, event-name form, dispatch marker, dedup, queue, value/currency, refund,
+classic/HPOS, trace, Diagnostics, and erasure evidence.
+
+The output uses `evidence_scope: contract_only`. It contains fixture IDs,
+placeholder event-name forms, closed enums/reason codes, bounded integers such
+as `dedup_ttl_days`, constant value-basis labels, and counts. It does not
+accept or return order/customer identifiers, identities, attribution values,
+IP addresses, user agents, payloads, URLs, or secrets.
+
+The contract records these source-level blockers without remediating them:
+
+- purchase `dataLayer` lacks a top-level consent gate and identity reads live-cookie consent
+- purchase-path skipped dispatch can set the sent marker
+- dedup check/send/mark is non-atomic
+- queued replay does not re-check consent and queue uniqueness omits destination
+- identity-bearing Woo trace metadata lacks complete erasure/purge/uninstall coverage
+- classic and HPOS core order paths, refund trace persistence, and HPOS admin hooks are runtime-tested only in isolated synthetic stacks
+
+No Woo hook, order reader/scan, database access, provider request, new
+persistence, UI, or AJAX route is added by M6-A. M6-B reproduced the core paths
+and blockers on isolated classic and HPOS stacks. Refund trace persistence and
+HPOS admin parity were remediated and re-tested; consent and the remaining
+runtime gates are still required before release promotion.
 
 ## WordPress Core Follow-Up Events
 

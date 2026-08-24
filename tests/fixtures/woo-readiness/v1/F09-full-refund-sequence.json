@@ -1,0 +1,56 @@
+{
+  "schema": "clicktrail/woo-readiness/request.v1",
+  "fixture_id": "F09",
+  "storage_mode": "classic",
+  "admin_surface": "classic_list_and_meta_box",
+  "source": {
+    "input": "posted_hidden_fields"
+  },
+  "consent": {
+    "snapshot_state": "granted",
+    "live_cookie_state": "granted",
+    "source_used": "stored_order_snapshot",
+    "datalayer_gate": "gated"
+  },
+  "order": {
+    "status": "refunded",
+    "transition_kind": "refunded_full_status",
+    "value_state": "positive",
+    "currency_state": "present_iso",
+    "reconciliation": "consistent"
+  },
+  "event": {
+    "name_form": "order_refunded_<order-id>",
+    "id_stability": "deterministic",
+    "dispatch_outcome": "success",
+    "marker_semantics": "set_on_terminal_only"
+  },
+  "dedup": {
+    "state": "marked_after_success",
+    "ttl_days": 7
+  },
+  "queue": {
+    "state": "not_enqueued",
+    "unique_key_scope": "event_name_event_id"
+  },
+  "refund": {
+    "shape": "both_sequence",
+    "amount_encoding": "positive_absolute",
+    "sequence_order": "object_then_status"
+  },
+  "privacy": {
+    "fields": [
+      "none"
+    ],
+    "trace_persistence": "none",
+    "diagnostics_path": "none",
+    "erasure_coverage": "not_applicable"
+  },
+  "expect": {
+    "report_status": "inconclusive",
+    "reason_codes": [
+      "refund_positive_absolute",
+      "refund_sequence_conflict"
+    ]
+  }
+}

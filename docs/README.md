@@ -14,18 +14,30 @@ This is the docs home for GitHub readers. Use it to find the right document by r
 
 If you are new to the plugin, read these in order:
 
-1. [architecture/PLUGIN-OVERVIEW.md](architecture/PLUGIN-OVERVIEW.md): what ClickTrail does, how the runtime is divided, and where value shows up
-2. [guides/IMPLEMENTATION-PLAYBOOK.md](guides/IMPLEMENTATION-PLAYBOOK.md): how teams usually roll out Capture, Forms, Events, and Delivery in practice
-3. [guides/SETTINGS-AND-ADMIN.md](guides/SETTINGS-AND-ADMIN.md): how the current admin UI maps to stored settings and operational surfaces
+1. [MASTER-SPECIFICATION.md](MASTER-SPECIFICATION.md): complete product, technical, semantic, safety, business, roadmap, and version source of truth
+2. [MASTER-SPECIFICATION-SUMMARY.md](MASTER-SPECIFICATION-SUMMARY.md): compressed executive view
+3. [MASTER-SPECIFICATION-CHANGE-RECORD.md](MASTER-SPECIFICATION-CHANGE-RECORD.md): permanent version and specification change record
+4. [guides/PHASE-EXECUTION-LEDGER.md](guides/PHASE-EXECUTION-LEDGER.md): evidence-gated M1–M12 implementation and phase-version record
+5. [architecture/PLUGIN-OVERVIEW.md](architecture/PLUGIN-OVERVIEW.md): what ClickTrail does, how the runtime is divided, and where value shows up
+6. [guides/IMPLEMENTATION-PLAYBOOK.md](guides/IMPLEMENTATION-PLAYBOOK.md): how teams usually roll out Capture, Forms, Events, and Delivery in practice
+7. [guides/SETTINGS-AND-ADMIN.md](guides/SETTINGS-AND-ADMIN.md): how the current admin UI maps to stored settings and operational surfaces
+8. [guides/USE-CASES.md](guides/USE-CASES.md): choose a rollout pattern by conversion surface
+9. [tutorials/README.md](tutorials/README.md): follow a bounded setup tutorial
 
 ## Choose Docs by Goal
 
 ## I want to deploy the plugin on a real site
 
 - [guides/IMPLEMENTATION-PLAYBOOK.md](guides/IMPLEMENTATION-PLAYBOOK.md): phased rollout patterns for lead-gen, WooCommerce, cross-domain, consent-aware, and server-side setups
+- [guides/USE-CASES.md](guides/USE-CASES.md): public use-case matrix with enable, validate, and boundary notes
+- [tutorials/README.md](tutorials/README.md): short implementation tutorials for forms, WooCommerce, and consent-aware events
 - [guides/SETTINGS-AND-ADMIN.md](guides/SETTINGS-AND-ADMIN.md): current settings IA and option mapping
 - [reference/INTEGRATIONS.md](reference/INTEGRATIONS.md): evidence-labelled forms, commerce, consent, webhook, GTM, platform, and delivery integration paths
 - [reference/integration-capabilities.json](reference/integration-capabilities.json): machine-readable status, source evidence, smoke IDs, and known limitations
+- [guides/COMPETITOR-MAP-2026-08-22.md](guides/COMPETITOR-MAP-2026-08-22.md): five-competitor features, reviews, complaints, discussions, and issue signals
+- [guides/COMPETITOR-ROADMAP-2026-08-22.md](guides/COMPETITOR-ROADMAP-2026-08-22.md): public competitor signals, integration patterns, and consulting-first roadmap
+- [guides/COMPETITOR-GTM-2026-08-22.md](guides/COMPETITOR-GTM-2026-08-22.md): public acquisition, activation, agency, and partner motions
+- [guides/COMPETITIVE-POSITIONING-AND-ACQUISITION-ROADMAP-2026-08-22.md](guides/COMPETITIVE-POSITIONING-AND-ACQUISITION-ROADMAP-2026-08-22.md): proposition, README copy, twelve-month commercial overlay, and client-acquisition plan
 - [RELEASE-PHASING-AND-INTEGRATION-DOCS.md](guides/RELEASE-PHASING-AND-INTEGRATION-DOCS.md): separately gated documentation, privacy, delivery, adapter, and reach releases
 
 ## I want to understand the runtime architecture
@@ -59,6 +71,7 @@ If you are new to the plugin, read these in order:
 
 - [guides/OPERATIONS-RUNBOOK.md](guides/OPERATIONS-RUNBOOK.md): queue behavior, endpoint tests, diagnostics, and common failure patterns
 - [guides/SECURITY-PRIVACY.md](guides/SECURITY-PRIVACY.md): consent, token auth, replay protection, privacy boundaries, and secret handling
+- [guides/CONSENT-DECISION-V1.md](guides/CONSENT-DECISION-V1.md): unreferenced M7-A decision vocabulary, precedence, and conformance boundary
 - [architecture/DATA-MODEL.md](architecture/DATA-MODEL.md): storage surfaces and persisted state
 
 ## I want to reuse the model in another project
@@ -81,6 +94,7 @@ If you are new to the plugin, read these in order:
 
 ## Source of Truth Rules
 
+- Product passport, scope, functional requirements, semantic contract, safety gates, business unknowns, 12-month roadmap, and specification history belong in the [master specification set](MASTER-SPECIFICATION.md), with the summary and change record kept alongside it.
 - Product positioning belongs in the repo and WordPress readmes, not here.
 - Rollout guidance belongs in `guides/IMPLEMENTATION-PLAYBOOK.md`.
 - Admin truth belongs in `guides/SETTINGS-AND-ADMIN.md`.

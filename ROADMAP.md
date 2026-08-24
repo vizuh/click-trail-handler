@@ -2,7 +2,9 @@
 
 Product plan for free and Pro development. Covers features, UI/UX, security, data accuracy, and code quality goals.
 
-Last updated: 2026-06-19 (statuses reconciled against shipped code)
+Last updated: 2026-08-22 (feature roadmap overlay added; future items remain unshipped)
+
+> **Canonical roadmap visibility:** the product passport, evidence states, full 12-month calendar roadmap, unresolved decisions, and release gates live in [docs/MASTER-SPECIFICATION.md](docs/MASTER-SPECIFICATION.md). This file remains the detailed free/Pro implementation backlog and dependency list.
 
 ---
 
@@ -20,18 +22,90 @@ Clean, lean code is a constraint on all of the above, not a separate goal. If an
 
 ---
 
+## Next 12 months — feature release overlay
+
+**Window:** September 2026–August 2027.
+**Status:** planning; every item below is **Future** unless an existing section
+explicitly marks it **Implemented**. Target release numbers remain a decision
+for `RELEASING.md`; month labels are planning assumptions.
+
+This overlay adds the next product-facing sequence to the free/Pro backlog. The
+master specification remains the evidence and release-gate source of truth.
+
+| Month | Feature/update | User outcome | Main repository surfaces | Exit gate | State |
+|---|---|---|---|---|---|
+| M1 — Sep 2026 | **UTM Identify contract**: review and promote the untracked `Attribution_Readiness_Analyzer`; freeze input/output schema, source precedence, click-ID map, referrer evidence, and privacy boundary | Operators can see what evidence was observed without a guessed campaign value | `includes/Intelligence/`, `tests/unit/AttributionReadinessAnalyzerTest.php`, capability ledger, feature registry | Code review; source-precedence tests; ambiguous multi-platform signals never produce a deterministic suggestion; no runtime/UI claim yet | Future / Decision needed |
+| M2 — Oct 2026 | **Attribution Readiness Diagnostics v1**: wire the pure analyzer into a read-only Diagnostics panel and admin endpoint | A site owner can inspect missing, empty, macro, conflict, click-ID, and referrer states on a safe test payload | Diagnostics AJAX/UI, registry, smoke matrix, `INTEGRATIONS.md` | Capability/permission/nonce tests; no raw click-ID value retention; output is redacted and versioned | Future |
+| M3 — Nov 2026 | **Deterministic Suggestions v1**: suggest only `utm_source` from exactly one recognized click-ID platform; support validated site aliases; never invent `utm_medium` or `utm_campaign` | Users get a useful next action without the plugin fabricating campaign taxonomy | Analyzer policy, Diagnostics copy, settings help, unit tests | Existing source is never overwritten; multiple platforms yield attention/no auto-suggestion; referrer suggestions remain non-deterministic; unresolved macros block | Future |
+| M4 — Dec 2026 | **UTM hygiene and contract checks**: normalize key aliases, detect unresolved macros/empty values, expose first/last-touch precedence, and add a “copy test URL” action rather than live URL mutation | Teams can fix a test campaign safely and understand why a value was selected | Attribution JS, analyzer, setup checklist, test URL builder | No production attribution write or broad internal-link rewrite; source aliases are allowlisted/bounded; browser and PHP outputs agree | Future |
+| M5 — Jan 2027 | **Form readiness diagnostics**: extend source analysis to the three form patterns and compare expected, submitted, provider-record, hook-payload, and ClickTrail-event evidence without collapsing them into one “stored” state | Agencies can identify whether a failure is missing fields, hook/storage, cache/AJAX, or source data | Form adapters, Diagnostics, fixture matrix, compatibility docs | CF7/Fluent automatic fields, GF/WPForms matching fields, and Elementor/Ninja hook-storage paths each have a versioned fixture; named storage surfaces remain evidence-qualified; no unsupported builder claim | Source comparator + six synthetic fixtures validated locally; runtime/admin/provider proof Future |
+| M6 — Feb 2027 | **Woo conversion readiness**: enrich the order trace with source evidence, consent snapshot, order status, HPOS, event ID, and dedup state | Operators can explain a Direct/empty, duplicate, or missing purchase without guessing | Woo integration, trace snapshot, Diagnostics, HPOS fixtures | Granted/denied checkout, reload, status change, refund, currency/value, HPOS, and duplicate tests; no provider acceptance claim | M6-A validated; M6-B classic/HPOS runtime reproduced; refund trace and HPOS admin fixed; consent emission blocker remains |
+| M7 — Mar 2027 | **Consent foundation release**: one authoritative decision across capture, persistence, forms/Woo, browser events, and dispatcher; pre-send retry recheck; owned-data erase/purge completion | Consent denial and withdrawal stay consistent through delayed work and deletion | Consent service, dispatcher, queue, Woo meta, privacy/uninstall handlers | Live grant/deny/stale-cookie/revocation/cross-tab/queued-retry/erasure drills; no “compliant” marketing claim without legal review | M7-A contract validated; M7-B versioned Woo snapshots passed classic/HPOS staging; browser, retry, erasure, and legal gates Future |
+| M8 — Apr 2027 | **Delivery integrity release**: action-bound browser conversions, bounded payloads, webhook replay/identity contracts, atomic dedup, sGTM preview private-target rejection | Delivery failures become visible and safely contained instead of silently trusted | Tracking controller, queue, adapters, sGTM preview, redacted diagnostics | Negative fixtures for replay, timeout, 429/5xx, malformed response, duplicate, purge, and private URL; Delivery remains default-off | Future |
+| M9 — May 2027 | **Generic collector contract**: first staged runtime-tested delivery path with canonical mapping, auth, consent denial, redaction, retry, idempotency, and response handling | One delivery path can graduate from source-present to runtime-contract-tested | Generic adapter, fixture harness, evidence ledger, release docs | Versioned fixture + staged endpoint evidence; public wording updated only for the tested contract | Future / Cost decision needed |
+| M10 — Jun 2027 | **sGTM staging contract**: test ClickTrail → staging tagging server → owned destination flow | sGTM users receive an evidence-backed setup path, without ClickTrail becoming a host | sGTM adapter/preview, staging fixture, diagnostics, runbook | DNS/SSL/CORS/CSP/auth/consent/dedup/retry and response evidence; no secure/reliable guarantee | Future / Infrastructure decision needed |
+| M11 — Jul 2027 | **Receipts and customer attribution foundation**: delivery receipts and Woo customer-level first-touch linkage; demand-led provider contract only where paid need repeats | Agencies can hand off event status and renewal attribution as observed records | Queue receipts, Woo customer meta, touch-events store, retention/erase tests | Receipt rows and renewal paths verified; storage/erasure impact measured; no Pro dashboard implied | Future |
+| M12 — Aug 2027 | **Read-only reporting/re-audit decision**: evaluate touch-event data quality, scope a Pro report, and decide which provider/reach pages may publish | Product direction follows observed data quality, not competitor feature count | Touch-events queries, report scope, evidence ledger, competitor/content docs | Annual audit; report scope and publish/no-publish decisions recorded; no dashboard launch unless data and ownership gates pass | Future / Decision needed |
+
+### UTM Identify and deterministic suggestion contract
+
+The current analyzer is a **pure, untracked candidate**, not a shipped feature.
+Its safe contract should remain explicit:
+
+- **Input:** one attribution payload, optional referrer, current host, and
+  bounded site alias policy.
+- **Observed evidence:** UTM fields, flattened first/last-touch aliases,
+  recognized click-ID *keys* (not their values), and known external referrer
+  host.
+- **Source precedence:** define and fixture the intended `last touch > direct
+  value > first touch` order before UI promotion; the candidate implementation
+  and its comment must agree.
+- **Deterministic inference:** a single recognized click ID may suggest a
+  canonical `utm_source` platform key (`gclid` → `google`, `li_fat_id` →
+  `linkedin`, and so on). A configured alias may replace the displayed value,
+  but not the evidence basis.
+- **Non-deterministic evidence:** a referrer can produce a candidate source;
+  it must never imply paid medium or campaign.
+- **Never invent:** `utm_medium` and `utm_campaign` remain configuration
+  requests when absent. The analyzer must not manufacture taxonomy from a click
+  ID.
+- **Conflict behavior:** an observed `utm_source` is never overwritten; a
+  mismatch with click-ID evidence becomes an attention issue. Multiple platform
+  click IDs must suppress automatic source suggestion until the operator
+  resolves the ambiguity.
+- **Safety behavior:** unresolved macros and non-scalar values block the field;
+  bounded values are returned only where needed for the operator’s own UTM
+  payload; no URL rewriting, persistence, provider verification, or delivery
+  status is inferred.
+- **UI behavior:** first release is read-only. “Copy test URL” or “use in test
+  recipe” is safer than silently changing a live campaign URL, cookie, order, or
+  form entry.
+
+### Feature promotion rule
+
+A feature moves from candidate to public only when its source path, output
+contract, focused tests, permission boundary, evidence-ledger entry, smoke ID,
+release note, and user-facing documentation agree. A deterministic suggestion is
+not a delivery verification feature, and an analyzer score is not a claim that
+an upstream provider accepted an event.
+
+---
+
 ## Free — In Progress
 
 These are confirmed, scoped, and being actively worked.
 
-### 1. Two-phase consent capture
+### 1. Consent-gated pending capture
 **Status:** Implemented (`assets/js/clicutcl-attribution.js`)
 
-UTMs and click IDs are now buffered to `sessionStorage` (`ct_pending_v1`) immediately on page load before consent fires. On consent grant, the pending buffer is promoted to the attribution cookie. First-touch is preserved even when the user navigates away from the landing page before accepting the consent banner.
+`ct_pending_v1` is written only when consent is not required or marketing
+consent is already resolved and granted. Required-but-unresolved consent does
+not write attribution to `sessionStorage`; denial clears pending attribution.
+This means a landing-page signal can be lost when consent is first granted on a
+later page. M7 must resolve that product trade-off without introducing
+pre-consent persistence by accident.
 
-Edge cases covered: returning user with existing consent, CMP fires before script loads, page 2 acceptance, new tab (known limitation — documented).
-
-**Verify:** Feature test matrix entry `consent-pending-capture`.
+**Verify:** `npm run smoke` checks the source gate around `PendingCapture.save()`.
 
 ---
 
@@ -107,41 +181,13 @@ CI runs PHPCS on every push. Outstanding findings should be resolved to zero war
 
 These items must be in place before any Pro reporting or agency feature can ship. They have no user-visible surface in free but must be collecting data before Pro launches, otherwise early Pro users see empty dashboards.
 
-### Events table
-**This is the most important architectural decision in this roadmap.**
+### Touch-events table
+**Status:** Source-present in 1.9.0; runtime data quality remains unverified.
 
-All Pro reporting features — attribution dashboard, LTV, conversion recovery — require a queryable log of every touch event per visitor. The current architecture writes to order meta and the attribution cookie. Neither is queryable at scale.
-
-Schema:
-
-```sql
-CREATE TABLE {prefix}clicutcl_events (
-    id            BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    blog_id       BIGINT UNSIGNED NOT NULL DEFAULT 1,
-    visitor_id    VARCHAR(64)  NOT NULL,
-    session_id    VARCHAR(64)  NOT NULL,
-    event_type    VARCHAR(32)  NOT NULL,  -- touch | conversion | renewal | call
-    source        VARCHAR(128) DEFAULT NULL,
-    medium        VARCHAR(128) DEFAULT NULL,
-    campaign      VARCHAR(255) DEFAULT NULL,
-    channel       VARCHAR(64)  DEFAULT NULL,
-    ft_source     VARCHAR(128) DEFAULT NULL,
-    ft_medium     VARCHAR(128) DEFAULT NULL,
-    ft_campaign   VARCHAR(255) DEFAULT NULL,
-    order_id      BIGINT UNSIGNED DEFAULT NULL,
-    amount        DECIMAL(12,4) DEFAULT NULL,
-    currency      VARCHAR(8)   DEFAULT NULL,
-    created_at    DATETIME     NOT NULL,
-    INDEX idx_visitor  (visitor_id),
-    INDEX idx_order    (order_id),
-    INDEX idx_blog     (blog_id),
-    INDEX idx_created  (created_at)
-);
-```
-
-Write to this table in the free version silently on every touch event and conversion. Do not expose the data in free UI. The Pro reporting layer is a read-only query layer on top of this table.
-
-Add a retention policy (default 90 days, matching cookie retention) and a cleanup cron. Add table creation to the plugin activation hook and cleanup to `uninstall.php`.
+`{prefix}clicutcl_touch_events` provides the queryable storage prerequisite for
+future reporting. Collection does not authorize a dashboard. M7 consent and
+erasure behavior, staging inserts, retention growth, and M12 data-quality review
+must pass before a reporting surface is approved.
 
 ### Customer-level attribution
 Write attribution to WooCommerce customer meta (`_clicutcl_ft_source`, etc.) on first conversion, in addition to the order. Renewal events on a different order ID can then trace back to the original acquisition source for LTV tracking. One additional `update_user_meta()` call in the WooCommerce order handler.
@@ -156,11 +202,15 @@ Add a receipt row to the queue when a server-side event is dispatched: event ID,
 Ordered by dependency. Earlier items must ship before later ones.
 
 ### 1. Attribution reporting dashboard
-Depends on: events table.
+**Status:** Decision deferred to M12.
+
+Depends on: verified touch-events data quality and explicit product ownership.
 
 Revenue by channel, source, campaign. First-touch vs last-touch comparison. Date range selector. Conversion count and conversion rate per channel. This is the core Pro feature — the thing the events table was built to power.
 
-Delivered as a new WP admin screen under `ClickTrail > Reports`. Read-only queries against the events table. No external service dependency.
+If approved at M12, deliver as a read-only WP admin screen under
+`ClickTrail > Reports`. Do not build an empty dashboard merely because storage
+exists.
 
 ### 2. WooCommerce Subscriptions / LTV
 Depends on: events table, customer-level attribution.
@@ -177,12 +227,7 @@ Depends on: nothing except Pro license gate.
 
 The server-side adapters currently use fixed schemas. A Pro UI lets the user map attribution fields to CRM-specific field names: `ct_ft_source` → HubSpot `hs_analytics_source`, for example. Conditional routing: "if utm_medium = paid, route to deal pipeline; otherwise route to contact." This is the feature that makes ClickTrail useful for B2B agencies passing lead attribution into CRM.
 
-### 5. Call tracking webhook intake
-Depends on: events table.
-
-A Pro REST endpoint (`/wp-json/clicktrail/v1/call-complete`) that accepts inbound webhooks from CallRail, CallTrackingMetrics, and WhatConverts on call completion. Matches the call record to ClickTrail attribution by visitor session or landing page URL. Writes a `call` event row to the events table. Surfaces in the reporting dashboard alongside web conversions.
-
-### 6. Multi-site / agency mode
+### 5. Multi-site / agency mode
 Depends on: all above Pro features, license layer.
 
 Network-level install with per-site configuration overrides. Central diagnostics view across all sites in the network. White-label mode (remove ClickTrail branding from admin UI). This is the last Pro feature to build — it is infrastructure, not product. Build it when there are agency customers asking for it, not before.

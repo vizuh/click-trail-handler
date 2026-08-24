@@ -1,0 +1,50 @@
+{
+  "schema": "clicktrail/form-readiness/request.v1",
+  "adapter": "fluent",
+  "pattern": "automatic_hidden",
+  "context": {
+    "consent": "granted",
+    "source_data": "present",
+    "environment": "full"
+  },
+  "expected": {
+    "keys": [
+      "ct_ft_source",
+      "ct_lt_source"
+    ],
+    "origin": "render_payload"
+  },
+  "submitted": {
+    "state": "observed",
+    "keys_present": [
+      "ct_ft_source",
+      "ct_lt_source"
+    ]
+  },
+  "stored": {
+    "surfaces": {
+      "provider_record": {
+        "state": "observed",
+        "keys_present": [
+          "ct_ft_source",
+          "ct_lt_source"
+        ]
+      },
+      "hook_payload": {
+        "state": "observed",
+        "keys_present": [
+          "ct_ft_source",
+          "ct_lt_source"
+        ]
+      },
+      "clicktrail_event": {
+        "state": "observed",
+        "keys_present": [
+          "ct_ft_source",
+          "ct_lt_source"
+        ]
+      }
+    },
+    "write_result": "unchecked"
+  }
+}

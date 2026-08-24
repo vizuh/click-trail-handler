@@ -2,6 +2,8 @@
 
 [![WordPress tested](https://img.shields.io/badge/WordPress-v7.0%20tested-3858e9.svg)](https://wordpress.org)
 
+![ClickTrail](.github/clicktrail-cover.png)
+
 > **Status de verificacao das integracoes (2026-08-19):** o registry e o codigo comprovam wiring, nao suporte
 > de producao nos provedores. Os testes E2E de PHP/WordPress/provedores nao estavam disponiveis nesta auditoria.
 > Os adaptadores server-side com nome de plataforma estao **presentes no codigo / runtime nao verificado** e
@@ -10,9 +12,11 @@
 > um destino **relay-only** e captura de `rdt_cid`, nao um adaptador nativo. Veja a [referencia de integracoes](docs/reference/INTEGRATIONS.md)
 > e o [ledger de evidencias](docs/reference/integration-capabilities.json).
 
-A atribuicao costuma quebrar em algum ponto entre o clique no anuncio e a conversao. O ClickTrail faz com que ela sobreviva.
+A atribuicao costuma quebrar em algum ponto entre o clique no anuncio e a conversao. O ClickTrail mantem o contexto da campanha vivo ao longo da jornada ate a conversao no WordPress.
 
 ClickTrail e um plugin de atribuicao para WordPress feito para sites que precisam manter os dados de origem da campanha disponiveis ao longo da jornada, especialmente quando pedidos do WooCommerce ou formularios acontecem varias paginas depois da landing page.
+
+**O que o ClickTrail nao e:** nao e um painel de atribuicao, uma plataforma hospedada de server-side GTM, um gestor de leads nem um otimizador de anuncios. Ele complementa GA4 e GTM. As tags do navegador continuam sob controle do site, enquanto os adaptadores server-side para endpoints configurados permanecem presentes no codigo e sem verificacao de runtime nesta baseline.
 
 Ele foi pensado para os problemas que normalmente quebram a atribuicao em producao:
 
@@ -108,6 +112,12 @@ Identificadores adicionais de browser incluem:
 - `ga_session_id`
 
 ### Forms
+
+O ClickTrail se conecta a formularios por tres padroes documentados. Confirme qual padrao se aplica antes de testar:
+
+1. **Campos hidden automaticos** — Contact Form 7 e Fluent Forms recebem os campos de atribuicao pelo caminho documentado.
+2. **Campos hidden correspondentes** — Gravity Forms e WPForms preenchem os campos `ct_*` que voce adiciona ao formulario.
+3. **Armazenamento na submissao** — Elementor Forms (Pro) e Ninja Forms anexam a atribuicao ao registro da submissao em vez de injetar campos hidden.
 
 - enriquecimento automatico de campos hidden no Contact Form 7 e no Fluent Forms
 - preenchimento compativel de campos hidden ja existentes no Gravity Forms e no WPForms
@@ -270,12 +280,19 @@ Comece por `Capture` e pelas integracoes que ja estao em uso. Adicione `Events` 
 
 ## Casos de Uso Comuns
 
-- agencias que precisam da origem dentro dos leads
-- lojas WooCommerce que querem pedidos com atribuicao de campanha
-- lojas WooCommerce que querem payloads de compra mais ricos sem trocar toda a stack de tracking
-- sites com cache agressivo ou formularios dinamicos
-- negocios com funis em multiplos dominios
-- equipes que querem tracking browser + server-side no mesmo plugin
+- [agencias e negocios de servico que precisam da origem nos leads](docs/guides/USE-CASES.md#lead-generation-forms)
+- [lojas WooCommerce que querem pedidos com atribuicao de campanha](docs/guides/USE-CASES.md#woocommerce-orders)
+- [sites com cache agressivo ou formularios dinamicos](docs/guides/USE-CASES.md#cached-and-dynamic-forms)
+- [negocios com funis em multiplos dominios aprovados](docs/guides/USE-CASES.md#approved-multi-domain-funnels)
+- [equipes que precisam alinhar captura com uma fonte de consentimento existente](docs/guides/USE-CASES.md#consent-aware-sites)
+
+Se voce precisa de call tracking, lead scoring, modelagem de receita multi-touch ou otimizacao de investimento em anuncios, o ClickTrail nao e essa ferramenta; combine-o com a plataforma especializada que voce ja usa.
+
+## Tutoriais
+
+- [Atribuicao em formularios](docs/tutorials/01-lead-form-attribution.md)
+- [Atribuicao de pedidos WooCommerce](docs/tutorials/02-woocommerce-order-attribution.md)
+- [Consentimento e eventos no navegador](docs/tutorials/03-consent-and-events.md)
 
 ## Fases de release e evidencias
 
@@ -289,12 +306,13 @@ remediacao de consentimento/privacidade, integridade de entrega, releases por pr
 - [Guia de contribuicao](CONTRIBUTING.pt-BR.md)
 - [Referencia de integracoes](docs/reference/INTEGRATIONS.md)
 - [Readme do WordPress.org](readme.txt)
+- [Roadmap de posicionamento competitivo e aquisicao](docs/guides/COMPETITIVE-POSITIONING-AND-ACQUISITION-ROADMAP-2026-08-22.md)
 
 ## Notas Sobre a Arquitetura Atual
 
 - A interface publica do admin nao usa mais a terminologia "Tracking v2".
 - Internamente, parte das configuracoes ainda fica na option `clicutcl_tracking_v2` por compatibilidade.
-- O controlador legado da API v1 ainda existe no repositorio, mas fica desligado por padrao, a menos que `CLICUTCL_ENABLE_LEGACY_V1_API` seja habilitado explicitamente.
+- O controlador legado de logs da API v1 foi removido; `clicutcl/v2` e o unico namespace REST ativo. Veja a [referencia da API REST](docs/reference/REST-API.md).
 
 ## Licenca
 

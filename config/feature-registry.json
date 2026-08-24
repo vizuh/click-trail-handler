@@ -220,7 +220,7 @@
     },
     "woo_storefront_events": {
       "label": "WooCommerce storefront events",
-      "support_level": "shipped",
+      "support_level": "source_present_runtime_unverified",
       "runtime_surface": [
         "events",
         "browser",
@@ -237,7 +237,7 @@
     },
     "woo_list_tracking": {
       "label": "WooCommerce list-view tracking",
-      "support_level": "shipped",
+      "support_level": "source_present_runtime_unverified",
       "runtime_surface": [
         "events",
         "browser",
@@ -251,7 +251,7 @@
     },
     "woo_order_milestones": {
       "label": "WooCommerce order milestones",
-      "support_level": "shipped",
+      "support_level": "source_present_runtime_unverified",
       "runtime_surface": [
         "delivery",
         "woo"
@@ -278,7 +278,7 @@
     },
     "diagnostics_woo_lookup": {
       "label": "Diagnostics Woo order lookup",
-      "support_level": "shipped",
+      "support_level": "source_present_runtime_unverified",
       "runtime_surface": [
         "diagnostics",
         "woo"
@@ -287,6 +287,66 @@
       "docs_target": "docs/guides/OPERATIONS-RUNBOOK.md",
       "smoke_test_ids": [
         "diagnostics-woo-lookup"
+      ]
+    },
+    "woo_readiness_contract": {
+      "label": "Woo conversion-readiness evidence contract",
+      "support_level": "source_present_runtime_unverified",
+      "runtime_surface": [
+        "contract"
+      ],
+      "enablement_path": "none",
+      "docs_target": "docs/reference/INTEGRATIONS.md",
+      "smoke_test_ids": [
+        "woo-readiness-contract"
+      ]
+    },
+    "diagnostics_attribution_readiness": {
+      "label": "Attribution readiness diagnostics",
+      "support_level": "source_present_runtime_unverified",
+      "runtime_surface": [
+        "diagnostics"
+      ],
+      "enablement_path": "admin.diagnostics",
+      "docs_target": "docs/guides/OPERATIONS-RUNBOOK.md",
+      "smoke_test_ids": [
+        "diagnostics-attribution-readiness"
+      ]
+    },
+    "diagnostics_deterministic_suggestions": {
+      "label": "Deterministic attribution source suggestions",
+      "support_level": "source_present_runtime_unverified",
+      "runtime_surface": [
+        "diagnostics"
+      ],
+      "enablement_path": "admin.diagnostics",
+      "docs_target": "docs/guides/OPERATIONS-RUNBOOK.md",
+      "smoke_test_ids": [
+        "diagnostics-attribution-source-aliases"
+      ]
+    },
+    "diagnostics_utm_hygiene_test_url": {
+      "label": "UTM hygiene and copy-only test URL",
+      "support_level": "source_present_runtime_unverified",
+      "runtime_surface": [
+        "diagnostics"
+      ],
+      "enablement_path": "admin.diagnostics",
+      "docs_target": "docs/guides/OPERATIONS-RUNBOOK.md",
+      "smoke_test_ids": [
+        "diagnostics-utm-hygiene-test-url"
+      ]
+    },
+    "form_readiness_contract": {
+      "label": "Form readiness evidence contract",
+      "support_level": "source_present_runtime_unverified",
+      "runtime_surface": [
+        "contract"
+      ],
+      "enablement_path": "none",
+      "docs_target": "docs/reference/INTEGRATIONS.md",
+      "smoke_test_ids": [
+        "form-readiness-contract"
       ]
     },
     "settings_backup_restore": {

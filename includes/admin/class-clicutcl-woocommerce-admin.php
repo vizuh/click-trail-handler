@@ -25,6 +25,8 @@ class CLICUTCL_WooCommerce_Admin {
 		// Add "Source" column to orders list.
 		add_filter( 'manage_edit-shop_order_columns', array( $this, 'add_source_column' ), 20 );
 		add_action( 'manage_shop_order_posts_custom_column', array( $this, 'render_source_column' ), 10, 2 );
+		add_filter( 'manage_woocommerce_page_wc-orders_columns', array( $this, 'add_source_column' ), 20 );
+		add_action( 'manage_woocommerce_page_wc-orders_custom_column', array( $this, 'render_source_column' ), 10, 2 );
 
 		// Add attribution meta box to order edit page.
 		add_action( 'add_meta_boxes', array( $this, 'add_attribution_meta_box' ) );
@@ -53,15 +55,15 @@ class CLICUTCL_WooCommerce_Admin {
 	/**
 	 * Render "Source" column content
 	 *
-	 * @param string $column Column key.
-	 * @param int    $post_id Order ID.
+	 * @param string       $column      Column key.
+	 * @param int|WC_Order $order_or_id Order ID or HPOS order object.
 	 */
-	public function render_source_column( $column, $post_id ) {
+	public function render_source_column( $column, $order_or_id ) {
 		if ( 'clicutcl_source' !== $column ) {
 			return;
 		}
 
-		$order = wc_get_order( $post_id );
+		$order = $order_or_id instanceof WC_Order ? $order_or_id : wc_get_order( $order_or_id );
 		if ( ! $order ) {
 			echo '—';
 			return;
@@ -92,23 +94,30 @@ class CLICUTCL_WooCommerce_Admin {
 	 * Add attribution meta box to order edit page
 	 */
 	public function add_attribution_meta_box() {
-		add_meta_box(
-			'clicutcl_attribution',
-			__( 'Marketing Attribution', 'click-trail-handler' ),
-			array( $this, 'render_attribution_meta_box' ),
-			'shop_order',
-			'side',
-			'default'
-		);
+		$screens = array( 'shop_order' );
+		if ( function_exists( 'wc_get_page_screen_id' ) ) {
+			$screens[] = wc_get_page_screen_id( 'shop-order' );
+		}
+
+		foreach ( array_unique( $screens ) as $screen ) {
+			add_meta_box(
+				'clicutcl_attribution',
+				__( 'Marketing Attribution', 'click-trail-handler' ),
+				array( $this, 'render_attribution_meta_box' ),
+				$screen,
+				'side',
+				'default'
+			);
+		}
 	}
 
 	/**
 	 * Render attribution meta box content
 	 *
-	 * @param WP_Post $post Order post object.
+	 * @param WP_Post|WC_Order $post_or_order Order post or HPOS order object.
 	 */
-	public function render_attribution_meta_box( $post ) {
-		$order = wc_get_order( $post->ID );
+	public function render_attribution_meta_box( $post_or_order ) {
+		$order = $post_or_order instanceof WC_Order ? $post_or_order : wc_get_order( $post_or_order->ID );
 		if ( ! $order ) {
 			echo '<p>' . esc_html__( 'No attribution data available.', 'click-trail-handler' ) . '</p>';
 			return;

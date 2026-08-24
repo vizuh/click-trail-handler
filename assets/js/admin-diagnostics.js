@@ -276,6 +276,72 @@
                     });
             });
         }
+
+        const readinessPayload = document.getElementById('clicutcl-attribution-readiness-payload');
+        const readinessReferrer = document.getElementById('clicutcl-attribution-readiness-referrer');
+        const readinessHost = document.getElementById('clicutcl-attribution-readiness-host');
+        const readinessAliases = document.getElementById('clicutcl-attribution-readiness-aliases');
+        const readinessBtn = document.getElementById('clicutcl-attribution-readiness-run');
+        const readinessCopyBtn = document.getElementById('clicutcl-attribution-readiness-copy-url');
+        const readinessTestUrl = document.getElementById('clicutcl-attribution-readiness-test-url');
+        const readinessStatus = document.getElementById('clicutcl-attribution-readiness-status');
+        const readinessOutput = document.getElementById('clicutcl-attribution-readiness-output');
+        if (readinessPayload && readinessReferrer && readinessHost && readinessAliases && readinessBtn && readinessCopyBtn && readinessTestUrl && readinessStatus && readinessOutput) {
+            readinessBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                readinessBtn.disabled = true;
+                readinessCopyBtn.disabled = true;
+                readinessTestUrl.value = '';
+                readinessStatus.textContent = getString('checking_readiness', 'Analyzing test payload...');
+                readinessOutput.textContent = '';
+                post(window.clicutclDiagnostics.ajaxUrl, {
+                    action: 'clicutcl_attribution_readiness',
+                    nonce: window.clicutclDiagnostics.nonce,
+                    payload: readinessPayload.value || '',
+                    referrer: readinessReferrer.value || '',
+                    current_host: readinessHost.value || '',
+                    source_aliases: readinessAliases.value || ''
+                })
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        if (data && data.success) {
+                            const testUrl = data.data && typeof data.data.test_url === 'string' ? data.data.test_url : '';
+                            readinessStatus.textContent = '';
+                            readinessTestUrl.value = testUrl;
+                            readinessCopyBtn.disabled = !testUrl;
+                            readinessOutput.textContent = JSON.stringify(data.data && data.data.analysis ? data.data.analysis : {}, null, 2);
+                            return;
+                        }
+                        readinessStatus.textContent = data && data.data && data.data.code ? data.data.code : getString('readiness_failed', 'Attribution readiness check failed.');
+                    })
+                    .catch(function () {
+                        readinessStatus.textContent = getString('readiness_failed', 'Attribution readiness check failed.');
+                    })
+                    .then(function () {
+                        readinessBtn.disabled = false;
+                    });
+            });
+
+            readinessCopyBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                const testUrl = readinessTestUrl.value || '';
+                if (!testUrl || !navigator.clipboard || typeof navigator.clipboard.writeText !== 'function') {
+                    readinessStatus.textContent = getString('test_url_copy_failed', 'Test URL could not be copied.');
+                    return;
+                }
+                readinessCopyBtn.disabled = true;
+                navigator.clipboard.writeText(testUrl)
+                    .then(function () {
+                        readinessStatus.textContent = getString('test_url_copied', 'Test URL copied.');
+                    })
+                    .catch(function () {
+                        readinessStatus.textContent = getString('test_url_copy_failed', 'Test URL could not be copied.');
+                    })
+                    .then(function () {
+                        readinessCopyBtn.disabled = !readinessTestUrl.value;
+                    });
+            });
+        }
     }
 
     if (document.readyState === 'loading') {

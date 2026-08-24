@@ -1,0 +1,38 @@
+name: Bug report
+description: Report a reproducible ClickTrail WordPress problem
+title: "[Bug]: "
+body:
+  - type: input
+    id: version
+    attributes:
+      label: ClickTrail, WordPress, and PHP versions
+      placeholder: "ClickTrail 1.9.0, WordPress 6.8, PHP 8.2"
+    validations:
+      required: true
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Affected surface
+      options:
+        - Attribution capture
+        - Consent
+        - Form integration
+        - WooCommerce
+        - Admin diagnostics
+        - Server-side delivery
+        - Packaging
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Include steps without credentials or real visitor data.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true

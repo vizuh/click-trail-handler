@@ -8,6 +8,20 @@
     "runtime_verification": "not completed in this audit",
     "php_wordpress_e2e": "unavailable in this environment"
   },
+  "ledger_review": {
+    "reviewed_on": "2026-08-24",
+    "scope": "Repository evidence mapping plus one disposable Woo browser checkout slice; provider status remains separate.",
+    "required_fields": [
+      "business_value",
+      "evidence_level",
+      "proof_artifact",
+      "environment",
+      "owner",
+      "blocker",
+      "next_proof"
+    ],
+    "claim_rule": "Source presence, synthetic fixtures, staged E2E, provider acceptance, and production observation remain separate claims."
+  },
   "status_definitions": {
     "source_present_runtime_unverified": "The registry and source path exist; provider acceptance, credentials, consent transitions, retries, and purge are not proven here.",
     "gtm_mediated": "ClickTrail exposes browser/dataLayer or consent signals; the site owner configures the provider tag in GTM.",
@@ -17,7 +31,147 @@
     "not_observed": "No direct provider SDK or native adapter was found in the reviewed source.",
     "planned_or_unsupported": "Do not advertise as available."
   },
+  "evidence_levels": {
+    "source_present": "Code, registry, route, or adapter exists.",
+    "synthetic_contract": "Fixtures, unit tests, or smoke checks pass with stubs or declared inputs.",
+    "staged_e2e": "A disposable WordPress/browser or application stack passes with a fake or sandbox endpoint.",
+    "provider_accepted": "A provider sandbox accepts the request or webhook and returns a verifiable provider record.",
+    "production_observed": "A deployed route is observed with provider result, retention, and rollback evidence."
+  },
+  "next_proof_queue": [
+    {
+      "surface": "WooCommerce",
+      "entry_ids": ["source.woocommerce"],
+      "business_value": "Keep campaign context attached to orders, paid/refunded milestones, and operator diagnostics.",
+      "evidence_level": "staged_e2e",
+      "proof_artifact": "includes/integrations/class-woocommerce.php; tests/unit/WooCommerceDataLayerContractTest.php; this ledger runtime_tests",
+      "environment": "Disposable WordPress 7.1/WooCommerce 11.0.1 stack with Playwright browser, fake COD payment, outbound endpoint disabled, and both Classic/HPOS storage modes.",
+      "owner": "ClickTrail WP runtime",
+      "blocker": true,
+      "next_proof": "Run consent denial/grant, paid/refund/cancel, retry/dedup, queue replay, and erasure assertions in both modes; then add provider sandbox evidence."
+    },
+    {
+      "surface": "Stripe Checkout hosted boundary",
+      "entry_ids": ["payment.stripe_checkout"],
+      "business_value": "Preserve pre-checkout attribution without misrepresenting hosted payment as a native adapter.",
+      "evidence_level": "source_present",
+      "proof_artifact": "docs/reference/INTEGRATIONS.md; docs/guides/IMPLEMENTATION-PLAYBOOK.md",
+      "environment": "Documentation and cookie-continuity boundary; no provider adapter or sandbox acceptance.",
+      "owner": "Product decision",
+      "blocker": true,
+      "next_proof": "Either retain the documented limitation or specify a native adapter contract with provider webhook, order join, idempotency, refund, and sandbox evidence."
+    },
+    {
+      "surface": "PayPal hosted boundary",
+      "entry_ids": ["payment.paypal"],
+      "business_value": "Describe return-path attribution accurately while avoiding an unsupported PayPal integration claim.",
+      "evidence_level": "source_present",
+      "proof_artifact": "docs/reference/INTEGRATIONS.md; docs/guides/IMPLEMENTATION-PLAYBOOK.md",
+      "environment": "Documentation and cookie-continuity boundary; no provider adapter or sandbox acceptance.",
+      "owner": "Product decision",
+      "blocker": true,
+      "next_proof": "Either retain the documented limitation or specify a native adapter contract with provider webhook, order join, idempotency, refund, and sandbox evidence."
+    },
+    {
+      "surface": "REST v2",
+      "entry_ids": ["api.rest_v2"],
+      "business_value": "Provide authenticated browser, lifecycle, diagnostics, token, and inbound webhook boundaries.",
+      "evidence_level": "synthetic_contract",
+      "proof_artifact": "docs/reference/REST-API.md; tests/unit/RestAuthPermissionsTest.php; includes/api/class-tracking-controller.php",
+      "environment": "PHP unit/stub coverage; staged external-client proof pending.",
+      "owner": "ClickTrail API runtime",
+      "blocker": true,
+      "next_proof": "Capture valid, invalid, replayed, rate-limited, oversized, consent-blocked, and lifecycle requests against a disposable WordPress endpoint."
+    },
+    {
+      "surface": "Webhook ingress",
+      "entry_ids": ["source.webhook.calendly", "source.webhook.hubspot", "source.webhook.typeform"],
+      "business_value": "Bring external lead and lifecycle events into the canonical attribution pipeline without duplicate or spoofed events.",
+      "evidence_level": "source_present",
+      "proof_artifact": "docs/reference/REST-API.md; includes/tracking/webhooks/; includes/tracking/class-webhook-auth.php",
+      "environment": "Source and route evidence; signed provider E2E pending.",
+      "owner": "ClickTrail API runtime",
+      "blocker": true,
+      "next_proof": "Add signed fixtures for valid/invalid/stale/replayed/duplicate/out-of-order payloads, consent denial, retry, and purge."
+    },
+    {
+      "surface": "GTM and browser dataLayer",
+      "entry_ids": ["transport.gtm"],
+      "business_value": "Expose consent-aware browser and Woo events to a site-owned GTM container without injecting provider SDKs.",
+      "evidence_level": "synthetic_contract",
+      "proof_artifact": "assets/js/clicutcl-events.js; config/feature-test-matrix.json; GTM/dataLayer browser assertions",
+      "environment": "Source and synthetic Woo runtime evidence; browser/GTM Preview proof pending.",
+      "owner": "ClickTrail browser runtime plus site owner",
+      "blocker": true,
+      "next_proof": "Assert event names, event_id, order/value/currency/items, attribution, consent, ordering, deduplication, and absence of secrets in browser and GTM Preview."
+    },
+    {
+      "surface": "Server delivery adapters",
+      "entry_ids": ["delivery.generic", "delivery.sgtm", "delivery.meta", "delivery.google", "delivery.linkedin", "delivery.pinterest", "delivery.tiktok"],
+      "business_value": "Send canonical events to configured collectors while keeping provider acceptance claims honest.",
+      "evidence_level": "source_present",
+      "proof_artifact": "config/feature-registry.json; includes/server-side/*-adapter.php; delivery smoke IDs",
+      "environment": "Configured endpoint serialization; provider authentication and acceptance pending.",
+      "owner": "ClickTrail delivery runtime",
+      "blocker": true,
+      "next_proof": "Verify one generic collector or sGTM staging endpoint first, then record provider sandbox response and request ID for any named adapter claim."
+    }
+  ],
   "entries": [
+    {
+      "id": "payment.stripe_checkout",
+      "label": "Stripe Checkout hosted payment boundary",
+      "role": "hosted_payment_boundary",
+      "status": "not_observed",
+      "provider_contract": "external hosted checkout; no native ClickTrail adapter",
+      "what_exists": "Pre-checkout first-party cookie continuity can preserve attribution when the cookie exists before redirect.",
+      "what_does_not_exist": "No Stripe SDK, native payment webhook adapter, payment-to-order join, or provider acceptance proof.",
+      "evidence": [
+        "docs/reference/INTEGRATIONS.md",
+        "docs/guides/IMPLEMENTATION-PLAYBOOK.md"
+      ],
+      "test_ids": [],
+      "runtime_tests": [],
+      "known_limits": [
+        "External hosted checkout cannot be decorated by ClickTrail; entry without prior attribution remains unattributed."
+      ]
+    },
+    {
+      "id": "payment.paypal",
+      "label": "PayPal hosted payment boundary",
+      "role": "hosted_payment_boundary",
+      "status": "not_observed",
+      "provider_contract": "external hosted checkout; no native ClickTrail adapter",
+      "what_exists": "Pre-checkout first-party cookie continuity can preserve attribution when the cookie exists before redirect.",
+      "what_does_not_exist": "No PayPal SDK, native payment webhook adapter, payment-to-order join, or provider acceptance proof.",
+      "evidence": [
+        "docs/reference/INTEGRATIONS.md",
+        "docs/guides/IMPLEMENTATION-PLAYBOOK.md"
+      ],
+      "test_ids": [],
+      "runtime_tests": [],
+      "known_limits": [
+        "External hosted checkout cannot be decorated by ClickTrail; entry without prior attribution remains unattributed."
+      ]
+    },
+    {
+      "id": "api.rest_v2",
+      "label": "ClickTrail REST v2",
+      "role": "api_surface",
+      "status": "source_present_runtime_unverified",
+      "provider_contract": "clicutcl/v2 browser, token, lifecycle, webhook, and diagnostics routes",
+      "what_exists": "Authenticated browser event batches, attribution token sign/verify, lifecycle updates, webhook ingress, and privileged diagnostics routes.",
+      "evidence": [
+        "includes/api/class-tracking-controller.php",
+        "docs/reference/REST-API.md",
+        "tests/unit/RestAuthPermissionsTest.php"
+      ],
+      "test_ids": [],
+      "runtime_tests": [],
+      "known_limits": [
+        "The legacy v1 log controller is removed; staged external-client, replay, rate-limit, and privacy-lifecycle proof remains pending."
+      ]
+    },
     {
       "id": "transport.gtm",
       "label": "Google Tag Manager / browser dataLayer",
@@ -34,7 +188,10 @@
       "test_ids": [
         "signed-intake-gate"
       ],
-      "runtime_tests": [],
+      "runtime_tests": [
+        "classic-store-api-cod-browser-runtime-2026-08-24",
+        "hpos-store-api-cod-browser-runtime-2026-08-24"
+      ],
       "known_limits": [
         "GTM loading and tag configuration are separate consent/runtime boundaries."
       ]
@@ -325,9 +482,12 @@
       "what_exists": "Attribution capture and form-event paths are present; exact population, successful-submission, consent, and third-party retention behavior requires live plugin tests.",
       "evidence": [
         "includes/integrations/class-form-integration-manager.php",
-        "includes/integrations/forms/class-cf7-adapter.php"
+        "includes/integrations/forms/class-cf7-adapter.php",
+        "tests/fixtures/form-readiness/v1/cf7.json"
       ],
-      "test_ids": [],
+      "test_ids": [
+        "form-readiness-contract"
+      ],
       "runtime_tests": [],
       "known_limits": [
         "Posted attribution and form-owned submission metadata are separate privacy boundaries."
@@ -342,9 +502,12 @@
       "what_exists": "Attribution capture and form-event paths are present; exact population, successful-submission, consent, and third-party retention behavior requires live plugin tests.",
       "evidence": [
         "includes/integrations/class-form-integration-manager.php",
-        "includes/integrations/forms/class-elementor-forms-adapter.php"
+        "includes/integrations/forms/class-elementor-forms-adapter.php",
+        "tests/fixtures/form-readiness/v1/elementor.json"
       ],
-      "test_ids": [],
+      "test_ids": [
+        "form-readiness-contract"
+      ],
       "runtime_tests": [],
       "known_limits": [
         "Posted attribution and form-owned submission metadata are separate privacy boundaries."
@@ -359,9 +522,12 @@
       "what_exists": "Attribution capture and form-event paths are present; exact population, successful-submission, consent, and third-party retention behavior requires live plugin tests.",
       "evidence": [
         "includes/integrations/class-form-integration-manager.php",
-        "includes/integrations/forms/class-fluent-forms-adapter.php"
+        "includes/integrations/forms/class-fluent-forms-adapter.php",
+        "tests/fixtures/form-readiness/v1/fluent.json"
       ],
-      "test_ids": [],
+      "test_ids": [
+        "form-readiness-contract"
+      ],
       "runtime_tests": [],
       "known_limits": [
         "Posted attribution and form-owned submission metadata are separate privacy boundaries."
@@ -376,9 +542,12 @@
       "what_exists": "Attribution capture and form-event paths are present; exact population, successful-submission, consent, and third-party retention behavior requires live plugin tests.",
       "evidence": [
         "includes/integrations/class-form-integration-manager.php",
-        "includes/integrations/forms/class-gravity-forms-adapter.php"
+        "includes/integrations/forms/class-gravity-forms-adapter.php",
+        "tests/fixtures/form-readiness/v1/gravity.json"
       ],
-      "test_ids": [],
+      "test_ids": [
+        "form-readiness-contract"
+      ],
       "runtime_tests": [],
       "known_limits": [
         "Posted attribution and form-owned submission metadata are separate privacy boundaries."
@@ -393,9 +562,12 @@
       "what_exists": "Attribution capture and form-event paths are present; exact population, successful-submission, consent, and third-party retention behavior requires live plugin tests.",
       "evidence": [
         "includes/integrations/class-form-integration-manager.php",
-        "includes/integrations/forms/class-ninja-forms-adapter.php"
+        "includes/integrations/forms/class-ninja-forms-adapter.php",
+        "tests/fixtures/form-readiness/v1/ninja.json"
       ],
-      "test_ids": [],
+      "test_ids": [
+        "form-readiness-contract"
+      ],
       "runtime_tests": [],
       "known_limits": [
         "Posted attribution and form-owned submission metadata are separate privacy boundaries."
@@ -410,9 +582,12 @@
       "what_exists": "Attribution capture and form-event paths are present; exact population, successful-submission, consent, and third-party retention behavior requires live plugin tests.",
       "evidence": [
         "includes/integrations/class-form-integration-manager.php",
-        "includes/integrations/forms/class-wpforms-adapter.php"
+        "includes/integrations/forms/class-wpforms-adapter.php",
+        "tests/fixtures/form-readiness/v1/wpforms.json"
       ],
-      "test_ids": [],
+      "test_ids": [
+        "form-readiness-contract"
+      ],
       "runtime_tests": [],
       "known_limits": [
         "Posted attribution and form-owned submission metadata are separate privacy boundaries."
@@ -427,7 +602,11 @@
       "what_exists": "Order attribution, storefront events, purchase/milestone pipeline, and Diagnostics trace surfaces.",
       "evidence": [
         "includes/integrations/class-woocommerce.php",
-        "config/feature-registry.json"
+        "config/feature-registry.json",
+        "includes/Intelligence/class-woo-readiness-analyzer.php",
+        "tests/unit/WooReadinessAnalyzerTest.php",
+        "tests/fixtures/woo-readiness/v1/F01-granted-classic-cookie-primary.json",
+        "tests/fixtures/woo-readiness/v1/F16-queued-replay-after-withdrawal.json"
       ],
       "test_ids": [
         "woo-view-item",
@@ -436,11 +615,19 @@
         "woo-begin-checkout",
         "woo-order-paid",
         "woo-order-refunded",
-        "woo-order-cancelled"
+        "woo-order-cancelled",
+        "woo-readiness-contract",
+        "woo-view-item-list",
+        "diagnostics-woo-lookup"
       ],
-      "runtime_tests": [],
+      "runtime_tests": [
+        "classic-store-api-cod-browser-runtime-2026-08-24",
+        "hpos-store-api-cod-browser-runtime-2026-08-24"
+      ],
       "known_limits": [
-        "Purchase dataLayer gating, skipped-delivery markers, order-meta erasure, and trace identity minimization remain release blockers."
+        "Consent denial/grant transitions, refund/cancellation, replay/dedup, queue replay, order-meta erasure, and trace identity minimization remain release blockers.",
+        "Dedup is non-atomic; queued replay does not re-check consent; queue uniqueness omits destination.",
+        "Classic and HPOS Store API fake COD checkout, order meta, purchase dataLayer, trace persistence, disabled dispatch, and empty queue were reproduced locally from a dirty 1.9.0 checkout; provider and release proof remain open."
       ]
     },
     {

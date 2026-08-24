@@ -109,8 +109,18 @@ Current examples:
 - `woo_order_milestones`
 - `diagnostics_conflict_scan`
 - `diagnostics_woo_lookup`
+- `woo_readiness_contract` (pure synthetic contract; no Woo/admin wiring)
+- `diagnostics_attribution_readiness`
+- `diagnostics_deterministic_suggestions`
+- `diagnostics_utm_hygiene_test_url`
+- `form_readiness_contract` (pure fixture contract; no live diagnostics wiring)
 - `settings_backup_restore`
 - `queue_retry_semantics`
+
+The Woo storefront, list, milestone, and Diagnostics lookup entries use
+`source_present_runtime_unverified`. Their structural smoke evidence is not a
+runtime or shipped claim. Both readiness contracts use `runtime_surface:
+contract` and `enablement_path: none`.
 
 ## What the Registry Drives
 

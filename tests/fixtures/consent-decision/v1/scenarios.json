@@ -1,0 +1,80 @@
+[
+  {
+    "id": "not-required-is-not-a-grant",
+    "input": { "required": false, "now": 1000 },
+    "expected": { "decision": "unresolved", "basis": "not_required", "allows_processing": true }
+  },
+  {
+    "id": "live-cmp-outranks-stale-banner",
+    "input": {
+      "required": true,
+      "now": 1000,
+      "live_cmp": { "decision": "granted", "revision": 4, "captured_at": 990 },
+      "plugin_banner": { "decision": "denied", "revision": 3, "captured_at": 900 }
+    },
+    "expected": { "decision": "granted", "basis": "cmp", "allows_processing": true }
+  },
+  {
+    "id": "newer-withdrawal-dominates-grant",
+    "input": {
+      "required": true,
+      "now": 1000,
+      "live_cmp": { "decision": "granted", "revision": 4, "captured_at": 990 },
+      "plugin_banner": { "decision": "denied", "revision": 5, "captured_at": 995 }
+    },
+    "expected": { "decision": "denied", "basis": "plugin_banner", "allows_processing": false }
+  },
+  {
+    "id": "same-revision-conflict-denies",
+    "input": {
+      "required": true,
+      "now": 1000,
+      "live_cmp": { "decision": "granted", "revision": 5, "captured_at": 990 },
+      "plugin_banner": { "decision": "denied", "revision": 5, "captured_at": 995 }
+    },
+    "expected": { "decision": "denied", "basis": "plugin_banner", "allows_processing": false }
+  },
+  {
+    "id": "timeout-fails-closed",
+    "input": { "required": true, "now": 1000, "timeout": true },
+    "expected": { "decision": "unresolved", "basis": "fallback_timeout", "allows_processing": false }
+  },
+  {
+    "id": "invalid-live-authority-does-not-fall-through",
+    "input": {
+      "required": true,
+      "now": 1000,
+      "live_cmp": { "decision": "maybe", "revision": 2 },
+      "plugin_banner": { "decision": "granted", "revision": 1 }
+    },
+    "expected": { "decision": "invalid", "basis": "cmp", "allows_processing": false }
+  },
+  {
+    "id": "expired-live-authority-does-not-fall-through",
+    "input": {
+      "required": true,
+      "now": 1000,
+      "live_cmp": { "decision": "granted", "revision": 2, "expires_at": 999 },
+      "plugin_banner": { "decision": "granted", "revision": 1 }
+    },
+    "expected": { "decision": "unresolved", "basis": "cmp", "allows_processing": false }
+  },
+  {
+    "id": "unbounded-mirror-is-invalid",
+    "input": {
+      "required": true,
+      "now": 1000,
+      "bridge_mirror": { "decision": "granted", "revision": 1, "captured_at": 900 }
+    },
+    "expected": { "decision": "invalid", "basis": "bridge_mirror", "allows_processing": false }
+  },
+  {
+    "id": "bounded-mirror-can-grant",
+    "input": {
+      "required": true,
+      "now": 1000,
+      "bridge_mirror": { "decision": "granted", "revision": 1, "captured_at": 900, "expires_at": 1100 }
+    },
+    "expected": { "decision": "granted", "basis": "bridge_mirror", "allows_processing": true }
+  }
+]
