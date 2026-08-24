@@ -92,7 +92,7 @@ class Event {
 		}
 
 		$event['meta']['schema_version'] = self::VERSION;
-		$event['marketing_trail'] = self::normalize_marketing_trail(
+		$event['marketing_trail']        = self::normalize_marketing_trail(
 			isset( $data['marketing_trail'] ) && is_array( $data['marketing_trail'] ) ? $data['marketing_trail'] : array(),
 			$event
 		);
@@ -174,8 +174,8 @@ class Event {
 			}
 		}
 
-		$provider = isset( $form['provider'] ) ? $form['provider'] : ( isset( $form['platform'] ) ? $form['platform'] : '' );
-		$form_id  = isset( $form['form_id'] ) ? $form['form_id'] : ( isset( $form['id'] ) ? $form['id'] : '' );
+		$provider         = isset( $form['provider'] ) ? $form['provider'] : ( isset( $form['platform'] ) ? $form['platform'] : '' );
+		$form_id          = isset( $form['form_id'] ) ? $form['form_id'] : ( isset( $form['id'] ) ? $form['id'] : '' );
 		$trail_event_name = 'form_submission' === $event['event_name'] ? 'lead_submitted' : $event['event_name'];
 		if ( isset( $provided['form'] ) && is_array( $provided['form'] ) ) {
 			$provider = self::first_value( $provided['form']['provider'] ?? '', $provider );
@@ -200,12 +200,12 @@ class Event {
 			'campaign'       => self::first_value( $provided['campaign'] ?? '', self::attribution_value( $attribution, 'campaign' ) ),
 			'click_ids'      => $click_ids,
 			'consent'        => array(
-				'analytics'  => ! empty( $provided['consent']['analytics'] ?? $consent['analytics'] ?? false ),
+				'analytics'   => ! empty( $provided['consent']['analytics'] ?? $consent['analytics'] ?? false ),
 				'advertising' => ! empty( $provided['consent']['advertising'] ?? $provided['consent']['marketing'] ?? $consent['marketing'] ?? false ),
 			),
 			'form'           => array(
 				'provider' => sanitize_text_field( (string) $provider ),
-				'form_id' => sanitize_text_field( (string) $form_id ),
+				'form_id'  => sanitize_text_field( (string) $form_id ),
 			),
 		);
 	}
