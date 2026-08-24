@@ -30,7 +30,7 @@ If you are new to the plugin, read these in order:
 
 - [guides/IMPLEMENTATION-PLAYBOOK.md](guides/IMPLEMENTATION-PLAYBOOK.md): phased rollout patterns for lead-gen, WooCommerce, cross-domain, consent-aware, and server-side setups
 - [guides/USE-CASES.md](guides/USE-CASES.md): public use-case matrix with enable, validate, and boundary notes
-- [tutorials/README.md](tutorials/README.md): short implementation tutorials for forms, WooCommerce, and consent-aware events
+- [tutorials/README.md](tutorials/README.md): short implementation tutorials for forms, WooCommerce, consent-aware events, and GTM setup
 - [guides/SETTINGS-AND-ADMIN.md](guides/SETTINGS-AND-ADMIN.md): current settings IA and option mapping
 - [reference/INTEGRATIONS.md](reference/INTEGRATIONS.md): evidence-labelled forms, commerce, consent, webhook, GTM, platform, and delivery integration paths
 - [reference/integration-capabilities.json](reference/integration-capabilities.json): machine-readable status, source evidence, smoke IDs, and known limitations
