@@ -140,11 +140,11 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 						->table( 'fluentform_submission_meta' )
 						->insert(
 							array(
-								'submission_id' => $entry_id,
-								'meta_key'      => $this->get_field_name( $key ), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Fluent Forms schema requires meta_key column.
-								'value'         => (string) $value,
-								'created_at'    => $now,
-								'updated_at'    => $now,
+								'response_id' => $entry_id,
+								'meta_key'    => $this->get_field_name( $key ), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Fluent Forms schema requires meta_key column.
+								'value'       => (string) $value,
+								'created_at'  => $now,
+								'updated_at'  => $now,
 							)
 						);
 				} catch ( \Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
