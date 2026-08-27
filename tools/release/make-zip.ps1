@@ -72,12 +72,14 @@ $excludeDirs = @(
 )
 
 $excludeFiles = @(
+    '.git',
     '.gitignore',
     '.gitattributes',
     '.editorconfig',
     '.mcp.json',
     '.distignore',
     '.phpunit.result.cache',
+    'feature-test-matrix.json',
     'package.json',
     'package-lock.json',
     'composer.json',

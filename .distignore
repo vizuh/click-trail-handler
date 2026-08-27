@@ -13,6 +13,7 @@
 
 # Tests and CI config
 tests/
+config/feature-test-matrix.json
 phpcs.xml.dist
 phpunit.xml.dist
 
