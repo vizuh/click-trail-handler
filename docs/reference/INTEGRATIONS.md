@@ -208,6 +208,17 @@ Where teams see value:
 - cached or dynamic form rendering stops breaking attribution as easily
 - the same attribution context can feed browser events and optional delivery flows
 
+### Cache and visitor boundary
+
+Cache-key normalization may decide that `/?gclid=A` and `/` share one cached object. It must not make
+Visitor A's query data part of the object later served to Visitor B. Form actions, hidden fields, and
+other server-rendered markup in cached HTML are response data, not attribution input for the next visitor.
+
+Keep cached HTML visitor-neutral. ClickTrail browser capture reads the actual visitor's
+`window.location.search` and first-party state after page load; it never imports campaign parameters from
+a form action. The executable smoke regression in `tools/qa/smoke.js` pins the case where Visitor B loads
+`/` while cached markup still contains `/?gclid=visitor-a`: Visitor B's ClickTrail payload remains clean.
+
 ### Form-readiness evidence contract (M5 first slice)
 
 The source tree contains a pure, versioned presence comparator at
