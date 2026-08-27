@@ -53,6 +53,8 @@ Supported form adapters:
 - Ninja Forms
 - WPForms
 
+Runtime evidence for `1.9.1`: a browser submission on WordPress 6.9, PHP 8.1, and Fluent Forms 6.2.13 stored `ct_ft_source`, `ct_lt_source`, and campaign metadata in `fluentform_submission_meta`. This does not establish the other adapters, consent-required paths, or erasure behavior.
+
 What ClickTrail does:
 
 - auto-add hidden attribution fields for Contact Form 7 and Fluent Forms
