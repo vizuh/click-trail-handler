@@ -5,7 +5,7 @@ Author URI: https://vizuh.com
 Tags: attribution, utm, consent mode, woocommerce, server-side tracking
 Requires at least: 6.5
 Tested up to: 7.0
-Stable tag: 1.8.17
+Stable tag: 1.9.1
 Requires PHP: 8.1
 WC requires at least: 10.4.2
 License: GPLv2 or later
@@ -255,7 +255,7 @@ configured-endpoint relays whose provider authentication, acceptance, and runtim
 *   **Release boundary**: this GitHub release is ahead of the WordPress.org Stable tag by policy; provider acceptance, compliance, and complete runtime integration claims remain evidence-gated.
 
 = 1.9.1 =
-*   **Fluent Forms fix**: attribution now persists in Fluent Forms submission metadata using its `response_id` schema column. Verified with WordPress 6.9, PHP 8.1, and Fluent Forms 6.2.13 through a browser-submitted form and stored-entry check.
+*   **Fluent Forms fix**: attribution now persists in Fluent Forms submission metadata using its `response_id` schema column. Verified on the consent-not-required path with WordPress 6.9, PHP 8.1, and Fluent Forms 6.2.13 through a browser-submitted form and stored-entry check.
 
 = 1.9.0 =
 *   **New foundation (no visible UI change)**: ClickTrail writes structured touch-event records in `clicutcl_touch_events` alongside the legacy diagnostics table. This is a reporting foundation, not a complete privacy certificate: the current audit found hashed-identity matching gaps, WooCommerce order-meta lifecycle gaps, retention coupling, and queue/revocation boundaries. See `docs/architecture/DATA-MODEL.md` and `docs/guides/SECURITY-PRIVACY.md` for the current evidence status.
