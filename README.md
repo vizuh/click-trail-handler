@@ -2,9 +2,18 @@
 
 ![ClickTrail](.github/clicktrail-cover.png)
 
-Attribution usually breaks somewhere between the ad click and the conversion. ClickTrail keeps campaign context alive through cached pages, dynamic forms, cross-domain journeys, repeat visits, and configured consent rules.
+**Carry the right acquisition context from visit to WordPress conversion.**
 
-ClickTrail keeps the source of the visit, not a profile of the visitor — first-party capture with consent controls. It is a WordPress capture-and-controlled-delivery layer, not an attribution dashboard, hosting platform, lead manager, or ad optimizer. The current security-status blockers and verification boundary are documented in [Security and Privacy](docs/guides/SECURITY-PRIVACY.md).
+A visitor can arrive with UTMs or ad click IDs, then submit a form or place an
+order several pages later. ClickTrail captures observed first-touch and
+last-touch context in first-party storage and makes it available at configured
+WordPress form and WooCommerce boundaries, including client-side paths for
+cached and dynamic pages.
+
+ClickTrail preserves campaign context, not a visitor profile, and does not
+prove which click caused a sale. It is not an attribution dashboard, hosting
+platform, lead manager, or ad optimizer. Read the current verification and
+privacy boundaries before enabling optional delivery.
 
 [![GitHub release](https://img.shields.io/github/v/release/vizuh/click-trail-handler?label=version&color=blue)](https://github.com/vizuh/click-trail-handler/releases)
 [![License](https://img.shields.io/badge/license-GPL--2.0--or--later-green)](LICENSE)
@@ -32,11 +41,14 @@ ClickTrail keeps the source of the visit, not a profile of the visitor — first
 
 ## What ClickTrail Solves
 
-- Keeps campaign context available for WooCommerce orders when the configured path captures it.
-- Persists UTMs and click IDs across the configured attribution journey.
-- Provides client-side fallback paths for cached or dynamic forms.
-- Provides approved cross-domain continuity paths with documented limitations.
-- Consent controls and optional server-side delivery live in one plugin; end-to-end consent/revocation behavior remains under the release gates.
+- Keeps observed campaign context available for configured WooCommerce order
+  and WordPress form paths.
+- Applies documented first-touch and last-touch rules to UTMs, referrers, and
+  supported click IDs.
+- Provides client-side paths for cached pages and dynamic forms.
+- Provides configured cross-domain continuity with documented limitations.
+- Keeps consent controls and optional delivery visible in one plugin, with
+  end-to-end verification still governed by the published release gates.
 
 ClickTrail is designed to keep first-touch and last-touch context alive until the point where WordPress actually needs it: WooCommerce orders, form submissions, browser events, and optional downstream delivery.
 
@@ -48,18 +60,20 @@ ClickTrail is designed to keep first-touch and last-touch context alive until th
 - **Events**: browser collection, `dataLayer` pushes, sGTM compatibility mode, webhook intake, lifecycle updates, and optional Woo storefront signals.
 - **Delivery**: optional server-side transport, retries, diagnostics, conflict scanning, backup/restore, and a consent gate whose end-to-end edge cases are documented for the next release.
 
-## Repository release status
+## Version and verification status
 
-- **Source baseline:** plugin code `1.9.0` at commit `a45aa9e`.
-- **Release metadata:** README, WordPress.org stable tag, and generated release artifacts still need alignment before the next package is published.
-- **Current phase:** truth-containment documentation only; no runtime remediation or new provider adapter is implied by this README update.
-- Full release history: [changelog.txt](changelog.txt).
+- **Repository source:** the plugin header declares `1.10.0`.
+- **Public releases:** use [GitHub Releases](https://github.com/vizuh/click-trail-handler/releases)
+  and [changelog.txt](changelog.txt); WordPress.org metadata follows its own
+  release process.
+- **Integration status:** source wiring does not prove production provider
+  support. Use the evidence ledger and integration reference below.
 
 ## Documentation By Audience
 
 - **GitHub visitors**: start with [README.en.md](README.en.md) or [README.pt-BR.md](README.pt-BR.md).
 - **Contributors and reviewers**: use [CONTRIBUTING.md](CONTRIBUTING.md) or [CONTRIBUTING.pt-BR.md](CONTRIBUTING.pt-BR.md).
-- **Engineers and agents**: use [docs/README.md](docs/README.md) and [AGENTS.md](AGENTS.md).
+- **Engineers and agents**: use [docs/README.md](docs/README.md).
 - **Implementation teams**: start with [use cases](docs/guides/USE-CASES.md) and the [tutorial index](docs/tutorials/README.md).
 
 ## Repository Map
