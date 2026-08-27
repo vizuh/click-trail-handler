@@ -39,7 +39,6 @@ function validateManifest(zipPath, slug) {
     !entries.has(`${slug}/config/feature-registry.json`) ||
     entries.has(`${slug}/config/feature-test-matrix.json`)
   ) {
-    fs.rmSync(zipPath, { force: true });
     throw new Error('Archive manifest validation failed');
   }
 }
@@ -60,12 +59,15 @@ function makePosixZip() {
 
   fs.mkdirSync(outputDir, { recursive: true });
   fs.mkdirSync(stageDir);
+  fs.rmSync(zipPath, { force: true });
 
   try {
     run('rsync', ['-a', '--delete', '--exclude-from=.distignore', `${root}${path.sep}`, `${stageDir}${path.sep}`], root);
-    fs.rmSync(zipPath, { force: true });
     run('zip', ['-qr', zipPath, slug], tempRoot);
     validateManifest(zipPath, slug);
+  } catch (error) {
+    fs.rmSync(zipPath, { force: true });
+    throw error;
   } finally {
     fs.rmSync(tempRoot, { recursive: true, force: true });
   }
