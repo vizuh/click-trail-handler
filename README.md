@@ -48,12 +48,9 @@ ClickTrail is designed to keep first-touch and last-touch context alive until th
 - **Events**: browser collection, `dataLayer` pushes, sGTM compatibility mode, webhook intake, lifecycle updates, and optional Woo storefront signals.
 - **Delivery**: optional server-side transport, retries, diagnostics, conflict scanning, backup/restore, and a consent gate whose end-to-end edge cases are documented for the next release.
 
-## Repository release status
+## Releases
 
-- **Source baseline:** plugin code `1.9.0` at commit `a45aa9e`.
-- **Release metadata:** README, WordPress.org stable tag, and generated release artifacts still need alignment before the next package is published.
-- **Current phase:** truth-containment documentation only; no runtime remediation or new provider adapter is implied by this README update.
-- Full release history: [changelog.txt](changelog.txt).
+The release badge above tracks the current GitHub release. See [changelog.txt](changelog.txt) for the full history and [readme.txt](readme.txt) for the public WordPress.org stable release.
 
 ## Documentation By Audience
 

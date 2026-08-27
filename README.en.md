@@ -54,13 +54,9 @@ It combines:
 
 That means you can start with campaign-aware WooCommerce orders or form attribution first, then add browser events, consent integrations, or server-side delivery when your setup actually needs them.
 
-## Repository release status
+## Release Notes
 
-- **Source baseline:** plugin code `1.9.0` at commit `a45aa9e`.
-- **Release metadata:** README, WordPress.org stable tag, and generated release artifacts still need alignment before the next package is published.
-- **Current phase:** truth-containment documentation only; this update does not claim runtime remediation or new provider coverage.
-
-For the full release history, see [changelog.txt](changelog.txt). The public WordPress.org copy is maintained in [readme.txt](readme.txt).
+The release badge above tracks the current GitHub release. See [changelog.txt](changelog.txt) for the full history and [readme.txt](readme.txt) for the public WordPress.org stable release.
 
 ## Problems It Solves
 
