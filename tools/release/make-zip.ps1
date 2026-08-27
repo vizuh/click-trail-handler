@@ -58,6 +58,8 @@ $excludeDirs = @(
     '.vscode',
     '.claude',
     '.claude-flow',
+    '.specify',
+    '.understand-anything',
     '.tools',
     'config',
     'dist',
@@ -65,7 +67,8 @@ $excludeDirs = @(
     'tests',
     'tools',
     'vendor',
-    'node_modules'
+    'node_modules',
+    'shopify-gtm-container-templates-master'
 )
 
 $excludeFiles = @(
@@ -73,6 +76,8 @@ $excludeFiles = @(
     '.gitattributes',
     '.editorconfig',
     '.mcp.json',
+    '.distignore',
+    '.phpunit.result.cache',
     'package.json',
     'package-lock.json',
     'composer.json',
@@ -84,9 +89,16 @@ $excludeFiles = @(
     'CLAUDE.md',
     'CONTRIBUTING.md',
     'CONTRIBUTING.pt-BR.md',
+    'ROADMAP.md',
+    'RELEASING.md',
     'README.md',
     'README.en.md',
-    'README.pt-BR.md'
+    'README.pt-BR.md',
+    'funnelsheet-logo.png',
+    'GTM-*.json',
+    'gtm-starter-kit.json',
+    'build-starter-kit.py',
+    'class-gtm-lead-magnet.php'
 )
 
 $robocopyArgs = @(

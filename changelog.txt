@@ -2,7 +2,7 @@ Changelog
 ========
 
 = 1.9.1 =
-*   **Fluent Forms submission storage fix** (`includes/integrations/forms/class-fluent-forms-adapter.php`): use Fluent Forms' real `fluentform_submission_meta.response_id` column instead of nonexistent `submission_id`. The old insert failed silently inside the adapter's non-fatal integration guard, so ClickTrail logged attribution but the Fluent Forms entry did not retain its `ct_*` metadata. Added a focused regression test and verified a browser submission on WordPress 6.9, PHP 8.1, and Fluent Forms 6.2.13 stores `ct_ft_source`, `ct_lt_source`, and campaign metadata in the provider entry.
+*   **Fluent Forms submission storage fix** (`includes/integrations/forms/class-fluent-forms-adapter.php`): use Fluent Forms' real `fluentform_submission_meta.response_id` column instead of nonexistent `submission_id`. The old insert failed silently inside the adapter's non-fatal integration guard, so ClickTrail logged attribution but the Fluent Forms entry did not retain its `ct_*` metadata. Added a focused regression test; on the consent-not-required path, a browser submission on WordPress 6.9, PHP 8.1, and Fluent Forms 6.2.13 stored `ct_ft_source`, `ct_lt_source`, and campaign metadata in the provider entry.
 
 = 1.9.0 =
 *   Normalized marketing trail envelope: browser events, page views, server-side events, and form submissions now expose stable event, trail, anonymous, and lead IDs alongside first/latest-touch attribution, click IDs, capture-time consent, site routing, and form context. Existing flat event payloads and WordPress.org stable tag remain unchanged; this GitHub release is ahead of WordPress.org.

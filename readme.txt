@@ -5,7 +5,7 @@ Author URI: https://vizuh.com
 Tags: attribution, utm, consent mode, woocommerce, server-side tracking
 Requires at least: 6.5
 Tested up to: 7.0
-Stable tag: 1.8.17
+Stable tag: 1.9.1
 Requires PHP: 8.1
 WC requires at least: 10.4.2
 License: GPLv2 or later
@@ -215,7 +215,7 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 == Changelog ==
 
 = 1.9.1 =
-*   **Fluent Forms fix**: attribution now persists in Fluent Forms submission metadata using its `response_id` schema column. Verified with WordPress 6.9, PHP 8.1, and Fluent Forms 6.2.13 through a browser-submitted form and stored-entry check.
+*   **Fluent Forms fix**: attribution now persists in Fluent Forms submission metadata using its `response_id` schema column. Verified on the consent-not-required path with WordPress 6.9, PHP 8.1, and Fluent Forms 6.2.13 through a browser-submitted form and stored-entry check.
 
 = 1.9.0 =
 *   **New foundation (no visible UI change)**: ClickTrail now writes a structured, queryable record of every touch event and conversion to its own database table, in addition to the existing diagnostics log. This lays the groundwork for future reporting features and is subject to the same consent rules as the rest of ClickTrail — no attribution or identity data is recorded without marketing consent when consent is required. Records are automatically cleaned up after 90 days and are fully covered by the existing "export my data" / "erase my data" privacy tools.
