@@ -24,7 +24,9 @@ shipped.
 
 ### Narrowest defensible proposition
 
-> **ClickTrail keeps campaign attribution alive from ad click to WordPress conversion — through cache, dynamic forms, cross-domain hops, and consent rules — and gives teams diagnostics to verify what was captured, stored, and dispatched.**
+> **ClickTrail carries observed campaign context from visit to configured
+> WordPress conversion boundaries through first-party capture, documented
+> first-touch and last-touch rules, and explicit consent and delivery controls.**
 
 Short description:
 
@@ -203,52 +205,102 @@ change to capture, consent, or delivery behavior.
 | L3 provider | Per-provider versioned fixture plus staged delivery evidence | Keep the adapter configured-endpoint/runtime-unverified |
 | Packaging | Release archive contains `config/feature-registry.json` and passes smoke | Republish or retain the prior installable tag |
 
-## 4. Proposition and copy system
+## 4. Cross-repository message constitution
 
-### Message hierarchy
+This section is the canonical message contract for public ClickTrail repository
+copy. English defines the meaning. Translations may adapt phrasing, but may not
+broaden a claim.
 
-1. **Outcome:** campaign context reaches the WordPress conversion boundary.
-2. **Mechanism:** first/last touch, form patterns, Woo order fields, event
-   IDs, consent configuration, and optional configured-endpoint delivery.
-3. **Proof:** setup checklist, synthetic click-to-conversion recipe, conflict
-   scan, endpoint test, and Woo order trace lookup.
-4. **Boundary:** GTM tags remain site-owned; provider-named server adapters are
-   currently runtime-unverified; Reddit is relay-only.
-5. **Not the product:** no dashboard, hosting platform, lead manager, or ad
-   optimizer.
+### Category, promise, and belief
 
-### Paste-ready homepage/README hero
+- **Category:** first-party acquisition-context capture.
+- **Shared promise:** Carry the right acquisition context from visit to
+  conversion.
+- **Core problem:** campaign context observed on arrival is often missing when
+  a form, order, or application event is created later.
+- **New belief:** a conversion record can use campaign context only if the
+  implementation carries that context to its conversion boundary.
+- **Mechanism:** observe source data, apply explicit first-touch and last-touch
+  rules, persist it under host control, and attach it at configured boundaries.
 
-**Headline:** Attribution that survives the journey to your WordPress conversion.
+“Right” means the context selected by documented precedence and merge rules. It
+does not mean that ClickTrail proves causation, identifies a person across
+devices, or decides which channel deserves revenue credit.
 
-**Subheadline:** ClickTrail keeps first-touch and last-touch campaign context
-available through cached pages, dynamic forms, cross-domain hops, repeat visits,
-and configured consent rules — then puts it where conversions happen: WooCommerce
-orders and form paths.
+### Repository responsibility matrix
 
-**Proof bullets:**
+| Surface | Lead message | Evidence required | Do not imply |
+| --- | --- | --- | --- |
+| WordPress plugin | Carry campaign context to configured WordPress form and WooCommerce boundaries | Integration ledger, source path, focused smoke/test, and explicit runtime status | Complete attribution, universal form support, provider acceptance, or privacy compliance |
+| JavaScript engine | Parse and merge observed acquisition context deterministically; persist or attach it only through host-configured adapters | Golden fixtures, unit tests, browser probe, and package status | Causal attribution, identity resolution, ad-platform configuration, or certified delivery |
+| PHP and framework adapters | Carry request attribution through the named framework boundary | Repository source, focused tests, and one working example | A dashboard, complete commerce lifecycle, or support beyond the named adapter |
+| GTM templates | Expose or forward the documented canonical fields inside GTM | Template permissions, tests, and example container contract | Pixel injection, vendor account setup, or destination success |
+| Other integrations | State one supported handoff and its exact limits | Source, test, release, and example status from that repository | Parity with WordPress or JavaScript unless parity is tested |
 
-- First-party capture of UTMs, referrers, and major click IDs, with no external
-  visitor-enrichment service called by default.
-- Three documented form patterns: automatic hidden fields, matching hidden
-  fields, or submission-record storage, depending on the connector.
-- Diagnostics for the setup checklist, conflict scan, endpoint test, and Woo
-  order trace lookup so the implementation can be inspected rather than
-  assumed.
+### README sequence
 
-**CTA:** Install ClickTrail, run the verification recipe, and inspect your own
-capture path before enabling optional delivery.
+GitHub readers are normally solution-aware. Use this order:
 
-**Required boundary note:** ClickTrail complements GA4/GTM; it does not inject
-platform pixel SDKs. Configured-endpoint adapters and provider acceptance are
-runtime-unverified in the current baseline, and Reddit is relay-only.
+1. State the concrete context-loss problem.
+2. Name the repository's one job.
+3. Show the smallest working example or proof path.
+4. State important limits beside the claim they qualify.
+5. Give one next action.
+
+Do not open with a feature inventory, an abstract infrastructure category, or
+a claim that ClickTrail knows which click caused a sale.
+
+### Vocabulary and claim rules
+
+Prefer: **acquisition context**, **observed**, **first touch**, **last touch**,
+**conversion boundary**, **configured**, **tested**, **verified**, and
+**runtime-unverified**.
+
+Do not publish:
+
+- “The sale teaches the ad.” That belongs to Apointoo's outcome-feedback story,
+  not ClickTrail's capture layer.
+- “proves which click created the sale,” “complete attribution,” “all
+  platforms,” “perfect matching,” or equivalent causal or universal claims;
+- identity-resolution, revenue-feedback, optimization, dashboard, hosting, or
+  lead-management claims; or
+- “privacy compliant,” “GDPR-ready,” “secure,” “guaranteed,” or “reliable” as
+  unqualified marketing claims.
+
+### Translation rules
+
+- Treat the English sentence as the semantic source, not as a word-for-word
+  template.
+- Use natural terms for the locale while preserving the same subject, action,
+  object, qualifiers, and evidence status.
+- Keep package names, code identifiers, event names, fields, commands, URLs,
+  and evidence-state labels unchanged.
+- Do not add proof, support, performance, compliance, or release claims during
+  translation.
+- Avoid em dashes in public copy.
+
+### Paste-ready repository leads
+
+**Shared:** Carry the right acquisition context from visit to conversion.
+
+**WordPress:** ClickTrail captures first-touch and last-touch campaign context
+in first-party storage and makes it available at configured WordPress form and
+WooCommerce boundaries.
+
+**JavaScript:** ClickTrail JS parses and merges observed acquisition context
+deterministically, then lets the host persist or attach it through explicit
+browser and server adapters.
+
+**Required boundary:** ClickTrail preserves observed acquisition context. It
+does not prove causation, resolve customer identity, configure ad platforms, or
+certify downstream delivery.
 
 ### WordPress.org copy direction
 
 Keep the short description factual:
 
-> Consent-controlled attribution for WooCommerce, WordPress forms, and event
-> flows. Capture UTMs and click IDs across conversion paths.
+> First-party campaign-context capture for configured WooCommerce and WordPress
+> form paths, with explicit consent and delivery controls.
 
 Lead the description with the problem and install-to-proof recipe, then show
 the three form patterns. Keep platform/provider names in the evidence-qualified

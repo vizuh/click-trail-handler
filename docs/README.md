@@ -16,14 +16,15 @@ This is the docs home for GitHub readers. Use it to find the right document by r
 If you are new to the plugin, read these in order:
 
 1. [MASTER-SPECIFICATION.md](MASTER-SPECIFICATION.md): complete product, technical, semantic, safety, business, roadmap, and version source of truth
-2. [MASTER-SPECIFICATION-SUMMARY.md](MASTER-SPECIFICATION-SUMMARY.md): compressed executive view
-3. [MASTER-SPECIFICATION-CHANGE-RECORD.md](MASTER-SPECIFICATION-CHANGE-RECORD.md): permanent version and specification change record
-4. [guides/PHASE-EXECUTION-LEDGER.md](guides/PHASE-EXECUTION-LEDGER.md): evidence-gated M1–M12 implementation and phase-version record
-5. [architecture/PLUGIN-OVERVIEW.md](architecture/PLUGIN-OVERVIEW.md): what ClickTrail does, how the runtime is divided, and where value shows up
-6. [guides/IMPLEMENTATION-PLAYBOOK.md](guides/IMPLEMENTATION-PLAYBOOK.md): how teams usually roll out Capture, Forms, Events, and Delivery in practice
-7. [guides/SETTINGS-AND-ADMIN.md](guides/SETTINGS-AND-ADMIN.md): how the current admin UI maps to stored settings and operational surfaces
-8. [guides/USE-CASES.md](guides/USE-CASES.md): choose a rollout pattern by conversion surface
-9. [tutorials/README.md](tutorials/README.md): follow a bounded setup tutorial
+2. [guides/COMPETITIVE-POSITIONING-AND-ACQUISITION-ROADMAP-2026-08-22.md](guides/COMPETITIVE-POSITIONING-AND-ACQUISITION-ROADMAP-2026-08-22.md#4-cross-repository-message-constitution): cross-repository message, claim, vocabulary, and translation contract
+3. [MASTER-SPECIFICATION-SUMMARY.md](MASTER-SPECIFICATION-SUMMARY.md): compressed executive view
+4. [MASTER-SPECIFICATION-CHANGE-RECORD.md](MASTER-SPECIFICATION-CHANGE-RECORD.md): permanent version and specification change record
+5. [guides/PHASE-EXECUTION-LEDGER.md](guides/PHASE-EXECUTION-LEDGER.md): evidence-gated M1–M12 implementation and phase-version record
+6. [architecture/PLUGIN-OVERVIEW.md](architecture/PLUGIN-OVERVIEW.md): what ClickTrail does, how the runtime is divided, and where value shows up
+7. [guides/IMPLEMENTATION-PLAYBOOK.md](guides/IMPLEMENTATION-PLAYBOOK.md): how teams usually roll out Capture, Forms, Events, and Delivery in practice
+8. [guides/SETTINGS-AND-ADMIN.md](guides/SETTINGS-AND-ADMIN.md): how the current admin UI maps to stored settings and operational surfaces
+9. [guides/USE-CASES.md](guides/USE-CASES.md): choose a rollout pattern by conversion surface
+10. [tutorials/README.md](tutorials/README.md): follow a bounded setup tutorial
 
 ## Choose Docs by Goal
 
@@ -47,7 +48,7 @@ If you are new to the plugin, read these in order:
 - [architecture/EVENT-PIPELINE.md](architecture/EVENT-PIPELINE.md): browser, form, webhook, lifecycle, WooCommerce, and delivery flow
 - [architecture/DATA-MODEL.md](architecture/DATA-MODEL.md): options, tables, cookies, transients, cron hooks, and persistence surfaces
 - [architecture/CODE-MAP.md](architecture/CODE-MAP.md): active file layout and compatibility leftovers
-- `.understand-anything/knowledge-graph.json`: machine-readable knowledge graph of the codebase (nodes, edges, architectural layers, guided tour) — open with `/understand-dashboard`
+- `.understand-anything/knowledge-graph.json`: machine-readable knowledge graph of the codebase (nodes, edges, architectural layers, guided tour); open with `/understand-dashboard`
 
 ## I want to change admin UI, settings, or UX behavior
 
@@ -90,13 +91,13 @@ If you are new to the plugin, read these in order:
 
 - [../CONTRIBUTING.md](../CONTRIBUTING.md): contributor workflow and docs update matrix
 - [../CONTRIBUTING.pt-BR.md](../CONTRIBUTING.pt-BR.md): contributor workflow in Brazilian Portuguese
-- [../AGENTS.md](../AGENTS.md): repo-neutral agent guidance
 - [../.github/PULL_REQUEST_TEMPLATE.md](../.github/PULL_REQUEST_TEMPLATE.md): PR checklist
 
 ## Source of Truth Rules
 
 - Product passport, scope, functional requirements, semantic contract, safety gates, business unknowns, 12-month roadmap, and specification history belong in the [master specification set](MASTER-SPECIFICATION.md), with the summary and change record kept alongside it.
-- Product positioning belongs in the repo and WordPress readmes, not here.
+- Cross-repository message and claim rules belong in the [positioning roadmap](guides/COMPETITIVE-POSITIONING-AND-ACQUISITION-ROADMAP-2026-08-22.md#4-cross-repository-message-constitution).
+- Repository-specific product positioning belongs in the repo and WordPress readmes.
 - Rollout guidance belongs in `guides/IMPLEMENTATION-PLAYBOOK.md`.
 - Admin truth belongs in `guides/SETTINGS-AND-ADMIN.md`.
 - API truth belongs in `reference/REST-API.md`.

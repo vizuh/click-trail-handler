@@ -2,7 +2,7 @@
 
 [![Support](https://img.shields.io/badge/support-active-brightgreen.svg)](https://github.com/vizuh/click-trail-handler)
 [![Release](https://img.shields.io/github/v/release/vizuh/click-trail-handler?label=release&color=blue)](https://github.com/vizuh/click-trail-handler/releases)
-[![WordPress tested](https://img.shields.io/badge/WordPress-v7.1%20tested-3858e9.svg)](https://wordpress.org)
+[![WordPress tested](https://img.shields.io/badge/WordPress-v7.0%20tested-3858e9.svg)](https://wordpress.org)
 [![License](https://img.shields.io/badge/license-GPL--2.0-orange.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
 
 [![PHP Linting](https://github.com/vizuh/click-trail-handler/actions/workflows/php-lint.yml/badge.svg)](https://github.com/vizuh/click-trail-handler/actions/workflows/php-lint.yml)
@@ -12,32 +12,35 @@
 
 ![ClickTrail](.github/clicktrail-cover.png)
 
-> **Integration evidence:** Source presence alone does not prove production provider support. Current form, WooCommerce,
-> GTM, and delivery status lives in the [integration reference](docs/reference/INTEGRATIONS.md) and
-> [machine-readable ledger](docs/reference/integration-capabilities.json).
+**Carry the right acquisition context from visit to WordPress conversion.**
 
-Attribution usually breaks somewhere between the ad click and the conversion. ClickTrail keeps campaign context alive through the journey to the WordPress conversion.
+A visitor can arrive with UTMs or ad click IDs, then submit a form or place an
+order several pages later. ClickTrail captures observed first-touch and
+last-touch context in first-party storage and makes it available at configured
+WordPress form and WooCommerce boundaries, including client-side paths for
+cached and dynamic pages.
 
-ClickTrail is a WordPress attribution plugin for sites that need campaign source data to remain available through real-world journeys, especially when WooCommerce orders or lead forms happen several pages after the landing page.
+ClickTrail helps answer “what campaign context reached this conversion
+record?” It does not prove which click caused a sale, resolve a person's
+identity across devices, or decide which channel deserves revenue credit.
 
-**What ClickTrail is not:** it is not an attribution dashboard, a hosted server-side GTM platform, a lead manager, or an ad optimizer. It complements GA4 and GTM. Browser tags remain site-owned, while configured-endpoint server adapters remain source-present/runtime-unverified in the current baseline.
+**What ClickTrail is not:** an attribution dashboard, a hosted server-side GTM
+platform, a lead manager, or an ad optimizer. It complements GA4 and GTM.
+Browser tags remain site-owned.
 
-It is built for the problems that usually break attribution in production:
-
-- cached pages
-- dynamic or AJAX-loaded forms
-- multi-page and multi-session journeys
-- cross-domain flows
-- consent-controlled tracking requirements, with current edge cases documented in [Security and Privacy](docs/guides/SECURITY-PRIVACY.md)
-- optional server-side delivery, subject to the current runtime verification boundary
-
-Instead of capturing a UTM once and hoping it survives, ClickTrail keeps first-touch and last-touch context available until WooCommerce orders, forms, browser events, or downstream delivery flows actually need it.
-
-ClickTrail keeps the source of the visit, not a profile of the visitor. Capture is first-party and includes consent controls; the plugin does not call external services to identify or enrich visitors by default, and data leaves your site only through integrations you enable. Review the current security-status blockers before treating any path as privacy-complete.
+> **Integration verification status (2026-08-19):** The source registry shows wiring, not production provider support.
+> PHP/WordPress/provider E2E verification was unavailable for this audit. Platform-named server adapters are
+> **source-present / runtime-unverified configured-endpoint adapters**. GTM can mediate site-owned provider tags;
+> ClickTrail does not inject Meta/Facebook Pixel, Google tag, TikTok Pixel, LinkedIn Insight, Pinterest Tag, or
+> Reddit Pixel SDKs. Reddit has a **relay-only** destination toggle and `rdt_cid` capture, not a native delivery
+> adapter. See the [integration evidence ledger](docs/reference/integration-capabilities.json) and
+> [integration reference](docs/reference/INTEGRATIONS.md).
 
 ## What ClickTrail Does
 
-ClickTrail captures first-touch and last-touch attribution, keeps it available across the visit lifecycle, and makes that data usable where conversions actually happen inside WordPress.
+ClickTrail captures observed campaign context, applies documented first-touch
+and last-touch rules, and keeps the result available until a configured
+WordPress conversion boundary needs it.
 
 It combines:
 
@@ -48,9 +51,10 @@ It combines:
 - consent controls with documented runtime verification boundaries
 - optional server-side transport with retries and diagnostics
 
-That means you can start with campaign-aware WooCommerce orders or form attribution first, then add browser events, consent integrations, or server-side delivery when your setup actually needs them.
+Start with one configured form or WooCommerce path. Add browser events, consent
+integrations, or optional delivery only when the implementation requires them.
 
-## Release Notes
+## Version and verification status
 
 **1.10.0** adds consent-safe queued retries, canonical cross-tab consent authority, WooCommerce order-meta privacy lifecycle handling, and an evidence contract for all six supported form adapters. The WordPress.org package is prepared at this version. Live WordPress, browser, CMP, WooCommerce, and provider verification remains a separate gate; the form manifests stay explicitly runtime-unverified where that evidence is unavailable.
 
@@ -125,9 +129,9 @@ Additional browser identifiers include:
 
 ClickTrail connects to forms in three documented patterns. Confirm which pattern applies before testing:
 
-1. **Automatic hidden fields** — Contact Form 7 and Fluent Forms receive attribution fields through the documented path.
-2. **Matching hidden fields** — Gravity Forms and WPForms populate the `ct_*` fields you add to the form.
-3. **Submission storage** — Elementor Forms (Pro) and Ninja Forms attach attribution to the submission record instead of injecting hidden fields.
+1. **Automatic hidden fields:** Contact Form 7 and Fluent Forms receive attribution fields through the documented path.
+2. **Matching hidden fields:** Gravity Forms and WPForms populate the `ct_*` fields you add to the form.
+3. **Submission storage:** Elementor Forms (Pro) and Ninja Forms attach attribution to the submission record instead of injecting hidden fields.
 
 - Automatic hidden-field enrichment for Contact Form 7 and Fluent Forms
 - Compatible hidden-field population for Gravity Forms and WPForms when matching hidden fields are present
@@ -199,13 +203,13 @@ Form behavior by plugin:
 
 ### Server-side adapter keys (source-present / runtime-unverified)
 
-- Generic collector — configured endpoint relay
-- sGTM — configured endpoint relay; preview SSRF hardening remains open
-- Meta CAPI — adapter key present; provider API/auth contract not runtime-verified
-- Google Ads / GA4 — adapter key present; provider API/auth contract not runtime-verified
-- LinkedIn CAPI — adapter key present; provider API/auth contract not runtime-verified
-- Pinterest Conversions API — adapter key present; provider API/auth contract not runtime-verified
-- TikTok Events API — adapter key present; provider API/auth contract not runtime-verified
+- Generic collector: configured endpoint relay
+- sGTM: configured endpoint relay; preview SSRF hardening remains open
+- Meta CAPI: adapter key present; provider API/auth contract not runtime-verified
+- Google Ads / GA4: adapter key present; provider API/auth contract not runtime-verified
+- LinkedIn CAPI: adapter key present; provider API/auth contract not runtime-verified
+- Pinterest Conversions API: adapter key present; provider API/auth contract not runtime-verified
+- TikTok Events API: adapter key present; provider API/auth contract not runtime-verified
 
 These classes currently serialize canonical JSON to a configured endpoint. They are not turnkey provider
 SDK/API integrations until provider-specific fixtures and staged delivery evidence pass.
@@ -303,7 +307,6 @@ If you need call tracking, lead scoring, multi-touch revenue modeling, or ad-spe
 - [Lead form attribution](docs/tutorials/01-lead-form-attribution.md)
 - [WooCommerce order attribution](docs/tutorials/02-woocommerce-order-attribution.md)
 - [Consent and browser events](docs/tutorials/03-consent-and-events.md)
-- [GTM starter kit](docs/tutorials/04-gtm-starter-kit.md)
 
 ## Release phasing and evidence
 
