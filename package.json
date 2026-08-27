@@ -3,6 +3,6 @@
   "private": true,
   "scripts": {
     "smoke": "node -e \"require('./tools/qa/smoke.js')\"",
-    "make-zip": "powershell -NoProfile -ExecutionPolicy Bypass -File tools/release/make-zip.ps1"
+    "make-zip": "node tools/release/make-zip.js"
   }
 }

@@ -47,8 +47,8 @@ Each release folder is created when the version is cut. The zip is built from th
    npm run make-zip
    ```
    The archive must include runtime `config/feature-registry.json`, exclude development-only
-   `config/feature-test-matrix.json`, and follow the exclusions in `.distignore` and
-   `tools/release/make-zip.ps1`.
+   `config/feature-test-matrix.json`, and follow `.distignore` on POSIX or
+   `tools/release/make-zip.ps1` on Windows.
 4. **Create the release folder**:
    ```
    dist/releases/VERSION/click-trail-handler-VERSION.zip

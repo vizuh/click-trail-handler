@@ -134,6 +134,23 @@ if (Test-Path -Path $zipPath) {
 }
 
 Compress-Archive -Path $stageDir -DestinationPath $zipPath -Force
+
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$archive = [System.IO.Compression.ZipFile]::OpenRead($zipPath)
+try {
+    $entries = @($archive.Entries | ForEach-Object { $_.FullName.Replace('\', '/') })
+} finally {
+    $archive.Dispose()
+}
+
+$runtimeManifest = "$pluginSlug/config/feature-registry.json"
+$testManifest = "$pluginSlug/config/feature-test-matrix.json"
+if (($entries -notcontains $runtimeManifest) -or ($entries -contains $testManifest)) {
+    Remove-Item -Path $zipPath -Force
+    Remove-Item -Path $tempRoot -Recurse -Force
+    throw 'Archive manifest validation failed'
+}
+
 Remove-Item -Path $tempRoot -Recurse -Force
 
 Write-Output "ZIP created: $zipPath"
