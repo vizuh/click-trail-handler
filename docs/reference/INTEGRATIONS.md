@@ -58,6 +58,7 @@ Runtime evidence for `1.9.1`: a browser submission on WordPress 6.9, PHP 8.1, an
 What ClickTrail does:
 
 - auto-add hidden attribution fields for Contact Form 7 and Fluent Forms
+- persist Fluent Forms attribution in `fluentform_submission_meta`, linked through Fluent Forms' `response_id` column
 - populate matching hidden fields already present in Gravity Forms and WPForms
 - recommend that Gravity Forms and WPForms users add the hidden fields they want stored or exported
 - keep attribution attached to submissions

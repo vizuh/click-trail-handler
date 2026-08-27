@@ -39,15 +39,9 @@ ClickTrail is designed to keep first-touch and last-touch context alive until th
 - **Events**: browser collection, `dataLayer` pushes, sGTM compatibility mode, webhook intake, lifecycle updates, and optional Woo storefront signals.
 - **Delivery**: optional server-side transport, retries, diagnostics, conflict scanning, backup/restore, and consent-aware dispatch.
 
-## Latest Release: 1.7.0
+## Releases
 
-- GF helper classes committed (Gf_Channel_Resolver, Gf_Form_Settings_Tab, Gf_Merge_Tags, Gf_Minification_Protector)
-- Admin QA cookie priority fix; `wp_logout` now clears it immediately
-- `lt_channel` server-side fallback added alongside `ft_channel`
-- Channel classifier extended: `dclid` → Display & Video 360, `epik` → Pinterest Ads, `sccid` → Snapchat Ads
-- `visitor_id` + `session_id` persisted to GF entry meta and WooCommerce order meta
-- Legacy code removed: dead v1 API controller, URL alias remapping, `enable_consent_banner`, `log_whatsapp_clicks()` stub
-- Full release notes: [changelog.txt](changelog.txt)
+The release badge above tracks the current GitHub release. See [changelog.txt](changelog.txt) for the full history and [readme.txt](readme.txt) for the public WordPress.org stable release.
 
 ## Documentation By Audience
 

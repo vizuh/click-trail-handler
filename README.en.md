@@ -42,15 +42,9 @@ It combines:
 
 That means you can start with campaign-aware WooCommerce orders or reliable form attribution first, then add browser events, consent integrations, or server-side delivery when your setup actually needs them.
 
-## Latest Release Notes (1.5.2)
+## Release Notes
 
-Version `1.5.2` is a maintenance release focused on code-quality cleanup and standards compliance.
-
-- **Line-ending cleanup**: mixed line endings were normalized in the consent, attribution-token, and privacy handlers.
-- **Standards cleanup**: remaining PHPCS findings in those handlers were resolved or documented where the behavior is intentional.
-- **Runtime unchanged**: behavior remains the same as `1.5.1`.
-
-For the full release history, see [changelog.txt](changelog.txt). The same public release notes are mirrored in [readme.txt](readme.txt) for the WordPress.org plugin page.
+The release badge above tracks the current GitHub release. See [changelog.txt](changelog.txt) for the full history and [readme.txt](readme.txt) for the public WordPress.org stable release.
 
 ## Problems It Solves
 
