@@ -23,12 +23,9 @@ ClickTrail keeps the source of the visit, not a profile of the visitor — first
 [Technical Docs](docs/README.md)  
 [WordPress Readme](readme.txt)
 
-> **Integration verification status (2026-08-19):** The registry and source paths are documented in
-> [the integration reference](docs/reference/INTEGRATIONS.md), but PHP/WordPress/provider E2E verification
-> was not available for this audit. The platform-named server adapters are currently **source-present /
-> runtime-unverified configured-endpoint adapters**. GTM can mediate site-owned platform tags; ClickTrail does
-> not inject Meta/Facebook Pixel, Google tag, TikTok Pixel, LinkedIn Insight, Pinterest Tag, or Reddit Pixel
-> SDKs. Reddit has a **relay-only** destination toggle and `rdt_cid` capture, not a native delivery adapter.
+> **Integration evidence:** Source presence alone does not prove production provider support. Current form, WooCommerce,
+> GTM, and delivery status lives in the [integration reference](docs/reference/INTEGRATIONS.md) and
+> [machine-readable ledger](docs/reference/integration-capabilities.json).
 
 ## What ClickTrail Solves
 
@@ -48,12 +45,9 @@ ClickTrail is designed to keep first-touch and last-touch context alive until th
 - **Events**: browser collection, `dataLayer` pushes, sGTM compatibility mode, webhook intake, lifecycle updates, and optional Woo storefront signals.
 - **Delivery**: optional server-side transport, retries, diagnostics, conflict scanning, backup/restore, and a consent gate whose end-to-end edge cases are documented for the next release.
 
-## Repository release status
+## Releases
 
-- **Source baseline:** plugin code `1.9.0` at commit `a45aa9e`.
-- **Release metadata:** README, WordPress.org stable tag, and generated release artifacts still need alignment before the next package is published.
-- **Current phase:** truth-containment documentation only; no runtime remediation or new provider adapter is implied by this README update.
-- Full release history: [changelog.txt](changelog.txt).
+The release badge above tracks the current GitHub release. See [changelog.txt](changelog.txt) for the full history and [readme.txt](readme.txt) for the public WordPress.org stable release.
 
 ## Documentation By Audience
 

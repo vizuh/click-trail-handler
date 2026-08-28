@@ -2,7 +2,7 @@
 
 [![Support](https://img.shields.io/badge/support-active-brightgreen.svg)](https://github.com/vizuh/click-trail-handler)
 [![Release](https://img.shields.io/github/v/release/vizuh/click-trail-handler?label=release&color=blue)](https://github.com/vizuh/click-trail-handler/releases)
-[![WordPress tested](https://img.shields.io/badge/WordPress-v7.0%20tested-3858e9.svg)](https://wordpress.org)
+[![WordPress tested](https://img.shields.io/badge/WordPress-v7.1%20tested-3858e9.svg)](https://wordpress.org)
 [![License](https://img.shields.io/badge/license-GPL--2.0-orange.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
 
 [![PHP Linting](https://github.com/vizuh/click-trail-handler/actions/workflows/php-lint.yml/badge.svg)](https://github.com/vizuh/click-trail-handler/actions/workflows/php-lint.yml)
@@ -12,13 +12,9 @@
 
 ![ClickTrail](.github/clicktrail-cover.png)
 
-> **Integration verification status (2026-08-19):** The source registry shows wiring, not production provider support.
-> PHP/WordPress/provider E2E verification was unavailable for this audit. Platform-named server adapters are
-> **source-present / runtime-unverified configured-endpoint adapters**. GTM can mediate site-owned provider tags;
-> ClickTrail does not inject Meta/Facebook Pixel, Google tag, TikTok Pixel, LinkedIn Insight, Pinterest Tag, or
-> Reddit Pixel SDKs. Reddit has a **relay-only** destination toggle and `rdt_cid` capture, not a native delivery
-> adapter. See the [integration evidence ledger](docs/reference/integration-capabilities.json) and
-> [integration reference](docs/reference/INTEGRATIONS.md).
+> **Integration evidence:** Source presence alone does not prove production provider support. Current form, WooCommerce,
+> GTM, and delivery status lives in the [integration reference](docs/reference/INTEGRATIONS.md) and
+> [machine-readable ledger](docs/reference/integration-capabilities.json).
 
 Attribution usually breaks somewhere between the ad click and the conversion. ClickTrail keeps campaign context alive through the journey to the WordPress conversion.
 
@@ -54,13 +50,9 @@ It combines:
 
 That means you can start with campaign-aware WooCommerce orders or form attribution first, then add browser events, consent integrations, or server-side delivery when your setup actually needs them.
 
-## Repository release status
+## Release Notes
 
-- **Source baseline:** plugin code `1.9.0` at commit `a45aa9e`.
-- **Release metadata:** README, WordPress.org stable tag, and generated release artifacts still need alignment before the next package is published.
-- **Current phase:** truth-containment documentation only; this update does not claim runtime remediation or new provider coverage.
-
-For the full release history, see [changelog.txt](changelog.txt). The public WordPress.org copy is maintained in [readme.txt](readme.txt).
+The release badge above tracks the current GitHub release. See [changelog.txt](changelog.txt) for the full history and [readme.txt](readme.txt) for the public WordPress.org stable release.
 
 ## Problems It Solves
 

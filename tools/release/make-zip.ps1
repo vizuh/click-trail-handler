@@ -58,20 +58,27 @@ $excludeDirs = @(
     '.vscode',
     '.claude',
     '.claude-flow',
+    '.specify',
+    '.understand-anything',
     '.tools',
     'dist',
     'docs',
     'tests',
     'tools',
     'vendor',
-    'node_modules'
+    'node_modules',
+    'shopify-gtm-container-templates-master'
 )
 
 $excludeFiles = @(
+    '.git',
     '.gitignore',
     '.gitattributes',
     '.editorconfig',
     '.mcp.json',
+    '.distignore',
+    '.phpunit.result.cache',
+    'feature-test-matrix.json',
     'package.json',
     'package-lock.json',
     'composer.json',
@@ -83,9 +90,16 @@ $excludeFiles = @(
     'CLAUDE.md',
     'CONTRIBUTING.md',
     'CONTRIBUTING.pt-BR.md',
+    'ROADMAP.md',
+    'RELEASING.md',
     'README.md',
     'README.en.md',
-    'README.pt-BR.md'
+    'README.pt-BR.md',
+    'funnelsheet-logo.png',
+    'GTM-*.json',
+    'gtm-starter-kit.json',
+    'build-starter-kit.py',
+    'class-gtm-lead-magnet.php'
 )
 
 $robocopyArgs = @(
@@ -120,6 +134,23 @@ if (Test-Path -Path $zipPath) {
 }
 
 Compress-Archive -Path $stageDir -DestinationPath $zipPath -Force
+
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$archive = [System.IO.Compression.ZipFile]::OpenRead($zipPath)
+try {
+    $entries = @($archive.Entries | ForEach-Object { $_.FullName.Replace('\', '/') })
+} finally {
+    $archive.Dispose()
+}
+
+$runtimeManifest = "$pluginSlug/config/feature-registry.json"
+$testManifest = "$pluginSlug/config/feature-test-matrix.json"
+if (($entries -notcontains $runtimeManifest) -or ($entries -contains $testManifest)) {
+    Remove-Item -Path $zipPath -Force
+    Remove-Item -Path $tempRoot -Recurse -Force
+    throw 'Archive manifest validation failed'
+}
+
 Remove-Item -Path $tempRoot -Recurse -Force
 
 Write-Output "ZIP created: $zipPath"

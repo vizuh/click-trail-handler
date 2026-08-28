@@ -1,16 +1,12 @@
 # ClickTrail
 
-[![WordPress tested](https://img.shields.io/badge/WordPress-v7.0%20tested-3858e9.svg)](https://wordpress.org)
+[![WordPress tested](https://img.shields.io/badge/WordPress-v7.1%20tested-3858e9.svg)](https://wordpress.org)
 
 ![ClickTrail](.github/clicktrail-cover.png)
 
-> **Status de verificacao das integracoes (2026-08-19):** o registry e o codigo comprovam wiring, nao suporte
-> de producao nos provedores. Os testes E2E de PHP/WordPress/provedores nao estavam disponiveis nesta auditoria.
-> Os adaptadores server-side com nome de plataforma estao **presentes no codigo / runtime nao verificado** e
-> enviam JSON para endpoint configurado. O GTM pode mediar tags do site; o ClickTrail nao injeta SDKs de Meta/
-> Facebook Pixel, Google tag, TikTok Pixel, LinkedIn Insight, Pinterest Tag ou Reddit Pixel. Reddit possui apenas
-> um destino **relay-only** e captura de `rdt_cid`, nao um adaptador nativo. Veja a [referencia de integracoes](docs/reference/INTEGRATIONS.md)
-> e o [ledger de evidencias](docs/reference/integration-capabilities.json).
+> **Evidencias de integracao:** presenca no codigo nao comprova producao no provedor. O status atual de
+> formularios, WooCommerce, GTM e entrega fica na [referencia de integracoes](docs/reference/INTEGRATIONS.md)
+> e no [ledger legivel por maquina](docs/reference/integration-capabilities.json).
 
 A atribuicao costuma quebrar em algum ponto entre o clique no anuncio e a conversao. O ClickTrail mantem o contexto da campanha vivo ao longo da jornada ate a conversao no WordPress.
 
