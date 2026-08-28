@@ -9,8 +9,8 @@
     "php_wordpress_e2e": "unavailable in this environment"
   },
   "ledger_review": {
-    "reviewed_on": "2026-08-24",
-    "scope": "Repository evidence mapping plus one disposable Woo browser checkout slice; provider status remains separate.",
+    "reviewed_on": "2026-08-28",
+    "scope": "Repository evidence mapping, disposable Woo browser checkout slices, and one bounded Fluent Forms consent-not-required browser submission; provider status remains separate.",
     "required_fields": [
       "business_value",
       "evidence_level",
@@ -27,7 +27,7 @@
     "gtm_mediated": "ClickTrail exposes browser/dataLayer or consent signals; the site owner configures the provider tag in GTM.",
     "relay_only": "A toggle or routing marker exists, but ClickTrail has no native delivery adapter for the destination.",
     "webhook_ingress": "ClickTrail accepts provider-originated requests as an event source; this is not outbound provider delivery.",
-    "source_connector_runtime_unverified": "A WordPress source integration exists in code; live plugin-hook and privacy behavior still require runtime verification.",
+    "source_connector_runtime_unverified": "A WordPress source integration exists in code; recorded runtime slices are entry-specific, and remaining hook and privacy behavior still requires verification.",
     "not_observed": "No direct provider SDK or native adapter was found in the reviewed source.",
     "planned_or_unsupported": "Do not advertise as available."
   },
@@ -519,18 +519,22 @@
       "role": "wordpress_source",
       "status": "source_connector_runtime_unverified",
       "provider_contract": "WordPress form hooks and/or hidden-field/submission metadata",
-      "what_exists": "Attribution capture and form-event paths are present; exact population, successful-submission, consent, and third-party retention behavior requires live plugin tests.",
+      "what_exists": "Attribution capture and form-event paths are present. A consent-not-required browser submission on WordPress 6.9, PHP 8.1, and Fluent Forms 6.2.13 stored first-touch, last-touch, and campaign metadata in fluentform_submission_meta through response_id.",
       "evidence": [
         "includes/integrations/class-form-integration-manager.php",
         "includes/integrations/forms/class-fluent-forms-adapter.php",
-        "tests/fixtures/form-readiness/v1/fluent.json"
+        "tests/fixtures/form-readiness/v1/fluent.json",
+        "tests/unit/FluentFormsAdapterTest.php"
       ],
       "test_ids": [
         "form-readiness-contract"
       ],
-      "runtime_tests": [],
+      "runtime_tests": [
+        "fluent-forms-6.2.13-consent-not-required-browser-submission-wp6.9-php8.1"
+      ],
       "known_limits": [
-        "Posted attribution and form-owned submission metadata are separate privacy boundaries."
+        "Posted attribution and form-owned submission metadata are separate privacy boundaries.",
+        "Consent-required submissions, erasure, and other Fluent Forms versions remain unverified."
       ]
     },
     {

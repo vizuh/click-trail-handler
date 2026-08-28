@@ -12,13 +12,9 @@
 
 ![ClickTrail](.github/clicktrail-cover.png)
 
-> **Integration verification status (2026-08-19):** The source registry shows wiring, not production provider support.
-> PHP/WordPress/provider E2E verification was unavailable for this audit. Platform-named server adapters are
-> **source-present / runtime-unverified configured-endpoint adapters**. GTM can mediate site-owned provider tags;
-> ClickTrail does not inject Meta/Facebook Pixel, Google tag, TikTok Pixel, LinkedIn Insight, Pinterest Tag, or
-> Reddit Pixel SDKs. Reddit has a **relay-only** destination toggle and `rdt_cid` capture, not a native delivery
-> adapter. See the [integration evidence ledger](docs/reference/integration-capabilities.json) and
-> [integration reference](docs/reference/INTEGRATIONS.md).
+> **Integration evidence:** Source presence alone does not prove production provider support. Current form, WooCommerce,
+> GTM, and delivery status lives in the [integration reference](docs/reference/INTEGRATIONS.md) and
+> [machine-readable ledger](docs/reference/integration-capabilities.json).
 
 Attribution usually breaks somewhere between the ad click and the conversion. ClickTrail keeps campaign context alive through the journey to the WordPress conversion.
 

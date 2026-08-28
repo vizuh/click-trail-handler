@@ -11,12 +11,9 @@ WC requires at least: 10.4.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-> **Current integration verification (2026-08-19):** source registry entries are not provider-support proof.
-> PHP/WordPress/provider E2E verification was unavailable. Platform-named server adapters are **source-present /
-> runtime-unverified configured-endpoint adapters**. GTM can mediate site-owned provider tags, but ClickTrail does
-> not inject Meta/Facebook Pixel, Google tag, TikTok Pixel, LinkedIn Insight, Pinterest Tag, or Reddit Pixel SDKs.
-> Reddit has a **relay-only** destination toggle and `rdt_cid` capture, not a native delivery adapter. See
-> `docs/reference/INTEGRATIONS.md` and `docs/reference/integration-capabilities.json` in the repository.
+> **Integration evidence:** source presence alone does not prove production provider support. Current form, WooCommerce,
+> GTM, and delivery status lives in the [integration reference](https://github.com/vizuh/click-trail-handler/blob/main/docs/reference/INTEGRATIONS.md)
+> and [machine-readable ledger](https://github.com/vizuh/click-trail-handler/blob/main/docs/reference/integration-capabilities.json).
 
 Consent-controlled attribution for WooCommerce, WordPress forms, and event flows. Capture UTMs and click IDs across conversion paths.
 
@@ -256,6 +253,7 @@ configured-endpoint relays whose provider authentication, acceptance, and runtim
 
 = 1.9.1 =
 *   **Fluent Forms fix**: attribution now persists in Fluent Forms submission metadata using its `response_id` schema column.
+*   **Compatibility**: tested up to WordPress 7.1.
 
 = 1.9.0 =
 *   **New foundation (no visible UI change)**: ClickTrail writes structured touch-event records in `clicutcl_touch_events` alongside the legacy diagnostics table. This is a reporting foundation, not a complete privacy certificate: the current audit found hashed-identity matching gaps, WooCommerce order-meta lifecycle gaps, retention coupling, and queue/revocation boundaries. See `docs/architecture/DATA-MODEL.md` and `docs/guides/SECURITY-PRIVACY.md` for the current evidence status.

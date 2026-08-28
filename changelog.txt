@@ -13,7 +13,8 @@ Changelog
 
 = 1.9.1 =
 *   **Fluent Forms submission storage fix** (`includes/integrations/forms/class-fluent-forms-adapter.php`): provider-entry attribution persistence now follows the schema contract owned by `docs/reference/INTEGRATIONS.md`. Added `tests/unit/FluentFormsAdapterTest.php` for the regression; the same reference owns the bounded runtime evidence.
-*   **Release packaging alignment** (`.distignore`, `tools/release/make-zip.ps1`): aligned both packaging paths with the runtime/development split owned by `RELEASING.md`.
+*   **Release packaging alignment** (`.distignore`, `package.json`, `tools/release/make-zip.js`, `tools/release/make-zip.ps1`, `.github/workflows/package.yml`): the canonical npm command now selects the POSIX or Windows path, includes the runtime registry, excludes the test matrix, and verifies the Windows archive in CI. `RELEASING.md` owns the packaging contract.
+*   **Compatibility metadata**: tested up to WordPress 7.1.
 
 = 1.9.0 =
 *   Normalized marketing trail envelope: browser events, page views, server-side events, and form submissions now expose stable event, trail, anonymous, and lead IDs alongside first/latest-touch attribution, click IDs, capture-time consent, site routing, and form context. Existing flat event payloads and WordPress.org stable tag remain unchanged; this GitHub release is ahead of WordPress.org.
