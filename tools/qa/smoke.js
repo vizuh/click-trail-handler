@@ -150,6 +150,77 @@ function validatePendingCaptureConsentGate(failures) {
   );
 }
 
+function validateCachedFormActionBoundary(failures) {
+  const values = new Map();
+  const memoryStorage = {
+    getItem(key) { return values.has(key) ? values.get(key) : null; },
+    setItem(key, value) { values.set(key, String(value)); },
+    removeItem(key) { values.delete(key); }
+  };
+  const form = { action: '/?gclid=visitor-a' };
+  const document = {
+    forms: [form],
+    referrer: '',
+    readyState: 'complete',
+    addEventListener() {},
+    dispatchEvent() {},
+    querySelector() { return null; },
+    querySelectorAll() { return []; }
+  };
+  let cookies = '';
+  Object.defineProperty(document, 'cookie', {
+    get() { return cookies; },
+    set(value) {
+      const pair = String(value).split(';', 1)[0];
+      const name = pair.slice(0, pair.indexOf('='));
+      const keep = cookies.split('; ').filter((cookie) => cookie && !cookie.startsWith(`${name}=`));
+      if (!/Max-Age=0|expires=Thu, 01 Jan 1970/i.test(value)) keep.push(pair);
+      cookies = keep.join('; ');
+    }
+  });
+
+  let uuid = 0;
+  const window = {
+    clicutcl_config: {
+      cookieName: 'ct_attribution',
+      cookieDays: 90,
+      requireConsent: false,
+      injectEnabled: false,
+      linkDecorateEnabled: false,
+      linkAppendToken: false,
+      enableWhatsapp: false
+    },
+    location: {
+      href: 'https://example.test/',
+      origin: 'https://example.test',
+      protocol: 'https:',
+      hostname: 'example.test',
+      pathname: '/',
+      search: ''
+    },
+    crypto: { randomUUID: () => `test-${++uuid}` },
+    dataLayer: []
+  };
+  const context = {
+    window,
+    document,
+    navigator: { userAgent: 'ClickTrail smoke', webdriver: false },
+    localStorage: memoryStorage,
+    sessionStorage: memoryStorage,
+    URL,
+    Event,
+    CustomEvent: class CustomEvent {
+      constructor(type, options) { this.type = type; this.detail = options && options.detail; }
+    },
+    console
+  };
+
+  vm.runInNewContext(readFile('assets/js/clicutcl-attribution.js'), context);
+
+  assert(window.ClickTrail.getField('gclid') === '', 'Cached form action must not become current visitor attribution', failures);
+  assert(form.action === '/?gclid=visitor-a', 'ClickTrail must not treat or rewrite a cached form action as attribution input', failures);
+}
+
 function validateWooRuntimeRemediations(failures) {
   const integration = readFile('includes/integrations/class-woocommerce.php');
   const admin = readFile('includes/admin/class-clicutcl-woocommerce-admin.php');
@@ -196,6 +267,7 @@ function main() {
   validateMatrixEvidence(matrix, failures);
   validateConsentRuntime(failures);
   validatePendingCaptureConsentGate(failures);
+  validateCachedFormActionBoundary(failures);
   validateWooRuntimeRemediations(failures);
   validateWooConsentSnapshotV1(failures);
 
