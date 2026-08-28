@@ -1,6 +1,6 @@
 # ClickTrail
 
-[![WordPress tested](https://img.shields.io/badge/WordPress-v7.0%20tested-3858e9.svg)](https://wordpress.org)
+[![WordPress tested](https://img.shields.io/badge/WordPress-v7.1%20tested-3858e9.svg)](https://wordpress.org)
 
 ![ClickTrail](.github/clicktrail-cover.png)
 
