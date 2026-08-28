@@ -1,0 +1,75 @@
+name: Package
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-package:
+    name: Windows package (PowerShell)
+    runs-on: windows-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build package
+        run: npm run make-zip
+
+      - name: Verify package
+        shell: powershell
+        run: |
+          $archives = @(Get-ChildItem -Path dist -Filter 'click-trail-handler-*.zip' -File)
+          if ($archives.Count -ne 1) {
+              throw "Expected exactly one ClickTrail archive, found $($archives.Count)"
+          }
+
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $archivePath = $archives[0].FullName
+          $archive = [System.IO.Compression.ZipFile]::OpenRead($archivePath)
+          try {
+              $entries = @($archive.Entries | ForEach-Object { $_.FullName.Replace('\', '/') })
+          } finally {
+              $archive.Dispose()
+          }
+
+          $roots = @($entries | ForEach-Object { ($_ -split '/', 2)[0] } | Where-Object { $_ } | Sort-Object -Unique)
+          if ($roots.Count -ne 1 -or $roots[0] -ne 'click-trail-handler') {
+              throw "Archive must contain one click-trail-handler/ root; found: $($roots -join ', ')"
+          }
+
+          $required = @(
+              'click-trail-handler/clicutcl.php',
+              'click-trail-handler/config/feature-registry.json'
+          )
+          foreach ($entry in $required) {
+              if ($entries -notcontains $entry) {
+                  throw "Required archive entry missing: $entry"
+              }
+          }
+
+          $testManifest = 'click-trail-handler/config/feature-test-matrix.json'
+          if ($entries -contains $testManifest) {
+              throw "Development archive entry found: $testManifest"
+          }
+
+          $forbiddenRoots = @('.git', '.github', 'docs', 'tests', 'tools', 'vendor', 'node_modules')
+          $forbiddenEntries = @($entries | Where-Object {
+              $parts = $_ -split '/'
+              $parts.Count -gt 1 -and $forbiddenRoots -contains $parts[1]
+          })
+          if ($forbiddenEntries.Count -gt 0) {
+              throw "Development archive entries found: $($forbiddenEntries -join ', ')"
+          }
+
+          $hash = Get-FileHash -Path $archivePath -Algorithm SHA256
+          Write-Output "SHA-256: $($hash.Hash)"

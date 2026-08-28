@@ -90,6 +90,7 @@ If you are new to the plugin, read these in order:
 
 - [../CONTRIBUTING.md](../CONTRIBUTING.md): contributor workflow and docs update matrix
 - [../CONTRIBUTING.pt-BR.md](../CONTRIBUTING.pt-BR.md): contributor workflow in Brazilian Portuguese
+- [../AGENTS.md](../AGENTS.md): repo-neutral agent guidance
 - [../.github/PULL_REQUEST_TEMPLATE.md](../.github/PULL_REQUEST_TEMPLATE.md): PR checklist
 
 ## Source of Truth Rules

@@ -2,7 +2,7 @@
 
 [![Support](https://img.shields.io/badge/support-active-brightgreen.svg)](https://github.com/vizuh/click-trail-handler)
 [![Release](https://img.shields.io/github/v/release/vizuh/click-trail-handler?label=release&color=blue)](https://github.com/vizuh/click-trail-handler/releases)
-[![WordPress tested](https://img.shields.io/badge/WordPress-v7.0%20tested-3858e9.svg)](https://wordpress.org)
+[![WordPress tested](https://img.shields.io/badge/WordPress-v7.1%20tested-3858e9.svg)](https://wordpress.org)
 [![License](https://img.shields.io/badge/license-GPL--2.0-orange.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
 
 [![PHP Linting](https://github.com/vizuh/click-trail-handler/actions/workflows/php-lint.yml/badge.svg)](https://github.com/vizuh/click-trail-handler/actions/workflows/php-lint.yml)
@@ -11,6 +11,10 @@
 [![Dependency Review](https://github.com/vizuh/click-trail-handler/actions/workflows/dependency-review.yml/badge.svg)](https://github.com/vizuh/click-trail-handler/actions/workflows/dependency-review.yml)
 
 ![ClickTrail](.github/clicktrail-cover.png)
+
+> **Integration evidence:** Source presence alone does not prove production provider support. Current form, WooCommerce,
+> GTM, and delivery status lives in the [integration reference](docs/reference/INTEGRATIONS.md) and
+> [machine-readable ledger](docs/reference/integration-capabilities.json).
 
 **Carry the right acquisition context from visit to WordPress conversion.**
 
@@ -27,14 +31,6 @@ identity across devices, or decide which channel deserves revenue credit.
 **What ClickTrail is not:** an attribution dashboard, a hosted server-side GTM
 platform, a lead manager, or an ad optimizer. It complements GA4 and GTM.
 Browser tags remain site-owned.
-
-> **Integration verification status (2026-08-19):** The source registry shows wiring, not production provider support.
-> PHP/WordPress/provider E2E verification was unavailable for this audit. Platform-named server adapters are
-> **source-present / runtime-unverified configured-endpoint adapters**. GTM can mediate site-owned provider tags;
-> ClickTrail does not inject Meta/Facebook Pixel, Google tag, TikTok Pixel, LinkedIn Insight, Pinterest Tag, or
-> Reddit Pixel SDKs. Reddit has a **relay-only** destination toggle and `rdt_cid` capture, not a native delivery
-> adapter. See the [integration evidence ledger](docs/reference/integration-capabilities.json) and
-> [integration reference](docs/reference/INTEGRATIONS.md).
 
 ## What ClickTrail Does
 

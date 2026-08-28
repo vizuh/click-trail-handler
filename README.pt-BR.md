@@ -1,8 +1,12 @@
 # ClickTrail
 
-[![WordPress tested](https://img.shields.io/badge/WordPress-v7.0%20tested-3858e9.svg)](https://wordpress.org)
+[![WordPress tested](https://img.shields.io/badge/WordPress-v7.1%20tested-3858e9.svg)](https://wordpress.org)
 
 ![ClickTrail](.github/clicktrail-cover.png)
+
+> **Evidências de integração:** presença no código não comprova produção no provedor. O status atual de
+> formulários, WooCommerce, GTM e entrega fica na [referência de integrações](docs/reference/INTEGRATIONS.md)
+> e no [ledger legível por máquina](docs/reference/integration-capabilities.json).
 
 **Leve o contexto de aquisição certo da visita até a conversão no WordPress.**
 
@@ -20,14 +24,6 @@ crédito da receita.
 **O que o ClickTrail não é:** um painel de atribuição, uma plataforma hospedada
 de server-side GTM, um gestor de leads ou um otimizador de anúncios. Ele
 complementa GA4 e GTM. As tags do navegador continuam sob controle do site.
-
-> **Status de verificacao das integracoes (2026-08-19):** o registry e o codigo comprovam wiring, nao suporte
-> de producao nos provedores. Os testes E2E de PHP/WordPress/provedores nao estavam disponiveis nesta auditoria.
-> Os adaptadores server-side com nome de plataforma estao **presentes no codigo / runtime nao verificado** e
-> enviam JSON para endpoint configurado. O GTM pode mediar tags do site; o ClickTrail nao injeta SDKs de Meta/
-> Facebook Pixel, Google tag, TikTok Pixel, LinkedIn Insight, Pinterest Tag ou Reddit Pixel. Reddit possui apenas
-> um destino **relay-only** e captura de `rdt_cid`, nao um adaptador nativo. Veja a [referencia de integracoes](docs/reference/INTEGRATIONS.md)
-> e o [ledger de evidencias](docs/reference/integration-capabilities.json).
 
 ## O Que o ClickTrail Faz
 

@@ -37,22 +37,18 @@ Each release folder is created when the version is cut. The zip is built from th
 
 ## Cutting a New Release
 
-1. **Bump the version** in `clicutcl.php` and `readme.txt` (`Stable tag` stays at the last WP.org release until you push).
+1. **Bump the version** in `clicutcl.php`. For a WordPress.org release candidate, also set
+   `readme.txt`'s `Stable tag` before building; for a GitHub-only mainline release, leave it at
+   the current public WordPress.org version. Do not upload the candidate until every quality
+   gate below passes.
 2. **Write the changelog** entry in `changelog.txt` and `readme.txt`.
-3. **Build the zip**:
+3. **Build the zip** with the canonical packaging script:
    ```bash
-   rsync -a --delete \
-     --exclude='.git' --exclude='.github' --exclude='node_modules' \
-     --exclude='vendor' --exclude='dist' --exclude='*.log' \
-     --exclude='.claude' --exclude='.claude-flow' \
-     --exclude='AGENTS.md' --exclude='CLAUDE.md' \
-     --exclude='composer.json' --exclude='composer.lock' \
-     --exclude='package.json' --exclude='package-lock.json' \
-     --exclude='phpcs.xml' --exclude='phpunit.xml' \
-     --exclude='tests/' \
-     . /tmp/click-trail-handler/
-   cd /tmp && zip -r click-trail-handler-VERSION.zip click-trail-handler/ -q
+   npm run make-zip
    ```
+   The archive must include runtime `config/feature-registry.json`, exclude development-only
+   `config/feature-test-matrix.json`, and follow `.distignore` on POSIX or
+   `tools/release/make-zip.ps1` on Windows.
 4. **Create the release folder**:
    ```
    dist/releases/VERSION/click-trail-handler-VERSION.zip
@@ -65,9 +61,11 @@ Each release folder is created when the version is cut. The zip is built from th
      --title "vVERSION — <one-line summary>" \
      --notes-file dist/releases/VERSION/CHANGELOG.md
    ```
+   For a maintenance line older than the current GitHub release, add `--latest=false`. Never
+   replace the current mainline release's Latest marker with an older maintenance release.
 6. **Test on staging** (tallk.me or equivalent) for 3–5 days.
 
-The cadence: every cut version is released on GitHub the same day; WP.org only ever receives the oldest staged version after its 3–5 day window. GitHub stays a few versions ahead, WP.org users get the most-tested build.
+The cadence: mainline cuts are released on GitHub the same day; WP.org receives the oldest staged version after its 3–5 day window. Maintenance-line GitHub releases stay non-latest, so the current mainline release keeps the Latest marker while WP.org users get the tested maintenance build.
 
 ---
 
@@ -126,10 +124,15 @@ svn ci -m "Release VERSION"
 
 ## Quality gates before any WP.org push
 
+Do not promote a release until every applicable gate passes:
+
 - [ ] All PHP files end with `}` (run integrity check: `for f in $(find includes -name "*.php"); do last=$(tail -1 "$f" | tr -d '[:space:]'); ... done`)
-- [ ] PHPCS: zero warnings
-- [ ] Plugin activates cleanly on a fresh install
+- [ ] PHPUnit passes on PHP 8.1, 8.2, and 8.3
+- [ ] PHPCS passes with zero warnings
+- [ ] PHPCompatibilityWP passes for PHP 8.1+
+- [ ] Release archive includes runtime config and excludes tests, tooling, and other development files
+- [ ] Plugin activates cleanly on a fresh WordPress install
 - [ ] Setup wizard redirect fires on activation
-- [ ] At least one form submit confirmed with `ct_utm_source` in the entry
+- [ ] A browser submission through the affected provider stores the expected `ct_*` metadata in its provider entry; record the exact WordPress, PHP, provider, and consent-path scope in the canonical integration reference
 - [ ] `Stable tag` in `readme.txt` updated to the version being released
 - [ ] WordPress.org asset validator above passes against the SVN checkout

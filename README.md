@@ -32,12 +32,9 @@ privacy boundaries before enabling optional delivery.
 [Technical Docs](docs/README.md)  
 [WordPress Readme](readme.txt)
 
-> **Integration verification status (2026-08-19):** The registry and source paths are documented in
-> [the integration reference](docs/reference/INTEGRATIONS.md), but PHP/WordPress/provider E2E verification
-> was not available for this audit. The platform-named server adapters are currently **source-present /
-> runtime-unverified configured-endpoint adapters**. GTM can mediate site-owned platform tags; ClickTrail does
-> not inject Meta/Facebook Pixel, Google tag, TikTok Pixel, LinkedIn Insight, Pinterest Tag, or Reddit Pixel
-> SDKs. Reddit has a **relay-only** destination toggle and `rdt_cid` capture, not a native delivery adapter.
+> **Integration evidence:** Source presence alone does not prove production provider support. Current form, WooCommerce,
+> GTM, and delivery status lives in the [integration reference](docs/reference/INTEGRATIONS.md) and
+> [machine-readable ledger](docs/reference/integration-capabilities.json).
 
 ## What ClickTrail Solves
 
@@ -73,7 +70,7 @@ ClickTrail is designed to keep first-touch and last-touch context alive until th
 
 - **GitHub visitors**: start with [README.en.md](README.en.md) or [README.pt-BR.md](README.pt-BR.md).
 - **Contributors and reviewers**: use [CONTRIBUTING.md](CONTRIBUTING.md) or [CONTRIBUTING.pt-BR.md](CONTRIBUTING.pt-BR.md).
-- **Engineers and agents**: use [docs/README.md](docs/README.md).
+- **Engineers and agents**: use [docs/README.md](docs/README.md) and [AGENTS.md](AGENTS.md).
 - **Implementation teams**: start with [use cases](docs/guides/USE-CASES.md) and the [tutorial index](docs/tutorials/README.md).
 
 ## Repository Map
