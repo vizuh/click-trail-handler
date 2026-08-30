@@ -3,14 +3,15 @@
 - **Audience**: contributors, maintainers, reviewers, and security-focused integrators
 - **Canonical for**: consent behavior, token handling, replay protection, and secret treatment
 - **Update when**: consent flow, auth, signing, secret storage, or privacy behavior changes
-- **Source baseline**: plugin code `1.9.0`, commit `a45aa9e`
-- **Runtime verification**: not completed in the 2026-08-19 audit; PHP/WordPress/browser/provider E2E tooling was unavailable
+- **Historical audit baseline**: plugin code `1.9.0`, commit `a45aa9e`, reviewed 2026-08-19
+- **Current release**: plugin code `1.10.0`, with automated consent, queue, WooCommerce privacy, and evidence-contract coverage
+- **Runtime verification**: PHP/WordPress/browser/CMP/provider E2E remains incomplete; live behavior is not implied by automated fixtures
 
 ClickTrail is designed to capture attribution and events without treating privacy and delivery as separate concerns.
-This document separates policy intent from verified runtime behavior. The current source audit found unresolved
-consent, queue, WooCommerce metadata, dataLayer, webhook, purge, and sGTM-preview boundaries; see the
-[release-phasing plan](RELEASE-PHASING-AND-INTEGRATION-DOCS.md) and
-[integration evidence ledger](../reference/integration-capabilities.json).
+This document separates policy intent, automated contract coverage, and verified runtime behavior. Version 1.10.0
+closes the queued-retry consent check and WooCommerce order-meta lifecycle implementation boundaries; browser,
+WordPress, CMP, provider, and staging evidence remain release gates. See the [release-phasing plan](RELEASE-PHASING-AND-INTEGRATION-DOCS.md)
+and [integration evidence ledger](../reference/integration-capabilities.json).
 
 ## Current security-status blockers
 
@@ -23,8 +24,8 @@ These are not claims that the behavior is fixed. They are release gates for the 
 - Same-tab listeners receive `ct:consentResolved`; other tabs receive the canonical decision through the
   browser `storage` event. Browser/CMP and queue/retry coverage below remains a focused VM boundary test,
   not a full browser or WordPress E2E proof.
-- Form/Woo posted attribution, Woo order metadata, purchase dataLayer output, and queued retries need independent consent/revocation tests.
-- Woo traces can retain identity metadata; ClickTrail now covers its Woo order-meta lifecycle through an explicit allowlist, subject to live Woo runtime verification.
+- Form/Woo posted attribution and purchase dataLayer output still need live consent/revocation tests; queued retries now have a current-consent contract test and implementation guard.
+- Woo traces can retain identity metadata; ClickTrail now covers its Woo order-meta lifecycle through an explicit allowlist and automated contract tests, subject to live Woo runtime verification.
 - Browser conversion tokens and external form messages do not prove a real action or provider confirmation.
 - Webhook identity/timestamp/replay semantics and sGTM preview SSRF still require hardening.
 
@@ -164,14 +165,16 @@ Supported providers:
 
 ## Queue, Revocation, and Retention Boundary
 
-The initial dispatcher consent decision is not the same as a complete lifecycle privacy guarantee. Before a
-runtime-remediation release is called ready, tests must prove that:
+The initial dispatcher consent decision is not the same as a complete lifecycle privacy guarantee. Version 1.10.0
+adds the implementation and automated contract coverage for the queue retry consent check and the allowlisted
+WooCommerce order-meta lifecycle. Live runtime evidence is still required to prove that:
 
-- consent withdrawal blocks queued sends immediately before adapter invocation;
+- consent withdrawal blocks queued sends immediately before adapter invocation in a WordPress installation;
 - browser dataLayer history, pending capture, ClickTrail tables, Woo order metadata, debug buffers, and provider
   deliveries have an explicit documented behavior;
 - retention is independent of the attribution cookie duration and cleanup continues when one table is unavailable;
-- purge/export/erase/uninstall cover every ClickTrail-owned storage key, including allowlisted WooCommerce order meta; expired Woo metadata is processed in bounded cleanup batches.
+- purge/export/erase/uninstall cover every ClickTrail-owned storage key in a live installation; expired Woo metadata
+  is processed in bounded cleanup batches.
 
 ## Trusted Proxies and Request Identity
 

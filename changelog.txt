@@ -2,14 +2,13 @@ Changelog
 ========
 
 = 1.10.0 =
+*   **Consent-safe delivery:** queued retries recheck the current consent snapshot immediately before adapter delivery, so a withdrawal is not replayed from historical queue state.
+*   **Cross-tab consent authority:** browser consent state now uses versioned timestamped authority, same-tab events, and cross-tab storage synchronization; stale plugin-cookie and banner values cannot revive a withdrawal.
+*   **WooCommerce privacy lifecycle:** order metadata is managed through an explicit ClickTrail allowlist, with personal-data export/erase, bounded retention, manual purge, uninstall cleanup, and classic/HPOS-compatible CRUD access. Unrelated order metadata is preserved.
+*   **Form evidence contract:** deterministic six-case manifests cover Contact Form 7, Fluent Forms, Gravity Forms, WPForms, Ninja Forms, and Elementor. These manifests remain explicitly runtime-unverified without pinned WordPress/plugin staging evidence.
 *   **Free capture layer:** normalized marketing-trail envelopes now carry stable event, trail, anonymous, lead, workspace, and site identifiers alongside first/last-touch attribution, UTMs, click IDs, landing page, referrer, consent, and form context.
-*   **WordPress diagnostics and integrations:** added readiness analyzers, consent snapshot contracts, hidden-field/dataLayer coverage, WooCommerce classic/HPOS contract tests, and a local smoke gate that keeps source presence separate from runtime/provider proof.
-*   **Release quality:** added pinned GitHub Actions, Dependabot, dependency review, CodeQL, OSV, Scorecard, security reporting, issue templates, PHP syntax/Composer audit gates, and contributor guidance. This GitHub release remains ahead of the WordPress.org Stable tag by policy.
-
-= Unreleased — documentation and release-gate baseline =
-*   **Documentation truth boundary:** added a machine-readable integration capability ledger and synchronized the integration reference, product readmes, security/privacy notes, and release-phasing plan. This documentation-only change does not fix runtime behavior or add provider delivery.
-*   **Provider status correction:** the platform-named server classes are documented as source-present/configured-endpoint adapters whose provider authentication, payload acceptance, consent transitions, retries, and purge behavior remain runtime-unverified. GTM-mediated platform tags are separate; Reddit remains relay-only with click-ID capture and no native delivery adapter.
-*   **Release gate:** public claims of privacy compliance, complete deletion, guaranteed delivery, native Reddit support, secure sGTM preview, or reliable booking/purchase behavior remain blocked until PHP/WordPress/browser/provider evidence passes.
+*   **Diagnostics and quality:** added readiness analyzers, consent snapshot contracts, WooCommerce classic/HPOS contract tests, and pinned supply-chain workflows, security reporting, and contributor guidance.
+*   **Release boundary:** provider acceptance, compliance, and complete runtime integration claims remain evidence-gated. The integration ledger and security guide record the current limits.
 
 = 1.9.1 =
 *   **Fluent Forms submission storage fix** (`includes/integrations/forms/class-fluent-forms-adapter.php`): provider-entry attribution persistence now follows the schema contract owned by `docs/reference/INTEGRATIONS.md`. Added `tests/unit/FluentFormsAdapterTest.php` for the regression; the same reference owns the bounded runtime evidence.
