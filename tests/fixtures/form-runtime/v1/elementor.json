@@ -1,0 +1,53 @@
+{
+  "schema": "clicktrail/form-runtime-evidence/v1",
+  "adapter": "elementor",
+  "plugin": "Elementor Forms Pro",
+  "pattern": "hook_storage",
+  "source_fixture": "tests/fixtures/form-readiness/v1/elementor.json",
+  "runtime_required": true,
+  "runtime_available": false,
+  "runtime_limit": "No pinned WordPress and form-plugin runtime is available in this checkout; source and synthetic fixtures are not runtime proof.",
+  "cases": [
+    {
+      "id": "ajax_cache_path",
+      "status": "unverified",
+      "reason_code": "wordpress_plugin_runtime_unavailable",
+      "expected_behavior": "The adapter path must populate or preserve attribution when the form is rendered through its AJAX/cache path."
+    },
+    {
+      "id": "validation_failure",
+      "status": "unverified",
+      "reason_code": "wordpress_plugin_runtime_unavailable",
+      "expected_behavior": "A validation failure must not be treated as a successful provider record or ClickTrail submission."
+    },
+    {
+      "id": "success",
+      "status": "unverified",
+      "reason_code": "wordpress_plugin_runtime_unavailable",
+      "expected_behavior": "A successful submission must invoke the adapter path and produce the expected ClickTrail event."
+    },
+    {
+      "id": "consent_granted",
+      "status": "unverified",
+      "reason_code": "wordpress_plugin_runtime_unavailable",
+      "expected_behavior": "Granted marketing consent must allow the documented attribution path."
+    },
+    {
+      "id": "consent_denied",
+      "status": "unverified",
+      "reason_code": "wordpress_plugin_runtime_unavailable",
+      "expected_behavior": "Denied marketing consent must block or redact the documented attribution path without a false success."
+    },
+    {
+      "id": "stored_record_inspection",
+      "status": "unverified",
+      "reason_code": "wordpress_plugin_runtime_unavailable",
+      "expected_behavior": "The named provider-owned storage surface must be inspected separately from hook payload and ClickTrail event evidence."
+    }
+  ],
+  "certification": {
+    "status": "runtime_unverified",
+    "reason_code": "wordpress_plugin_runtime_unavailable",
+    "rule": "runtime_verified requires all six cases to carry runtime evidence metadata from a pinned WordPress/plugin runtime."
+  }
+}

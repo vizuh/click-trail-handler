@@ -19,11 +19,16 @@ Primary automated entry point:
 Implementation:
 
 - `tools/qa/smoke.js`
+- `tools/qa/form-runtime-evidence.js` (form adapter runtime-evidence contract)
 
 ## What the Smoke Harness Covers
 
 The current smoke harness is primarily structural, not provider end-to-end. It verifies that registry and
-source-backed capabilities still have:
+source-backed capabilities retain the expected coverage. For forms, it also validates the runtime-evidence
+manifests and rejects a ledger `runtime_verified` label unless all six required cases have runtime evidence.
+
+The harness still does not establish provider acceptance or a live WordPress installation. Registry and
+source-backed capabilities retain the following checks:
 
 - registry coverage
 - canonical docs ownership

@@ -1200,8 +1200,8 @@
       ]
     },
     "form-readiness-contract": {
-      "label": "Versioned form-readiness presence comparator and six adapter fixtures",
-      "expected_behavior": "The pure M5 contract compares expected, submitted, provider-record, hook-payload, and ClickTrail-event field presence without accepting or returning attribution values. Fixture verification does not upgrade any adapter to runtime verified.",
+      "label": "Versioned form-readiness contract and runtime-evidence fixture harness",
+      "expected_behavior": "The pure M5 contract compares expected, submitted, provider-record, hook-payload, and ClickTrail-event field presence without accepting or returning attribution values. The runtime-evidence harness requires six explicit cases per adapter and derives runtime_verified only from complete pinned WordPress/plugin evidence.",
       "prerequisites": [
         "No live form-plugin lookup or persistence is enabled by this contract.",
         "Adapter runtime claims remain source-present / runtime-unverified until pinned integration and browser staging passes."
@@ -1209,6 +1209,7 @@
       "automated": true,
       "manual_verification": [
         "Review the comparator report and confirm it contains only adapter/pattern IDs, allowlisted ct_* field names, enums, booleans, and counts.",
+        "Run `node tools/qa/form-runtime-evidence.js`; every adapter must report six cases, with unavailable runtime cases explicitly unverified.",
         "Run pinned WordPress/form-plugin hook, record-readback, cache, AJAX, and browser fixtures before promoting any adapter runtime status."
       ],
       "evidence": [
@@ -1268,6 +1269,69 @@
           "patterns": [
             "test_each_adapter_has_a_versioned_privacy_safe_fixture",
             "test_adversarial_values_and_identifiers_never_round_trip"
+          ]
+        },
+        {
+          "file": "tests/unit/FormRuntimeEvidenceContractTest.php",
+          "patterns": [
+            "test_manifest_reuses_source_fixture_without_promoting_runtime_status",
+            "test_manifest_explicitly_covers_each_required_runtime_case"
+          ]
+        },
+        {
+          "file": "tools/qa/form-runtime-evidence.js",
+          "patterns": [
+            "clicktrail/form-runtime-evidence/v1",
+            "wordpress_plugin_runtime_unavailable",
+            "runtime_verified"
+          ]
+        },
+        {
+          "file": "tests/fixtures/form-runtime/v1/cf7.json",
+          "patterns": [
+            "ajax_cache_path",
+            "stored_record_inspection",
+            "runtime_unverified"
+          ]
+        },
+        {
+          "file": "tests/fixtures/form-runtime/v1/fluent.json",
+          "patterns": [
+            "ajax_cache_path",
+            "stored_record_inspection",
+            "runtime_unverified"
+          ]
+        },
+        {
+          "file": "tests/fixtures/form-runtime/v1/gravity.json",
+          "patterns": [
+            "ajax_cache_path",
+            "stored_record_inspection",
+            "runtime_unverified"
+          ]
+        },
+        {
+          "file": "tests/fixtures/form-runtime/v1/wpforms.json",
+          "patterns": [
+            "ajax_cache_path",
+            "stored_record_inspection",
+            "runtime_unverified"
+          ]
+        },
+        {
+          "file": "tests/fixtures/form-runtime/v1/elementor.json",
+          "patterns": [
+            "ajax_cache_path",
+            "stored_record_inspection",
+            "runtime_unverified"
+          ]
+        },
+        {
+          "file": "tests/fixtures/form-runtime/v1/ninja.json",
+          "patterns": [
+            "ajax_cache_path",
+            "stored_record_inspection",
+            "runtime_unverified"
           ]
         }
       ]

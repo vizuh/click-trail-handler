@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
+const formRuntimeEvidence = require('./form-runtime-evidence.js');
 
 const root = path.resolve(__dirname, '..', '..');
 
@@ -198,6 +199,7 @@ function main() {
   validatePendingCaptureConsentGate(failures);
   validateWooRuntimeRemediations(failures);
   validateWooConsentSnapshotV1(failures);
+  failures.push(...formRuntimeEvidence.validate(root));
 
   if (failures.length > 0) {
     console.error('Smoke coverage check failed:');
