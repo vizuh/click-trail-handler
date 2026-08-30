@@ -9,8 +9,8 @@
     "php_wordpress_e2e": "unavailable in this environment"
   },
   "ledger_review": {
-    "reviewed_on": "2026-08-28",
-    "scope": "Repository evidence mapping, disposable Woo browser checkout slices, and one bounded Fluent Forms consent-not-required browser submission; provider status remains separate.",
+    "reviewed_on": "2026-08-30",
+    "scope": "Repository evidence mapping, disposable Woo browser checkout slices, one bounded Fluent Forms consent-not-required browser submission, and the form runtime-evidence harness; provider status remains separate.",
     "required_fields": [
       "business_value",
       "evidence_level",
@@ -483,7 +483,8 @@
       "evidence": [
         "includes/integrations/class-form-integration-manager.php",
         "includes/integrations/forms/class-cf7-adapter.php",
-        "tests/fixtures/form-readiness/v1/cf7.json"
+        "tests/fixtures/form-readiness/v1/cf7.json",
+        "tests/fixtures/form-runtime/v1/cf7.json"
       ],
       "test_ids": [
         "form-readiness-contract"
@@ -503,7 +504,8 @@
       "evidence": [
         "includes/integrations/class-form-integration-manager.php",
         "includes/integrations/forms/class-elementor-forms-adapter.php",
-        "tests/fixtures/form-readiness/v1/elementor.json"
+        "tests/fixtures/form-readiness/v1/elementor.json",
+        "tests/fixtures/form-runtime/v1/elementor.json"
       ],
       "test_ids": [
         "form-readiness-contract"
@@ -524,7 +526,8 @@
         "includes/integrations/class-form-integration-manager.php",
         "includes/integrations/forms/class-fluent-forms-adapter.php",
         "tests/fixtures/form-readiness/v1/fluent.json",
-        "tests/unit/FluentFormsAdapterTest.php"
+        "tests/unit/FluentFormsAdapterTest.php",
+        "tests/fixtures/form-runtime/v1/fluent.json"
       ],
       "test_ids": [
         "form-readiness-contract"
@@ -547,7 +550,8 @@
       "evidence": [
         "includes/integrations/class-form-integration-manager.php",
         "includes/integrations/forms/class-gravity-forms-adapter.php",
-        "tests/fixtures/form-readiness/v1/gravity.json"
+        "tests/fixtures/form-readiness/v1/gravity.json",
+        "tests/fixtures/form-runtime/v1/gravity.json"
       ],
       "test_ids": [
         "form-readiness-contract"
@@ -567,7 +571,8 @@
       "evidence": [
         "includes/integrations/class-form-integration-manager.php",
         "includes/integrations/forms/class-ninja-forms-adapter.php",
-        "tests/fixtures/form-readiness/v1/ninja.json"
+        "tests/fixtures/form-readiness/v1/ninja.json",
+        "tests/fixtures/form-runtime/v1/ninja.json"
       ],
       "test_ids": [
         "form-readiness-contract"
@@ -587,7 +592,8 @@
       "evidence": [
         "includes/integrations/class-form-integration-manager.php",
         "includes/integrations/forms/class-wpforms-adapter.php",
-        "tests/fixtures/form-readiness/v1/wpforms.json"
+        "tests/fixtures/form-readiness/v1/wpforms.json",
+        "tests/fixtures/form-runtime/v1/wpforms.json"
       ],
       "test_ids": [
         "form-readiness-contract"

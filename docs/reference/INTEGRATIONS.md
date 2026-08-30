@@ -231,6 +231,21 @@ This contract is **source-present / runtime-unverified**. It is not wired to an
 admin endpoint, does not read live submissions, and does not prove that a form
 provider durably stored a value.
 
+The companion runtime-evidence harness is `node tools/qa/form-runtime-evidence.js`.
+It validates one machine-readable manifest per adapter under
+`tests/fixtures/form-runtime/v1/` and requires these six cases: AJAX/cache path,
+validation failure, success, consent granted, consent denied, and stored-record
+inspection. The current manifests deliberately mark all cases
+`runtime_unverified` with `wordpress_plugin_runtime_unavailable`; no pinned
+WordPress/form-plugin runtime is present in this checkout. Synthetic fixtures
+and source wiring cannot promote an adapter to runtime-verified.
+
+A future manifest may mark a case `verified` only with an artifact, pinned
+runtime description, observation date, and bounded assertions. The harness
+promotes the adapter only when all six cases are verified. The ledger must also
+contain a non-empty runtime test record before a `runtime_verified` status is
+allowed.
+
 The report keeps three evidence surfaces separate:
 
 - `provider_record`: a provider-owned entry or submission record
