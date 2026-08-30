@@ -7,6 +7,8 @@
 
 namespace CLICUTCL\Server_Side;
 
+use CLICUTCL\Consent\Decision_V1;
+use CLICUTCL\Consent\Snapshot_V1;
 use CLICUTCL\Tracking\Dedup_Store;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -249,6 +251,45 @@ class Queue {
 	}
 
 	/**
+	 * Decide whether a queued event may be delivered under a consent snapshot.
+	 *
+	 * Required-consent delivery accepts only a valid, explicit grant. An empty
+	 * or malformed snapshot therefore fails closed. Sites that do not require
+	 * consent preserve the existing behavior and may deliver without a snapshot.
+	 *
+	 * @param mixed $snapshot Current consent snapshot.
+	 * @param bool  $required Whether the current policy requires consent.
+	 * @return bool
+	 */
+	public static function consent_allows_retry( $snapshot, bool $required ): bool {
+		if ( ! $required ) {
+			return true;
+		}
+
+		$normalized = Snapshot_V1::normalize( $snapshot );
+		return ! empty( $normalized )
+			&& Decision_V1::DECISION_GRANTED === ( $normalized['decision'] ?? '' )
+			&& ! empty( $normalized['marketing'] );
+	}
+
+	/**
+	 * Re-check authoritative current consent immediately before a queued send.
+	 *
+	 * The consent captured in the queued event is historical evidence. Retry
+	 * delivery must use the current server-side snapshot so a later withdrawal
+	 * cannot replay the original payload.
+	 *
+	 * @return bool
+	 */
+	private static function current_consent_allows_retry(): bool {
+		if ( ! Consent::is_required() ) {
+			return true;
+		}
+
+		return self::consent_allows_retry( Consent::snapshot(), true );
+	}
+
+	/**
 	 * Process queued events.
 	 *
 	 * @return void
@@ -341,6 +382,19 @@ class Queue {
 
 		if ( $event_name && $event_id && Dedup_Store::is_duplicate( $destination, $event_name, $event_id ) ) {
 			self::delete_row( (int) $row['id'] );
+			return;
+		}
+
+		// The queued event may carry a historical grant. Re-check the
+		// authoritative current consent immediately before invoking the adapter,
+		// so a later withdrawal cannot be replayed.
+		if ( ! self::current_consent_allows_retry() ) {
+			$result = Adapter_Result::error( 0, 'consent_denied' );
+			$result->retryable = false;
+			self::update_row_failure( $row, $result->message, false );
+			Dispatcher::record_last_error( 'queue_consent_denied', $result->message );
+			Dispatcher::record_failure( 'queue_consent_denied' );
+			Dispatcher::log_dispatch( $event, $adapter, $result );
 			return;
 		}
 

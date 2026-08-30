@@ -5,16 +5,21 @@
  * live $wpdb/DB harness.
  *
  * process(), process_row(), update_row_failure(), mark_row_failed(), and
- * requeue_failed() all read/write via $wpdb and are not exercised here --
- * see the PR description for that gap.
+ * requeue_failed() all read/write via $wpdb and are not exercised here. The
+ * queue consent gate is covered through its pure seam below because this unit
+ * suite has no database harness.
  *
  * @package ClickTrail
  */
 
 declare(strict_types=1);
 
+require_once dirname( __DIR__, 2 ) . '/includes/Consent/class-decision-v1.php';
+require_once dirname( __DIR__, 2 ) . '/includes/Consent/class-resolver-v1.php';
+require_once dirname( __DIR__, 2 ) . '/includes/Consent/class-snapshot-v1.php';
 require_once dirname( __DIR__, 2 ) . '/includes/server-side/class-queue.php';
 
+use CLICUTCL\Consent\Snapshot_V1;
 use CLICUTCL\Server_Side\Queue;
 use PHPUnit\Framework\TestCase;
 
@@ -88,5 +93,36 @@ final class QueueRetryTest extends TestCase {
 		$result = Queue::redact_retry_payload( $payload );
 
 		$this->assertSame( $payload, $result );
+	}
+
+	public function test_required_consent_grant_allows_a_queued_retry(): void {
+		$grant = Snapshot_V1::capture( array( 'marketing' => true ), true, 1000 );
+
+		$this->assertTrue( Queue::consent_allows_retry( $grant, true ) );
+	}
+
+	public function test_required_consent_withdrawal_blocks_a_queued_retry(): void {
+		$withdrawal = Snapshot_V1::capture( array( 'marketing' => false ), true, 1001 );
+
+		$this->assertFalse( Queue::consent_allows_retry( $withdrawal, true ) );
+	}
+
+	public function test_required_retry_fails_closed_for_absent_or_malformed_consent(): void {
+		$this->assertFalse( Queue::consent_allows_retry( array(), true ) );
+		$this->assertFalse( Queue::consent_allows_retry( '{not-json', true ) );
+		$this->assertFalse(
+			Queue::consent_allows_retry(
+				array(
+					'schema_version' => 1,
+					'decision'       => 'maybe',
+					'basis'          => 'cmp',
+				),
+				true
+			)
+		);
+	}
+
+	public function test_not_required_retry_does_not_need_a_consent_snapshot(): void {
+		$this->assertTrue( Queue::consent_allows_retry( array(), false ) );
 	}
 }
