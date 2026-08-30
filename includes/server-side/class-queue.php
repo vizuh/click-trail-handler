@@ -389,7 +389,7 @@ class Queue {
 		// authoritative current consent immediately before invoking the adapter,
 		// so a later withdrawal cannot be replayed.
 		if ( ! self::current_consent_allows_retry() ) {
-			$result = Adapter_Result::error( 0, 'consent_denied' );
+			$result            = Adapter_Result::error( 0, 'consent_denied' );
 			$result->retryable = false;
 			self::update_row_failure( $row, $result->message, false );
 			Dispatcher::record_last_error( 'queue_consent_denied', $result->message );
