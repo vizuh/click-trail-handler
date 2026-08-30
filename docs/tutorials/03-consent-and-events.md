@@ -25,8 +25,12 @@ Run the same tagged journey with:
 3. consent granted, then withdrawn before a later event or delivery attempt.
 
 Check the browser `dataLayer`, ClickTrail Diagnostics, and any enabled delivery
-logs separately. Do not treat a visible browser event as proof of provider
-acceptance.
+logs separately. Verify that the canonical browser decision survives a reload,
+that a stale `ct_consent` cookie cannot restore a withdrawn decision, and that
+an open second tab receives the withdrawal through the browser `storage` event.
+Do not treat a visible browser event as proof of provider acceptance. The
+repository test (`npm run test:consent`) is a Node VM boundary test; it is not a
+real browser, WooCommerce, or provider E2E test.
 
 ## 3. Keep delivery optional
 

@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "smoke": "node -e \"require('./tools/qa/smoke.js')\"",
+    "test:consent": "node tools/qa/consent-bridge.test.js",
     "make-zip": "node tools/release/make-zip.js"
   }
 }
