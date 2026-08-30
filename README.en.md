@@ -301,6 +301,7 @@ If you need call tracking, lead scoring, multi-touch revenue modeling, or ad-spe
 - [Lead form attribution](docs/tutorials/01-lead-form-attribution.md)
 - [WooCommerce order attribution](docs/tutorials/02-woocommerce-order-attribution.md)
 - [Consent and browser events](docs/tutorials/03-consent-and-events.md)
+- [GTM starter kit](docs/tutorials/04-gtm-starter-kit.md)
 
 ## Release phasing and evidence
 
