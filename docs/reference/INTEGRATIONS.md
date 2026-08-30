@@ -4,7 +4,8 @@
 - **Canonical for**: integration roles, source evidence, status boundaries, providers, forms, webhooks, GTM, and delivery adapter keys
 - **Update when**: integration support level, adapter list, provider contract, evidence status, or capability messaging changes
 - **Provider-wide audit baseline**: plugin code `1.9.0`, commit `a45aa9e`, reviewed 2026-08-19
-- **Runtime verification**: provider-wide E2E remains incomplete; bounded WooCommerce and Fluent Forms evidence is recorded below
+- **Current release**: plugin code `1.10.0`; consent, queue, WooCommerce privacy, and form evidence contracts have automated coverage
+- **Runtime verification**: provider-wide E2E remains incomplete; bounded WooCommerce and Fluent Forms evidence is recorded below, while six form manifests remain explicitly runtime-unverified
 - **Machine-readable ledger**: [`integration-capabilities.json`](integration-capabilities.json)
 
 This document is an evidence boundary, not a promise that every registry entry is production-ready. The
@@ -56,8 +57,8 @@ live hook, consent, identity, and retention behavior still require testing.
 | Google tag / GA4 browser tag | GTM-mediated only; direct SDK not observed | Can consume site-owned GTM/dataLayer configuration | ClickTrail does not replace a site-owned Google tag setup |
 | TikTok Pixel, LinkedIn Insight, Pinterest Tag, Reddit Pixel | GTM-mediated only; direct SDKs not observed | Possible through a site-owned GTM container | No direct pixel/SDK injection or provider setup in ClickTrail |
 | Reddit destination | Relay-only | Destination toggle and `rdt_cid`/Reddit source classification | No native Reddit delivery adapter; no Reddit conversion-delivery claim |
-| Forms | Source connector / runtime-unverified overall | CF7, Elementor Pro, Fluent, Gravity, Ninja, and WPForms paths; bounded Fluent Forms submission-storage evidence | Other adapters; Fluent Forms consent-required and erasure paths |
-| WooCommerce | Source connector / runtime-unverified | Order attribution, storefront events, purchase/milestones, traces | Purchase consent/dataLayer, order-meta cleanup, and retry-marker proof |
+| Forms | Source connector / runtime-unverified overall | CF7, Elementor Pro, Fluent, Gravity, Ninja, and WPForms paths; bounded Fluent Forms submission-storage evidence; six-case evidence manifests | Live plugin-hook, posted-field, submission-storage, consent, and erasure proof for the remaining adapters |
+| WooCommerce | Source connector / runtime-unverified | Order attribution, storefront events, purchase/milestones, traces, and allowlisted order-meta privacy lifecycle contracts | Live checkout/CMP behavior, purchase dataLayer, dedup concurrency, queue/retry, and classic/HPOS staging proof |
 | Calendly, HubSpot, Typeform | Webhook ingress / runtime-unverified | Signed inbound routes and canonical translation | Provider timestamp, identity minimization, replay, consent, and E2E proof |
 
 ### Important platform boundary
@@ -264,11 +265,9 @@ passing synthetic fixture proves only the comparator contract.
 
 ## WooCommerce
 
-**Evidence boundary:** classic/HPOS synthetic runtime reproduced; consent
-remediation pending. Pinned local stacks exercised purchase, reload, paid,
-partial refund, denied-consent transport, and both order-storage modes without provider traffic.
-This does not prove browser checkout, provider delivery, dedup concurrency,
-queue/retry, privacy-lifecycle closure, or release compatibility.
+**Evidence boundary:** the 1.10.0 release adds automated contracts for consent-safe delivery and the WooCommerce order-meta privacy lifecycle.
+Pinned local stacks exercised purchase, reload, paid, partial refund, denied-consent transport, and both order-storage modes without provider traffic.
+This does not prove browser checkout, provider delivery, dedup concurrency, queue/retry behavior in a live installation, or release compatibility.
 
 Managed by:
 

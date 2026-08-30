@@ -5,7 +5,7 @@ Author URI: https://vizuh.com
 Tags: attribution, utm, consent mode, woocommerce, server-side tracking
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 1.9.1
+Stable tag: 1.10.0
 Requires PHP: 8.1
 WC requires at least: 10.4.2
 License: GPLv2 or later
@@ -46,7 +46,7 @@ In WooCommerce, ClickTrail stores attribution on the order, pushes enriched purc
 * **No checkout journey goes dark**: WooCommerce storefront journeys can emit opt-in `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` signals through the same ClickTrail event layer used elsewhere in the plugin.
 * **No cached or AJAX-rendered form drops attribution**: Hidden fields often break on cached pages or dynamically rendered forms. ClickTrail includes client-side fallback and dynamic-content support.
 * **No cross-domain hop breaks continuity**: Approved link decoration and attribution tokens keep continuity between domains or subdomains.
-* **Consent boundary is documented**: Consent controls, browser events, webhook intake, and server-side transport live in the same plugin, but the current audit identifies unresolved legacy-gate, revocation, queue, form, WooCommerce, and dataLayer edge cases.
+* **Consent and privacy lifecycle**: queued retries recheck current consent immediately before delivery; browser consent authority is synchronized across tabs; and WooCommerce order metadata has an allowlisted export, erase, retention, and uninstall lifecycle. Live WordPress, browser, CMP, WooCommerce, and provider verification remains a separate release gate.
 
 = Core capabilities =
 
@@ -247,9 +247,13 @@ server paths “first-class native delivery adapters” predates the current evi
 configured-endpoint relays whose provider authentication, acceptance, and runtime delivery remain unverified.
 
 = 1.10.0 =
+*   **Consent-safe delivery**: queued retries recheck the current consent snapshot immediately before adapter delivery, so a withdrawal is not replayed from historical queue state.
+*   **Cross-tab consent authority**: browser consent state now uses versioned timestamped authority, same-tab events, and cross-tab storage synchronization; stale plugin-cookie and banner values cannot revive a withdrawal.
+*   **WooCommerce privacy lifecycle**: order metadata is managed through an explicit ClickTrail allowlist, with personal-data export/erase, bounded retention, manual purge, uninstall cleanup, and classic/HPOS-compatible CRUD access. Unrelated order metadata is preserved.
+*   **Form evidence contract**: deterministic six-case manifests cover Contact Form 7, Fluent Forms, Gravity Forms, WPForms, Ninja Forms, and Elementor. These manifests remain explicitly runtime-unverified without pinned WordPress/plugin staging evidence.
 *   **Free capture layer**: normalized marketing-trail envelopes now carry stable event, trail, anonymous, lead, workspace, and site identifiers alongside first/last-touch attribution, UTMs, click IDs, landing page, referrer, consent, and form context.
 *   **Diagnostics and quality**: added readiness analyzers, consent snapshot contracts, WooCommerce classic/HPOS contract coverage, pinned supply-chain workflows, Dependabot, OSV, Scorecard, and contributor/security guidance.
-*   **Release boundary**: this GitHub release is ahead of the WordPress.org Stable tag by policy; provider acceptance, compliance, and complete runtime integration claims remain evidence-gated.
+*   **Release boundary**: provider acceptance, compliance, and complete runtime integration claims remain evidence-gated. See the integration reference and security guide for the current limits.
 
 = 1.9.1 =
 *   **Fluent Forms fix**: attribution now persists in Fluent Forms submission metadata using its `response_id` schema column.

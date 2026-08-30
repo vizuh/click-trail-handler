@@ -33,21 +33,21 @@ ClickTrail keeps the source of the visit, not a profile of the visitor — first
 - Persists UTMs and click IDs across the configured attribution journey.
 - Provides client-side fallback paths for cached or dynamic forms.
 - Provides approved cross-domain continuity paths with documented limitations.
-- Consent controls and optional server-side delivery live in one plugin; end-to-end consent/revocation behavior remains under the release gates.
+- Consent controls and optional server-side delivery live in one plugin; queued retries now recheck current consent before delivery.
 
 ClickTrail is designed to keep first-touch and last-touch context alive until the point where WordPress actually needs it: WooCommerce orders, form submissions, browser events, and optional downstream delivery.
 
 ## Core Capabilities
 
 - **Capture**: first-touch and last-touch attribution, referrers, classic and extended UTMs, click IDs, browser identifiers, retention, and cross-domain continuity.
-- **WooCommerce**: order attribution, enriched purchase payloads, thank-you page purchase pushes, optional list-view and cart storefront events, richer Woo `dataLayer` support, and post-purchase milestones.
+- **WooCommerce**: order attribution, enriched purchase payloads, thank-you page purchase pushes, optional list-view and cart storefront events, richer Woo `dataLayer` support, post-purchase milestones, and allowlisted privacy export/erase/purge/uninstall handling.
 - **Forms**: automatic hidden-field enrichment for Contact Form 7 and Fluent Forms, compatible hidden-field population for Gravity Forms and WPForms, cached-page fallback, dynamic-content support, and WhatsApp continuity.
 - **Events**: browser collection, `dataLayer` pushes, sGTM compatibility mode, webhook intake, lifecycle updates, and optional Woo storefront signals.
-- **Delivery**: optional server-side transport, retries, diagnostics, conflict scanning, backup/restore, and a consent gate whose end-to-end edge cases are documented for the next release.
+- **Delivery**: optional server-side transport, retries, diagnostics, conflict scanning, backup/restore, and consent-gated dispatch with a current-consent check before queued delivery.
 
 ## Releases
 
-The release badge above tracks the current GitHub release. See [changelog.txt](changelog.txt) for the full history and [readme.txt](readme.txt) for the public WordPress.org stable release.
+ClickTrail 1.10.0 adds consent-safe queued delivery, cross-tab consent authority, WooCommerce privacy lifecycle handling, and evidence-labelled form coverage. The WordPress.org package is prepared at the same version; live WordPress, browser, and provider verification remains a separate release gate. See [changelog.txt](changelog.txt) for the full history and [readme.txt](readme.txt) for the WordPress.org release notes.
 
 ## Documentation By Audience
 

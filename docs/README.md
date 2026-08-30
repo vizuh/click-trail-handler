@@ -3,12 +3,13 @@
 - **Audience**: implementers, contributors, maintainers, support teams, reviewers, and AI agents
 - **Canonical for**: engineering navigation, adoption guidance, and source-of-truth lookup
 - **Update when**: docs move, ownership changes, or a new subsystem or rollout pattern needs a canonical reference
-- **Source baseline**: plugin code `1.9.0`, commit `a45aa9e`
-- **Runtime verification**: not completed in the 2026-08-19 audit; PHP/WordPress/provider E2E tooling was unavailable
+- **Current release baseline**: plugin code `1.10.0`, main commit `1fc21a8`, including the consent, privacy, and evidence releases recorded in the changelog
+- **Automated verification**: PHP 8.1–8.3, PHPCS, PHP compatibility, Node contract checks, and smoke checks pass for the release PRs
+- **Live verification boundary**: WordPress, browser/CMP, WooCommerce classic/HPOS staging, and provider E2E remain separate release gates
 
 This is the docs home for GitHub readers. Use it to find the right document by role, task, or rollout goal. Canonical docs live under `docs/architecture`, `docs/guides`, and `docs/reference`.
 
-> **Current verification boundary:** the integration registry proves source wiring, not production provider support. Read the [integration capability ledger](reference/integration-capabilities.json) and [integration reference](reference/INTEGRATIONS.md) before treating any adapter or destination as available. Reddit is relay-only in the current source; GTM-mediated platform tags are not native ClickTrail adapters.
+> **Current verification boundary:** the integration registry proves source wiring, not production provider support. Read the [integration capability ledger](reference/integration-capabilities.json) and [integration reference](reference/INTEGRATIONS.md) before treating any adapter or destination as available. The 1.10.0 consent, queue, and WooCommerce privacy contracts have automated coverage; live WordPress/browser/provider behavior remains separately gated. Reddit is relay-only; GTM-mediated platform tags are not native ClickTrail adapters.
 
 ## Start Here
 

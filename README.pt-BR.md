@@ -42,6 +42,12 @@ Ele combina:
 
 Isso permite comecar por pedidos do WooCommerce com atribuicao de campanha ou por formularios, e adicionar eventos no navegador, integracoes de consentimento ou entrega server-side depois, quando a operacao realmente precisar.
 
+## Notas da Versao
+
+**1.10.0** adiciona novas tentativas de entrega na fila com verificacao de consentimento atual, uma decisao canonica de consentimento entre abas, ciclo de privacidade de metadados de pedidos WooCommerce e um contrato de evidencias para os seis adaptadores de formularios. O pacote para WordPress.org foi preparado nesta versao. A verificacao em WordPress, navegador, CMP, WooCommerce e provedores continua sendo uma etapa separada; os manifestos dos formularios permanecem explicitamente sem verificacao de runtime quando essa evidencia nao existe.
+
+Veja o [changelog](changelog.txt) para o historico completo e o [readme do WordPress](readme.txt) para as notas publicas.
+
 ## Problemas Que Ele Resolve
 
 ### 1. Perda de atribuicao dentro do WordPress
@@ -231,7 +237,7 @@ Isso deixa a configuracao principal mais clara sem esconder saude de fila e ferr
 
 ## Privacidade e Consentimento
 
-O ClickTrail possui controles de consentimento para atribuicao e eventos, mas a auditoria atual encontrou limites nao resolvidos em estado legado, revogacao, filas, WooCommerce, formularios e saida no dataLayer.
+A versao 1.10.0 adiciona uma decisao canonica de consentimento entre abas, verifica o consentimento atual antes de entregar itens da fila e cobre os metadados de pedidos WooCommerce com exportacao, apagamento, retencao e desinstalacao por allowlist. A verificacao em WordPress, navegador, CMP, WooCommerce e provedores continua sendo uma etapa separada do release.
 
 - Consent mode pode ser ligado ou desligado.
 - O comportamento aceita `strict`, `relaxed` e `geo`.

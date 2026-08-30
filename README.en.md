@@ -52,7 +52,9 @@ That means you can start with campaign-aware WooCommerce orders or form attribut
 
 ## Release Notes
 
-The release badge above tracks the current GitHub release. See [changelog.txt](changelog.txt) for the full history and [readme.txt](readme.txt) for the public WordPress.org stable release.
+**1.10.0** adds consent-safe queued retries, canonical cross-tab consent authority, WooCommerce order-meta privacy lifecycle handling, and an evidence contract for all six supported form adapters. The WordPress.org package is prepared at this version. Live WordPress, browser, CMP, WooCommerce, and provider verification remains a separate gate; the form manifests stay explicitly runtime-unverified where that evidence is unavailable.
+
+See [changelog.txt](changelog.txt) for the full history and [readme.txt](readme.txt) for the WordPress.org release notes.
 
 ## Problems It Solves
 
@@ -243,7 +245,7 @@ This keeps the main configuration flow focused while still exposing queue health
 
 ## Privacy and Consent
 
-ClickTrail contains consent controls for attribution and event handling, but the current audit found unresolved edge cases across legacy consent state, revocation, queues, WooCommerce, forms, and dataLayer output.
+ClickTrail 1.10.0 adds a canonical cross-tab consent decision, rechecks current consent before queued delivery, and covers WooCommerce order metadata through an allowlisted export, erase, retention, and uninstall lifecycle. Live WordPress, browser, CMP, WooCommerce, and provider verification remains a separate release gate.
 
 - Consent mode can be enabled or disabled.
 - Consent behavior supports `strict`, `relaxed`, and `geo`.
