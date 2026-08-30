@@ -19,7 +19,7 @@ These are not claims that the behavior is fixed. They are release gates for the 
 - Browser/CMP authority still uses unversioned cookies; M7-B labels their Woo snapshots `legacy_unversioned` but does not resolve stale-cookie precedence.
 - Stale plugin consent cookies can outrank a current CMP decision; cross-tab synchronization and revocation are incomplete.
 - Form/Woo posted attribution, Woo order metadata, purchase dataLayer output, and queued retries need independent consent/revocation tests.
-- Woo traces can retain identity metadata; ClickTrail purge/export/erase/uninstall does not yet cover every Woo order-meta key.
+- Woo traces can retain identity metadata; ClickTrail now covers its Woo order-meta lifecycle through an explicit allowlist, subject to live Woo runtime verification.
 - Browser conversion tokens and external form messages do not prove a real action or provider confirmation.
 - Webhook identity/timestamp/replay semantics and sGTM preview SSRF still require hardening.
 
@@ -95,8 +95,8 @@ Identity exposure is additionally filterable through:
 The personal-data eraser currently targets matching rows from the events table, the structured touch
 events table (`clicutcl_touch_events`, matched on the exact hashed-email `visitor_id`), and the server-side
 delivery queue (`clicutcl_queue`, matched on raw and SHA-256-hashed email). This is not complete erasure proof:
-legacy event matching does not cover every stored hashed identity shape, and ClickTrail has no verified generic
-export/erase/uninstall coverage for WooCommerce order-meta trace and attribution keys.
+legacy event matching does not cover every stored hashed identity shape. Woo order metadata now has an
+allowlisted export/erase/uninstall lifecycle, but live Woo runtime verification remains open.
 
 ## Client Token Security
 
@@ -166,7 +166,7 @@ runtime-remediation release is called ready, tests must prove that:
 - browser dataLayer history, pending capture, ClickTrail tables, Woo order metadata, debug buffers, and provider
   deliveries have an explicit documented behavior;
 - retention is independent of the attribution cookie duration and cleanup continues when one table is unavailable;
-- purge/export/erase/uninstall cover every ClickTrail-owned storage key, including WooCommerce order meta.
+- purge/export/erase/uninstall cover every ClickTrail-owned storage key, including allowlisted WooCommerce order meta; expired Woo metadata is processed in bounded cleanup batches.
 
 ## Trusted Proxies and Request Identity
 
@@ -263,7 +263,7 @@ It must not accept or return real order/refund/customer IDs, identities,
 attribution values, IP addresses, user agents, purchase payloads, URLs, or
 secrets. It performs no WordPress/WooCommerce lookup and creates no storage.
 
-The contract records, but does not fix, the existing privacy-lifecycle gap:
-identity-bearing canonical Woo trace snapshots and Diagnostics surfaces do not
-yet have complete allowlisted erase, purge, export, and uninstall coverage.
-Runtime work remains blocked until that boundary is designed and verified.
+The contract records the remaining privacy-lifecycle verification work:
+identity-bearing canonical Woo trace snapshots and Diagnostics surfaces have an
+allowlisted erase, purge, export, and uninstall path, but live Woo runtime verification remains open.
+Runtime work remains blocked until that boundary is verified.

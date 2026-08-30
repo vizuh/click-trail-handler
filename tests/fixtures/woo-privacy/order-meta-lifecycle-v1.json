@@ -1,0 +1,16 @@
+{
+  "fixture_id": "woo-order-meta-lifecycle-v1",
+  "managed_keys": [
+    "_clicutcl_ft_source",
+    "_clicutcl_lt_gclid",
+    "_clicutcl_consent",
+    "_clicutcl_woo_trace_snapshot",
+    "_clicutcl_visitor_id",
+    "_clicutcl_session_id",
+    "_clicutcl_tracking_sent",
+    "_clicutcl_woo_milestone_sent_order_paid"
+  ],
+  "unmanaged_keys": [
+    "_billing_email"
+  ]
+}

@@ -9,6 +9,7 @@ namespace CLICUTCL\Admin;
 
 use CLICUTCL\Modules\Consent_Mode\Consent_Mode_Settings;
 use CLICUTCL\Modules\GTM\GTM_Settings;
+use CLICUTCL\Privacy\Woo_Order_Privacy;
 use CLICUTCL\Server_Side\Dispatcher;
 use CLICUTCL\Server_Side\Queue;
 use CLICUTCL\Server_Side\Settings;
@@ -147,6 +148,7 @@ trait Admin_Diagnostics_Ajax_Trait {
 
 		$events_table = $wpdb->prefix . 'clicutcl_events';
 		$queue_table  = $wpdb->prefix . 'clicutcl_queue';
+		$touch_table  = $wpdb->prefix . 'clicutcl_touch_events';
 		$errors       = array();
 
 		// Clear plugin-owned event and retry tables if present.
@@ -169,6 +171,17 @@ trait Admin_Diagnostics_Ajax_Trait {
 			}
 		}
 
+		// Structured touch events are part of the same local purge surface.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$touch_ready = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $touch_table ) );
+		if ( $touch_ready === $touch_table ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name from $wpdb->prefix.
+			$result = $wpdb->query( "TRUNCATE TABLE {$touch_table}" );
+			if ( false === $result ) {
+				$errors[] = 'touch_events_truncate_failed';
+			}
+		}
+
 		delete_transient( 'clicutcl_last_error' );
 		delete_transient( 'clicutcl_dispatch_buffer' );
 		delete_transient( 'clicutcl_failure_telemetry' );
@@ -180,6 +193,11 @@ trait Admin_Diagnostics_Ajax_Trait {
 		delete_option( 'clicutcl_last_error' );
 		delete_option( 'clicutcl_dispatch_log' );
 		delete_option( 'clicutcl_attempts' );
+
+		$woo_purge = ( new Woo_Order_Privacy() )->purge_all_order_metadata();
+		if ( ! empty( $woo_purge['remaining'] ) ) {
+			$errors[] = 'woocommerce_order_meta_purge_incomplete';
+		}
 
 		if ( ! empty( $errors ) ) {
 			wp_send_json_error(

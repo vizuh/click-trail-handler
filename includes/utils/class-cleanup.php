@@ -7,6 +7,7 @@
 
 namespace CLICUTCL\Utils;
 
+use CLICUTCL\Privacy\Woo_Order_Privacy;
 use CLICUTCL\Settings\Attribution_Settings;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -75,6 +76,11 @@ class Cleanup {
 			);
 		}
 
+		$woo_result = ( new Woo_Order_Privacy() )->purge_expired_order_metadata( $days );
+		if ( ! empty( $woo_result['remaining'] ) && function_exists( 'do_action' ) ) {
+			do_action( 'clicutcl_cleanup_batch_incomplete', 'woocommerce_order_meta', $woo_result );
+		}
+
 		$queue_days = (int) apply_filters( 'clicutcl_queue_retention_days', 7 );
 		if ( $queue_days < 1 ) {
 			$queue_days = 7;
@@ -84,7 +90,8 @@ class Cleanup {
 		$queue_table_escaped = esc_sql( $queue_table );
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Lightweight metadata check on plugin-owned table; no core wrapper available.
-		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $queue_table ) ) !== $queue_table ) {
+		$queue_exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $queue_table ) ) === $queue_table;
+		if ( ! $queue_exists ) {
 			return;
 		}
 
