@@ -17,36 +17,38 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
  */
 $clicutcl_preserve_data = (bool) apply_filters( 'clicutcl_preserve_data_on_uninstall', false );
 
-// Delete plugin options.
-$clicutcl_option_keys = array(
-	'clicutcl_attribution_settings',
-	'clicutcl_consent_mode',
-	'clicutcl_gtm',
-	'clicutcl_pii_risk_detected',
-	'clicutcl_server_side',
-	'clicutcl_server_side_network',
-	'clicutcl_tracking_v2',
-	'clicutcl_last_error',
-	'clicutcl_attempts',
-	'clicutcl_dispatch_log',
-	'clicutcl_sitehealth_status',
-	'clicutcl_db_ready',
-	'clicutcl_db_ready_checked_at',
-	'clicutcl_events_table_ready',
-	'clicutcl_events_table_checked_at',
-	'clicutcl_queue_table_ready',
-	'clicutcl_queue_table_checked_at',
-	'clicutcl_touch_events_table_ready',
-	'clicutcl_touch_events_table_checked_at',
-	'_transient_clicutcl_debug_until',
-	'_transient_timeout_clicutcl_debug_until',
-);
-foreach ( $clicutcl_option_keys as $clicutcl_option_key ) {
-	delete_option( $clicutcl_option_key );
-}
+// Delete plugin options only when data preservation was not requested.
+if ( ! $clicutcl_preserve_data ) {
+	$clicutcl_option_keys = array(
+		'clicutcl_attribution_settings',
+		'clicutcl_consent_mode',
+		'clicutcl_gtm',
+		'clicutcl_pii_risk_detected',
+		'clicutcl_server_side',
+		'clicutcl_server_side_network',
+		'clicutcl_tracking_v2',
+		'clicutcl_last_error',
+		'clicutcl_attempts',
+		'clicutcl_dispatch_log',
+		'clicutcl_sitehealth_status',
+		'clicutcl_db_ready',
+		'clicutcl_db_ready_checked_at',
+		'clicutcl_events_table_ready',
+		'clicutcl_events_table_checked_at',
+		'clicutcl_queue_table_ready',
+		'clicutcl_queue_table_checked_at',
+		'clicutcl_touch_events_table_ready',
+		'clicutcl_touch_events_table_checked_at',
+		'_transient_clicutcl_debug_until',
+		'_transient_timeout_clicutcl_debug_until',
+	);
+	foreach ( $clicutcl_option_keys as $clicutcl_option_key ) {
+		delete_option( $clicutcl_option_key );
+	}
 
-if ( function_exists( 'is_multisite' ) && is_multisite() ) {
-	delete_site_option( 'clicutcl_server_side_network' );
+	if ( function_exists( 'is_multisite' ) && is_multisite() ) {
+		delete_site_option( 'clicutcl_server_side_network' );
+	}
 }
 
 // Clear scheduled hooks.
@@ -58,18 +60,31 @@ if ( function_exists( 'as_unschedule_all_actions' ) ) {
 	as_unschedule_all_actions( 'clicutcl_dispatch_queue', array(), 'clicktrail-delivery' );
 }
 
-// Clear known transients used for diagnostics, dedup, rate limits, and replay guards.
-global $wpdb;
-// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Uninstall cleanup; no cache needed.
-$wpdb->query(
-	$wpdb->prepare(
-		"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
-		'_transient_clicutcl_%',
-		'_transient_timeout_clicutcl_%'
-	)
-);
+if ( ! $clicutcl_preserve_data ) {
+	// Clear known transients used for diagnostics, dedup, rate limits, and replay guards.
+	global $wpdb;
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Uninstall cleanup; no cache needed.
+	$wpdb->query(
+		$wpdb->prepare(
+			"DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s",
+			'_transient_clicutcl_%',
+			'_transient_timeout_clicutcl_%'
+		)
+	);
+}
 
 if ( ! $clicutcl_preserve_data ) {
+	// Load the lifecycle helper because WordPress may include uninstall.php
+	// without loading the plugin bootstrap first.
+	$clicutcl_woo_privacy_file = __DIR__ . '/includes/privacy/class-woo-order-privacy.php';
+	if ( function_exists( 'wc_get_orders' ) && file_exists( $clicutcl_woo_privacy_file ) ) {
+		require_once $clicutcl_woo_privacy_file;
+		$clicutcl_woo_purge = ( new \CLICUTCL\Privacy\Woo_Order_Privacy() )->purge_all_order_metadata();
+		if ( ! empty( $clicutcl_woo_purge['remaining'] ) && function_exists( 'do_action' ) ) {
+			do_action( 'clicutcl_uninstall_order_meta_incomplete', $clicutcl_woo_purge );
+		}
+	}
+
 	$clicutcl_queue_table        = $wpdb->prefix . 'clicutcl_queue';
 	$clicutcl_events_table       = $wpdb->prefix . 'clicutcl_events';
 	$clicutcl_touch_events_table = $wpdb->prefix . 'clicutcl_touch_events';

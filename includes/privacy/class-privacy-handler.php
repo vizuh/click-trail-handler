@@ -97,30 +97,28 @@ class Privacy_Handler {
 		}
 
 		$table = $this->get_events_table_name();
-		if ( ! $this->table_exists( $table ) ) {
-			return array(
-				'data' => array(),
-				'done' => true,
-			);
-		}
-		$table_escaped = esc_sql( $table );
+		$rows  = array();
 
 		$user_id = (int) email_exists( $email );
-		$where   = $this->build_event_match_where( $email, $user_id );
-		$offset  = ( $page - 1 ) * self::PAGE_SIZE;
+		if ( $this->table_exists( $table ) ) {
+			$table_escaped = esc_sql( $table );
+			$where         = $this->build_event_match_where( $email, $user_id );
+			$offset        = ( $page - 1 ) * self::PAGE_SIZE;
 
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name and WHERE clause are plugin-owned.
-		$query = "SELECT id, event_type, event_data, created_at FROM {$table} WHERE {$where['sql']} ORDER BY created_at DESC LIMIT %d OFFSET %d";
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name and WHERE clause are plugin-owned.
+			$query = "SELECT id, event_type, event_data, created_at FROM {$table_escaped} WHERE {$where['sql']} ORDER BY created_at DESC LIMIT %d OFFSET %d";
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Required for privacy export callbacks.
-		$rows = $wpdb->get_results(
-			// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- Params merged dynamically via array_merge.
-			$wpdb->prepare(
-				$query, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $query built above.
-				array_merge( $where['params'], array( self::PAGE_SIZE, $offset ) )
-			),
-			ARRAY_A
-		);
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Required for privacy export callbacks.
+			$rows = $wpdb->get_results(
+				// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- Params merged dynamically via array_merge.
+				$wpdb->prepare(
+					$query, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $query built above.
+					array_merge( $where['params'], array( self::PAGE_SIZE, $offset ) )
+				),
+				ARRAY_A
+			);
+			$rows = is_array( $rows ) ? $rows : array();
+		}
 
 		$export_items = array();
 
@@ -157,10 +155,12 @@ class Privacy_Handler {
 
 		$touch_items  = $this->export_touch_events_items( $email, $page );
 		$export_items = array_merge( $export_items, $touch_items['items'] );
+		$woo_items    = ( new Woo_Order_Privacy() )->export_order_data( $email, $page );
+		$export_items = array_merge( $export_items, $woo_items['items'] );
 
 		return array(
 			'data' => $export_items,
-			'done' => count( $rows ) < self::PAGE_SIZE && $touch_items['done'],
+			'done' => count( $rows ) < self::PAGE_SIZE && $touch_items['done'] && $woo_items['done'],
 		);
 	}
 
@@ -184,31 +184,29 @@ class Privacy_Handler {
 		}
 
 		$table = $this->get_events_table_name();
-		if ( ! $this->table_exists( $table ) ) {
-			return array(
-				'items_removed'  => false,
-				'items_retained' => false,
-				'messages'       => array(),
-				'done'           => true,
-			);
-		}
-		$table_escaped = esc_sql( $table );
+		$rows  = array();
 
 		$user_id = (int) email_exists( $email );
-		$where   = $this->build_event_match_where( $email, $user_id );
+		if ( $this->table_exists( $table ) ) {
+			$table_escaped = esc_sql( $table );
+			$where         = $this->build_event_match_where( $email, $user_id );
 
-		// Always read first page for erasure to avoid offset skipping after deletions.
-		// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name and WHERE clause are plugin-owned.
-		$query = "SELECT id FROM {$table_escaped} WHERE {$where['sql']} ORDER BY id ASC LIMIT %d";
+			// Always read first page for erasure to avoid offset skipping after deletions.
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name and WHERE clause are plugin-owned.
+			$query = "SELECT id FROM {$table_escaped} WHERE {$where['sql']} ORDER BY id ASC LIMIT %d";
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Required for privacy erasure callbacks.
-		$rows = $wpdb->get_results(
-			$wpdb->prepare(
-				$query, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $query built above.
-				array_merge( $where['params'], array( self::PAGE_SIZE ) )
-			),
-			ARRAY_A
-		);
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Required for privacy erasure callbacks.
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					$query, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $query built above.
+					array_merge( $where['params'], array( self::PAGE_SIZE ) )
+				),
+				ARRAY_A
+			);
+			$rows = is_array( $rows ) ? $rows : array();
+		}
+
+		$table_escaped = esc_sql( $table );
 
 		$removed_any = false;
 		$retained    = false;
@@ -287,11 +285,22 @@ class Privacy_Handler {
 			$messages = array_merge( $messages, $touch_events['messages'] );
 		}
 
+		$woo = ( new Woo_Order_Privacy() )->erase_order_data( $email, $page );
+		if ( ! empty( $woo['items_removed'] ) ) {
+			$removed_any = true;
+		}
+		if ( ! empty( $woo['items_retained'] ) ) {
+			$retained = true;
+		}
+		if ( ! empty( $woo['messages'] ) && is_array( $woo['messages'] ) ) {
+			$messages = array_merge( $messages, $woo['messages'] );
+		}
+
 		return array(
 			'items_removed'  => $removed_any,
 			'items_retained' => $retained,
 			'messages'       => array_values( array_unique( $messages ) ),
-			'done'           => count( $rows ) < self::PAGE_SIZE,
+			'done'           => count( $rows ) < self::PAGE_SIZE && $woo['done'],
 		);
 	}
 

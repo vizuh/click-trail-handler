@@ -7,9 +7,9 @@
 
 This document summarizes the active storage surfaces used by ClickTrail.
 
-> **Retention boundary:** source inventory is not complete deletion proof. WooCommerce order-meta keys such as
-> `_clicutcl_woo_trace_snapshot`, attribution fields, consent snapshots, and milestone markers require their own
-> export, erase, retention, purge, and uninstall handling. The current audit did not verify that lifecycle.
+> **Retention boundary:** WooCommerce order metadata has a dedicated lifecycle in
+> `includes/privacy/class-woo-order-privacy.php`. It uses WooCommerce CRUD APIs for both classic
+> storage and HPOS, and only removes the allowlisted ClickTrail keys/prefixes.
 
 ## WordPress Options
 
@@ -213,6 +213,12 @@ WooCommerce order-level tracking state now also uses order meta for traceability
 - `_clicutcl_tracking_sent`: purchase dedup marker written only after a successful, skipped, or confirmed queued purchase attempt
 - `_clicutcl_woo_trace_snapshot`: stored purchase and milestone trace snapshots
 - `_clicutcl_woo_milestone_sent_{event_name}`: per-milestone sent markers written only after a successful, skipped, or confirmed queued milestone attempt
+- `_clicutcl_{field}`, `_clicutcl_ft_{field}`, `_clicutcl_lt_{field}`: attribution fields, click IDs, browser IDs, visitor/session/trail IDs, and session counters
+
+Lifecycle: `Privacy_Handler` exports and erases matching customer orders by billing email. The daily cleanup
+removes metadata from at most 100 expired orders per run and emits `clicutcl_cleanup_batch_incomplete` when
+more expired orders remain. The admin tracking purge and uninstall remove the same managed metadata. Uninstall
+preserves options, tables, transients, and order metadata when `clicutcl_preserve_data_on_uninstall` is truthy.
 
 The trace snapshot stores:
 
@@ -279,6 +285,7 @@ Cleanup behavior:
 - event rows retained according to attribution retention days
 - touch event rows retained for the same attribution retention days (default 90)
 - queue rows retained according to `clicutcl_queue_retention_days` filter
+- Woo order metadata retained according to attribution retention days, in bounded batches
 
 ## Secret Handling
 
@@ -306,6 +313,7 @@ When the richer Woo `dataLayer` contract is enabled, thank-you page purchase pus
 - removes plugin options
 - clears scheduled hooks
 - clears ClickTrail transients
+- removes allowlisted ClickTrail Woo order metadata through the WooCommerce CRUD API
 - drops the queue, events, and touch events tables by default
 
 Data preservation can be overridden with:
