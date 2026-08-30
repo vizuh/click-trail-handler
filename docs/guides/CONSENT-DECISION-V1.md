@@ -24,9 +24,12 @@ M7-B stores a v1 snapshot on new Woo orders and normalizes historical boolean
 snapshots on read. Historical state is explicitly labeled
 `legacy_unversioned`; `not_required` remains a policy basis rather than a
 fabricated subject grant. Dispatcher policy now uses the same server-side
-requirement helper as snapshot capture. This slice does not refactor browser
-cookies/CMP precedence, gate the top-level purchase `dataLayer`, change retry
-rows, or claim compliance.
+requirement helper as snapshot capture. The browser bridge stores a versioned
+canonical decision in `localStorage`, mirrors it (including its authority
+source and timestamp) to the server cookie, and propagates changes through the
+browser `storage` event. Legacy plugin-cookie and delayed plugin-banner values
+are only fallbacks and cannot overwrite a canonical CMP withdrawal. This does not
+gate the top-level purchase `dataLayer`, change retry rows, or claim compliance.
 
 The fixture contract lives in
 `tests/fixtures/consent-decision/v1/scenarios.json`. Classic/HPOS Woo staging,

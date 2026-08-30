@@ -32,6 +32,95 @@
     var resolved = false;
     var consentState = { marketing: false, analytics: false };
     var resolvedBy = 'unknown';
+    var authoritativeAt = 0;
+    var authoritativeSource = '';
+    var CONSENT_STORAGE_VERSION = 1;
+    var CONSENT_STORAGE_KEY = String(CONFIG.storageKey || 'ct_consent_v1');
+
+    // The plugin cookie is a compatibility fallback. Once a CMP, the native
+    // banner, or another tab has made a decision, this envelope is the
+    // browser-side authority and prevents an old plugin cookie from reviving
+    // consent after withdrawal.
+    function getCanonicalStorageKey() {
+        return CONSENT_STORAGE_KEY || 'ct_consent_v1';
+    }
+
+    function parseCanonical(rawValue) {
+        if (!rawValue) return null;
+        try {
+            var parsed = typeof rawValue === 'string' ? JSON.parse(rawValue) : rawValue;
+            if (!parsed || typeof parsed !== 'object' || parsed.v !== CONSENT_STORAGE_VERSION) {
+                return null;
+            }
+            var updatedAt = Number(parsed.updatedAt || 0);
+            if (!Number.isFinite(updatedAt) || updatedAt <= 0) return null;
+            var state = parsed.state || parsed.consent;
+            if (!state || typeof state !== 'object') return null;
+            return {
+                state: normalizeConsent(state),
+                source: String(parsed.source || 'canonical'),
+                updatedAt: updatedAt
+            };
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function readCanonical() {
+        try {
+            var stored = window.localStorage && window.localStorage.getItem(getCanonicalStorageKey());
+            var parsed = parseCanonical(stored);
+            if (parsed) return parsed;
+        } catch (e) {
+            // localStorage may be blocked; the server cookie remains a fallback.
+        }
+
+        var serverRaw = readCookie(CONFIG.serverCookieName || 'ct_consent_state');
+        var serverState = parseConsentToken(serverRaw);
+        if (serverState !== null) {
+            var serverSource = 'server-cookie';
+            var serverUpdatedAt = 1;
+            try {
+                var serverParsed = JSON.parse(serverRaw);
+                if (serverParsed && typeof serverParsed === 'object') {
+                    var parsedAt = Number(serverParsed.updatedAt || 0);
+                    if (Number.isFinite(parsedAt) && parsedAt > 0) serverUpdatedAt = parsedAt;
+                    if (serverParsed.source) serverSource = String(serverParsed.source);
+                }
+            } catch (e) {
+                // Legacy server cookies have no timestamp and use the safe sentinel.
+            }
+            return {
+                state: serverState,
+                source: serverSource,
+                updatedAt: serverUpdatedAt
+            };
+        }
+        return null;
+    }
+
+    function persistCanonical(state, source, updatedAt) {
+        var envelope = JSON.stringify({
+            v: CONSENT_STORAGE_VERSION,
+            updatedAt: updatedAt,
+            source: String(source || 'canonical'),
+            state: normalizeConsent(state)
+        });
+        try {
+            if (window.localStorage) {
+                window.localStorage.setItem(getCanonicalStorageKey(), envelope);
+            }
+        } catch (e) {
+            // The server cookie below still protects reloads when storage is blocked.
+        }
+        return envelope;
+    }
+
+    function clearPluginCookie() {
+        var name = String(CONFIG.cookieName || 'ct_consent');
+        var secure = window.location && window.location.protocol === 'https:' ? '; Secure' : '';
+        document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; path=/; SameSite=Lax' + secure;
+    }
 
     function normalizeConsent(value) {
         if (typeof value === 'boolean') {
@@ -88,20 +177,34 @@
 
     function writeServerCookie() {
         var name = String(CONFIG.serverCookieName || 'ct_consent_state');
-        var value = encodeURIComponent(JSON.stringify(consentState));
+        var value = encodeURIComponent(JSON.stringify({
+            marketing: !!consentState.marketing,
+            analytics: !!consentState.analytics,
+            updatedAt: authoritativeAt > 0 ? authoritativeAt : Date.now(),
+            source: authoritativeSource || resolvedBy
+        }));
         var expires = new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)).toUTCString();
         var secure = window.location && window.location.protocol === 'https:' ? '; Secure' : '';
         document.cookie = name + '=' + value + '; expires=' + expires + '; path=/; SameSite=Lax' + secure;
     }
 
-    function resolve(nextConsent, source, force) {
-        if (resolved && !force) {
+    function resolve(nextConsent, source, force, persistDecision, decisionAt) {
+        var nextSource = String(source || 'unknown');
+        var normalized = normalizeConsent(nextConsent);
+        var nextAt = Number(decisionAt || Date.now());
+
+        // Plugin cookies are only a legacy fallback. They must never overwrite
+        // a decision already made by a CMP or another tab. The native banner
+        // may revise its own native-banner decision, but not a CMP withdrawal.
+        if (nextSource === 'plugin-cookie' && authoritativeAt > 0) {
             return;
         }
-
-        var normalized = normalizeConsent(nextConsent);
-        var nextSource = String(source || 'unknown');
-
+        if (nextSource === 'plugin-banner' && authoritativeAt > 0 && authoritativeSource !== 'plugin-banner') {
+            return;
+        }
+        if (nextSource.indexOf('storage:') === 0 && nextAt < authoritativeAt) {
+            return;
+        }
         if (
             resolved &&
             consentState.marketing === normalized.marketing &&
@@ -110,12 +213,28 @@
         ) {
             return;
         }
+        if (resolved && !force) {
+            return;
+        }
 
+        var isPluginFallback = nextSource === 'plugin-cookie';
+        var shouldPersist = CONFIG.enabled !== false && persistDecision !== false && !isPluginFallback && nextSource.indexOf('storage:') !== 0;
         resolved = true;
         consentState = normalized;
         resolvedBy = nextSource;
-        if (CONFIG.enabled !== false && nextSource !== 'plugin-cookie') {
+        if (shouldPersist) {
+            authoritativeAt = nextAt;
+            authoritativeSource = nextSource;
+            persistCanonical(consentState, nextSource, authoritativeAt);
+        } else if (nextSource.indexOf('storage:') === 0) {
+            authoritativeAt = Math.max(authoritativeAt, nextAt);
+            authoritativeSource = nextSource;
+        }
+        if (CONFIG.enabled !== false && !isPluginFallback) {
             writeServerCookie();
+            if (!consentState.marketing) {
+                clearPluginCookie();
+            }
         }
         dispatchResolved();
     }
@@ -167,6 +286,16 @@
         var raw = readCookie(CONFIG.cookieName || 'ct_consent');
         if (!raw) return null;
         return parseConsentToken(raw);
+    }
+
+    function bindStorageListener() {
+        if (!window.addEventListener) return;
+        window.addEventListener('storage', function (event) {
+            if (!event || event.key !== getCanonicalStorageKey() || !event.newValue) return;
+            var canonical = parseCanonical(event.newValue);
+            if (!canonical) return;
+            resolve(canonical.state, 'storage:' + canonical.source, true, false, canonical.updatedAt);
+        });
     }
 
     function tryCookiebot() {
@@ -333,9 +462,15 @@
         }
 
         var source = String(CONFIG.cmpSource || 'auto').toLowerCase();
+        var canonical = readCanonical();
+        if (canonical) {
+            authoritativeAt = canonical.updatedAt;
+            authoritativeSource = canonical.source;
+            resolve(canonical.state, canonical.source, true, false, canonical.updatedAt);
+        }
 
         var cookieState = readPluginCookie();
-        if (cookieState !== null) {
+        if (cookieState !== null && !canonical) {
             resolve(cookieState, 'plugin-cookie');
             return;
         }
@@ -393,6 +528,8 @@
         tryGoogleConsentMode();
         startTimeoutFallback();
     }
+
+    bindStorageListener();
 
     window.ClickTrailConsent = {
         isGranted: function () {

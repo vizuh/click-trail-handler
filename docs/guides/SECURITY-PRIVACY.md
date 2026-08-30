@@ -16,8 +16,13 @@ consent, queue, WooCommerce metadata, dataLayer, webhook, purge, and sGTM-previe
 
 These are not claims that the behavior is fixed. They are release gates for the next runtime changes:
 
-- Browser/CMP authority still uses unversioned cookies; M7-B labels their Woo snapshots `legacy_unversioned` but does not resolve stale-cookie precedence.
-- Stale plugin consent cookies can outrank a current CMP decision; cross-tab synchronization and revocation are incomplete.
+- The browser bridge stores a versioned canonical decision in `localStorage`, mirrors it to
+  `ct_consent_state` with its authority timestamp, and treats legacy plugin-cookie and plugin-banner values
+  as fallbacks only. A canonical withdrawal clears the plugin cookie and cannot be resurrected by a stale copy
+  on reload.
+- Same-tab listeners receive `ct:consentResolved`; other tabs receive the canonical decision through the
+  browser `storage` event. Browser/CMP and queue/retry coverage below remains a focused VM boundary test,
+  not a full browser or WordPress E2E proof.
 - Form/Woo posted attribution, Woo order metadata, purchase dataLayer output, and queued retries need independent consent/revocation tests.
 - Woo traces can retain identity metadata; ClickTrail purge/export/erase/uninstall does not yet cover every Woo order-meta key.
 - Browser conversion tokens and external form messages do not prove a real action or provider confirmation.
