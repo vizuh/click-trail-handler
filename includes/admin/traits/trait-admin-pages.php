@@ -303,7 +303,7 @@ trait Admin_Pages_Trait {
 						<span class="clicktrail-card__icon dashicons dashicons-chart-line" aria-hidden="true"></span>
 						<span class="clicktrail-card__heading">
 							<span class="clicktrail-card__title"><?php esc_html_e( 'Attribution Readiness', 'click-trail-handler' ); ?></span>
-							<span class="clicktrail-card__description"><?php esc_html_e( 'Run a read-only analysis against a test payload. Click-ID values are never returned or stored.', 'click-trail-handler' ); ?></span>
+							<span class="clicktrail-card__description"><?php esc_html_e( 'Run a read-only analysis against a test payload. This checks attribution fields only; it does not verify form storage, delivery, or provider acceptance. Click-ID values are never returned or stored.', 'click-trail-handler' ); ?></span>
 						</span>
 					</span>
 				</div>
