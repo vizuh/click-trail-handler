@@ -2,9 +2,18 @@
 
 ![ClickTrail](.github/clicktrail-cover.png)
 
-Attribution usually breaks somewhere between the ad click and the conversion. ClickTrail keeps campaign context alive through cached pages, dynamic forms, cross-domain journeys, repeat visits, and configured consent rules.
+**Carry the right acquisition context from visit to WordPress conversion.**
 
-ClickTrail keeps the source of the visit, not a profile of the visitor — first-party capture with consent controls. It is a WordPress capture-and-controlled-delivery layer, not an attribution dashboard, hosting platform, lead manager, or ad optimizer. The current security-status blockers and verification boundary are documented in [Security and Privacy](docs/guides/SECURITY-PRIVACY.md).
+A visitor can arrive with UTMs or ad click IDs, then submit a form or place an
+order several pages later. ClickTrail captures observed first-touch and
+last-touch context in first-party storage and makes it available at configured
+WordPress form and WooCommerce boundaries, including client-side paths for
+cached and dynamic pages.
+
+ClickTrail preserves campaign context, not a visitor profile, and does not
+prove which click caused a sale. It is not an attribution dashboard, hosting
+platform, lead manager, or ad optimizer. Read the current verification and
+privacy boundaries before enabling optional delivery.
 
 [![GitHub release](https://img.shields.io/github/v/release/vizuh/click-trail-handler?label=version&color=blue)](https://github.com/vizuh/click-trail-handler/releases)
 [![License](https://img.shields.io/badge/license-GPL--2.0--or--later-green)](LICENSE)
@@ -23,9 +32,12 @@ ClickTrail keeps the source of the visit, not a profile of the visitor — first
 [Technical Docs](docs/README.md)  
 [WordPress Readme](readme.txt)
 
-> **Integration evidence:** Source presence alone does not prove production provider support. Current form, WooCommerce,
-> GTM, and delivery status lives in the [integration reference](docs/reference/INTEGRATIONS.md) and
-> [machine-readable ledger](docs/reference/integration-capabilities.json).
+> **Integration verification status (2026-08-19):** The registry and source paths are documented in
+> [the integration reference](docs/reference/INTEGRATIONS.md), but PHP/WordPress/provider E2E verification
+> was not available for this audit. The platform-named server adapters are currently **source-present /
+> runtime-unverified configured-endpoint adapters**. GTM can mediate site-owned platform tags; ClickTrail does
+> not inject Meta/Facebook Pixel, Google tag, TikTok Pixel, LinkedIn Insight, Pinterest Tag, or Reddit Pixel
+> SDKs. Reddit has a **relay-only** destination toggle and `rdt_cid` capture, not a native delivery adapter.
 
 ## What ClickTrail Solves
 
@@ -45,7 +57,7 @@ ClickTrail is designed to keep first-touch and last-touch context alive until th
 - **Events**: browser collection, `dataLayer` pushes, sGTM compatibility mode, webhook intake, lifecycle updates, and optional Woo storefront signals.
 - **Delivery**: optional server-side transport, retries, diagnostics, conflict scanning, backup/restore, and consent-gated dispatch with a current-consent check before queued delivery.
 
-## Releases
+## Version and verification status
 
 ClickTrail 1.10.0 adds consent-safe queued delivery, cross-tab consent authority, WooCommerce privacy lifecycle handling, and evidence-labelled form coverage. The WordPress.org package is prepared at the same version; live WordPress, browser, and provider verification remains a separate release gate. See [changelog.txt](changelog.txt) for the full history and [readme.txt](readme.txt) for the WordPress.org release notes.
 
@@ -53,7 +65,7 @@ ClickTrail 1.10.0 adds consent-safe queued delivery, cross-tab consent authority
 
 - **GitHub visitors**: start with [README.en.md](README.en.md) or [README.pt-BR.md](README.pt-BR.md).
 - **Contributors and reviewers**: use [CONTRIBUTING.md](CONTRIBUTING.md) or [CONTRIBUTING.pt-BR.md](CONTRIBUTING.pt-BR.md).
-- **Engineers and agents**: use [docs/README.md](docs/README.md) and [AGENTS.md](AGENTS.md).
+- **Engineers and agents**: use [docs/README.md](docs/README.md).
 - **Implementation teams**: start with [use cases](docs/guides/USE-CASES.md) and the [tutorial index](docs/tutorials/README.md).
 
 ## Repository Map

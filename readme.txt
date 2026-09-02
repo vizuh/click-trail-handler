@@ -15,17 +15,19 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 > GTM, and delivery status lives in the [integration reference](https://github.com/vizuh/click-trail-handler/blob/main/docs/reference/INTEGRATIONS.md)
 > and [machine-readable ledger](https://github.com/vizuh/click-trail-handler/blob/main/docs/reference/integration-capabilities.json).
 
-Consent-controlled attribution for WooCommerce, WordPress forms, and event flows. Capture UTMs and click IDs across conversion paths.
+First-party campaign-context capture for configured WooCommerce and WordPress form paths, with explicit consent and delivery controls.
 
 == Description ==
 
-Attribution usually breaks somewhere between the ad click and the conversion. ClickTrail makes it survive: cached pages, dynamic forms, multi-page journeys, repeat visits, and consent requirements.
+Campaign context observed on arrival is often missing when a form or order is created later. ClickTrail carries that context from the visit to configured WordPress conversion boundaries.
 
-ClickTrail keeps the source of the visit, not a profile of the visitor. Capture is first-party and includes consent controls; by default the plugin does not call external services to identify or enrich visitors, and data leaves only through integrations you enable. Current consent, revocation, queue, WooCommerce, and purge blockers are documented in the repository security guide.
+A visitor can arrive with UTMs or ad click IDs, then submit a form or place an order several pages later. ClickTrail captures observed first-touch and last-touch context in first-party storage and makes it available to configured WordPress form and WooCommerce paths, including client-side paths for cached and dynamic pages.
 
-ClickTrail is a WordPress capture-and-controlled-delivery layer, not an attribution dashboard, hosted server-side GTM platform, lead manager, or ad optimizer. It complements GA4 and GTM; configured-endpoint delivery and provider acceptance remain runtime-unverified in the current baseline.
+ClickTrail helps answer “what campaign context reached this conversion record?” It does not prove which click caused a sale, resolve a person's identity across devices, or decide which channel deserves revenue credit.
 
-ClickTrail stores first-touch and last-touch attribution from the landing page and keeps it available until the conversion point, where it becomes usable inside WordPress:
+ClickTrail is not an attribution dashboard, hosted server-side GTM platform, lead manager, or ad optimizer. It complements GA4 and GTM. Browser tags remain site-owned, and configured-endpoint delivery and provider acceptance remain runtime-unverified.
+
+ClickTrail applies documented first-touch and last-touch rules and makes the resulting context available at configured WordPress boundaries:
 
 * WooCommerce orders
 * configured form paths
@@ -36,23 +38,23 @@ In WooCommerce, ClickTrail stores attribution on the order, pushes enriched purc
 
 = Pick a starting path =
 
-* **WooCommerce store**: enable Capture and WooCommerce. Orders carry campaign context from day one; add storefront events later if you want funnel signals.
+* **WooCommerce store**: enable Capture and WooCommerce. Configured orders can carry campaign context; add storefront events later if you want funnel signals.
 * **Lead-gen forms**: enable Capture and Forms. Contact Form 7 and Fluent Forms get hidden fields automatically; Gravity Forms and WPForms fill the `ct_*` fields you add.
 * **GTM / sGTM stack**: enable Capture, Events, and Delivery. Browser events push to the `dataLayer`; configured endpoint adapters send canonical JSON, while provider tags/API authentication remain separately owned and verified.
 
 = What problems it solves =
 
-* **No paid order reports as "direct"**: Paid traffic often ends up looking like direct traffic by the time an order is placed. ClickTrail stores attribution on the order and keeps purchase reporting tied to campaign context.
-* **No checkout journey goes dark**: WooCommerce storefront journeys can emit opt-in `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` signals through the same ClickTrail event layer used elsewhere in the plugin.
-* **No cached or AJAX-rendered form drops attribution**: Hidden fields often break on cached pages or dynamically rendered forms. ClickTrail includes client-side fallback and dynamic-content support.
-* **No cross-domain hop breaks continuity**: Approved link decoration and attribution tokens keep continuity between domains or subdomains.
+* **Campaign context on configured orders**: Paid traffic can look direct by the time an order is placed. ClickTrail can store observed context on configured WooCommerce orders.
+* **Configured WooCommerce journey signals**: WooCommerce storefront journeys can emit opt-in `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` signals through the same ClickTrail event layer used elsewhere in the plugin.
+* **Client-side support for cached or dynamic forms**: Hidden fields can fail on cached pages or dynamically rendered forms. ClickTrail includes client-side fallback and dynamic-content support for configured paths.
+* **Configured cross-domain continuity**: Approved link decoration and attribution tokens can preserve observed context between configured domains or subdomains.
 * **Consent and privacy lifecycle**: queued retries recheck current consent immediately before delivery; browser consent authority is synchronized across tabs; and WooCommerce order metadata has an allowlisted export, erase, retention, and uninstall lifecycle. Live WordPress, browser, CMP, WooCommerce, and provider verification remains a separate release gate.
 
 = Core capabilities =
 
 * **Capture**: first-touch and last-touch UTMs, major ad click IDs, and referrers with automatic organic/social/referral fallback when UTMs are absent.
 * **WooCommerce**: checkout attribution persistence, thank-you purchase event push, enriched commerce payloads, optional storefront commerce events, and optional order-status milestones.
-* **Forms**: three documented patterns — automatic hidden fields for Contact Form 7 and Fluent Forms, matching `ct_*` hidden fields for Gravity Forms and WPForms, and submission-record storage for Elementor Forms (Pro) and Ninja Forms — plus client-side fallback, dynamic form support, and WhatsApp attribution continuity.
+* **Forms**: three documented patterns: automatic hidden fields for Contact Form 7 and Fluent Forms, matching `ct_*` hidden fields for Gravity Forms and WPForms, and submission-record storage for Elementor Forms (Pro) and Ninja Forms; plus client-side fallback, dynamic form support, and WhatsApp attribution continuity.
 * **Events**: browser event collection with `dataLayer` pushes, canonical REST intake, webhook ingestion, lifecycle updates, one-time WordPress follow-up events such as `login`, `sign_up`, and `comment_submit`, and optional WooCommerce storefront events.
 * **Delivery**: optional server-side transport, retry queue, diagnostics, and consent-gated dispatch with known edge cases documented for the next release.
 
@@ -60,7 +62,7 @@ In WooCommerce, ClickTrail stores attribution on the order, pushes enriched purc
 
 Recent releases extended the Gravity Forms integration with channel classification, merge tags, and per-form controls:
 
-* **Channel classification**: every GF entry now receives a `ct_ft_channel` value — a human-readable label such as Google Ads, ChatGPT, or Mailchimp — derived from click IDs, UTM parameters, or referrer context. A server-side fallback covers sessions where JS attribution was unavailable.
+* **Channel classification**: configured Gravity Forms entries receive a `ct_ft_channel` value, a human-readable label such as Google Ads, ChatGPT, or Mailchimp, derived from click IDs, UTM parameters, or referrer context. A server-side fallback covers sessions where JS attribution was unavailable.
 * **Expanded click ID capture**: six additional click IDs (Reddit `rdt_cid`, Pinterest `pin_cid`, Snapchat `snap_cid`, Mailchimp `mc_cid` / `mc_eid`, and Display & Video 360 `dclid`) are now captured and stored.
 * **Merge tags**: nine `{clicutcl_*}` merge tags are available in GF notifications and confirmations, including `{clicutcl_channel}`, `{clicutcl_click_id}`, and seven UTM-based tags.
 * **Per-form toggle**: attribution tracking can be enabled or disabled per form via a dedicated ClickTrail section in Gravity Forms form settings.

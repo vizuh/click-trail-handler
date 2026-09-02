@@ -1,6 +1,6 @@
 {
   "name": "vizuh/click-trail-handler",
-  "description": "Complete consent management and marketing attribution solution for WordPress.",
+  "description": "First-party campaign-context capture for configured WordPress form and WooCommerce paths.",
   "type": "wordpress-plugin",
   "license": "GPL-2.0-or-later",
   "require": {

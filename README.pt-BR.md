@@ -1,35 +1,39 @@
 # ClickTrail
 
-[![WordPress tested](https://img.shields.io/badge/WordPress-v7.1%20tested-3858e9.svg)](https://wordpress.org)
+[![WordPress tested](https://img.shields.io/badge/WordPress-v7.0%20tested-3858e9.svg)](https://wordpress.org)
 
 ![ClickTrail](.github/clicktrail-cover.png)
 
-> **Evidencias de integracao:** presenca no codigo nao comprova producao no provedor. O status atual de
-> formularios, WooCommerce, GTM e entrega fica na [referencia de integracoes](docs/reference/INTEGRATIONS.md)
-> e no [ledger legivel por maquina](docs/reference/integration-capabilities.json).
+**Leve o contexto de aquisição certo da visita até a conversão no WordPress.**
 
-A atribuicao costuma quebrar em algum ponto entre o clique no anuncio e a conversao. O ClickTrail mantem o contexto da campanha vivo ao longo da jornada ate a conversao no WordPress.
+Uma pessoa pode chegar com UTMs ou IDs de clique e só enviar um formulário ou
+fazer um pedido várias páginas depois. O ClickTrail captura o contexto observado
+de primeiro e último toque em armazenamento first-party e o disponibiliza nos
+pontos configurados de formulários e WooCommerce, inclusive em caminhos
+client-side para páginas em cache e formulários dinâmicos.
 
-ClickTrail e um plugin de atribuicao para WordPress feito para sites que precisam manter os dados de origem da campanha disponiveis ao longo da jornada, especialmente quando pedidos do WooCommerce ou formularios acontecem varias paginas depois da landing page.
+O ClickTrail ajuda a responder “qual contexto de campanha chegou a este registro
+de conversão?”. Ele não prova qual clique causou uma venda, não resolve a
+identidade de uma pessoa entre dispositivos e não decide qual canal merece o
+crédito da receita.
 
-**O que o ClickTrail nao e:** nao e um painel de atribuicao, uma plataforma hospedada de server-side GTM, um gestor de leads nem um otimizador de anuncios. Ele complementa GA4 e GTM. As tags do navegador continuam sob controle do site, enquanto os adaptadores server-side para endpoints configurados permanecem presentes no codigo e sem verificacao de runtime nesta baseline.
+**O que o ClickTrail não é:** um painel de atribuição, uma plataforma hospedada
+de server-side GTM, um gestor de leads ou um otimizador de anúncios. Ele
+complementa GA4 e GTM. As tags do navegador continuam sob controle do site.
 
-Ele foi pensado para os problemas que normalmente quebram a atribuicao em producao:
-
-- paginas com cache
-- formularios dinamicos ou carregados via AJAX
-- jornadas com varias paginas ou varias sessoes
-- fluxos entre dominios
-- necessidade de tracking com controles de consentimento e limites documentados
-- entrega opcional server-side, sujeita a verificacao de runtime
-
-Em vez de capturar uma UTM uma vez e torcer para que ela sobreviva, o ClickTrail mantem o contexto de primeiro toque e ultimo toque disponivel ate o momento em que pedidos do WooCommerce, formularios, eventos no navegador ou fluxos de entrega realmente precisam dele.
-
-O ClickTrail guarda a origem da visita, nao um perfil do visitante. A captura e first-party e possui controles de consentimento; por padrao, o plugin nao chama servicos externos para identificar ou enriquecer visitantes, e os dados saem apenas por integracoes ativadas. Consulte os bloqueios atuais de seguranca antes de tratar qualquer caminho como completo em privacidade.
+> **Status de verificacao das integracoes (2026-08-19):** o registry e o codigo comprovam wiring, nao suporte
+> de producao nos provedores. Os testes E2E de PHP/WordPress/provedores nao estavam disponiveis nesta auditoria.
+> Os adaptadores server-side com nome de plataforma estao **presentes no codigo / runtime nao verificado** e
+> enviam JSON para endpoint configurado. O GTM pode mediar tags do site; o ClickTrail nao injeta SDKs de Meta/
+> Facebook Pixel, Google tag, TikTok Pixel, LinkedIn Insight, Pinterest Tag ou Reddit Pixel. Reddit possui apenas
+> um destino **relay-only** e captura de `rdt_cid`, nao um adaptador nativo. Veja a [referencia de integracoes](docs/reference/INTEGRATIONS.md)
+> e o [ledger de evidencias](docs/reference/integration-capabilities.json).
 
 ## O Que o ClickTrail Faz
 
-O ClickTrail captura atribuicao de primeiro toque e ultimo toque, mantem esses dados disponiveis durante a jornada do visitante e faz com que essa informacao chegue ao ponto em que a conversao realmente acontece dentro do WordPress.
+O ClickTrail captura o contexto de campanha observado, aplica regras
+documentadas de primeiro e último toque e mantém o resultado disponível até que
+um ponto de conversão configurado no WordPress precise dele.
 
 Ele combina:
 
@@ -40,7 +44,18 @@ Ele combina:
 - controles de consentimento com limites de verificacao documentados
 - transporte server-side opcional com fila e diagnosticos
 
-Isso permite comecar por pedidos do WooCommerce com atribuicao de campanha ou por formularios, e adicionar eventos no navegador, integracoes de consentimento ou entrega server-side depois, quando a operacao realmente precisar.
+Comece com um formulário configurado ou um caminho do WooCommerce. Adicione
+eventos no navegador, integrações de consentimento ou entrega opcional apenas
+quando a implementação exigir.
+
+## Versão e status de verificação
+
+- **Código do repositório:** o cabeçalho do plugin declara `1.10.0`.
+- **Versões públicas:** consulte [GitHub Releases](https://github.com/vizuh/click-trail-handler/releases)
+  e [changelog.txt](changelog.txt). Os metadados do WordPress.org seguem seu
+  próprio processo em [readme.txt](readme.txt).
+- **Status das integrações:** wiring no código não comprova suporte em produção.
+  Consulte o ledger de evidências e a referência de integrações acima.
 
 ## Notas da Versao
 
@@ -117,9 +132,9 @@ Identificadores adicionais de browser incluem:
 
 O ClickTrail se conecta a formularios por tres padroes documentados. Confirme qual padrao se aplica antes de testar:
 
-1. **Campos hidden automaticos** — Contact Form 7 e Fluent Forms recebem os campos de atribuicao pelo caminho documentado.
-2. **Campos hidden correspondentes** — Gravity Forms e WPForms preenchem os campos `ct_*` que voce adiciona ao formulario.
-3. **Armazenamento na submissao** — Elementor Forms (Pro) e Ninja Forms anexam a atribuicao ao registro da submissao em vez de injetar campos hidden.
+1. **Campos hidden automaticos:** Contact Form 7 e Fluent Forms recebem os campos de atribuicao pelo caminho documentado.
+2. **Campos hidden correspondentes:** Gravity Forms e WPForms preenchem os campos `ct_*` que voce adiciona ao formulario.
+3. **Armazenamento na submissao:** Elementor Forms (Pro) e Ninja Forms anexam a atribuicao ao registro da submissao em vez de injetar campos hidden.
 
 - enriquecimento automatico de campos hidden no Contact Form 7 e no Fluent Forms
 - preenchimento compativel de campos hidden ja existentes no Gravity Forms e no WPForms
@@ -191,13 +206,13 @@ Comportamento por plugin:
 
 ### Chaves de adaptadores server-side (presentes no codigo / runtime nao verificado)
 
-- Generic collector — relay para endpoint configurado
-- sGTM — relay para endpoint configurado; hardening de SSRF do preview ainda esta pendente
-- Meta CAPI — chave presente; contrato de API/autenticacao nao verificado em runtime
-- Google Ads / GA4 — chave presente; contrato de API/autenticacao nao verificado em runtime
-- LinkedIn CAPI — chave presente; contrato de API/autenticacao nao verificado em runtime
-- Pinterest Conversions API — chave presente; contrato de API/autenticacao nao verificado em runtime
-- TikTok Events API — chave presente; contrato de API/autenticacao nao verificado em runtime
+- Generic collector: relay para endpoint configurado
+- sGTM: relay para endpoint configurado; hardening de SSRF do preview ainda esta pendente
+- Meta CAPI: chave presente; contrato de API/autenticacao nao verificado em runtime
+- Google Ads / GA4: chave presente; contrato de API/autenticacao nao verificado em runtime
+- LinkedIn CAPI: chave presente; contrato de API/autenticacao nao verificado em runtime
+- Pinterest Conversions API: chave presente; contrato de API/autenticacao nao verificado em runtime
+- TikTok Events API: chave presente; contrato de API/autenticacao nao verificado em runtime
 
 Essas classes serializam o evento canonico para um endpoint configurado. Nao sao integracoes turnkey das
 APIs dos provedores ate que fixtures especificas e evidencia de entrega em ambiente de teste passem.
@@ -295,7 +310,6 @@ Se voce precisa de call tracking, lead scoring, modelagem de receita multi-touch
 - [Atribuicao em formularios](docs/tutorials/01-lead-form-attribution.md)
 - [Atribuicao de pedidos WooCommerce](docs/tutorials/02-woocommerce-order-attribution.md)
 - [Consentimento e eventos no navegador](docs/tutorials/03-consent-and-events.md)
-- [Kit inicial do GTM](docs/tutorials/04-gtm-starter-kit.md)
 
 ## Fases de release e evidencias
 
