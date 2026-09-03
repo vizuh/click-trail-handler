@@ -59,6 +59,9 @@ tools/
 # Release artefacts (zip archives, release notes)
 dist/
 
+# Translation source catalog (GlotPress is the publication channel)
+languages/*.pot
+
 # GTM reference / dev files
 assets/GTM-*.json
 assets/gtm-starter-kit.json

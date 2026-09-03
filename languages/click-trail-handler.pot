@@ -1,0 +1,2823 @@
+# ClickTrail translation template
+# Copyright (C) 2026 Vizuh
+# This file is distributed under the same license as the ClickTrail package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: ClickTrail 1.10.0\n"
+"Report-Msgid-Bugs-To: https://github.com/vizuh/click-trail-handler/issues\n"
+"POT-Creation-Date: 2026-09-04 00:57+0100\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: clicutcl.php:207
+msgid ""
+"ClickTrail could not start because a required class is missing. This usually "
+"means the release ZIP is missing files or the autoloader mapping is "
+"incorrect."
+msgstr ""
+
+#: includes/Modules/GTM/class-gtm-settings.php:89
+msgid "Invalid GTM Container ID format. Should be GTM-XXXXXX"
+msgstr ""
+
+#: includes/Modules/GTM/class-web-tag.php:86
+msgid "Google Tag Manager snippet added by ClickTrail (sGTM mode)"
+msgstr ""
+
+#: includes/Modules/GTM/class-web-tag.php:87
+msgid "Google Tag Manager snippet added by ClickTrail"
+msgstr ""
+
+#: includes/Modules/GTM/class-web-tag.php:91
+msgid "End Google Tag Manager snippet added by ClickTrail"
+msgstr ""
+
+#: includes/Modules/GTM/class-web-tag.php:112
+msgid "Google Tag Manager (noscript) snippet added by ClickTrail"
+msgstr ""
+
+#: includes/Modules/GTM/class-web-tag.php:116
+msgid "End Google Tag Manager (noscript) snippet added by ClickTrail"
+msgstr ""
+
+#: includes/Modules/consent-mode/class-consent-mode.php:93
+msgid "Google tag (gtag.js) consent mode dataLayer added by ClickTrail"
+msgstr ""
+
+#: includes/Modules/consent-mode/class-consent-mode.php:103
+msgid "End Google tag (gtag.js) consent mode dataLayer added by ClickTrail"
+msgstr ""
+
+#: includes/admin/class-admin.php:108
+msgid ""
+"ClickTrail: \"Encrypt secrets at rest\" is enabled, but this server is "
+"missing OpenSSL AES-256-GCM support, so provider secrets are stored in "
+"plaintext. Enable the OpenSSL extension on your host, or treat the stored "
+"secrets as unencrypted."
+msgstr ""
+
+#: includes/admin/class-admin.php:118
+msgid "ClickTrail Status"
+msgstr ""
+
+#: includes/admin/class-admin.php:145
+msgid "Attribution Cookie"
+msgstr ""
+
+#: includes/admin/class-admin.php:146
+msgid "Caching Status"
+msgstr ""
+
+#: includes/admin/class-admin.php:147
+msgid "Form Capture Fallback"
+msgstr ""
+
+#: includes/admin/class-admin.php:148
+msgid "Cross-domain Links"
+msgstr ""
+
+#: includes/admin/class-admin.php:150
+msgid "Run Full Diagnostics"
+msgstr ""
+
+#: includes/admin/class-admin.php:159 includes/admin/class-admin.php:160
+#: includes/admin/class-admin.php:421
+#: includes/admin/traits/trait-admin-pages.php:28
+#: assets/js/admin-settings-app.js:1136
+msgid "ClickTrail"
+msgstr ""
+
+#: includes/admin/class-admin.php:171 includes/admin/class-admin.php:172
+msgid "Settings"
+msgstr ""
+
+#: includes/admin/class-admin.php:180 includes/admin/class-admin.php:181
+msgid "Logs"
+msgstr ""
+
+#: includes/admin/class-admin.php:189 includes/admin/class-admin.php:190
+msgid "Diagnostics"
+msgstr ""
+
+#: includes/admin/class-admin.php:260
+msgid "Testing..."
+msgstr ""
+
+#: includes/admin/class-admin.php:261
+msgid "Test failed"
+msgstr ""
+
+#: includes/admin/class-admin.php:262
+msgid "Clipboard unavailable"
+msgstr ""
+
+#: includes/admin/class-admin.php:263
+msgid "Copied"
+msgstr ""
+
+#: includes/admin/class-admin.php:264
+msgid "Copy failed"
+msgstr ""
+
+#: includes/admin/class-admin.php:265
+msgid "Saving..."
+msgstr ""
+
+#: includes/admin/class-admin.php:266
+msgid "Failed"
+msgstr ""
+
+#: includes/admin/class-admin.php:267
+#: includes/admin/traits/trait-admin-pages.php:399
+msgid "Disable Debug"
+msgstr ""
+
+#: includes/admin/class-admin.php:268
+#: includes/admin/traits/trait-admin-pages.php:399
+msgid "Enable 15 Minutes"
+msgstr ""
+
+#: includes/admin/class-admin.php:269
+msgid "Purge local tracking data now? This cannot be undone."
+msgstr ""
+
+#: includes/admin/class-admin.php:270
+msgid "Purging..."
+msgstr ""
+
+#: includes/admin/class-admin.php:271
+msgid "Purged"
+msgstr ""
+
+#: includes/admin/class-admin.php:272
+msgid "Purge failed"
+msgstr ""
+
+#: includes/admin/class-admin.php:273
+msgid "Requeueing..."
+msgstr ""
+
+#: includes/admin/class-admin.php:274
+msgid "Requeued"
+msgstr ""
+
+#: includes/admin/class-admin.php:275
+msgid "Retry failed"
+msgstr ""
+
+#: includes/admin/class-admin.php:276
+msgid "Scanning..."
+msgstr ""
+
+#: includes/admin/class-admin.php:277
+msgid "Conflict scan failed."
+msgstr ""
+
+#: includes/admin/class-admin.php:278
+msgid "Preparing backup..."
+msgstr ""
+
+#: includes/admin/class-admin.php:279
+msgid "Backup export failed."
+msgstr ""
+
+#: includes/admin/class-admin.php:280
+msgid "Importing backup..."
+msgstr ""
+
+#: includes/admin/class-admin.php:281
+msgid "Backup import failed."
+msgstr ""
+
+#: includes/admin/class-admin.php:282
+msgid "Choose a ClickTrail backup file first."
+msgstr ""
+
+#: includes/admin/class-admin.php:283
+msgid "Restore this ClickTrail backup now? Current settings will be replaced."
+msgstr ""
+
+#: includes/admin/class-admin.php:284
+msgid "Looking up order..."
+msgstr ""
+
+#: includes/admin/class-admin.php:285
+msgid "Order lookup failed."
+msgstr ""
+
+#: includes/admin/class-admin.php:286
+msgid "Analyzing test payload..."
+msgstr ""
+
+#: includes/admin/class-admin.php:287
+msgid "Attribution readiness check failed."
+msgstr ""
+
+#: includes/admin/class-admin.php:288
+msgid "Test URL copied."
+msgstr ""
+
+#: includes/admin/class-admin.php:289
+msgid "Test URL could not be copied."
+msgstr ""
+
+#: includes/admin/class-admin.php:330
+msgid "ClickTrail settings require JavaScript in wp-admin."
+msgstr ""
+
+#: includes/admin/class-admin.php:345 includes/admin/class-admin.php:346
+#: includes/admin/class-admin.php:673 includes/admin/class-admin.php:778
+#: assets/js/admin-settings-app.js:518
+msgid "Capture"
+msgstr ""
+
+#: includes/admin/class-admin.php:347
+msgid ""
+"Capture and preserve source data from campaigns, referrals, and ad clicks."
+msgstr ""
+
+#: includes/admin/class-admin.php:351 includes/admin/class-admin.php:352
+#: includes/admin/class-admin.php:679 includes/admin/class-admin.php:798
+#: assets/js/admin-settings-app.js:524
+msgid "Forms"
+msgstr ""
+
+#: includes/admin/class-admin.php:353
+msgid ""
+"Keep attribution attached to forms, lead sources, and messaging touchpoints."
+msgstr ""
+
+#: includes/admin/class-admin.php:357 includes/admin/class-admin.php:358
+#: includes/admin/class-admin.php:685 includes/admin/class-admin.php:808
+#: assets/js/admin-settings-app.js:530
+msgid "Events"
+msgstr ""
+
+#: includes/admin/class-admin.php:359
+msgid ""
+"Configure browser event collection, destinations, and the unified event "
+"pipeline."
+msgstr ""
+
+#: includes/admin/class-admin.php:363 includes/admin/class-admin.php:364
+#: includes/admin/class-admin.php:697 includes/admin/class-admin.php:822
+#: assets/js/admin-settings-app.js:542
+msgid "Delivery"
+msgstr ""
+
+#: includes/admin/class-admin.php:365
+msgid "Control privacy, server-side transport, and operational safeguards."
+msgstr ""
+
+#: includes/admin/class-admin.php:425
+msgid ""
+"These settings are now organized by capability. Browser events and "
+"destinations live under Events, while transport and privacy controls live "
+"under Delivery."
+msgstr ""
+
+#: includes/admin/class-admin.php:495 assets/js/admin-settings-app.js:1037
+msgid "Generic Collector"
+msgstr ""
+
+#: includes/admin/class-admin.php:497 assets/js/admin-settings-app.js:1038
+msgid "sGTM (Server GTM)"
+msgstr ""
+
+#: includes/admin/class-admin.php:499 assets/js/admin-settings-app.js:1039
+msgid "Meta CAPI"
+msgstr ""
+
+#: includes/admin/class-admin.php:501 assets/js/admin-settings-app.js:1040
+msgid "Google Ads / GA4"
+msgstr ""
+
+#: includes/admin/class-admin.php:503 assets/js/admin-settings-app.js:1041
+msgid "LinkedIn CAPI"
+msgstr ""
+
+#: includes/admin/class-admin.php:505 assets/js/admin-settings-app.js:1042
+msgid "Pinterest Conversions API"
+msgstr ""
+
+#: includes/admin/class-admin.php:507 assets/js/admin-settings-app.js:1043
+msgid "TikTok Events API"
+msgstr ""
+
+#: includes/admin/class-admin.php:523 assets/js/admin-settings-app.js:920
+msgid "Meta"
+msgstr ""
+
+#: includes/admin/class-admin.php:525 assets/js/admin-settings-app.js:921
+msgid "Google"
+msgstr ""
+
+#: includes/admin/class-admin.php:527 assets/js/admin-settings-app.js:922
+msgid "LinkedIn"
+msgstr ""
+
+#: includes/admin/class-admin.php:529 assets/js/admin-settings-app.js:923
+msgid "Reddit"
+msgstr ""
+
+#: includes/admin/class-admin.php:531 assets/js/admin-settings-app.js:924
+msgid "Pinterest"
+msgstr ""
+
+#: includes/admin/class-admin.php:533 assets/js/admin-settings-app.js:925
+msgid "TikTok"
+msgstr ""
+
+#: includes/admin/class-admin.php:674 includes/admin/class-admin.php:680
+#: includes/admin/class-admin.php:686 includes/admin/class-admin.php:692
+#: includes/admin/class-admin.php:698 includes/admin/class-admin.php:704
+#: assets/js/admin-settings-app.js:519 assets/js/admin-settings-app.js:525
+#: assets/js/admin-settings-app.js:531 assets/js/admin-settings-app.js:537
+#: assets/js/admin-settings-app.js:543 assets/js/admin-settings-app.js:549
+msgid "On"
+msgstr ""
+
+#: includes/admin/class-admin.php:674 includes/admin/class-admin.php:680
+#: includes/admin/class-admin.php:686 includes/admin/class-admin.php:692
+#: includes/admin/class-admin.php:698 includes/admin/class-admin.php:704
+#: assets/js/admin-settings-app.js:519 assets/js/admin-settings-app.js:525
+#: assets/js/admin-settings-app.js:531 assets/js/admin-settings-app.js:537
+#: assets/js/admin-settings-app.js:543 assets/js/admin-settings-app.js:549
+msgid "Off"
+msgstr ""
+
+#: includes/admin/class-admin.php:691 includes/admin/class-admin.php:858
+#: assets/js/admin-settings-app.js:536
+msgid "Cross-domain"
+msgstr ""
+
+#: includes/admin/class-admin.php:703
+#: includes/admin/traits/trait-admin-pages.php:550
+#: assets/js/admin-settings-app.js:548
+msgid "Consent"
+msgstr ""
+
+#: includes/admin/class-admin.php:781
+msgid "Attribution capture is enabled."
+msgstr ""
+
+#: includes/admin/class-admin.php:782
+msgid "Turn on attribution capture before testing source continuity."
+msgstr ""
+
+#: includes/admin/class-admin.php:788
+msgid "Consent Guidance"
+msgstr ""
+
+#: includes/admin/class-admin.php:791
+msgid ""
+"Consent mode is configured. Verify the selected CMP source before rollout."
+msgstr ""
+
+#: includes/admin/class-admin.php:792
+msgid ""
+"Consent mode is off. Confirm this matches your regional rollout requirements."
+msgstr ""
+
+#: includes/admin/class-admin.php:801
+msgid "Form capture helpers or providers are active."
+msgstr ""
+
+#: includes/admin/class-admin.php:802
+msgid ""
+"Enable client fallback, WhatsApp, or provider hooks if forms are part of "
+"your attribution path."
+msgstr ""
+
+#. translators: %d: enabled destination count.
+#: includes/admin/class-admin.php:813
+#, php-format
+msgid "Browser events are active. Enabled destinations: %d."
+msgstr ""
+
+#: includes/admin/class-admin.php:816
+msgid ""
+"Enable the browser event pipeline before relying on dataLayer and canonical "
+"intake."
+msgstr ""
+
+#: includes/admin/class-admin.php:825
+msgid "Server-side delivery has an endpoint and is ready for endpoint tests."
+msgstr ""
+
+#: includes/admin/class-admin.php:827
+msgid "Server-side delivery is on, but the collector URL still needs review."
+msgstr ""
+
+#: includes/admin/class-admin.php:828
+msgid ""
+"Server-side delivery is off. Logs and Diagnostics still work for local "
+"checks."
+msgstr ""
+
+#: includes/admin/class-admin.php:834
+msgid "sGTM"
+msgstr ""
+
+#: includes/admin/class-admin.php:837
+msgid ""
+"sGTM mode has a web container plus a tagging server or custom loader path "
+"configured."
+msgstr ""
+
+#: includes/admin/class-admin.php:839
+msgid ""
+"sGTM mode is on. Add the tagging server URL or a custom loader path before "
+"preview testing."
+msgstr ""
+
+#: includes/admin/class-admin.php:840
+msgid ""
+"Standard GTM loading is active. Enable sGTM mode when you want first-party "
+"script delivery or custom loader support."
+msgstr ""
+
+#: includes/admin/class-admin.php:846
+msgid "Woo"
+msgstr ""
+
+#: includes/admin/class-admin.php:849
+msgid "WooCommerce storefront events and order delivery helpers are ready."
+msgstr ""
+
+#: includes/admin/class-admin.php:851
+msgid ""
+"WooCommerce is active. Enable storefront events when you want list, product, "
+"cart, and checkout signals."
+msgstr ""
+
+#: includes/admin/class-admin.php:852
+msgid "WooCommerce is not active on this site."
+msgstr ""
+
+#: includes/admin/class-admin.php:861
+msgid ""
+"Link decoration is active. Attribution carries across subdomains "
+"automatically. Add destination domains in the allowed list only if your "
+"checkout is on a fully separate domain. Note: external payment providers "
+"(Stripe, PayPal, Mollie) cannot be decorated — attribution survives those "
+"redirects via the last-touch cookie."
+msgstr ""
+
+#. translators: %s: WooCommerce checkout hostname detected on a different subdomain.
+#: includes/admin/class-admin.php:864
+#, php-format
+msgid ""
+"Your WooCommerce checkout is on %s. Enable cross-domain link decoration "
+"under Capture → Link Decoration to carry attribution through the subdomain "
+"hop."
+msgstr ""
+
+#: includes/admin/class-admin.php:865
+msgid ""
+"Cross-domain link decoration is off. Enable it under Capture → Link "
+"Decoration if your funnel spans multiple domains or subdomains."
+msgstr ""
+
+#: includes/admin/class-admin.php:917 assets/js/admin-settings-app.js:974
+msgid "No attempts yet"
+msgstr ""
+
+#. translators: %s: relative time.
+#: includes/admin/class-admin.php:921
+#: includes/admin/traits/trait-admin-pages.php:184
+#, php-format
+msgid "%s ago"
+msgstr ""
+
+#: includes/admin/class-admin.php:924
+#: includes/admin/traits/trait-admin-pages.php:187
+msgid "No delivery attempts recorded."
+msgstr ""
+
+#: includes/admin/class-admin.php:1362
+msgid ""
+"The server-side endpoint URL was rejected because it resolves to a "
+"disallowed or internal address. The previous value was kept."
+msgstr ""
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:47
+#: includes/admin/class-clicutcl-woocommerce-admin.php:128
+#: includes/admin/class-clicutcl-woocommerce-admin.php:175
+msgid "Source"
+msgstr ""
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:89
+msgid "Direct"
+msgstr ""
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:105
+msgid "Marketing Attribution"
+msgstr ""
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:122
+msgid "No attribution data available."
+msgstr ""
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:129
+#: includes/admin/class-clicutcl-woocommerce-admin.php:178
+msgid "Medium"
+msgstr ""
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:130
+msgid "Campaign"
+msgstr ""
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:131
+msgid "Term"
+msgstr ""
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:132
+msgid "Content"
+msgstr ""
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:133
+msgid "Google Click ID"
+msgstr ""
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:134
+msgid "Facebook Click ID"
+msgstr ""
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:135
+msgid "LinkedIn Click ID"
+msgstr ""
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:136
+msgid "Landing Page"
+msgstr ""
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:140
+msgid "First Touch"
+msgstr ""
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:161
+msgid "No first-touch data available"
+msgstr ""
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:172
+msgid "Last Touch"
+msgstr ""
+
+#: includes/admin/class-log-list-table.php:101
+#: includes/privacy/class-privacy-handler.php:138
+#: includes/privacy/class-privacy-handler.php:674
+msgid "Date"
+msgstr ""
+
+#: includes/admin/class-log-list-table.php:102
+#: includes/privacy/class-privacy-handler.php:134
+msgid "Event Type"
+msgstr ""
+
+#: includes/admin/class-log-list-table.php:103
+msgid "Details"
+msgstr ""
+
+#: includes/admin/class-log-list-table.php:195
+msgid "No logs found."
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:74
+msgid "ClickTrail Setup"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:75
+msgid "Setup"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:92
+msgid "Setup Wizard"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:138
+#: includes/admin/class-setup-wizard.php:206
+#: includes/admin/class-sitehealth.php:187
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:34
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:83
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:121
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:143
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:226
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:252
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:270
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:300
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:321
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:352
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:378
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:420
+#: includes/admin/traits/trait-admin-pages.php:117
+msgid "Forbidden"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:224
+msgid "Skip setup"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:249
+#: includes/admin/class-setup-wizard.php:287
+msgid "What are you tracking?"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:250
+msgid "Ad platforms"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:251
+#: includes/admin/class-setup-wizard.php:543
+msgid "You're set up"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:254
+msgid "Setup progress"
+msgstr ""
+
+#. translators: %s: form plugin names.
+#: includes/admin/class-setup-wizard.php:294
+#, php-format
+msgid ""
+"We found %s and WooCommerce. ClickTrail will track form submissions and "
+"eCommerce sessions automatically."
+msgstr ""
+
+#. translators: %s: form plugin names.
+#: includes/admin/class-setup-wizard.php:300
+#, php-format
+msgid ""
+"We found %s. ClickTrail will inject attribution data into your forms "
+"automatically."
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:304
+msgid ""
+"We found WooCommerce. ClickTrail will store attribution on every order "
+"automatically."
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:306
+msgid ""
+"ClickTrail will capture UTMs and click IDs from every visitor automatically."
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:315
+msgid "UTM &amp; click ID capture"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:316
+#: includes/admin/class-setup-wizard.php:322
+msgid "Auto"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:321
+msgid "First-touch &amp; last-touch attribution"
+msgstr ""
+
+#. translators: %s: form plugin name.
+#: includes/admin/class-setup-wizard.php:336
+#, php-format
+msgid "%s attribution"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:342
+#: includes/admin/class-setup-wizard.php:353
+#: includes/admin/class-setup-wizard.php:369
+msgid "Detected"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:344
+msgid "Not found"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:352
+msgid "WooCommerce order attribution"
+msgstr ""
+
+#. translators: %s: CMP plugin name.
+#: includes/admin/class-setup-wizard.php:364
+#, php-format
+msgid "%s consent integration"
+msgstr ""
+
+#. translators: %s: caching/CDN plugin name.
+#: includes/admin/class-setup-wizard.php:380
+#, php-format
+msgid "%s compatibility (client-side fallback)"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:385
+#: includes/admin/traits/trait-admin-pages.php:59
+#: includes/admin/traits/trait-admin-pages.php:244
+#: assets/js/admin-settings-app.js:984
+msgid "Enabled"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:393
+msgid "GA4 Measurement ID"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:394
+msgid "optional"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:407
+msgid "Needed for GA4 event forwarding. You can add this later in Settings."
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:420
+msgid "I run paid ads (Google Ads or Meta Ads)"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:434
+#: includes/admin/class-setup-wizard.php:506
+msgid "Next"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:456
+msgid "Where are your leads coming from?"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:459
+msgid ""
+"ClickTrail captures click IDs automatically. Confirm which platforms you use "
+"so we can surface them in your form entries."
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:471
+#: includes/admin/class-setup-wizard.php:475
+msgid "Google Ads"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:476
+msgid "Captures GCLID and auto-tag parameters from every Google Ads click."
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:487
+#: includes/admin/class-setup-wizard.php:491
+msgid "Meta / Facebook Ads"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:492
+msgid "Captures FBCLID from every Meta ad click."
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:503
+#: includes/admin/class-setup-wizard.php:573
+msgid "Back"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:521
+msgid "UTM tracking: ON"
+msgstr ""
+
+#. translators: %s: form plugin names.
+#: includes/admin/class-setup-wizard.php:527
+#, php-format
+msgid "Forms: %s"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:532
+msgid "WooCommerce: ON"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:546
+msgid ""
+"ClickTrail is tracking your visitors. Attribution data will appear in your "
+"form entries as soon as someone submits a form with UTMs in the URL."
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:560
+msgid "Quick test:"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:561
+msgid "Open your site with"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:563
+msgid "in the URL, submit a form, and look for"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:565
+msgid "in the entry."
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:576
+msgid "View my tracking dashboard"
+msgstr ""
+
+#: includes/admin/class-setup-wizard.php:583
+msgid "I want more control &rarr; Switch to Advanced Mode"
+msgstr ""
+
+#: includes/admin/class-sitehealth.php:39
+msgid "ClickTrail: Caching/conflicts detected"
+msgstr ""
+
+#: includes/admin/class-sitehealth.php:44
+msgid "ClickTrail: Admin diagnostics script heartbeat"
+msgstr ""
+
+#: includes/admin/class-sitehealth.php:49
+msgid "ClickTrail: Attribution cookie readable"
+msgstr ""
+
+#: includes/admin/class-sitehealth.php:91
+msgid "No common caching/conflict plugins detected"
+msgstr ""
+
+#: includes/admin/class-sitehealth.php:92
+msgid "ClickTrail will still work best with JS injection enabled."
+msgstr ""
+
+#: includes/admin/class-sitehealth.php:98
+msgid "Caching/optimization detected (client-side capture recommended)"
+msgstr ""
+
+#. translators: %s: List of detected caching or conflict plugins.
+#: includes/admin/class-sitehealth.php:101
+#, php-format
+msgid ""
+"Detected: %s. Full-page caching can make hidden field values stale. Enable "
+"ClickTrail's client-side capture fallback."
+msgstr ""
+
+#: includes/admin/class-sitehealth.php:119
+msgid "Admin diagnostics script seen in the last 24h"
+msgstr ""
+
+#: includes/admin/class-sitehealth.php:120
+msgid "A recent wp-admin heartbeat ping was recorded."
+msgstr ""
+
+#: includes/admin/class-sitehealth.php:126
+msgid "Admin diagnostics script not seen recently"
+msgstr ""
+
+#: includes/admin/class-sitehealth.php:127
+msgid ""
+"Open a ClickTrail admin screen (or Site Health) to refresh the diagnostics "
+"heartbeat."
+msgstr ""
+
+#: includes/admin/class-sitehealth.php:148
+msgid "Attribution cookie present in request"
+msgstr ""
+
+#: includes/admin/class-sitehealth.php:149
+msgid "Server received the attribution cookie."
+msgstr ""
+
+#: includes/admin/class-sitehealth.php:153
+msgid "This may be normal if no UTM visit occurred."
+msgstr ""
+
+#: includes/admin/class-sitehealth.php:155
+msgid ""
+"Note: Consent Mode is enabled. If you have not granted consent, no cookie "
+"will be set."
+msgstr ""
+
+#: includes/admin/class-sitehealth.php:157
+msgid "Test by visiting a page with ?utm_source=test."
+msgstr ""
+
+#: includes/admin/class-sitehealth.php:162
+msgid "Attribution cookie not present in request"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-consent-mode.php:50
+msgid "Wait for consent"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-consent-mode.php:51
+msgid "Allow until denied"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-consent-mode.php:52
+msgid "Require consent by region"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-consent-mode.php:63
+msgid "Choose when attribution is allowed to start for a visitor."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-consent-mode.php:83
+msgid "Use region codes such as EEA, UK, US, or US-CA."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-consent-mode.php:98
+#: assets/js/admin-settings-app.js:1076
+msgid "Auto-detect"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-consent-mode.php:99
+msgid "ClickTrail built-in banner"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-consent-mode.php:100
+msgid "Cookiebot / Usercentrics"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-consent-mode.php:101
+#: assets/js/admin-settings-app.js:1079
+msgid "OneTrust"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-consent-mode.php:102
+#: assets/js/admin-settings-app.js:1080
+msgid "Complianz"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-consent-mode.php:103
+msgid "Google Consent Mode via GTM"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-consent-mode.php:104
+msgid "Custom integration"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-consent-mode.php:115
+msgid "Select the consent platform ClickTrail should listen to."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-consent-mode.php:143
+msgid "How long to wait for a consent response before treating it as denied."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:62
+msgid ""
+"ClickTrail Audit detected PII risk on your Thank You page. Your tracking may "
+"be deactivated by Google."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:65
+#: assets/js/admin-settings-app.js:993
+msgid "Open Diagnostics"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:68
+msgid "Review Tracking Settings"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:92
+msgid "Server-side adapter not configured."
+msgstr ""
+
+#. translators: %1$d: HTTP status code.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:101
+#, php-format
+msgid "Endpoint reachable (HTTP %1$d)."
+msgstr ""
+
+#. translators: %1$d: HTTP status code, %2$s: error message.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:109
+#, php-format
+msgid "Endpoint error (HTTP %1$d): %2$s"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:128
+msgid "Debug disabled."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:133
+msgid "Debug enabled for 15 minutes."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:205
+msgid "Could not purge all tracking tables."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:214
+msgid "Tracking data purged."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:231
+msgid "Queue is unavailable."
+msgstr ""
+
+#. translators: %d: number of failed delivery rows requeued for retry.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:239
+#, php-format
+msgid "%d failed delivery requeued."
+msgid_plural "%d failed deliveries requeued."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:287
+#: assets/js/admin-settings-app.js:466
+msgid "Settings saved."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:364
+msgid "Backup prepared."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:385
+msgid "Missing backup payload."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:390
+msgid "Backup file is not valid JSON."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:407
+msgid "Backup restored."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:425
+msgid "WooCommerce is not active."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:430
+msgid "Enter a valid WooCommerce order ID."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:435
+msgid "Order not found."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:443
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:444
+msgid "No ClickTrail traces stored for this order yet."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:471
+msgid "not_queued"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:471
+msgid "queued"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:473
+msgid "No pending retry row found."
+msgstr ""
+
+#. translators: 1: attempts count, 2: next attempt timestamp.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:476
+#, php-format
+msgid "Attempts: %1$d. Next attempt: %2$s."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:488
+msgid "Order trace loaded."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:753
+msgid "Caching or script optimization detected"
+msgstr ""
+
+#. translators: %s: detected plugin labels.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:756
+#, php-format
+msgid ""
+"Detected: %s. Turn on the client-side capture fallback to reduce stale "
+"attribution and delayed event issues."
+msgstr ""
+
+#. translators: %s: detected call tracking provider labels.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:768
+#, php-format
+msgid "Call tracking script detected: %s"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:771
+msgid ""
+"A call tracking script was detected. ClickTrail skips tel: link decoration "
+"automatically. No action needed unless you are seeing unexpected behaviour."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:778
+msgid "NitroPack detected — check JS postpone exclusions"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:779
+msgid ""
+"NitroPack's \"Postpone JS\" feature can prevent attribution scripts from "
+"running before the user interacts with the page, causing empty UTM data on "
+"leads. ClickTrail attempts to exclude its scripts automatically. To verify: "
+"NitroPack > Optimization > JavaScript > Script exclusions -- confirm "
+"clicutcl-attribution.js and clicutcl-consent-bridge.js are listed."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:788
+msgid "Server-side delivery has no endpoint"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:789
+msgid "Delivery is enabled, but the collector URL is empty."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:796
+msgid "Woo storefront events enabled without WooCommerce"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:797
+msgid "Disable Woo storefront events or activate WooCommerce on this site."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:805
+msgid "sGTM mode enabled without a web container"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:806
+msgid "Add a GTM web container ID before testing sGTM mode."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:813
+msgid "sGTM mode has no loader source"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:814
+msgid ""
+"Provide a tagging server URL or a custom loader path so ClickTrail can "
+"deliver the GTM script in sGTM mode."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:821
+msgid "Custom loader enabled without a path"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:822
+msgid ""
+"Add a same-site path or loader URL before enabling the custom loader option."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:829
+msgid "sGTM mode does not match the active delivery adapter"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:830
+msgid ""
+"GTM is configured for sGTM mode, but Delivery is not currently using the "
+"sGTM adapter."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:837
+msgid "Woo user_data is enabled without the richer contract"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:838
+msgid ""
+"Turn on the richer Woo dataLayer contract if you want ClickTrail to emit "
+"consent-aware user_data objects."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:847
+msgid "Adapter selected without matching destination toggle"
+msgstr ""
+
+#. translators: 1: adapter label, 2: destination label.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:850
+#, php-format
+msgid "%1$s is selected as the delivery adapter, but %2$s is off in Events."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:873
+msgid "Destination toggle does not match the active adapter"
+msgstr ""
+
+#. translators: 1: destination label, 2: adapter label.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:876
+#, php-format
+msgid "%1$s is enabled in Events, but Delivery currently uses %2$s."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:891
+msgid "Review duplicate destination ownership"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:892
+msgid ""
+"GTM is configured alongside native destination toggles. Confirm each "
+"platform is owned by only one runtime path."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:904
+msgid "No common conflicts detected in the current ClickTrail configuration."
+msgstr ""
+
+#. translators: %d: findings count.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:912
+#, php-format
+msgid "Conflict scan found %d item worth reviewing."
+msgid_plural "Conflict scan found %d items worth reviewing."
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %s: form title.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:968
+#, php-format
+msgid "Gravity Forms: \"%s\" has no ct_* attribution fields"
+msgstr ""
+
+#. translators: %s: edit form URL.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:973
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1016
+#, php-format
+msgid ""
+"Add hidden fields named ct_utm_source, ct_utm_medium, etc. to capture "
+"attribution in this entry. <a href=\"%s\">Edit form &rarr;</a>"
+msgstr ""
+
+#. translators: %s: form title.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1011
+#, php-format
+msgid "WPForms: \"%s\" has no ct_* attribution fields"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1113
+msgid "Web container"
+msgstr ""
+
+#. translators: %s: GTM container ID.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1118
+#, php-format
+msgid "Container %s is configured."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1121
+msgid "Add a GTM web container ID before using the wizard."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1125
+msgid "sGTM mode"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1128
+msgid "sGTM compatibility mode is active."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1129
+msgid "ClickTrail is still using the standard GTM loader mode."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1133
+#: assets/js/admin-settings-app.js:802
+msgid "Tagging server URL"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1137
+msgid ""
+"Add the tagging server URL if you want first-party script delivery or a "
+"stronger preview workflow."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1141
+msgid "Loader path"
+msgstr ""
+
+#. translators: %s: loader URL.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1146
+#, php-format
+msgid "Custom loader enabled: %s"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1150
+msgid "First-party script delivery is enabled."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1151
+msgid ""
+"Enable first-party delivery or add a custom loader when you want the script "
+"to avoid the default Google host."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1155
+#: assets/js/admin-settings-app.js:1034
+msgid "Delivery adapter"
+msgstr ""
+
+#. translators: %s: adapter label.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1160
+#, php-format
+msgid "Delivery is enabled with %s."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1163
+msgid ""
+"Delivery is off. You can still validate browser-side GTM behavior before "
+"enabling server delivery."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1167
+msgid "Destination toggles"
+msgstr ""
+
+#. translators: %d: enabled destination count.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1172
+#, php-format
+msgid "%d destination is enabled in Events."
+msgid_plural "%d destinations are enabled in Events."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1175
+msgid ""
+"No native destination toggles are enabled. That is fine if GTM or another "
+"relay owns final delivery."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1182
+msgid "Loader probe"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1184
+msgid "Could not reach the configured GTM loader URL from WordPress."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1191
+msgid "Collector probe"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1193
+msgid "Could not reach the configured sGTM collector URL from WordPress."
+msgstr ""
+
+#. translators: 1: ready checks count, 2: total checks count.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1210
+#, php-format
+msgid "sGTM preview checks marked %1$d of %2$d items as ready."
+msgstr ""
+
+#. translators: 1: URL, 2: HTTP status code.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1256
+#, php-format
+msgid "%1$s responded with HTTP %2$d."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1276
+msgid ""
+"Load the Meta tag and matching server template in GTM, then confirm Meta is "
+"owned by either GTM or ClickTrail native delivery, not both."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1284
+msgid ""
+"Confirm your server container has the GA4 client and the Google tags you "
+"expect before previewing purchase and checkout events."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1292
+msgid ""
+"Verify the LinkedIn server-side tag template and consent handling in GTM "
+"before you rely on ClickTrail purchase or lead events."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1300
+msgid ""
+"Install the Pinterest Conversions template in the server container if GTM "
+"owns Pinterest delivery for this site."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1308
+msgid ""
+"Install the TikTok Events API template in the server container if GTM owns "
+"TikTok delivery for this site."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1315
+msgid "Template ownership"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1316
+msgid ""
+"Use destination toggles as ownership markers. Keep each downstream platform "
+"owned by exactly one delivery path."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1359
+msgid "Backup file format is not supported."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1363
+msgid "Backup file does not contain any ClickTrail options."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:27
+msgid "ClickTrail Network"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:50
+msgid "ClickTrail Network Settings"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:55
+msgid "Enable Server-side Sending"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:64
+msgid "Collector Endpoint URL"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:70
+msgid "Adapter Type"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:88
+msgid "Request Timeout (seconds)"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:94
+msgid "Remote Failure Telemetry (Opt-in)"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:98
+msgid "Enable aggregated remote failure reporting hook"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:100
+msgid ""
+"Disabled by default. Sends only aggregated failure counts (no payloads, no "
+"PII)."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:179
+msgid "No dispatches yet"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:211
+msgid "ClickTrail Diagnostics"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:217
+#: assets/js/admin-settings-app.js:968
+msgid "Queue Backlog"
+msgstr ""
+
+#. translators: %d: due now count.
+#: includes/admin/traits/trait-admin-pages.php:223
+#, php-format
+msgid "Due now: %d"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:231
+#: assets/js/admin-settings-app.js:973
+msgid "Last Dispatch"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:237
+#: assets/js/admin-settings-app.js:978
+msgid "Last Error"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:238
+#: assets/js/admin-settings-app.js:949
+msgid "None"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:239
+#: assets/js/admin-settings-app.js:980
+msgid "No errors recorded."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:243
+#: includes/admin/traits/trait-admin-pages.php:391
+#: assets/js/admin-settings-app.js:983
+msgid "Debug Logging"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:244
+#: assets/js/admin-settings-app.js:984
+msgid "Disabled"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:246
+msgid "15 minute window when enabled."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:266
+msgid "Endpoint Test"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:267
+msgid "Validate connectivity to the configured server-side endpoint."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:273
+msgid "Test Endpoint"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:284
+msgid "Conflict Scan"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:285
+msgid ""
+"Run deterministic checks for caching, call tracking scripts, duplicate "
+"ownership, Woo gaps, and delivery mismatches."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:291
+msgid "Run Conflict Scan"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:305
+msgid "Attribution Readiness"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:306
+msgid ""
+"Run a read-only analysis against a test payload. Click-ID values are never "
+"returned or stored."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:312
+msgid "Test payload (JSON)"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:316
+msgid "Referrer URL (optional)"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:318
+msgid "Current host (optional)"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:322
+msgid "Source aliases (optional test JSON)"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:324
+msgid ""
+"Map recognized click-ID platform keys to bounded utm_source aliases. This "
+"input is used only for this check and is never stored."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:326
+msgid ""
+"Suggestions are read-only and apply only to utm_source; utm_medium and "
+"utm_campaign are never invented. An observed source, an unresolved macro, or "
+"signals from multiple platforms suppress automatic source suggestion."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:328
+msgid "Run Readiness Check"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:329
+msgid "Copy Test URL"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:333
+msgid "Copy-only test URL"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:345
+msgid "Backup Restore"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:346
+msgid ""
+"Export or restore the five main ClickTrail option stores through privileged "
+"server-side actions."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:347
+msgid ""
+"Warning: the exported backup file contains live, unmasked webhook secrets "
+"and CRM tokens in plaintext. Treat it like a credentials file — store and "
+"share it accordingly."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:353
+msgid "Export Backup"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:358
+msgid "Restore Backup"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:369
+msgid "Woo Order Trace Lookup"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:370
+msgid ""
+"Inspect the stored purchase and milestone payload snapshots for a "
+"WooCommerce order, even outside the debug window."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:376
+#: includes/privacy/class-privacy-handler.php:662
+#: includes/privacy/class-woo-order-privacy.php:221
+msgid "Order ID"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:377
+msgid "Lookup Order"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:392
+msgid ""
+"Capture temporary dispatch traces and normalized event intake entries for "
+"debugging."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:411
+msgid "Data Management"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:412
+msgid ""
+"Purge local tracking data, including events, queue rows, and diagnostic "
+"buffers. This cannot be undone."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:418
+msgid "Purge Tracking Data"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:429
+msgid "Failure Telemetry"
+msgstr ""
+
+#. translators: %d: total failures.
+#: includes/admin/traits/trait-admin-pages.php:434
+#, php-format
+msgid "Failure-only aggregated counters. Total failures tracked: %d."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:446
+msgid "Hour Bucket"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:447
+msgid "Total Failures"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:448
+msgid "Codes"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:477
+msgid "No failures recorded yet."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:490
+msgid "Queue Backlog Details"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:491
+msgid "Current state of the retry queue used for failed dispatch attempts."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:499
+msgid "Queue Ready"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:500
+msgid "Yes"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:500
+msgid "No"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:503
+msgid "Pending Events"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:507
+msgid "Due Now"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:511
+msgid "Max Attempts in Queue"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:515
+msgid "Oldest Next Attempt"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:519
+msgid "Failed (dead-letter)"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:525
+msgid "Retry Failed Deliveries"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:536
+msgid "Recent Event Intake"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:537
+msgid "Last normalized event intake entries captured during the debug window."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:545
+#: includes/admin/traits/trait-admin-pages.php:600
+msgid "Time"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:546
+msgid "Kind"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:547
+#: includes/admin/traits/trait-admin-pages.php:601
+#: includes/privacy/class-privacy-handler.php:638
+msgid "Event"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:548
+#: includes/admin/traits/trait-admin-pages.php:604
+msgid "Status"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:549
+msgid "Reason"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:551
+msgid "Attribution Keys"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:552
+msgid "Identity Keys"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:578
+msgid ""
+"No normalized intake entries recorded yet. Enable Debug Logging and "
+"reproduce an event."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:591
+msgid "Recent Dispatches"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:592
+msgid "Dispatch entries are captured only while Debug Logging is enabled."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:602
+msgid "Event ID"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:603
+msgid "Adapter"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:605
+msgid "HTTP"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:606
+msgid "Endpoint"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:607
+msgid "Message"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:627
+msgid "No dispatches recorded yet."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:651
+msgid "ClickTrail Logs"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:675
+msgid "Run the scan to review likely setup conflicts."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:715
+msgid "Lookup an order to inspect stored purchase and milestone traces."
+msgstr ""
+
+#. translators: %d: WooCommerce order ID.
+#: includes/admin/traits/trait-admin-pages.php:732
+#, php-format
+msgid "Order #%d"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:753
+msgid "Stored trace"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:765
+msgid ""
+"No attribution was captured for this order because marketing consent was not "
+"granted when it fired. This is expected when \"Enable consent mode\" is on "
+"under Settings → Delivery → Privacy & consent. Turn it off there if you "
+"don't need consent-gated attribution."
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:775
+msgid "Source Hook"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:779
+msgid "Attempted At"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:783
+msgid "Dispatch Result"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:787
+msgid "Dispatch Detail"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:791
+msgid "Queue State"
+msgstr ""
+
+#: includes/admin/traits/trait-admin-pages.php:795
+msgid "Queue Detail"
+msgstr ""
+
+#: includes/api/class-tracking-controller.php:522
+#: includes/api/class-tracking-controller.php:644
+msgid "Payload too large."
+msgstr ""
+
+#: includes/class-clicutcl-core.php:81
+msgid ""
+"ClickTrail failed to boot: missing class CLICUTCL\\Core\\Context. Check your "
+"autoloader mapping and release ZIP contents."
+msgstr ""
+
+#: includes/class-clicutcl-core.php:283
+msgid "We use cookies to improve your experience and analyze traffic."
+msgstr ""
+
+#: includes/class-clicutcl-core.php:284
+msgid "Read more"
+msgstr ""
+
+#: includes/class-clicutcl-core.php:285
+msgid "Accept All"
+msgstr ""
+
+#: includes/class-clicutcl-core.php:286
+msgid "Reject Non-Essential"
+msgstr ""
+
+#: includes/class-clicutcl-core.php:595
+msgid "Shop"
+msgstr ""
+
+#. translators: %s: search query.
+#: includes/class-clicutcl-core.php:622
+#, php-format
+msgid "Search: %s"
+msgstr ""
+
+#: includes/class-clicutcl-core.php:625
+msgid "Search Results"
+msgstr ""
+
+#: includes/integrations/forms/class-gf-form-settings-tab.php:74
+msgid "Attribution Tracking"
+msgstr ""
+
+#: includes/integrations/forms/class-gf-form-settings-tab.php:78
+msgid "Enable attribution tracking for this form"
+msgstr ""
+
+#: includes/integrations/forms/class-ninja-forms-submission-extra-handler.php:96
+msgid "ClickTrail Attribution"
+msgstr ""
+
+#: includes/privacy/class-privacy-handler.php:58
+#: includes/privacy/class-privacy-handler.php:73
+msgid "ClickTrail Tracking Data"
+msgstr ""
+
+#: includes/privacy/class-privacy-handler.php:130
+msgid "ClickTrail Events"
+msgstr ""
+
+#: includes/privacy/class-privacy-handler.php:142
+msgid "Event Data"
+msgstr ""
+
+#: includes/privacy/class-privacy-handler.php:242
+#: includes/privacy/class-privacy-handler.php:246
+msgid "Some ClickTrail event records could not be deleted."
+msgstr ""
+
+#. translators: %s: database error message.
+#: includes/privacy/class-privacy-handler.php:251
+#, php-format
+msgid "Database error: %s"
+msgstr ""
+
+#: includes/privacy/class-privacy-handler.php:420
+#: includes/privacy/class-privacy-handler.php:448
+msgid "ClickTrail Debug Storage"
+msgstr ""
+
+#: includes/privacy/class-privacy-handler.php:424
+#: includes/privacy/class-privacy-handler.php:452
+msgid "Storage Type"
+msgstr ""
+
+#: includes/privacy/class-privacy-handler.php:428
+#: includes/privacy/class-privacy-handler.php:456
+msgid "Storage Key"
+msgstr ""
+
+#: includes/privacy/class-privacy-handler.php:432
+#: includes/privacy/class-privacy-handler.php:460
+msgid "Data Snapshot"
+msgstr ""
+
+#: includes/privacy/class-privacy-handler.php:493
+msgid "Some ClickTrail transient debug records could not be deleted."
+msgstr ""
+
+#: includes/privacy/class-privacy-handler.php:520
+msgid "Some ClickTrail option debug records could not be updated."
+msgstr ""
+
+#: includes/privacy/class-privacy-handler.php:529
+msgid "Some ClickTrail option debug records could not be deleted."
+msgstr ""
+
+#: includes/privacy/class-privacy-handler.php:579
+msgid "Some ClickTrail queued delivery records could not be deleted."
+msgstr ""
+
+#: includes/privacy/class-privacy-handler.php:634
+msgid "ClickTrail Touch Events"
+msgstr ""
+
+#: includes/privacy/class-privacy-handler.php:642
+msgid "Funnel Stage"
+msgstr ""
+
+#: includes/privacy/class-privacy-handler.php:646
+msgid "Source Channel"
+msgstr ""
+
+#: includes/privacy/class-privacy-handler.php:650
+msgid "Touch Source"
+msgstr ""
+
+#: includes/privacy/class-privacy-handler.php:654
+msgid "Touch Medium"
+msgstr ""
+
+#: includes/privacy/class-privacy-handler.php:658
+msgid "Touch Campaign"
+msgstr ""
+
+#: includes/privacy/class-privacy-handler.php:666
+msgid "Amount"
+msgstr ""
+
+#: includes/privacy/class-privacy-handler.php:670
+msgid "Currency"
+msgstr ""
+
+#: includes/privacy/class-privacy-handler.php:719
+msgid "Some ClickTrail touch event records could not be deleted."
+msgstr ""
+
+#: includes/privacy/class-woo-order-privacy.php:217
+msgid "ClickTrail WooCommerce Order Data"
+msgstr ""
+
+#: includes/privacy/class-woo-order-privacy.php:225
+msgid "Metadata Key"
+msgstr ""
+
+#: includes/privacy/class-woo-order-privacy.php:229
+msgid "Metadata Value"
+msgstr ""
+
+#: includes/privacy/class-woo-order-privacy.php:297
+#: includes/privacy/class-woo-order-privacy.php:304
+msgid "Some ClickTrail WooCommerce order metadata could not be deleted."
+msgstr ""
+
+#: includes/server-side/class-queue.php:103
+msgid "Every 5 Minutes"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:243 assets/js/admin-settings-app.js:868
+msgid "Ready"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:243 assets/js/admin-settings-app.js:868
+msgid "Needs Review"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:243
+msgid "Unavailable"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:243 assets/js/admin-settings-app.js:868
+msgid "Optional"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:269
+msgid "Setup Checklist"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:270
+msgid ""
+"Read-only readiness checks for rollout, delivery, and WooCommerce coverage."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:439
+msgid "Settings reloaded."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:445
+msgid "Failed to reload settings."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:472
+msgid "Failed to save settings."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:496
+msgid "Failed to run sGTM preview checks."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:634
+msgid "Core tracking"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:635
+msgid ""
+"Enable attribution tracking and choose how long visit source data should be "
+"stored."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:637
+msgid "Enable attribution tracking"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:637
+msgid "Capture campaign and referral data for each visit."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:638
+msgid "Attribution retention (days)"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:638
+msgid "How long attribution data should be stored."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:646
+msgid "Cross-domain attribution"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:647
+msgid ""
+"Preserve attribution when visitors move between your domains or subdomains."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:649
+msgid "Decorate outgoing links"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:649
+msgid "Append attribution parameters to approved links."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:650
+msgid "Allowed cross-domain destinations"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:650
+msgid "Domains where attribution parameters may be added."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:654
+msgid "Do not modify signed URLs"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:654
+msgid ""
+"Recommended when links contain temporary signatures or protected access "
+"tokens."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:656 assets/js/admin-settings-app.js:701
+#: assets/js/admin-settings-app.js:705 assets/js/admin-settings-app.js:709
+msgid "Recommended"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:658
+msgid "Pass cross-domain attribution token"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:658
+msgid ""
+"Adds a temporary token to preserve attribution across approved domains. No "
+"personal data is included."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:673
+msgid "Enable this source and accept signed webhook submissions."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:682
+msgid "Signing secret"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:683
+msgid "Leave unchanged to keep the current secret."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:699
+msgid "On-site form capture"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:700
+msgid ""
+"Recommended settings to keep attribution attached to forms on cached pages "
+"and dynamic sites."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:704
+msgid "Client-side capture fallback"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:704
+msgid "Recommended for cached or highly optimized pages."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:707
+msgid "Watch dynamic content"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:707
+msgid "Detect forms and links added after page load."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:711
+msgid "Replace existing attribution values"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:711
+msgid "Use newly detected values even if attribution was already stored."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:719
+msgid "WhatsApp"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:720
+msgid ""
+"Carry attribution into outbound WhatsApp clicks and pre-filled messages."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:724
+msgid "Enable WhatsApp tracking"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:724
+msgid "Track clicks on WhatsApp links and buttons."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:725
+msgid "Append attribution to message"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:725
+msgid "Add attribution details to the pre-filled WhatsApp message."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:733
+msgid "External form sources"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:734
+msgid ""
+"Accept attributed submissions from supported providers without exposing raw "
+"engineering controls."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:736
+msgid "Accept external form source webhooks"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:736
+msgid "Enable signed inbound submissions from supported providers."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:745
+msgid "Advanced technical options"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:746
+msgid ""
+"Only change these if you need more control over how the browser watches the "
+"page."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:749 assets/js/admin-settings-app.js:1098
+msgid "Advanced"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:752
+msgid "Dynamic content root selector"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:752
+msgid ""
+"Defaults to body. Narrow this only if you need to watch a specific part of "
+"the page."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:766
+msgid ""
+"Mark this destination when another relay or downstream collector owns final "
+"delivery."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:769
+msgid ""
+"Send eligible events to this destination when the matching delivery adapter "
+"or downstream collector is configured."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:785
+msgid ""
+"ClickTrail uses one unified event pipeline behind the scenes for browser "
+"events, webhooks, and server delivery. Configure the capabilities you use "
+"without worrying about the internal pipeline."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:791
+msgid "Event collection"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:792
+msgid ""
+"Control browser event collection and choose whether GTM should load in "
+"standard or sGTM compatibility mode."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:794
+msgid "Enable browser event collection"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:794
+msgid ""
+"Collect page, click, and form events through ClickTrail's unified event "
+"layer."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:795
+msgid "Google Tag Manager container ID"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:795
+msgid "Use only if your site does not already load Google Tag Manager."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:798
+msgid "GTM loader mode"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:798
+msgid ""
+"Use standard mode for the default Google host, or sGTM mode when you want a "
+"tagging-server URL or custom loader path."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:799
+msgid "Standard GTM"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:800
+msgid "sGTM compatibility mode"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:802
+msgid "Used for first-party GTM delivery and preview checks in sGTM mode."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:806
+msgid "Use first-party script delivery"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:806
+msgid ""
+"Load `gtm.js` and `ns.html` from the tagging server instead of the default "
+"Google host."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:809
+msgid "Use a custom loader path"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:809
+msgid ""
+"Prefer a same-site loader path when your sGTM setup rewrites GTM requests "
+"through a first-party URL."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:812
+msgid "Custom loader URL or path"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:812
+msgid "Examples: `/metrics/gtm.js` or `https://metrics.example.com/gtm.js`."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:819
+msgid ""
+"sGTM mode changes only the loader path and preview workflow. ClickTrail "
+"still uses the same canonical event pipeline underneath."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:820
+msgid ""
+"Standard mode keeps the default Google Tag Manager loader. Switch to sGTM "
+"mode when you need a tagging-server URL, first-party delivery, or a custom "
+"loader path."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:827
+msgid "sGTM setup wizard"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:828
+msgid ""
+"Use this checklist when ClickTrail should cooperate with a server-side GTM "
+"stack without turning into a generic tag manager."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:832
+msgid ""
+"Recommended flow: set the web container, choose a tagging-server URL or "
+"custom loader, point Delivery to the sGTM adapter when ClickTrail sends "
+"server events, then verify ownership in GTM Preview."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:838
+msgid ""
+"Set the GTM web container ID for the site that owns the browser dataLayer."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:839
+msgid ""
+"Choose a tagging-server URL for first-party delivery or a custom loader path "
+"if your stack rewrites GTM requests."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:840
+msgid ""
+"When ClickTrail should send server events into sGTM, switch Delivery to the "
+"sGTM adapter and point it at the collector URL."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:841
+msgid ""
+"Run preview checks here, then confirm the web and server containers receive "
+"the events you expect without duplicate ownership."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:850
+msgid "Run Preview Checks"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:875
+msgid "Destination template hints"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:886
+msgid "WooCommerce"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:887
+msgid ""
+"Keep campaign context visible on WooCommerce orders and extend the same "
+"event pipeline into the storefront when you need it."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:891
+msgid ""
+"Order attribution is stored on WooCommerce orders during checkout, so "
+"campaign context remains available after the visitor leaves the landing page."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:895
+msgid ""
+"Purchase events are pushed automatically on the thank-you page and can also "
+"flow into ClickTrail's server-side delivery adapters when Delivery is "
+"enabled."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:897
+msgid "Enable WooCommerce storefront events"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:897
+msgid ""
+"Emit GA4-style `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, "
+"`remove_from_cart`, and `begin_checkout` events through ClickTrail's browser "
+"event layer. Existing installs keep this off until you enable it."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:900
+msgid "Use the richer Woo dataLayer contract"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:900
+msgid ""
+"Add `event_id` to Woo purchase pushes and make richer Woo browser events "
+"available for GTM-first setups."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:901
+msgid "Include consent-aware Woo user_data"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:901
+msgid ""
+"Emit `user_data` objects with browser identifiers and purchase identity only "
+"when the richer contract is on and marketing consent is granted."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:906
+msgid ""
+"The richer contract is optional. ClickTrail still keeps Woo tracking on the "
+"same canonical pipeline and only widens the dataLayer shape for GTM-first "
+"workflows."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:910
+msgid ""
+"Verify WooCommerce order attribution in the order screen, storefront/browser "
+"events with GTM Preview or the dataLayer, and server-side traces from "
+"ClickTrail > Diagnostics."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:917
+msgid "Destinations"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:918
+msgid ""
+"Choose which advertising platforms should receive compatible event payloads."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:933
+msgid "Lifecycle updates"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:934
+msgid ""
+"Accept lifecycle updates from your CRM or backend and route them through the "
+"same event pipeline."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:936
+msgid "Accept lifecycle updates"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:936
+msgid "Allow lifecycle events to enter the unified event pipeline."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:937
+msgid "Enable lifecycle endpoint"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:937
+msgid "Turn on the REST endpoint used by your CRM or backend."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:940
+msgid "Lifecycle endpoint token"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:940
+msgid "Leave unchanged to keep the current token."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:955
+msgid "Delivery health"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:956
+msgid ""
+"Quick operational summary for queue health, recent delivery attempts, and "
+"debug state."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:963
+msgid ""
+"Server-side delivery is currently off. Historical diagnostics can still "
+"appear until their retention window expires."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:970
+msgid "Due now: "
+msgstr ""
+
+#: assets/js/admin-settings-app.js:985
+msgid "Enable it from Diagnostics when you need a short trace window."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:998
+msgid "Open Logs"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1007
+msgid ""
+"Delivery controls cover transport, consent, queue health, and the safeguards "
+"that keep outbound tracking reliable. Most sites only need the server-side "
+"transport card and privacy controls."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1014
+msgid ""
+"This site is currently using network defaults for server-side delivery. "
+"Disable the network toggle below to customize this site independently."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1021
+msgid "Server-side transport"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1022
+msgid ""
+"Route events through your own collector endpoint when you need a more "
+"durable delivery path."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1025
+msgid "Use network defaults"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1025
+msgid "Use the multisite network configuration for this site."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1027
+msgid "Enable server-side delivery"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1027
+msgid "Send events through your own collector endpoint."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1030
+msgid "Collector URL"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1030
+msgid "Endpoint that receives server-side events."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1034
+msgid "Choose the format best suited to your receiving endpoint."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1045
+msgid "Request timeout (seconds)"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1045
+msgid ""
+"How long ClickTrail should wait before treating a delivery attempt as failed."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1049
+msgid "Share anonymous failure counts"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1049
+msgid ""
+"Only aggregated failure counts are shared. No payloads or personal data are "
+"included."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1057
+msgid "Privacy & consent"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1058
+msgid ""
+"Control when tracking is allowed to start and which consent signals "
+"ClickTrail should use."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1060
+msgid "Enable consent mode"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1060
+msgid ""
+"Gate attribution and event collection until consent requirements are "
+"satisfied."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1061
+msgid "Consent behavior"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1061
+msgid ""
+"Choose whether consent is always required, never required, or region-based."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1064
+msgid "Strict"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1065
+msgid "Relaxed"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1066
+msgid "Region-based"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1068
+msgid "Regions requiring consent"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1068
+msgid "One region per line. Examples: EEA, UK, CA, US-CA."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1073
+msgid "Consent source"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1073
+msgid ""
+"Which consent platform ClickTrail should listen to. ClickTrail buffers "
+"landing-page attribution to sessionStorage before consent resolves, so first-"
+"touch UTMs and click IDs are preserved even when the banner is accepted on a "
+"later page."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1077
+msgid "ClickTrail plugin"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1078
+msgid "Cookiebot"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1081
+msgid "Google Tag Manager"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1082
+msgid "Custom"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1084
+msgid "Consent wait time (ms)"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1084
+msgid "How long ClickTrail should wait for a consent signal before continuing."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1094
+msgid "Advanced delivery controls"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1095
+msgid ""
+"Security, buffering, deduplication, and low-level transport controls for "
+"technical users."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1101
+msgid "Use native platform adapters"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1101
+msgid "Prefer ClickTrail's built-in platform adapters when available."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1102
+msgid "Store structured event diagnostics"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1102
+msgid "Keep a structured intake buffer for troubleshooting and validation."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1103
+msgid "Encrypt saved secrets"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1103
+msgid "Encrypt stored secrets at rest when supported by the host environment."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1104
+msgid "Attribution token lifetime (seconds)"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1104
+msgid "Controls how long attribution tokens remain valid."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1105
+msgid "Maximum token replays (0 to disable)"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1105
+msgid "Cap how many times the same token nonce can be used."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1106
+msgid "Webhook replay protection window (seconds)"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1106
+msgid "Reject webhook signatures that fall outside this replay window."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1107
+msgid "API rate limit window (seconds)"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1107
+msgid "The time window used by intake rate limiting."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1108
+msgid "API requests allowed per window"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1108
+msgid "Maximum requests allowed within the configured rate limit window."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1109
+msgid "Trusted proxy IPs or CIDR ranges"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1109
+msgid "One proxy per line. Only add proxies you control."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1110
+msgid "Allowed token hosts"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1110
+msgid "Hosts allowed to mint or receive attribution tokens. One host per line."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1111
+msgid "Recent dispatch records kept"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1111
+msgid "How many recent dispatch attempts should be kept for diagnostics."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1112
+msgid "Failure summary flush interval (seconds)"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1112
+msgid "How often failure counters are flushed into hourly telemetry buckets."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1113
+msgid "Failure summary retention (hours)"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1113
+msgid "How long failure telemetry buckets should be retained."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1114
+msgid "Event deduplication window (seconds)"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1114
+msgid "How long dispatch deduplication markers should be kept."
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1189
+msgid "Save Changes"
+msgstr ""
+
+#: assets/js/admin-settings-app.js:1195
+msgid "Reload Saved Settings"
+msgstr ""
