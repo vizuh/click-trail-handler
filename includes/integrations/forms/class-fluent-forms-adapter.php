@@ -66,6 +66,18 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 		}
 
 		$payload = $this->get_attribution_payload();
+		if ( empty( $payload ) ) {
+			return;
+		}
+
+		// Fluent Forms fires its legacy and slash-style render hooks for the same form.
+		static $last_form = null;
+		if ( is_object( $form ) ) {
+			if ( $last_form === $form ) {
+				return;
+			}
+			$last_form = $form;
+		}
 
 		foreach ( $payload as $key => $value ) {
 			echo '<input type="hidden" name="' . esc_attr( $this->get_field_name( $key ) ) . '" value="' . esc_attr( $value ) . '">';

@@ -27,6 +27,12 @@ if ( ! function_exists( 'wpFluent' ) ) {
 	}
 }
 
+if ( ! function_exists( 'esc_attr' ) ) {
+	function esc_attr( $value ) {
+		return htmlspecialchars( (string) $value, ENT_QUOTES, 'UTF-8' );
+	}
+}
+
 final class ClickTrailFluentDbStub {
 	public array $rows = array();
 	private string $table = '';
@@ -48,7 +54,33 @@ final class ClickTrailTestableFluentFormsAdapter extends Fluent_Forms_Adapter {
 	}
 }
 
+final class ClickTrailHiddenFieldTestAdapter extends Fluent_Forms_Adapter {
+	protected function should_populate() {
+		return true;
+	}
+
+	protected function get_attribution_payload() {
+		return array(
+			'ft_source' => 'release-smoke',
+			'lt_source' => 'release-smoke',
+		);
+	}
+}
+
 final class FluentFormsAdapterTest extends TestCase {
+	public function test_hidden_fields_are_emitted_once_for_dual_fluent_render_hooks(): void {
+		$adapter = new ClickTrailHiddenFieldTestAdapter();
+		$form    = (object) array( 'id' => 7 );
+		ob_start();
+		$adapter->add_hidden_fields( $form );
+		$adapter->add_hidden_fields( $form );
+		$adapter->add_hidden_fields( (object) array( 'id' => 8 ) );
+		$output = (string) ob_get_clean();
+
+		$this->assertSame( 2, substr_count( $output, 'name="ct_ft_source"' ) );
+		$this->assertSame( 2, substr_count( $output, 'name="ct_lt_source"' ) );
+	}
+
 	public function test_submission_meta_uses_fluent_forms_response_id_column(): void {
 		$db = new ClickTrailFluentDbStub();
 		$GLOBALS['clicktrail_test_fluent_db'] = $db;
