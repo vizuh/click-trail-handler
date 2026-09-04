@@ -9,6 +9,7 @@ They are **not release-ready** and require native review before any publication 
 - `click-trail-handler-nl_NL.po` — Dutch (Netherlands)
 - `click-trail-handler-ja.po` — Japanese
 - `click-trail-handler-zh_CN.po` — Simplified Chinese
+- `click-trail-handler-ko_KR.po` — Korean (South Korea)
 - `click-trail-handler-ru_RU.po` — Russian
 - `click-trail-handler-hi_IN.po` — Hindi (India)
 
@@ -20,7 +21,7 @@ They are **not release-ready** and require native review before any publication 
 - There are **606 source msgid forms** (the 603 singular forms plus 3 plural forms).
 - Every active message entry has machine-filled draft translation text. Spanish and Dutch
   carry two plural forms; Japanese and Simplified Chinese use one; Russian uses three;
-  Hindi uses two locale-appropriate plural forms.
+  Hindi uses two locale-appropriate plural forms; Korean uses one.
 - Every message entry is marked `fuzzy` to keep the draft visibly pending review.
 - Placeholders, HTML markup, entities, code spans, URLs, and technical identifiers were protected during translation and validated after generation.
 
