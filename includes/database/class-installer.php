@@ -20,7 +20,7 @@ class Installer {
 	 * Schema version. Bump when table definitions change; `maybe_upgrade()`
 	 * re-runs dbDelta on existing installs until the stored version matches.
 	 */
-	public const DB_VERSION = 3;
+	public const DB_VERSION = 4;
 
 	/**
 	 * Option key for the installed schema version.
@@ -142,6 +142,8 @@ class Installer {
 			visitor_id varchar(64) NOT NULL DEFAULT '',
 			session_id varchar(64) NOT NULL DEFAULT '',
 			event_name varchar(64) NOT NULL,
+			event_id text DEFAULT NULL,
+			event_key char(64) DEFAULT NULL,
 			funnel_stage varchar(20) NOT NULL DEFAULT 'unknown',
 			source_channel varchar(20) NOT NULL DEFAULT 'web',
 			touch_source varchar(128) DEFAULT NULL,
@@ -155,6 +157,7 @@ class Installer {
 			currency varchar(8) DEFAULT NULL,
 			created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			PRIMARY KEY  (id),
+			UNIQUE KEY blog_event_key (blog_id, event_key),
 			KEY visitor_id (visitor_id),
 			KEY order_id (order_id),
 			KEY blog_id (blog_id),
@@ -168,7 +171,10 @@ class Installer {
 
 		$events_ready       = self::table_exists( $table_name );
 		$queue_ready        = self::table_exists( $queue_table );
-		$touch_events_ready = self::table_exists( $touch_events_table );
+		$touch_events_ready = self::table_exists( $touch_events_table )
+			&& self::column_exists( $touch_events_table, 'event_id' )
+			&& self::column_exists( $touch_events_table, 'event_key' )
+			&& self::has_touch_event_unique_key( $touch_events_table );
 		$checked_at         = time();
 
 		update_option( self::EVENTS_READY_OPTION, $events_ready ? 1 : 0, false );
@@ -226,5 +232,22 @@ class Installer {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table name, escaped above.
 		$found = $wpdb->get_var( $wpdb->prepare( "SHOW COLUMNS FROM {$table_name} LIKE %s", $column ) );
 		return is_string( $found ) && $found === $column;
+	}
+
+	/**
+	 * Verify the complete unique key before declaring the migration ready.
+	 *
+	 * @param string $table_name Plugin-owned touch table.
+	 * @return bool
+	 */
+	private static function has_touch_event_unique_key( string $table_name ): bool {
+		global $wpdb;
+		$table_name = esc_sql( $table_name );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table name, escaped above.
+		$index = $wpdb->get_results( "SHOW INDEX FROM {$table_name} WHERE Key_name = 'blog_event_key'", ARRAY_A );
+		return is_array( $index ) && count( $index ) === 2
+			&& array_column( $index, 'Column_name' ) === array( 'blog_id', 'event_key' )
+			&& array_sum( array_column( $index, 'Non_unique' ) ) === 0
+			&& ! array_filter( array_column( $index, 'Sub_part' ) );
 	}
 }

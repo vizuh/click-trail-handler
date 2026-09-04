@@ -341,6 +341,13 @@ Retention defaults:
 
 ## Multisite
 
+Touch-event schema version 4 preserves historical rows and adds logical-event deduplication.
+Verify `clicutcl_db_version = 4` and `clicutcl_touch_events_table_ready = 1` after an upgrade.
+Incomplete migrations suppress new touch-ledger writes while leaving transport independent;
+inspect database migration errors before using reporting totals. Existing historical duplicates
+are not deleted or inferred. The disposable migration check lives at
+`tools/qa/touch-events-db.test.php` and must never run against an existing ClickTrail database.
+
 When multisite network defaults are configured:
 
 - server-side transport can inherit network settings

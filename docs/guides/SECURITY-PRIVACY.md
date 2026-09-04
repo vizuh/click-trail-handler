@@ -24,7 +24,7 @@ These are not claims that the behavior is fixed. They are release gates for the 
 - Same-tab listeners receive `ct:consentResolved`; other tabs receive the canonical decision through the
   browser `storage` event. Browser/CMP and queue/retry coverage below remains a focused VM boundary test,
   not a full browser or WordPress E2E proof.
-- Form/Woo posted attribution and purchase dataLayer output still need live consent/revocation tests; queued retries now have a current-consent contract test and implementation guard.
+- Thank-you purchase processing now checks current visitor consent before reading stored attribution or emitting `dataLayer`; denial/unknown and grant entry paths have focused PHP tests. Form/Woo posted attribution and full browser/CMP revocation still need live verification. Strict/geo queued retries require a durable subject-consent resolver; missing authority defers without sending or consuming transport attempts.
 - Woo traces can retain identity metadata; ClickTrail now covers its Woo order-meta lifecycle through an explicit allowlist and automated contract tests, subject to live Woo runtime verification.
 - Browser conversion tokens and external form messages do not prove a real action or provider confirmation.
 - Webhook identity/timestamp/replay semantics and sGTM preview SSRF still require hardening.

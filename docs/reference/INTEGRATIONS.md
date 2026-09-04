@@ -277,7 +277,7 @@ What the current source paths implement:
 
 - save attribution on checkout
 - render attribution in WooCommerce admin
-- push purchase event to `dataLayer`
+- push purchase event to `dataLayer` only when current visitor consent permits processing
 - optionally emit storefront `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` browser events
 - preserve `item_list_name` and `item_list_index` when list context is available
 - optionally widen Woo `dataLayer` pushes with `event_id` and consent-aware `user_data` for GTM-first setups
@@ -312,13 +312,15 @@ as `dedup_ttl_days`, constant value-basis labels, and counts. It does not
 accept or return order/customer identifiers, identities, attribution values,
 IP addresses, user agents, payloads, URLs, or secrets.
 
-The contract records these source-level blockers without remediating them:
+The historical M6-A contract records the following issues. Current source now gates
+thank-you output before attribution reads, resolves retry consent by queued subject, and
+covers allowlisted Woo metadata export/erase/purge/uninstall. Their focused regression checks
+do not replace browser/CMP and provider validation. Remaining boundaries include:
 
-- purchase `dataLayer` lacks a top-level consent gate and identity reads live-cookie consent
-- purchase-path skipped dispatch can set the sent marker
+- purchase identity still reads live-cookie consent in server-context milestone paths
+- purchase-path skipped dispatch can set the sent marker after the browser consent gate passes
 - dedup check/send/mark is non-atomic
-- queued replay does not re-check consent and queue uniqueness omits destination
-- identity-bearing Woo trace metadata lacks complete erasure/purge/uninstall coverage
+- queue uniqueness omits destination; strict/geo retries require a durable subject-consent resolver
 - classic and HPOS core order paths, refund trace persistence, and HPOS admin hooks are runtime-tested only in isolated synthetic stacks
 
 No Woo hook, order reader/scan, database access, provider request, new

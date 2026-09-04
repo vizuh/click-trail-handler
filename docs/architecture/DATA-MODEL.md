@@ -184,6 +184,8 @@ Columns:
   available, else the session ID; never a raw email or IP
 - `session_id`
 - `event_name` -- canonical event name (e.g. `purchase`, `view_item`, `lead`)
+- `event_id` -- original logical event ID; nullable for pre-migration or unidentified events
+- `event_key` -- SHA-256 of the event-name/ID tuple; unique with `blog_id`
 - `funnel_stage` -- `top` / `mid` / `bottom` / `unknown`
 - `source_channel`
 - `touch_source`, `touch_medium`, `touch_campaign` -- "current touch": last-touch when present,
@@ -197,6 +199,17 @@ Columns:
 
 Retention: 90 days by default (same cookie-duration-based retention as `wp_clicutcl_events`),
 cleaned up by the existing `clicutcl_daily_cleanup` cron in `includes/utils/class-cleanup.php`.
+
+Schema version 4 adds the nullable identity columns and an atomic unique index. Replays keep
+the first row unchanged, independently of server-side delivery and its deduplication TTL.
+Different sites, event names, and case-sensitive IDs remain distinct. Existing rows keep null
+identity: historical duplicates cannot be reconstructed or removed safely. Unidentified events
+remain separate rows. If the schema upgrade is incomplete, new touch writes are skipped until
+the columns and complete unique index are verified; event delivery remains independent.
+
+Disposable database verification: `CLICKTRAIL_DISPOSABLE_DB_TEST=1 wp eval-file
+tools/qa/touch-events-db.test.php` against a fresh local WordPress installation. The check
+exercises fresh install, v3 migration, preserved historical rows, replay, and site/ID isolation.
 
 GDPR: exported and erased by `Privacy_Handler`, matched on `visitor_id = <hashed_email>` (an
 exact match against the same hash format `Identity_Resolver` and the queue matcher use).
@@ -305,6 +318,10 @@ When the richer Woo `dataLayer` contract is enabled, thank-you page purchase pus
 
 - `event_id`
 - `user_data`
+
+All thank-you purchase processing first checks the visitor's current marketing-consent
+decision. Denied or unresolved required consent produces no purchase script, order-attribution
+read, or sent marker. An order's historical grant cannot authorize this browser output.
 
 ## Uninstall Behavior
 

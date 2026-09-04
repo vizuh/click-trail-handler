@@ -1,6 +1,11 @@
 Changelog
 ========
 
+= Unreleased =
+* Gate Woo thank-you processing on current visitor consent before reading attribution or setting sent markers.
+* Resolve queued consent through durable subject authority; unknown authority defers, and local/development delivery restrictions also apply to retries.
+* Add schema version 4 with atomic logical-event deduplication for touch reporting, preserving historical rows.
+
 = 1.10.0 =
 *   **Consent-safe delivery:** queued retries recheck the current consent snapshot immediately before adapter delivery, so a withdrawal is not replayed from historical queue state.
 *   **Cross-tab consent authority:** browser consent state now uses versioned timestamped authority, same-tab events, and cross-tab storage synchronization; stale plugin-cookie and banner values cannot revive a withdrawal.

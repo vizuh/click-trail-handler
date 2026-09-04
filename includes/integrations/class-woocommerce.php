@@ -188,6 +188,12 @@ class WooCommerce {
 			return;
 		}
 
+		// Thank-you output uses the visitor's current consent, never the order's
+		// historical grant. Block before reading attribution or marking it sent.
+		if ( ! Consent::marketing_allowed() ) {
+			return;
+		}
+
 		$order = wc_get_order( $order_id );
 		if ( ! $order ) {
 			return;

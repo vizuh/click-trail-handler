@@ -80,12 +80,15 @@ class Touch_Events_Store {
 		}
 
 		$timestamp = isset( $event_data['timestamp'] ) ? absint( $event_data['timestamp'] ) : time();
+		$event_id  = isset( $event_data['event_id'] ) ? sanitize_text_field( (string) $event_data['event_id'] ) : '';
 
 		return array(
 			'blog_id'        => $blog_id,
 			'visitor_id'     => $visitor_id,
 			'session_id'     => $session_id,
 			'event_name'     => $event_name,
+			'event_id'       => '' !== $event_id ? $event_id : null,
+			'event_key'      => '' !== $event_id ? hash( 'sha256', wp_json_encode( array( $event_name, $event_id ) ) ) : null,
 			'funnel_stage'   => isset( $meta['funnel_stage'] ) && '' !== $meta['funnel_stage'] ? sanitize_key( (string) $meta['funnel_stage'] ) : 'unknown',
 			'source_channel' => isset( $event_data['source'] ) && '' !== $event_data['source'] ? sanitize_key( (string) $event_data['source'] ) : 'web',
 			'touch_source'   => $touch['touch_source'],
@@ -158,6 +161,11 @@ class Touch_Events_Store {
 	private static function insert( array $row ): void {
 		global $wpdb;
 
+		// Do not write an unkeyed row while a schema upgrade is incomplete.
+		if ( (int) get_option( Installer::DB_VERSION_OPTION, 0 ) < Installer::DB_VERSION ) {
+			return;
+		}
+
 		$table = $wpdb->prefix . 'clicutcl_touch_events';
 
 		// This fires on every dispatched event, including public REST intake, so a
@@ -168,7 +176,12 @@ class Touch_Events_Store {
 			return;
 		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Intentional insert into custom plugin table.
-		$wpdb->insert( $table, $row );
+		// The unique key makes concurrent replays atomic. Preserve the first row;
+		// unlike INSERT IGNORE, other database errors are not converted to warnings.
+		$columns      = implode( ', ', array_keys( $row ) );
+		$placeholders = implode( ', ', array_map( static fn( $value ) => null === $value ? 'NULL' : '%s', $row ) );
+		$values       = array_values( array_filter( $row, static fn( $value ) => null !== $value ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Table and columns are plugin-owned; placeholders are generated above and every value is prepared.
+		$wpdb->query( $wpdb->prepare( "INSERT INTO {$table} ({$columns}) VALUES ({$placeholders}) ON DUPLICATE KEY UPDATE id = id", $values ) );
 	}
 }

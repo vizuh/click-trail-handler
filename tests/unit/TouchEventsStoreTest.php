@@ -62,6 +62,20 @@ final class TouchEventsStoreTest extends TestCase {
 		$this->assertNull( $row );
 	}
 
+	public function test_logical_event_key_survives_replays_but_distinguishes_event_names_and_ids(): void {
+		$first  = Touch_Events_Store::build_row( $this->event_data(), true, 1 );
+		$replay = Touch_Events_Store::build_row( $this->event_data( array( 'timestamp' => 1_800_000_000 ) ), true, 1 );
+		$other  = Touch_Events_Store::build_row( $this->event_data( array( 'event_name' => 'refund' ) ), true, 1 );
+		$case   = Touch_Events_Store::build_row( $this->event_data( array( 'event_id' => 'PURCHASE_123' ) ), true, 1 );
+		$legacy = Touch_Events_Store::build_row( $this->event_data( array( 'event_id' => '' ) ), true, 1 );
+		$this->assertSame( 'purchase_123', $first['event_id'] );
+		$this->assertSame( $first['event_key'], $replay['event_key'] );
+		$this->assertNotSame( $first['event_key'], $other['event_key'] );
+		$this->assertNotSame( $first['event_key'], $case['event_key'] );
+		$this->assertNull( $legacy['event_key'] );
+		$this->assertNull( $legacy['event_id'] );
+	}
+
 	public function test_flat_attribution_prefers_last_touch_for_current_touch_fields(): void {
 		$row = Touch_Events_Store::build_row(
 			$this->event_data(
