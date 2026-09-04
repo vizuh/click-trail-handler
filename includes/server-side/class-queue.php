@@ -269,24 +269,40 @@ class Queue {
 		$normalized = Snapshot_V1::normalize( $snapshot );
 		return ! empty( $normalized )
 			&& Decision_V1::DECISION_GRANTED === ( $normalized['decision'] ?? '' )
-			&& ! empty( $normalized['marketing'] );
+			&& ! empty( $normalized['marketing'] )
+			&& ( ! isset( $normalized['expires_at'] ) || (int) $normalized['expires_at'] > time() );
 	}
 
 	/**
-	 * Re-check authoritative current consent immediately before a queued send.
+	 * Resolve current consent for this queued subject, never the worker cookie.
 	 *
-	 * The consent captured in the queued event is historical evidence. Retry
-	 * delivery must use the current server-side snapshot so a later withdrawal
-	 * cannot replay the original payload.
-	 *
-	 * @return bool
+	 * @param Event $event Queued event identifying the subject.
+	 * @return bool|null Null means authority unavailable, invalid, or expired.
 	 */
-	private static function current_consent_allows_retry(): bool {
-		if ( ! Consent::is_required() ) {
+	private static function current_consent_allows_retry( Event $event ): ?bool {
+		if ( ! Consent::is_required_for_queue() ) {
 			return true;
 		}
 
-		return self::consent_allows_retry( Consent::snapshot(), true );
+		/**
+		 * Resolve an authoritative current snapshot using the event's subject.
+		 *
+		 * No built-in subject consent registry exists. Integrations must resolve
+		 * their own durable grant/withdrawal record; historical event consent and
+		 * request cookies are not current authority. Null defers without sending.
+		 *
+		 * @param array|null $snapshot Current subject snapshot, or null if unknown.
+		 * @param array      $payload  Queued event, including subject identifiers.
+		 */
+		$snapshot = Snapshot_V1::normalize( apply_filters( 'clicutcl_queue_consent_snapshot', null, $event->to_array() ) );
+		if ( empty( $snapshot ) || ( isset( $snapshot['expires_at'] ) && (int) $snapshot['expires_at'] <= time() ) ) {
+			return null;
+		}
+		if ( Decision_V1::DECISION_DENIED === ( $snapshot['decision'] ?? '' ) ) {
+			return false;
+		}
+
+		return self::consent_allows_retry( $snapshot, true ) ? true : null;
 	}
 
 	/**
@@ -347,6 +363,10 @@ class Queue {
 	private static function process_row( $row ) {
 		global $wpdb;
 
+		if ( ! Dispatcher::environment_allows_dispatch() ) {
+			return;
+		}
+
 		$payload = isset( $row['payload'] ) ? json_decode( (string) $row['payload'], true ) : null;
 		if ( ! is_array( $payload ) ) {
 			self::delete_row( (int) $row['id'] );
@@ -385,10 +405,26 @@ class Queue {
 			return;
 		}
 
-		// The queued event may carry a historical grant. Re-check the
-		// authoritative current consent immediately before invoking the adapter,
-		// so a later withdrawal cannot be replayed.
-		if ( ! self::current_consent_allows_retry() ) {
+		$consent = self::current_consent_allows_retry( $event );
+		if ( null === $consent ) {
+			// Unknown authority is not a withdrawal or a transport failure. Keep
+			// the row pending, bounded by existing queue retention, without
+			// consuming delivery attempts while the integration is unavailable.
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Plugin-owned queue mutation.
+			$wpdb->update(
+				self::get_table_name(),
+				array(
+					'next_attempt_at' => gmdate( 'Y-m-d H:i:s', time() + 300 ),
+					'last_error'      => 'consent_unresolved',
+				),
+				array( 'id' => (int) $row['id'] ),
+				array( '%s', '%s' ),
+				array( '%d' )
+			);
+			Dispatcher::record_last_error( 'queue_consent_unresolved', 'consent_unresolved' );
+			return;
+		}
+		if ( false === $consent ) {
 			$result            = Adapter_Result::error( 0, 'consent_denied' );
 			$result->retryable = false;
 			self::update_row_failure( $row, $result->message, false );

@@ -54,7 +54,7 @@ Current source behavior (audit status):
   order metadata, queued deliveries, and third-party deliveries are not automatically erased
 - most browser event paths check consent before pushing tracked events, but follow-up logger, form, and Woo paths
   require independent verification
-- initial server-side dispatch checks consent; queue retries currently require a separate pre-send consent check
+- initial server-side dispatch checks consent; queued retries resolve current subject consent through `clicutcl_queue_consent_snapshot`, never worker cookies. No built-in subject registry exists: strict/geo retries remain pending without authoritative resolution, bounded by queue retention. Explicit withdrawal blocks delivery; unknown or expired authority defers without consuming attempts.
 
 ## Consent Sources
 

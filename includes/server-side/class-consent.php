@@ -98,6 +98,21 @@ class Consent {
 	}
 
 	/**
+	 * Queue workers have no visitor geography: geo mode must fail closed.
+	 *
+	 * @return bool
+	 */
+	public static function is_required_for_queue(): bool {
+		if ( class_exists( 'CLICUTCL\\Modules\\Consent_Mode\\Consent_Mode_Settings' ) ) {
+			$settings = new \CLICUTCL\Modules\Consent_Mode\Consent_Mode_Settings();
+			return $settings->is_consent_mode_enabled() && 'relaxed' !== $settings->get_mode();
+		}
+
+		$options = class_exists( Attribution_Settings::class ) ? Attribution_Settings::get_all() : array();
+		return ! empty( $options['require_consent'] );
+	}
+
+	/**
 	 * Return the current versioned consent snapshot.
 	 *
 	 * @return array

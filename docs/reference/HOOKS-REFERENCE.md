@@ -313,3 +313,22 @@ Arguments:
 
 - `string $default` — empty string by default
 - `string $tag` — merge tag key without braces
+
+### `clicutcl_queue_consent_snapshot`
+
+Filter arguments: `?array $snapshot` (default `null`), `array $queued_event`.
+Return a current versioned consent snapshot from an authoritative durable record
+matched to the queued event's subject (for example its `meta.session_id` or
+`identity.hashed_email`). The integration owns the subject lookup and must include
+later withdrawals. Never return the queued event's historical consent or the
+current HTTP request's cookie as current authority. Unknown subjects return `null`.
+
+ClickTrail does not provide a built-in durable subject-consent registry. Under
+strict or geo consent policy, retries require this integration: absent, malformed,
+unresolved, or expired authority defers the row for five minutes without consuming
+transport attempts, subject to existing queue retention. Explicit denial marks the
+row failed; a current unexpired grant allows delivery. Worker geography is ignored.
+Consent-disabled or relaxed sites preserve delivery without this lookup.
+
+`clicutcl_dispatch_in_environment` applies equally to initial and queued sends:
+local/development environments block delivery unless explicitly overridden.
