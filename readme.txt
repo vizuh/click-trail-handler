@@ -239,6 +239,7 @@ See the [use-case guide](https://github.com/vizuh/click-trail-handler/blob/main/
 1. Forms settings for cached and dynamic form attribution.
 2. Delivery settings for optional configured-endpoint transport and consent controls.
 3. Events settings for browser collection and site-owned GTM/dataLayer paths.
+4. Event collection and destination controls for browser and configured delivery paths.
 
 == Changelog ==
 
