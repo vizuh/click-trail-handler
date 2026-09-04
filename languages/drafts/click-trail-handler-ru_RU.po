@@ -1,0 +1,3400 @@
+# ClickTrail translation template
+# Copyright (C) 2026 Vizuh
+# This file is distributed under the same license as the ClickTrail package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: ClickTrail 1.10.0\n"
+"Report-Msgid-Bugs-To: https://github.com/vizuh/click-trail-handler/issues\n"
+"POT-Creation-Date: 2026-09-04 00:57+0100\n"
+"PO-Revision-Date: 2026-09-04 01:50+0100\n"
+"Last-Translator: Machine-assisted draft\n"
+"Language-Team: Russian\n"
+"Language: ru_RU\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Domain: click-trail-handler\n"
+"X-Generator: Machine-assisted draft; native review required\n"
+"X-Translation-Status: Incomplete draft; not release-ready\n"
+
+#: clicutcl.php:207
+#, fuzzy
+msgid ""
+"ClickTrail could not start because a required class is missing. This usually "
+"means the release ZIP is missing files or the autoloader mapping is "
+"incorrect."
+msgstr "ClickTrail не удалось запустить, поскольку отсутствует необходимый класс. Обычно это означает, что в выпуске ZIP отсутствуют файлы или неправильное сопоставление автозагрузчика."
+
+#: includes/Modules/GTM/class-gtm-settings.php:89
+#, fuzzy
+msgid "Invalid GTM Container ID format. Should be GTM-XXXXXX"
+msgstr "Неверный формат контейнера GTM ID. Должно быть GTM-XXXXXX"
+
+#: includes/Modules/GTM/class-web-tag.php:86
+#, fuzzy
+msgid "Google Tag Manager snippet added by ClickTrail (sGTM mode)"
+msgstr "Фрагмент Google Tag Manager добавлен пользователем ClickTrail (режим sGTM)"
+
+#: includes/Modules/GTM/class-web-tag.php:87
+#, fuzzy
+msgid "Google Tag Manager snippet added by ClickTrail"
+msgstr "Фрагмент Google Tag Manager добавлен пользователем ClickTrail"
+
+#: includes/Modules/GTM/class-web-tag.php:91
+#, fuzzy
+msgid "End Google Tag Manager snippet added by ClickTrail"
+msgstr "Конечный фрагмент Google Tag Manager добавлен пользователем ClickTrail"
+
+#: includes/Modules/GTM/class-web-tag.php:112
+#, fuzzy
+msgid "Google Tag Manager (noscript) snippet added by ClickTrail"
+msgstr "Фрагмент Google Tag Manager (noscript), добавленный ClickTrail"
+
+#: includes/Modules/GTM/class-web-tag.php:116
+#, fuzzy
+msgid "End Google Tag Manager (noscript) snippet added by ClickTrail"
+msgstr "Конечный фрагмент Google Tag Manager (noscript), добавленный ClickTrail"
+
+#: includes/Modules/consent-mode/class-consent-mode.php:93
+#, fuzzy
+msgid "Google tag (gtag.js) consent mode dataLayer added by ClickTrail"
+msgstr "Режим согласия тега Google (gtag.js) dataLayer добавлен ClickTrail"
+
+#: includes/Modules/consent-mode/class-consent-mode.php:103
+#, fuzzy
+msgid "End Google tag (gtag.js) consent mode dataLayer added by ClickTrail"
+msgstr "Завершение режима согласия тега Google (gtag.js) dataLayer, добавленного ClickTrail"
+
+#: includes/admin/class-admin.php:108
+#, fuzzy
+msgid ""
+"ClickTrail: \"Encrypt secrets at rest\" is enabled, but this server is "
+"missing OpenSSL AES-256-GCM support, so provider secrets are stored in "
+"plaintext. Enable the OpenSSL extension on your host, or treat the stored "
+"secrets as unencrypted."
+msgstr "ClickTrail: «Шифровать неактивные секреты» включено, но на этом сервере отсутствует поддержка OpenSSL AES-256-GCM, поэтому секреты провайдера хранятся в виде открытого текста. Включите расширение OpenSSL на своем хосте или рассматривайте сохраненные секреты как незашифрованные."
+
+#: includes/admin/class-admin.php:118
+#, fuzzy
+msgid "ClickTrail Status"
+msgstr "ClickTrail Статус"
+
+#: includes/admin/class-admin.php:145
+#, fuzzy
+msgid "Attribution Cookie"
+msgstr "Файл cookie атрибуции"
+
+#: includes/admin/class-admin.php:146
+#, fuzzy
+msgid "Caching Status"
+msgstr "Статус кэширования"
+
+#: includes/admin/class-admin.php:147
+#, fuzzy
+msgid "Form Capture Fallback"
+msgstr "Резервный вариант захвата формы"
+
+#: includes/admin/class-admin.php:148
+#, fuzzy
+msgid "Cross-domain Links"
+msgstr "Междоменные ссылки"
+
+#: includes/admin/class-admin.php:150
+#, fuzzy
+msgid "Run Full Diagnostics"
+msgstr "Запустите полную диагностику"
+
+#: includes/admin/class-admin.php:159 includes/admin/class-admin.php:160
+#: includes/admin/class-admin.php:421
+#: includes/admin/traits/trait-admin-pages.php:28
+#: assets/js/admin-settings-app.js:1136
+#, fuzzy
+msgid "ClickTrail"
+msgstr "ClickTrail"
+
+#: includes/admin/class-admin.php:171 includes/admin/class-admin.php:172
+#, fuzzy
+msgid "Settings"
+msgstr "Настройки"
+
+#: includes/admin/class-admin.php:180 includes/admin/class-admin.php:181
+#, fuzzy
+msgid "Logs"
+msgstr "Журналы"
+
+#: includes/admin/class-admin.php:189 includes/admin/class-admin.php:190
+#, fuzzy
+msgid "Diagnostics"
+msgstr "Диагностика"
+
+#: includes/admin/class-admin.php:260
+#, fuzzy
+msgid "Testing..."
+msgstr "Тестирование..."
+
+#: includes/admin/class-admin.php:261
+#, fuzzy
+msgid "Test failed"
+msgstr "Тест не пройден"
+
+#: includes/admin/class-admin.php:262
+#, fuzzy
+msgid "Clipboard unavailable"
+msgstr "Буфер обмена недоступен"
+
+#: includes/admin/class-admin.php:263
+#, fuzzy
+msgid "Copied"
+msgstr "Скопировано"
+
+#: includes/admin/class-admin.php:264
+#, fuzzy
+msgid "Copy failed"
+msgstr "Не удалось скопировать"
+
+#: includes/admin/class-admin.php:265
+#, fuzzy
+msgid "Saving..."
+msgstr "Сохранение..."
+
+#: includes/admin/class-admin.php:266
+#, fuzzy
+msgid "Failed"
+msgstr "Не удалось"
+
+#: includes/admin/class-admin.php:267
+#: includes/admin/traits/trait-admin-pages.php:399
+#, fuzzy
+msgid "Disable Debug"
+msgstr "Отключить отладку"
+
+#: includes/admin/class-admin.php:268
+#: includes/admin/traits/trait-admin-pages.php:399
+#, fuzzy
+msgid "Enable 15 Minutes"
+msgstr "Включить 15 Минуты"
+
+#: includes/admin/class-admin.php:269
+#, fuzzy
+msgid "Purge local tracking data now? This cannot be undone."
+msgstr "Удалить локальные данные отслеживания сейчас? Это невозможно отменить."
+
+#: includes/admin/class-admin.php:270
+#, fuzzy
+msgid "Purging..."
+msgstr "Очистка..."
+
+#: includes/admin/class-admin.php:271
+#, fuzzy
+msgid "Purged"
+msgstr "Очищено"
+
+#: includes/admin/class-admin.php:272
+#, fuzzy
+msgid "Purge failed"
+msgstr "Очистка не удалась"
+
+#: includes/admin/class-admin.php:273
+#, fuzzy
+msgid "Requeueing..."
+msgstr "Запрос..."
+
+#: includes/admin/class-admin.php:274
+#, fuzzy
+msgid "Requeued"
+msgstr "Запрошено"
+
+#: includes/admin/class-admin.php:275
+#, fuzzy
+msgid "Retry failed"
+msgstr "Повторная попытка не удалась"
+
+#: includes/admin/class-admin.php:276
+#, fuzzy
+msgid "Scanning..."
+msgstr "Сканирование..."
+
+#: includes/admin/class-admin.php:277
+#, fuzzy
+msgid "Conflict scan failed."
+msgstr "Сканирование конфликтов не удалось."
+
+#: includes/admin/class-admin.php:278
+#, fuzzy
+msgid "Preparing backup..."
+msgstr "Подготовка резервной копии..."
+
+#: includes/admin/class-admin.php:279
+#, fuzzy
+msgid "Backup export failed."
+msgstr "Не удалось экспортировать резервную копию."
+
+#: includes/admin/class-admin.php:280
+#, fuzzy
+msgid "Importing backup..."
+msgstr "Импорт резервной копии..."
+
+#: includes/admin/class-admin.php:281
+#, fuzzy
+msgid "Backup import failed."
+msgstr "Импорт резервной копии не удался."
+
+#: includes/admin/class-admin.php:282
+#, fuzzy
+msgid "Choose a ClickTrail backup file first."
+msgstr "Сначала выберите файл резервной копии ClickTrail."
+
+#: includes/admin/class-admin.php:283
+#, fuzzy
+msgid "Restore this ClickTrail backup now? Current settings will be replaced."
+msgstr "Восстановить эту резервную копию ClickTrail сейчас? Текущие настройки будут заменены."
+
+#: includes/admin/class-admin.php:284
+#, fuzzy
+msgid "Looking up order..."
+msgstr "Ищу заказ..."
+
+#: includes/admin/class-admin.php:285
+#, fuzzy
+msgid "Order lookup failed."
+msgstr "Поиск заказа не удался."
+
+#: includes/admin/class-admin.php:286
+#, fuzzy
+msgid "Analyzing test payload..."
+msgstr "Анализ полезной нагрузки теста..."
+
+#: includes/admin/class-admin.php:287
+#, fuzzy
+msgid "Attribution readiness check failed."
+msgstr "Проверка готовности атрибуции не удалась."
+
+#: includes/admin/class-admin.php:288
+#, fuzzy
+msgid "Test URL copied."
+msgstr "Тест URL скопирован."
+
+#: includes/admin/class-admin.php:289
+#, fuzzy
+msgid "Test URL could not be copied."
+msgstr "Тест URL не удалось скопировать."
+
+#: includes/admin/class-admin.php:330
+#, fuzzy
+msgid "ClickTrail settings require JavaScript in wp-admin."
+msgstr "Для настроек ClickTrail требуется JavaScript в wp-admin."
+
+#: includes/admin/class-admin.php:345 includes/admin/class-admin.php:346
+#: includes/admin/class-admin.php:673 includes/admin/class-admin.php:778
+#: assets/js/admin-settings-app.js:518
+#, fuzzy
+msgid "Capture"
+msgstr "Захват"
+
+#: includes/admin/class-admin.php:347
+#, fuzzy
+msgid ""
+"Capture and preserve source data from campaigns, referrals, and ad clicks."
+msgstr "Собирайте и сохраняйте исходные данные о кампаниях, рефералах и кликах по объявлениям."
+
+#: includes/admin/class-admin.php:351 includes/admin/class-admin.php:352
+#: includes/admin/class-admin.php:679 includes/admin/class-admin.php:798
+#: assets/js/admin-settings-app.js:524
+#, fuzzy
+msgid "Forms"
+msgstr "Формы"
+
+#: includes/admin/class-admin.php:353
+#, fuzzy
+msgid ""
+"Keep attribution attached to forms, lead sources, and messaging touchpoints."
+msgstr "Сохраняйте атрибуцию привязанной к формам, источникам потенциальных клиентов и точкам взаимодействия с сообщениями."
+
+#: includes/admin/class-admin.php:357 includes/admin/class-admin.php:358
+#: includes/admin/class-admin.php:685 includes/admin/class-admin.php:808
+#: assets/js/admin-settings-app.js:530
+#, fuzzy
+msgid "Events"
+msgstr "События"
+
+#: includes/admin/class-admin.php:359
+#, fuzzy
+msgid ""
+"Configure browser event collection, destinations, and the unified event "
+"pipeline."
+msgstr "Настройте сбор событий браузера, места назначения и единый конвейер событий."
+
+#: includes/admin/class-admin.php:363 includes/admin/class-admin.php:364
+#: includes/admin/class-admin.php:697 includes/admin/class-admin.php:822
+#: assets/js/admin-settings-app.js:542
+#, fuzzy
+msgid "Delivery"
+msgstr "Доставка"
+
+#: includes/admin/class-admin.php:365
+#, fuzzy
+msgid "Control privacy, server-side transport, and operational safeguards."
+msgstr "Контролируйте конфиденциальность, транспортировку на стороне сервера и операционную безопасность."
+
+#: includes/admin/class-admin.php:425
+#, fuzzy
+msgid ""
+"These settings are now organized by capability. Browser events and "
+"destinations live under Events, while transport and privacy controls live "
+"under Delivery."
+msgstr "Эти настройки теперь упорядочены по возможностям. События и пункты назначения браузера находятся в разделе «События», а элементы управления транспортом и конфиденциальностью — в разделе «Доставка»."
+
+#: includes/admin/class-admin.php:495 assets/js/admin-settings-app.js:1037
+#, fuzzy
+msgid "Generic Collector"
+msgstr "Общий коллектор"
+
+#: includes/admin/class-admin.php:497 assets/js/admin-settings-app.js:1038
+#, fuzzy
+msgid "sGTM (Server GTM)"
+msgstr "sGTM (Сервер GTM)"
+
+#: includes/admin/class-admin.php:499 assets/js/admin-settings-app.js:1039
+#, fuzzy
+msgid "Meta CAPI"
+msgstr "Meta CAPI"
+
+#: includes/admin/class-admin.php:501 assets/js/admin-settings-app.js:1040
+#, fuzzy
+msgid "Google Ads / GA4"
+msgstr "Google Ads / GA4"
+
+#: includes/admin/class-admin.php:503 assets/js/admin-settings-app.js:1041
+#, fuzzy
+msgid "LinkedIn CAPI"
+msgstr "LinkedIn CAPI"
+
+#: includes/admin/class-admin.php:505 assets/js/admin-settings-app.js:1042
+#, fuzzy
+msgid "Pinterest Conversions API"
+msgstr "Pinterest Конверсии API"
+
+#: includes/admin/class-admin.php:507 assets/js/admin-settings-app.js:1043
+#, fuzzy
+msgid "TikTok Events API"
+msgstr "TikTok События API"
+
+#: includes/admin/class-admin.php:523 assets/js/admin-settings-app.js:920
+#, fuzzy
+msgid "Meta"
+msgstr "Meta"
+
+#: includes/admin/class-admin.php:525 assets/js/admin-settings-app.js:921
+#, fuzzy
+msgid "Google"
+msgstr "Google"
+
+#: includes/admin/class-admin.php:527 assets/js/admin-settings-app.js:922
+#, fuzzy
+msgid "LinkedIn"
+msgstr "LinkedIn"
+
+#: includes/admin/class-admin.php:529 assets/js/admin-settings-app.js:923
+#, fuzzy
+msgid "Reddit"
+msgstr "Реддит"
+
+#: includes/admin/class-admin.php:531 assets/js/admin-settings-app.js:924
+#, fuzzy
+msgid "Pinterest"
+msgstr "Pinterest"
+
+#: includes/admin/class-admin.php:533 assets/js/admin-settings-app.js:925
+#, fuzzy
+msgid "TikTok"
+msgstr "TikTok"
+
+#: includes/admin/class-admin.php:674 includes/admin/class-admin.php:680
+#: includes/admin/class-admin.php:686 includes/admin/class-admin.php:692
+#: includes/admin/class-admin.php:698 includes/admin/class-admin.php:704
+#: assets/js/admin-settings-app.js:519 assets/js/admin-settings-app.js:525
+#: assets/js/admin-settings-app.js:531 assets/js/admin-settings-app.js:537
+#: assets/js/admin-settings-app.js:543 assets/js/admin-settings-app.js:549
+#, fuzzy
+msgid "On"
+msgstr "Вкл."
+
+#: includes/admin/class-admin.php:674 includes/admin/class-admin.php:680
+#: includes/admin/class-admin.php:686 includes/admin/class-admin.php:692
+#: includes/admin/class-admin.php:698 includes/admin/class-admin.php:704
+#: assets/js/admin-settings-app.js:519 assets/js/admin-settings-app.js:525
+#: assets/js/admin-settings-app.js:531 assets/js/admin-settings-app.js:537
+#: assets/js/admin-settings-app.js:543 assets/js/admin-settings-app.js:549
+#, fuzzy
+msgid "Off"
+msgstr "Выкл."
+
+#: includes/admin/class-admin.php:691 includes/admin/class-admin.php:858
+#: assets/js/admin-settings-app.js:536
+#, fuzzy
+msgid "Cross-domain"
+msgstr "Междоменный"
+
+#: includes/admin/class-admin.php:703
+#: includes/admin/traits/trait-admin-pages.php:550
+#: assets/js/admin-settings-app.js:548
+#, fuzzy
+msgid "Consent"
+msgstr "Согласие"
+
+#: includes/admin/class-admin.php:781
+#, fuzzy
+msgid "Attribution capture is enabled."
+msgstr "Регистрация атрибуции включена."
+
+#: includes/admin/class-admin.php:782
+#, fuzzy
+msgid "Turn on attribution capture before testing source continuity."
+msgstr "Включите сбор атрибуции перед проверкой непрерывности источника."
+
+#: includes/admin/class-admin.php:788
+#, fuzzy
+msgid "Consent Guidance"
+msgstr "Руководство по согласию"
+
+#: includes/admin/class-admin.php:791
+#, fuzzy
+msgid ""
+"Consent mode is configured. Verify the selected CMP source before rollout."
+msgstr "Режим согласия настроен. Перед развертыванием проверьте выбранный источник CMP."
+
+#: includes/admin/class-admin.php:792
+#, fuzzy
+msgid ""
+"Consent mode is off. Confirm this matches your regional rollout requirements."
+msgstr "Режим согласия отключен. Убедитесь, что это соответствует вашим региональным требованиям к развертыванию."
+
+#: includes/admin/class-admin.php:801
+#, fuzzy
+msgid "Form capture helpers or providers are active."
+msgstr "Помощники или поставщики захвата форм активны."
+
+#: includes/admin/class-admin.php:802
+#, fuzzy
+msgid ""
+"Enable client fallback, WhatsApp, or provider hooks if forms are part of "
+"your attribution path."
+msgstr "Включите резервный клиент, перехватчики WhatsApp или поставщика, если формы являются частью вашего пути атрибуции."
+
+#. translators: %d: enabled destination count.
+#: includes/admin/class-admin.php:813
+#, fuzzy, php-format
+msgid "Browser events are active. Enabled destinations: %d."
+msgstr "События браузера активны. Включенные пункты назначения: %d."
+
+#: includes/admin/class-admin.php:816
+#, fuzzy
+msgid ""
+"Enable the browser event pipeline before relying on dataLayer and canonical "
+"intake."
+msgstr "Включите конвейер событий браузера, прежде чем полагаться на dataLayer и канонический прием."
+
+#: includes/admin/class-admin.php:825
+#, fuzzy
+msgid "Server-side delivery has an endpoint and is ready for endpoint tests."
+msgstr "Доставка на стороне сервера имеет конечную точку и готова к тестам конечной точки."
+
+#: includes/admin/class-admin.php:827
+#, fuzzy
+msgid "Server-side delivery is on, but the collector URL still needs review."
+msgstr "Доставка на стороне сервера включена, но сборщик URL все еще требует проверки."
+
+#: includes/admin/class-admin.php:828
+#, fuzzy
+msgid ""
+"Server-side delivery is off. Logs and Diagnostics still work for local "
+"checks."
+msgstr "Доставка на стороне сервера отключена. Журналы и диагностика по-прежнему работают для локальных проверок."
+
+#: includes/admin/class-admin.php:834
+#, fuzzy
+msgid "sGTM"
+msgstr "sGTM"
+
+#: includes/admin/class-admin.php:837
+#, fuzzy
+msgid ""
+"sGTM mode has a web container plus a tagging server or custom loader path "
+"configured."
+msgstr "В режиме sGTM настроен веб-контейнер, а также сервер тегов или пользовательский путь загрузчика."
+
+#: includes/admin/class-admin.php:839
+#, fuzzy
+msgid ""
+"sGTM mode is on. Add the tagging server URL or a custom loader path before "
+"preview testing."
+msgstr "Режим sGTM включен. Добавьте сервер тегов URL или собственный путь загрузчика перед предварительным тестированием."
+
+#: includes/admin/class-admin.php:840
+#, fuzzy
+msgid ""
+"Standard GTM loading is active. Enable sGTM mode when you want first-party "
+"script delivery or custom loader support."
+msgstr "Стандартная загрузка GTM активна. Включите режим sGTM, если вам нужна доставка собственных сценариев или поддержка специального загрузчика."
+
+#: includes/admin/class-admin.php:846
+#, fuzzy
+msgid "Woo"
+msgstr "Woo"
+
+#: includes/admin/class-admin.php:849
+#, fuzzy
+msgid "WooCommerce storefront events and order delivery helpers are ready."
+msgstr "WooCommerce Мероприятия витрины и помощники по доставке заказов готовы."
+
+#: includes/admin/class-admin.php:851
+#, fuzzy
+msgid ""
+"WooCommerce is active. Enable storefront events when you want list, product, "
+"cart, and checkout signals."
+msgstr "WooCommerce активен. Включите события витрины, если вам нужны сигналы списка, продукта, корзины и оформления заказа."
+
+#: includes/admin/class-admin.php:852
+#, fuzzy
+msgid "WooCommerce is not active on this site."
+msgstr "WooCommerce неактивен на этом сайте."
+
+#: includes/admin/class-admin.php:861
+#, fuzzy
+msgid ""
+"Link decoration is active. Attribution carries across subdomains "
+"automatically. Add destination domains in the allowed list only if your "
+"checkout is on a fully separate domain. Note: external payment providers "
+"(Stripe, PayPal, Mollie) cannot be decorated — attribution survives those "
+"redirects via the last-touch cookie."
+msgstr "Оформление ссылки активно. Атрибуция автоматически переносится на поддомены. Добавляйте целевые домены в список разрешенных только в том случае, если ваша проверка находится на полностью отдельном домене. Примечание. Внешние поставщики платежей (Stripe, PayPal, Mollie) не могут быть декорированы — атрибуция сохраняется при таких перенаправлениях с помощью файла cookie последнего касания."
+
+#. translators: %s: WooCommerce checkout hostname detected on a different subdomain.
+#: includes/admin/class-admin.php:864
+#, fuzzy, php-format
+msgid ""
+"Your WooCommerce checkout is on %s. Enable cross-domain link decoration "
+"under Capture → Link Decoration to carry attribution through the subdomain "
+"hop."
+msgstr "Ваша касса WooCommerce находится на %s. Включите оформление междоменных ссылок в разделе «Захват» → «Украшение ссылок», чтобы перенести атрибуцию через переход поддомена."
+
+#: includes/admin/class-admin.php:865
+#, fuzzy
+msgid ""
+"Cross-domain link decoration is off. Enable it under Capture → Link "
+"Decoration if your funnel spans multiple domains or subdomains."
+msgstr "Оформление междоменных ссылок отключено. Включите его в разделе «Захват» → «Оформление ссылок», если ваша воронка охватывает несколько доменов или поддоменов."
+
+#: includes/admin/class-admin.php:917 assets/js/admin-settings-app.js:974
+#, fuzzy
+msgid "No attempts yet"
+msgstr "Пока нет попыток"
+
+#. translators: %s: relative time.
+#: includes/admin/class-admin.php:921
+#: includes/admin/traits/trait-admin-pages.php:184
+#, fuzzy, php-format
+msgid "%s ago"
+msgstr "%s назад"
+
+#: includes/admin/class-admin.php:924
+#: includes/admin/traits/trait-admin-pages.php:187
+#, fuzzy
+msgid "No delivery attempts recorded."
+msgstr "Попыток доставки не зарегистрировано."
+
+#: includes/admin/class-admin.php:1362
+#, fuzzy
+msgid ""
+"The server-side endpoint URL was rejected because it resolves to a "
+"disallowed or internal address. The previous value was kept."
+msgstr "Конечная точка на стороне сервера URL была отклонена, поскольку она разрешается в запрещенный или внутренний адрес. Предыдущее значение сохранилось."
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:47
+#: includes/admin/class-clicutcl-woocommerce-admin.php:128
+#: includes/admin/class-clicutcl-woocommerce-admin.php:175
+#, fuzzy
+msgid "Source"
+msgstr "Источник"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:89
+#, fuzzy
+msgid "Direct"
+msgstr "Прямой"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:105
+#, fuzzy
+msgid "Marketing Attribution"
+msgstr "Маркетинговая атрибуция"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:122
+#, fuzzy
+msgid "No attribution data available."
+msgstr "Данные об атрибуции отсутствуют."
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:129
+#: includes/admin/class-clicutcl-woocommerce-admin.php:178
+#, fuzzy
+msgid "Medium"
+msgstr "Средний"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:130
+#, fuzzy
+msgid "Campaign"
+msgstr "Кампания"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:131
+#, fuzzy
+msgid "Term"
+msgstr "Срок"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:132
+#, fuzzy
+msgid "Content"
+msgstr "Содержание"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:133
+#, fuzzy
+msgid "Google Click ID"
+msgstr "Google Click ID"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:134
+#, fuzzy
+msgid "Facebook Click ID"
+msgstr "Facebook Click ID"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:135
+#, fuzzy
+msgid "LinkedIn Click ID"
+msgstr "LinkedIn Click ID"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:136
+#, fuzzy
+msgid "Landing Page"
+msgstr "Целевая страница"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:140
+#, fuzzy
+msgid "First Touch"
+msgstr "Первое прикосновение"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:161
+#, fuzzy
+msgid "No first-touch data available"
+msgstr "Данные первого касания недоступны."
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:172
+#, fuzzy
+msgid "Last Touch"
+msgstr "Последнее прикосновение"
+
+#: includes/admin/class-log-list-table.php:101
+#: includes/privacy/class-privacy-handler.php:138
+#: includes/privacy/class-privacy-handler.php:674
+#, fuzzy
+msgid "Date"
+msgstr "Дата"
+
+#: includes/admin/class-log-list-table.php:102
+#: includes/privacy/class-privacy-handler.php:134
+#, fuzzy
+msgid "Event Type"
+msgstr "Тип события"
+
+#: includes/admin/class-log-list-table.php:103
+#, fuzzy
+msgid "Details"
+msgstr "Подробности"
+
+#: includes/admin/class-log-list-table.php:195
+#, fuzzy
+msgid "No logs found."
+msgstr "Журналы не найдены."
+
+#: includes/admin/class-setup-wizard.php:74
+#, fuzzy
+msgid "ClickTrail Setup"
+msgstr "ClickTrail Настройка"
+
+#: includes/admin/class-setup-wizard.php:75
+#, fuzzy
+msgid "Setup"
+msgstr "Настройка"
+
+#: includes/admin/class-setup-wizard.php:92
+#, fuzzy
+msgid "Setup Wizard"
+msgstr "Мастер установки"
+
+#: includes/admin/class-setup-wizard.php:138
+#: includes/admin/class-setup-wizard.php:206
+#: includes/admin/class-sitehealth.php:187
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:34
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:83
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:121
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:143
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:226
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:252
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:270
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:300
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:321
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:352
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:378
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:420
+#: includes/admin/traits/trait-admin-pages.php:117
+#, fuzzy
+msgid "Forbidden"
+msgstr "Запрещено"
+
+#: includes/admin/class-setup-wizard.php:224
+#, fuzzy
+msgid "Skip setup"
+msgstr "Пропустить настройку"
+
+#: includes/admin/class-setup-wizard.php:249
+#: includes/admin/class-setup-wizard.php:287
+#, fuzzy
+msgid "What are you tracking?"
+msgstr "Что вы отслеживаете?"
+
+#: includes/admin/class-setup-wizard.php:250
+#, fuzzy
+msgid "Ad platforms"
+msgstr "Рекламные платформы"
+
+#: includes/admin/class-setup-wizard.php:251
+#: includes/admin/class-setup-wizard.php:543
+#, fuzzy
+msgid "You're set up"
+msgstr "Вы настроены"
+
+#: includes/admin/class-setup-wizard.php:254
+#, fuzzy
+msgid "Setup progress"
+msgstr "Ход настройки"
+
+#. translators: %s: form plugin names.
+#: includes/admin/class-setup-wizard.php:294
+#, fuzzy, php-format
+msgid ""
+"We found %s and WooCommerce. ClickTrail will track form submissions and "
+"eCommerce sessions automatically."
+msgstr "Мы нашли %s и WooCommerce. ClickTrail будет автоматически отслеживать отправку форм и сеансы электронной коммерции."
+
+#. translators: %s: form plugin names.
+#: includes/admin/class-setup-wizard.php:300
+#, fuzzy, php-format
+msgid ""
+"We found %s. ClickTrail will inject attribution data into your forms "
+"automatically."
+msgstr "Мы нашли %s. ClickTrail автоматически вставит данные об атрибуции в ваши формы."
+
+#: includes/admin/class-setup-wizard.php:304
+#, fuzzy
+msgid ""
+"We found WooCommerce. ClickTrail will store attribution on every order "
+"automatically."
+msgstr "Мы нашли WooCommerce. ClickTrail будет автоматически сохранять атрибуцию для каждого заказа."
+
+#: includes/admin/class-setup-wizard.php:306
+#, fuzzy
+msgid ""
+"ClickTrail will capture UTMs and click IDs from every visitor automatically."
+msgstr "ClickTrail будет захватывать UTM и автоматически нажимать IDs у каждого посетителя."
+
+#: includes/admin/class-setup-wizard.php:315
+#, fuzzy
+msgid "UTM &amp; click ID capture"
+msgstr "UTM &amp; щелкните ID захватить"
+
+#: includes/admin/class-setup-wizard.php:316
+#: includes/admin/class-setup-wizard.php:322
+#, fuzzy
+msgid "Auto"
+msgstr "Авто"
+
+#: includes/admin/class-setup-wizard.php:321
+#, fuzzy
+msgid "First-touch &amp; last-touch attribution"
+msgstr "Атрибуция первого касания &amp; последнего касания"
+
+#. translators: %s: form plugin name.
+#: includes/admin/class-setup-wizard.php:336
+#, fuzzy, php-format
+msgid "%s attribution"
+msgstr "%s атрибуция"
+
+#: includes/admin/class-setup-wizard.php:342
+#: includes/admin/class-setup-wizard.php:353
+#: includes/admin/class-setup-wizard.php:369
+#, fuzzy
+msgid "Detected"
+msgstr "Обнаружено"
+
+#: includes/admin/class-setup-wizard.php:344
+#, fuzzy
+msgid "Not found"
+msgstr "Не найден"
+
+#: includes/admin/class-setup-wizard.php:352
+#, fuzzy
+msgid "WooCommerce order attribution"
+msgstr "WooCommerce атрибуция заказа"
+
+#. translators: %s: CMP plugin name.
+#: includes/admin/class-setup-wizard.php:364
+#, fuzzy, php-format
+msgid "%s consent integration"
+msgstr "%s интеграция согласия"
+
+#. translators: %s: caching/CDN plugin name.
+#: includes/admin/class-setup-wizard.php:380
+#, fuzzy, php-format
+msgid "%s compatibility (client-side fallback)"
+msgstr "Совместимость %s (резервный вариант на стороне клиента)"
+
+#: includes/admin/class-setup-wizard.php:385
+#: includes/admin/traits/trait-admin-pages.php:59
+#: includes/admin/traits/trait-admin-pages.php:244
+#: assets/js/admin-settings-app.js:984
+#, fuzzy
+msgid "Enabled"
+msgstr "Включено"
+
+#: includes/admin/class-setup-wizard.php:393
+#, fuzzy
+msgid "GA4 Measurement ID"
+msgstr "GA4 Измерение ID"
+
+#: includes/admin/class-setup-wizard.php:394
+#, fuzzy
+msgid "optional"
+msgstr "необязательно"
+
+#: includes/admin/class-setup-wizard.php:407
+#, fuzzy
+msgid "Needed for GA4 event forwarding. You can add this later in Settings."
+msgstr "Требуется для пересылки событий GA4. Вы можете добавить это позже в настройках."
+
+#: includes/admin/class-setup-wizard.php:420
+#, fuzzy
+msgid "I run paid ads (Google Ads or Meta Ads)"
+msgstr "Я запускаю платную рекламу (объявления Google Ads или Meta)"
+
+#: includes/admin/class-setup-wizard.php:434
+#: includes/admin/class-setup-wizard.php:506
+#, fuzzy
+msgid "Next"
+msgstr "Далее"
+
+#: includes/admin/class-setup-wizard.php:456
+#, fuzzy
+msgid "Where are your leads coming from?"
+msgstr "Откуда приходят ваши лиды?"
+
+#: includes/admin/class-setup-wizard.php:459
+#, fuzzy
+msgid ""
+"ClickTrail captures click IDs automatically. Confirm which platforms you use "
+"so we can surface them in your form entries."
+msgstr "ClickTrail автоматически фиксирует щелчок IDs. Подтвердите, какие платформы вы используете, чтобы мы могли отображать их в ваших записях формы."
+
+#: includes/admin/class-setup-wizard.php:471
+#: includes/admin/class-setup-wizard.php:475
+#, fuzzy
+msgid "Google Ads"
+msgstr "Google Ads"
+
+#: includes/admin/class-setup-wizard.php:476
+#, fuzzy
+msgid "Captures GCLID and auto-tag parameters from every Google Ads click."
+msgstr "Захватывает GCLID и автоматически помечает параметры каждого щелчка Google Ads."
+
+#: includes/admin/class-setup-wizard.php:487
+#: includes/admin/class-setup-wizard.php:491
+#, fuzzy
+msgid "Meta / Facebook Ads"
+msgstr "Meta / Facebook Ads"
+
+#: includes/admin/class-setup-wizard.php:492
+#, fuzzy
+msgid "Captures FBCLID from every Meta ad click."
+msgstr "Регистрирует FBCLID при каждом клике по объявлению Meta."
+
+#: includes/admin/class-setup-wizard.php:503
+#: includes/admin/class-setup-wizard.php:573
+#, fuzzy
+msgid "Back"
+msgstr "Назад"
+
+#: includes/admin/class-setup-wizard.php:521
+#, fuzzy
+msgid "UTM tracking: ON"
+msgstr "UTM отслеживание: ON"
+
+#. translators: %s: form plugin names.
+#: includes/admin/class-setup-wizard.php:527
+#, fuzzy, php-format
+msgid "Forms: %s"
+msgstr "Формы: %s"
+
+#: includes/admin/class-setup-wizard.php:532
+#, fuzzy
+msgid "WooCommerce: ON"
+msgstr "WooCommerce: ON"
+
+#: includes/admin/class-setup-wizard.php:546
+#, fuzzy
+msgid ""
+"ClickTrail is tracking your visitors. Attribution data will appear in your "
+"form entries as soon as someone submits a form with UTMs in the URL."
+msgstr "ClickTrail отслеживает ваших посетителей. Данные об атрибуции появятся в записях вашей формы, как только кто-то отправит форму с UTM в URL."
+
+#: includes/admin/class-setup-wizard.php:560
+#, fuzzy
+msgid "Quick test:"
+msgstr "Быстрый тест:"
+
+#: includes/admin/class-setup-wizard.php:561
+#, fuzzy
+msgid "Open your site with"
+msgstr "Откройте свой сайт с помощью"
+
+#: includes/admin/class-setup-wizard.php:563
+#, fuzzy
+msgid "in the URL, submit a form, and look for"
+msgstr "в URL отправьте форму и найдите"
+
+#: includes/admin/class-setup-wizard.php:565
+#, fuzzy
+msgid "in the entry."
+msgstr "во входе."
+
+#: includes/admin/class-setup-wizard.php:576
+#, fuzzy
+msgid "View my tracking dashboard"
+msgstr "Посмотреть мою панель отслеживания"
+
+#: includes/admin/class-setup-wizard.php:583
+#, fuzzy
+msgid "I want more control &rarr; Switch to Advanced Mode"
+msgstr "Я хочу больше контроля &rarr; Переключиться в расширенный режим"
+
+#: includes/admin/class-sitehealth.php:39
+#, fuzzy
+msgid "ClickTrail: Caching/conflicts detected"
+msgstr "ClickTrail: обнаружено кэширование/conflicts"
+
+#: includes/admin/class-sitehealth.php:44
+#, fuzzy
+msgid "ClickTrail: Admin diagnostics script heartbeat"
+msgstr "ClickTrail: Контрольное сообщение сценария диагностики администратора."
+
+#: includes/admin/class-sitehealth.php:49
+#, fuzzy
+msgid "ClickTrail: Attribution cookie readable"
+msgstr "ClickTrail: файл cookie атрибуции доступен для чтения."
+
+#: includes/admin/class-sitehealth.php:91
+#, fuzzy
+msgid "No common caching/conflict plugins detected"
+msgstr "Не обнаружено распространенных плагинов кэширования/conflict."
+
+#: includes/admin/class-sitehealth.php:92
+#, fuzzy
+msgid "ClickTrail will still work best with JS injection enabled."
+msgstr "ClickTrail по-прежнему будет работать лучше всего, если включена инъекция JS."
+
+#: includes/admin/class-sitehealth.php:98
+#, fuzzy
+msgid "Caching/optimization detected (client-side capture recommended)"
+msgstr "Обнаружено кэширование/optimization (рекомендуется захват на стороне клиента)"
+
+#. translators: %s: List of detected caching or conflict plugins.
+#: includes/admin/class-sitehealth.php:101
+#, fuzzy, php-format
+msgid ""
+"Detected: %s. Full-page caching can make hidden field values stale. Enable "
+"ClickTrail's client-side capture fallback."
+msgstr "Обнаружено: %s. Полностраничное кэширование может сделать значения скрытых полей устаревшими. Включите резервный вариант захвата на стороне клиента ClickTrail."
+
+#: includes/admin/class-sitehealth.php:119
+#, fuzzy
+msgid "Admin diagnostics script seen in the last 24h"
+msgstr "Сценарий административной диагностики, показанный в последнем 24h"
+
+#: includes/admin/class-sitehealth.php:120
+#, fuzzy
+msgid "A recent wp-admin heartbeat ping was recorded."
+msgstr "Был записан недавний пинг пульса wp-admin."
+
+#: includes/admin/class-sitehealth.php:126
+#, fuzzy
+msgid "Admin diagnostics script not seen recently"
+msgstr "Сценарий диагностики администратора в последнее время не просматривался"
+
+#: includes/admin/class-sitehealth.php:127
+#, fuzzy
+msgid ""
+"Open a ClickTrail admin screen (or Site Health) to refresh the diagnostics "
+"heartbeat."
+msgstr "Откройте экран администратора ClickTrail (или Site Health), чтобы обновить контрольный сигнал диагностики."
+
+#: includes/admin/class-sitehealth.php:148
+#, fuzzy
+msgid "Attribution cookie present in request"
+msgstr "Файл cookie атрибуции присутствует в запросе"
+
+#: includes/admin/class-sitehealth.php:149
+#, fuzzy
+msgid "Server received the attribution cookie."
+msgstr "Сервер получил файл cookie атрибуции."
+
+#: includes/admin/class-sitehealth.php:153
+#, fuzzy
+msgid "This may be normal if no UTM visit occurred."
+msgstr "Это может быть нормальным явлением, если визита UTM не произошло."
+
+#: includes/admin/class-sitehealth.php:155
+#, fuzzy
+msgid ""
+"Note: Consent Mode is enabled. If you have not granted consent, no cookie "
+"will be set."
+msgstr "Примечание. Режим согласия включен. Если вы не дали согласия, файлы cookie не будут установлены."
+
+#: includes/admin/class-sitehealth.php:157
+#, fuzzy
+msgid "Test by visiting a page with ?utm_source=test."
+msgstr "Проверьте, посетив страницу с ?utm_source=test.."
+
+#: includes/admin/class-sitehealth.php:162
+#, fuzzy
+msgid "Attribution cookie not present in request"
+msgstr "Файл cookie атрибуции отсутствует в запросе"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:50
+#, fuzzy
+msgid "Wait for consent"
+msgstr "Подождите согласия"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:51
+#, fuzzy
+msgid "Allow until denied"
+msgstr "Разрешить, пока не будет отказано"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:52
+#, fuzzy
+msgid "Require consent by region"
+msgstr "Требовать согласие по региону"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:63
+#, fuzzy
+msgid "Choose when attribution is allowed to start for a visitor."
+msgstr "Выберите, когда для посетителя разрешено начинать атрибуцию."
+
+#: includes/admin/traits/trait-admin-consent-mode.php:83
+#, fuzzy
+msgid "Use region codes such as EEA, UK, US, or US-CA."
+msgstr "Используйте коды регионов, такие как EEA, UK, US или US-CA."
+
+#: includes/admin/traits/trait-admin-consent-mode.php:98
+#: assets/js/admin-settings-app.js:1076
+#, fuzzy
+msgid "Auto-detect"
+msgstr "Автообнаружение"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:99
+#, fuzzy
+msgid "ClickTrail built-in banner"
+msgstr "ClickTrail встроенный баннер"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:100
+#, fuzzy
+msgid "Cookiebot / Usercentrics"
+msgstr "Cookiebot / Usercentrics"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:101
+#: assets/js/admin-settings-app.js:1079
+#, fuzzy
+msgid "OneTrust"
+msgstr "OneTrust"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:102
+#: assets/js/admin-settings-app.js:1080
+#, fuzzy
+msgid "Complianz"
+msgstr "Complianz"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:103
+#, fuzzy
+msgid "Google Consent Mode via GTM"
+msgstr "Google Режим согласия через GTM"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:104
+#, fuzzy
+msgid "Custom integration"
+msgstr "Пользовательская интеграция"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:115
+#, fuzzy
+msgid "Select the consent platform ClickTrail should listen to."
+msgstr "Выберите платформу согласия, которую ClickTrail должен слушать."
+
+#: includes/admin/traits/trait-admin-consent-mode.php:143
+#, fuzzy
+msgid "How long to wait for a consent response before treating it as denied."
+msgstr "Как долго ждать ответа о согласии, прежде чем рассматривать его как отказ."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:62
+#, fuzzy
+msgid ""
+"ClickTrail Audit detected PII risk on your Thank You page. Your tracking may "
+"be deactivated by Google."
+msgstr "ClickTrail Аудит обнаружил PII риск на вашей странице благодарности. Ваше отслеживание может быть отключено с помощью Google."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:65
+#: assets/js/admin-settings-app.js:993
+#, fuzzy
+msgid "Open Diagnostics"
+msgstr "Открыть диагностику"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:68
+#, fuzzy
+msgid "Review Tracking Settings"
+msgstr "Просмотрите настройки отслеживания"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:92
+#, fuzzy
+msgid "Server-side adapter not configured."
+msgstr "Серверный адаптер не настроен."
+
+#. translators: %1$d: HTTP status code.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:101
+#, fuzzy, php-format
+msgid "Endpoint reachable (HTTP %1$d)."
+msgstr "Конечная точка достижима (HTTP %1$d)."
+
+#. translators: %1$d: HTTP status code, %2$s: error message.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:109
+#, fuzzy, php-format
+msgid "Endpoint error (HTTP %1$d): %2$s"
+msgstr "Ошибка конечной точки (HTTP %1$d): %2$s"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:128
+#, fuzzy
+msgid "Debug disabled."
+msgstr "Отладка отключена."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:133
+#, fuzzy
+msgid "Debug enabled for 15 minutes."
+msgstr "Отладка включена на 15 минут."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:205
+#, fuzzy
+msgid "Could not purge all tracking tables."
+msgstr "Не удалось очистить все таблицы отслеживания."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:214
+#, fuzzy
+msgid "Tracking data purged."
+msgstr "Данные отслеживания удалены."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:231
+#, fuzzy
+msgid "Queue is unavailable."
+msgstr "Очередь недоступна."
+
+#. translators: %d: number of failed delivery rows requeued for retry.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:239
+#, fuzzy, php-format
+msgid "%d failed delivery requeued."
+msgid_plural "%d failed deliveries requeued."
+msgstr[0] "%d неудавшиеся поставки поставлены в очередь."
+msgstr[1] "%d неудавшиеся поставки поставлены в очередь."
+msgstr[2] "%d неудавшиеся поставки поставлены в очередь."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:287
+#: assets/js/admin-settings-app.js:466
+#, fuzzy
+msgid "Settings saved."
+msgstr "Настройки сохранены."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:364
+#, fuzzy
+msgid "Backup prepared."
+msgstr "Резервная копия подготовлена."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:385
+#, fuzzy
+msgid "Missing backup payload."
+msgstr "Отсутствуют резервные полезные данные."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:390
+#, fuzzy
+msgid "Backup file is not valid JSON."
+msgstr "Файл резервной копии недействителен JSON."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:407
+#, fuzzy
+msgid "Backup restored."
+msgstr "Резервная копия восстановлена."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:425
+#, fuzzy
+msgid "WooCommerce is not active."
+msgstr "WooCommerce не активен."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:430
+#, fuzzy
+msgid "Enter a valid WooCommerce order ID."
+msgstr "Введите действительный заказ WooCommerce ID."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:435
+#, fuzzy
+msgid "Order not found."
+msgstr "Заказ не найден."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:443
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:444
+#, fuzzy
+msgid "No ClickTrail traces stored for this order yet."
+msgstr "Для этого заказа пока не сохранено трассировок ClickTrail."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:471
+#, fuzzy
+msgid "not_queued"
+msgstr "not_queued"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:471
+#, fuzzy
+msgid "queued"
+msgstr "в очереди"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:473
+#, fuzzy
+msgid "No pending retry row found."
+msgstr "Не найдена строка, ожидающая повторной попытки."
+
+#. translators: 1: attempts count, 2: next attempt timestamp.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:476
+#, fuzzy, php-format
+msgid "Attempts: %1$d. Next attempt: %2$s."
+msgstr "Попытки: %1$d. Следующая попытка: %2$s."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:488
+#, fuzzy
+msgid "Order trace loaded."
+msgstr "Трассировка заказа загружена."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:753
+#, fuzzy
+msgid "Caching or script optimization detected"
+msgstr "Обнаружено кэширование или оптимизация скрипта"
+
+#. translators: %s: detected plugin labels.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:756
+#, fuzzy, php-format
+msgid ""
+"Detected: %s. Turn on the client-side capture fallback to reduce stale "
+"attribution and delayed event issues."
+msgstr "Обнаружено: %s. Включите резервный вариант захвата на стороне клиента, чтобы уменьшить проблемы с устаревшей атрибуцией и отложенными событиями."
+
+#. translators: %s: detected call tracking provider labels.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:768
+#, fuzzy, php-format
+msgid "Call tracking script detected: %s"
+msgstr "Обнаружен скрипт отслеживания звонков: %s"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:771
+#, fuzzy
+msgid ""
+"A call tracking script was detected. ClickTrail skips tel: link decoration "
+"automatically. No action needed unless you are seeing unexpected behaviour."
+msgstr "Обнаружен скрипт отслеживания звонков. ClickTrail автоматически пропускает оформление ссылки tel:. Никаких действий не требуется, если вы не заметили неожиданное поведение."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:778
+#, fuzzy
+msgid "NitroPack detected — check JS postpone exclusions"
+msgstr "Обнаружен NitroPack — отметьте JS, отложите исключения"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:779
+#, fuzzy
+msgid ""
+"NitroPack's \"Postpone JS\" feature can prevent attribution scripts from "
+"running before the user interacts with the page, causing empty UTM data on "
+"leads. ClickTrail attempts to exclude its scripts automatically. To verify: "
+"NitroPack > Optimization > JavaScript > Script exclusions -- confirm "
+"clicutcl-attribution.js and clicutcl-consent-bridge.js are listed."
+msgstr "Функция NitroPack «Отложить JS» может предотвратить запуск сценариев атрибуции до того, как пользователь взаимодействует со страницей, что приводит к пустым данным UTM о потенциальных клиентах. ClickTrail пытается автоматически исключить свои скрипты. Для проверки: NitroPack > Оптимизация > JavaScript > Исключения скриптов – убедитесь, что файлы clicutcl-attribution.js и clicutcl-consent-bridge.js присутствуют в списке."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:788
+#, fuzzy
+msgid "Server-side delivery has no endpoint"
+msgstr "Доставка на стороне сервера не имеет конечной точки"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:789
+#, fuzzy
+msgid "Delivery is enabled, but the collector URL is empty."
+msgstr "Доставка включена, но коллектор URL пуст."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:796
+#, fuzzy
+msgid "Woo storefront events enabled without WooCommerce"
+msgstr "События витрины Woo включены без WooCommerce"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:797
+#, fuzzy
+msgid "Disable Woo storefront events or activate WooCommerce on this site."
+msgstr "Отключите события витрины Woo или активируйте WooCommerce на этом сайте."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:805
+#, fuzzy
+msgid "sGTM mode enabled without a web container"
+msgstr "Режим sGTM включен без веб-контейнера"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:806
+#, fuzzy
+msgid "Add a GTM web container ID before testing sGTM mode."
+msgstr "Добавьте веб-контейнер GTM ID перед тестированием режима sGTM."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:813
+#, fuzzy
+msgid "sGTM mode has no loader source"
+msgstr "Режим sGTM не имеет источника загрузчика"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:814
+#, fuzzy
+msgid ""
+"Provide a tagging server URL or a custom loader path so ClickTrail can "
+"deliver the GTM script in sGTM mode."
+msgstr "Предоставьте сервер тегов URL или собственный путь загрузчика, чтобы ClickTrail мог доставлять сценарий GTM в режиме sGTM."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:821
+#, fuzzy
+msgid "Custom loader enabled without a path"
+msgstr "Пользовательский загрузчик включен без пути"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:822
+#, fuzzy
+msgid ""
+"Add a same-site path or loader URL before enabling the custom loader option."
+msgstr "Добавьте путь к тому же сайту или загрузчик URL перед включением опции пользовательского загрузчика."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:829
+#, fuzzy
+msgid "sGTM mode does not match the active delivery adapter"
+msgstr "Режим sGTM не соответствует активному адаптеру доставки"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:830
+#, fuzzy
+msgid ""
+"GTM is configured for sGTM mode, but Delivery is not currently using the "
+"sGTM adapter."
+msgstr "GTM настроен на режим sGTM, но доставка в настоящее время не использует адаптер sGTM."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:837
+#, fuzzy
+msgid "Woo user_data is enabled without the richer contract"
+msgstr "Woo user_data включен без расширенного контракта"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:838
+#, fuzzy
+msgid ""
+"Turn on the richer Woo dataLayer contract if you want ClickTrail to emit "
+"consent-aware user_data objects."
+msgstr "Включите расширенный контракт Woo dataLayer, если хотите, чтобы ClickTrail создавал объекты user_data с поддержкой согласия."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:847
+#, fuzzy
+msgid "Adapter selected without matching destination toggle"
+msgstr "Адаптер выбран без соответствующего переключателя назначения"
+
+#. translators: 1: adapter label, 2: destination label.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:850
+#, fuzzy, php-format
+msgid "%1$s is selected as the delivery adapter, but %2$s is off in Events."
+msgstr "%1$s выбран в качестве адаптера доставки, но %2$s отключен в Events."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:873
+#, fuzzy
+msgid "Destination toggle does not match the active adapter"
+msgstr "Переключатель назначения не соответствует активному адаптеру"
+
+#. translators: 1: destination label, 2: adapter label.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:876
+#, fuzzy, php-format
+msgid "%1$s is enabled in Events, but Delivery currently uses %2$s."
+msgstr "%1$s включен в событиях, но в настоящее время доставка использует %2$s."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:891
+#, fuzzy
+msgid "Review duplicate destination ownership"
+msgstr "Проверить право собственности на дублирующийся пункт назначения"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:892
+#, fuzzy
+msgid ""
+"GTM is configured alongside native destination toggles. Confirm each "
+"platform is owned by only one runtime path."
+msgstr "GTM настраивается вместе с переключателями собственного назначения. Убедитесь, что каждая платформа принадлежит только одному пути выполнения."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:904
+#, fuzzy
+msgid "No common conflicts detected in the current ClickTrail configuration."
+msgstr "В текущей конфигурации ClickTrail не обнаружено распространенных конфликтов."
+
+#. translators: %d: findings count.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:912
+#, fuzzy, php-format
+msgid "Conflict scan found %d item worth reviewing."
+msgid_plural "Conflict scan found %d items worth reviewing."
+msgstr[0] "Сканирование конфликтов обнаружило элементы %d, заслуживающие рассмотрения."
+msgstr[1] "Сканирование конфликтов обнаружило элементы %d, заслуживающие рассмотрения."
+msgstr[2] "Сканирование конфликтов обнаружило элементы %d, заслуживающие рассмотрения."
+
+#. translators: %s: form title.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:968
+#, fuzzy, php-format
+msgid "Gravity Forms: \"%s\" has no ct_* attribution fields"
+msgstr "Gravity Forms: «%s» не имеет полей атрибуции ct_*"
+
+#. translators: %s: edit form URL.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:973
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1016
+#, fuzzy, php-format
+msgid ""
+"Add hidden fields named ct_utm_source, ct_utm_medium, etc. to capture "
+"attribution in this entry. <a href=\"%s\">Edit form &rarr;</a>"
+msgstr "Добавьте скрытые поля с именами ct_utm_source, ct_utm_medium и т. д., чтобы указать атрибуцию в этой записи. <a href=\"%s\">Редактировать форму &rarr;</a>"
+
+#. translators: %s: form title.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1011
+#, fuzzy, php-format
+msgid "WPForms: \"%s\" has no ct_* attribution fields"
+msgstr "WPForms: «%s» не имеет полей атрибуции ct_*"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1113
+#, fuzzy
+msgid "Web container"
+msgstr "Веб-контейнер"
+
+#. translators: %s: GTM container ID.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1118
+#, fuzzy, php-format
+msgid "Container %s is configured."
+msgstr "Контейнер %s настроен."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1121
+#, fuzzy
+msgid "Add a GTM web container ID before using the wizard."
+msgstr "Добавьте веб-контейнер GTM ID перед использованием мастера."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1125
+#, fuzzy
+msgid "sGTM mode"
+msgstr "Режим sGTM"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1128
+#, fuzzy
+msgid "sGTM compatibility mode is active."
+msgstr "Режим совместимости sGTM активен."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1129
+#, fuzzy
+msgid "ClickTrail is still using the standard GTM loader mode."
+msgstr "ClickTrail по-прежнему использует стандартный режим загрузчика GTM."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1133
+#: assets/js/admin-settings-app.js:802
+#, fuzzy
+msgid "Tagging server URL"
+msgstr "Сервер тегов URL"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1137
+#, fuzzy
+msgid ""
+"Add the tagging server URL if you want first-party script delivery or a "
+"stronger preview workflow."
+msgstr "Добавьте сервер тегов URL, если вам нужна доставка собственных сценариев или более эффективный рабочий процесс предварительного просмотра."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1141
+#, fuzzy
+msgid "Loader path"
+msgstr "Путь загрузчика"
+
+#. translators: %s: loader URL.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1146
+#, fuzzy, php-format
+msgid "Custom loader enabled: %s"
+msgstr "Пользовательский загрузчик включен: %s"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1150
+#, fuzzy
+msgid "First-party script delivery is enabled."
+msgstr "Доставка собственных сценариев включена."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1151
+#, fuzzy
+msgid ""
+"Enable first-party delivery or add a custom loader when you want the script "
+"to avoid the default Google host."
+msgstr "Включите собственную доставку или добавьте собственный загрузчик, если вы хотите, чтобы сценарий не использовал хост по умолчанию Google."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1155
+#: assets/js/admin-settings-app.js:1034
+#, fuzzy
+msgid "Delivery adapter"
+msgstr "Адаптер доставки"
+
+#. translators: %s: adapter label.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1160
+#, fuzzy, php-format
+msgid "Delivery is enabled with %s."
+msgstr "Доставка включается с помощью %s."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1163
+#, fuzzy
+msgid ""
+"Delivery is off. You can still validate browser-side GTM behavior before "
+"enabling server delivery."
+msgstr "Доставка отключена. Вы все равно можете проверить поведение GTM на стороне браузера перед включением доставки с сервера."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1167
+#, fuzzy
+msgid "Destination toggles"
+msgstr "Переключение пунктов назначения"
+
+#. translators: %d: enabled destination count.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1172
+#, fuzzy, php-format
+msgid "%d destination is enabled in Events."
+msgid_plural "%d destinations are enabled in Events."
+msgstr[0] "Направления %d включены в событиях."
+msgstr[1] "Направления %d включены в событиях."
+msgstr[2] "Направления %d включены в событиях."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1175
+#, fuzzy
+msgid ""
+"No native destination toggles are enabled. That is fine if GTM or another "
+"relay owns final delivery."
+msgstr "Никакие переключатели родного назначения не включены. Это нормально, если окончательная доставка принадлежит GTM или другому реле."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1182
+#, fuzzy
+msgid "Loader probe"
+msgstr "Датчик погрузчика"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1184
+#, fuzzy
+msgid "Could not reach the configured GTM loader URL from WordPress."
+msgstr "Не удалось связаться с настроенным загрузчиком GTM URL из WordPress."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1191
+#, fuzzy
+msgid "Collector probe"
+msgstr "Коллекторный зонд"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1193
+#, fuzzy
+msgid "Could not reach the configured sGTM collector URL from WordPress."
+msgstr "Не удалось достичь настроенного коллектора sGTM URL от WordPress."
+
+#. translators: 1: ready checks count, 2: total checks count.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1210
+#, fuzzy, php-format
+msgid "sGTM preview checks marked %1$d of %2$d items as ready."
+msgstr "Предварительный просмотр sGTM проверяет помеченные элементы %1$d из %2$d как готовые."
+
+#. translators: 1: URL, 2: HTTP status code.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1256
+#, fuzzy, php-format
+msgid "%1$s responded with HTTP %2$d."
+msgstr "%1$s ответил HTTP %2$d."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1276
+#, fuzzy
+msgid ""
+"Load the Meta tag and matching server template in GTM, then confirm Meta is "
+"owned by either GTM or ClickTrail native delivery, not both."
+msgstr "Загрузите тег Meta и соответствующий шаблон сервера в GTM, затем подтвердите, что Meta принадлежит встроенной доставке GTM или ClickTrail, но не обеим."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1284
+#, fuzzy
+msgid ""
+"Confirm your server container has the GA4 client and the Google tags you "
+"expect before previewing purchase and checkout events."
+msgstr "Прежде чем просматривать события покупки и оформления заказа, убедитесь, что в вашем серверном контейнере есть клиент GA4 и ожидаемые теги Google."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1292
+#, fuzzy
+msgid ""
+"Verify the LinkedIn server-side tag template and consent handling in GTM "
+"before you rely on ClickTrail purchase or lead events."
+msgstr "Проверьте шаблон тега на стороне сервера LinkedIn и обработку согласия в GTM, прежде чем полагаться на ClickTrail покупки или события лидирования."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1300
+#, fuzzy
+msgid ""
+"Install the Pinterest Conversions template in the server container if GTM "
+"owns Pinterest delivery for this site."
+msgstr "Установите шаблон Pinterest Conversions в серверном контейнере, если GTM владеет доставкой Pinterest для этого сайта."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1308
+#, fuzzy
+msgid ""
+"Install the TikTok Events API template in the server container if GTM owns "
+"TikTok delivery for this site."
+msgstr "Установите шаблон TikTok Events API в контейнер сервера, если GTM владеет доставкой TikTok для этого сайта."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1315
+#, fuzzy
+msgid "Template ownership"
+msgstr "Владение шаблоном"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1316
+#, fuzzy
+msgid ""
+"Use destination toggles as ownership markers. Keep each downstream platform "
+"owned by exactly one delivery path."
+msgstr "Используйте переключатели назначения в качестве маркеров владения. Пусть каждая нижестоящая платформа будет принадлежать только одному пути доставки."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1359
+#, fuzzy
+msgid "Backup file format is not supported."
+msgstr "Формат файла резервной копии не поддерживается."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1363
+#, fuzzy
+msgid "Backup file does not contain any ClickTrail options."
+msgstr "Файл резервной копии не содержит параметров ClickTrail."
+
+#: includes/admin/traits/trait-admin-pages.php:27
+#, fuzzy
+msgid "ClickTrail Network"
+msgstr "ClickTrail Сеть"
+
+#: includes/admin/traits/trait-admin-pages.php:50
+#, fuzzy
+msgid "ClickTrail Network Settings"
+msgstr "ClickTrail Настройки сети"
+
+#: includes/admin/traits/trait-admin-pages.php:55
+#, fuzzy
+msgid "Enable Server-side Sending"
+msgstr "Включить отправку на стороне сервера"
+
+#: includes/admin/traits/trait-admin-pages.php:64
+#, fuzzy
+msgid "Collector Endpoint URL"
+msgstr "Конечная точка коллектора URL"
+
+#: includes/admin/traits/trait-admin-pages.php:70
+#, fuzzy
+msgid "Adapter Type"
+msgstr "Тип адаптера"
+
+#: includes/admin/traits/trait-admin-pages.php:88
+#, fuzzy
+msgid "Request Timeout (seconds)"
+msgstr "Тайм-аут запроса (секунды)"
+
+#: includes/admin/traits/trait-admin-pages.php:94
+#, fuzzy
+msgid "Remote Failure Telemetry (Opt-in)"
+msgstr "Удаленная телеметрия сбоев (согласие)"
+
+#: includes/admin/traits/trait-admin-pages.php:98
+#, fuzzy
+msgid "Enable aggregated remote failure reporting hook"
+msgstr "Включить агрегированный механизм удаленного оповещения об ошибках"
+
+#: includes/admin/traits/trait-admin-pages.php:100
+#, fuzzy
+msgid ""
+"Disabled by default. Sends only aggregated failure counts (no payloads, no "
+"PII)."
+msgstr "По умолчанию отключено. Отправляет только совокупное количество отказов (без полезных данных и PII)."
+
+#: includes/admin/traits/trait-admin-pages.php:179
+#, fuzzy
+msgid "No dispatches yet"
+msgstr "Отправлений пока нет"
+
+#: includes/admin/traits/trait-admin-pages.php:211
+#, fuzzy
+msgid "ClickTrail Diagnostics"
+msgstr "ClickTrail Диагностика"
+
+#: includes/admin/traits/trait-admin-pages.php:217
+#: assets/js/admin-settings-app.js:968
+#, fuzzy
+msgid "Queue Backlog"
+msgstr "Журнал очереди"
+
+#. translators: %d: due now count.
+#: includes/admin/traits/trait-admin-pages.php:223
+#, fuzzy, php-format
+msgid "Due now: %d"
+msgstr "Срок оплаты: %d"
+
+#: includes/admin/traits/trait-admin-pages.php:231
+#: assets/js/admin-settings-app.js:973
+#, fuzzy
+msgid "Last Dispatch"
+msgstr "Последняя отправка"
+
+#: includes/admin/traits/trait-admin-pages.php:237
+#: assets/js/admin-settings-app.js:978
+#, fuzzy
+msgid "Last Error"
+msgstr "Последняя ошибка"
+
+#: includes/admin/traits/trait-admin-pages.php:238
+#: assets/js/admin-settings-app.js:949
+#, fuzzy
+msgid "None"
+msgstr "Нет"
+
+#: includes/admin/traits/trait-admin-pages.php:239
+#: assets/js/admin-settings-app.js:980
+#, fuzzy
+msgid "No errors recorded."
+msgstr "Никаких ошибок не зафиксировано."
+
+#: includes/admin/traits/trait-admin-pages.php:243
+#: includes/admin/traits/trait-admin-pages.php:391
+#: assets/js/admin-settings-app.js:983
+#, fuzzy
+msgid "Debug Logging"
+msgstr "Ведение журнала отладки"
+
+#: includes/admin/traits/trait-admin-pages.php:244
+#: assets/js/admin-settings-app.js:984
+#, fuzzy
+msgid "Disabled"
+msgstr "Отключено"
+
+#: includes/admin/traits/trait-admin-pages.php:246
+#, fuzzy
+msgid "15 minute window when enabled."
+msgstr "15 минутное окно при включении."
+
+#: includes/admin/traits/trait-admin-pages.php:266
+#, fuzzy
+msgid "Endpoint Test"
+msgstr "Тест конечной точки"
+
+#: includes/admin/traits/trait-admin-pages.php:267
+#, fuzzy
+msgid "Validate connectivity to the configured server-side endpoint."
+msgstr "Проверьте подключение к настроенной конечной точке на стороне сервера."
+
+#: includes/admin/traits/trait-admin-pages.php:273
+#, fuzzy
+msgid "Test Endpoint"
+msgstr "Тестовая конечная точка"
+
+#: includes/admin/traits/trait-admin-pages.php:284
+#, fuzzy
+msgid "Conflict Scan"
+msgstr "Сканирование конфликтов"
+
+#: includes/admin/traits/trait-admin-pages.php:285
+#, fuzzy
+msgid ""
+"Run deterministic checks for caching, call tracking scripts, duplicate "
+"ownership, Woo gaps, and delivery mismatches."
+msgstr "Выполняйте детерминированные проверки на предмет кэширования, сценариев отслеживания вызовов, дублирования прав собственности, пробелов Woo и несоответствий доставки."
+
+#: includes/admin/traits/trait-admin-pages.php:291
+#, fuzzy
+msgid "Run Conflict Scan"
+msgstr "Запустите сканирование конфликтов"
+
+#: includes/admin/traits/trait-admin-pages.php:305
+#, fuzzy
+msgid "Attribution Readiness"
+msgstr "Готовность к атрибуции"
+
+#: includes/admin/traits/trait-admin-pages.php:306
+#, fuzzy
+msgid ""
+"Run a read-only analysis against a test payload. Click-ID values are never "
+"returned or stored."
+msgstr "Запустите анализ тестовых полезных данных, доступный только для чтения. Значения Click-ID никогда не возвращаются и не сохраняются."
+
+#: includes/admin/traits/trait-admin-pages.php:312
+#, fuzzy
+msgid "Test payload (JSON)"
+msgstr "Тестовая полезная нагрузка (JSON)"
+
+#: includes/admin/traits/trait-admin-pages.php:316
+#, fuzzy
+msgid "Referrer URL (optional)"
+msgstr "Реферер URL (необязательно)"
+
+#: includes/admin/traits/trait-admin-pages.php:318
+#, fuzzy
+msgid "Current host (optional)"
+msgstr "Текущий хост (необязательно)"
+
+#: includes/admin/traits/trait-admin-pages.php:322
+#, fuzzy
+msgid "Source aliases (optional test JSON)"
+msgstr "Псевдонимы источников (необязательный тест JSON)"
+
+#: includes/admin/traits/trait-admin-pages.php:324
+#, fuzzy
+msgid ""
+"Map recognized click-ID platform keys to bounded utm_source aliases. This "
+"input is used only for this check and is never stored."
+msgstr "Сопоставьте распознанные ключи платформы click-ID с ограниченными псевдонимами utm_source. Этот ввод используется только для этой проверки и никогда не сохраняется."
+
+#: includes/admin/traits/trait-admin-pages.php:326
+#, fuzzy
+msgid ""
+"Suggestions are read-only and apply only to utm_source; utm_medium and "
+"utm_campaign are never invented. An observed source, an unresolved macro, or "
+"signals from multiple platforms suppress automatic source suggestion."
+msgstr "Предложения доступны только для чтения и применяются только к utm_source; utm_medium и utm_campaign никогда не были изобретены. Наблюдаемый источник, неразрешенный макрос или сигналы с нескольких платформ подавляют автоматическое предложение источника."
+
+#: includes/admin/traits/trait-admin-pages.php:328
+#, fuzzy
+msgid "Run Readiness Check"
+msgstr "Запустить проверку готовности"
+
+#: includes/admin/traits/trait-admin-pages.php:329
+#, fuzzy
+msgid "Copy Test URL"
+msgstr "Тест копирования URL"
+
+#: includes/admin/traits/trait-admin-pages.php:333
+#, fuzzy
+msgid "Copy-only test URL"
+msgstr "Тест только для копирования URL"
+
+#: includes/admin/traits/trait-admin-pages.php:345
+#, fuzzy
+msgid "Backup Restore"
+msgstr "Восстановление резервной копии"
+
+#: includes/admin/traits/trait-admin-pages.php:346
+#, fuzzy
+msgid ""
+"Export or restore the five main ClickTrail option stores through privileged "
+"server-side actions."
+msgstr "Экспортируйте или восстановите пять основных хранилищ опций ClickTrail с помощью привилегированных действий на стороне сервера."
+
+#: includes/admin/traits/trait-admin-pages.php:347
+#, fuzzy
+msgid ""
+"Warning: the exported backup file contains live, unmasked webhook secrets "
+"and CRM tokens in plaintext. Treat it like a credentials file — store and "
+"share it accordingly."
+msgstr "Предупреждение: экспортированный файл резервной копии содержит действующие, немаскированные секреты веб-перехватчиков и токены CRM в виде открытого текста. Относитесь к нему как к файлу учетных данных — храните его и делитесь им соответствующим образом."
+
+#: includes/admin/traits/trait-admin-pages.php:353
+#, fuzzy
+msgid "Export Backup"
+msgstr "Экспортировать резервную копию"
+
+#: includes/admin/traits/trait-admin-pages.php:358
+#, fuzzy
+msgid "Restore Backup"
+msgstr "Восстановить резервную копию"
+
+#: includes/admin/traits/trait-admin-pages.php:369
+#, fuzzy
+msgid "Woo Order Trace Lookup"
+msgstr "Woo Поиск трассировки заказа"
+
+#: includes/admin/traits/trait-admin-pages.php:370
+#, fuzzy
+msgid ""
+"Inspect the stored purchase and milestone payload snapshots for a "
+"WooCommerce order, even outside the debug window."
+msgstr "Проверьте сохраненные снимки покупок и полезных данных этапов на наличие заказа WooCommerce, даже за пределами окна отладки."
+
+#: includes/admin/traits/trait-admin-pages.php:376
+#: includes/privacy/class-privacy-handler.php:662
+#: includes/privacy/class-woo-order-privacy.php:221
+#, fuzzy
+msgid "Order ID"
+msgstr "Заказать ID"
+
+#: includes/admin/traits/trait-admin-pages.php:377
+#, fuzzy
+msgid "Lookup Order"
+msgstr "Порядок поиска"
+
+#: includes/admin/traits/trait-admin-pages.php:392
+#, fuzzy
+msgid ""
+"Capture temporary dispatch traces and normalized event intake entries for "
+"debugging."
+msgstr "Захватывайте временные трассировки отправки и нормализованные записи приема событий для отладки."
+
+#: includes/admin/traits/trait-admin-pages.php:411
+#, fuzzy
+msgid "Data Management"
+msgstr "Управление данными"
+
+#: includes/admin/traits/trait-admin-pages.php:412
+#, fuzzy
+msgid ""
+"Purge local tracking data, including events, queue rows, and diagnostic "
+"buffers. This cannot be undone."
+msgstr "Очистите локальные данные отслеживания, включая события, строки очереди и диагностические буферы. Это невозможно отменить."
+
+#: includes/admin/traits/trait-admin-pages.php:418
+#, fuzzy
+msgid "Purge Tracking Data"
+msgstr "Очистить данные отслеживания"
+
+#: includes/admin/traits/trait-admin-pages.php:429
+#, fuzzy
+msgid "Failure Telemetry"
+msgstr "Телеметрия отказов"
+
+#. translators: %d: total failures.
+#: includes/admin/traits/trait-admin-pages.php:434
+#, fuzzy, php-format
+msgid "Failure-only aggregated counters. Total failures tracked: %d."
+msgstr "Агрегированные счетчики только сбоев. Общее количество отслеживаемых отказов: %d."
+
+#: includes/admin/traits/trait-admin-pages.php:446
+#, fuzzy
+msgid "Hour Bucket"
+msgstr "Часовое ведро"
+
+#: includes/admin/traits/trait-admin-pages.php:447
+#, fuzzy
+msgid "Total Failures"
+msgstr "Всего неудач"
+
+#: includes/admin/traits/trait-admin-pages.php:448
+#, fuzzy
+msgid "Codes"
+msgstr "Коды"
+
+#: includes/admin/traits/trait-admin-pages.php:477
+#, fuzzy
+msgid "No failures recorded yet."
+msgstr "Сбоев пока не зафиксировано."
+
+#: includes/admin/traits/trait-admin-pages.php:490
+#, fuzzy
+msgid "Queue Backlog Details"
+msgstr "Подробности журнала очереди"
+
+#: includes/admin/traits/trait-admin-pages.php:491
+#, fuzzy
+msgid "Current state of the retry queue used for failed dispatch attempts."
+msgstr "Текущее состояние очереди повторов, используемой для неудачных попыток отправки."
+
+#: includes/admin/traits/trait-admin-pages.php:499
+#, fuzzy
+msgid "Queue Ready"
+msgstr "Очередь готова"
+
+#: includes/admin/traits/trait-admin-pages.php:500
+#, fuzzy
+msgid "Yes"
+msgstr "Да"
+
+#: includes/admin/traits/trait-admin-pages.php:500
+#, fuzzy
+msgid "No"
+msgstr "Нет"
+
+#: includes/admin/traits/trait-admin-pages.php:503
+#, fuzzy
+msgid "Pending Events"
+msgstr "Ожидаемые события"
+
+#: includes/admin/traits/trait-admin-pages.php:507
+#, fuzzy
+msgid "Due Now"
+msgstr "Срок оплаты сейчас"
+
+#: includes/admin/traits/trait-admin-pages.php:511
+#, fuzzy
+msgid "Max Attempts in Queue"
+msgstr "Максимальное количество попыток в очереди"
+
+#: includes/admin/traits/trait-admin-pages.php:515
+#, fuzzy
+msgid "Oldest Next Attempt"
+msgstr "Самая старая следующая попытка"
+
+#: includes/admin/traits/trait-admin-pages.php:519
+#, fuzzy
+msgid "Failed (dead-letter)"
+msgstr "Не удалось (недоставленное письмо)"
+
+#: includes/admin/traits/trait-admin-pages.php:525
+#, fuzzy
+msgid "Retry Failed Deliveries"
+msgstr "Повторить неудачную доставку"
+
+#: includes/admin/traits/trait-admin-pages.php:536
+#, fuzzy
+msgid "Recent Event Intake"
+msgstr "Прием недавних событий"
+
+#: includes/admin/traits/trait-admin-pages.php:537
+#, fuzzy
+msgid "Last normalized event intake entries captured during the debug window."
+msgstr "Последние записи о приеме нормализованных событий, записанные во время окна отладки."
+
+#: includes/admin/traits/trait-admin-pages.php:545
+#: includes/admin/traits/trait-admin-pages.php:600
+#, fuzzy
+msgid "Time"
+msgstr "Время"
+
+#: includes/admin/traits/trait-admin-pages.php:546
+#, fuzzy
+msgid "Kind"
+msgstr "Добрый"
+
+#: includes/admin/traits/trait-admin-pages.php:547
+#: includes/admin/traits/trait-admin-pages.php:601
+#: includes/privacy/class-privacy-handler.php:638
+#, fuzzy
+msgid "Event"
+msgstr "Событие"
+
+#: includes/admin/traits/trait-admin-pages.php:548
+#: includes/admin/traits/trait-admin-pages.php:604
+#, fuzzy
+msgid "Status"
+msgstr "Статус"
+
+#: includes/admin/traits/trait-admin-pages.php:549
+#, fuzzy
+msgid "Reason"
+msgstr "Причина"
+
+#: includes/admin/traits/trait-admin-pages.php:551
+#, fuzzy
+msgid "Attribution Keys"
+msgstr "Ключи атрибуции"
+
+#: includes/admin/traits/trait-admin-pages.php:552
+#, fuzzy
+msgid "Identity Keys"
+msgstr "Идентификационные ключи"
+
+#: includes/admin/traits/trait-admin-pages.php:578
+#, fuzzy
+msgid ""
+"No normalized intake entries recorded yet. Enable Debug Logging and "
+"reproduce an event."
+msgstr "Никаких нормализованных записей о приеме пока не зарегистрировано. Включите ведение журнала отладки и воспроизведите событие."
+
+#: includes/admin/traits/trait-admin-pages.php:591
+#, fuzzy
+msgid "Recent Dispatches"
+msgstr "Недавние отправки"
+
+#: includes/admin/traits/trait-admin-pages.php:592
+#, fuzzy
+msgid "Dispatch entries are captured only while Debug Logging is enabled."
+msgstr "Записи об отправке фиксируются только тогда, когда включено ведение журнала отладки."
+
+#: includes/admin/traits/trait-admin-pages.php:602
+#, fuzzy
+msgid "Event ID"
+msgstr "Событие ID"
+
+#: includes/admin/traits/trait-admin-pages.php:603
+#, fuzzy
+msgid "Adapter"
+msgstr "Адаптер"
+
+#: includes/admin/traits/trait-admin-pages.php:605
+#, fuzzy
+msgid "HTTP"
+msgstr "HTTP"
+
+#: includes/admin/traits/trait-admin-pages.php:606
+#, fuzzy
+msgid "Endpoint"
+msgstr "Конечная точка"
+
+#: includes/admin/traits/trait-admin-pages.php:607
+#, fuzzy
+msgid "Message"
+msgstr "Сообщение"
+
+#: includes/admin/traits/trait-admin-pages.php:627
+#, fuzzy
+msgid "No dispatches recorded yet."
+msgstr "Отправок пока не зафиксировано."
+
+#: includes/admin/traits/trait-admin-pages.php:651
+#, fuzzy
+msgid "ClickTrail Logs"
+msgstr "ClickTrail Журналы"
+
+#: includes/admin/traits/trait-admin-pages.php:675
+#, fuzzy
+msgid "Run the scan to review likely setup conflicts."
+msgstr "Запустите сканирование, чтобы просмотреть возможные конфликты настроек."
+
+#: includes/admin/traits/trait-admin-pages.php:715
+#, fuzzy
+msgid "Lookup an order to inspect stored purchase and milestone traces."
+msgstr "Найдите заказ для проверки сохраненных покупок и отслеживания этапов."
+
+#. translators: %d: WooCommerce order ID.
+#: includes/admin/traits/trait-admin-pages.php:732
+#, fuzzy, php-format
+msgid "Order #%d"
+msgstr "Заказ №%d"
+
+#: includes/admin/traits/trait-admin-pages.php:753
+#, fuzzy
+msgid "Stored trace"
+msgstr "Сохраненная трассировка"
+
+#: includes/admin/traits/trait-admin-pages.php:765
+#, fuzzy
+msgid ""
+"No attribution was captured for this order because marketing consent was not "
+"granted when it fired. This is expected when \"Enable consent mode\" is on "
+"under Settings → Delivery → Privacy & consent. Turn it off there if you "
+"don't need consent-gated attribution."
+msgstr "Для этого заказа не была установлена атрибуция, поскольку на момент его активации не было предоставлено маркетинговое согласие. Это ожидается, когда «Включить режим согласия» включен в разделе «Настройки» → «Доставка» → «Конфиденциальность и согласие». Отключите его там, если вам не нужна атрибуция на основе согласия."
+
+#: includes/admin/traits/trait-admin-pages.php:775
+#, fuzzy
+msgid "Source Hook"
+msgstr "Исходный крючок"
+
+#: includes/admin/traits/trait-admin-pages.php:779
+#, fuzzy
+msgid "Attempted At"
+msgstr "Попытка"
+
+#: includes/admin/traits/trait-admin-pages.php:783
+#, fuzzy
+msgid "Dispatch Result"
+msgstr "Результат отправки"
+
+#: includes/admin/traits/trait-admin-pages.php:787
+#, fuzzy
+msgid "Dispatch Detail"
+msgstr "Детали отправки"
+
+#: includes/admin/traits/trait-admin-pages.php:791
+#, fuzzy
+msgid "Queue State"
+msgstr "Состояние очереди"
+
+#: includes/admin/traits/trait-admin-pages.php:795
+#, fuzzy
+msgid "Queue Detail"
+msgstr "Подробности очереди"
+
+#: includes/api/class-tracking-controller.php:522
+#: includes/api/class-tracking-controller.php:644
+#, fuzzy
+msgid "Payload too large."
+msgstr "Полезная нагрузка слишком велика."
+
+#: includes/class-clicutcl-core.php:81
+#, fuzzy
+msgid ""
+"ClickTrail failed to boot: missing class CLICUTCL\\Core\\Context. Check your "
+"autoloader mapping and release ZIP contents."
+msgstr "ClickTrail не удалось загрузиться: отсутствует класс CLICUTCL\\Core\\Context. Проверьте отображение автозагрузчика и освободите содержимое ZIP."
+
+#: includes/class-clicutcl-core.php:283
+#, fuzzy
+msgid "We use cookies to improve your experience and analyze traffic."
+msgstr "Мы используем файлы cookie, чтобы улучшить ваш опыт и проанализировать трафик."
+
+#: includes/class-clicutcl-core.php:284
+#, fuzzy
+msgid "Read more"
+msgstr "Подробнее"
+
+#: includes/class-clicutcl-core.php:285
+#, fuzzy
+msgid "Accept All"
+msgstr "Принять все"
+
+#: includes/class-clicutcl-core.php:286
+#, fuzzy
+msgid "Reject Non-Essential"
+msgstr "Отклонить несущественное"
+
+#: includes/class-clicutcl-core.php:595
+#, fuzzy
+msgid "Shop"
+msgstr "Магазин"
+
+#. translators: %s: search query.
+#: includes/class-clicutcl-core.php:622
+#, fuzzy, php-format
+msgid "Search: %s"
+msgstr "Поиск: %s"
+
+#: includes/class-clicutcl-core.php:625
+#, fuzzy
+msgid "Search Results"
+msgstr "Результаты поиска"
+
+#: includes/integrations/forms/class-gf-form-settings-tab.php:74
+#, fuzzy
+msgid "Attribution Tracking"
+msgstr "Отслеживание атрибуции"
+
+#: includes/integrations/forms/class-gf-form-settings-tab.php:78
+#, fuzzy
+msgid "Enable attribution tracking for this form"
+msgstr "Включить отслеживание атрибуции для этой формы"
+
+#: includes/integrations/forms/class-ninja-forms-submission-extra-handler.php:96
+#, fuzzy
+msgid "ClickTrail Attribution"
+msgstr "ClickTrail Атрибуция"
+
+#: includes/privacy/class-privacy-handler.php:58
+#: includes/privacy/class-privacy-handler.php:73
+#, fuzzy
+msgid "ClickTrail Tracking Data"
+msgstr "ClickTrail Данные отслеживания"
+
+#: includes/privacy/class-privacy-handler.php:130
+#, fuzzy
+msgid "ClickTrail Events"
+msgstr "ClickTrail События"
+
+#: includes/privacy/class-privacy-handler.php:142
+#, fuzzy
+msgid "Event Data"
+msgstr "Данные о событии"
+
+#: includes/privacy/class-privacy-handler.php:242
+#: includes/privacy/class-privacy-handler.php:246
+#, fuzzy
+msgid "Some ClickTrail event records could not be deleted."
+msgstr "Некоторые записи событий ClickTrail не удалось удалить."
+
+#. translators: %s: database error message.
+#: includes/privacy/class-privacy-handler.php:251
+#, fuzzy, php-format
+msgid "Database error: %s"
+msgstr "Ошибка базы данных: %s"
+
+#: includes/privacy/class-privacy-handler.php:420
+#: includes/privacy/class-privacy-handler.php:448
+#, fuzzy
+msgid "ClickTrail Debug Storage"
+msgstr "ClickTrail Хранилище отладки"
+
+#: includes/privacy/class-privacy-handler.php:424
+#: includes/privacy/class-privacy-handler.php:452
+#, fuzzy
+msgid "Storage Type"
+msgstr "Тип хранилища"
+
+#: includes/privacy/class-privacy-handler.php:428
+#: includes/privacy/class-privacy-handler.php:456
+#, fuzzy
+msgid "Storage Key"
+msgstr "Ключ хранения"
+
+#: includes/privacy/class-privacy-handler.php:432
+#: includes/privacy/class-privacy-handler.php:460
+#, fuzzy
+msgid "Data Snapshot"
+msgstr "Снимок данных"
+
+#: includes/privacy/class-privacy-handler.php:493
+#, fuzzy
+msgid "Some ClickTrail transient debug records could not be deleted."
+msgstr "Некоторые временные записи отладки ClickTrail не удалось удалить."
+
+#: includes/privacy/class-privacy-handler.php:520
+#, fuzzy
+msgid "Some ClickTrail option debug records could not be updated."
+msgstr "Некоторые записи отладки опции ClickTrail не удалось обновить."
+
+#: includes/privacy/class-privacy-handler.php:529
+#, fuzzy
+msgid "Some ClickTrail option debug records could not be deleted."
+msgstr "Некоторые записи отладки опции ClickTrail не удалось удалить."
+
+#: includes/privacy/class-privacy-handler.php:579
+#, fuzzy
+msgid "Some ClickTrail queued delivery records could not be deleted."
+msgstr "Некоторые записи о доставке ClickTrail не удалось удалить."
+
+#: includes/privacy/class-privacy-handler.php:634
+#, fuzzy
+msgid "ClickTrail Touch Events"
+msgstr "ClickTrail Сенсорные события"
+
+#: includes/privacy/class-privacy-handler.php:642
+#, fuzzy
+msgid "Funnel Stage"
+msgstr "Этап воронки"
+
+#: includes/privacy/class-privacy-handler.php:646
+#, fuzzy
+msgid "Source Channel"
+msgstr "Исходный канал"
+
+#: includes/privacy/class-privacy-handler.php:650
+#, fuzzy
+msgid "Touch Source"
+msgstr "Сенсорный источник"
+
+#: includes/privacy/class-privacy-handler.php:654
+#, fuzzy
+msgid "Touch Medium"
+msgstr "Нажмите средний"
+
+#: includes/privacy/class-privacy-handler.php:658
+#, fuzzy
+msgid "Touch Campaign"
+msgstr "Сенсорная кампания"
+
+#: includes/privacy/class-privacy-handler.php:666
+#, fuzzy
+msgid "Amount"
+msgstr "Сумма"
+
+#: includes/privacy/class-privacy-handler.php:670
+#, fuzzy
+msgid "Currency"
+msgstr "Валюта"
+
+#: includes/privacy/class-privacy-handler.php:719
+#, fuzzy
+msgid "Some ClickTrail touch event records could not be deleted."
+msgstr "Некоторые записи событий касания ClickTrail не удалось удалить."
+
+#: includes/privacy/class-woo-order-privacy.php:217
+#, fuzzy
+msgid "ClickTrail WooCommerce Order Data"
+msgstr "ClickTrail WooCommerce Данные заказа"
+
+#: includes/privacy/class-woo-order-privacy.php:225
+#, fuzzy
+msgid "Metadata Key"
+msgstr "MetaКлюч данных"
+
+#: includes/privacy/class-woo-order-privacy.php:229
+#, fuzzy
+msgid "Metadata Value"
+msgstr "MetaЗначение данных"
+
+#: includes/privacy/class-woo-order-privacy.php:297
+#: includes/privacy/class-woo-order-privacy.php:304
+#, fuzzy
+msgid "Some ClickTrail WooCommerce order metadata could not be deleted."
+msgstr "Некоторые метаданные заказов ClickTrail WooCommerce не удалось удалить."
+
+#: includes/server-side/class-queue.php:103
+#, fuzzy
+msgid "Every 5 Minutes"
+msgstr "Каждые 5 минуты"
+
+#: assets/js/admin-settings-app.js:243 assets/js/admin-settings-app.js:868
+#, fuzzy
+msgid "Ready"
+msgstr "Готово"
+
+#: assets/js/admin-settings-app.js:243 assets/js/admin-settings-app.js:868
+#, fuzzy
+msgid "Needs Review"
+msgstr "Требуется проверка"
+
+#: assets/js/admin-settings-app.js:243
+#, fuzzy
+msgid "Unavailable"
+msgstr "Недоступно"
+
+#: assets/js/admin-settings-app.js:243 assets/js/admin-settings-app.js:868
+#, fuzzy
+msgid "Optional"
+msgstr "Необязательно"
+
+#: assets/js/admin-settings-app.js:269
+#, fuzzy
+msgid "Setup Checklist"
+msgstr "Контрольный список настройки"
+
+#: assets/js/admin-settings-app.js:270
+#, fuzzy
+msgid ""
+"Read-only readiness checks for rollout, delivery, and WooCommerce coverage."
+msgstr "Проверки готовности только для чтения для развертывания, доставки и покрытия WooCommerce."
+
+#: assets/js/admin-settings-app.js:439
+#, fuzzy
+msgid "Settings reloaded."
+msgstr "Настройки перезагружены."
+
+#: assets/js/admin-settings-app.js:445
+#, fuzzy
+msgid "Failed to reload settings."
+msgstr "Не удалось перезагрузить настройки."
+
+#: assets/js/admin-settings-app.js:472
+#, fuzzy
+msgid "Failed to save settings."
+msgstr "Не удалось сохранить настройки."
+
+#: assets/js/admin-settings-app.js:496
+#, fuzzy
+msgid "Failed to run sGTM preview checks."
+msgstr "Не удалось запустить проверку предварительного просмотра sGTM."
+
+#: assets/js/admin-settings-app.js:634
+#, fuzzy
+msgid "Core tracking"
+msgstr "Основное отслеживание"
+
+#: assets/js/admin-settings-app.js:635
+#, fuzzy
+msgid ""
+"Enable attribution tracking and choose how long visit source data should be "
+"stored."
+msgstr "Включите отслеживание атрибуции и выберите, как долго должны храниться данные источника посещений."
+
+#: assets/js/admin-settings-app.js:637
+#, fuzzy
+msgid "Enable attribution tracking"
+msgstr "Включить отслеживание атрибуции"
+
+#: assets/js/admin-settings-app.js:637
+#, fuzzy
+msgid "Capture campaign and referral data for each visit."
+msgstr "Собирайте данные кампании и рефералов для каждого посещения."
+
+#: assets/js/admin-settings-app.js:638
+#, fuzzy
+msgid "Attribution retention (days)"
+msgstr "Удержание атрибуции (дни)"
+
+#: assets/js/admin-settings-app.js:638
+#, fuzzy
+msgid "How long attribution data should be stored."
+msgstr "Как долго следует хранить данные атрибуции."
+
+#: assets/js/admin-settings-app.js:646
+#, fuzzy
+msgid "Cross-domain attribution"
+msgstr "Междоменная атрибуция"
+
+#: assets/js/admin-settings-app.js:647
+#, fuzzy
+msgid ""
+"Preserve attribution when visitors move between your domains or subdomains."
+msgstr "Сохраняйте атрибуцию, когда посетители перемещаются между вашими доменами или поддоменами."
+
+#: assets/js/admin-settings-app.js:649
+#, fuzzy
+msgid "Decorate outgoing links"
+msgstr "Оформление исходящих ссылок"
+
+#: assets/js/admin-settings-app.js:649
+#, fuzzy
+msgid "Append attribution parameters to approved links."
+msgstr "Добавляйте параметры атрибуции к одобренным ссылкам."
+
+#: assets/js/admin-settings-app.js:650
+#, fuzzy
+msgid "Allowed cross-domain destinations"
+msgstr "Разрешенные междоменные направления"
+
+#: assets/js/admin-settings-app.js:650
+#, fuzzy
+msgid "Domains where attribution parameters may be added."
+msgstr "Домены, в которые можно добавлять параметры атрибуции."
+
+#: assets/js/admin-settings-app.js:654
+#, fuzzy
+msgid "Do not modify signed URLs"
+msgstr "Не изменяйте подписанные URLs"
+
+#: assets/js/admin-settings-app.js:654
+#, fuzzy
+msgid ""
+"Recommended when links contain temporary signatures or protected access "
+"tokens."
+msgstr "Рекомендуется, если ссылки содержат временные подписи или токены защищенного доступа."
+
+#: assets/js/admin-settings-app.js:656 assets/js/admin-settings-app.js:701
+#: assets/js/admin-settings-app.js:705 assets/js/admin-settings-app.js:709
+#, fuzzy
+msgid "Recommended"
+msgstr "Рекомендуется"
+
+#: assets/js/admin-settings-app.js:658
+#, fuzzy
+msgid "Pass cross-domain attribution token"
+msgstr "Передать токен междоменной атрибуции"
+
+#: assets/js/admin-settings-app.js:658
+#, fuzzy
+msgid ""
+"Adds a temporary token to preserve attribution across approved domains. No "
+"personal data is included."
+msgstr "Добавляет временный токен для сохранения атрибуции в утвержденных доменах. Никакие личные данные не включены."
+
+#: assets/js/admin-settings-app.js:673
+#, fuzzy
+msgid "Enable this source and accept signed webhook submissions."
+msgstr "Включите этот источник и принимайте подписанные отправки веб-перехватчиков."
+
+#: assets/js/admin-settings-app.js:682
+#, fuzzy
+msgid "Signing secret"
+msgstr "Секрет подписания"
+
+#: assets/js/admin-settings-app.js:683
+#, fuzzy
+msgid "Leave unchanged to keep the current secret."
+msgstr "Оставьте без изменений, чтобы сохранить текущую тайну."
+
+#: assets/js/admin-settings-app.js:699
+#, fuzzy
+msgid "On-site form capture"
+msgstr "Захват формы на месте"
+
+#: assets/js/admin-settings-app.js:700
+#, fuzzy
+msgid ""
+"Recommended settings to keep attribution attached to forms on cached pages "
+"and dynamic sites."
+msgstr "Рекомендуемые настройки для сохранения прикрепления атрибуции к формам на кэшированных страницах и динамических сайтах."
+
+#: assets/js/admin-settings-app.js:704
+#, fuzzy
+msgid "Client-side capture fallback"
+msgstr "Резервный вариант захвата на стороне клиента"
+
+#: assets/js/admin-settings-app.js:704
+#, fuzzy
+msgid "Recommended for cached or highly optimized pages."
+msgstr "Рекомендуется для кэшированных или высокооптимизированных страниц."
+
+#: assets/js/admin-settings-app.js:707
+#, fuzzy
+msgid "Watch dynamic content"
+msgstr "Смотрите динамический контент"
+
+#: assets/js/admin-settings-app.js:707
+#, fuzzy
+msgid "Detect forms and links added after page load."
+msgstr "Обнаружение форм и ссылок, добавленных после загрузки страницы."
+
+#: assets/js/admin-settings-app.js:711
+#, fuzzy
+msgid "Replace existing attribution values"
+msgstr "Заменить существующие значения атрибуции"
+
+#: assets/js/admin-settings-app.js:711
+#, fuzzy
+msgid "Use newly detected values even if attribution was already stored."
+msgstr "Используйте вновь обнаруженные значения, даже если атрибуция уже сохранена."
+
+#: assets/js/admin-settings-app.js:719
+#, fuzzy
+msgid "WhatsApp"
+msgstr "WhatsApp"
+
+#: assets/js/admin-settings-app.js:720
+#, fuzzy
+msgid ""
+"Carry attribution into outbound WhatsApp clicks and pre-filled messages."
+msgstr "Внесите атрибуцию в исходящие клики WhatsApp и предварительно заполненные сообщения."
+
+#: assets/js/admin-settings-app.js:724
+#, fuzzy
+msgid "Enable WhatsApp tracking"
+msgstr "Включить отслеживание WhatsApp"
+
+#: assets/js/admin-settings-app.js:724
+#, fuzzy
+msgid "Track clicks on WhatsApp links and buttons."
+msgstr "Отслеживайте клики по ссылкам и кнопкам WhatsApp."
+
+#: assets/js/admin-settings-app.js:725
+#, fuzzy
+msgid "Append attribution to message"
+msgstr "Добавить указание авторства в сообщение"
+
+#: assets/js/admin-settings-app.js:725
+#, fuzzy
+msgid "Add attribution details to the pre-filled WhatsApp message."
+msgstr "Добавьте сведения об авторстве в предварительно заполненное сообщение WhatsApp."
+
+#: assets/js/admin-settings-app.js:733
+#, fuzzy
+msgid "External form sources"
+msgstr "Внешние источники форм"
+
+#: assets/js/admin-settings-app.js:734
+#, fuzzy
+msgid ""
+"Accept attributed submissions from supported providers without exposing raw "
+"engineering controls."
+msgstr "Принимайте авторизованные материалы от поддерживаемых поставщиков, не раскрывая исходные инженерные средства контроля."
+
+#: assets/js/admin-settings-app.js:736
+#, fuzzy
+msgid "Accept external form source webhooks"
+msgstr "Принять веб-перехватчики внешнего источника формы"
+
+#: assets/js/admin-settings-app.js:736
+#, fuzzy
+msgid "Enable signed inbound submissions from supported providers."
+msgstr "Включите подписанные входящие отправки от поддерживаемых поставщиков."
+
+#: assets/js/admin-settings-app.js:745
+#, fuzzy
+msgid "Advanced technical options"
+msgstr "Расширенные технические возможности"
+
+#: assets/js/admin-settings-app.js:746
+#, fuzzy
+msgid ""
+"Only change these if you need more control over how the browser watches the "
+"page."
+msgstr "Меняйте их только в том случае, если вам нужен больший контроль над тем, как браузер просматривает страницу."
+
+#: assets/js/admin-settings-app.js:749 assets/js/admin-settings-app.js:1098
+#, fuzzy
+msgid "Advanced"
+msgstr "Расширенный"
+
+#: assets/js/admin-settings-app.js:752
+#, fuzzy
+msgid "Dynamic content root selector"
+msgstr "Корневой селектор динамического контента"
+
+#: assets/js/admin-settings-app.js:752
+#, fuzzy
+msgid ""
+"Defaults to body. Narrow this only if you need to watch a specific part of "
+"the page."
+msgstr "По умолчанию тело. Сузьте это значение только в том случае, если вам нужно просмотреть определенную часть страницы."
+
+#: assets/js/admin-settings-app.js:766
+#, fuzzy
+msgid ""
+"Mark this destination when another relay or downstream collector owns final "
+"delivery."
+msgstr "Отметьте это место назначения, если конечная доставка будет принадлежать другому реле или нижестоящему коллектору."
+
+#: assets/js/admin-settings-app.js:769
+#, fuzzy
+msgid ""
+"Send eligible events to this destination when the matching delivery adapter "
+"or downstream collector is configured."
+msgstr "Отправляйте подходящие события в это место назначения, если настроен соответствующий адаптер доставки или нижестоящий сборщик."
+
+#: assets/js/admin-settings-app.js:785
+#, fuzzy
+msgid ""
+"ClickTrail uses one unified event pipeline behind the scenes for browser "
+"events, webhooks, and server delivery. Configure the capabilities you use "
+"without worrying about the internal pipeline."
+msgstr "ClickTrail использует один унифицированный конвейер событий «за кулисами» для событий браузера, веб-перехватчиков и доставки на сервер. Настраивайте используемые возможности, не беспокоясь о внутреннем конвейере."
+
+#: assets/js/admin-settings-app.js:791
+#, fuzzy
+msgid "Event collection"
+msgstr "Коллекция событий"
+
+#: assets/js/admin-settings-app.js:792
+#, fuzzy
+msgid ""
+"Control browser event collection and choose whether GTM should load in "
+"standard or sGTM compatibility mode."
+msgstr "Управляйте сбором событий браузера и выбирайте, должен ли GTM загружаться в стандартном режиме или в sGTM режиме совместимости."
+
+#: assets/js/admin-settings-app.js:794
+#, fuzzy
+msgid "Enable browser event collection"
+msgstr "Включить сбор событий браузера"
+
+#: assets/js/admin-settings-app.js:794
+#, fuzzy
+msgid ""
+"Collect page, click, and form events through ClickTrail's unified event "
+"layer."
+msgstr "Собирайте страницы, кликайте и формируйте события с помощью единого слоя событий ClickTrail."
+
+#: assets/js/admin-settings-app.js:795
+#, fuzzy
+msgid "Google Tag Manager container ID"
+msgstr "Google Tag Manager контейнер ID"
+
+#: assets/js/admin-settings-app.js:795
+#, fuzzy
+msgid "Use only if your site does not already load Google Tag Manager."
+msgstr "Используйте, только если ваш сайт еще не загружает Google Tag Manager."
+
+#: assets/js/admin-settings-app.js:798
+#, fuzzy
+msgid "GTM loader mode"
+msgstr "GTM режим загрузчика"
+
+#: assets/js/admin-settings-app.js:798
+#, fuzzy
+msgid ""
+"Use standard mode for the default Google host, or sGTM mode when you want a "
+"tagging-server URL or custom loader path."
+msgstr "Используйте стандартный режим для хоста по умолчанию Google или режим sGTM, если вам нужен сервер тегов URL или пользовательский путь загрузчика."
+
+#: assets/js/admin-settings-app.js:799
+#, fuzzy
+msgid "Standard GTM"
+msgstr "Стандартный GTM"
+
+#: assets/js/admin-settings-app.js:800
+#, fuzzy
+msgid "sGTM compatibility mode"
+msgstr "sGTM режим совместимости"
+
+#: assets/js/admin-settings-app.js:802
+#, fuzzy
+msgid "Used for first-party GTM delivery and preview checks in sGTM mode."
+msgstr "Используется для проверки доставки и предварительного просмотра GTM в режиме sGTM."
+
+#: assets/js/admin-settings-app.js:806
+#, fuzzy
+msgid "Use first-party script delivery"
+msgstr "Используйте доставку собственных сценариев"
+
+#: assets/js/admin-settings-app.js:806
+#, fuzzy
+msgid ""
+"Load `gtm.js` and `ns.html` from the tagging server instead of the default "
+"Google host."
+msgstr "Загрузите `gtm.js` и `ns.html` с сервера тегов вместо хоста Google по умолчанию."
+
+#: assets/js/admin-settings-app.js:809
+#, fuzzy
+msgid "Use a custom loader path"
+msgstr "Используйте собственный путь загрузчика"
+
+#: assets/js/admin-settings-app.js:809
+#, fuzzy
+msgid ""
+"Prefer a same-site loader path when your sGTM setup rewrites GTM requests "
+"through a first-party URL."
+msgstr "Предпочитайте путь загрузчика того же сайта, когда ваша установка sGTM перезаписывает запросы GTM через собственный URL."
+
+#: assets/js/admin-settings-app.js:812
+#, fuzzy
+msgid "Custom loader URL or path"
+msgstr "Пользовательский загрузчик URL или путь"
+
+#: assets/js/admin-settings-app.js:812
+#, fuzzy
+msgid "Examples: `/metrics/gtm.js` or `https://metrics.example.com/gtm.js`."
+msgstr "Примеры: `/metrics/gtm.js` или `https://metrics.example.com/gtm.js`."
+
+#: assets/js/admin-settings-app.js:819
+#, fuzzy
+msgid ""
+"sGTM mode changes only the loader path and preview workflow. ClickTrail "
+"still uses the same canonical event pipeline underneath."
+msgstr "Режим sGTM меняет только путь загрузчика и рабочий процесс предварительного просмотра. ClickTrail по-прежнему использует тот же канонический конвейер событий."
+
+#: assets/js/admin-settings-app.js:820
+#, fuzzy
+msgid ""
+"Standard mode keeps the default Google Tag Manager loader. Switch to sGTM "
+"mode when you need a tagging-server URL, first-party delivery, or a custom "
+"loader path."
+msgstr "В стандартном режиме сохраняется загрузчик Google Tag Manager по умолчанию. Переключитесь в режим sGTM, если вам нужен сервер тегов URL, собственная доставка или собственный путь загрузчика."
+
+#: assets/js/admin-settings-app.js:827
+#, fuzzy
+msgid "sGTM setup wizard"
+msgstr "Мастер настройки sGTM"
+
+#: assets/js/admin-settings-app.js:828
+#, fuzzy
+msgid ""
+"Use this checklist when ClickTrail should cooperate with a server-side GTM "
+"stack without turning into a generic tag manager."
+msgstr "Используйте этот контрольный список, когда ClickTrail должен взаимодействовать со стеком GTM на стороне сервера, не превращаясь при этом в универсальный менеджер тегов."
+
+#: assets/js/admin-settings-app.js:832
+#, fuzzy
+msgid ""
+"Recommended flow: set the web container, choose a tagging-server URL or "
+"custom loader, point Delivery to the sGTM adapter when ClickTrail sends "
+"server events, then verify ownership in GTM Preview."
+msgstr "Рекомендуемый порядок действий: установите веб-контейнер, выберите сервер тегов URL или пользовательский загрузчик, укажите доставку на адаптер sGTM, когда ClickTrail отправляет события сервера, затем подтвердите право собственности в GTM Предварительный просмотр."
+
+#: assets/js/admin-settings-app.js:838
+#, fuzzy
+msgid ""
+"Set the GTM web container ID for the site that owns the browser dataLayer."
+msgstr "Установите веб-контейнер GTM ID для сайта, которому принадлежит браузер dataLayer."
+
+#: assets/js/admin-settings-app.js:839
+#, fuzzy
+msgid ""
+"Choose a tagging-server URL for first-party delivery or a custom loader path "
+"if your stack rewrites GTM requests."
+msgstr "Выберите сервер тегов URL для собственной доставки или собственный путь загрузчика, если ваш стек перезаписывает запросы GTM."
+
+#: assets/js/admin-settings-app.js:840
+#, fuzzy
+msgid ""
+"When ClickTrail should send server events into sGTM, switch Delivery to the "
+"sGTM adapter and point it at the collector URL."
+msgstr "Когда ClickTrail должен отправлять события сервера в sGTM, переключите доставку на адаптер sGTM и направьте его на коллектор URL."
+
+#: assets/js/admin-settings-app.js:841
+#, fuzzy
+msgid ""
+"Run preview checks here, then confirm the web and server containers receive "
+"the events you expect without duplicate ownership."
+msgstr "Запустите предварительные проверки здесь, а затем убедитесь, что веб-контейнеры и серверные контейнеры получают ожидаемые вами события без дублирования владения."
+
+#: assets/js/admin-settings-app.js:850
+#, fuzzy
+msgid "Run Preview Checks"
+msgstr "Запуск проверок предварительного просмотра"
+
+#: assets/js/admin-settings-app.js:875
+#, fuzzy
+msgid "Destination template hints"
+msgstr "Подсказки по шаблону назначения"
+
+#: assets/js/admin-settings-app.js:886
+#, fuzzy
+msgid "WooCommerce"
+msgstr "WooCommerce"
+
+#: assets/js/admin-settings-app.js:887
+#, fuzzy
+msgid ""
+"Keep campaign context visible on WooCommerce orders and extend the same "
+"event pipeline into the storefront when you need it."
+msgstr "Сохраняйте контекст кампании видимым для заказов WooCommerce и расширяйте тот же конвейер событий на витрину магазина, когда вам это нужно."
+
+#: assets/js/admin-settings-app.js:891
+#, fuzzy
+msgid ""
+"Order attribution is stored on WooCommerce orders during checkout, so "
+"campaign context remains available after the visitor leaves the landing page."
+msgstr "Атрибуция заказа сохраняется для заказов WooCommerce во время оформления заказа, поэтому контекст кампании остается доступным после того, как посетитель покидает целевую страницу."
+
+#: assets/js/admin-settings-app.js:895
+#, fuzzy
+msgid ""
+"Purchase events are pushed automatically on the thank-you page and can also "
+"flow into ClickTrail's server-side delivery adapters when Delivery is "
+"enabled."
+msgstr "События покупки автоматически передаются на страницу благодарности, а также могут передаваться в адаптеры доставки на стороне сервера ClickTrail, когда доставка включена."
+
+#: assets/js/admin-settings-app.js:897
+#, fuzzy
+msgid "Enable WooCommerce storefront events"
+msgstr "Включить события витрины WooCommerce"
+
+#: assets/js/admin-settings-app.js:897
+#, fuzzy
+msgid ""
+"Emit GA4-style `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, "
+"`remove_from_cart`, and `begin_checkout` events through ClickTrail's browser "
+"event layer. Existing installs keep this off until you enable it."
+msgstr "Генерировать события `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart` и `begin_checkout` в стиле GA4 через слой событий браузера ClickTrail. В существующих установках эта функция отключена, пока вы ее не включите."
+
+#: assets/js/admin-settings-app.js:900
+#, fuzzy
+msgid "Use the richer Woo dataLayer contract"
+msgstr "Используйте более богатый контракт Woo dataLayer."
+
+#: assets/js/admin-settings-app.js:900
+#, fuzzy
+msgid ""
+"Add `event_id` to Woo purchase pushes and make richer Woo browser events "
+"available for GTM-first setups."
+msgstr "Добавьте `event_id` к Woo подсказкам о покупке и сделайте более насыщенные события браузера Woo доступными для настроек с приоритетом GTM."
+
+#: assets/js/admin-settings-app.js:901
+#, fuzzy
+msgid "Include consent-aware Woo user_data"
+msgstr "Включить поддержку согласия Woo user_data"
+
+#: assets/js/admin-settings-app.js:901
+#, fuzzy
+msgid ""
+"Emit `user_data` objects with browser identifiers and purchase identity only "
+"when the richer contract is on and marketing consent is granted."
+msgstr "Создавать объекты `user_data` с идентификаторами браузера и идентификаторами покупки только тогда, когда действует расширенный контракт и получено маркетинговое согласие."
+
+#: assets/js/admin-settings-app.js:906
+#, fuzzy
+msgid ""
+"The richer contract is optional. ClickTrail still keeps Woo tracking on the "
+"same canonical pipeline and only widens the dataLayer shape for GTM-first "
+"workflows."
+msgstr "Более богатый контракт не является обязательным. ClickTrail по-прежнему сохраняет отслеживание Woo в том же каноническом конвейере и только расширяет форму dataLayer для рабочих процессов с приоритетом GTM."
+
+#: assets/js/admin-settings-app.js:910
+#, fuzzy
+msgid ""
+"Verify WooCommerce order attribution in the order screen, storefront/browser "
+"events with GTM Preview or the dataLayer, and server-side traces from "
+"ClickTrail > Diagnostics."
+msgstr "Проверьте атрибуцию заказа WooCommerce на экране заказа, события витрины/browser с помощью GTM Предварительный просмотр или dataLayer, а также трассировку на стороне сервера с помощью ClickTrail > Диагностика."
+
+#: assets/js/admin-settings-app.js:917
+#, fuzzy
+msgid "Destinations"
+msgstr "Направления"
+
+#: assets/js/admin-settings-app.js:918
+#, fuzzy
+msgid ""
+"Choose which advertising platforms should receive compatible event payloads."
+msgstr "Выберите, какие рекламные платформы должны получать совместимые полезные данные событий."
+
+#: assets/js/admin-settings-app.js:933
+#, fuzzy
+msgid "Lifecycle updates"
+msgstr "Обновления жизненного цикла"
+
+#: assets/js/admin-settings-app.js:934
+#, fuzzy
+msgid ""
+"Accept lifecycle updates from your CRM or backend and route them through the "
+"same event pipeline."
+msgstr "Принимайте обновления жизненного цикла от вашего CRM или серверной части и направляйте их через тот же конвейер событий."
+
+#: assets/js/admin-settings-app.js:936
+#, fuzzy
+msgid "Accept lifecycle updates"
+msgstr "Принимать обновления жизненного цикла"
+
+#: assets/js/admin-settings-app.js:936
+#, fuzzy
+msgid "Allow lifecycle events to enter the unified event pipeline."
+msgstr "Разрешить событиям жизненного цикла входить в единый конвейер событий."
+
+#: assets/js/admin-settings-app.js:937
+#, fuzzy
+msgid "Enable lifecycle endpoint"
+msgstr "Включить конечную точку жизненного цикла"
+
+#: assets/js/admin-settings-app.js:937
+#, fuzzy
+msgid "Turn on the REST endpoint used by your CRM or backend."
+msgstr "Включите конечную точку REST, используемую вашим CRM или серверной частью."
+
+#: assets/js/admin-settings-app.js:940
+#, fuzzy
+msgid "Lifecycle endpoint token"
+msgstr "Токен конечной точки жизненного цикла"
+
+#: assets/js/admin-settings-app.js:940
+#, fuzzy
+msgid "Leave unchanged to keep the current token."
+msgstr "Оставьте без изменений, чтобы сохранить текущий токен."
+
+#: assets/js/admin-settings-app.js:955
+#, fuzzy
+msgid "Delivery health"
+msgstr "Здоровье доставки"
+
+#: assets/js/admin-settings-app.js:956
+#, fuzzy
+msgid ""
+"Quick operational summary for queue health, recent delivery attempts, and "
+"debug state."
+msgstr "Краткая сводная информация о состоянии очереди, последних попытках доставки и состоянии отладки."
+
+#: assets/js/admin-settings-app.js:963
+#, fuzzy
+msgid ""
+"Server-side delivery is currently off. Historical diagnostics can still "
+"appear until their retention window expires."
+msgstr "Доставка на стороне сервера в настоящее время отключена. Исторические диагностики могут отображаться до истечения срока их хранения."
+
+#: assets/js/admin-settings-app.js:970
+#, fuzzy
+msgid "Due now: "
+msgstr "Срок оплаты сейчас:"
+
+#: assets/js/admin-settings-app.js:985
+#, fuzzy
+msgid "Enable it from Diagnostics when you need a short trace window."
+msgstr "Включите его в диагностике, если вам нужно короткое окно трассировки."
+
+#: assets/js/admin-settings-app.js:998
+#, fuzzy
+msgid "Open Logs"
+msgstr "Открыть журналы"
+
+#: assets/js/admin-settings-app.js:1007
+#, fuzzy
+msgid ""
+"Delivery controls cover transport, consent, queue health, and the safeguards "
+"that keep outbound tracking reliable. Most sites only need the server-side "
+"transport card and privacy controls."
+msgstr "Средства управления доставкой охватывают транспортировку, согласие, состояние очереди и меры безопасности, обеспечивающие надежность отслеживания исходящих сообщений. Большинству сайтов требуется только транспортная карта на стороне сервера и элементы управления конфиденциальностью."
+
+#: assets/js/admin-settings-app.js:1014
+#, fuzzy
+msgid ""
+"This site is currently using network defaults for server-side delivery. "
+"Disable the network toggle below to customize this site independently."
+msgstr "Этот сайт в настоящее время использует сетевые настройки по умолчанию для доставки на стороне сервера. Отключите переключатель сети ниже, чтобы настроить этот сайт самостоятельно."
+
+#: assets/js/admin-settings-app.js:1021
+#, fuzzy
+msgid "Server-side transport"
+msgstr "Серверный транспорт"
+
+#: assets/js/admin-settings-app.js:1022
+#, fuzzy
+msgid ""
+"Route events through your own collector endpoint when you need a more "
+"durable delivery path."
+msgstr "Направляйте события через собственную конечную точку сборщика, когда вам нужен более надежный путь доставки."
+
+#: assets/js/admin-settings-app.js:1025
+#, fuzzy
+msgid "Use network defaults"
+msgstr "Использовать сетевые настройки по умолчанию"
+
+#: assets/js/admin-settings-app.js:1025
+#, fuzzy
+msgid "Use the multisite network configuration for this site."
+msgstr "Используйте конфигурацию многосайтовой сети для этого сайта."
+
+#: assets/js/admin-settings-app.js:1027
+#, fuzzy
+msgid "Enable server-side delivery"
+msgstr "Включить доставку на стороне сервера"
+
+#: assets/js/admin-settings-app.js:1027
+#, fuzzy
+msgid "Send events through your own collector endpoint."
+msgstr "Отправляйте события через собственную конечную точку сборщика."
+
+#: assets/js/admin-settings-app.js:1030
+#, fuzzy
+msgid "Collector URL"
+msgstr "Коллекционер URL"
+
+#: assets/js/admin-settings-app.js:1030
+#, fuzzy
+msgid "Endpoint that receives server-side events."
+msgstr "Конечная точка, получающая события на стороне сервера."
+
+#: assets/js/admin-settings-app.js:1034
+#, fuzzy
+msgid "Choose the format best suited to your receiving endpoint."
+msgstr "Выберите формат, который лучше всего подходит для принимающей конечной точки."
+
+#: assets/js/admin-settings-app.js:1045
+#, fuzzy
+msgid "Request timeout (seconds)"
+msgstr "Тайм-аут запроса (секунды)"
+
+#: assets/js/admin-settings-app.js:1045
+#, fuzzy
+msgid ""
+"How long ClickTrail should wait before treating a delivery attempt as failed."
+msgstr "Как долго ClickTrail должен ждать, прежде чем считать попытку доставки неудачной."
+
+#: assets/js/admin-settings-app.js:1049
+#, fuzzy
+msgid "Share anonymous failure counts"
+msgstr "Поделитесь анонимным количеством сбоев"
+
+#: assets/js/admin-settings-app.js:1049
+#, fuzzy
+msgid ""
+"Only aggregated failure counts are shared. No payloads or personal data are "
+"included."
+msgstr "Распространяется только совокупное количество отказов. Никакая полезная нагрузка или персональные данные не включены."
+
+#: assets/js/admin-settings-app.js:1057
+#, fuzzy
+msgid "Privacy & consent"
+msgstr "Конфиденциальность и согласие"
+
+#: assets/js/admin-settings-app.js:1058
+#, fuzzy
+msgid ""
+"Control when tracking is allowed to start and which consent signals "
+"ClickTrail should use."
+msgstr "Контролируйте, когда разрешено начинать отслеживание и какие сигналы согласия ClickTrail должны использовать."
+
+#: assets/js/admin-settings-app.js:1060
+#, fuzzy
+msgid "Enable consent mode"
+msgstr "Включить режим согласия"
+
+#: assets/js/admin-settings-app.js:1060
+#, fuzzy
+msgid ""
+"Gate attribution and event collection until consent requirements are "
+"satisfied."
+msgstr "Пропускайте атрибуцию и сбор событий до тех пор, пока не будут выполнены требования по согласию."
+
+#: assets/js/admin-settings-app.js:1061
+#, fuzzy
+msgid "Consent behavior"
+msgstr "Поведение согласия"
+
+#: assets/js/admin-settings-app.js:1061
+#, fuzzy
+msgid ""
+"Choose whether consent is always required, never required, or region-based."
+msgstr "Выберите, требуется ли согласие всегда, никогда или на основе региона."
+
+#: assets/js/admin-settings-app.js:1064
+#, fuzzy
+msgid "Strict"
+msgstr "Строгий"
+
+#: assets/js/admin-settings-app.js:1065
+#, fuzzy
+msgid "Relaxed"
+msgstr "Расслабленный"
+
+#: assets/js/admin-settings-app.js:1066
+#, fuzzy
+msgid "Region-based"
+msgstr "На основе региона"
+
+#: assets/js/admin-settings-app.js:1068
+#, fuzzy
+msgid "Regions requiring consent"
+msgstr "Регионы, требующие согласия"
+
+#: assets/js/admin-settings-app.js:1068
+#, fuzzy
+msgid "One region per line. Examples: EEA, UK, CA, US-CA."
+msgstr "Один регион в строке. Примеры: EEA, UK, CA, US-CA."
+
+#: assets/js/admin-settings-app.js:1073
+#, fuzzy
+msgid "Consent source"
+msgstr "Источник согласия"
+
+#: assets/js/admin-settings-app.js:1073
+#, fuzzy
+msgid ""
+"Which consent platform ClickTrail should listen to. ClickTrail buffers "
+"landing-page attribution to sessionStorage before consent resolves, so first-"
+"touch UTMs and click IDs are preserved even when the banner is accepted on a "
+"later page."
+msgstr "К какой платформе согласия ClickTrail следует прислушиваться. ClickTrail буферизует атрибуцию целевой страницы для sessionStorage до разрешения согласия, поэтому первое нажатие UTM и нажатие IDs сохраняется, даже если баннер будет принят на более поздней странице."
+
+#: assets/js/admin-settings-app.js:1077
+#, fuzzy
+msgid "ClickTrail plugin"
+msgstr "Плагин ClickTrail"
+
+#: assets/js/admin-settings-app.js:1078
+#, fuzzy
+msgid "Cookiebot"
+msgstr "Cookiebot"
+
+#: assets/js/admin-settings-app.js:1081
+#, fuzzy
+msgid "Google Tag Manager"
+msgstr "Google Tag Manager"
+
+#: assets/js/admin-settings-app.js:1082
+#, fuzzy
+msgid "Custom"
+msgstr "Пользовательский"
+
+#: assets/js/admin-settings-app.js:1084
+#, fuzzy
+msgid "Consent wait time (ms)"
+msgstr "Время ожидания согласия (мс)"
+
+#: assets/js/admin-settings-app.js:1084
+#, fuzzy
+msgid "How long ClickTrail should wait for a consent signal before continuing."
+msgstr "Как долго ClickTrail должен ждать сигнала согласия, прежде чем продолжить."
+
+#: assets/js/admin-settings-app.js:1094
+#, fuzzy
+msgid "Advanced delivery controls"
+msgstr "Расширенный контроль доставки"
+
+#: assets/js/admin-settings-app.js:1095
+#, fuzzy
+msgid ""
+"Security, buffering, deduplication, and low-level transport controls for "
+"technical users."
+msgstr "Безопасность, буферизация, дедупликация и низкоуровневый контроль транспорта для технических пользователей."
+
+#: assets/js/admin-settings-app.js:1101
+#, fuzzy
+msgid "Use native platform adapters"
+msgstr "Используйте собственные адаптеры платформы"
+
+#: assets/js/admin-settings-app.js:1101
+#, fuzzy
+msgid "Prefer ClickTrail's built-in platform adapters when available."
+msgstr "Отдавайте предпочтение встроенным адаптерам платформы ClickTrail, если они доступны."
+
+#: assets/js/admin-settings-app.js:1102
+#, fuzzy
+msgid "Store structured event diagnostics"
+msgstr "Хранить диагностику структурированных событий"
+
+#: assets/js/admin-settings-app.js:1102
+#, fuzzy
+msgid "Keep a structured intake buffer for troubleshooting and validation."
+msgstr "Сохраняйте структурированный буфер приема для устранения неполадок и проверки."
+
+#: assets/js/admin-settings-app.js:1103
+#, fuzzy
+msgid "Encrypt saved secrets"
+msgstr "Зашифровать сохраненные секреты"
+
+#: assets/js/admin-settings-app.js:1103
+#, fuzzy
+msgid "Encrypt stored secrets at rest when supported by the host environment."
+msgstr "Шифруйте хранящиеся секреты, если это поддерживается средой хоста."
+
+#: assets/js/admin-settings-app.js:1104
+#, fuzzy
+msgid "Attribution token lifetime (seconds)"
+msgstr "Срок действия токена атрибуции (секунды)"
+
+#: assets/js/admin-settings-app.js:1104
+#, fuzzy
+msgid "Controls how long attribution tokens remain valid."
+msgstr "Управляет сроком действия токенов атрибуции."
+
+#: assets/js/admin-settings-app.js:1105
+#, fuzzy
+msgid "Maximum token replays (0 to disable)"
+msgstr "Максимальное количество повторов токена (0, чтобы отключить)"
+
+#: assets/js/admin-settings-app.js:1105
+#, fuzzy
+msgid "Cap how many times the same token nonce can be used."
+msgstr "Ограничьте, сколько раз можно использовать один и тот же одноразовый токен."
+
+#: assets/js/admin-settings-app.js:1106
+#, fuzzy
+msgid "Webhook replay protection window (seconds)"
+msgstr "Окно защиты от повтора вебхука (секунды)"
+
+#: assets/js/admin-settings-app.js:1106
+#, fuzzy
+msgid "Reject webhook signatures that fall outside this replay window."
+msgstr "Отклонять подписи веб-перехватчиков, выходящие за пределы этого окна воспроизведения."
+
+#: assets/js/admin-settings-app.js:1107
+#, fuzzy
+msgid "API rate limit window (seconds)"
+msgstr "API Окно ограничения скорости (секунды)"
+
+#: assets/js/admin-settings-app.js:1107
+#, fuzzy
+msgid "The time window used by intake rate limiting."
+msgstr "Временной интервал, используемый для ограничения скорости приема."
+
+#: assets/js/admin-settings-app.js:1108
+#, fuzzy
+msgid "API requests allowed per window"
+msgstr "Запросы API разрешены для каждого окна"
+
+#: assets/js/admin-settings-app.js:1108
+#, fuzzy
+msgid "Maximum requests allowed within the configured rate limit window."
+msgstr "Максимальное количество запросов, разрешенное в пределах настроенного окна ограничения скорости."
+
+#: assets/js/admin-settings-app.js:1109
+#, fuzzy
+msgid "Trusted proxy IPs or CIDR ranges"
+msgstr "Диапазоны доверенных прокси-серверов IPs или CIDR"
+
+#: assets/js/admin-settings-app.js:1109
+#, fuzzy
+msgid "One proxy per line. Only add proxies you control."
+msgstr "Один прокси на линию. Добавляйте только те прокси, которые вы контролируете."
+
+#: assets/js/admin-settings-app.js:1110
+#, fuzzy
+msgid "Allowed token hosts"
+msgstr "Разрешенные хосты токенов"
+
+#: assets/js/admin-settings-app.js:1110
+#, fuzzy
+msgid "Hosts allowed to mint or receive attribution tokens. One host per line."
+msgstr "Хостам разрешено чеканить или получать токены атрибуции. Один хост на линию."
+
+#: assets/js/admin-settings-app.js:1111
+#, fuzzy
+msgid "Recent dispatch records kept"
+msgstr "Записи о последних отгрузках сохраняются"
+
+#: assets/js/admin-settings-app.js:1111
+#, fuzzy
+msgid "How many recent dispatch attempts should be kept for diagnostics."
+msgstr "Сколько последних попыток отправки следует сохранить для диагностики."
+
+#: assets/js/admin-settings-app.js:1112
+#, fuzzy
+msgid "Failure summary flush interval (seconds)"
+msgstr "Интервал сброса сводки ошибок (секунды)"
+
+#: assets/js/admin-settings-app.js:1112
+#, fuzzy
+msgid "How often failure counters are flushed into hourly telemetry buckets."
+msgstr "Как часто счетчики сбоев сбрасываются в почасовые сегменты телеметрии."
+
+#: assets/js/admin-settings-app.js:1113
+#, fuzzy
+msgid "Failure summary retention (hours)"
+msgstr "Хранение сводки отказов (часы)"
+
+#: assets/js/admin-settings-app.js:1113
+#, fuzzy
+msgid "How long failure telemetry buckets should be retained."
+msgstr "Как долго следует хранить сегменты телеметрии сбоев."
+
+#: assets/js/admin-settings-app.js:1114
+#, fuzzy
+msgid "Event deduplication window (seconds)"
+msgstr "Окно дедупликации событий (секунды)"
+
+#: assets/js/admin-settings-app.js:1114
+#, fuzzy
+msgid "How long dispatch deduplication markers should be kept."
+msgstr "Как долго следует хранить маркеры дедупликации отправки."
+
+#: assets/js/admin-settings-app.js:1189
+#, fuzzy
+msgid "Save Changes"
+msgstr "Сохранить изменения"
+
+#: assets/js/admin-settings-app.js:1195
+#, fuzzy
+msgid "Reload Saved Settings"
+msgstr "Перезагрузить сохраненные настройки"

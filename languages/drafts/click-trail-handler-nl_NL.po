@@ -1,0 +1,3397 @@
+# ClickTrail translation template
+# Copyright (C) 2026 Vizuh
+# This file is distributed under the same license as the ClickTrail package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: ClickTrail 1.10.0\n"
+"Report-Msgid-Bugs-To: https://github.com/vizuh/click-trail-handler/issues\n"
+"POT-Creation-Date: 2026-09-04 00:57+0100\n"
+"PO-Revision-Date: 2026-09-04 01:50+0100\n"
+"Last-Translator: Machine-assisted draft\n"
+"Language-Team: Dutch (Netherlands)\n"
+"Language: nl_NL\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Domain: click-trail-handler\n"
+"X-Generator: Machine-assisted draft; native review required\n"
+"X-Translation-Status: Incomplete draft; not release-ready\n"
+
+#: clicutcl.php:207
+#, fuzzy
+msgid ""
+"ClickTrail could not start because a required class is missing. This usually "
+"means the release ZIP is missing files or the autoloader mapping is "
+"incorrect."
+msgstr "ClickTrail kon niet starten omdat een vereiste les ontbreekt. Dit betekent meestal dat er in release ZIP bestanden ontbreken of dat de autoloader-toewijzing onjuist is."
+
+#: includes/Modules/GTM/class-gtm-settings.php:89
+#, fuzzy
+msgid "Invalid GTM Container ID format. Should be GTM-XXXXXX"
+msgstr "Ongeldig GTM Container ID-formaat. Moet GTM-XXXXXX zijn"
+
+#: includes/Modules/GTM/class-web-tag.php:86
+#, fuzzy
+msgid "Google Tag Manager snippet added by ClickTrail (sGTM mode)"
+msgstr "Google Tag Manager fragment toegevoegd door ClickTrail (sGTM-modus)"
+
+#: includes/Modules/GTM/class-web-tag.php:87
+#, fuzzy
+msgid "Google Tag Manager snippet added by ClickTrail"
+msgstr "Google Tag Manager fragment toegevoegd door ClickTrail"
+
+#: includes/Modules/GTM/class-web-tag.php:91
+#, fuzzy
+msgid "End Google Tag Manager snippet added by ClickTrail"
+msgstr "Einde Google Tag Manager fragment toegevoegd door ClickTrail"
+
+#: includes/Modules/GTM/class-web-tag.php:112
+#, fuzzy
+msgid "Google Tag Manager (noscript) snippet added by ClickTrail"
+msgstr "Google Tag Manager (noscript) fragment toegevoegd door ClickTrail"
+
+#: includes/Modules/GTM/class-web-tag.php:116
+#, fuzzy
+msgid "End Google Tag Manager (noscript) snippet added by ClickTrail"
+msgstr "Einde Google Tag Manager (noscript) fragment toegevoegd door ClickTrail"
+
+#: includes/Modules/consent-mode/class-consent-mode.php:93
+#, fuzzy
+msgid "Google tag (gtag.js) consent mode dataLayer added by ClickTrail"
+msgstr "Google tag (gtag.js) toestemmingsmodus dataLayer toegevoegd door ClickTrail"
+
+#: includes/Modules/consent-mode/class-consent-mode.php:103
+#, fuzzy
+msgid "End Google tag (gtag.js) consent mode dataLayer added by ClickTrail"
+msgstr "Beëindig Google tag (gtag.js) toestemmingsmodus dataLayer toegevoegd door ClickTrail"
+
+#: includes/admin/class-admin.php:108
+#, fuzzy
+msgid ""
+"ClickTrail: \"Encrypt secrets at rest\" is enabled, but this server is "
+"missing OpenSSL AES-256-GCM support, so provider secrets are stored in "
+"plaintext. Enable the OpenSSL extension on your host, or treat the stored "
+"secrets as unencrypted."
+msgstr "ClickTrail: \"Geheimen in rust versleutelen\" is ingeschakeld, maar deze server mist OpenSSL AES-256-GCM ondersteuning, dus providergeheimen worden in leesbare tekst opgeslagen. Schakel de OpenSSL-extensie in op uw host, of behandel de opgeslagen geheimen als niet-versleuteld."
+
+#: includes/admin/class-admin.php:118
+#, fuzzy
+msgid "ClickTrail Status"
+msgstr "ClickTrail Status"
+
+#: includes/admin/class-admin.php:145
+#, fuzzy
+msgid "Attribution Cookie"
+msgstr "Toeschrijvingscookie"
+
+#: includes/admin/class-admin.php:146
+#, fuzzy
+msgid "Caching Status"
+msgstr "Cachingstatus"
+
+#: includes/admin/class-admin.php:147
+#, fuzzy
+msgid "Form Capture Fallback"
+msgstr "Terugval op formulierregistratie"
+
+#: includes/admin/class-admin.php:148
+#, fuzzy
+msgid "Cross-domain Links"
+msgstr "Cross-domein links"
+
+#: includes/admin/class-admin.php:150
+#, fuzzy
+msgid "Run Full Diagnostics"
+msgstr "Voer volledige diagnose uit"
+
+#: includes/admin/class-admin.php:159 includes/admin/class-admin.php:160
+#: includes/admin/class-admin.php:421
+#: includes/admin/traits/trait-admin-pages.php:28
+#: assets/js/admin-settings-app.js:1136
+#, fuzzy
+msgid "ClickTrail"
+msgstr "ClickTrail"
+
+#: includes/admin/class-admin.php:171 includes/admin/class-admin.php:172
+#, fuzzy
+msgid "Settings"
+msgstr "Instellingen"
+
+#: includes/admin/class-admin.php:180 includes/admin/class-admin.php:181
+#, fuzzy
+msgid "Logs"
+msgstr "Logboeken"
+
+#: includes/admin/class-admin.php:189 includes/admin/class-admin.php:190
+#, fuzzy
+msgid "Diagnostics"
+msgstr "Diagnostiek"
+
+#: includes/admin/class-admin.php:260
+#, fuzzy
+msgid "Testing..."
+msgstr "Testen..."
+
+#: includes/admin/class-admin.php:261
+#, fuzzy
+msgid "Test failed"
+msgstr "Test mislukt"
+
+#: includes/admin/class-admin.php:262
+#, fuzzy
+msgid "Clipboard unavailable"
+msgstr "Klembord niet beschikbaar"
+
+#: includes/admin/class-admin.php:263
+#, fuzzy
+msgid "Copied"
+msgstr "Gekopieerd"
+
+#: includes/admin/class-admin.php:264
+#, fuzzy
+msgid "Copy failed"
+msgstr "Kopiëren mislukt"
+
+#: includes/admin/class-admin.php:265
+#, fuzzy
+msgid "Saving..."
+msgstr "Opslaan..."
+
+#: includes/admin/class-admin.php:266
+#, fuzzy
+msgid "Failed"
+msgstr "Mislukt"
+
+#: includes/admin/class-admin.php:267
+#: includes/admin/traits/trait-admin-pages.php:399
+#, fuzzy
+msgid "Disable Debug"
+msgstr "Schakel foutopsporing uit"
+
+#: includes/admin/class-admin.php:268
+#: includes/admin/traits/trait-admin-pages.php:399
+#, fuzzy
+msgid "Enable 15 Minutes"
+msgstr "Schakel 15 Minuten in"
+
+#: includes/admin/class-admin.php:269
+#, fuzzy
+msgid "Purge local tracking data now? This cannot be undone."
+msgstr "Nu lokale trackinggegevens opschonen? Dit kan niet ongedaan worden gemaakt."
+
+#: includes/admin/class-admin.php:270
+#, fuzzy
+msgid "Purging..."
+msgstr "Zuiveren..."
+
+#: includes/admin/class-admin.php:271
+#, fuzzy
+msgid "Purged"
+msgstr "Gezuiverd"
+
+#: includes/admin/class-admin.php:272
+#, fuzzy
+msgid "Purge failed"
+msgstr "Opschonen is mislukt"
+
+#: includes/admin/class-admin.php:273
+#, fuzzy
+msgid "Requeueing..."
+msgstr "Opnieuw in de wachtrij plaatsen..."
+
+#: includes/admin/class-admin.php:274
+#, fuzzy
+msgid "Requeued"
+msgstr "Opnieuw in de wachtrij geplaatst"
+
+#: includes/admin/class-admin.php:275
+#, fuzzy
+msgid "Retry failed"
+msgstr "Opnieuw proberen mislukt"
+
+#: includes/admin/class-admin.php:276
+#, fuzzy
+msgid "Scanning..."
+msgstr "Scannen..."
+
+#: includes/admin/class-admin.php:277
+#, fuzzy
+msgid "Conflict scan failed."
+msgstr "Conflictscan mislukt."
+
+#: includes/admin/class-admin.php:278
+#, fuzzy
+msgid "Preparing backup..."
+msgstr "Back-up voorbereiden..."
+
+#: includes/admin/class-admin.php:279
+#, fuzzy
+msgid "Backup export failed."
+msgstr "Back-upexport mislukt."
+
+#: includes/admin/class-admin.php:280
+#, fuzzy
+msgid "Importing backup..."
+msgstr "Back-up importeren..."
+
+#: includes/admin/class-admin.php:281
+#, fuzzy
+msgid "Backup import failed."
+msgstr "Back-upimport mislukt."
+
+#: includes/admin/class-admin.php:282
+#, fuzzy
+msgid "Choose a ClickTrail backup file first."
+msgstr "Kies eerst een ClickTrail back-upbestand."
+
+#: includes/admin/class-admin.php:283
+#, fuzzy
+msgid "Restore this ClickTrail backup now? Current settings will be replaced."
+msgstr "Deze ClickTrail back-up nu herstellen? De huidige instellingen worden vervangen."
+
+#: includes/admin/class-admin.php:284
+#, fuzzy
+msgid "Looking up order..."
+msgstr "Bestelling opzoeken..."
+
+#: includes/admin/class-admin.php:285
+#, fuzzy
+msgid "Order lookup failed."
+msgstr "Het opzoeken van de bestelling is mislukt."
+
+#: includes/admin/class-admin.php:286
+#, fuzzy
+msgid "Analyzing test payload..."
+msgstr "Testlading analyseren..."
+
+#: includes/admin/class-admin.php:287
+#, fuzzy
+msgid "Attribution readiness check failed."
+msgstr "Controle op attributiegereedheid mislukt."
+
+#: includes/admin/class-admin.php:288
+#, fuzzy
+msgid "Test URL copied."
+msgstr "Test URL gekopieerd."
+
+#: includes/admin/class-admin.php:289
+#, fuzzy
+msgid "Test URL could not be copied."
+msgstr "Test URL kon niet worden gekopieerd."
+
+#: includes/admin/class-admin.php:330
+#, fuzzy
+msgid "ClickTrail settings require JavaScript in wp-admin."
+msgstr "ClickTrail instellingen vereisen JavaScript in wp-admin."
+
+#: includes/admin/class-admin.php:345 includes/admin/class-admin.php:346
+#: includes/admin/class-admin.php:673 includes/admin/class-admin.php:778
+#: assets/js/admin-settings-app.js:518
+#, fuzzy
+msgid "Capture"
+msgstr "Vastleggen"
+
+#: includes/admin/class-admin.php:347
+#, fuzzy
+msgid ""
+"Capture and preserve source data from campaigns, referrals, and ad clicks."
+msgstr "Leg brongegevens van campagnes, verwijzingen en advertentieklikken vast en bewaar ze."
+
+#: includes/admin/class-admin.php:351 includes/admin/class-admin.php:352
+#: includes/admin/class-admin.php:679 includes/admin/class-admin.php:798
+#: assets/js/admin-settings-app.js:524
+#, fuzzy
+msgid "Forms"
+msgstr "Formulieren"
+
+#: includes/admin/class-admin.php:353
+#, fuzzy
+msgid ""
+"Keep attribution attached to forms, lead sources, and messaging touchpoints."
+msgstr "Houd attributie gekoppeld aan formulieren, leadbronnen en contactpunten voor berichten."
+
+#: includes/admin/class-admin.php:357 includes/admin/class-admin.php:358
+#: includes/admin/class-admin.php:685 includes/admin/class-admin.php:808
+#: assets/js/admin-settings-app.js:530
+#, fuzzy
+msgid "Events"
+msgstr "Evenementen"
+
+#: includes/admin/class-admin.php:359
+#, fuzzy
+msgid ""
+"Configure browser event collection, destinations, and the unified event "
+"pipeline."
+msgstr "Configureer de verzameling van browsergebeurtenissen, bestemmingen en de uniforme gebeurtenispijplijn."
+
+#: includes/admin/class-admin.php:363 includes/admin/class-admin.php:364
+#: includes/admin/class-admin.php:697 includes/admin/class-admin.php:822
+#: assets/js/admin-settings-app.js:542
+#, fuzzy
+msgid "Delivery"
+msgstr "Levering"
+
+#: includes/admin/class-admin.php:365
+#, fuzzy
+msgid "Control privacy, server-side transport, and operational safeguards."
+msgstr "Beheer de privacy, het transport aan de serverzijde en de operationele veiligheidsmaatregelen."
+
+#: includes/admin/class-admin.php:425
+#, fuzzy
+msgid ""
+"These settings are now organized by capability. Browser events and "
+"destinations live under Events, while transport and privacy controls live "
+"under Delivery."
+msgstr "Deze instellingen zijn nu geordend op mogelijkheden. Browsergebeurtenissen en bestemmingen staan ​​onder Gebeurtenissen, terwijl transport- en privacycontroles onder Levering staan."
+
+#: includes/admin/class-admin.php:495 assets/js/admin-settings-app.js:1037
+#, fuzzy
+msgid "Generic Collector"
+msgstr "Generieke verzamelaar"
+
+#: includes/admin/class-admin.php:497 assets/js/admin-settings-app.js:1038
+#, fuzzy
+msgid "sGTM (Server GTM)"
+msgstr "sGTM (Server GTM)"
+
+#: includes/admin/class-admin.php:499 assets/js/admin-settings-app.js:1039
+#, fuzzy
+msgid "Meta CAPI"
+msgstr "Meta CAPI"
+
+#: includes/admin/class-admin.php:501 assets/js/admin-settings-app.js:1040
+#, fuzzy
+msgid "Google Ads / GA4"
+msgstr "Google Ads / GA4"
+
+#: includes/admin/class-admin.php:503 assets/js/admin-settings-app.js:1041
+#, fuzzy
+msgid "LinkedIn CAPI"
+msgstr "LinkedIn CAPI"
+
+#: includes/admin/class-admin.php:505 assets/js/admin-settings-app.js:1042
+#, fuzzy
+msgid "Pinterest Conversions API"
+msgstr "Pinterest Conversies API"
+
+#: includes/admin/class-admin.php:507 assets/js/admin-settings-app.js:1043
+#, fuzzy
+msgid "TikTok Events API"
+msgstr "TikTok Evenementen API"
+
+#: includes/admin/class-admin.php:523 assets/js/admin-settings-app.js:920
+#, fuzzy
+msgid "Meta"
+msgstr "Meta"
+
+#: includes/admin/class-admin.php:525 assets/js/admin-settings-app.js:921
+#, fuzzy
+msgid "Google"
+msgstr "Google"
+
+#: includes/admin/class-admin.php:527 assets/js/admin-settings-app.js:922
+#, fuzzy
+msgid "LinkedIn"
+msgstr "LinkedIn"
+
+#: includes/admin/class-admin.php:529 assets/js/admin-settings-app.js:923
+#, fuzzy
+msgid "Reddit"
+msgstr "Reddit"
+
+#: includes/admin/class-admin.php:531 assets/js/admin-settings-app.js:924
+#, fuzzy
+msgid "Pinterest"
+msgstr "Pinterest"
+
+#: includes/admin/class-admin.php:533 assets/js/admin-settings-app.js:925
+#, fuzzy
+msgid "TikTok"
+msgstr "TikTok"
+
+#: includes/admin/class-admin.php:674 includes/admin/class-admin.php:680
+#: includes/admin/class-admin.php:686 includes/admin/class-admin.php:692
+#: includes/admin/class-admin.php:698 includes/admin/class-admin.php:704
+#: assets/js/admin-settings-app.js:519 assets/js/admin-settings-app.js:525
+#: assets/js/admin-settings-app.js:531 assets/js/admin-settings-app.js:537
+#: assets/js/admin-settings-app.js:543 assets/js/admin-settings-app.js:549
+#, fuzzy
+msgid "On"
+msgstr "Aan"
+
+#: includes/admin/class-admin.php:674 includes/admin/class-admin.php:680
+#: includes/admin/class-admin.php:686 includes/admin/class-admin.php:692
+#: includes/admin/class-admin.php:698 includes/admin/class-admin.php:704
+#: assets/js/admin-settings-app.js:519 assets/js/admin-settings-app.js:525
+#: assets/js/admin-settings-app.js:531 assets/js/admin-settings-app.js:537
+#: assets/js/admin-settings-app.js:543 assets/js/admin-settings-app.js:549
+#, fuzzy
+msgid "Off"
+msgstr "Uit"
+
+#: includes/admin/class-admin.php:691 includes/admin/class-admin.php:858
+#: assets/js/admin-settings-app.js:536
+#, fuzzy
+msgid "Cross-domain"
+msgstr "Cross-domein"
+
+#: includes/admin/class-admin.php:703
+#: includes/admin/traits/trait-admin-pages.php:550
+#: assets/js/admin-settings-app.js:548
+#, fuzzy
+msgid "Consent"
+msgstr "Toestemming"
+
+#: includes/admin/class-admin.php:781
+#, fuzzy
+msgid "Attribution capture is enabled."
+msgstr "Het vastleggen van attributies is ingeschakeld."
+
+#: includes/admin/class-admin.php:782
+#, fuzzy
+msgid "Turn on attribution capture before testing source continuity."
+msgstr "Schakel het vastleggen van attributies in voordat u de broncontinuïteit test."
+
+#: includes/admin/class-admin.php:788
+#, fuzzy
+msgid "Consent Guidance"
+msgstr "Toestemmingsrichtlijnen"
+
+#: includes/admin/class-admin.php:791
+#, fuzzy
+msgid ""
+"Consent mode is configured. Verify the selected CMP source before rollout."
+msgstr "De toestemmingsmodus is geconfigureerd. Controleer de geselecteerde CMP-bron vóór de uitrol."
+
+#: includes/admin/class-admin.php:792
+#, fuzzy
+msgid ""
+"Consent mode is off. Confirm this matches your regional rollout requirements."
+msgstr "De toestemmingsmodus is uitgeschakeld. Controleer of dit overeenkomt met uw regionale implementatievereisten."
+
+#: includes/admin/class-admin.php:801
+#, fuzzy
+msgid "Form capture helpers or providers are active."
+msgstr "Er zijn helpers of aanbieders voor het vastleggen van formulieren actief."
+
+#: includes/admin/class-admin.php:802
+#, fuzzy
+msgid ""
+"Enable client fallback, WhatsApp, or provider hooks if forms are part of "
+"your attribution path."
+msgstr "Schakel client fallback, WhatsApp of provider hooks in als formulieren deel uitmaken van uw attributiepad."
+
+#. translators: %d: enabled destination count.
+#: includes/admin/class-admin.php:813
+#, fuzzy, php-format
+msgid "Browser events are active. Enabled destinations: %d."
+msgstr "Browsergebeurtenissen zijn actief. Ingeschakelde bestemmingen: %d."
+
+#: includes/admin/class-admin.php:816
+#, fuzzy
+msgid ""
+"Enable the browser event pipeline before relying on dataLayer and canonical "
+"intake."
+msgstr "Schakel de browsergebeurtenispijplijn in voordat u vertrouwt op dataLayer en canonieke inname."
+
+#: includes/admin/class-admin.php:825
+#, fuzzy
+msgid "Server-side delivery has an endpoint and is ready for endpoint tests."
+msgstr "Levering aan de serverzijde heeft een eindpunt en is klaar voor eindpunttests."
+
+#: includes/admin/class-admin.php:827
+#, fuzzy
+msgid "Server-side delivery is on, but the collector URL still needs review."
+msgstr "Levering aan de serverzijde is ingeschakeld, maar het verzamelprogramma URL moet nog worden beoordeeld."
+
+#: includes/admin/class-admin.php:828
+#, fuzzy
+msgid ""
+"Server-side delivery is off. Logs and Diagnostics still work for local "
+"checks."
+msgstr "Levering aan de serverzijde is uitgeschakeld. Logboeken en diagnoses werken nog steeds voor lokale controles."
+
+#: includes/admin/class-admin.php:834
+#, fuzzy
+msgid "sGTM"
+msgstr "sGTM"
+
+#: includes/admin/class-admin.php:837
+#, fuzzy
+msgid ""
+"sGTM mode has a web container plus a tagging server or custom loader path "
+"configured."
+msgstr "In de sGTM-modus is een webcontainer plus een taggingserver of een aangepast laadpad geconfigureerd."
+
+#: includes/admin/class-admin.php:839
+#, fuzzy
+msgid ""
+"sGTM mode is on. Add the tagging server URL or a custom loader path before "
+"preview testing."
+msgstr "De sGTM-modus is ingeschakeld. Voeg de taggingserver URL of een aangepast laadpad toe voordat u de voorbeeldtest uitvoert."
+
+#: includes/admin/class-admin.php:840
+#, fuzzy
+msgid ""
+"Standard GTM loading is active. Enable sGTM mode when you want first-party "
+"script delivery or custom loader support."
+msgstr "Standaard GTM laden is actief. Schakel de modus sGTM in als u eigen scriptlevering of ondersteuning voor aangepaste laders wilt."
+
+#: includes/admin/class-admin.php:846
+#, fuzzy
+msgid "Woo"
+msgstr "Woo"
+
+#: includes/admin/class-admin.php:849
+#, fuzzy
+msgid "WooCommerce storefront events and order delivery helpers are ready."
+msgstr "WooCommerce winkelevenementen en hulp bij het bezorgen van bestellingen staan klaar."
+
+#: includes/admin/class-admin.php:851
+#, fuzzy
+msgid ""
+"WooCommerce is active. Enable storefront events when you want list, product, "
+"cart, and checkout signals."
+msgstr "WooCommerce is actief. Schakel winkelevenementen in als u lijst-, product-, winkelwagen- en betaalsignalen wilt."
+
+#: includes/admin/class-admin.php:852
+#, fuzzy
+msgid "WooCommerce is not active on this site."
+msgstr "WooCommerce is niet actief op deze site."
+
+#: includes/admin/class-admin.php:861
+#, fuzzy
+msgid ""
+"Link decoration is active. Attribution carries across subdomains "
+"automatically. Add destination domains in the allowed list only if your "
+"checkout is on a fully separate domain. Note: external payment providers "
+"(Stripe, PayPal, Mollie) cannot be decorated — attribution survives those "
+"redirects via the last-touch cookie."
+msgstr "Linkdecoratie is actief. Attributie wordt automatisch over subdomeinen overgedragen. Voeg bestemmingsdomeinen alleen toe aan de toegestane lijst als u afrekent op een volledig afzonderlijk domein. Let op: externe betalingsproviders (Stripe, PayPal, Mollie) kunnen niet worden gedecoreerd - toeschrijving overleeft die omleidingen via de last-touch cookie."
+
+#. translators: %s: WooCommerce checkout hostname detected on a different subdomain.
+#: includes/admin/class-admin.php:864
+#, fuzzy, php-format
+msgid ""
+"Your WooCommerce checkout is on %s. Enable cross-domain link decoration "
+"under Capture → Link Decoration to carry attribution through the subdomain "
+"hop."
+msgstr "Je WooCommerce-afrekening staat op %s. Schakel cross-domein linkdecoratie in onder Capture → Link Decoration om attributie door te voeren via de subdomein-hop."
+
+#: includes/admin/class-admin.php:865
+#, fuzzy
+msgid ""
+"Cross-domain link decoration is off. Enable it under Capture → Link "
+"Decoration if your funnel spans multiple domains or subdomains."
+msgstr "Cross-domein linkdecoratie is uitgeschakeld. Schakel het in onder Capture → Link Decoration als uw trechter meerdere domeinen of subdomeinen omvat."
+
+#: includes/admin/class-admin.php:917 assets/js/admin-settings-app.js:974
+#, fuzzy
+msgid "No attempts yet"
+msgstr "Nog geen pogingen"
+
+#. translators: %s: relative time.
+#: includes/admin/class-admin.php:921
+#: includes/admin/traits/trait-admin-pages.php:184
+#, fuzzy, php-format
+msgid "%s ago"
+msgstr "%s geleden"
+
+#: includes/admin/class-admin.php:924
+#: includes/admin/traits/trait-admin-pages.php:187
+#, fuzzy
+msgid "No delivery attempts recorded."
+msgstr "Geen bezorgpogingen geregistreerd."
+
+#: includes/admin/class-admin.php:1362
+#, fuzzy
+msgid ""
+"The server-side endpoint URL was rejected because it resolves to a "
+"disallowed or internal address. The previous value was kept."
+msgstr "Het eindpunt aan de serverzijde URL is afgewezen omdat het wordt omgezet naar een niet-toegestaan of intern adres. De vorige waarde werd behouden."
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:47
+#: includes/admin/class-clicutcl-woocommerce-admin.php:128
+#: includes/admin/class-clicutcl-woocommerce-admin.php:175
+#, fuzzy
+msgid "Source"
+msgstr "Bron"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:89
+#, fuzzy
+msgid "Direct"
+msgstr "Direct"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:105
+#, fuzzy
+msgid "Marketing Attribution"
+msgstr "Marketingtoeschrijving"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:122
+#, fuzzy
+msgid "No attribution data available."
+msgstr "Geen attributiegegevens beschikbaar."
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:129
+#: includes/admin/class-clicutcl-woocommerce-admin.php:178
+#, fuzzy
+msgid "Medium"
+msgstr "Middelmatig"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:130
+#, fuzzy
+msgid "Campaign"
+msgstr "Campagne"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:131
+#, fuzzy
+msgid "Term"
+msgstr "Termijn"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:132
+#, fuzzy
+msgid "Content"
+msgstr "Inhoud"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:133
+#, fuzzy
+msgid "Google Click ID"
+msgstr "Google Click ID"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:134
+#, fuzzy
+msgid "Facebook Click ID"
+msgstr "Facebook Click ID"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:135
+#, fuzzy
+msgid "LinkedIn Click ID"
+msgstr "LinkedIn Click ID"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:136
+#, fuzzy
+msgid "Landing Page"
+msgstr "Landingspagina"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:140
+#, fuzzy
+msgid "First Touch"
+msgstr "Eerste aanraking"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:161
+#, fuzzy
+msgid "No first-touch data available"
+msgstr "Er zijn geen gegevens over de eerste aanraking beschikbaar"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:172
+#, fuzzy
+msgid "Last Touch"
+msgstr "Laatste aanraking"
+
+#: includes/admin/class-log-list-table.php:101
+#: includes/privacy/class-privacy-handler.php:138
+#: includes/privacy/class-privacy-handler.php:674
+#, fuzzy
+msgid "Date"
+msgstr "Datum"
+
+#: includes/admin/class-log-list-table.php:102
+#: includes/privacy/class-privacy-handler.php:134
+#, fuzzy
+msgid "Event Type"
+msgstr "Evenementtype"
+
+#: includes/admin/class-log-list-table.php:103
+#, fuzzy
+msgid "Details"
+msgstr "Details"
+
+#: includes/admin/class-log-list-table.php:195
+#, fuzzy
+msgid "No logs found."
+msgstr "Geen logboeken gevonden."
+
+#: includes/admin/class-setup-wizard.php:74
+#, fuzzy
+msgid "ClickTrail Setup"
+msgstr "ClickTrail Instellen"
+
+#: includes/admin/class-setup-wizard.php:75
+#, fuzzy
+msgid "Setup"
+msgstr "Installatie"
+
+#: includes/admin/class-setup-wizard.php:92
+#, fuzzy
+msgid "Setup Wizard"
+msgstr "Installatiewizard"
+
+#: includes/admin/class-setup-wizard.php:138
+#: includes/admin/class-setup-wizard.php:206
+#: includes/admin/class-sitehealth.php:187
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:34
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:83
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:121
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:143
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:226
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:252
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:270
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:300
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:321
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:352
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:378
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:420
+#: includes/admin/traits/trait-admin-pages.php:117
+#, fuzzy
+msgid "Forbidden"
+msgstr "Verboden"
+
+#: includes/admin/class-setup-wizard.php:224
+#, fuzzy
+msgid "Skip setup"
+msgstr "Installatie overslaan"
+
+#: includes/admin/class-setup-wizard.php:249
+#: includes/admin/class-setup-wizard.php:287
+#, fuzzy
+msgid "What are you tracking?"
+msgstr "Wat volg je?"
+
+#: includes/admin/class-setup-wizard.php:250
+#, fuzzy
+msgid "Ad platforms"
+msgstr "Advertentieplatforms"
+
+#: includes/admin/class-setup-wizard.php:251
+#: includes/admin/class-setup-wizard.php:543
+#, fuzzy
+msgid "You're set up"
+msgstr "Je bent klaar"
+
+#: includes/admin/class-setup-wizard.php:254
+#, fuzzy
+msgid "Setup progress"
+msgstr "Voortgang van het instellen"
+
+#. translators: %s: form plugin names.
+#: includes/admin/class-setup-wizard.php:294
+#, fuzzy, php-format
+msgid ""
+"We found %s and WooCommerce. ClickTrail will track form submissions and "
+"eCommerce sessions automatically."
+msgstr "We hebben %s en WooCommerce gevonden. ClickTrail houdt formulierinzendingen en e-commercesessies automatisch bij."
+
+#. translators: %s: form plugin names.
+#: includes/admin/class-setup-wizard.php:300
+#, fuzzy, php-format
+msgid ""
+"We found %s. ClickTrail will inject attribution data into your forms "
+"automatically."
+msgstr "We hebben %s gevonden. ClickTrail zal automatisch attributiegegevens in uw formulieren injecteren."
+
+#: includes/admin/class-setup-wizard.php:304
+#, fuzzy
+msgid ""
+"We found WooCommerce. ClickTrail will store attribution on every order "
+"automatically."
+msgstr "We hebben WooCommerce gevonden. ClickTrail slaat de toeschrijving automatisch op voor elke bestelling."
+
+#: includes/admin/class-setup-wizard.php:306
+#, fuzzy
+msgid ""
+"ClickTrail will capture UTMs and click IDs from every visitor automatically."
+msgstr "ClickTrail zal automatisch UTM's vastleggen en op IDs klikken van elke bezoeker."
+
+#: includes/admin/class-setup-wizard.php:315
+#, fuzzy
+msgid "UTM &amp; click ID capture"
+msgstr "UTM &amp; klik op ID vastleggen"
+
+#: includes/admin/class-setup-wizard.php:316
+#: includes/admin/class-setup-wizard.php:322
+#, fuzzy
+msgid "Auto"
+msgstr "Automatisch"
+
+#: includes/admin/class-setup-wizard.php:321
+#, fuzzy
+msgid "First-touch &amp; last-touch attribution"
+msgstr "Attributie bij eerste aanraking &amp; laatste aanraking"
+
+#. translators: %s: form plugin name.
+#: includes/admin/class-setup-wizard.php:336
+#, fuzzy, php-format
+msgid "%s attribution"
+msgstr "%s attributie"
+
+#: includes/admin/class-setup-wizard.php:342
+#: includes/admin/class-setup-wizard.php:353
+#: includes/admin/class-setup-wizard.php:369
+#, fuzzy
+msgid "Detected"
+msgstr "Gedetecteerd"
+
+#: includes/admin/class-setup-wizard.php:344
+#, fuzzy
+msgid "Not found"
+msgstr "Niet gevonden"
+
+#: includes/admin/class-setup-wizard.php:352
+#, fuzzy
+msgid "WooCommerce order attribution"
+msgstr "WooCommerce ordertoeschrijving"
+
+#. translators: %s: CMP plugin name.
+#: includes/admin/class-setup-wizard.php:364
+#, fuzzy, php-format
+msgid "%s consent integration"
+msgstr "%s toestemmingsintegratie"
+
+#. translators: %s: caching/CDN plugin name.
+#: includes/admin/class-setup-wizard.php:380
+#, fuzzy, php-format
+msgid "%s compatibility (client-side fallback)"
+msgstr "%s compatibiliteit (fallback aan clientzijde)"
+
+#: includes/admin/class-setup-wizard.php:385
+#: includes/admin/traits/trait-admin-pages.php:59
+#: includes/admin/traits/trait-admin-pages.php:244
+#: assets/js/admin-settings-app.js:984
+#, fuzzy
+msgid "Enabled"
+msgstr "Ingeschakeld"
+
+#: includes/admin/class-setup-wizard.php:393
+#, fuzzy
+msgid "GA4 Measurement ID"
+msgstr "GA4 Meting ID"
+
+#: includes/admin/class-setup-wizard.php:394
+#, fuzzy
+msgid "optional"
+msgstr "optioneel"
+
+#: includes/admin/class-setup-wizard.php:407
+#, fuzzy
+msgid "Needed for GA4 event forwarding. You can add this later in Settings."
+msgstr "Nodig voor het doorsturen van GA4-gebeurtenissen. Je kunt dit later toevoegen in Instellingen."
+
+#: includes/admin/class-setup-wizard.php:420
+#, fuzzy
+msgid "I run paid ads (Google Ads or Meta Ads)"
+msgstr "Ik geef betaalde advertenties weer (Google Ads of Meta Advertenties)"
+
+#: includes/admin/class-setup-wizard.php:434
+#: includes/admin/class-setup-wizard.php:506
+#, fuzzy
+msgid "Next"
+msgstr "Volgende"
+
+#: includes/admin/class-setup-wizard.php:456
+#, fuzzy
+msgid "Where are your leads coming from?"
+msgstr "Waar komen uw leads vandaan?"
+
+#: includes/admin/class-setup-wizard.php:459
+#, fuzzy
+msgid ""
+"ClickTrail captures click IDs automatically. Confirm which platforms you use "
+"so we can surface them in your form entries."
+msgstr "ClickTrail legt klik IDs automatisch vast. Bevestig welke platforms u gebruikt, zodat we deze in uw formulierinvoer kunnen weergeven."
+
+#: includes/admin/class-setup-wizard.php:471
+#: includes/admin/class-setup-wizard.php:475
+#, fuzzy
+msgid "Google Ads"
+msgstr "Google Ads"
+
+#: includes/admin/class-setup-wizard.php:476
+#, fuzzy
+msgid "Captures GCLID and auto-tag parameters from every Google Ads click."
+msgstr "Legt GCLID en autotag-parameters vast bij elke Google Ads-klik."
+
+#: includes/admin/class-setup-wizard.php:487
+#: includes/admin/class-setup-wizard.php:491
+#, fuzzy
+msgid "Meta / Facebook Ads"
+msgstr "Meta / Facebook Ads"
+
+#: includes/admin/class-setup-wizard.php:492
+#, fuzzy
+msgid "Captures FBCLID from every Meta ad click."
+msgstr "Legt FBCLID vast van elke Meta advertentieklik."
+
+#: includes/admin/class-setup-wizard.php:503
+#: includes/admin/class-setup-wizard.php:573
+#, fuzzy
+msgid "Back"
+msgstr "Terug"
+
+#: includes/admin/class-setup-wizard.php:521
+#, fuzzy
+msgid "UTM tracking: ON"
+msgstr "UTM volgen: ON"
+
+#. translators: %s: form plugin names.
+#: includes/admin/class-setup-wizard.php:527
+#, fuzzy, php-format
+msgid "Forms: %s"
+msgstr "Formulieren: %s"
+
+#: includes/admin/class-setup-wizard.php:532
+#, fuzzy
+msgid "WooCommerce: ON"
+msgstr "WooCommerce: ON"
+
+#: includes/admin/class-setup-wizard.php:546
+#, fuzzy
+msgid ""
+"ClickTrail is tracking your visitors. Attribution data will appear in your "
+"form entries as soon as someone submits a form with UTMs in the URL."
+msgstr "ClickTrail volgt uw bezoekers. Attributiegegevens verschijnen in uw formulierinvoer zodra iemand een formulier indient met UTM's in de URL."
+
+#: includes/admin/class-setup-wizard.php:560
+#, fuzzy
+msgid "Quick test:"
+msgstr "Snelle test:"
+
+#: includes/admin/class-setup-wizard.php:561
+#, fuzzy
+msgid "Open your site with"
+msgstr "Open uw site met"
+
+#: includes/admin/class-setup-wizard.php:563
+#, fuzzy
+msgid "in the URL, submit a form, and look for"
+msgstr "in de URL, dien een formulier in en zoek naar"
+
+#: includes/admin/class-setup-wizard.php:565
+#, fuzzy
+msgid "in the entry."
+msgstr "in de invoer."
+
+#: includes/admin/class-setup-wizard.php:576
+#, fuzzy
+msgid "View my tracking dashboard"
+msgstr "Bekijk mijn trackingdashboard"
+
+#: includes/admin/class-setup-wizard.php:583
+#, fuzzy
+msgid "I want more control &rarr; Switch to Advanced Mode"
+msgstr "Ik wil meer controle &rarr; Schakel over naar de geavanceerde modus"
+
+#: includes/admin/class-sitehealth.php:39
+#, fuzzy
+msgid "ClickTrail: Caching/conflicts detected"
+msgstr "ClickTrail: Caching/conflicts gedetecteerd"
+
+#: includes/admin/class-sitehealth.php:44
+#, fuzzy
+msgid "ClickTrail: Admin diagnostics script heartbeat"
+msgstr "ClickTrail: Heartbeat voor diagnostisch beheerderscript"
+
+#: includes/admin/class-sitehealth.php:49
+#, fuzzy
+msgid "ClickTrail: Attribution cookie readable"
+msgstr "ClickTrail: Attributiecookie leesbaar"
+
+#: includes/admin/class-sitehealth.php:91
+#, fuzzy
+msgid "No common caching/conflict plugins detected"
+msgstr "Er zijn geen algemene caching/conflict-plug-ins gedetecteerd"
+
+#: includes/admin/class-sitehealth.php:92
+#, fuzzy
+msgid "ClickTrail will still work best with JS injection enabled."
+msgstr "ClickTrail werkt nog steeds het beste als JS-injectie is ingeschakeld."
+
+#: includes/admin/class-sitehealth.php:98
+#, fuzzy
+msgid "Caching/optimization detected (client-side capture recommended)"
+msgstr "Caching/optimization gedetecteerd (opname aan clientzijde aanbevolen)"
+
+#. translators: %s: List of detected caching or conflict plugins.
+#: includes/admin/class-sitehealth.php:101
+#, fuzzy, php-format
+msgid ""
+"Detected: %s. Full-page caching can make hidden field values stale. Enable "
+"ClickTrail's client-side capture fallback."
+msgstr "Gedetecteerd: %s. Caching op volledige pagina's kan ervoor zorgen dat verborgen veldwaarden verouderd raken. Schakel de terugvalfunctie voor vastleggen aan de clientzijde van ClickTrail in."
+
+#: includes/admin/class-sitehealth.php:119
+#, fuzzy
+msgid "Admin diagnostics script seen in the last 24h"
+msgstr "Diagnostisch script voor beheerders gezien in de laatste 24h"
+
+#: includes/admin/class-sitehealth.php:120
+#, fuzzy
+msgid "A recent wp-admin heartbeat ping was recorded."
+msgstr "Er is een recente hartslagping van wp-admin geregistreerd."
+
+#: includes/admin/class-sitehealth.php:126
+#, fuzzy
+msgid "Admin diagnostics script not seen recently"
+msgstr "Admin diagnostisch script niet recentelijk gezien"
+
+#: includes/admin/class-sitehealth.php:127
+#, fuzzy
+msgid ""
+"Open a ClickTrail admin screen (or Site Health) to refresh the diagnostics "
+"heartbeat."
+msgstr "Open een ClickTrail beheerdersscherm (of Site Health) om de diagnostische hartslag te vernieuwen."
+
+#: includes/admin/class-sitehealth.php:148
+#, fuzzy
+msgid "Attribution cookie present in request"
+msgstr "Attributiecookie aanwezig in aanvraag"
+
+#: includes/admin/class-sitehealth.php:149
+#, fuzzy
+msgid "Server received the attribution cookie."
+msgstr "De server heeft de attributiecookie ontvangen."
+
+#: includes/admin/class-sitehealth.php:153
+#, fuzzy
+msgid "This may be normal if no UTM visit occurred."
+msgstr "Dit kan normaal zijn als er geen UTM-bezoek heeft plaatsgevonden."
+
+#: includes/admin/class-sitehealth.php:155
+#, fuzzy
+msgid ""
+"Note: Consent Mode is enabled. If you have not granted consent, no cookie "
+"will be set."
+msgstr "Opmerking: de toestemmingsmodus is ingeschakeld. Als u geen toestemming heeft gegeven, wordt er geen cookie geplaatst."
+
+#: includes/admin/class-sitehealth.php:157
+#, fuzzy
+msgid "Test by visiting a page with ?utm_source=test."
+msgstr "Test door een pagina te bezoeken met ?utm_source=test."
+
+#: includes/admin/class-sitehealth.php:162
+#, fuzzy
+msgid "Attribution cookie not present in request"
+msgstr "Attributiecookie niet aanwezig in verzoek"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:50
+#, fuzzy
+msgid "Wait for consent"
+msgstr "Wacht op toestemming"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:51
+#, fuzzy
+msgid "Allow until denied"
+msgstr "Toestaan tot geweigerd"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:52
+#, fuzzy
+msgid "Require consent by region"
+msgstr "Toestemming per regio vereisen"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:63
+#, fuzzy
+msgid "Choose when attribution is allowed to start for a visitor."
+msgstr "Kies wanneer attributie mag starten voor een bezoeker."
+
+#: includes/admin/traits/trait-admin-consent-mode.php:83
+#, fuzzy
+msgid "Use region codes such as EEA, UK, US, or US-CA."
+msgstr "Gebruik regiocodes zoals EEA, UK, US of US-CA."
+
+#: includes/admin/traits/trait-admin-consent-mode.php:98
+#: assets/js/admin-settings-app.js:1076
+#, fuzzy
+msgid "Auto-detect"
+msgstr "Automatische detectie"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:99
+#, fuzzy
+msgid "ClickTrail built-in banner"
+msgstr "ClickTrail ingebouwde banner"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:100
+#, fuzzy
+msgid "Cookiebot / Usercentrics"
+msgstr "Cookiebot / Usercentrics"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:101
+#: assets/js/admin-settings-app.js:1079
+#, fuzzy
+msgid "OneTrust"
+msgstr "OneTrust"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:102
+#: assets/js/admin-settings-app.js:1080
+#, fuzzy
+msgid "Complianz"
+msgstr "Complianz"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:103
+#, fuzzy
+msgid "Google Consent Mode via GTM"
+msgstr "Google Toestemmingsmodus via GTM"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:104
+#, fuzzy
+msgid "Custom integration"
+msgstr "Aangepaste integratie"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:115
+#, fuzzy
+msgid "Select the consent platform ClickTrail should listen to."
+msgstr "Selecteer het toestemmingsplatform waarnaar ClickTrail moet luisteren."
+
+#: includes/admin/traits/trait-admin-consent-mode.php:143
+#, fuzzy
+msgid "How long to wait for a consent response before treating it as denied."
+msgstr "Hoe lang u moet wachten op een toestemmingsreactie voordat u deze als geweigerd beschouwt."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:62
+#, fuzzy
+msgid ""
+"ClickTrail Audit detected PII risk on your Thank You page. Your tracking may "
+"be deactivated by Google."
+msgstr "ClickTrail Audit gedetecteerd PII risico op uw bedankpagina. Uw tracking kan worden gedeactiveerd door Google."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:65
+#: assets/js/admin-settings-app.js:993
+#, fuzzy
+msgid "Open Diagnostics"
+msgstr "Diagnose openen"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:68
+#, fuzzy
+msgid "Review Tracking Settings"
+msgstr "Controleer de trackinginstellingen"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:92
+#, fuzzy
+msgid "Server-side adapter not configured."
+msgstr "Adapter aan serverzijde niet geconfigureerd."
+
+#. translators: %1$d: HTTP status code.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:101
+#, fuzzy, php-format
+msgid "Endpoint reachable (HTTP %1$d)."
+msgstr "Eindpunt bereikbaar (HTTP %1$d)."
+
+#. translators: %1$d: HTTP status code, %2$s: error message.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:109
+#, fuzzy, php-format
+msgid "Endpoint error (HTTP %1$d): %2$s"
+msgstr "Eindpuntfout (HTTP %1$d): %2$s"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:128
+#, fuzzy
+msgid "Debug disabled."
+msgstr "Foutopsporing uitgeschakeld."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:133
+#, fuzzy
+msgid "Debug enabled for 15 minutes."
+msgstr "Foutopsporing ingeschakeld gedurende 15 minuten."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:205
+#, fuzzy
+msgid "Could not purge all tracking tables."
+msgstr "Kan niet alle trackingtabellen opschonen."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:214
+#, fuzzy
+msgid "Tracking data purged."
+msgstr "Trackinggegevens verwijderd."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:231
+#, fuzzy
+msgid "Queue is unavailable."
+msgstr "Wachtrij is niet beschikbaar."
+
+#. translators: %d: number of failed delivery rows requeued for retry.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:239
+#, fuzzy, php-format
+msgid "%d failed delivery requeued."
+msgid_plural "%d failed deliveries requeued."
+msgstr[0] "%d mislukte levering opnieuw in de wachtrij geplaatst."
+msgstr[1] "%d mislukte leveringen opnieuw in de wachtrij geplaatst."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:287
+#: assets/js/admin-settings-app.js:466
+#, fuzzy
+msgid "Settings saved."
+msgstr "Instellingen opgeslagen."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:364
+#, fuzzy
+msgid "Backup prepared."
+msgstr "Back-up voorbereid."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:385
+#, fuzzy
+msgid "Missing backup payload."
+msgstr "Ontbrekende back-uppayload."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:390
+#, fuzzy
+msgid "Backup file is not valid JSON."
+msgstr "Back-upbestand is niet geldig JSON."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:407
+#, fuzzy
+msgid "Backup restored."
+msgstr "Back-up hersteld."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:425
+#, fuzzy
+msgid "WooCommerce is not active."
+msgstr "WooCommerce is niet actief."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:430
+#, fuzzy
+msgid "Enter a valid WooCommerce order ID."
+msgstr "Voer een geldige WooCommerce-bestelling ID in."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:435
+#, fuzzy
+msgid "Order not found."
+msgstr "Bestelling niet gevonden."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:443
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:444
+#, fuzzy
+msgid "No ClickTrail traces stored for this order yet."
+msgstr "Er zijn nog geen ClickTrail-sporen opgeslagen voor deze bestelling."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:471
+#, fuzzy
+msgid "not_queued"
+msgstr "not_queued"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:471
+#, fuzzy
+msgid "queued"
+msgstr "in de wachtrij"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:473
+#, fuzzy
+msgid "No pending retry row found."
+msgstr "Geen rij voor nieuwe pogingen in behandeling gevonden."
+
+#. translators: 1: attempts count, 2: next attempt timestamp.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:476
+#, fuzzy, php-format
+msgid "Attempts: %1$d. Next attempt: %2$s."
+msgstr "Pogingen: %1$d. Volgende poging: %2$s."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:488
+#, fuzzy
+msgid "Order trace loaded."
+msgstr "Ordertracering geladen."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:753
+#, fuzzy
+msgid "Caching or script optimization detected"
+msgstr "Caching of scriptoptimalisatie gedetecteerd"
+
+#. translators: %s: detected plugin labels.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:756
+#, fuzzy, php-format
+msgid ""
+"Detected: %s. Turn on the client-side capture fallback to reduce stale "
+"attribution and delayed event issues."
+msgstr "Gedetecteerd: %s. Schakel de fallback voor vastlegging aan de clientzijde in om verouderde attributie en problemen met vertraagde gebeurtenissen te verminderen."
+
+#. translators: %s: detected call tracking provider labels.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:768
+#, fuzzy, php-format
+msgid "Call tracking script detected: %s"
+msgstr "Oproeptrackingscript gedetecteerd: %s"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:771
+#, fuzzy
+msgid ""
+"A call tracking script was detected. ClickTrail skips tel: link decoration "
+"automatically. No action needed unless you are seeing unexpected behaviour."
+msgstr "Er is een script voor het volgen van oproepen gedetecteerd. ClickTrail slaat de linkdecoratie tel: automatisch over. Er is geen actie nodig tenzij u onverwacht gedrag waarneemt."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:778
+#, fuzzy
+msgid "NitroPack detected — check JS postpone exclusions"
+msgstr "NitroPack gedetecteerd — vink JS uitsluitingen uit"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:779
+#, fuzzy
+msgid ""
+"NitroPack's \"Postpone JS\" feature can prevent attribution scripts from "
+"running before the user interacts with the page, causing empty UTM data on "
+"leads. ClickTrail attempts to exclude its scripts automatically. To verify: "
+"NitroPack > Optimization > JavaScript > Script exclusions -- confirm "
+"clicutcl-attribution.js and clicutcl-consent-bridge.js are listed."
+msgstr "De functie \"Uitstellen JS\" van NitroPack kan voorkomen dat attributiescripts worden uitgevoerd voordat de gebruiker interactie heeft met de pagina, waardoor lege UTM-gegevens over leads ontstaan. ClickTrail probeert zijn scripts automatisch uit te sluiten. Ter verificatie: NitroPack > Optimalisatie > JavaScript > Scriptuitsluitingen -- bevestig dat clicutcl-attribution.js en clicutcl-consent-bridge.js worden vermeld."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:788
+#, fuzzy
+msgid "Server-side delivery has no endpoint"
+msgstr "Levering aan de serverzijde heeft geen eindpunt"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:789
+#, fuzzy
+msgid "Delivery is enabled, but the collector URL is empty."
+msgstr "Levering is ingeschakeld, maar de verzameleenheid URL is leeg."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:796
+#, fuzzy
+msgid "Woo storefront events enabled without WooCommerce"
+msgstr "Woo winkelevenementen ingeschakeld zonder WooCommerce"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:797
+#, fuzzy
+msgid "Disable Woo storefront events or activate WooCommerce on this site."
+msgstr "Schakel Woo storefront-evenementen uit of activeer WooCommerce op deze site."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:805
+#, fuzzy
+msgid "sGTM mode enabled without a web container"
+msgstr "sGTM-modus ingeschakeld zonder webcontainer"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:806
+#, fuzzy
+msgid "Add a GTM web container ID before testing sGTM mode."
+msgstr "Voeg een GTM webcontainer ID toe voordat u de sGTM-modus test."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:813
+#, fuzzy
+msgid "sGTM mode has no loader source"
+msgstr "De sGTM-modus heeft geen laadbron"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:814
+#, fuzzy
+msgid ""
+"Provide a tagging server URL or a custom loader path so ClickTrail can "
+"deliver the GTM script in sGTM mode."
+msgstr "Geef een taggingserver URL of een aangepast laadpad op, zodat ClickTrail het GTM-script in de sGTM-modus kan leveren."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:821
+#, fuzzy
+msgid "Custom loader enabled without a path"
+msgstr "Aangepaste lader ingeschakeld zonder pad"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:822
+#, fuzzy
+msgid ""
+"Add a same-site path or loader URL before enabling the custom loader option."
+msgstr "Voeg een pad of lader van dezelfde site toe URL voordat u de aangepaste laderoptie inschakelt."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:829
+#, fuzzy
+msgid "sGTM mode does not match the active delivery adapter"
+msgstr "De sGTM-modus komt niet overeen met de actieve leveringsadapter"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:830
+#, fuzzy
+msgid ""
+"GTM is configured for sGTM mode, but Delivery is not currently using the "
+"sGTM adapter."
+msgstr "GTM is geconfigureerd voor de sGTM-modus, maar de levering maakt momenteel geen gebruik van de sGTM-adapter."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:837
+#, fuzzy
+msgid "Woo user_data is enabled without the richer contract"
+msgstr "Woo user_data is ingeschakeld zonder het rijkere contract"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:838
+#, fuzzy
+msgid ""
+"Turn on the richer Woo dataLayer contract if you want ClickTrail to emit "
+"consent-aware user_data objects."
+msgstr "Schakel het rijkere Woo dataLayer contract in als u wilt dat ClickTrail toestemmingsbewuste user_data objecten uitzendt."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:847
+#, fuzzy
+msgid "Adapter selected without matching destination toggle"
+msgstr "Adapter geselecteerd zonder overeenkomende bestemmingsschakelaar"
+
+#. translators: 1: adapter label, 2: destination label.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:850
+#, fuzzy, php-format
+msgid "%1$s is selected as the delivery adapter, but %2$s is off in Events."
+msgstr "%1$s is geselecteerd als bezorgingsadapter, maar %2$s is uitgeschakeld in Gebeurtenissen."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:873
+#, fuzzy
+msgid "Destination toggle does not match the active adapter"
+msgstr "Bestemmingsschakelaar komt niet overeen met de actieve adapter"
+
+#. translators: 1: destination label, 2: adapter label.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:876
+#, fuzzy, php-format
+msgid "%1$s is enabled in Events, but Delivery currently uses %2$s."
+msgstr "%1$s is ingeschakeld in Gebeurtenissen, maar bezorging gebruikt momenteel %2$s."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:891
+#, fuzzy
+msgid "Review duplicate destination ownership"
+msgstr "Controleer dubbel bestemmingseigendom"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:892
+#, fuzzy
+msgid ""
+"GTM is configured alongside native destination toggles. Confirm each "
+"platform is owned by only one runtime path."
+msgstr "GTM wordt geconfigureerd naast de eigen bestemmingsschakelaars. Controleer of elk platform eigendom is van slechts één runtimepad."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:904
+#, fuzzy
+msgid "No common conflicts detected in the current ClickTrail configuration."
+msgstr "Er zijn geen algemene conflicten gedetecteerd in de huidige ClickTrail-configuratie."
+
+#. translators: %d: findings count.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:912
+#, fuzzy, php-format
+msgid "Conflict scan found %d item worth reviewing."
+msgid_plural "Conflict scan found %d items worth reviewing."
+msgstr[0] "Conflictscan gevonden %d item dat de moeite waard is om te beoordelen."
+msgstr[1] "Conflictscan heeft %d items gevonden die de moeite waard zijn om te beoordelen."
+
+#. translators: %s: form title.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:968
+#, fuzzy, php-format
+msgid "Gravity Forms: \"%s\" has no ct_* attribution fields"
+msgstr "Gravity Forms: \"%s\" heeft geen ct_* attributievelden"
+
+#. translators: %s: edit form URL.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:973
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1016
+#, fuzzy, php-format
+msgid ""
+"Add hidden fields named ct_utm_source, ct_utm_medium, etc. to capture "
+"attribution in this entry. <a href=\"%s\">Edit form &rarr;</a>"
+msgstr "Voeg verborgen velden met de naam ct_utm_source, ct_utm_medium, enz. toe om de attributie in dit item vast te leggen. <a href=\"%s\">Formulier bewerken &rarr;</a>"
+
+#. translators: %s: form title.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1011
+#, fuzzy, php-format
+msgid "WPForms: \"%s\" has no ct_* attribution fields"
+msgstr "WPForms: \"%s\" heeft geen ct_* attributievelden"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1113
+#, fuzzy
+msgid "Web container"
+msgstr "Webcontainer"
+
+#. translators: %s: GTM container ID.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1118
+#, fuzzy, php-format
+msgid "Container %s is configured."
+msgstr "Container %s is geconfigureerd."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1121
+#, fuzzy
+msgid "Add a GTM web container ID before using the wizard."
+msgstr "Voeg een GTM webcontainer ID toe voordat u de wizard gebruikt."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1125
+#, fuzzy
+msgid "sGTM mode"
+msgstr "sGTM-modus"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1128
+#, fuzzy
+msgid "sGTM compatibility mode is active."
+msgstr "sGTM compatibiliteitsmodus is actief."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1129
+#, fuzzy
+msgid "ClickTrail is still using the standard GTM loader mode."
+msgstr "ClickTrail gebruikt nog steeds de standaard GTM laadmodus."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1133
+#: assets/js/admin-settings-app.js:802
+#, fuzzy
+msgid "Tagging server URL"
+msgstr "Tagging-server URL"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1137
+#, fuzzy
+msgid ""
+"Add the tagging server URL if you want first-party script delivery or a "
+"stronger preview workflow."
+msgstr "Voeg de taggingserver URL toe als u scriptlevering van eigen hand of een sterkere voorbeeldworkflow wilt."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1141
+#, fuzzy
+msgid "Loader path"
+msgstr "Pad van de lader"
+
+#. translators: %s: loader URL.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1146
+#, fuzzy, php-format
+msgid "Custom loader enabled: %s"
+msgstr "Aangepaste lader ingeschakeld: %s"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1150
+#, fuzzy
+msgid "First-party script delivery is enabled."
+msgstr "Levering van eigen scripts is ingeschakeld."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1151
+#, fuzzy
+msgid ""
+"Enable first-party delivery or add a custom loader when you want the script "
+"to avoid the default Google host."
+msgstr "Schakel directe levering in of voeg een aangepaste lader toe als u wilt dat het script de standaard Google-host vermijdt."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1155
+#: assets/js/admin-settings-app.js:1034
+#, fuzzy
+msgid "Delivery adapter"
+msgstr "Leveringsadapter"
+
+#. translators: %s: adapter label.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1160
+#, fuzzy, php-format
+msgid "Delivery is enabled with %s."
+msgstr "Levering wordt ingeschakeld met %s."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1163
+#, fuzzy
+msgid ""
+"Delivery is off. You can still validate browser-side GTM behavior before "
+"enabling server delivery."
+msgstr "Levering is uitgeschakeld. U kunt het GTM-gedrag aan de browserzijde nog steeds valideren voordat u serverlevering inschakelt."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1167
+#, fuzzy
+msgid "Destination toggles"
+msgstr "Bestemming schakelt"
+
+#. translators: %d: enabled destination count.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1172
+#, fuzzy, php-format
+msgid "%d destination is enabled in Events."
+msgid_plural "%d destinations are enabled in Events."
+msgstr[0] "%d bestemming is ingeschakeld in Gebeurtenissen."
+msgstr[1] "%d-bestemmingen zijn ingeschakeld in Gebeurtenissen."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1175
+#, fuzzy
+msgid ""
+"No native destination toggles are enabled. That is fine if GTM or another "
+"relay owns final delivery."
+msgstr "Er zijn geen native bestemmingsschakelaars ingeschakeld. Dat is prima als GTM of een ander relais de eindlevering bezit."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1182
+#, fuzzy
+msgid "Loader probe"
+msgstr "Sonde van de lader"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1184
+#, fuzzy
+msgid "Could not reach the configured GTM loader URL from WordPress."
+msgstr "Kon de geconfigureerde GTM-lader URL vanaf WordPress niet bereiken."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1191
+#, fuzzy
+msgid "Collector probe"
+msgstr "Collectorsonde"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1193
+#, fuzzy
+msgid "Could not reach the configured sGTM collector URL from WordPress."
+msgstr "Kon de geconfigureerde sGTM-collector URL van WordPress niet bereiken."
+
+#. translators: 1: ready checks count, 2: total checks count.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1210
+#, fuzzy, php-format
+msgid "sGTM preview checks marked %1$d of %2$d items as ready."
+msgstr "sGTM bekijk een voorbeeld van controles gemarkeerd met %1$d van %2$d items als gereed."
+
+#. translators: 1: URL, 2: HTTP status code.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1256
+#, fuzzy, php-format
+msgid "%1$s responded with HTTP %2$d."
+msgstr "%1$s reageerde met HTTP %2$d."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1276
+#, fuzzy
+msgid ""
+"Load the Meta tag and matching server template in GTM, then confirm Meta is "
+"owned by either GTM or ClickTrail native delivery, not both."
+msgstr "Laad de tag Meta en de overeenkomende serversjabloon in GTM en bevestig vervolgens dat Meta eigendom is van de native levering van GTM of ClickTrail, en niet van beide."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1284
+#, fuzzy
+msgid ""
+"Confirm your server container has the GA4 client and the Google tags you "
+"expect before previewing purchase and checkout events."
+msgstr "Controleer of uw servercontainer de GA4-client en de Google-tags heeft die u verwacht voordat u een voorbeeld van aankoop- en afrekengebeurtenissen bekijkt."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1292
+#, fuzzy
+msgid ""
+"Verify the LinkedIn server-side tag template and consent handling in GTM "
+"before you rely on ClickTrail purchase or lead events."
+msgstr "Controleer de LinkedIn tagsjabloon op de server en de toestemmingsafhandeling in GTM voordat u vertrouwt op ClickTrail aankoop- of leadgebeurtenissen."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1300
+#, fuzzy
+msgid ""
+"Install the Pinterest Conversions template in the server container if GTM "
+"owns Pinterest delivery for this site."
+msgstr "Installeer de sjabloon Pinterest Conversies in de servercontainer als GTM eigenaar is van Pinterest-levering voor deze site."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1308
+#, fuzzy
+msgid ""
+"Install the TikTok Events API template in the server container if GTM owns "
+"TikTok delivery for this site."
+msgstr "Installeer de sjabloon TikTok Gebeurtenissen API in de servercontainer als GTM eigenaar is van TikTok-levering voor deze site."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1315
+#, fuzzy
+msgid "Template ownership"
+msgstr "Eigendom van sjabloon"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1316
+#, fuzzy
+msgid ""
+"Use destination toggles as ownership markers. Keep each downstream platform "
+"owned by exactly one delivery path."
+msgstr "Gebruik bestemmingsschakelaars als eigendomsmarkeringen. Zorg ervoor dat elk downstream-platform eigendom is van precies één leveringspad."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1359
+#, fuzzy
+msgid "Backup file format is not supported."
+msgstr "Het back-upbestandsformaat wordt niet ondersteund."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1363
+#, fuzzy
+msgid "Backup file does not contain any ClickTrail options."
+msgstr "Het back-upbestand bevat geen ClickTrail-opties."
+
+#: includes/admin/traits/trait-admin-pages.php:27
+#, fuzzy
+msgid "ClickTrail Network"
+msgstr "ClickTrail Netwerk"
+
+#: includes/admin/traits/trait-admin-pages.php:50
+#, fuzzy
+msgid "ClickTrail Network Settings"
+msgstr "ClickTrail Netwerkinstellingen"
+
+#: includes/admin/traits/trait-admin-pages.php:55
+#, fuzzy
+msgid "Enable Server-side Sending"
+msgstr "Schakel verzenden aan de serverzijde in"
+
+#: includes/admin/traits/trait-admin-pages.php:64
+#, fuzzy
+msgid "Collector Endpoint URL"
+msgstr "Collector-eindpunt URL"
+
+#: includes/admin/traits/trait-admin-pages.php:70
+#, fuzzy
+msgid "Adapter Type"
+msgstr "Adaptertype"
+
+#: includes/admin/traits/trait-admin-pages.php:88
+#, fuzzy
+msgid "Request Timeout (seconds)"
+msgstr "Time-out aanvragen (seconden)"
+
+#: includes/admin/traits/trait-admin-pages.php:94
+#, fuzzy
+msgid "Remote Failure Telemetry (Opt-in)"
+msgstr "Telemetrie bij externe storingen (opt-in)"
+
+#: includes/admin/traits/trait-admin-pages.php:98
+#, fuzzy
+msgid "Enable aggregated remote failure reporting hook"
+msgstr "Schakel de geaggregeerde hook voor het rapporteren van externe fouten in"
+
+#: includes/admin/traits/trait-admin-pages.php:100
+#, fuzzy
+msgid ""
+"Disabled by default. Sends only aggregated failure counts (no payloads, no "
+"PII)."
+msgstr "Standaard uitgeschakeld. Verzendt alleen geaggregeerde fouttellingen (geen payloads, geen PII)."
+
+#: includes/admin/traits/trait-admin-pages.php:179
+#, fuzzy
+msgid "No dispatches yet"
+msgstr "Nog geen verzendingen"
+
+#: includes/admin/traits/trait-admin-pages.php:211
+#, fuzzy
+msgid "ClickTrail Diagnostics"
+msgstr "ClickTrail Diagnostiek"
+
+#: includes/admin/traits/trait-admin-pages.php:217
+#: assets/js/admin-settings-app.js:968
+#, fuzzy
+msgid "Queue Backlog"
+msgstr "Wachtrij achterstand"
+
+#. translators: %d: due now count.
+#: includes/admin/traits/trait-admin-pages.php:223
+#, fuzzy, php-format
+msgid "Due now: %d"
+msgstr "Nu verschuldigd: %d"
+
+#: includes/admin/traits/trait-admin-pages.php:231
+#: assets/js/admin-settings-app.js:973
+#, fuzzy
+msgid "Last Dispatch"
+msgstr "Laatste verzending"
+
+#: includes/admin/traits/trait-admin-pages.php:237
+#: assets/js/admin-settings-app.js:978
+#, fuzzy
+msgid "Last Error"
+msgstr "Laatste fout"
+
+#: includes/admin/traits/trait-admin-pages.php:238
+#: assets/js/admin-settings-app.js:949
+#, fuzzy
+msgid "None"
+msgstr "Geen"
+
+#: includes/admin/traits/trait-admin-pages.php:239
+#: assets/js/admin-settings-app.js:980
+#, fuzzy
+msgid "No errors recorded."
+msgstr "Geen fouten geregistreerd."
+
+#: includes/admin/traits/trait-admin-pages.php:243
+#: includes/admin/traits/trait-admin-pages.php:391
+#: assets/js/admin-settings-app.js:983
+#, fuzzy
+msgid "Debug Logging"
+msgstr "Foutopsporing in logboekregistratie"
+
+#: includes/admin/traits/trait-admin-pages.php:244
+#: assets/js/admin-settings-app.js:984
+#, fuzzy
+msgid "Disabled"
+msgstr "Uitgeschakeld"
+
+#: includes/admin/traits/trait-admin-pages.php:246
+#, fuzzy
+msgid "15 minute window when enabled."
+msgstr "15 minutenvenster indien ingeschakeld."
+
+#: includes/admin/traits/trait-admin-pages.php:266
+#, fuzzy
+msgid "Endpoint Test"
+msgstr "Eindpunttest"
+
+#: includes/admin/traits/trait-admin-pages.php:267
+#, fuzzy
+msgid "Validate connectivity to the configured server-side endpoint."
+msgstr "Valideer de connectiviteit met het geconfigureerde eindpunt aan de serverzijde."
+
+#: includes/admin/traits/trait-admin-pages.php:273
+#, fuzzy
+msgid "Test Endpoint"
+msgstr "Eindpunt testen"
+
+#: includes/admin/traits/trait-admin-pages.php:284
+#, fuzzy
+msgid "Conflict Scan"
+msgstr "Conflictscan"
+
+#: includes/admin/traits/trait-admin-pages.php:285
+#, fuzzy
+msgid ""
+"Run deterministic checks for caching, call tracking scripts, duplicate "
+"ownership, Woo gaps, and delivery mismatches."
+msgstr "Voer deterministische controles uit op caching, call-tracking-scripts, dubbel eigendom, Woo-hiaten en mismatches in de levering."
+
+#: includes/admin/traits/trait-admin-pages.php:291
+#, fuzzy
+msgid "Run Conflict Scan"
+msgstr "Voer een conflictscan uit"
+
+#: includes/admin/traits/trait-admin-pages.php:305
+#, fuzzy
+msgid "Attribution Readiness"
+msgstr "Attributiegereedheid"
+
+#: includes/admin/traits/trait-admin-pages.php:306
+#, fuzzy
+msgid ""
+"Run a read-only analysis against a test payload. Click-ID values are never "
+"returned or stored."
+msgstr "Voer een alleen-lezen-analyse uit op basis van een testpayload. Klik-ID-waarden worden nooit geretourneerd of opgeslagen."
+
+#: includes/admin/traits/trait-admin-pages.php:312
+#, fuzzy
+msgid "Test payload (JSON)"
+msgstr "Testlading (JSON)"
+
+#: includes/admin/traits/trait-admin-pages.php:316
+#, fuzzy
+msgid "Referrer URL (optional)"
+msgstr "Verwijzer URL (optioneel)"
+
+#: includes/admin/traits/trait-admin-pages.php:318
+#, fuzzy
+msgid "Current host (optional)"
+msgstr "Huidige host (optioneel)"
+
+#: includes/admin/traits/trait-admin-pages.php:322
+#, fuzzy
+msgid "Source aliases (optional test JSON)"
+msgstr "Bronaliassen (optionele test JSON)"
+
+#: includes/admin/traits/trait-admin-pages.php:324
+#, fuzzy
+msgid ""
+"Map recognized click-ID platform keys to bounded utm_source aliases. This "
+"input is used only for this check and is never stored."
+msgstr "Wijs herkende klik-ID platformsleutels toe aan begrensde utm_source aliassen. Deze invoer wordt alleen voor deze controle gebruikt en wordt nooit opgeslagen."
+
+#: includes/admin/traits/trait-admin-pages.php:326
+#, fuzzy
+msgid ""
+"Suggestions are read-only and apply only to utm_source; utm_medium and "
+"utm_campaign are never invented. An observed source, an unresolved macro, or "
+"signals from multiple platforms suppress automatic source suggestion."
+msgstr "Suggesties zijn alleen-lezen en gelden alleen voor utm_source; utm_medium en utm_campaign zijn nooit uitgevonden. Een waargenomen bron, een onopgeloste macro of signalen van meerdere platforms onderdrukken de automatische bronsuggestie."
+
+#: includes/admin/traits/trait-admin-pages.php:328
+#, fuzzy
+msgid "Run Readiness Check"
+msgstr "Voer de gereedheidscontrole uit"
+
+#: includes/admin/traits/trait-admin-pages.php:329
+#, fuzzy
+msgid "Copy Test URL"
+msgstr "Kopieertest URL"
+
+#: includes/admin/traits/trait-admin-pages.php:333
+#, fuzzy
+msgid "Copy-only test URL"
+msgstr "Alleen kopiëren-test URL"
+
+#: includes/admin/traits/trait-admin-pages.php:345
+#, fuzzy
+msgid "Backup Restore"
+msgstr "Back-up herstellen"
+
+#: includes/admin/traits/trait-admin-pages.php:346
+#, fuzzy
+msgid ""
+"Export or restore the five main ClickTrail option stores through privileged "
+"server-side actions."
+msgstr "Exporteer of herstel de vijf belangrijkste ClickTrail-optiearchieven via geprivilegieerde acties aan de serverzijde."
+
+#: includes/admin/traits/trait-admin-pages.php:347
+#, fuzzy
+msgid ""
+"Warning: the exported backup file contains live, unmasked webhook secrets "
+"and CRM tokens in plaintext. Treat it like a credentials file — store and "
+"share it accordingly."
+msgstr "Waarschuwing: het geëxporteerde back-upbestand bevat live, ontmaskerde webhookgeheimen en CRM-tokens in leesbare tekst. Behandel het als een referentiebestand: bewaar het en deel het dienovereenkomstig."
+
+#: includes/admin/traits/trait-admin-pages.php:353
+#, fuzzy
+msgid "Export Backup"
+msgstr "Back-up exporteren"
+
+#: includes/admin/traits/trait-admin-pages.php:358
+#, fuzzy
+msgid "Restore Backup"
+msgstr "Back-up herstellen"
+
+#: includes/admin/traits/trait-admin-pages.php:369
+#, fuzzy
+msgid "Woo Order Trace Lookup"
+msgstr "Woo Ordertracering opzoeken"
+
+#: includes/admin/traits/trait-admin-pages.php:370
+#, fuzzy
+msgid ""
+"Inspect the stored purchase and milestone payload snapshots for a "
+"WooCommerce order, even outside the debug window."
+msgstr "Inspecteer de opgeslagen aankoop- en mijlpaalpayload-snapshots voor een WooCommerce-bestelling, zelfs buiten het debug-venster."
+
+#: includes/admin/traits/trait-admin-pages.php:376
+#: includes/privacy/class-privacy-handler.php:662
+#: includes/privacy/class-woo-order-privacy.php:221
+#, fuzzy
+msgid "Order ID"
+msgstr "Bestel ID"
+
+#: includes/admin/traits/trait-admin-pages.php:377
+#, fuzzy
+msgid "Lookup Order"
+msgstr "Opzoekvolgorde"
+
+#: includes/admin/traits/trait-admin-pages.php:392
+#, fuzzy
+msgid ""
+"Capture temporary dispatch traces and normalized event intake entries for "
+"debugging."
+msgstr "Leg tijdelijke verzendingssporen en genormaliseerde gebeurtenisinvoergegevens vast voor foutopsporing."
+
+#: includes/admin/traits/trait-admin-pages.php:411
+#, fuzzy
+msgid "Data Management"
+msgstr "Gegevensbeheer"
+
+#: includes/admin/traits/trait-admin-pages.php:412
+#, fuzzy
+msgid ""
+"Purge local tracking data, including events, queue rows, and diagnostic "
+"buffers. This cannot be undone."
+msgstr "Lokale trackinggegevens opschonen, inclusief gebeurtenissen, wachtrijrijen en diagnostische buffers. Dit kan niet ongedaan worden gemaakt."
+
+#: includes/admin/traits/trait-admin-pages.php:418
+#, fuzzy
+msgid "Purge Tracking Data"
+msgstr "Trackinggegevens opschonen"
+
+#: includes/admin/traits/trait-admin-pages.php:429
+#, fuzzy
+msgid "Failure Telemetry"
+msgstr "Mislukte telemetrie"
+
+#. translators: %d: total failures.
+#: includes/admin/traits/trait-admin-pages.php:434
+#, fuzzy, php-format
+msgid "Failure-only aggregated counters. Total failures tracked: %d."
+msgstr "Alleen mislukte geaggregeerde tellers. Totaal aantal bijgehouden fouten: %d."
+
+#: includes/admin/traits/trait-admin-pages.php:446
+#, fuzzy
+msgid "Hour Bucket"
+msgstr "Uur emmer"
+
+#: includes/admin/traits/trait-admin-pages.php:447
+#, fuzzy
+msgid "Total Failures"
+msgstr "Totaal aantal mislukkingen"
+
+#: includes/admin/traits/trait-admin-pages.php:448
+#, fuzzy
+msgid "Codes"
+msgstr "Codes"
+
+#: includes/admin/traits/trait-admin-pages.php:477
+#, fuzzy
+msgid "No failures recorded yet."
+msgstr "Er zijn nog geen storingen geregistreerd."
+
+#: includes/admin/traits/trait-admin-pages.php:490
+#, fuzzy
+msgid "Queue Backlog Details"
+msgstr "Details wachtrijachterstand"
+
+#: includes/admin/traits/trait-admin-pages.php:491
+#, fuzzy
+msgid "Current state of the retry queue used for failed dispatch attempts."
+msgstr "Huidige status van de wachtrij voor nieuwe pogingen die wordt gebruikt voor mislukte verzendpogingen."
+
+#: includes/admin/traits/trait-admin-pages.php:499
+#, fuzzy
+msgid "Queue Ready"
+msgstr "Wachtrij gereed"
+
+#: includes/admin/traits/trait-admin-pages.php:500
+#, fuzzy
+msgid "Yes"
+msgstr "Ja"
+
+#: includes/admin/traits/trait-admin-pages.php:500
+#, fuzzy
+msgid "No"
+msgstr "Nee"
+
+#: includes/admin/traits/trait-admin-pages.php:503
+#, fuzzy
+msgid "Pending Events"
+msgstr "Gebeurtenissen in behandeling"
+
+#: includes/admin/traits/trait-admin-pages.php:507
+#, fuzzy
+msgid "Due Now"
+msgstr "Nu verschuldigd"
+
+#: includes/admin/traits/trait-admin-pages.php:511
+#, fuzzy
+msgid "Max Attempts in Queue"
+msgstr "Max. aantal pogingen in wachtrij"
+
+#: includes/admin/traits/trait-admin-pages.php:515
+#, fuzzy
+msgid "Oldest Next Attempt"
+msgstr "Oudste volgende poging"
+
+#: includes/admin/traits/trait-admin-pages.php:519
+#, fuzzy
+msgid "Failed (dead-letter)"
+msgstr "Mislukt (dode letter)"
+
+#: includes/admin/traits/trait-admin-pages.php:525
+#, fuzzy
+msgid "Retry Failed Deliveries"
+msgstr "Probeer mislukte leveringen opnieuw"
+
+#: includes/admin/traits/trait-admin-pages.php:536
+#, fuzzy
+msgid "Recent Event Intake"
+msgstr "Recente evenementenintake"
+
+#: includes/admin/traits/trait-admin-pages.php:537
+#, fuzzy
+msgid "Last normalized event intake entries captured during the debug window."
+msgstr "Laatste genormaliseerde gebeurtenisinvoer die is vastgelegd tijdens het foutopsporingsvenster."
+
+#: includes/admin/traits/trait-admin-pages.php:545
+#: includes/admin/traits/trait-admin-pages.php:600
+#, fuzzy
+msgid "Time"
+msgstr "Tijd"
+
+#: includes/admin/traits/trait-admin-pages.php:546
+#, fuzzy
+msgid "Kind"
+msgstr "Soort"
+
+#: includes/admin/traits/trait-admin-pages.php:547
+#: includes/admin/traits/trait-admin-pages.php:601
+#: includes/privacy/class-privacy-handler.php:638
+#, fuzzy
+msgid "Event"
+msgstr "Evenement"
+
+#: includes/admin/traits/trait-admin-pages.php:548
+#: includes/admin/traits/trait-admin-pages.php:604
+#, fuzzy
+msgid "Status"
+msgstr "Status"
+
+#: includes/admin/traits/trait-admin-pages.php:549
+#, fuzzy
+msgid "Reason"
+msgstr "Reden"
+
+#: includes/admin/traits/trait-admin-pages.php:551
+#, fuzzy
+msgid "Attribution Keys"
+msgstr "Attributiesleutels"
+
+#: includes/admin/traits/trait-admin-pages.php:552
+#, fuzzy
+msgid "Identity Keys"
+msgstr "Identiteitssleutels"
+
+#: includes/admin/traits/trait-admin-pages.php:578
+#, fuzzy
+msgid ""
+"No normalized intake entries recorded yet. Enable Debug Logging and "
+"reproduce an event."
+msgstr "Er zijn nog geen genormaliseerde innamegegevens geregistreerd. Schakel Debug Logging in en reproduceer een gebeurtenis."
+
+#: includes/admin/traits/trait-admin-pages.php:591
+#, fuzzy
+msgid "Recent Dispatches"
+msgstr "Recente verzendingen"
+
+#: includes/admin/traits/trait-admin-pages.php:592
+#, fuzzy
+msgid "Dispatch entries are captured only while Debug Logging is enabled."
+msgstr "Verzendingsgegevens worden alleen vastgelegd als Foutopsporingsregistratie is ingeschakeld."
+
+#: includes/admin/traits/trait-admin-pages.php:602
+#, fuzzy
+msgid "Event ID"
+msgstr "Evenement ID"
+
+#: includes/admin/traits/trait-admin-pages.php:603
+#, fuzzy
+msgid "Adapter"
+msgstr "Adapter"
+
+#: includes/admin/traits/trait-admin-pages.php:605
+#, fuzzy
+msgid "HTTP"
+msgstr "HTTP"
+
+#: includes/admin/traits/trait-admin-pages.php:606
+#, fuzzy
+msgid "Endpoint"
+msgstr "Eindpunt"
+
+#: includes/admin/traits/trait-admin-pages.php:607
+#, fuzzy
+msgid "Message"
+msgstr "Bericht"
+
+#: includes/admin/traits/trait-admin-pages.php:627
+#, fuzzy
+msgid "No dispatches recorded yet."
+msgstr "Er zijn nog geen verzendingen geregistreerd."
+
+#: includes/admin/traits/trait-admin-pages.php:651
+#, fuzzy
+msgid "ClickTrail Logs"
+msgstr "ClickTrail Logboeken"
+
+#: includes/admin/traits/trait-admin-pages.php:675
+#, fuzzy
+msgid "Run the scan to review likely setup conflicts."
+msgstr "Voer de scan uit om waarschijnlijke installatieconflicten te bekijken."
+
+#: includes/admin/traits/trait-admin-pages.php:715
+#, fuzzy
+msgid "Lookup an order to inspect stored purchase and milestone traces."
+msgstr "Zoek een bestelling op om opgeslagen aankoop- en mijlpaalsporen te inspecteren."
+
+#. translators: %d: WooCommerce order ID.
+#: includes/admin/traits/trait-admin-pages.php:732
+#, fuzzy, php-format
+msgid "Order #%d"
+msgstr "Bestel #%d"
+
+#: includes/admin/traits/trait-admin-pages.php:753
+#, fuzzy
+msgid "Stored trace"
+msgstr "Opgeslagen spoor"
+
+#: includes/admin/traits/trait-admin-pages.php:765
+#, fuzzy
+msgid ""
+"No attribution was captured for this order because marketing consent was not "
+"granted when it fired. This is expected when \"Enable consent mode\" is on "
+"under Settings → Delivery → Privacy & consent. Turn it off there if you "
+"don't need consent-gated attribution."
+msgstr "Er is geen toeschrijving vastgelegd voor dit bevel, omdat er geen marketingtoestemming werd verleend toen het bevel werd afgevuurd. Dit wordt verwacht wanneer 'Toestemmingsmodus inschakelen' is ingeschakeld onder Instellingen → Levering → Privacy en toestemming. Schakel het daar uit als u geen toestemmingsafhankelijke attributie nodig heeft."
+
+#: includes/admin/traits/trait-admin-pages.php:775
+#, fuzzy
+msgid "Source Hook"
+msgstr "Bron haak"
+
+#: includes/admin/traits/trait-admin-pages.php:779
+#, fuzzy
+msgid "Attempted At"
+msgstr "Poging tot"
+
+#: includes/admin/traits/trait-admin-pages.php:783
+#, fuzzy
+msgid "Dispatch Result"
+msgstr "Resultaat van verzending"
+
+#: includes/admin/traits/trait-admin-pages.php:787
+#, fuzzy
+msgid "Dispatch Detail"
+msgstr "Verzendingsdetails"
+
+#: includes/admin/traits/trait-admin-pages.php:791
+#, fuzzy
+msgid "Queue State"
+msgstr "Wachtrij staat"
+
+#: includes/admin/traits/trait-admin-pages.php:795
+#, fuzzy
+msgid "Queue Detail"
+msgstr "Wachtrijdetails"
+
+#: includes/api/class-tracking-controller.php:522
+#: includes/api/class-tracking-controller.php:644
+#, fuzzy
+msgid "Payload too large."
+msgstr "Laadvermogen te groot."
+
+#: includes/class-clicutcl-core.php:81
+#, fuzzy
+msgid ""
+"ClickTrail failed to boot: missing class CLICUTCL\\Core\\Context. Check your "
+"autoloader mapping and release ZIP contents."
+msgstr "ClickTrail kan niet opstarten: ontbrekende klasse CLICUTCL\\Core\\Context. Controleer uw autoloader-toewijzing en geef de ZIP-inhoud vrij."
+
+#: includes/class-clicutcl-core.php:283
+#, fuzzy
+msgid "We use cookies to improve your experience and analyze traffic."
+msgstr "Wij gebruiken cookies om uw ervaring te verbeteren en het verkeer te analyseren."
+
+#: includes/class-clicutcl-core.php:284
+#, fuzzy
+msgid "Read more"
+msgstr "Lees meer"
+
+#: includes/class-clicutcl-core.php:285
+#, fuzzy
+msgid "Accept All"
+msgstr "Accepteer alles"
+
+#: includes/class-clicutcl-core.php:286
+#, fuzzy
+msgid "Reject Non-Essential"
+msgstr "Niet-essentieel afwijzen"
+
+#: includes/class-clicutcl-core.php:595
+#, fuzzy
+msgid "Shop"
+msgstr "Winkel"
+
+#. translators: %s: search query.
+#: includes/class-clicutcl-core.php:622
+#, fuzzy, php-format
+msgid "Search: %s"
+msgstr "Zoeken: %s"
+
+#: includes/class-clicutcl-core.php:625
+#, fuzzy
+msgid "Search Results"
+msgstr "Zoekresultaten"
+
+#: includes/integrations/forms/class-gf-form-settings-tab.php:74
+#, fuzzy
+msgid "Attribution Tracking"
+msgstr "Attributie bijhouden"
+
+#: includes/integrations/forms/class-gf-form-settings-tab.php:78
+#, fuzzy
+msgid "Enable attribution tracking for this form"
+msgstr "Schakel het bijhouden van attributies in voor dit formulier"
+
+#: includes/integrations/forms/class-ninja-forms-submission-extra-handler.php:96
+#, fuzzy
+msgid "ClickTrail Attribution"
+msgstr "ClickTrail Attributie"
+
+#: includes/privacy/class-privacy-handler.php:58
+#: includes/privacy/class-privacy-handler.php:73
+#, fuzzy
+msgid "ClickTrail Tracking Data"
+msgstr "ClickTrail Traceringsgegevens"
+
+#: includes/privacy/class-privacy-handler.php:130
+#, fuzzy
+msgid "ClickTrail Events"
+msgstr "ClickTrail Gebeurtenissen"
+
+#: includes/privacy/class-privacy-handler.php:142
+#, fuzzy
+msgid "Event Data"
+msgstr "Gebeurtenisgegevens"
+
+#: includes/privacy/class-privacy-handler.php:242
+#: includes/privacy/class-privacy-handler.php:246
+#, fuzzy
+msgid "Some ClickTrail event records could not be deleted."
+msgstr "Sommige ClickTrail gebeurtenisrecords konden niet worden verwijderd."
+
+#. translators: %s: database error message.
+#: includes/privacy/class-privacy-handler.php:251
+#, fuzzy, php-format
+msgid "Database error: %s"
+msgstr "Databasefout: %s"
+
+#: includes/privacy/class-privacy-handler.php:420
+#: includes/privacy/class-privacy-handler.php:448
+#, fuzzy
+msgid "ClickTrail Debug Storage"
+msgstr "ClickTrail Foutopsporing in opslag"
+
+#: includes/privacy/class-privacy-handler.php:424
+#: includes/privacy/class-privacy-handler.php:452
+#, fuzzy
+msgid "Storage Type"
+msgstr "Opslagtype"
+
+#: includes/privacy/class-privacy-handler.php:428
+#: includes/privacy/class-privacy-handler.php:456
+#, fuzzy
+msgid "Storage Key"
+msgstr "Opslagsleutel"
+
+#: includes/privacy/class-privacy-handler.php:432
+#: includes/privacy/class-privacy-handler.php:460
+#, fuzzy
+msgid "Data Snapshot"
+msgstr "Gegevensmomentopname"
+
+#: includes/privacy/class-privacy-handler.php:493
+#, fuzzy
+msgid "Some ClickTrail transient debug records could not be deleted."
+msgstr "Sommige ClickTrail tijdelijke foutopsporingsrecords konden niet worden verwijderd."
+
+#: includes/privacy/class-privacy-handler.php:520
+#, fuzzy
+msgid "Some ClickTrail option debug records could not be updated."
+msgstr "Sommige foutopsporingsrecords voor de optie ClickTrail konden niet worden bijgewerkt."
+
+#: includes/privacy/class-privacy-handler.php:529
+#, fuzzy
+msgid "Some ClickTrail option debug records could not be deleted."
+msgstr "Sommige foutopsporingsrecords voor de optie ClickTrail konden niet worden verwijderd."
+
+#: includes/privacy/class-privacy-handler.php:579
+#, fuzzy
+msgid "Some ClickTrail queued delivery records could not be deleted."
+msgstr "Sommige ClickTrail leveringsrecords in de wachtrij konden niet worden verwijderd."
+
+#: includes/privacy/class-privacy-handler.php:634
+#, fuzzy
+msgid "ClickTrail Touch Events"
+msgstr "ClickTrail Raak Gebeurtenissen aan"
+
+#: includes/privacy/class-privacy-handler.php:642
+#, fuzzy
+msgid "Funnel Stage"
+msgstr "Trechterfase"
+
+#: includes/privacy/class-privacy-handler.php:646
+#, fuzzy
+msgid "Source Channel"
+msgstr "Bronkanaal"
+
+#: includes/privacy/class-privacy-handler.php:650
+#, fuzzy
+msgid "Touch Source"
+msgstr "Raak Bron aan"
+
+#: includes/privacy/class-privacy-handler.php:654
+#, fuzzy
+msgid "Touch Medium"
+msgstr "Raak Medium aan"
+
+#: includes/privacy/class-privacy-handler.php:658
+#, fuzzy
+msgid "Touch Campaign"
+msgstr "Raak Campagne aan"
+
+#: includes/privacy/class-privacy-handler.php:666
+#, fuzzy
+msgid "Amount"
+msgstr "Bedrag"
+
+#: includes/privacy/class-privacy-handler.php:670
+#, fuzzy
+msgid "Currency"
+msgstr "Valuta"
+
+#: includes/privacy/class-privacy-handler.php:719
+#, fuzzy
+msgid "Some ClickTrail touch event records could not be deleted."
+msgstr "Sommige ClickTrail-aanraakgebeurtenisrecords konden niet worden verwijderd."
+
+#: includes/privacy/class-woo-order-privacy.php:217
+#, fuzzy
+msgid "ClickTrail WooCommerce Order Data"
+msgstr "ClickTrail WooCommerce Bestelgegevens"
+
+#: includes/privacy/class-woo-order-privacy.php:225
+#, fuzzy
+msgid "Metadata Key"
+msgstr "Metagegevenssleutel"
+
+#: includes/privacy/class-woo-order-privacy.php:229
+#, fuzzy
+msgid "Metadata Value"
+msgstr "Metagegevenswaarde"
+
+#: includes/privacy/class-woo-order-privacy.php:297
+#: includes/privacy/class-woo-order-privacy.php:304
+#, fuzzy
+msgid "Some ClickTrail WooCommerce order metadata could not be deleted."
+msgstr "Sommige ClickTrail WooCommerce metagegevens van bestellingen konden niet worden verwijderd."
+
+#: includes/server-side/class-queue.php:103
+#, fuzzy
+msgid "Every 5 Minutes"
+msgstr "Elke 5 minuten"
+
+#: assets/js/admin-settings-app.js:243 assets/js/admin-settings-app.js:868
+#, fuzzy
+msgid "Ready"
+msgstr "Klaar"
+
+#: assets/js/admin-settings-app.js:243 assets/js/admin-settings-app.js:868
+#, fuzzy
+msgid "Needs Review"
+msgstr "Moet worden beoordeeld"
+
+#: assets/js/admin-settings-app.js:243
+#, fuzzy
+msgid "Unavailable"
+msgstr "Niet beschikbaar"
+
+#: assets/js/admin-settings-app.js:243 assets/js/admin-settings-app.js:868
+#, fuzzy
+msgid "Optional"
+msgstr "Optioneel"
+
+#: assets/js/admin-settings-app.js:269
+#, fuzzy
+msgid "Setup Checklist"
+msgstr "Installatiechecklist"
+
+#: assets/js/admin-settings-app.js:270
+#, fuzzy
+msgid ""
+"Read-only readiness checks for rollout, delivery, and WooCommerce coverage."
+msgstr "Alleen-lezen gereedheidscontroles voor uitrol, levering en WooCommerce-dekking."
+
+#: assets/js/admin-settings-app.js:439
+#, fuzzy
+msgid "Settings reloaded."
+msgstr "Instellingen opnieuw geladen."
+
+#: assets/js/admin-settings-app.js:445
+#, fuzzy
+msgid "Failed to reload settings."
+msgstr "Kan de instellingen niet opnieuw laden."
+
+#: assets/js/admin-settings-app.js:472
+#, fuzzy
+msgid "Failed to save settings."
+msgstr "Kan instellingen niet opslaan."
+
+#: assets/js/admin-settings-app.js:496
+#, fuzzy
+msgid "Failed to run sGTM preview checks."
+msgstr "Kan sGTM-voorbeeldcontroles niet uitvoeren."
+
+#: assets/js/admin-settings-app.js:634
+#, fuzzy
+msgid "Core tracking"
+msgstr "Kerntracking"
+
+#: assets/js/admin-settings-app.js:635
+#, fuzzy
+msgid ""
+"Enable attribution tracking and choose how long visit source data should be "
+"stored."
+msgstr "Schakel het bijhouden van attributies in en kies hoe lang de brongegevens van bezoeken moeten worden bewaard."
+
+#: assets/js/admin-settings-app.js:637
+#, fuzzy
+msgid "Enable attribution tracking"
+msgstr "Schakel het bijhouden van attributies in"
+
+#: assets/js/admin-settings-app.js:637
+#, fuzzy
+msgid "Capture campaign and referral data for each visit."
+msgstr "Leg campagne- en verwijzingsgegevens vast voor elk bezoek."
+
+#: assets/js/admin-settings-app.js:638
+#, fuzzy
+msgid "Attribution retention (days)"
+msgstr "Attributieretentie (dagen)"
+
+#: assets/js/admin-settings-app.js:638
+#, fuzzy
+msgid "How long attribution data should be stored."
+msgstr "Hoe lang attributiegegevens moeten worden bewaard."
+
+#: assets/js/admin-settings-app.js:646
+#, fuzzy
+msgid "Cross-domain attribution"
+msgstr "Attributie tussen domeinen"
+
+#: assets/js/admin-settings-app.js:647
+#, fuzzy
+msgid ""
+"Preserve attribution when visitors move between your domains or subdomains."
+msgstr "Behoud attributie wanneer bezoekers zich tussen uw domeinen of subdomeinen verplaatsen."
+
+#: assets/js/admin-settings-app.js:649
+#, fuzzy
+msgid "Decorate outgoing links"
+msgstr "Versier uitgaande links"
+
+#: assets/js/admin-settings-app.js:649
+#, fuzzy
+msgid "Append attribution parameters to approved links."
+msgstr "Voeg attributieparameters toe aan goedgekeurde links."
+
+#: assets/js/admin-settings-app.js:650
+#, fuzzy
+msgid "Allowed cross-domain destinations"
+msgstr "Toegestane bestemmingen tussen verschillende domeinen"
+
+#: assets/js/admin-settings-app.js:650
+#, fuzzy
+msgid "Domains where attribution parameters may be added."
+msgstr "Domeinen waar attributieparameters kunnen worden toegevoegd."
+
+#: assets/js/admin-settings-app.js:654
+#, fuzzy
+msgid "Do not modify signed URLs"
+msgstr "Wijzig de ondertekende URL's niet"
+
+#: assets/js/admin-settings-app.js:654
+#, fuzzy
+msgid ""
+"Recommended when links contain temporary signatures or protected access "
+"tokens."
+msgstr "Aanbevolen wanneer koppelingen tijdelijke handtekeningen of beschermde toegangstokens bevatten."
+
+#: assets/js/admin-settings-app.js:656 assets/js/admin-settings-app.js:701
+#: assets/js/admin-settings-app.js:705 assets/js/admin-settings-app.js:709
+#, fuzzy
+msgid "Recommended"
+msgstr "Aanbevolen"
+
+#: assets/js/admin-settings-app.js:658
+#, fuzzy
+msgid "Pass cross-domain attribution token"
+msgstr "Geef een attributietoken voor meerdere domeinen door"
+
+#: assets/js/admin-settings-app.js:658
+#, fuzzy
+msgid ""
+"Adds a temporary token to preserve attribution across approved domains. No "
+"personal data is included."
+msgstr "Voegt een tijdelijk token toe om de attributie binnen goedgekeurde domeinen te behouden. Er zijn geen persoonlijke gegevens opgenomen."
+
+#: assets/js/admin-settings-app.js:673
+#, fuzzy
+msgid "Enable this source and accept signed webhook submissions."
+msgstr "Schakel deze bron in en accepteer ondertekende webhookinzendingen."
+
+#: assets/js/admin-settings-app.js:682
+#, fuzzy
+msgid "Signing secret"
+msgstr "Ondertekening geheim"
+
+#: assets/js/admin-settings-app.js:683
+#, fuzzy
+msgid "Leave unchanged to keep the current secret."
+msgstr "Laat het ongewijzigd om het huidige geheim te behouden."
+
+#: assets/js/admin-settings-app.js:699
+#, fuzzy
+msgid "On-site form capture"
+msgstr "Formulierregistratie op locatie"
+
+#: assets/js/admin-settings-app.js:700
+#, fuzzy
+msgid ""
+"Recommended settings to keep attribution attached to forms on cached pages "
+"and dynamic sites."
+msgstr "Aanbevolen instellingen om attributie gekoppeld te houden aan formulieren op in het cachegeheugen opgeslagen pagina's en dynamische sites."
+
+#: assets/js/admin-settings-app.js:704
+#, fuzzy
+msgid "Client-side capture fallback"
+msgstr "Terugval bij vastleggen aan de clientzijde"
+
+#: assets/js/admin-settings-app.js:704
+#, fuzzy
+msgid "Recommended for cached or highly optimized pages."
+msgstr "Aanbevolen voor gecachte of sterk geoptimaliseerde pagina's."
+
+#: assets/js/admin-settings-app.js:707
+#, fuzzy
+msgid "Watch dynamic content"
+msgstr "Bekijk dynamische inhoud"
+
+#: assets/js/admin-settings-app.js:707
+#, fuzzy
+msgid "Detect forms and links added after page load."
+msgstr "Detecteer formulieren en links die zijn toegevoegd nadat de pagina is geladen."
+
+#: assets/js/admin-settings-app.js:711
+#, fuzzy
+msgid "Replace existing attribution values"
+msgstr "Vervang bestaande attributiewaarden"
+
+#: assets/js/admin-settings-app.js:711
+#, fuzzy
+msgid "Use newly detected values even if attribution was already stored."
+msgstr "Gebruik nieuw gedetecteerde waarden, zelfs als de toeschrijving al was opgeslagen."
+
+#: assets/js/admin-settings-app.js:719
+#, fuzzy
+msgid "WhatsApp"
+msgstr "WhatsAppen"
+
+#: assets/js/admin-settings-app.js:720
+#, fuzzy
+msgid ""
+"Carry attribution into outbound WhatsApp clicks and pre-filled messages."
+msgstr "Draag attributie over in uitgaande WhatsApp-klikken en vooraf ingevulde berichten."
+
+#: assets/js/admin-settings-app.js:724
+#, fuzzy
+msgid "Enable WhatsApp tracking"
+msgstr "Schakel WhatsApp-tracking in"
+
+#: assets/js/admin-settings-app.js:724
+#, fuzzy
+msgid "Track clicks on WhatsApp links and buttons."
+msgstr "Houd klikken op WhatsApp-links en -knoppen bij."
+
+#: assets/js/admin-settings-app.js:725
+#, fuzzy
+msgid "Append attribution to message"
+msgstr "Toeschrijving aan bericht toevoegen"
+
+#: assets/js/admin-settings-app.js:725
+#, fuzzy
+msgid "Add attribution details to the pre-filled WhatsApp message."
+msgstr "Voeg attributiegegevens toe aan het vooraf ingevulde WhatsApp-bericht."
+
+#: assets/js/admin-settings-app.js:733
+#, fuzzy
+msgid "External form sources"
+msgstr "Externe formulierbronnen"
+
+#: assets/js/admin-settings-app.js:734
+#, fuzzy
+msgid ""
+"Accept attributed submissions from supported providers without exposing raw "
+"engineering controls."
+msgstr "Accepteer toegeschreven inzendingen van ondersteunde providers zonder ruwe technische controles bloot te leggen."
+
+#: assets/js/admin-settings-app.js:736
+#, fuzzy
+msgid "Accept external form source webhooks"
+msgstr "Accepteer webhooks voor externe formulierbronnen"
+
+#: assets/js/admin-settings-app.js:736
+#, fuzzy
+msgid "Enable signed inbound submissions from supported providers."
+msgstr "Schakel ondertekende inkomende inzendingen van ondersteunde providers in."
+
+#: assets/js/admin-settings-app.js:745
+#, fuzzy
+msgid "Advanced technical options"
+msgstr "Geavanceerde technische opties"
+
+#: assets/js/admin-settings-app.js:746
+#, fuzzy
+msgid ""
+"Only change these if you need more control over how the browser watches the "
+"page."
+msgstr "Wijzig deze alleen als u meer controle nodig heeft over hoe de browser de pagina bekijkt."
+
+#: assets/js/admin-settings-app.js:749 assets/js/admin-settings-app.js:1098
+#, fuzzy
+msgid "Advanced"
+msgstr "Geavanceerd"
+
+#: assets/js/admin-settings-app.js:752
+#, fuzzy
+msgid "Dynamic content root selector"
+msgstr "Dynamische hoofdkiezer voor inhoud"
+
+#: assets/js/admin-settings-app.js:752
+#, fuzzy
+msgid ""
+"Defaults to body. Narrow this only if you need to watch a specific part of "
+"the page."
+msgstr "Standaard ingesteld op body. Beperk dit alleen als u een specifiek deel van de pagina wilt bekijken."
+
+#: assets/js/admin-settings-app.js:766
+#, fuzzy
+msgid ""
+"Mark this destination when another relay or downstream collector owns final "
+"delivery."
+msgstr "Markeer deze bestemming wanneer een andere relais of stroomafwaartse inzamelaar eigenaar is van de eindlevering."
+
+#: assets/js/admin-settings-app.js:769
+#, fuzzy
+msgid ""
+"Send eligible events to this destination when the matching delivery adapter "
+"or downstream collector is configured."
+msgstr "Verzend in aanmerking komende gebeurtenissen naar deze bestemming wanneer de overeenkomende bezorgingsadapter of downstreamcollector is geconfigureerd."
+
+#: assets/js/admin-settings-app.js:785
+#, fuzzy
+msgid ""
+"ClickTrail uses one unified event pipeline behind the scenes for browser "
+"events, webhooks, and server delivery. Configure the capabilities you use "
+"without worrying about the internal pipeline."
+msgstr "ClickTrail gebruikt één uniforme gebeurtenispijplijn achter de schermen voor browsergebeurtenissen, webhooks en serverlevering. Configureer de mogelijkheden die u gebruikt, zonder u zorgen te hoeven maken over de interne pijplijn."
+
+#: assets/js/admin-settings-app.js:791
+#, fuzzy
+msgid "Event collection"
+msgstr "Evenement collectie"
+
+#: assets/js/admin-settings-app.js:792
+#, fuzzy
+msgid ""
+"Control browser event collection and choose whether GTM should load in "
+"standard or sGTM compatibility mode."
+msgstr "Beheer het verzamelen van browsergebeurtenissen en kies of GTM in de standaard- of sGTM-compatibiliteitsmodus moet worden geladen."
+
+#: assets/js/admin-settings-app.js:794
+#, fuzzy
+msgid "Enable browser event collection"
+msgstr "Schakel het verzamelen van browsergebeurtenissen in"
+
+#: assets/js/admin-settings-app.js:794
+#, fuzzy
+msgid ""
+"Collect page, click, and form events through ClickTrail's unified event "
+"layer."
+msgstr "Verzamel pagina-, klik- en formuliergebeurtenissen via de uniforme gebeurtenislaag van ClickTrail."
+
+#: assets/js/admin-settings-app.js:795
+#, fuzzy
+msgid "Google Tag Manager container ID"
+msgstr "Google Tag Manager container ID"
+
+#: assets/js/admin-settings-app.js:795
+#, fuzzy
+msgid "Use only if your site does not already load Google Tag Manager."
+msgstr "Gebruik dit alleen als uw site Google Tag Manager nog niet laadt."
+
+#: assets/js/admin-settings-app.js:798
+#, fuzzy
+msgid "GTM loader mode"
+msgstr "GTM ladermodus"
+
+#: assets/js/admin-settings-app.js:798
+#, fuzzy
+msgid ""
+"Use standard mode for the default Google host, or sGTM mode when you want a "
+"tagging-server URL or custom loader path."
+msgstr "Gebruik de standaardmodus voor de standaard Google-host, of de sGTM-modus als u een tagging-server URL of een aangepast laadpad wilt."
+
+#: assets/js/admin-settings-app.js:799
+#, fuzzy
+msgid "Standard GTM"
+msgstr "Standaard GTM"
+
+#: assets/js/admin-settings-app.js:800
+#, fuzzy
+msgid "sGTM compatibility mode"
+msgstr "sGTM compatibiliteitsmodus"
+
+#: assets/js/admin-settings-app.js:802
+#, fuzzy
+msgid "Used for first-party GTM delivery and preview checks in sGTM mode."
+msgstr "Wordt gebruikt voor directe GTM-levering en voorbeeldcontroles in de sGTM-modus."
+
+#: assets/js/admin-settings-app.js:806
+#, fuzzy
+msgid "Use first-party script delivery"
+msgstr "Gebruik eigen scriptlevering"
+
+#: assets/js/admin-settings-app.js:806
+#, fuzzy
+msgid ""
+"Load `gtm.js` and `ns.html` from the tagging server instead of the default "
+"Google host."
+msgstr "Laad `gtm.js` en `ns.html` vanaf de taggingserver in plaats van de standaard Google-host."
+
+#: assets/js/admin-settings-app.js:809
+#, fuzzy
+msgid "Use a custom loader path"
+msgstr "Gebruik een aangepast laderpad"
+
+#: assets/js/admin-settings-app.js:809
+#, fuzzy
+msgid ""
+"Prefer a same-site loader path when your sGTM setup rewrites GTM requests "
+"through a first-party URL."
+msgstr "Geef de voorkeur aan een laadpad op dezelfde site wanneer uw sGTM-installatie GTM-verzoeken herschrijft via een first-party URL."
+
+#: assets/js/admin-settings-app.js:812
+#, fuzzy
+msgid "Custom loader URL or path"
+msgstr "Aangepaste lader URL of pad"
+
+#: assets/js/admin-settings-app.js:812
+#, fuzzy
+msgid "Examples: `/metrics/gtm.js` or `https://metrics.example.com/gtm.js`."
+msgstr "Voorbeelden: `/metrics/gtm.js` of `https://metrics.example.com/gtm.js`."
+
+#: assets/js/admin-settings-app.js:819
+#, fuzzy
+msgid ""
+"sGTM mode changes only the loader path and preview workflow. ClickTrail "
+"still uses the same canonical event pipeline underneath."
+msgstr "De modus sGTM verandert alleen het laadpad en de voorbeeldworkflow. ClickTrail gebruikt nog steeds dezelfde canonieke gebeurtenispijplijn eronder."
+
+#: assets/js/admin-settings-app.js:820
+#, fuzzy
+msgid ""
+"Standard mode keeps the default Google Tag Manager loader. Switch to sGTM "
+"mode when you need a tagging-server URL, first-party delivery, or a custom "
+"loader path."
+msgstr "De standaardmodus behoudt de standaard Google Tag Manager-lader. Schakel over naar de modus sGTM als u een tagging-server URL, directe levering of een aangepast laadpad nodig heeft."
+
+#: assets/js/admin-settings-app.js:827
+#, fuzzy
+msgid "sGTM setup wizard"
+msgstr "sGTM installatiewizard"
+
+#: assets/js/admin-settings-app.js:828
+#, fuzzy
+msgid ""
+"Use this checklist when ClickTrail should cooperate with a server-side GTM "
+"stack without turning into a generic tag manager."
+msgstr "Gebruik deze checklist wanneer ClickTrail moet samenwerken met een server-side GTM-stack zonder te veranderen in een generieke tagmanager."
+
+#: assets/js/admin-settings-app.js:832
+#, fuzzy
+msgid ""
+"Recommended flow: set the web container, choose a tagging-server URL or "
+"custom loader, point Delivery to the sGTM adapter when ClickTrail sends "
+"server events, then verify ownership in GTM Preview."
+msgstr "Aanbevolen stroom: stel de webcontainer in, kies een tagging-server URL of aangepaste lader, wijs de levering naar de sGTM-adapter wanneer ClickTrail servergebeurtenissen verzendt en verifieer vervolgens het eigendom in GTM Preview."
+
+#: assets/js/admin-settings-app.js:838
+#, fuzzy
+msgid ""
+"Set the GTM web container ID for the site that owns the browser dataLayer."
+msgstr "Stel de GTM webcontainer ID in voor de site die eigenaar is van de browser dataLayer."
+
+#: assets/js/admin-settings-app.js:839
+#, fuzzy
+msgid ""
+"Choose a tagging-server URL for first-party delivery or a custom loader path "
+"if your stack rewrites GTM requests."
+msgstr "Kies een tagging-server URL voor directe levering of een aangepast laadpad als uw stapel GTM-verzoeken herschrijft."
+
+#: assets/js/admin-settings-app.js:840
+#, fuzzy
+msgid ""
+"When ClickTrail should send server events into sGTM, switch Delivery to the "
+"sGTM adapter and point it at the collector URL."
+msgstr "Wanneer ClickTrail servergebeurtenissen naar sGTM moet sturen, schakel dan de levering over naar de sGTM-adapter en wijs deze naar de collector URL."
+
+#: assets/js/admin-settings-app.js:841
+#, fuzzy
+msgid ""
+"Run preview checks here, then confirm the web and server containers receive "
+"the events you expect without duplicate ownership."
+msgstr "Voer hier preview-controles uit en bevestig vervolgens dat de web- en servercontainers de gebeurtenissen ontvangen die u verwacht, zonder dubbel eigendom."
+
+#: assets/js/admin-settings-app.js:850
+#, fuzzy
+msgid "Run Preview Checks"
+msgstr "Voer voorbeeldcontroles uit"
+
+#: assets/js/admin-settings-app.js:875
+#, fuzzy
+msgid "Destination template hints"
+msgstr "Tips voor bestemmingssjablonen"
+
+#: assets/js/admin-settings-app.js:886
+#, fuzzy
+msgid "WooCommerce"
+msgstr "WooCommerce"
+
+#: assets/js/admin-settings-app.js:887
+#, fuzzy
+msgid ""
+"Keep campaign context visible on WooCommerce orders and extend the same "
+"event pipeline into the storefront when you need it."
+msgstr "Houd de campagnecontext zichtbaar bij WooCommerce-bestellingen en breid dezelfde gebeurtenispijplijn uit naar de winkelpui wanneer u deze nodig heeft."
+
+#: assets/js/admin-settings-app.js:891
+#, fuzzy
+msgid ""
+"Order attribution is stored on WooCommerce orders during checkout, so "
+"campaign context remains available after the visitor leaves the landing page."
+msgstr "De bestellingsattributie wordt tijdens het afrekenen opgeslagen op WooCommerce-bestellingen, zodat de campagnecontext beschikbaar blijft nadat de bezoeker de landingspagina verlaat."
+
+#: assets/js/admin-settings-app.js:895
+#, fuzzy
+msgid ""
+"Purchase events are pushed automatically on the thank-you page and can also "
+"flow into ClickTrail's server-side delivery adapters when Delivery is "
+"enabled."
+msgstr "Aankoopgebeurtenissen worden automatisch op de bedankpagina gepusht en kunnen ook naar de bezorgadapters aan de serverzijde van ClickTrail stromen wanneer bezorging is ingeschakeld."
+
+#: assets/js/admin-settings-app.js:897
+#, fuzzy
+msgid "Enable WooCommerce storefront events"
+msgstr "Schakel WooCommerce winkelevenementen in"
+
+#: assets/js/admin-settings-app.js:897
+#, fuzzy
+msgid ""
+"Emit GA4-style `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, "
+"`remove_from_cart`, and `begin_checkout` events through ClickTrail's browser "
+"event layer. Existing installs keep this off until you enable it."
+msgstr "Zend GA4-stijl `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart` en `begin_checkout` gebeurtenissen uit via de browsergebeurtenislaag van ClickTrail. Bestaande installaties houden dit uitgeschakeld totdat u het inschakelt."
+
+#: assets/js/admin-settings-app.js:900
+#, fuzzy
+msgid "Use the richer Woo dataLayer contract"
+msgstr "Gebruik het rijkere Woo dataLayer contract"
+
+#: assets/js/admin-settings-app.js:900
+#, fuzzy
+msgid ""
+"Add `event_id` to Woo purchase pushes and make richer Woo browser events "
+"available for GTM-first setups."
+msgstr "Voeg `event_id` toe aan Woo aankooppushs en maak rijkere Woo browsergebeurtenissen beschikbaar voor GTM-eerste configuraties."
+
+#: assets/js/admin-settings-app.js:901
+#, fuzzy
+msgid "Include consent-aware Woo user_data"
+msgstr "Voeg toestemmingsbewuste Woo user_data toe"
+
+#: assets/js/admin-settings-app.js:901
+#, fuzzy
+msgid ""
+"Emit `user_data` objects with browser identifiers and purchase identity only "
+"when the richer contract is on and marketing consent is granted."
+msgstr "Zend `user_data`-objecten met browser-ID's en aankoopidentiteit alleen uit wanneer het rijkere contract is ingeschakeld en marketingtoestemming is verleend."
+
+#: assets/js/admin-settings-app.js:906
+#, fuzzy
+msgid ""
+"The richer contract is optional. ClickTrail still keeps Woo tracking on the "
+"same canonical pipeline and only widens the dataLayer shape for GTM-first "
+"workflows."
+msgstr "Het rijkere contract is optioneel. ClickTrail houdt nog steeds Woo tracking op dezelfde canonieke pijplijn en verbreedt alleen de dataLayer-vorm voor GTM-eerste workflows."
+
+#: assets/js/admin-settings-app.js:910
+#, fuzzy
+msgid ""
+"Verify WooCommerce order attribution in the order screen, storefront/browser "
+"events with GTM Preview or the dataLayer, and server-side traces from "
+"ClickTrail > Diagnostics."
+msgstr "Controleer de WooCommerce ordertoeschrijving in het orderscherm, storefront/browser-gebeurtenissen met GTM Preview of de dataLayer, en traceringen aan de serverzijde van ClickTrail > Diagnostiek."
+
+#: assets/js/admin-settings-app.js:917
+#, fuzzy
+msgid "Destinations"
+msgstr "Bestemmingen"
+
+#: assets/js/admin-settings-app.js:918
+#, fuzzy
+msgid ""
+"Choose which advertising platforms should receive compatible event payloads."
+msgstr "Kies welke advertentieplatforms compatibele evenementpayloads moeten ontvangen."
+
+#: assets/js/admin-settings-app.js:933
+#, fuzzy
+msgid "Lifecycle updates"
+msgstr "Levenscyclusupdates"
+
+#: assets/js/admin-settings-app.js:934
+#, fuzzy
+msgid ""
+"Accept lifecycle updates from your CRM or backend and route them through the "
+"same event pipeline."
+msgstr "Accepteer levenscyclusupdates van uw CRM of backend en leid ze door dezelfde gebeurtenispijplijn."
+
+#: assets/js/admin-settings-app.js:936
+#, fuzzy
+msgid "Accept lifecycle updates"
+msgstr "Accepteer levenscyclusupdates"
+
+#: assets/js/admin-settings-app.js:936
+#, fuzzy
+msgid "Allow lifecycle events to enter the unified event pipeline."
+msgstr "Sta toe dat levenscyclusgebeurtenissen de uniforme gebeurtenispijplijn binnenkomen."
+
+#: assets/js/admin-settings-app.js:937
+#, fuzzy
+msgid "Enable lifecycle endpoint"
+msgstr "Levenscycluseindpunt inschakelen"
+
+#: assets/js/admin-settings-app.js:937
+#, fuzzy
+msgid "Turn on the REST endpoint used by your CRM or backend."
+msgstr "Schakel het REST-eindpunt in dat door uw CRM of backend wordt gebruikt."
+
+#: assets/js/admin-settings-app.js:940
+#, fuzzy
+msgid "Lifecycle endpoint token"
+msgstr "Eindpunttoken voor de levenscyclus"
+
+#: assets/js/admin-settings-app.js:940
+#, fuzzy
+msgid "Leave unchanged to keep the current token."
+msgstr "Laat het ongewijzigd om het huidige token te behouden."
+
+#: assets/js/admin-settings-app.js:955
+#, fuzzy
+msgid "Delivery health"
+msgstr "Levering gezondheid"
+
+#: assets/js/admin-settings-app.js:956
+#, fuzzy
+msgid ""
+"Quick operational summary for queue health, recent delivery attempts, and "
+"debug state."
+msgstr "Snel operationeel overzicht van de status van de wachtrij, recente bezorgpogingen en de foutopsporingsstatus."
+
+#: assets/js/admin-settings-app.js:963
+#, fuzzy
+msgid ""
+"Server-side delivery is currently off. Historical diagnostics can still "
+"appear until their retention window expires."
+msgstr "Levering aan de serverzijde is momenteel uitgeschakeld. Historische diagnostiek kan nog steeds verschijnen totdat de bewaartermijn is verstreken."
+
+#: assets/js/admin-settings-app.js:970
+#, fuzzy
+msgid "Due now: "
+msgstr "Nu verschuldigd:"
+
+#: assets/js/admin-settings-app.js:985
+#, fuzzy
+msgid "Enable it from Diagnostics when you need a short trace window."
+msgstr "Schakel het in via Diagnostiek als u een kort traceringsvenster nodig hebt."
+
+#: assets/js/admin-settings-app.js:998
+#, fuzzy
+msgid "Open Logs"
+msgstr "Logboeken openen"
+
+#: assets/js/admin-settings-app.js:1007
+#, fuzzy
+msgid ""
+"Delivery controls cover transport, consent, queue health, and the safeguards "
+"that keep outbound tracking reliable. Most sites only need the server-side "
+"transport card and privacy controls."
+msgstr "Leveringscontroles omvatten transport, toestemming, wachtrijstatus en de waarborgen die de tracking van uitgaande goederen betrouwbaar houden. De meeste sites hebben alleen de transportkaart aan de serverzijde en privacycontroles nodig."
+
+#: assets/js/admin-settings-app.js:1014
+#, fuzzy
+msgid ""
+"This site is currently using network defaults for server-side delivery. "
+"Disable the network toggle below to customize this site independently."
+msgstr "Deze site gebruikt momenteel netwerkstandaarden voor levering aan de serverzijde. Schakel de onderstaande netwerkschakelaar uit om deze site onafhankelijk aan te passen."
+
+#: assets/js/admin-settings-app.js:1021
+#, fuzzy
+msgid "Server-side transport"
+msgstr "Transport aan de serverzijde"
+
+#: assets/js/admin-settings-app.js:1022
+#, fuzzy
+msgid ""
+"Route events through your own collector endpoint when you need a more "
+"durable delivery path."
+msgstr "Routeer gebeurtenissen via uw eigen verzameleindpunt als u een duurzamer leveringspad nodig heeft."
+
+#: assets/js/admin-settings-app.js:1025
+#, fuzzy
+msgid "Use network defaults"
+msgstr "Gebruik standaardnetwerkinstellingen"
+
+#: assets/js/admin-settings-app.js:1025
+#, fuzzy
+msgid "Use the multisite network configuration for this site."
+msgstr "Gebruik de multisite-netwerkconfiguratie voor deze site."
+
+#: assets/js/admin-settings-app.js:1027
+#, fuzzy
+msgid "Enable server-side delivery"
+msgstr "Schakel bezorging op de server in"
+
+#: assets/js/admin-settings-app.js:1027
+#, fuzzy
+msgid "Send events through your own collector endpoint."
+msgstr "Verzend gebeurtenissen via uw eigen verzameleindpunt."
+
+#: assets/js/admin-settings-app.js:1030
+#, fuzzy
+msgid "Collector URL"
+msgstr "Verzamelaar URL"
+
+#: assets/js/admin-settings-app.js:1030
+#, fuzzy
+msgid "Endpoint that receives server-side events."
+msgstr "Eindpunt dat gebeurtenissen aan de serverzijde ontvangt."
+
+#: assets/js/admin-settings-app.js:1034
+#, fuzzy
+msgid "Choose the format best suited to your receiving endpoint."
+msgstr "Kies het formaat dat het beste past bij uw ontvangende eindpunt."
+
+#: assets/js/admin-settings-app.js:1045
+#, fuzzy
+msgid "Request timeout (seconds)"
+msgstr "Time-out aanvragen (seconden)"
+
+#: assets/js/admin-settings-app.js:1045
+#, fuzzy
+msgid ""
+"How long ClickTrail should wait before treating a delivery attempt as failed."
+msgstr "Hoe lang ClickTrail moet wachten voordat een bezorgpoging als mislukt wordt beschouwd."
+
+#: assets/js/admin-settings-app.js:1049
+#, fuzzy
+msgid "Share anonymous failure counts"
+msgstr "Deel anonieme mislukkingsaantallen"
+
+#: assets/js/admin-settings-app.js:1049
+#, fuzzy
+msgid ""
+"Only aggregated failure counts are shared. No payloads or personal data are "
+"included."
+msgstr "Alleen de geaggregeerde aantallen mislukkingen worden gedeeld. Er zijn geen payloads of persoonlijke gegevens inbegrepen."
+
+#: assets/js/admin-settings-app.js:1057
+#, fuzzy
+msgid "Privacy & consent"
+msgstr "Privacy en toestemming"
+
+#: assets/js/admin-settings-app.js:1058
+#, fuzzy
+msgid ""
+"Control when tracking is allowed to start and which consent signals "
+"ClickTrail should use."
+msgstr "Controle wanneer tracking mag starten en welke toestemmingssignalen ClickTrail moet gebruiken."
+
+#: assets/js/admin-settings-app.js:1060
+#, fuzzy
+msgid "Enable consent mode"
+msgstr "Schakel de toestemmingsmodus in"
+
+#: assets/js/admin-settings-app.js:1060
+#, fuzzy
+msgid ""
+"Gate attribution and event collection until consent requirements are "
+"satisfied."
+msgstr "Poorttoeschrijving en gebeurtenisverzameling totdat aan de toestemmingsvereisten is voldaan."
+
+#: assets/js/admin-settings-app.js:1061
+#, fuzzy
+msgid "Consent behavior"
+msgstr "Toestemmingsgedrag"
+
+#: assets/js/admin-settings-app.js:1061
+#, fuzzy
+msgid ""
+"Choose whether consent is always required, never required, or region-based."
+msgstr "Kies of toestemming altijd vereist, nooit vereist of regiogebaseerd is."
+
+#: assets/js/admin-settings-app.js:1064
+#, fuzzy
+msgid "Strict"
+msgstr "Strikt"
+
+#: assets/js/admin-settings-app.js:1065
+#, fuzzy
+msgid "Relaxed"
+msgstr "Ontspannen"
+
+#: assets/js/admin-settings-app.js:1066
+#, fuzzy
+msgid "Region-based"
+msgstr "Regiogebaseerd"
+
+#: assets/js/admin-settings-app.js:1068
+#, fuzzy
+msgid "Regions requiring consent"
+msgstr "Regio's waarvoor toestemming vereist is"
+
+#: assets/js/admin-settings-app.js:1068
+#, fuzzy
+msgid "One region per line. Examples: EEA, UK, CA, US-CA."
+msgstr "Eén regio per lijn. Voorbeelden: EEA, UK, CA, US-CA."
+
+#: assets/js/admin-settings-app.js:1073
+#, fuzzy
+msgid "Consent source"
+msgstr "Toestemmingsbron"
+
+#: assets/js/admin-settings-app.js:1073
+#, fuzzy
+msgid ""
+"Which consent platform ClickTrail should listen to. ClickTrail buffers "
+"landing-page attribution to sessionStorage before consent resolves, so first-"
+"touch UTMs and click IDs are preserved even when the banner is accepted on a "
+"later page."
+msgstr "Naar welk toestemmingsplatform ClickTrail moet worden geluisterd. ClickTrail buffert de toewijzing van de bestemmingspagina aan sessionStorage voordat de toestemming wordt omgezet, dus de eerste aanraking op UTM en klik op IDs blijven behouden, zelfs als de banner op een latere pagina wordt geaccepteerd."
+
+#: assets/js/admin-settings-app.js:1077
+#, fuzzy
+msgid "ClickTrail plugin"
+msgstr "ClickTrail plug-in"
+
+#: assets/js/admin-settings-app.js:1078
+#, fuzzy
+msgid "Cookiebot"
+msgstr "Cookiebot"
+
+#: assets/js/admin-settings-app.js:1081
+#, fuzzy
+msgid "Google Tag Manager"
+msgstr "Google Tag Manager"
+
+#: assets/js/admin-settings-app.js:1082
+#, fuzzy
+msgid "Custom"
+msgstr "Aangepast"
+
+#: assets/js/admin-settings-app.js:1084
+#, fuzzy
+msgid "Consent wait time (ms)"
+msgstr "Wachttijd voor toestemming (ms)"
+
+#: assets/js/admin-settings-app.js:1084
+#, fuzzy
+msgid "How long ClickTrail should wait for a consent signal before continuing."
+msgstr "Hoe lang ClickTrail moet wachten op een toestemmingssignaal voordat hij verdergaat."
+
+#: assets/js/admin-settings-app.js:1094
+#, fuzzy
+msgid "Advanced delivery controls"
+msgstr "Geavanceerde leveringscontroles"
+
+#: assets/js/admin-settings-app.js:1095
+#, fuzzy
+msgid ""
+"Security, buffering, deduplication, and low-level transport controls for "
+"technical users."
+msgstr "Beveiliging, buffering, deduplicatie en transportcontroles op laag niveau voor technische gebruikers."
+
+#: assets/js/admin-settings-app.js:1101
+#, fuzzy
+msgid "Use native platform adapters"
+msgstr "Gebruik native platformadapters"
+
+#: assets/js/admin-settings-app.js:1101
+#, fuzzy
+msgid "Prefer ClickTrail's built-in platform adapters when available."
+msgstr "Geef de voorkeur aan de ingebouwde platformadapters van ClickTrail, indien beschikbaar."
+
+#: assets/js/admin-settings-app.js:1102
+#, fuzzy
+msgid "Store structured event diagnostics"
+msgstr "Sla gestructureerde gebeurtenisdiagnostiek op"
+
+#: assets/js/admin-settings-app.js:1102
+#, fuzzy
+msgid "Keep a structured intake buffer for troubleshooting and validation."
+msgstr "Houd een gestructureerde intakebuffer bij voor probleemoplossing en validatie."
+
+#: assets/js/admin-settings-app.js:1103
+#, fuzzy
+msgid "Encrypt saved secrets"
+msgstr "Versleutel opgeslagen geheimen"
+
+#: assets/js/admin-settings-app.js:1103
+#, fuzzy
+msgid "Encrypt stored secrets at rest when supported by the host environment."
+msgstr "Versleutel opgeslagen geheimen in rust indien ondersteund door de hostomgeving."
+
+#: assets/js/admin-settings-app.js:1104
+#, fuzzy
+msgid "Attribution token lifetime (seconds)"
+msgstr "Levensduur van attributietoken (seconden)"
+
+#: assets/js/admin-settings-app.js:1104
+#, fuzzy
+msgid "Controls how long attribution tokens remain valid."
+msgstr "Bepaalt hoe lang attributietokens geldig blijven."
+
+#: assets/js/admin-settings-app.js:1105
+#, fuzzy
+msgid "Maximum token replays (0 to disable)"
+msgstr "Maximale herhalingen van tokens (0 om uit te schakelen)"
+
+#: assets/js/admin-settings-app.js:1105
+#, fuzzy
+msgid "Cap how many times the same token nonce can be used."
+msgstr "Beperk het aantal keren dat hetzelfde token nonce kan worden gebruikt."
+
+#: assets/js/admin-settings-app.js:1106
+#, fuzzy
+msgid "Webhook replay protection window (seconds)"
+msgstr "Webhook-replay-beveiligingsvenster (seconden)"
+
+#: assets/js/admin-settings-app.js:1106
+#, fuzzy
+msgid "Reject webhook signatures that fall outside this replay window."
+msgstr "Weiger webhookhandtekeningen die buiten dit herhalingsvenster vallen."
+
+#: assets/js/admin-settings-app.js:1107
+#, fuzzy
+msgid "API rate limit window (seconds)"
+msgstr "API snelheidslimietvenster (seconden)"
+
+#: assets/js/admin-settings-app.js:1107
+#, fuzzy
+msgid "The time window used by intake rate limiting."
+msgstr "Het tijdvenster dat wordt gebruikt voor de beperking van de innamesnelheid."
+
+#: assets/js/admin-settings-app.js:1108
+#, fuzzy
+msgid "API requests allowed per window"
+msgstr "API verzoeken toegestaan per venster"
+
+#: assets/js/admin-settings-app.js:1108
+#, fuzzy
+msgid "Maximum requests allowed within the configured rate limit window."
+msgstr "Maximaal aantal toegestane verzoeken binnen het geconfigureerde tarieflimietvenster."
+
+#: assets/js/admin-settings-app.js:1109
+#, fuzzy
+msgid "Trusted proxy IPs or CIDR ranges"
+msgstr "Vertrouwde proxy-bereiken IPs of CIDR"
+
+#: assets/js/admin-settings-app.js:1109
+#, fuzzy
+msgid "One proxy per line. Only add proxies you control."
+msgstr "Eén proxy per lijn. Voeg alleen proxy's toe die u beheert."
+
+#: assets/js/admin-settings-app.js:1110
+#, fuzzy
+msgid "Allowed token hosts"
+msgstr "Toegestane tokenhosts"
+
+#: assets/js/admin-settings-app.js:1110
+#, fuzzy
+msgid "Hosts allowed to mint or receive attribution tokens. One host per line."
+msgstr "Hosts mogen attributietokens slaan of ontvangen. Eén host per lijn."
+
+#: assets/js/admin-settings-app.js:1111
+#, fuzzy
+msgid "Recent dispatch records kept"
+msgstr "Recente verzendingsgegevens worden bewaard"
+
+#: assets/js/admin-settings-app.js:1111
+#, fuzzy
+msgid "How many recent dispatch attempts should be kept for diagnostics."
+msgstr "Hoeveel recente verzendpogingen moeten worden bewaard voor diagnostiek."
+
+#: assets/js/admin-settings-app.js:1112
+#, fuzzy
+msgid "Failure summary flush interval (seconds)"
+msgstr "Storingsoverzicht spoelinterval (seconden)"
+
+#: assets/js/admin-settings-app.js:1112
+#, fuzzy
+msgid "How often failure counters are flushed into hourly telemetry buckets."
+msgstr "Hoe vaak fouttellers in telemetrie-buckets per uur worden gespoeld."
+
+#: assets/js/admin-settings-app.js:1113
+#, fuzzy
+msgid "Failure summary retention (hours)"
+msgstr "Retentie storingsoverzicht (uren)"
+
+#: assets/js/admin-settings-app.js:1113
+#, fuzzy
+msgid "How long failure telemetry buckets should be retained."
+msgstr "Hoe lang telemetriebuckets voor storingen moeten worden bewaard."
+
+#: assets/js/admin-settings-app.js:1114
+#, fuzzy
+msgid "Event deduplication window (seconds)"
+msgstr "Venster voor ontdubbeling van gebeurtenissen (seconden)"
+
+#: assets/js/admin-settings-app.js:1114
+#, fuzzy
+msgid "How long dispatch deduplication markers should be kept."
+msgstr "Hoe lang deduplicatiemarkeringen voor verzending moeten worden bewaard."
+
+#: assets/js/admin-settings-app.js:1189
+#, fuzzy
+msgid "Save Changes"
+msgstr "Wijzigingen opslaan"
+
+#: assets/js/admin-settings-app.js:1195
+#, fuzzy
+msgid "Reload Saved Settings"
+msgstr "Laad opgeslagen instellingen opnieuw"
