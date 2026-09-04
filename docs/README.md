@@ -41,6 +41,7 @@ If you are new to the plugin, read these in order:
 - [guides/COMPETITIVE-POSITIONING-AND-ACQUISITION-ROADMAP-2026-08-22.md](guides/COMPETITIVE-POSITIONING-AND-ACQUISITION-ROADMAP-2026-08-22.md): proposition, README copy, twelve-month commercial overlay, and client-acquisition plan
 - [RELEASE-PHASING-AND-INTEGRATION-DOCS.md](guides/RELEASE-PHASING-AND-INTEGRATION-DOCS.md): separately gated documentation, privacy, delivery, adapter, and reach releases
 - [guides/TRANSLATIONS.md](guides/TRANSLATIONS.md): verified locale status, GlotPress workflow, and translation release gates
+- [guides/TRANSLATION-CONTRIBUTIONS.md](guides/TRANSLATION-CONTRIBUTIONS.md): small-batch translation PRs and cross-repository contribution path
 
 ## I want to understand the runtime architecture
 

@@ -13,6 +13,7 @@ Before changing code or docs, find the canonical reference for the area you are 
 1. Read [README.md](README.md) for the repo entry points.
 2. Use [docs/README.md](docs/README.md) to find the correct technical source of truth.
 3. Check [.github/PULL_REQUEST_TEMPLATE.md](.github/PULL_REQUEST_TEMPLATE.md) before opening a PR.
+4. For locale work, follow [docs/guides/TRANSLATION-CONTRIBUTIONS.md](docs/guides/TRANSLATION-CONTRIBUTIONS.md).
 
 ## Local Workflow
 
@@ -69,6 +70,7 @@ Manual validation examples:
 - Integration changes: update [docs/reference/INTEGRATIONS.md](docs/reference/INTEGRATIONS.md) and the product readmes when the change is user-facing.
 - Architecture or boot flow changes: update [docs/architecture/PLUGIN-OVERVIEW.md](docs/architecture/PLUGIN-OVERVIEW.md) and [docs/architecture/CODE-MAP.md](docs/architecture/CODE-MAP.md).
 - Quality, cleanup, or dead-code posture changes: update [docs/guides/CODE-QUALITY.md](docs/guides/CODE-QUALITY.md) when the repository maintenance posture changes.
+- Translation changes: follow [docs/guides/TRANSLATION-CONTRIBUTIONS.md](docs/guides/TRANSLATION-CONTRIBUTIONS.md) and keep unreviewed drafts outside runtime catalogs.
 
 ## Source of Truth Rules
 
