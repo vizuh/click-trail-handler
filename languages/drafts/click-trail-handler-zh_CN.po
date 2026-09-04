@@ -1,0 +1,3394 @@
+# ClickTrail translation template
+# Copyright (C) 2026 Vizuh
+# This file is distributed under the same license as the ClickTrail package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: ClickTrail 1.10.0\n"
+"Report-Msgid-Bugs-To: https://github.com/vizuh/click-trail-handler/issues\n"
+"POT-Creation-Date: 2026-09-04 00:57+0100\n"
+"PO-Revision-Date: 2026-09-04 01:50+0100\n"
+"Last-Translator: Machine-assisted draft\n"
+"Language-Team: Simplified Chinese\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Domain: click-trail-handler\n"
+"X-Generator: Machine-assisted draft; native review required\n"
+"X-Translation-Status: Incomplete draft; not release-ready\n"
+
+#: clicutcl.php:207
+#, fuzzy
+msgid ""
+"ClickTrail could not start because a required class is missing. This usually "
+"means the release ZIP is missing files or the autoloader mapping is "
+"incorrect."
+msgstr "ClickTrail 无法启动，因为缺少所需的类。这通常意味着版本 ZIP 缺少文件或自动加载器映射不正确。"
+
+#: includes/Modules/GTM/class-gtm-settings.php:89
+#, fuzzy
+msgid "Invalid GTM Container ID format. Should be GTM-XXXXXX"
+msgstr "GTM 容器 ID 格式无效。应该是GTM-XXXXXX"
+
+#: includes/Modules/GTM/class-web-tag.php:86
+#, fuzzy
+msgid "Google Tag Manager snippet added by ClickTrail (sGTM mode)"
+msgstr "由 ClickTrail 添加的Google Tag Manager 片段（sGTM 模式）"
+
+#: includes/Modules/GTM/class-web-tag.php:87
+#, fuzzy
+msgid "Google Tag Manager snippet added by ClickTrail"
+msgstr "Google Tag Manager 由 ClickTrail 添加的代码片段"
+
+#: includes/Modules/GTM/class-web-tag.php:91
+#, fuzzy
+msgid "End Google Tag Manager snippet added by ClickTrail"
+msgstr "结束由 ClickTrail 添加的 Google Tag Manager 片段"
+
+#: includes/Modules/GTM/class-web-tag.php:112
+#, fuzzy
+msgid "Google Tag Manager (noscript) snippet added by ClickTrail"
+msgstr "由 ClickTrail 添加的Google Tag Manager（无脚本）片段"
+
+#: includes/Modules/GTM/class-web-tag.php:116
+#, fuzzy
+msgid "End Google Tag Manager (noscript) snippet added by ClickTrail"
+msgstr "结束 ClickTrail 添加的Google Tag Manager（无脚本）片段"
+
+#: includes/Modules/consent-mode/class-consent-mode.php:93
+#, fuzzy
+msgid "Google tag (gtag.js) consent mode dataLayer added by ClickTrail"
+msgstr "Google 标签 (gtag.js) 同意模式 dataLayer 添加者 ClickTrail"
+
+#: includes/Modules/consent-mode/class-consent-mode.php:103
+#, fuzzy
+msgid "End Google tag (gtag.js) consent mode dataLayer added by ClickTrail"
+msgstr "结束Google标签（gtag.js）同意模式dataLayer添加者ClickTrail"
+
+#: includes/admin/class-admin.php:108
+#, fuzzy
+msgid ""
+"ClickTrail: \"Encrypt secrets at rest\" is enabled, but this server is "
+"missing OpenSSL AES-256-GCM support, so provider secrets are stored in "
+"plaintext. Enable the OpenSSL extension on your host, or treat the stored "
+"secrets as unencrypted."
+msgstr "ClickTrail：启用“静态加密机密”，但此服务器缺少 OpenSSL AES-256-GCM 支持，因此提供者机密以明文形式存储。在主机上启用OpenSSL扩展，或将存储的机密视为未加密。"
+
+#: includes/admin/class-admin.php:118
+#, fuzzy
+msgid "ClickTrail Status"
+msgstr "ClickTrail 状态"
+
+#: includes/admin/class-admin.php:145
+#, fuzzy
+msgid "Attribution Cookie"
+msgstr "归因 Cookie"
+
+#: includes/admin/class-admin.php:146
+#, fuzzy
+msgid "Caching Status"
+msgstr "缓存状态"
+
+#: includes/admin/class-admin.php:147
+#, fuzzy
+msgid "Form Capture Fallback"
+msgstr "表单捕获回退"
+
+#: includes/admin/class-admin.php:148
+#, fuzzy
+msgid "Cross-domain Links"
+msgstr "跨域链接"
+
+#: includes/admin/class-admin.php:150
+#, fuzzy
+msgid "Run Full Diagnostics"
+msgstr "运行全面诊断"
+
+#: includes/admin/class-admin.php:159 includes/admin/class-admin.php:160
+#: includes/admin/class-admin.php:421
+#: includes/admin/traits/trait-admin-pages.php:28
+#: assets/js/admin-settings-app.js:1136
+#, fuzzy
+msgid "ClickTrail"
+msgstr "ClickTrail"
+
+#: includes/admin/class-admin.php:171 includes/admin/class-admin.php:172
+#, fuzzy
+msgid "Settings"
+msgstr "设置"
+
+#: includes/admin/class-admin.php:180 includes/admin/class-admin.php:181
+#, fuzzy
+msgid "Logs"
+msgstr "日志"
+
+#: includes/admin/class-admin.php:189 includes/admin/class-admin.php:190
+#, fuzzy
+msgid "Diagnostics"
+msgstr "诊断"
+
+#: includes/admin/class-admin.php:260
+#, fuzzy
+msgid "Testing..."
+msgstr "测试..."
+
+#: includes/admin/class-admin.php:261
+#, fuzzy
+msgid "Test failed"
+msgstr "测试失败"
+
+#: includes/admin/class-admin.php:262
+#, fuzzy
+msgid "Clipboard unavailable"
+msgstr "剪贴板不可用"
+
+#: includes/admin/class-admin.php:263
+#, fuzzy
+msgid "Copied"
+msgstr "已复制"
+
+#: includes/admin/class-admin.php:264
+#, fuzzy
+msgid "Copy failed"
+msgstr "复制失败"
+
+#: includes/admin/class-admin.php:265
+#, fuzzy
+msgid "Saving..."
+msgstr "正在保存..."
+
+#: includes/admin/class-admin.php:266
+#, fuzzy
+msgid "Failed"
+msgstr "失败"
+
+#: includes/admin/class-admin.php:267
+#: includes/admin/traits/trait-admin-pages.php:399
+#, fuzzy
+msgid "Disable Debug"
+msgstr "禁用调试"
+
+#: includes/admin/class-admin.php:268
+#: includes/admin/traits/trait-admin-pages.php:399
+#, fuzzy
+msgid "Enable 15 Minutes"
+msgstr "启用15分钟"
+
+#: includes/admin/class-admin.php:269
+#, fuzzy
+msgid "Purge local tracking data now? This cannot be undone."
+msgstr "现在清除本地跟踪数据吗？此操作无法撤消。"
+
+#: includes/admin/class-admin.php:270
+#, fuzzy
+msgid "Purging..."
+msgstr "净化..."
+
+#: includes/admin/class-admin.php:271
+#, fuzzy
+msgid "Purged"
+msgstr "净化的"
+
+#: includes/admin/class-admin.php:272
+#, fuzzy
+msgid "Purge failed"
+msgstr "清除失败"
+
+#: includes/admin/class-admin.php:273
+#, fuzzy
+msgid "Requeueing..."
+msgstr "正在重新排队..."
+
+#: includes/admin/class-admin.php:274
+#, fuzzy
+msgid "Requeued"
+msgstr "重新排队"
+
+#: includes/admin/class-admin.php:275
+#, fuzzy
+msgid "Retry failed"
+msgstr "重试失败"
+
+#: includes/admin/class-admin.php:276
+#, fuzzy
+msgid "Scanning..."
+msgstr "正在扫描..."
+
+#: includes/admin/class-admin.php:277
+#, fuzzy
+msgid "Conflict scan failed."
+msgstr "冲突扫描失败。"
+
+#: includes/admin/class-admin.php:278
+#, fuzzy
+msgid "Preparing backup..."
+msgstr "正在准备备份..."
+
+#: includes/admin/class-admin.php:279
+#, fuzzy
+msgid "Backup export failed."
+msgstr "备份导出失败。"
+
+#: includes/admin/class-admin.php:280
+#, fuzzy
+msgid "Importing backup..."
+msgstr "正在导入备份..."
+
+#: includes/admin/class-admin.php:281
+#, fuzzy
+msgid "Backup import failed."
+msgstr "备份导入失败。"
+
+#: includes/admin/class-admin.php:282
+#, fuzzy
+msgid "Choose a ClickTrail backup file first."
+msgstr "首先选择一个ClickTrail备份文件。"
+
+#: includes/admin/class-admin.php:283
+#, fuzzy
+msgid "Restore this ClickTrail backup now? Current settings will be replaced."
+msgstr "现在恢复这个ClickTrail备份吗？当前设置将被替换。"
+
+#: includes/admin/class-admin.php:284
+#, fuzzy
+msgid "Looking up order..."
+msgstr "查找订单..."
+
+#: includes/admin/class-admin.php:285
+#, fuzzy
+msgid "Order lookup failed."
+msgstr "订单查找失败。"
+
+#: includes/admin/class-admin.php:286
+#, fuzzy
+msgid "Analyzing test payload..."
+msgstr "正在分析测试负载..."
+
+#: includes/admin/class-admin.php:287
+#, fuzzy
+msgid "Attribution readiness check failed."
+msgstr "归因准备检查失败。"
+
+#: includes/admin/class-admin.php:288
+#, fuzzy
+msgid "Test URL copied."
+msgstr "已复制测试URL。"
+
+#: includes/admin/class-admin.php:289
+#, fuzzy
+msgid "Test URL could not be copied."
+msgstr "无法复制测试URL。"
+
+#: includes/admin/class-admin.php:330
+#, fuzzy
+msgid "ClickTrail settings require JavaScript in wp-admin."
+msgstr "ClickTrail设置需要wp-admin中的JavaScript。"
+
+#: includes/admin/class-admin.php:345 includes/admin/class-admin.php:346
+#: includes/admin/class-admin.php:673 includes/admin/class-admin.php:778
+#: assets/js/admin-settings-app.js:518
+#, fuzzy
+msgid "Capture"
+msgstr "捕捉"
+
+#: includes/admin/class-admin.php:347
+#, fuzzy
+msgid ""
+"Capture and preserve source data from campaigns, referrals, and ad clicks."
+msgstr "捕获并保存来自营销活动、推荐和广告点击的源数据。"
+
+#: includes/admin/class-admin.php:351 includes/admin/class-admin.php:352
+#: includes/admin/class-admin.php:679 includes/admin/class-admin.php:798
+#: assets/js/admin-settings-app.js:524
+#, fuzzy
+msgid "Forms"
+msgstr "表格"
+
+#: includes/admin/class-admin.php:353
+#, fuzzy
+msgid ""
+"Keep attribution attached to forms, lead sources, and messaging touchpoints."
+msgstr "将归因附加到表单、潜在客户来源和消息传递接触点。"
+
+#: includes/admin/class-admin.php:357 includes/admin/class-admin.php:358
+#: includes/admin/class-admin.php:685 includes/admin/class-admin.php:808
+#: assets/js/admin-settings-app.js:530
+#, fuzzy
+msgid "Events"
+msgstr "活动"
+
+#: includes/admin/class-admin.php:359
+#, fuzzy
+msgid ""
+"Configure browser event collection, destinations, and the unified event "
+"pipeline."
+msgstr "配置浏览器事件收集、目标和统一事件管道。"
+
+#: includes/admin/class-admin.php:363 includes/admin/class-admin.php:364
+#: includes/admin/class-admin.php:697 includes/admin/class-admin.php:822
+#: assets/js/admin-settings-app.js:542
+#, fuzzy
+msgid "Delivery"
+msgstr "发货"
+
+#: includes/admin/class-admin.php:365
+#, fuzzy
+msgid "Control privacy, server-side transport, and operational safeguards."
+msgstr "控制隐私、服务器端传输和操作保障。"
+
+#: includes/admin/class-admin.php:425
+#, fuzzy
+msgid ""
+"These settings are now organized by capability. Browser events and "
+"destinations live under Events, while transport and privacy controls live "
+"under Delivery."
+msgstr "这些设置现在按功能进行组织。浏览器事件和目的地位于事件下，而传输和隐私控制位于交付下。"
+
+#: includes/admin/class-admin.php:495 assets/js/admin-settings-app.js:1037
+#, fuzzy
+msgid "Generic Collector"
+msgstr "通用收集器"
+
+#: includes/admin/class-admin.php:497 assets/js/admin-settings-app.js:1038
+#, fuzzy
+msgid "sGTM (Server GTM)"
+msgstr "sGTM（服务器GTM）"
+
+#: includes/admin/class-admin.php:499 assets/js/admin-settings-app.js:1039
+#, fuzzy
+msgid "Meta CAPI"
+msgstr "Meta CAPI"
+
+#: includes/admin/class-admin.php:501 assets/js/admin-settings-app.js:1040
+#, fuzzy
+msgid "Google Ads / GA4"
+msgstr "Google Ads / GA4"
+
+#: includes/admin/class-admin.php:503 assets/js/admin-settings-app.js:1041
+#, fuzzy
+msgid "LinkedIn CAPI"
+msgstr "LinkedIn CAPI"
+
+#: includes/admin/class-admin.php:505 assets/js/admin-settings-app.js:1042
+#, fuzzy
+msgid "Pinterest Conversions API"
+msgstr "Pinterest 转换 API"
+
+#: includes/admin/class-admin.php:507 assets/js/admin-settings-app.js:1043
+#, fuzzy
+msgid "TikTok Events API"
+msgstr "TikTok 活动 API"
+
+#: includes/admin/class-admin.php:523 assets/js/admin-settings-app.js:920
+#, fuzzy
+msgid "Meta"
+msgstr "Meta"
+
+#: includes/admin/class-admin.php:525 assets/js/admin-settings-app.js:921
+#, fuzzy
+msgid "Google"
+msgstr "Google"
+
+#: includes/admin/class-admin.php:527 assets/js/admin-settings-app.js:922
+#, fuzzy
+msgid "LinkedIn"
+msgstr "LinkedIn"
+
+#: includes/admin/class-admin.php:529 assets/js/admin-settings-app.js:923
+#, fuzzy
+msgid "Reddit"
+msgstr "红迪网"
+
+#: includes/admin/class-admin.php:531 assets/js/admin-settings-app.js:924
+#, fuzzy
+msgid "Pinterest"
+msgstr "Pinterest"
+
+#: includes/admin/class-admin.php:533 assets/js/admin-settings-app.js:925
+#, fuzzy
+msgid "TikTok"
+msgstr "TikTok"
+
+#: includes/admin/class-admin.php:674 includes/admin/class-admin.php:680
+#: includes/admin/class-admin.php:686 includes/admin/class-admin.php:692
+#: includes/admin/class-admin.php:698 includes/admin/class-admin.php:704
+#: assets/js/admin-settings-app.js:519 assets/js/admin-settings-app.js:525
+#: assets/js/admin-settings-app.js:531 assets/js/admin-settings-app.js:537
+#: assets/js/admin-settings-app.js:543 assets/js/admin-settings-app.js:549
+#, fuzzy
+msgid "On"
+msgstr "开"
+
+#: includes/admin/class-admin.php:674 includes/admin/class-admin.php:680
+#: includes/admin/class-admin.php:686 includes/admin/class-admin.php:692
+#: includes/admin/class-admin.php:698 includes/admin/class-admin.php:704
+#: assets/js/admin-settings-app.js:519 assets/js/admin-settings-app.js:525
+#: assets/js/admin-settings-app.js:531 assets/js/admin-settings-app.js:537
+#: assets/js/admin-settings-app.js:543 assets/js/admin-settings-app.js:549
+#, fuzzy
+msgid "Off"
+msgstr "关闭"
+
+#: includes/admin/class-admin.php:691 includes/admin/class-admin.php:858
+#: assets/js/admin-settings-app.js:536
+#, fuzzy
+msgid "Cross-domain"
+msgstr "跨域"
+
+#: includes/admin/class-admin.php:703
+#: includes/admin/traits/trait-admin-pages.php:550
+#: assets/js/admin-settings-app.js:548
+#, fuzzy
+msgid "Consent"
+msgstr "同意"
+
+#: includes/admin/class-admin.php:781
+#, fuzzy
+msgid "Attribution capture is enabled."
+msgstr "启用归因捕获。"
+
+#: includes/admin/class-admin.php:782
+#, fuzzy
+msgid "Turn on attribution capture before testing source continuity."
+msgstr "在测试源连续性之前打开归因捕获。"
+
+#: includes/admin/class-admin.php:788
+#, fuzzy
+msgid "Consent Guidance"
+msgstr "同意指导"
+
+#: includes/admin/class-admin.php:791
+#, fuzzy
+msgid ""
+"Consent mode is configured. Verify the selected CMP source before rollout."
+msgstr "同意模式已配置。在推出之前验证所选的CMP源。"
+
+#: includes/admin/class-admin.php:792
+#, fuzzy
+msgid ""
+"Consent mode is off. Confirm this matches your regional rollout requirements."
+msgstr "同意模式已关闭。确认这符合您的区域部署要求。"
+
+#: includes/admin/class-admin.php:801
+#, fuzzy
+msgid "Form capture helpers or providers are active."
+msgstr "表单捕获助手或提供程序处于活动状态。"
+
+#: includes/admin/class-admin.php:802
+#, fuzzy
+msgid ""
+"Enable client fallback, WhatsApp, or provider hooks if forms are part of "
+"your attribution path."
+msgstr "如果表单是归因路径的一部分，请启用客户端回退、WhatsApp 或提供商挂钩。"
+
+#. translators: %d: enabled destination count.
+#: includes/admin/class-admin.php:813
+#, fuzzy, php-format
+msgid "Browser events are active. Enabled destinations: %d."
+msgstr "浏览器事件处于活动状态。启用的目的地：%d。"
+
+#: includes/admin/class-admin.php:816
+#, fuzzy
+msgid ""
+"Enable the browser event pipeline before relying on dataLayer and canonical "
+"intake."
+msgstr "在依赖 dataLayer 和规范摄入之前启用浏览器事件管道。"
+
+#: includes/admin/class-admin.php:825
+#, fuzzy
+msgid "Server-side delivery has an endpoint and is ready for endpoint tests."
+msgstr "服务器端交付有一个端点，并准备好进行端点测试。"
+
+#: includes/admin/class-admin.php:827
+#, fuzzy
+msgid "Server-side delivery is on, but the collector URL still needs review."
+msgstr "服务器端交付已开启，但收集器URL仍需审核。"
+
+#: includes/admin/class-admin.php:828
+#, fuzzy
+msgid ""
+"Server-side delivery is off. Logs and Diagnostics still work for local "
+"checks."
+msgstr "服务器端交付已关闭。日志和诊断仍然适用于本地检查。"
+
+#: includes/admin/class-admin.php:834
+#, fuzzy
+msgid "sGTM"
+msgstr "sGTM"
+
+#: includes/admin/class-admin.php:837
+#, fuzzy
+msgid ""
+"sGTM mode has a web container plus a tagging server or custom loader path "
+"configured."
+msgstr "sGTM 模式有一个 Web 容器以及一个标记服务器或配置的自定义加载程序路径。"
+
+#: includes/admin/class-admin.php:839
+#, fuzzy
+msgid ""
+"sGTM mode is on. Add the tagging server URL or a custom loader path before "
+"preview testing."
+msgstr "sGTM 模式已开启。在预览测试之前添加标记服务器URL或自定义加载程序路径。"
+
+#: includes/admin/class-admin.php:840
+#, fuzzy
+msgid ""
+"Standard GTM loading is active. Enable sGTM mode when you want first-party "
+"script delivery or custom loader support."
+msgstr "标准GTM加载处于活动状态。当您需要第一方脚本交付或自定义加载程序支持时，请启用sGTM模式。"
+
+#: includes/admin/class-admin.php:846
+#, fuzzy
+msgid "Woo"
+msgstr "Woo"
+
+#: includes/admin/class-admin.php:849
+#, fuzzy
+msgid "WooCommerce storefront events and order delivery helpers are ready."
+msgstr "WooCommerce 店面活动和订单配送助手已准备就绪。"
+
+#: includes/admin/class-admin.php:851
+#, fuzzy
+msgid ""
+"WooCommerce is active. Enable storefront events when you want list, product, "
+"cart, and checkout signals."
+msgstr "WooCommerce 处于活动状态。当您需要列表、产品、购物车和结账信号时启用店面事件。"
+
+#: includes/admin/class-admin.php:852
+#, fuzzy
+msgid "WooCommerce is not active on this site."
+msgstr "WooCommerce 在此站点上未激活。"
+
+#: includes/admin/class-admin.php:861
+#, fuzzy
+msgid ""
+"Link decoration is active. Attribution carries across subdomains "
+"automatically. Add destination domains in the allowed list only if your "
+"checkout is on a fully separate domain. Note: external payment providers "
+"(Stripe, PayPal, Mollie) cannot be decorated — attribution survives those "
+"redirects via the last-touch cookie."
+msgstr "链接装饰处于活动状态。归属自动跨子域进行。仅当您在完全独立的域上结账时，才将目标域添加到允许列表中。注意：外部支付提供商（Stripe、PayPal、Mollie）无法进行修饰 — 归因通过最后一次接触 cookie 进行的重定向仍然有效。"
+
+#. translators: %s: WooCommerce checkout hostname detected on a different subdomain.
+#: includes/admin/class-admin.php:864
+#, fuzzy, php-format
+msgid ""
+"Your WooCommerce checkout is on %s. Enable cross-domain link decoration "
+"under Capture → Link Decoration to carry attribution through the subdomain "
+"hop."
+msgstr "您的WooCommerce在%s结账。在“捕获”→“链接装饰”下启用跨域链接装饰，以通过子域跃点携带归因。"
+
+#: includes/admin/class-admin.php:865
+#, fuzzy
+msgid ""
+"Cross-domain link decoration is off. Enable it under Capture → Link "
+"Decoration if your funnel spans multiple domains or subdomains."
+msgstr "跨域链接装饰已关闭。如果您的渠道跨越多个域或子域，请在“捕获”→“链接装饰”下启用它。"
+
+#: includes/admin/class-admin.php:917 assets/js/admin-settings-app.js:974
+#, fuzzy
+msgid "No attempts yet"
+msgstr "尚未尝试"
+
+#. translators: %s: relative time.
+#: includes/admin/class-admin.php:921
+#: includes/admin/traits/trait-admin-pages.php:184
+#, fuzzy, php-format
+msgid "%s ago"
+msgstr "%s 前"
+
+#: includes/admin/class-admin.php:924
+#: includes/admin/traits/trait-admin-pages.php:187
+#, fuzzy
+msgid "No delivery attempts recorded."
+msgstr "没有记录交付尝试。"
+
+#: includes/admin/class-admin.php:1362
+#, fuzzy
+msgid ""
+"The server-side endpoint URL was rejected because it resolves to a "
+"disallowed or internal address. The previous value was kept."
+msgstr "服务器端端点URL被拒绝，因为它解析为不允许的地址或内部地址。之前的值被保留。"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:47
+#: includes/admin/class-clicutcl-woocommerce-admin.php:128
+#: includes/admin/class-clicutcl-woocommerce-admin.php:175
+#, fuzzy
+msgid "Source"
+msgstr "来源"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:89
+#, fuzzy
+msgid "Direct"
+msgstr "直接"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:105
+#, fuzzy
+msgid "Marketing Attribution"
+msgstr "营销归因"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:122
+#, fuzzy
+msgid "No attribution data available."
+msgstr "没有可用的归因数据。"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:129
+#: includes/admin/class-clicutcl-woocommerce-admin.php:178
+#, fuzzy
+msgid "Medium"
+msgstr "中等"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:130
+#, fuzzy
+msgid "Campaign"
+msgstr "活动"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:131
+#, fuzzy
+msgid "Term"
+msgstr "期限"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:132
+#, fuzzy
+msgid "Content"
+msgstr "内容"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:133
+#, fuzzy
+msgid "Google Click ID"
+msgstr "Google Click ID"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:134
+#, fuzzy
+msgid "Facebook Click ID"
+msgstr "脸书Click ID"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:135
+#, fuzzy
+msgid "LinkedIn Click ID"
+msgstr "LinkedIn Click ID"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:136
+#, fuzzy
+msgid "Landing Page"
+msgstr "登陆页面"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:140
+#, fuzzy
+msgid "First Touch"
+msgstr "第一次接触"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:161
+#, fuzzy
+msgid "No first-touch data available"
+msgstr "没有可用的首次接触数据"
+
+#: includes/admin/class-clicutcl-woocommerce-admin.php:172
+#, fuzzy
+msgid "Last Touch"
+msgstr "最后一次接触"
+
+#: includes/admin/class-log-list-table.php:101
+#: includes/privacy/class-privacy-handler.php:138
+#: includes/privacy/class-privacy-handler.php:674
+#, fuzzy
+msgid "Date"
+msgstr "日期"
+
+#: includes/admin/class-log-list-table.php:102
+#: includes/privacy/class-privacy-handler.php:134
+#, fuzzy
+msgid "Event Type"
+msgstr "事件类型"
+
+#: includes/admin/class-log-list-table.php:103
+#, fuzzy
+msgid "Details"
+msgstr "详情"
+
+#: includes/admin/class-log-list-table.php:195
+#, fuzzy
+msgid "No logs found."
+msgstr "没有找到日志。"
+
+#: includes/admin/class-setup-wizard.php:74
+#, fuzzy
+msgid "ClickTrail Setup"
+msgstr "ClickTrail 设置"
+
+#: includes/admin/class-setup-wizard.php:75
+#, fuzzy
+msgid "Setup"
+msgstr "设置"
+
+#: includes/admin/class-setup-wizard.php:92
+#, fuzzy
+msgid "Setup Wizard"
+msgstr "设置向导"
+
+#: includes/admin/class-setup-wizard.php:138
+#: includes/admin/class-setup-wizard.php:206
+#: includes/admin/class-sitehealth.php:187
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:34
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:83
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:121
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:143
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:226
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:252
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:270
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:300
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:321
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:352
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:378
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:420
+#: includes/admin/traits/trait-admin-pages.php:117
+#, fuzzy
+msgid "Forbidden"
+msgstr "禁止"
+
+#: includes/admin/class-setup-wizard.php:224
+#, fuzzy
+msgid "Skip setup"
+msgstr "跳过设置"
+
+#: includes/admin/class-setup-wizard.php:249
+#: includes/admin/class-setup-wizard.php:287
+#, fuzzy
+msgid "What are you tracking?"
+msgstr "你在追踪什么？"
+
+#: includes/admin/class-setup-wizard.php:250
+#, fuzzy
+msgid "Ad platforms"
+msgstr "广告平台"
+
+#: includes/admin/class-setup-wizard.php:251
+#: includes/admin/class-setup-wizard.php:543
+#, fuzzy
+msgid "You're set up"
+msgstr "你已经设置好了"
+
+#: includes/admin/class-setup-wizard.php:254
+#, fuzzy
+msgid "Setup progress"
+msgstr "设置进度"
+
+#. translators: %s: form plugin names.
+#: includes/admin/class-setup-wizard.php:294
+#, fuzzy, php-format
+msgid ""
+"We found %s and WooCommerce. ClickTrail will track form submissions and "
+"eCommerce sessions automatically."
+msgstr "我们找到了%s和WooCommerce。 ClickTrail 将自动跟踪表单提交和电子商务会话。"
+
+#. translators: %s: form plugin names.
+#: includes/admin/class-setup-wizard.php:300
+#, fuzzy, php-format
+msgid ""
+"We found %s. ClickTrail will inject attribution data into your forms "
+"automatically."
+msgstr "我们找到了%s。 ClickTrail 会自动将归因数据注入您的表单中。"
+
+#: includes/admin/class-setup-wizard.php:304
+#, fuzzy
+msgid ""
+"We found WooCommerce. ClickTrail will store attribution on every order "
+"automatically."
+msgstr "我们找到了WooCommerce。 ClickTrail将自动存储每个订单的归属。"
+
+#: includes/admin/class-setup-wizard.php:306
+#, fuzzy
+msgid ""
+"ClickTrail will capture UTMs and click IDs from every visitor automatically."
+msgstr "ClickTrail会自动捕获每个访客的UTM并点击IDs。"
+
+#: includes/admin/class-setup-wizard.php:315
+#, fuzzy
+msgid "UTM &amp; click ID capture"
+msgstr "UTM &amp; 点击ID 捕捉"
+
+#: includes/admin/class-setup-wizard.php:316
+#: includes/admin/class-setup-wizard.php:322
+#, fuzzy
+msgid "Auto"
+msgstr "汽车"
+
+#: includes/admin/class-setup-wizard.php:321
+#, fuzzy
+msgid "First-touch &amp; last-touch attribution"
+msgstr "首次触摸&amp;最后一次触摸归因"
+
+#. translators: %s: form plugin name.
+#: includes/admin/class-setup-wizard.php:336
+#, fuzzy, php-format
+msgid "%s attribution"
+msgstr "%s 归属"
+
+#: includes/admin/class-setup-wizard.php:342
+#: includes/admin/class-setup-wizard.php:353
+#: includes/admin/class-setup-wizard.php:369
+#, fuzzy
+msgid "Detected"
+msgstr "检测到"
+
+#: includes/admin/class-setup-wizard.php:344
+#, fuzzy
+msgid "Not found"
+msgstr "未找到"
+
+#: includes/admin/class-setup-wizard.php:352
+#, fuzzy
+msgid "WooCommerce order attribution"
+msgstr "WooCommerce 订单归属"
+
+#. translators: %s: CMP plugin name.
+#: includes/admin/class-setup-wizard.php:364
+#, fuzzy, php-format
+msgid "%s consent integration"
+msgstr "%s 同意集成"
+
+#. translators: %s: caching/CDN plugin name.
+#: includes/admin/class-setup-wizard.php:380
+#, fuzzy, php-format
+msgid "%s compatibility (client-side fallback)"
+msgstr "%s 兼容性（客户端回退）"
+
+#: includes/admin/class-setup-wizard.php:385
+#: includes/admin/traits/trait-admin-pages.php:59
+#: includes/admin/traits/trait-admin-pages.php:244
+#: assets/js/admin-settings-app.js:984
+#, fuzzy
+msgid "Enabled"
+msgstr "启用"
+
+#: includes/admin/class-setup-wizard.php:393
+#, fuzzy
+msgid "GA4 Measurement ID"
+msgstr "GA4 测量 ID"
+
+#: includes/admin/class-setup-wizard.php:394
+#, fuzzy
+msgid "optional"
+msgstr "可选的"
+
+#: includes/admin/class-setup-wizard.php:407
+#, fuzzy
+msgid "Needed for GA4 event forwarding. You can add this later in Settings."
+msgstr "GA4 事件转发所需。您可以稍后在“设置”中添加它。"
+
+#: includes/admin/class-setup-wizard.php:420
+#, fuzzy
+msgid "I run paid ads (Google Ads or Meta Ads)"
+msgstr "我投放付费广告（Google Ads 或 Meta 广告）"
+
+#: includes/admin/class-setup-wizard.php:434
+#: includes/admin/class-setup-wizard.php:506
+#, fuzzy
+msgid "Next"
+msgstr "下一步"
+
+#: includes/admin/class-setup-wizard.php:456
+#, fuzzy
+msgid "Where are your leads coming from?"
+msgstr "您的线索来自哪里？"
+
+#: includes/admin/class-setup-wizard.php:459
+#, fuzzy
+msgid ""
+"ClickTrail captures click IDs automatically. Confirm which platforms you use "
+"so we can surface them in your form entries."
+msgstr "ClickTrail自动捕获点击IDs。确认您使用的平台，以便我们可以在您的表单条目中显示它们。"
+
+#: includes/admin/class-setup-wizard.php:471
+#: includes/admin/class-setup-wizard.php:475
+#, fuzzy
+msgid "Google Ads"
+msgstr "Google Ads"
+
+#: includes/admin/class-setup-wizard.php:476
+#, fuzzy
+msgid "Captures GCLID and auto-tag parameters from every Google Ads click."
+msgstr "从每次Google Ads点击捕获GCLID和自动标记参数。"
+
+#: includes/admin/class-setup-wizard.php:487
+#: includes/admin/class-setup-wizard.php:491
+#, fuzzy
+msgid "Meta / Facebook Ads"
+msgstr "Meta / Facebook Ads"
+
+#: includes/admin/class-setup-wizard.php:492
+#, fuzzy
+msgid "Captures FBCLID from every Meta ad click."
+msgstr "从每次 Meta 广告点击中捕获 FBCLID。"
+
+#: includes/admin/class-setup-wizard.php:503
+#: includes/admin/class-setup-wizard.php:573
+#, fuzzy
+msgid "Back"
+msgstr "返回"
+
+#: includes/admin/class-setup-wizard.php:521
+#, fuzzy
+msgid "UTM tracking: ON"
+msgstr "UTM追踪：ON"
+
+#. translators: %s: form plugin names.
+#: includes/admin/class-setup-wizard.php:527
+#, fuzzy, php-format
+msgid "Forms: %s"
+msgstr "表格：%s"
+
+#: includes/admin/class-setup-wizard.php:532
+#, fuzzy
+msgid "WooCommerce: ON"
+msgstr "WooCommerce：ON"
+
+#: includes/admin/class-setup-wizard.php:546
+#, fuzzy
+msgid ""
+"ClickTrail is tracking your visitors. Attribution data will appear in your "
+"form entries as soon as someone submits a form with UTMs in the URL."
+msgstr "ClickTrail 正在跟踪您的访客。一旦有人提交了URL中包含UTM的表单，归因数据就会出现在您的表单条目中。"
+
+#: includes/admin/class-setup-wizard.php:560
+#, fuzzy
+msgid "Quick test:"
+msgstr "快速测试："
+
+#: includes/admin/class-setup-wizard.php:561
+#, fuzzy
+msgid "Open your site with"
+msgstr "打开您的网站"
+
+#: includes/admin/class-setup-wizard.php:563
+#, fuzzy
+msgid "in the URL, submit a form, and look for"
+msgstr "在URL中，提交表格，然后查找"
+
+#: includes/admin/class-setup-wizard.php:565
+#, fuzzy
+msgid "in the entry."
+msgstr "在条目中。"
+
+#: includes/admin/class-setup-wizard.php:576
+#, fuzzy
+msgid "View my tracking dashboard"
+msgstr "查看我的跟踪仪表板"
+
+#: includes/admin/class-setup-wizard.php:583
+#, fuzzy
+msgid "I want more control &rarr; Switch to Advanced Mode"
+msgstr "我想要更多控制权&rarr;切换到高级模式"
+
+#: includes/admin/class-sitehealth.php:39
+#, fuzzy
+msgid "ClickTrail: Caching/conflicts detected"
+msgstr "ClickTrail：检测到缓存/conflicts"
+
+#: includes/admin/class-sitehealth.php:44
+#, fuzzy
+msgid "ClickTrail: Admin diagnostics script heartbeat"
+msgstr "ClickTrail：管理诊断脚本心跳"
+
+#: includes/admin/class-sitehealth.php:49
+#, fuzzy
+msgid "ClickTrail: Attribution cookie readable"
+msgstr "ClickTrail：属性 cookie 可读"
+
+#: includes/admin/class-sitehealth.php:91
+#, fuzzy
+msgid "No common caching/conflict plugins detected"
+msgstr "未检测到常见缓存/conflict插件"
+
+#: includes/admin/class-sitehealth.php:92
+#, fuzzy
+msgid "ClickTrail will still work best with JS injection enabled."
+msgstr "在启用 JS 注入的情况下，ClickTrail 仍能发挥最佳效果。"
+
+#: includes/admin/class-sitehealth.php:98
+#, fuzzy
+msgid "Caching/optimization detected (client-side capture recommended)"
+msgstr "检测到缓存/optimization（建议客户端捕获）"
+
+#. translators: %s: List of detected caching or conflict plugins.
+#: includes/admin/class-sitehealth.php:101
+#, fuzzy, php-format
+msgid ""
+"Detected: %s. Full-page caching can make hidden field values stale. Enable "
+"ClickTrail's client-side capture fallback."
+msgstr "检测到：%s。全页缓存可能会使隐藏字段值过时。启用ClickTrail的客户端捕获回退。"
+
+#: includes/admin/class-sitehealth.php:119
+#, fuzzy
+msgid "Admin diagnostics script seen in the last 24h"
+msgstr "上次24h中看到的管理诊断脚本"
+
+#: includes/admin/class-sitehealth.php:120
+#, fuzzy
+msgid "A recent wp-admin heartbeat ping was recorded."
+msgstr "记录了最近的 wp-admin 心跳 ping。"
+
+#: includes/admin/class-sitehealth.php:126
+#, fuzzy
+msgid "Admin diagnostics script not seen recently"
+msgstr "最近未看到管理诊断脚本"
+
+#: includes/admin/class-sitehealth.php:127
+#, fuzzy
+msgid ""
+"Open a ClickTrail admin screen (or Site Health) to refresh the diagnostics "
+"heartbeat."
+msgstr "打开ClickTrail管理屏幕（或站点运行状况）以刷新诊断心跳。"
+
+#: includes/admin/class-sitehealth.php:148
+#, fuzzy
+msgid "Attribution cookie present in request"
+msgstr "请求中存在归因 cookie"
+
+#: includes/admin/class-sitehealth.php:149
+#, fuzzy
+msgid "Server received the attribution cookie."
+msgstr "服务器收到归因 cookie。"
+
+#: includes/admin/class-sitehealth.php:153
+#, fuzzy
+msgid "This may be normal if no UTM visit occurred."
+msgstr "如果没有发生UTM访问，这可能是正常的。"
+
+#: includes/admin/class-sitehealth.php:155
+#, fuzzy
+msgid ""
+"Note: Consent Mode is enabled. If you have not granted consent, no cookie "
+"will be set."
+msgstr "注意：同意模式已启用。如果您未授予同意，则不会设置 cookie。"
+
+#: includes/admin/class-sitehealth.php:157
+#, fuzzy
+msgid "Test by visiting a page with ?utm_source=test."
+msgstr "通过访问带有 ?utm_source=test. 的页面进行测试"
+
+#: includes/admin/class-sitehealth.php:162
+#, fuzzy
+msgid "Attribution cookie not present in request"
+msgstr "请求中不存在归因 cookie"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:50
+#, fuzzy
+msgid "Wait for consent"
+msgstr "等待同意"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:51
+#, fuzzy
+msgid "Allow until denied"
+msgstr "允许直至拒绝"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:52
+#, fuzzy
+msgid "Require consent by region"
+msgstr "需要各地区同意"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:63
+#, fuzzy
+msgid "Choose when attribution is allowed to start for a visitor."
+msgstr "选择何时允许对访问者启动归因。"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:83
+#, fuzzy
+msgid "Use region codes such as EEA, UK, US, or US-CA."
+msgstr "使用区域代码，例如 EEA、UK、US 或 US-CA。"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:98
+#: assets/js/admin-settings-app.js:1076
+#, fuzzy
+msgid "Auto-detect"
+msgstr "自动检测"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:99
+#, fuzzy
+msgid "ClickTrail built-in banner"
+msgstr "ClickTrail内置横幅"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:100
+#, fuzzy
+msgid "Cookiebot / Usercentrics"
+msgstr "Cookiebot / Usercentrics"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:101
+#: assets/js/admin-settings-app.js:1079
+#, fuzzy
+msgid "OneTrust"
+msgstr "OneTrust"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:102
+#: assets/js/admin-settings-app.js:1080
+#, fuzzy
+msgid "Complianz"
+msgstr "Complianz"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:103
+#, fuzzy
+msgid "Google Consent Mode via GTM"
+msgstr "Google 通过GTM 同意模式"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:104
+#, fuzzy
+msgid "Custom integration"
+msgstr "定制集成"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:115
+#, fuzzy
+msgid "Select the consent platform ClickTrail should listen to."
+msgstr "选择ClickTrail应听取的同意平台。"
+
+#: includes/admin/traits/trait-admin-consent-mode.php:143
+#, fuzzy
+msgid "How long to wait for a consent response before treating it as denied."
+msgstr "在将其视为拒绝之前等待同意响应的时间。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:62
+#, fuzzy
+msgid ""
+"ClickTrail Audit detected PII risk on your Thank You page. Your tracking may "
+"be deactivated by Google."
+msgstr "ClickTrail 审核在您的感谢页面上检测到 PII 风险。您的追踪可能会被Google停用。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:65
+#: assets/js/admin-settings-app.js:993
+#, fuzzy
+msgid "Open Diagnostics"
+msgstr "打开诊断"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:68
+#, fuzzy
+msgid "Review Tracking Settings"
+msgstr "查看跟踪设置"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:92
+#, fuzzy
+msgid "Server-side adapter not configured."
+msgstr "未配置服务器端适配器。"
+
+#. translators: %1$d: HTTP status code.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:101
+#, fuzzy, php-format
+msgid "Endpoint reachable (HTTP %1$d)."
+msgstr "端点可达（HTTP%1$d）。"
+
+#. translators: %1$d: HTTP status code, %2$s: error message.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:109
+#, fuzzy, php-format
+msgid "Endpoint error (HTTP %1$d): %2$s"
+msgstr "端点错误（HTTP%1$d）：%2$s"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:128
+#, fuzzy
+msgid "Debug disabled."
+msgstr "调试已禁用。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:133
+#, fuzzy
+msgid "Debug enabled for 15 minutes."
+msgstr "调试启用了 15 分钟。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:205
+#, fuzzy
+msgid "Could not purge all tracking tables."
+msgstr "无法清除所有跟踪表。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:214
+#, fuzzy
+msgid "Tracking data purged."
+msgstr "跟踪数据已清除。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:231
+#, fuzzy
+msgid "Queue is unavailable."
+msgstr "队列不可用。"
+
+#. translators: %d: number of failed delivery rows requeued for retry.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:239
+#, fuzzy, php-format
+msgid "%d failed delivery requeued."
+msgid_plural "%d failed deliveries requeued."
+msgstr[0] "%d 失败的交付已重新排队。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:287
+#: assets/js/admin-settings-app.js:466
+#, fuzzy
+msgid "Settings saved."
+msgstr "设置已保存。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:364
+#, fuzzy
+msgid "Backup prepared."
+msgstr "备份准备好了。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:385
+#, fuzzy
+msgid "Missing backup payload."
+msgstr "缺少备份有效负载。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:390
+#, fuzzy
+msgid "Backup file is not valid JSON."
+msgstr "备份文件无效JSON。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:407
+#, fuzzy
+msgid "Backup restored."
+msgstr "备份已恢复。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:425
+#, fuzzy
+msgid "WooCommerce is not active."
+msgstr "WooCommerce 未激活。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:430
+#, fuzzy
+msgid "Enter a valid WooCommerce order ID."
+msgstr "输入有效的WooCommerce订单ID。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:435
+#, fuzzy
+msgid "Order not found."
+msgstr "未找到订单。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:443
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:444
+#, fuzzy
+msgid "No ClickTrail traces stored for this order yet."
+msgstr "尚未为此订单存储任何ClickTrail 跟踪。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:471
+#, fuzzy
+msgid "not_queued"
+msgstr "not_queued"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:471
+#, fuzzy
+msgid "queued"
+msgstr "排队"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:473
+#, fuzzy
+msgid "No pending retry row found."
+msgstr "未找到挂起的重试行。"
+
+#. translators: 1: attempts count, 2: next attempt timestamp.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:476
+#, fuzzy, php-format
+msgid "Attempts: %1$d. Next attempt: %2$s."
+msgstr "尝试：%1$d。下一次尝试：%2$s。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:488
+#, fuzzy
+msgid "Order trace loaded."
+msgstr "已加载订单跟踪。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:753
+#, fuzzy
+msgid "Caching or script optimization detected"
+msgstr "检测到缓存或脚本优化"
+
+#. translators: %s: detected plugin labels.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:756
+#, fuzzy, php-format
+msgid ""
+"Detected: %s. Turn on the client-side capture fallback to reduce stale "
+"attribution and delayed event issues."
+msgstr "检测到：%s。打开客户端捕获回退以减少陈旧归因和延迟事件问题。"
+
+#. translators: %s: detected call tracking provider labels.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:768
+#, fuzzy, php-format
+msgid "Call tracking script detected: %s"
+msgstr "检测到呼叫跟踪脚本：%s"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:771
+#, fuzzy
+msgid ""
+"A call tracking script was detected. ClickTrail skips tel: link decoration "
+"automatically. No action needed unless you are seeing unexpected behaviour."
+msgstr "检测到呼叫跟踪脚本。 ClickTrail自动跳过tel:链接修饰。除非您看到意外行为，否则无需采取任何措施。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:778
+#, fuzzy
+msgid "NitroPack detected — check JS postpone exclusions"
+msgstr "检测到NitroPack — 检查JS推迟排除"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:779
+#, fuzzy
+msgid ""
+"NitroPack's \"Postpone JS\" feature can prevent attribution scripts from "
+"running before the user interacts with the page, causing empty UTM data on "
+"leads. ClickTrail attempts to exclude its scripts automatically. To verify: "
+"NitroPack > Optimization > JavaScript > Script exclusions -- confirm "
+"clicutcl-attribution.js and clicutcl-consent-bridge.js are listed."
+msgstr "NitroPack的“推迟JS”功能可以防止归因脚本在用户与页面交互之前运行，从而导致潜在客户上的UTM数据为空。 ClickTrail 尝试自动排除其脚本。要验证：NitroPack > 优化 > JavaScript > 脚本排除 - 确认 clicutcl-attribution.js 和 clicutcl-consent-bridge.js 已列出。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:788
+#, fuzzy
+msgid "Server-side delivery has no endpoint"
+msgstr "服务器端交付没有端点"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:789
+#, fuzzy
+msgid "Delivery is enabled, but the collector URL is empty."
+msgstr "传送已启用，但收集器URL为空。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:796
+#, fuzzy
+msgid "Woo storefront events enabled without WooCommerce"
+msgstr "Woo 无需WooCommerce即可启用店面活动"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:797
+#, fuzzy
+msgid "Disable Woo storefront events or activate WooCommerce on this site."
+msgstr "在此站点上禁用Woo店面活动或激活WooCommerce。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:805
+#, fuzzy
+msgid "sGTM mode enabled without a web container"
+msgstr "sGTM 模式在没有 Web 容器的情况下启用"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:806
+#, fuzzy
+msgid "Add a GTM web container ID before testing sGTM mode."
+msgstr "在测试 sGTM 模式之前添加一个 GTM Web 容器 ID。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:813
+#, fuzzy
+msgid "sGTM mode has no loader source"
+msgstr "sGTM模式没有加载器源"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:814
+#, fuzzy
+msgid ""
+"Provide a tagging server URL or a custom loader path so ClickTrail can "
+"deliver the GTM script in sGTM mode."
+msgstr "提供标记服务器URL或自定义加载器路径，以便ClickTrail可以在sGTM模式下交付GTM脚本。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:821
+#, fuzzy
+msgid "Custom loader enabled without a path"
+msgstr "无需路径即可启用自定义加载程序"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:822
+#, fuzzy
+msgid ""
+"Add a same-site path or loader URL before enabling the custom loader option."
+msgstr "在启用自定义加载程序选项之前添加同站点路径或加载程序URL。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:829
+#, fuzzy
+msgid "sGTM mode does not match the active delivery adapter"
+msgstr "sGTM 模式与主动传输适配器不匹配"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:830
+#, fuzzy
+msgid ""
+"GTM is configured for sGTM mode, but Delivery is not currently using the "
+"sGTM adapter."
+msgstr "GTM 配置为 sGTM 模式，但 Delivery 当前未使用 sGTM 适配器。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:837
+#, fuzzy
+msgid "Woo user_data is enabled without the richer contract"
+msgstr "Woo user_data无需更丰富的合约即可启用"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:838
+#, fuzzy
+msgid ""
+"Turn on the richer Woo dataLayer contract if you want ClickTrail to emit "
+"consent-aware user_data objects."
+msgstr "如果您希望 ClickTrail 发出同意感知的 user_data 对象，请打开更丰富的 Woo dataLayer 合约。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:847
+#, fuzzy
+msgid "Adapter selected without matching destination toggle"
+msgstr "选择的适配器没有匹配的目标切换"
+
+#. translators: 1: adapter label, 2: destination label.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:850
+#, fuzzy, php-format
+msgid "%1$s is selected as the delivery adapter, but %2$s is off in Events."
+msgstr "%1$s 被选为传送适配器，但%2$s 在事件中处于关闭状态。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:873
+#, fuzzy
+msgid "Destination toggle does not match the active adapter"
+msgstr "目标切换与活动适配器不匹配"
+
+#. translators: 1: destination label, 2: adapter label.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:876
+#, fuzzy, php-format
+msgid "%1$s is enabled in Events, but Delivery currently uses %2$s."
+msgstr "%1$s在事件中启用，但交付当前使用%2$s。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:891
+#, fuzzy
+msgid "Review duplicate destination ownership"
+msgstr "检查重复的目的地所有权"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:892
+#, fuzzy
+msgid ""
+"GTM is configured alongside native destination toggles. Confirm each "
+"platform is owned by only one runtime path."
+msgstr "GTM 与本机目标切换一起配置。确认每个平台仅由一个运行时路径拥有。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:904
+#, fuzzy
+msgid "No common conflicts detected in the current ClickTrail configuration."
+msgstr "当前ClickTrail配置中未检测到常见冲突。"
+
+#. translators: %d: findings count.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:912
+#, fuzzy, php-format
+msgid "Conflict scan found %d item worth reviewing."
+msgid_plural "Conflict scan found %d items worth reviewing."
+msgstr[0] "冲突扫描发现%d值得审查的项目。"
+
+#. translators: %s: form title.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:968
+#, fuzzy, php-format
+msgid "Gravity Forms: \"%s\" has no ct_* attribution fields"
+msgstr "Gravity Forms：“%s”没有 ct_* 属性字段"
+
+#. translators: %s: edit form URL.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:973
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1016
+#, fuzzy, php-format
+msgid ""
+"Add hidden fields named ct_utm_source, ct_utm_medium, etc. to capture "
+"attribution in this entry. <a href=\"%s\">Edit form &rarr;</a>"
+msgstr "添加名为 ct_utm_source、ct_utm_medium 等的隐藏字段以捕获此条目中的归因。 <a href=\"%s\">编辑表格&rarr;</a>"
+
+#. translators: %s: form title.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1011
+#, fuzzy, php-format
+msgid "WPForms: \"%s\" has no ct_* attribution fields"
+msgstr "WPForms：“%s”没有 ct_* 属性字段"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1113
+#, fuzzy
+msgid "Web container"
+msgstr "网络容器"
+
+#. translators: %s: GTM container ID.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1118
+#, fuzzy, php-format
+msgid "Container %s is configured."
+msgstr "容器%s已配置。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1121
+#, fuzzy
+msgid "Add a GTM web container ID before using the wizard."
+msgstr "在使用向导之前添加GTM Web 容器ID。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1125
+#, fuzzy
+msgid "sGTM mode"
+msgstr "sGTM模式"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1128
+#, fuzzy
+msgid "sGTM compatibility mode is active."
+msgstr "sGTM 兼容模式已激活。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1129
+#, fuzzy
+msgid "ClickTrail is still using the standard GTM loader mode."
+msgstr "ClickTrail仍然使用标准的GTM加载器模式。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1133
+#: assets/js/admin-settings-app.js:802
+#, fuzzy
+msgid "Tagging server URL"
+msgstr "标记服务器URL"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1137
+#, fuzzy
+msgid ""
+"Add the tagging server URL if you want first-party script delivery or a "
+"stronger preview workflow."
+msgstr "如果您想要第一方脚本交付或更强大的预览工作流程，请添加标记服务器URL。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1141
+#, fuzzy
+msgid "Loader path"
+msgstr "装载机路径"
+
+#. translators: %s: loader URL.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1146
+#, fuzzy, php-format
+msgid "Custom loader enabled: %s"
+msgstr "启用自定义加载程序：%s"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1150
+#, fuzzy
+msgid "First-party script delivery is enabled."
+msgstr "启用第一方脚本交付。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1151
+#, fuzzy
+msgid ""
+"Enable first-party delivery or add a custom loader when you want the script "
+"to avoid the default Google host."
+msgstr "Enable first-party delivery or add a custom loader when you want the script to avoid the default Google host."
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1155
+#: assets/js/admin-settings-app.js:1034
+#, fuzzy
+msgid "Delivery adapter"
+msgstr "输送适配器"
+
+#. translators: %s: adapter label.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1160
+#, fuzzy, php-format
+msgid "Delivery is enabled with %s."
+msgstr "通过%s启用交付。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1163
+#, fuzzy
+msgid ""
+"Delivery is off. You can still validate browser-side GTM behavior before "
+"enabling server delivery."
+msgstr "送货已关闭。在启用服务器交付之前，您仍然可以验证浏览器端GTM行为。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1167
+#, fuzzy
+msgid "Destination toggles"
+msgstr "目的地切换"
+
+#. translators: %d: enabled destination count.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1172
+#, fuzzy, php-format
+msgid "%d destination is enabled in Events."
+msgid_plural "%d destinations are enabled in Events."
+msgstr[0] "%d 目的地已在事件中启用。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1175
+#, fuzzy
+msgid ""
+"No native destination toggles are enabled. That is fine if GTM or another "
+"relay owns final delivery."
+msgstr "未启用本机目标切换。如果GTM或其他中继拥有最终交付，那很好。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1182
+#, fuzzy
+msgid "Loader probe"
+msgstr "装载机探针"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1184
+#, fuzzy
+msgid "Could not reach the configured GTM loader URL from WordPress."
+msgstr "无法从 WordPress 到达已配置的 GTM 加载程序 URL。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1191
+#, fuzzy
+msgid "Collector probe"
+msgstr "收集器探头"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1193
+#, fuzzy
+msgid "Could not reach the configured sGTM collector URL from WordPress."
+msgstr "无法从 WordPress 到达已配置的 sGTM 收集器 URL。"
+
+#. translators: 1: ready checks count, 2: total checks count.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1210
+#, fuzzy, php-format
+msgid "sGTM preview checks marked %1$d of %2$d items as ready."
+msgstr "sGTM 预览检查将 %2$d 项目中标记为 %1$d 的项目准备就绪。"
+
+#. translators: 1: URL, 2: HTTP status code.
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1256
+#, fuzzy, php-format
+msgid "%1$s responded with HTTP %2$d."
+msgstr "%1$s 回复HTTP %2$d。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1276
+#, fuzzy
+msgid ""
+"Load the Meta tag and matching server template in GTM, then confirm Meta is "
+"owned by either GTM or ClickTrail native delivery, not both."
+msgstr "在GTM中加载Meta标签和匹配的服务器模板，然后确认Meta归GTM或ClickTrail本机交付所有，而不是同时拥有。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1284
+#, fuzzy
+msgid ""
+"Confirm your server container has the GA4 client and the Google tags you "
+"expect before previewing purchase and checkout events."
+msgstr "在预览购买和结帐事件之前，请确认您的服务器容器具有您期望的 GA4 客户端和 Google 标签。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1292
+#, fuzzy
+msgid ""
+"Verify the LinkedIn server-side tag template and consent handling in GTM "
+"before you rely on ClickTrail purchase or lead events."
+msgstr "在依赖 ClickTrail 购买或引导事件之前，请验证 LinkedIn 服务器端标签模板和GTM 中的同意处理。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1300
+#, fuzzy
+msgid ""
+"Install the Pinterest Conversions template in the server container if GTM "
+"owns Pinterest delivery for this site."
+msgstr "如果 GTM 拥有此站点的 Pinterest 交付，请在服务器容器中安装 Pinterest 转换模板。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1308
+#, fuzzy
+msgid ""
+"Install the TikTok Events API template in the server container if GTM owns "
+"TikTok delivery for this site."
+msgstr "如果 GTM 拥有此站点的 TikTok 交付，请在服务器容器中安装 TikTok 事件 API 模板。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1315
+#, fuzzy
+msgid "Template ownership"
+msgstr "模板所有权"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1316
+#, fuzzy
+msgid ""
+"Use destination toggles as ownership markers. Keep each downstream platform "
+"owned by exactly one delivery path."
+msgstr "使用目标切换作为所有权标记。让每个下游平台只拥有一条交付路径。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1359
+#, fuzzy
+msgid "Backup file format is not supported."
+msgstr "不支持备份文件格式。"
+
+#: includes/admin/traits/trait-admin-diagnostics-ajax.php:1363
+#, fuzzy
+msgid "Backup file does not contain any ClickTrail options."
+msgstr "备份文件不包含任何ClickTrail选项。"
+
+#: includes/admin/traits/trait-admin-pages.php:27
+#, fuzzy
+msgid "ClickTrail Network"
+msgstr "ClickTrail 网络"
+
+#: includes/admin/traits/trait-admin-pages.php:50
+#, fuzzy
+msgid "ClickTrail Network Settings"
+msgstr "ClickTrail 网络设置"
+
+#: includes/admin/traits/trait-admin-pages.php:55
+#, fuzzy
+msgid "Enable Server-side Sending"
+msgstr "启用服务器端发送"
+
+#: includes/admin/traits/trait-admin-pages.php:64
+#, fuzzy
+msgid "Collector Endpoint URL"
+msgstr "收集器端点URL"
+
+#: includes/admin/traits/trait-admin-pages.php:70
+#, fuzzy
+msgid "Adapter Type"
+msgstr "适配器类型"
+
+#: includes/admin/traits/trait-admin-pages.php:88
+#, fuzzy
+msgid "Request Timeout (seconds)"
+msgstr "请求超时（秒）"
+
+#: includes/admin/traits/trait-admin-pages.php:94
+#, fuzzy
+msgid "Remote Failure Telemetry (Opt-in)"
+msgstr "远程故障遥测（选择加入）"
+
+#: includes/admin/traits/trait-admin-pages.php:98
+#, fuzzy
+msgid "Enable aggregated remote failure reporting hook"
+msgstr "启用聚合远程故障报告挂钩"
+
+#: includes/admin/traits/trait-admin-pages.php:100
+#, fuzzy
+msgid ""
+"Disabled by default. Sends only aggregated failure counts (no payloads, no "
+"PII)."
+msgstr "默认禁用。仅发送聚合失败计数（无有效负载，无PII）。"
+
+#: includes/admin/traits/trait-admin-pages.php:179
+#, fuzzy
+msgid "No dispatches yet"
+msgstr "还没有发货"
+
+#: includes/admin/traits/trait-admin-pages.php:211
+#, fuzzy
+msgid "ClickTrail Diagnostics"
+msgstr "ClickTrail 诊断"
+
+#: includes/admin/traits/trait-admin-pages.php:217
+#: assets/js/admin-settings-app.js:968
+#, fuzzy
+msgid "Queue Backlog"
+msgstr "队列积压"
+
+#. translators: %d: due now count.
+#: includes/admin/traits/trait-admin-pages.php:223
+#, fuzzy, php-format
+msgid "Due now: %d"
+msgstr "现在到期：%d"
+
+#: includes/admin/traits/trait-admin-pages.php:231
+#: assets/js/admin-settings-app.js:973
+#, fuzzy
+msgid "Last Dispatch"
+msgstr "最后一次发货"
+
+#: includes/admin/traits/trait-admin-pages.php:237
+#: assets/js/admin-settings-app.js:978
+#, fuzzy
+msgid "Last Error"
+msgstr "上次错误"
+
+#: includes/admin/traits/trait-admin-pages.php:238
+#: assets/js/admin-settings-app.js:949
+#, fuzzy
+msgid "None"
+msgstr "无"
+
+#: includes/admin/traits/trait-admin-pages.php:239
+#: assets/js/admin-settings-app.js:980
+#, fuzzy
+msgid "No errors recorded."
+msgstr "没有记录错误。"
+
+#: includes/admin/traits/trait-admin-pages.php:243
+#: includes/admin/traits/trait-admin-pages.php:391
+#: assets/js/admin-settings-app.js:983
+#, fuzzy
+msgid "Debug Logging"
+msgstr "调试日志记录"
+
+#: includes/admin/traits/trait-admin-pages.php:244
+#: assets/js/admin-settings-app.js:984
+#, fuzzy
+msgid "Disabled"
+msgstr "残疾人"
+
+#: includes/admin/traits/trait-admin-pages.php:246
+#, fuzzy
+msgid "15 minute window when enabled."
+msgstr "15 启用后的分钟窗口。"
+
+#: includes/admin/traits/trait-admin-pages.php:266
+#, fuzzy
+msgid "Endpoint Test"
+msgstr "端点测试"
+
+#: includes/admin/traits/trait-admin-pages.php:267
+#, fuzzy
+msgid "Validate connectivity to the configured server-side endpoint."
+msgstr "验证与配置的服务器端端点的连接。"
+
+#: includes/admin/traits/trait-admin-pages.php:273
+#, fuzzy
+msgid "Test Endpoint"
+msgstr "测试端点"
+
+#: includes/admin/traits/trait-admin-pages.php:284
+#, fuzzy
+msgid "Conflict Scan"
+msgstr "冲突扫描"
+
+#: includes/admin/traits/trait-admin-pages.php:285
+#, fuzzy
+msgid ""
+"Run deterministic checks for caching, call tracking scripts, duplicate "
+"ownership, Woo gaps, and delivery mismatches."
+msgstr "对缓存、呼叫跟踪脚本、重复所有权、Woo 间隙和传送不匹配运行确定性检查。"
+
+#: includes/admin/traits/trait-admin-pages.php:291
+#, fuzzy
+msgid "Run Conflict Scan"
+msgstr "运行冲突扫描"
+
+#: includes/admin/traits/trait-admin-pages.php:305
+#, fuzzy
+msgid "Attribution Readiness"
+msgstr "归因准备情况"
+
+#: includes/admin/traits/trait-admin-pages.php:306
+#, fuzzy
+msgid ""
+"Run a read-only analysis against a test payload. Click-ID values are never "
+"returned or stored."
+msgstr "针对测试负载运行只读分析。 Click-ID 值永远不会返回或存储。"
+
+#: includes/admin/traits/trait-admin-pages.php:312
+#, fuzzy
+msgid "Test payload (JSON)"
+msgstr "测试负载（JSON）"
+
+#: includes/admin/traits/trait-admin-pages.php:316
+#, fuzzy
+msgid "Referrer URL (optional)"
+msgstr "推荐人URL（可选）"
+
+#: includes/admin/traits/trait-admin-pages.php:318
+#, fuzzy
+msgid "Current host (optional)"
+msgstr "当前主机（可选）"
+
+#: includes/admin/traits/trait-admin-pages.php:322
+#, fuzzy
+msgid "Source aliases (optional test JSON)"
+msgstr "源别名（可选测试JSON）"
+
+#: includes/admin/traits/trait-admin-pages.php:324
+#, fuzzy
+msgid ""
+"Map recognized click-ID platform keys to bounded utm_source aliases. This "
+"input is used only for this check and is never stored."
+msgstr "将识别的 click-ID 平台键映射到有界的 utm_source 别名。此输入仅用于此检查并且从不存储。"
+
+#: includes/admin/traits/trait-admin-pages.php:326
+#, fuzzy
+msgid ""
+"Suggestions are read-only and apply only to utm_source; utm_medium and "
+"utm_campaign are never invented. An observed source, an unresolved macro, or "
+"signals from multiple platforms suppress automatic source suggestion."
+msgstr "建议是只读的，仅适用于utm_source； utm_medium和utm_campaign从未被发明。观察到的源、未解析的宏或来自多个平台的信号会抑制自动源建议。"
+
+#: includes/admin/traits/trait-admin-pages.php:328
+#, fuzzy
+msgid "Run Readiness Check"
+msgstr "运行准备情况检查"
+
+#: includes/admin/traits/trait-admin-pages.php:329
+#, fuzzy
+msgid "Copy Test URL"
+msgstr "复制测试URL"
+
+#: includes/admin/traits/trait-admin-pages.php:333
+#, fuzzy
+msgid "Copy-only test URL"
+msgstr "仅复制测试URL"
+
+#: includes/admin/traits/trait-admin-pages.php:345
+#, fuzzy
+msgid "Backup Restore"
+msgstr "备份恢复"
+
+#: includes/admin/traits/trait-admin-pages.php:346
+#, fuzzy
+msgid ""
+"Export or restore the five main ClickTrail option stores through privileged "
+"server-side actions."
+msgstr "通过特权服务器端操作导出或恢复五个主要的ClickTrail选项存储。"
+
+#: includes/admin/traits/trait-admin-pages.php:347
+#, fuzzy
+msgid ""
+"Warning: the exported backup file contains live, unmasked webhook secrets "
+"and CRM tokens in plaintext. Treat it like a credentials file — store and "
+"share it accordingly."
+msgstr "警告：导出的备份文件包含实时、未屏蔽的 Webhook 机密和明文形式的 CRM 令牌。将其视为凭据文件 - 相应地存储和共享它。"
+
+#: includes/admin/traits/trait-admin-pages.php:353
+#, fuzzy
+msgid "Export Backup"
+msgstr "导出备份"
+
+#: includes/admin/traits/trait-admin-pages.php:358
+#, fuzzy
+msgid "Restore Backup"
+msgstr "恢复备份"
+
+#: includes/admin/traits/trait-admin-pages.php:369
+#, fuzzy
+msgid "Woo Order Trace Lookup"
+msgstr "Woo 订单追踪查找"
+
+#: includes/admin/traits/trait-admin-pages.php:370
+#, fuzzy
+msgid ""
+"Inspect the stored purchase and milestone payload snapshots for a "
+"WooCommerce order, even outside the debug window."
+msgstr "检查WooCommerce订单的存储购买和里程碑有效负载快照，即使在调试窗口之外也是如此。"
+
+#: includes/admin/traits/trait-admin-pages.php:376
+#: includes/privacy/class-privacy-handler.php:662
+#: includes/privacy/class-woo-order-privacy.php:221
+#, fuzzy
+msgid "Order ID"
+msgstr "订购ID"
+
+#: includes/admin/traits/trait-admin-pages.php:377
+#, fuzzy
+msgid "Lookup Order"
+msgstr "查找顺序"
+
+#: includes/admin/traits/trait-admin-pages.php:392
+#, fuzzy
+msgid ""
+"Capture temporary dispatch traces and normalized event intake entries for "
+"debugging."
+msgstr "捕获临时调度跟踪和标准化事件接收条目以进行调试。"
+
+#: includes/admin/traits/trait-admin-pages.php:411
+#, fuzzy
+msgid "Data Management"
+msgstr "数据管理"
+
+#: includes/admin/traits/trait-admin-pages.php:412
+#, fuzzy
+msgid ""
+"Purge local tracking data, including events, queue rows, and diagnostic "
+"buffers. This cannot be undone."
+msgstr "清除本地跟踪数据，包括事件、队列行和诊断缓冲区。此操作无法撤消。"
+
+#: includes/admin/traits/trait-admin-pages.php:418
+#, fuzzy
+msgid "Purge Tracking Data"
+msgstr "清除跟踪数据"
+
+#: includes/admin/traits/trait-admin-pages.php:429
+#, fuzzy
+msgid "Failure Telemetry"
+msgstr "故障遥测"
+
+#. translators: %d: total failures.
+#: includes/admin/traits/trait-admin-pages.php:434
+#, fuzzy, php-format
+msgid "Failure-only aggregated counters. Total failures tracked: %d."
+msgstr "仅失败聚合计数器。跟踪的总故障数：%d。"
+
+#: includes/admin/traits/trait-admin-pages.php:446
+#, fuzzy
+msgid "Hour Bucket"
+msgstr "小时桶"
+
+#: includes/admin/traits/trait-admin-pages.php:447
+#, fuzzy
+msgid "Total Failures"
+msgstr "全部失败"
+
+#: includes/admin/traits/trait-admin-pages.php:448
+#, fuzzy
+msgid "Codes"
+msgstr "代码"
+
+#: includes/admin/traits/trait-admin-pages.php:477
+#, fuzzy
+msgid "No failures recorded yet."
+msgstr "尚未记录任何故障。"
+
+#: includes/admin/traits/trait-admin-pages.php:490
+#, fuzzy
+msgid "Queue Backlog Details"
+msgstr "队列积压详细信息"
+
+#: includes/admin/traits/trait-admin-pages.php:491
+#, fuzzy
+msgid "Current state of the retry queue used for failed dispatch attempts."
+msgstr "用于失败调度尝试的重试队列的当前状态。"
+
+#: includes/admin/traits/trait-admin-pages.php:499
+#, fuzzy
+msgid "Queue Ready"
+msgstr "队列就绪"
+
+#: includes/admin/traits/trait-admin-pages.php:500
+#, fuzzy
+msgid "Yes"
+msgstr "是的"
+
+#: includes/admin/traits/trait-admin-pages.php:500
+#, fuzzy
+msgid "No"
+msgstr "否"
+
+#: includes/admin/traits/trait-admin-pages.php:503
+#, fuzzy
+msgid "Pending Events"
+msgstr "待处理事件"
+
+#: includes/admin/traits/trait-admin-pages.php:507
+#, fuzzy
+msgid "Due Now"
+msgstr "现在到期"
+
+#: includes/admin/traits/trait-admin-pages.php:511
+#, fuzzy
+msgid "Max Attempts in Queue"
+msgstr "队列中的最大尝试次数"
+
+#: includes/admin/traits/trait-admin-pages.php:515
+#, fuzzy
+msgid "Oldest Next Attempt"
+msgstr "最早的下一次尝试"
+
+#: includes/admin/traits/trait-admin-pages.php:519
+#, fuzzy
+msgid "Failed (dead-letter)"
+msgstr "失败（死信）"
+
+#: includes/admin/traits/trait-admin-pages.php:525
+#, fuzzy
+msgid "Retry Failed Deliveries"
+msgstr "重试失败的交付"
+
+#: includes/admin/traits/trait-admin-pages.php:536
+#, fuzzy
+msgid "Recent Event Intake"
+msgstr "最近的事件摄入量"
+
+#: includes/admin/traits/trait-admin-pages.php:537
+#, fuzzy
+msgid "Last normalized event intake entries captured during the debug window."
+msgstr "在调试窗口期间捕获的最后一个标准化事件摄入条目。"
+
+#: includes/admin/traits/trait-admin-pages.php:545
+#: includes/admin/traits/trait-admin-pages.php:600
+#, fuzzy
+msgid "Time"
+msgstr "时间"
+
+#: includes/admin/traits/trait-admin-pages.php:546
+#, fuzzy
+msgid "Kind"
+msgstr "种类"
+
+#: includes/admin/traits/trait-admin-pages.php:547
+#: includes/admin/traits/trait-admin-pages.php:601
+#: includes/privacy/class-privacy-handler.php:638
+#, fuzzy
+msgid "Event"
+msgstr "活动"
+
+#: includes/admin/traits/trait-admin-pages.php:548
+#: includes/admin/traits/trait-admin-pages.php:604
+#, fuzzy
+msgid "Status"
+msgstr "状态"
+
+#: includes/admin/traits/trait-admin-pages.php:549
+#, fuzzy
+msgid "Reason"
+msgstr "原因"
+
+#: includes/admin/traits/trait-admin-pages.php:551
+#, fuzzy
+msgid "Attribution Keys"
+msgstr "归因键"
+
+#: includes/admin/traits/trait-admin-pages.php:552
+#, fuzzy
+msgid "Identity Keys"
+msgstr "身份密钥"
+
+#: includes/admin/traits/trait-admin-pages.php:578
+#, fuzzy
+msgid ""
+"No normalized intake entries recorded yet. Enable Debug Logging and "
+"reproduce an event."
+msgstr "尚未记录标准化摄入量条目。启用调试日志记录并重现事件。"
+
+#: includes/admin/traits/trait-admin-pages.php:591
+#, fuzzy
+msgid "Recent Dispatches"
+msgstr "最近的发货"
+
+#: includes/admin/traits/trait-admin-pages.php:592
+#, fuzzy
+msgid "Dispatch entries are captured only while Debug Logging is enabled."
+msgstr "仅当启用调试日志记录时才会捕获调度条目。"
+
+#: includes/admin/traits/trait-admin-pages.php:602
+#, fuzzy
+msgid "Event ID"
+msgstr "活动ID"
+
+#: includes/admin/traits/trait-admin-pages.php:603
+#, fuzzy
+msgid "Adapter"
+msgstr "适配器"
+
+#: includes/admin/traits/trait-admin-pages.php:605
+#, fuzzy
+msgid "HTTP"
+msgstr "HTTP"
+
+#: includes/admin/traits/trait-admin-pages.php:606
+#, fuzzy
+msgid "Endpoint"
+msgstr "端点"
+
+#: includes/admin/traits/trait-admin-pages.php:607
+#, fuzzy
+msgid "Message"
+msgstr "留言"
+
+#: includes/admin/traits/trait-admin-pages.php:627
+#, fuzzy
+msgid "No dispatches recorded yet."
+msgstr "尚未记录发货情况。"
+
+#: includes/admin/traits/trait-admin-pages.php:651
+#, fuzzy
+msgid "ClickTrail Logs"
+msgstr "ClickTrail 日志"
+
+#: includes/admin/traits/trait-admin-pages.php:675
+#, fuzzy
+msgid "Run the scan to review likely setup conflicts."
+msgstr "运行扫描以检查可能的设置冲突。"
+
+#: includes/admin/traits/trait-admin-pages.php:715
+#, fuzzy
+msgid "Lookup an order to inspect stored purchase and milestone traces."
+msgstr "查找订单以检查存储的购买和里程碑跟踪。"
+
+#. translators: %d: WooCommerce order ID.
+#: includes/admin/traits/trait-admin-pages.php:732
+#, fuzzy, php-format
+msgid "Order #%d"
+msgstr "订单#%d"
+
+#: includes/admin/traits/trait-admin-pages.php:753
+#, fuzzy
+msgid "Stored trace"
+msgstr "存储轨迹"
+
+#: includes/admin/traits/trait-admin-pages.php:765
+#, fuzzy
+msgid ""
+"No attribution was captured for this order because marketing consent was not "
+"granted when it fired. This is expected when \"Enable consent mode\" is on "
+"under Settings → Delivery → Privacy & consent. Turn it off there if you "
+"don't need consent-gated attribution."
+msgstr "由于在触发时未获得营销许可，因此未捕获此订单的归因信息。当“设置”→“传送”→“隐私和同意”下的“启用同意模式”处于打开状态时，这是预期的。如果您不需要同意门禁归因，请将其关闭。"
+
+#: includes/admin/traits/trait-admin-pages.php:775
+#, fuzzy
+msgid "Source Hook"
+msgstr "源钩子"
+
+#: includes/admin/traits/trait-admin-pages.php:779
+#, fuzzy
+msgid "Attempted At"
+msgstr "尝试过"
+
+#: includes/admin/traits/trait-admin-pages.php:783
+#, fuzzy
+msgid "Dispatch Result"
+msgstr "派送结果"
+
+#: includes/admin/traits/trait-admin-pages.php:787
+#, fuzzy
+msgid "Dispatch Detail"
+msgstr "发货详情"
+
+#: includes/admin/traits/trait-admin-pages.php:791
+#, fuzzy
+msgid "Queue State"
+msgstr "队列状态"
+
+#: includes/admin/traits/trait-admin-pages.php:795
+#, fuzzy
+msgid "Queue Detail"
+msgstr "队列详细信息"
+
+#: includes/api/class-tracking-controller.php:522
+#: includes/api/class-tracking-controller.php:644
+#, fuzzy
+msgid "Payload too large."
+msgstr "有效负载太大。"
+
+#: includes/class-clicutcl-core.php:81
+#, fuzzy
+msgid ""
+"ClickTrail failed to boot: missing class CLICUTCL\\Core\\Context. Check your "
+"autoloader mapping and release ZIP contents."
+msgstr "ClickTrail启动失败：缺少类CLICUTCL\\Core\\Context。检查您的自动加载器映射并释放ZIP内容。"
+
+#: includes/class-clicutcl-core.php:283
+#, fuzzy
+msgid "We use cookies to improve your experience and analyze traffic."
+msgstr "我们使用 cookie 来改善您的体验并分析流量。"
+
+#: includes/class-clicutcl-core.php:284
+#, fuzzy
+msgid "Read more"
+msgstr "了解更多"
+
+#: includes/class-clicutcl-core.php:285
+#, fuzzy
+msgid "Accept All"
+msgstr "全部接受"
+
+#: includes/class-clicutcl-core.php:286
+#, fuzzy
+msgid "Reject Non-Essential"
+msgstr "拒绝非必要的"
+
+#: includes/class-clicutcl-core.php:595
+#, fuzzy
+msgid "Shop"
+msgstr "商店"
+
+#. translators: %s: search query.
+#: includes/class-clicutcl-core.php:622
+#, fuzzy, php-format
+msgid "Search: %s"
+msgstr "搜索：%s"
+
+#: includes/class-clicutcl-core.php:625
+#, fuzzy
+msgid "Search Results"
+msgstr "搜索结果"
+
+#: includes/integrations/forms/class-gf-form-settings-tab.php:74
+#, fuzzy
+msgid "Attribution Tracking"
+msgstr "归因追踪"
+
+#: includes/integrations/forms/class-gf-form-settings-tab.php:78
+#, fuzzy
+msgid "Enable attribution tracking for this form"
+msgstr "对此表单启用归因跟踪"
+
+#: includes/integrations/forms/class-ninja-forms-submission-extra-handler.php:96
+#, fuzzy
+msgid "ClickTrail Attribution"
+msgstr "ClickTrail 归属"
+
+#: includes/privacy/class-privacy-handler.php:58
+#: includes/privacy/class-privacy-handler.php:73
+#, fuzzy
+msgid "ClickTrail Tracking Data"
+msgstr "ClickTrail 追踪数据"
+
+#: includes/privacy/class-privacy-handler.php:130
+#, fuzzy
+msgid "ClickTrail Events"
+msgstr "ClickTrail 活动"
+
+#: includes/privacy/class-privacy-handler.php:142
+#, fuzzy
+msgid "Event Data"
+msgstr "事件数据"
+
+#: includes/privacy/class-privacy-handler.php:242
+#: includes/privacy/class-privacy-handler.php:246
+#, fuzzy
+msgid "Some ClickTrail event records could not be deleted."
+msgstr "部分ClickTrail事件记录无法删除。"
+
+#. translators: %s: database error message.
+#: includes/privacy/class-privacy-handler.php:251
+#, fuzzy, php-format
+msgid "Database error: %s"
+msgstr "数据库错误：%s"
+
+#: includes/privacy/class-privacy-handler.php:420
+#: includes/privacy/class-privacy-handler.php:448
+#, fuzzy
+msgid "ClickTrail Debug Storage"
+msgstr "ClickTrail 调试存储"
+
+#: includes/privacy/class-privacy-handler.php:424
+#: includes/privacy/class-privacy-handler.php:452
+#, fuzzy
+msgid "Storage Type"
+msgstr "存储类型"
+
+#: includes/privacy/class-privacy-handler.php:428
+#: includes/privacy/class-privacy-handler.php:456
+#, fuzzy
+msgid "Storage Key"
+msgstr "存储密钥"
+
+#: includes/privacy/class-privacy-handler.php:432
+#: includes/privacy/class-privacy-handler.php:460
+#, fuzzy
+msgid "Data Snapshot"
+msgstr "数据快照"
+
+#: includes/privacy/class-privacy-handler.php:493
+#, fuzzy
+msgid "Some ClickTrail transient debug records could not be deleted."
+msgstr "某些ClickTrail瞬态调试记录无法删除。"
+
+#: includes/privacy/class-privacy-handler.php:520
+#, fuzzy
+msgid "Some ClickTrail option debug records could not be updated."
+msgstr "某些ClickTrail选项调试记录无法更新。"
+
+#: includes/privacy/class-privacy-handler.php:529
+#, fuzzy
+msgid "Some ClickTrail option debug records could not be deleted."
+msgstr "某些ClickTrail选项调试记录无法删除。"
+
+#: includes/privacy/class-privacy-handler.php:579
+#, fuzzy
+msgid "Some ClickTrail queued delivery records could not be deleted."
+msgstr "一些ClickTrail排队的投递记录无法删除。"
+
+#: includes/privacy/class-privacy-handler.php:634
+#, fuzzy
+msgid "ClickTrail Touch Events"
+msgstr "ClickTrail 触摸事件"
+
+#: includes/privacy/class-privacy-handler.php:642
+#, fuzzy
+msgid "Funnel Stage"
+msgstr "漏斗阶段"
+
+#: includes/privacy/class-privacy-handler.php:646
+#, fuzzy
+msgid "Source Channel"
+msgstr "来源频道"
+
+#: includes/privacy/class-privacy-handler.php:650
+#, fuzzy
+msgid "Touch Source"
+msgstr "触摸源"
+
+#: includes/privacy/class-privacy-handler.php:654
+#, fuzzy
+msgid "Touch Medium"
+msgstr "触摸介质"
+
+#: includes/privacy/class-privacy-handler.php:658
+#, fuzzy
+msgid "Touch Campaign"
+msgstr "触摸活动"
+
+#: includes/privacy/class-privacy-handler.php:666
+#, fuzzy
+msgid "Amount"
+msgstr "金额"
+
+#: includes/privacy/class-privacy-handler.php:670
+#, fuzzy
+msgid "Currency"
+msgstr "货币"
+
+#: includes/privacy/class-privacy-handler.php:719
+#, fuzzy
+msgid "Some ClickTrail touch event records could not be deleted."
+msgstr "部分ClickTrail触摸事件记录无法删除。"
+
+#: includes/privacy/class-woo-order-privacy.php:217
+#, fuzzy
+msgid "ClickTrail WooCommerce Order Data"
+msgstr "ClickTrail WooCommerce 订单数据"
+
+#: includes/privacy/class-woo-order-privacy.php:225
+#, fuzzy
+msgid "Metadata Key"
+msgstr "Meta数据密钥"
+
+#: includes/privacy/class-woo-order-privacy.php:229
+#, fuzzy
+msgid "Metadata Value"
+msgstr "Meta数据值"
+
+#: includes/privacy/class-woo-order-privacy.php:297
+#: includes/privacy/class-woo-order-privacy.php:304
+#, fuzzy
+msgid "Some ClickTrail WooCommerce order metadata could not be deleted."
+msgstr "某些ClickTrailWooCommerce订单元数据无法删除。"
+
+#: includes/server-side/class-queue.php:103
+#, fuzzy
+msgid "Every 5 Minutes"
+msgstr "每5 分钟"
+
+#: assets/js/admin-settings-app.js:243 assets/js/admin-settings-app.js:868
+#, fuzzy
+msgid "Ready"
+msgstr "准备好了"
+
+#: assets/js/admin-settings-app.js:243 assets/js/admin-settings-app.js:868
+#, fuzzy
+msgid "Needs Review"
+msgstr "需求审查"
+
+#: assets/js/admin-settings-app.js:243
+#, fuzzy
+msgid "Unavailable"
+msgstr "不可用"
+
+#: assets/js/admin-settings-app.js:243 assets/js/admin-settings-app.js:868
+#, fuzzy
+msgid "Optional"
+msgstr "可选"
+
+#: assets/js/admin-settings-app.js:269
+#, fuzzy
+msgid "Setup Checklist"
+msgstr "设置清单"
+
+#: assets/js/admin-settings-app.js:270
+#, fuzzy
+msgid ""
+"Read-only readiness checks for rollout, delivery, and WooCommerce coverage."
+msgstr "针对推出、交付和WooCommerce覆盖率的只读准备情况检查。"
+
+#: assets/js/admin-settings-app.js:439
+#, fuzzy
+msgid "Settings reloaded."
+msgstr "设置已重新加载。"
+
+#: assets/js/admin-settings-app.js:445
+#, fuzzy
+msgid "Failed to reload settings."
+msgstr "无法重新加载设置。"
+
+#: assets/js/admin-settings-app.js:472
+#, fuzzy
+msgid "Failed to save settings."
+msgstr "无法保存设置。"
+
+#: assets/js/admin-settings-app.js:496
+#, fuzzy
+msgid "Failed to run sGTM preview checks."
+msgstr "无法运行 sGTM 预览检查。"
+
+#: assets/js/admin-settings-app.js:634
+#, fuzzy
+msgid "Core tracking"
+msgstr "核心追踪"
+
+#: assets/js/admin-settings-app.js:635
+#, fuzzy
+msgid ""
+"Enable attribution tracking and choose how long visit source data should be "
+"stored."
+msgstr "启用归因跟踪并选择访问源数据应存储多长时间。"
+
+#: assets/js/admin-settings-app.js:637
+#, fuzzy
+msgid "Enable attribution tracking"
+msgstr "启用归因跟踪"
+
+#: assets/js/admin-settings-app.js:637
+#, fuzzy
+msgid "Capture campaign and referral data for each visit."
+msgstr "捕获每次访问的活动和推荐数据。"
+
+#: assets/js/admin-settings-app.js:638
+#, fuzzy
+msgid "Attribution retention (days)"
+msgstr "归因保留（天）"
+
+#: assets/js/admin-settings-app.js:638
+#, fuzzy
+msgid "How long attribution data should be stored."
+msgstr "归因数据应存储多长时间。"
+
+#: assets/js/admin-settings-app.js:646
+#, fuzzy
+msgid "Cross-domain attribution"
+msgstr "跨域归因"
+
+#: assets/js/admin-settings-app.js:647
+#, fuzzy
+msgid ""
+"Preserve attribution when visitors move between your domains or subdomains."
+msgstr "当访问者在您的域或子域之间移动时保留归因。"
+
+#: assets/js/admin-settings-app.js:649
+#, fuzzy
+msgid "Decorate outgoing links"
+msgstr "装饰传出链接"
+
+#: assets/js/admin-settings-app.js:649
+#, fuzzy
+msgid "Append attribution parameters to approved links."
+msgstr "将归因参数附加到批准的链接。"
+
+#: assets/js/admin-settings-app.js:650
+#, fuzzy
+msgid "Allowed cross-domain destinations"
+msgstr "允许的跨域目标"
+
+#: assets/js/admin-settings-app.js:650
+#, fuzzy
+msgid "Domains where attribution parameters may be added."
+msgstr "可以添加归因参数的域。"
+
+#: assets/js/admin-settings-app.js:654
+#, fuzzy
+msgid "Do not modify signed URLs"
+msgstr "不要修改已签名的URL"
+
+#: assets/js/admin-settings-app.js:654
+#, fuzzy
+msgid ""
+"Recommended when links contain temporary signatures or protected access "
+"tokens."
+msgstr "当链接包含临时签名或受保护的访问令牌时推荐使用。"
+
+#: assets/js/admin-settings-app.js:656 assets/js/admin-settings-app.js:701
+#: assets/js/admin-settings-app.js:705 assets/js/admin-settings-app.js:709
+#, fuzzy
+msgid "Recommended"
+msgstr "推荐"
+
+#: assets/js/admin-settings-app.js:658
+#, fuzzy
+msgid "Pass cross-domain attribution token"
+msgstr "传递跨域归因令牌"
+
+#: assets/js/admin-settings-app.js:658
+#, fuzzy
+msgid ""
+"Adds a temporary token to preserve attribution across approved domains. No "
+"personal data is included."
+msgstr "添加临时令牌以保留批准域之间的归属。不包含任何个人数据。"
+
+#: assets/js/admin-settings-app.js:673
+#, fuzzy
+msgid "Enable this source and accept signed webhook submissions."
+msgstr "启用此源并接受签名的 Webhook 提交。"
+
+#: assets/js/admin-settings-app.js:682
+#, fuzzy
+msgid "Signing secret"
+msgstr "签名秘笈"
+
+#: assets/js/admin-settings-app.js:683
+#, fuzzy
+msgid "Leave unchanged to keep the current secret."
+msgstr "保持不变以保守当前秘密。"
+
+#: assets/js/admin-settings-app.js:699
+#, fuzzy
+msgid "On-site form capture"
+msgstr "现场表格捕捉"
+
+#: assets/js/admin-settings-app.js:700
+#, fuzzy
+msgid ""
+"Recommended settings to keep attribution attached to forms on cached pages "
+"and dynamic sites."
+msgstr "建议设置以将归因附加到缓存页面和动态网站上的表单。"
+
+#: assets/js/admin-settings-app.js:704
+#, fuzzy
+msgid "Client-side capture fallback"
+msgstr "客户端捕获回退"
+
+#: assets/js/admin-settings-app.js:704
+#, fuzzy
+msgid "Recommended for cached or highly optimized pages."
+msgstr "推荐用于缓存或高度优化的页面。"
+
+#: assets/js/admin-settings-app.js:707
+#, fuzzy
+msgid "Watch dynamic content"
+msgstr "观看动态内容"
+
+#: assets/js/admin-settings-app.js:707
+#, fuzzy
+msgid "Detect forms and links added after page load."
+msgstr "检测页面加载后添加的表单和链接。"
+
+#: assets/js/admin-settings-app.js:711
+#, fuzzy
+msgid "Replace existing attribution values"
+msgstr "替换现有的归因值"
+
+#: assets/js/admin-settings-app.js:711
+#, fuzzy
+msgid "Use newly detected values even if attribution was already stored."
+msgstr "即使归因已存储，也使用新检测到的值。"
+
+#: assets/js/admin-settings-app.js:719
+#, fuzzy
+msgid "WhatsApp"
+msgstr "WhatsApp"
+
+#: assets/js/admin-settings-app.js:720
+#, fuzzy
+msgid ""
+"Carry attribution into outbound WhatsApp clicks and pre-filled messages."
+msgstr "将归因纳入 WhatsApp 出站点击和预填充消息中。"
+
+#: assets/js/admin-settings-app.js:724
+#, fuzzy
+msgid "Enable WhatsApp tracking"
+msgstr "启用 WhatsApp 跟踪"
+
+#: assets/js/admin-settings-app.js:724
+#, fuzzy
+msgid "Track clicks on WhatsApp links and buttons."
+msgstr "跟踪 WhatsApp 链接和按钮的点击次数。"
+
+#: assets/js/admin-settings-app.js:725
+#, fuzzy
+msgid "Append attribution to message"
+msgstr "将属性附加到消息"
+
+#: assets/js/admin-settings-app.js:725
+#, fuzzy
+msgid "Add attribution details to the pre-filled WhatsApp message."
+msgstr "将归属详细信息添加到预先填写的 WhatsApp 消息中。"
+
+#: assets/js/admin-settings-app.js:733
+#, fuzzy
+msgid "External form sources"
+msgstr "外部表单来源"
+
+#: assets/js/admin-settings-app.js:734
+#, fuzzy
+msgid ""
+"Accept attributed submissions from supported providers without exposing raw "
+"engineering controls."
+msgstr "接受来自支持的提供商的归因提交，而不暴露原始工程控制。"
+
+#: assets/js/admin-settings-app.js:736
+#, fuzzy
+msgid "Accept external form source webhooks"
+msgstr "接受外部表单源 webhook"
+
+#: assets/js/admin-settings-app.js:736
+#, fuzzy
+msgid "Enable signed inbound submissions from supported providers."
+msgstr "启用来自支持的提供商的签名入站提交。"
+
+#: assets/js/admin-settings-app.js:745
+#, fuzzy
+msgid "Advanced technical options"
+msgstr "先进的技术选项"
+
+#: assets/js/admin-settings-app.js:746
+#, fuzzy
+msgid ""
+"Only change these if you need more control over how the browser watches the "
+"page."
+msgstr "仅当您需要更多地控制浏览器查看页面的方式时才更改这些。"
+
+#: assets/js/admin-settings-app.js:749 assets/js/admin-settings-app.js:1098
+#, fuzzy
+msgid "Advanced"
+msgstr "高级"
+
+#: assets/js/admin-settings-app.js:752
+#, fuzzy
+msgid "Dynamic content root selector"
+msgstr "动态内容根选择器"
+
+#: assets/js/admin-settings-app.js:752
+#, fuzzy
+msgid ""
+"Defaults to body. Narrow this only if you need to watch a specific part of "
+"the page."
+msgstr "默认为正文。仅当您需要观看页面的特定部分时才缩小范围。"
+
+#: assets/js/admin-settings-app.js:766
+#, fuzzy
+msgid ""
+"Mark this destination when another relay or downstream collector owns final "
+"delivery."
+msgstr "当另一个中继或下游收集器拥有最终交付时，标记此目的地。"
+
+#: assets/js/admin-settings-app.js:769
+#, fuzzy
+msgid ""
+"Send eligible events to this destination when the matching delivery adapter "
+"or downstream collector is configured."
+msgstr "配置匹配的传输适配器或下游收集器时，将符合条件的事件发送到此目标。"
+
+#: assets/js/admin-settings-app.js:785
+#, fuzzy
+msgid ""
+"ClickTrail uses one unified event pipeline behind the scenes for browser "
+"events, webhooks, and server delivery. Configure the capabilities you use "
+"without worrying about the internal pipeline."
+msgstr "ClickTrail 在后台使用一个统一的事件管道来处理浏览器事件、Webhooks 和服务器交付。配置您使用的功能，而无需担心内部管道。"
+
+#: assets/js/admin-settings-app.js:791
+#, fuzzy
+msgid "Event collection"
+msgstr "活动合集"
+
+#: assets/js/admin-settings-app.js:792
+#, fuzzy
+msgid ""
+"Control browser event collection and choose whether GTM should load in "
+"standard or sGTM compatibility mode."
+msgstr "控制浏览器事件收集并选择GTM是否应以标准模式或sGTM兼容模式加载。"
+
+#: assets/js/admin-settings-app.js:794
+#, fuzzy
+msgid "Enable browser event collection"
+msgstr "启用浏览器事件收集"
+
+#: assets/js/admin-settings-app.js:794
+#, fuzzy
+msgid ""
+"Collect page, click, and form events through ClickTrail's unified event "
+"layer."
+msgstr "通过ClickTrail的统一事件层收集页面、点击、表单事件。"
+
+#: assets/js/admin-settings-app.js:795
+#, fuzzy
+msgid "Google Tag Manager container ID"
+msgstr "Google Tag Manager容器ID"
+
+#: assets/js/admin-settings-app.js:795
+#, fuzzy
+msgid "Use only if your site does not already load Google Tag Manager."
+msgstr "仅当您的网站尚未加载Google Tag Manager时才使用。"
+
+#: assets/js/admin-settings-app.js:798
+#, fuzzy
+msgid "GTM loader mode"
+msgstr "GTM加载模式"
+
+#: assets/js/admin-settings-app.js:798
+#, fuzzy
+msgid ""
+"Use standard mode for the default Google host, or sGTM mode when you want a "
+"tagging-server URL or custom loader path."
+msgstr "对于默认的 Google 主机使用标准模式，或者当您需要标记服务器 URL 或自定义加载程序路径时使用 sGTM 模式。"
+
+#: assets/js/admin-settings-app.js:799
+#, fuzzy
+msgid "Standard GTM"
+msgstr "标准GTM"
+
+#: assets/js/admin-settings-app.js:800
+#, fuzzy
+msgid "sGTM compatibility mode"
+msgstr "sGTM兼容模式"
+
+#: assets/js/admin-settings-app.js:802
+#, fuzzy
+msgid "Used for first-party GTM delivery and preview checks in sGTM mode."
+msgstr "用于第一方GTM交付和sGTM模式下的预览检查。"
+
+#: assets/js/admin-settings-app.js:806
+#, fuzzy
+msgid "Use first-party script delivery"
+msgstr "使用第一方脚本交付"
+
+#: assets/js/admin-settings-app.js:806
+#, fuzzy
+msgid ""
+"Load `gtm.js` and `ns.html` from the tagging server instead of the default "
+"Google host."
+msgstr "从标记服务器而不是默认的 Google 主机加载 `gtm.js` 和 `ns.html`。"
+
+#: assets/js/admin-settings-app.js:809
+#, fuzzy
+msgid "Use a custom loader path"
+msgstr "使用自定义加载程序路径"
+
+#: assets/js/admin-settings-app.js:809
+#, fuzzy
+msgid ""
+"Prefer a same-site loader path when your sGTM setup rewrites GTM requests "
+"through a first-party URL."
+msgstr "当您的 sGTM 设置通过第一方 URL 重写 GTM 请求时，首选同站点加载器路径。"
+
+#: assets/js/admin-settings-app.js:812
+#, fuzzy
+msgid "Custom loader URL or path"
+msgstr "自定义加载器URL或路径"
+
+#: assets/js/admin-settings-app.js:812
+#, fuzzy
+msgid "Examples: `/metrics/gtm.js` or `https://metrics.example.com/gtm.js`."
+msgstr "示例：`/metrics/gtm.js` 或`https://metrics.example.com/gtm.js`。"
+
+#: assets/js/admin-settings-app.js:819
+#, fuzzy
+msgid ""
+"sGTM mode changes only the loader path and preview workflow. ClickTrail "
+"still uses the same canonical event pipeline underneath."
+msgstr "sGTM 模式仅更改加载器路径和预览工作流程。 ClickTrail 仍然使用相同的规范事件管道。"
+
+#: assets/js/admin-settings-app.js:820
+#, fuzzy
+msgid ""
+"Standard mode keeps the default Google Tag Manager loader. Switch to sGTM "
+"mode when you need a tagging-server URL, first-party delivery, or a custom "
+"loader path."
+msgstr "标准模式保留默认的Google Tag Manager加载器。当您需要标记服务器URL、第一方交付或自定义加载程序路径时，请切换到sGTM模式。"
+
+#: assets/js/admin-settings-app.js:827
+#, fuzzy
+msgid "sGTM setup wizard"
+msgstr "sGTM设置向导"
+
+#: assets/js/admin-settings-app.js:828
+#, fuzzy
+msgid ""
+"Use this checklist when ClickTrail should cooperate with a server-side GTM "
+"stack without turning into a generic tag manager."
+msgstr "当 ClickTrail 应与服务器端 GTM 堆栈配合而不转变为通用标签管理器时，请使用此清单。"
+
+#: assets/js/admin-settings-app.js:832
+#, fuzzy
+msgid ""
+"Recommended flow: set the web container, choose a tagging-server URL or "
+"custom loader, point Delivery to the sGTM adapter when ClickTrail sends "
+"server events, then verify ownership in GTM Preview."
+msgstr "推荐流程：设置 Web 容器，选择标记服务器 URL 或自定义加载程序，当 ClickTrail 发送服务器事件时将 Delivery 指向 sGTM 适配器，然后在 GTM 预览中验证所有权。"
+
+#: assets/js/admin-settings-app.js:838
+#, fuzzy
+msgid ""
+"Set the GTM web container ID for the site that owns the browser dataLayer."
+msgstr "为拥有浏览器 dataLayer 的站点设置 GTM Web 容器 ID。"
+
+#: assets/js/admin-settings-app.js:839
+#, fuzzy
+msgid ""
+"Choose a tagging-server URL for first-party delivery or a custom loader path "
+"if your stack rewrites GTM requests."
+msgstr "如果您的堆栈重写了 GTM 请求，请选择用于第一方交付的标记服务器 URL 或自定义加载器路径。"
+
+#: assets/js/admin-settings-app.js:840
+#, fuzzy
+msgid ""
+"When ClickTrail should send server events into sGTM, switch Delivery to the "
+"sGTM adapter and point it at the collector URL."
+msgstr "当ClickTrail应该将服务器事件发送到sGTM时，将Delivery切换到sGTM适配器并将其指向收集器URL。"
+
+#: assets/js/admin-settings-app.js:841
+#, fuzzy
+msgid ""
+"Run preview checks here, then confirm the web and server containers receive "
+"the events you expect without duplicate ownership."
+msgstr "在此处运行预览检查，然后确认 Web 和服务器容器接收到您期望的事件，而无需重复所有权。"
+
+#: assets/js/admin-settings-app.js:850
+#, fuzzy
+msgid "Run Preview Checks"
+msgstr "运行预览检查"
+
+#: assets/js/admin-settings-app.js:875
+#, fuzzy
+msgid "Destination template hints"
+msgstr "目的地模板提示"
+
+#: assets/js/admin-settings-app.js:886
+#, fuzzy
+msgid "WooCommerce"
+msgstr "WooCommerce"
+
+#: assets/js/admin-settings-app.js:887
+#, fuzzy
+msgid ""
+"Keep campaign context visible on WooCommerce orders and extend the same "
+"event pipeline into the storefront when you need it."
+msgstr "保持活动上下文在WooCommerce订单上可见，并在需要时将相同的事件管道扩展到店面。"
+
+#: assets/js/admin-settings-app.js:891
+#, fuzzy
+msgid ""
+"Order attribution is stored on WooCommerce orders during checkout, so "
+"campaign context remains available after the visitor leaves the landing page."
+msgstr "订单归属在结账期间存储在WooCommerce订单中，因此在访问者离开登陆页面后，活动上下文仍然可用。"
+
+#: assets/js/admin-settings-app.js:895
+#, fuzzy
+msgid ""
+"Purchase events are pushed automatically on the thank-you page and can also "
+"flow into ClickTrail's server-side delivery adapters when Delivery is "
+"enabled."
+msgstr "购买事件会自动推送到感谢页面上，并且在启用交付时也可以流入ClickTrail的服务器端交付适配器。"
+
+#: assets/js/admin-settings-app.js:897
+#, fuzzy
+msgid "Enable WooCommerce storefront events"
+msgstr "启用 WooCommerce 店面事件"
+
+#: assets/js/admin-settings-app.js:897
+#, fuzzy
+msgid ""
+"Emit GA4-style `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, "
+"`remove_from_cart`, and `begin_checkout` events through ClickTrail's browser "
+"event layer. Existing installs keep this off until you enable it."
+msgstr "通过ClickTrail的浏览器事件层发出GA4样式的`view_item`、`view_item_list`、`view_cart`、`add_to_cart`、`remove_from_cart`和`begin_checkout`事件。现有安装会将其保持关闭状态，直到您启用它为止。"
+
+#: assets/js/admin-settings-app.js:900
+#, fuzzy
+msgid "Use the richer Woo dataLayer contract"
+msgstr "使用更丰富的 Woo dataLayer 合约"
+
+#: assets/js/admin-settings-app.js:900
+#, fuzzy
+msgid ""
+"Add `event_id` to Woo purchase pushes and make richer Woo browser events "
+"available for GTM-first setups."
+msgstr "将`event_id`添加到Woo购买推送，并使更丰富的Woo浏览器事件可用于GTM优先设置。"
+
+#: assets/js/admin-settings-app.js:901
+#, fuzzy
+msgid "Include consent-aware Woo user_data"
+msgstr "包括同意意识Woo user_data"
+
+#: assets/js/admin-settings-app.js:901
+#, fuzzy
+msgid ""
+"Emit `user_data` objects with browser identifiers and purchase identity only "
+"when the richer contract is on and marketing consent is granted."
+msgstr "仅当启用更丰富的合同并获得营销许可时，才会发出带有浏览器标识符和购买身份的`user_data`对象。"
+
+#: assets/js/admin-settings-app.js:906
+#, fuzzy
+msgid ""
+"The richer contract is optional. ClickTrail still keeps Woo tracking on the "
+"same canonical pipeline and only widens the dataLayer shape for GTM-first "
+"workflows."
+msgstr "更丰富的合同是可选的。 ClickTrail 仍然保持 Woo 跟踪相同的规范管道，并且仅拓宽dataLayer形状以实现GTM优先的工作流程。"
+
+#: assets/js/admin-settings-app.js:910
+#, fuzzy
+msgid ""
+"Verify WooCommerce order attribution in the order screen, storefront/browser "
+"events with GTM Preview or the dataLayer, and server-side traces from "
+"ClickTrail > Diagnostics."
+msgstr "在订单屏幕中验证WooCommerce订单归属，使用GTM预览或dataLayer店面/browser事件，以及ClickTrail>诊断中的服务器端跟踪。"
+
+#: assets/js/admin-settings-app.js:917
+#, fuzzy
+msgid "Destinations"
+msgstr "目的地"
+
+#: assets/js/admin-settings-app.js:918
+#, fuzzy
+msgid ""
+"Choose which advertising platforms should receive compatible event payloads."
+msgstr "选择哪些广告平台应接收兼容的事件负载。"
+
+#: assets/js/admin-settings-app.js:933
+#, fuzzy
+msgid "Lifecycle updates"
+msgstr "生命周期更新"
+
+#: assets/js/admin-settings-app.js:934
+#, fuzzy
+msgid ""
+"Accept lifecycle updates from your CRM or backend and route them through the "
+"same event pipeline."
+msgstr "接受来自CRM或后端的生命周期更新，并通过同一事件管道路由它们。"
+
+#: assets/js/admin-settings-app.js:936
+#, fuzzy
+msgid "Accept lifecycle updates"
+msgstr "接受生命周期更新"
+
+#: assets/js/admin-settings-app.js:936
+#, fuzzy
+msgid "Allow lifecycle events to enter the unified event pipeline."
+msgstr "允许生命周期事件进入统一的事件管道。"
+
+#: assets/js/admin-settings-app.js:937
+#, fuzzy
+msgid "Enable lifecycle endpoint"
+msgstr "启用生命周期端点"
+
+#: assets/js/admin-settings-app.js:937
+#, fuzzy
+msgid "Turn on the REST endpoint used by your CRM or backend."
+msgstr "打开 CRM 或后端使用的 REST 端点。"
+
+#: assets/js/admin-settings-app.js:940
+#, fuzzy
+msgid "Lifecycle endpoint token"
+msgstr "生命周期端点令牌"
+
+#: assets/js/admin-settings-app.js:940
+#, fuzzy
+msgid "Leave unchanged to keep the current token."
+msgstr "保持不变以保留当前令牌。"
+
+#: assets/js/admin-settings-app.js:955
+#, fuzzy
+msgid "Delivery health"
+msgstr "分娩健康"
+
+#: assets/js/admin-settings-app.js:956
+#, fuzzy
+msgid ""
+"Quick operational summary for queue health, recent delivery attempts, and "
+"debug state."
+msgstr "有关队列运行状况、最近的传送尝试和调试状态的快速操作摘要。"
+
+#: assets/js/admin-settings-app.js:963
+#, fuzzy
+msgid ""
+"Server-side delivery is currently off. Historical diagnostics can still "
+"appear until their retention window expires."
+msgstr "服务器端交付当前已关闭。历史诊断仍然可以显示，直到其保留窗口到期。"
+
+#: assets/js/admin-settings-app.js:970
+#, fuzzy
+msgid "Due now: "
+msgstr "现在到期："
+
+#: assets/js/admin-settings-app.js:985
+#, fuzzy
+msgid "Enable it from Diagnostics when you need a short trace window."
+msgstr "当您需要短跟踪窗口时，请从诊断启用它。"
+
+#: assets/js/admin-settings-app.js:998
+#, fuzzy
+msgid "Open Logs"
+msgstr "打开日志"
+
+#: assets/js/admin-settings-app.js:1007
+#, fuzzy
+msgid ""
+"Delivery controls cover transport, consent, queue health, and the safeguards "
+"that keep outbound tracking reliable. Most sites only need the server-side "
+"transport card and privacy controls."
+msgstr "交付控制涵盖运输、同意、队列健康状况以及保持出站跟踪可靠的保障措施。大多数站点只需要服务器端传输卡和隐私控制。"
+
+#: assets/js/admin-settings-app.js:1014
+#, fuzzy
+msgid ""
+"This site is currently using network defaults for server-side delivery. "
+"Disable the network toggle below to customize this site independently."
+msgstr "该站点当前使用网络默认值进行服务器端交付。禁用下面的网络切换以独立自定义此站点。"
+
+#: assets/js/admin-settings-app.js:1021
+#, fuzzy
+msgid "Server-side transport"
+msgstr "服务器端传输"
+
+#: assets/js/admin-settings-app.js:1022
+#, fuzzy
+msgid ""
+"Route events through your own collector endpoint when you need a more "
+"durable delivery path."
+msgstr "当您需要更持久的传递路径时，通过您自己的收集器端点路由事件。"
+
+#: assets/js/admin-settings-app.js:1025
+#, fuzzy
+msgid "Use network defaults"
+msgstr "使用网络默认值"
+
+#: assets/js/admin-settings-app.js:1025
+#, fuzzy
+msgid "Use the multisite network configuration for this site."
+msgstr "为此站点使用多站点网络配置。"
+
+#: assets/js/admin-settings-app.js:1027
+#, fuzzy
+msgid "Enable server-side delivery"
+msgstr "启用服务器端交付"
+
+#: assets/js/admin-settings-app.js:1027
+#, fuzzy
+msgid "Send events through your own collector endpoint."
+msgstr "通过您自己的收集器端点发送事件。"
+
+#: assets/js/admin-settings-app.js:1030
+#, fuzzy
+msgid "Collector URL"
+msgstr "收藏家URL"
+
+#: assets/js/admin-settings-app.js:1030
+#, fuzzy
+msgid "Endpoint that receives server-side events."
+msgstr "接收服务器端事件的端点。"
+
+#: assets/js/admin-settings-app.js:1034
+#, fuzzy
+msgid "Choose the format best suited to your receiving endpoint."
+msgstr "选择最适合您的接收端点的格式。"
+
+#: assets/js/admin-settings-app.js:1045
+#, fuzzy
+msgid "Request timeout (seconds)"
+msgstr "请求超时（秒）"
+
+#: assets/js/admin-settings-app.js:1045
+#, fuzzy
+msgid ""
+"How long ClickTrail should wait before treating a delivery attempt as failed."
+msgstr "在将交付尝试视为失败之前，ClickTrail 应等待多长时间。"
+
+#: assets/js/admin-settings-app.js:1049
+#, fuzzy
+msgid "Share anonymous failure counts"
+msgstr "共享匿名失败计数"
+
+#: assets/js/admin-settings-app.js:1049
+#, fuzzy
+msgid ""
+"Only aggregated failure counts are shared. No payloads or personal data are "
+"included."
+msgstr "仅共享汇总的失败计数。不包含有效负载或个人数据。"
+
+#: assets/js/admin-settings-app.js:1057
+#, fuzzy
+msgid "Privacy & consent"
+msgstr "隐私和同意"
+
+#: assets/js/admin-settings-app.js:1058
+#, fuzzy
+msgid ""
+"Control when tracking is allowed to start and which consent signals "
+"ClickTrail should use."
+msgstr "控制何时允许开始跟踪以及ClickTrail 应使用哪些同意信号。"
+
+#: assets/js/admin-settings-app.js:1060
+#, fuzzy
+msgid "Enable consent mode"
+msgstr "启用同意模式"
+
+#: assets/js/admin-settings-app.js:1060
+#, fuzzy
+msgid ""
+"Gate attribution and event collection until consent requirements are "
+"satisfied."
+msgstr "控制归因和事件收集，直到满足同意要求。"
+
+#: assets/js/admin-settings-app.js:1061
+#, fuzzy
+msgid "Consent behavior"
+msgstr "同意行为"
+
+#: assets/js/admin-settings-app.js:1061
+#, fuzzy
+msgid ""
+"Choose whether consent is always required, never required, or region-based."
+msgstr "选择是否始终需要同意、从不需要同意或基于区域。"
+
+#: assets/js/admin-settings-app.js:1064
+#, fuzzy
+msgid "Strict"
+msgstr "严格"
+
+#: assets/js/admin-settings-app.js:1065
+#, fuzzy
+msgid "Relaxed"
+msgstr "轻松"
+
+#: assets/js/admin-settings-app.js:1066
+#, fuzzy
+msgid "Region-based"
+msgstr "基于区域的"
+
+#: assets/js/admin-settings-app.js:1068
+#, fuzzy
+msgid "Regions requiring consent"
+msgstr "需要同意的地区"
+
+#: assets/js/admin-settings-app.js:1068
+#, fuzzy
+msgid "One region per line. Examples: EEA, UK, CA, US-CA."
+msgstr "每行一个区域。示例：EEA、UK、CA、US-CA。"
+
+#: assets/js/admin-settings-app.js:1073
+#, fuzzy
+msgid "Consent source"
+msgstr "同意来源"
+
+#: assets/js/admin-settings-app.js:1073
+#, fuzzy
+msgid ""
+"Which consent platform ClickTrail should listen to. ClickTrail buffers "
+"landing-page attribution to sessionStorage before consent resolves, so first-"
+"touch UTMs and click IDs are preserved even when the banner is accepted on a "
+"later page."
+msgstr "哪个同意平台ClickTrail应该听取哪个同意平台的意见。在同意解决之前，ClickTrail会缓冲着陆页归因于sessionStorage，因此即使在稍后的页面上接受了横幅，首次触摸UTM并单击IDs也会被保留。"
+
+#: assets/js/admin-settings-app.js:1077
+#, fuzzy
+msgid "ClickTrail plugin"
+msgstr "ClickTrail插件"
+
+#: assets/js/admin-settings-app.js:1078
+#, fuzzy
+msgid "Cookiebot"
+msgstr "Cookiebot"
+
+#: assets/js/admin-settings-app.js:1081
+#, fuzzy
+msgid "Google Tag Manager"
+msgstr "Google Tag Manager"
+
+#: assets/js/admin-settings-app.js:1082
+#, fuzzy
+msgid "Custom"
+msgstr "定制"
+
+#: assets/js/admin-settings-app.js:1084
+#, fuzzy
+msgid "Consent wait time (ms)"
+msgstr "同意等待时间（毫秒）"
+
+#: assets/js/admin-settings-app.js:1084
+#, fuzzy
+msgid "How long ClickTrail should wait for a consent signal before continuing."
+msgstr "在继续之前，ClickTrail 应等待同意信号多长时间。"
+
+#: assets/js/admin-settings-app.js:1094
+#, fuzzy
+msgid "Advanced delivery controls"
+msgstr "先进的交付控制"
+
+#: assets/js/admin-settings-app.js:1095
+#, fuzzy
+msgid ""
+"Security, buffering, deduplication, and low-level transport controls for "
+"technical users."
+msgstr "为技术用户提供安全、缓冲、重复数据删除和低级传输控制。"
+
+#: assets/js/admin-settings-app.js:1101
+#, fuzzy
+msgid "Use native platform adapters"
+msgstr "使用本机平台适配器"
+
+#: assets/js/admin-settings-app.js:1101
+#, fuzzy
+msgid "Prefer ClickTrail's built-in platform adapters when available."
+msgstr "首选ClickTrail的内置平台适配器（如果可用）。"
+
+#: assets/js/admin-settings-app.js:1102
+#, fuzzy
+msgid "Store structured event diagnostics"
+msgstr "存储结构化事件诊断"
+
+#: assets/js/admin-settings-app.js:1102
+#, fuzzy
+msgid "Keep a structured intake buffer for troubleshooting and validation."
+msgstr "保留结构化的摄入缓冲区以进行故障排除和验证。"
+
+#: assets/js/admin-settings-app.js:1103
+#, fuzzy
+msgid "Encrypt saved secrets"
+msgstr "加密保存的秘密"
+
+#: assets/js/admin-settings-app.js:1103
+#, fuzzy
+msgid "Encrypt stored secrets at rest when supported by the host environment."
+msgstr "当主机环境支持时，加密静态存储的机密。"
+
+#: assets/js/admin-settings-app.js:1104
+#, fuzzy
+msgid "Attribution token lifetime (seconds)"
+msgstr "归因令牌生命周期（秒）"
+
+#: assets/js/admin-settings-app.js:1104
+#, fuzzy
+msgid "Controls how long attribution tokens remain valid."
+msgstr "控制归因标记保持有效的时间。"
+
+#: assets/js/admin-settings-app.js:1105
+#, fuzzy
+msgid "Maximum token replays (0 to disable)"
+msgstr "最大令牌重放（0禁用）"
+
+#: assets/js/admin-settings-app.js:1105
+#, fuzzy
+msgid "Cap how many times the same token nonce can be used."
+msgstr "限制相同令牌随机数可以使用的次数。"
+
+#: assets/js/admin-settings-app.js:1106
+#, fuzzy
+msgid "Webhook replay protection window (seconds)"
+msgstr "Webhook 重播保护窗口（秒）"
+
+#: assets/js/admin-settings-app.js:1106
+#, fuzzy
+msgid "Reject webhook signatures that fall outside this replay window."
+msgstr "拒绝在此重播窗口之外的 Webhook 签名。"
+
+#: assets/js/admin-settings-app.js:1107
+#, fuzzy
+msgid "API rate limit window (seconds)"
+msgstr "API 速率限制窗口（秒）"
+
+#: assets/js/admin-settings-app.js:1107
+#, fuzzy
+msgid "The time window used by intake rate limiting."
+msgstr "摄入速率限制所使用的时间窗口。"
+
+#: assets/js/admin-settings-app.js:1108
+#, fuzzy
+msgid "API requests allowed per window"
+msgstr "每个窗口允许的API请求数"
+
+#: assets/js/admin-settings-app.js:1108
+#, fuzzy
+msgid "Maximum requests allowed within the configured rate limit window."
+msgstr "配置的速率限制窗口内允许的最大请求数。"
+
+#: assets/js/admin-settings-app.js:1109
+#, fuzzy
+msgid "Trusted proxy IPs or CIDR ranges"
+msgstr "可信代理IPs或CIDR范围"
+
+#: assets/js/admin-settings-app.js:1109
+#, fuzzy
+msgid "One proxy per line. Only add proxies you control."
+msgstr "每行一个代理。仅添加您控制的代理。"
+
+#: assets/js/admin-settings-app.js:1110
+#, fuzzy
+msgid "Allowed token hosts"
+msgstr "允许的令牌主机"
+
+#: assets/js/admin-settings-app.js:1110
+#, fuzzy
+msgid "Hosts allowed to mint or receive attribution tokens. One host per line."
+msgstr "允许主机铸造或接收归因令牌。每行一台主机。"
+
+#: assets/js/admin-settings-app.js:1111
+#, fuzzy
+msgid "Recent dispatch records kept"
+msgstr "保留最近的派送记录"
+
+#: assets/js/admin-settings-app.js:1111
+#, fuzzy
+msgid "How many recent dispatch attempts should be kept for diagnostics."
+msgstr "应保留多少次最近的调度尝试以供诊断。"
+
+#: assets/js/admin-settings-app.js:1112
+#, fuzzy
+msgid "Failure summary flush interval (seconds)"
+msgstr "故障摘要刷新间隔（秒）"
+
+#: assets/js/admin-settings-app.js:1112
+#, fuzzy
+msgid "How often failure counters are flushed into hourly telemetry buckets."
+msgstr "故障计数器被刷新到每小时遥测桶中的频率。"
+
+#: assets/js/admin-settings-app.js:1113
+#, fuzzy
+msgid "Failure summary retention (hours)"
+msgstr "故障摘要保留（小时）"
+
+#: assets/js/admin-settings-app.js:1113
+#, fuzzy
+msgid "How long failure telemetry buckets should be retained."
+msgstr "故障遥测桶应保留多长时间。"
+
+#: assets/js/admin-settings-app.js:1114
+#, fuzzy
+msgid "Event deduplication window (seconds)"
+msgstr "事件重复数据删除窗口（秒）"
+
+#: assets/js/admin-settings-app.js:1114
+#, fuzzy
+msgid "How long dispatch deduplication markers should be kept."
+msgstr "调度重复数据删除标记应保留多长时间。"
+
+#: assets/js/admin-settings-app.js:1189
+#, fuzzy
+msgid "Save Changes"
+msgstr "保存更改"
+
+#: assets/js/admin-settings-app.js:1195
+#, fuzzy
+msgid "Reload Saved Settings"
+msgstr "重新加载保存的设置"
