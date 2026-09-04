@@ -42,8 +42,8 @@ class CF7_Adapter extends Abstract_Form_Adapter {
 	public function register_hooks() {
 		add_filter( 'wpcf7_form_hidden_fields', array( $this, 'add_hidden_fields' ) );
 
-		// Log submission.
-		add_action( 'wpcf7_before_send_mail', array( $this, 'on_submission' ), 10, 3 );
+		// Record only CF7's successful outcome; pre-send can still abort or fail.
+		add_action( 'wpcf7_mail_sent', array( $this, 'on_submission' ) );
 	}
 
 	/**
