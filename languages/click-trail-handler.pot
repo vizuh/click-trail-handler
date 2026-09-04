@@ -1528,8 +1528,9 @@ msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:306
 msgid ""
-"Run a read-only analysis against a test payload. Click-ID values are never "
-"returned or stored."
+"Run a read-only analysis against a test payload. This checks attribution "
+"fields only; it does not verify form storage, delivery, or provider "
+"acceptance. Click-ID values are never returned or stored."
 msgstr ""
 
 #: includes/admin/traits/trait-admin-pages.php:312

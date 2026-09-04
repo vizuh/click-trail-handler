@@ -1,8 +1,8 @@
 # Translation catalogs
 
-The text domain is `click-trail-handler`. This directory contains reproducible
-catalogs for the GitHub source and release ZIPs. It currently includes `de_DE` and
-`pt_BR`; WordPress.org language-pack status is tracked in
+The text domain is `click-trail-handler`. This directory contains the source POT
+for GitHub and runtime catalogs for release ZIPs. It currently includes `de_DE`
+and `pt_BR`; WordPress.org language-pack status is tracked in
 [`docs/guides/TRANSLATIONS.md`](../docs/guides/TRANSLATIONS.md).
 
 ## File roles
