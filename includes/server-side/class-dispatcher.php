@@ -152,21 +152,8 @@ class Dispatcher {
 			return Adapter_Result::skipped( 'disabled' );
 		}
 
-		/**
-		 * Block real API calls in local and development environments.
-		 * This prevents accidentally firing conversion events against production
-		 * APIs when a production database is cloned to a dev environment.
-		 * Override via the 'clicutcl_dispatch_in_environment' filter if needed.
-		 *
-		 * @param bool   $allow Whether to allow dispatching. Default false for local/development.
-		 * @param string $env   Current environment type (local|development|staging|production).
-		 */
-		$env = wp_get_environment_type();
-		if ( in_array( $env, array( 'local', 'development' ), true ) ) {
-			$allow = (bool) apply_filters( 'clicutcl_dispatch_in_environment', false, $env );
-			if ( ! $allow ) {
-				return Adapter_Result::skipped( 'non_production_environment' );
-			}
+		if ( ! self::environment_allows_dispatch() ) {
+			return Adapter_Result::skipped( 'non_production_environment' );
 		}
 
 		$endpoint = self::get_endpoint();
@@ -216,6 +203,17 @@ class Dispatcher {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Apply the same environment policy to initial and queued delivery.
+	 *
+	 * @return bool
+	 */
+	public static function environment_allows_dispatch(): bool {
+		$env = wp_get_environment_type();
+		return ! in_array( $env, array( 'local', 'development' ), true )
+			|| (bool) apply_filters( 'clicutcl_dispatch_in_environment', false, $env );
 	}
 
 	/**

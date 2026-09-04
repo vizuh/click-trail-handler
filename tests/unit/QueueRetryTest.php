@@ -4,10 +4,9 @@
  * threshold, the pure-logic slice of class-queue.php reachable without a
  * live $wpdb/DB harness.
  *
- * process(), process_row(), update_row_failure(), mark_row_failed(), and
- * requeue_failed() all read/write via $wpdb and are not exercised here. The
- * queue consent gate is covered through its pure seam below because this unit
- * suite has no database harness.
+ * Pure helper checks; QueueProcessingTest additionally exercises process_row()
+ * and its failure mutations with storage/HTTP spies in an isolated process.
+ * Real database locking and scheduler behavior remain separate runtime checks.
  *
  * @package ClickTrail
  */

@@ -88,6 +88,16 @@ Defaults:
 
 Retries use exponential backoff and stop after max attempts.
 
+If queue rows report `consent_unresolved`, configure the subject-bound
+[`clicutcl_queue_consent_snapshot`](../reference/HOOKS-REFERENCE.md#clicutcl_queue_consent_snapshot)
+resolver against your durable consent authority. ClickTrail has no built-in subject
+registry; cron cookies and historical event grants cannot establish current consent.
+Unresolved rows stay pending, retry after five minutes, and retain their attempt
+count until the normal retention cleanup. Explicit withdrawal becomes
+`consent_denied`; expired or invalid authority stays unresolved. Strict and geo modes
+require this lookup independently of the worker's location. Local/development
+workers leave queued rows untouched unless the environment override allows sending.
+
 The queue is also used to enrich Diagnostics Woo order-trace lookups with current retry state for a stored `event_name` plus `event_id`.
 
 Woo purchase and milestone sent markers are only written after a successful, skipped, or confirmed queued attempt. If a Woo order trace shows an error with no matching queue row, the order-level sent marker should remain unset and the event can be retried by the original hook path.
