@@ -96,6 +96,7 @@ $excludeFiles = @(
     'README.en.md',
     'README.pt-BR.md',
     'funnelsheet-logo.png',
+    '*.pot',
     'GTM-*.json',
     'gtm-starter-kit.json',
     'build-starter-kit.py',

@@ -41,6 +41,7 @@ If you are new to the plugin, read these in order:
 - [guides/COMPETITOR-GTM-2026-08-22.md](guides/COMPETITOR-GTM-2026-08-22.md): public acquisition, activation, agency, and partner motions
 - [guides/COMPETITIVE-POSITIONING-AND-ACQUISITION-ROADMAP-2026-08-22.md](guides/COMPETITIVE-POSITIONING-AND-ACQUISITION-ROADMAP-2026-08-22.md): proposition, README copy, twelve-month commercial overlay, and client-acquisition plan
 - [RELEASE-PHASING-AND-INTEGRATION-DOCS.md](guides/RELEASE-PHASING-AND-INTEGRATION-DOCS.md): separately gated documentation, privacy, delivery, adapter, and reach releases
+- [guides/TRANSLATIONS.md](guides/TRANSLATIONS.md): verified locale status, GlotPress workflow, and translation release gates
 
 ## I want to understand the runtime architecture
 

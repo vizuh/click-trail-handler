@@ -65,7 +65,7 @@ jobs:
           $forbiddenRoots = @('.git', '.github', 'docs', 'tests', 'tools', 'vendor', 'node_modules')
           $forbiddenEntries = @($entries | Where-Object {
               $parts = $_ -split '/'
-              $parts.Count -gt 1 -and $forbiddenRoots -contains $parts[1]
+              $_ -like '*.pot' -or ($parts.Count -gt 1 -and $forbiddenRoots -contains $parts[1])
           })
           if ($forbiddenEntries.Count -gt 0) {
               throw "Development archive entries found: $($forbiddenEntries -join ', ')"
