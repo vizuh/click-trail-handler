@@ -37,7 +37,8 @@ function validateManifest(zipPath, slug) {
 
   if (
     !entries.has(`${slug}/config/feature-registry.json`) ||
-    entries.has(`${slug}/config/feature-test-matrix.json`)
+    entries.has(`${slug}/config/feature-test-matrix.json`) ||
+    [...entries].some((entry) => entry.startsWith(`${slug}/languages/drafts/`))
   ) {
     throw new Error('Archive manifest validation failed');
   }
