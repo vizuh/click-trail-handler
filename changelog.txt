@@ -1,7 +1,8 @@
 Changelog
 ========
 
-= Unreleased =
+= 1.10.1 =
+* Record Contact Form 7 conversions only after successful mail submission, excluding aborted and failed sends.
 * Gate Woo thank-you processing on current visitor consent before reading attribution or setting sent markers.
 * Resolve queued consent through durable subject authority; unknown authority defers, and local/development delivery restrictions also apply to retries.
 * Add schema version 4 with atomic logical-event deduplication for touch reporting, preserving historical rows.
