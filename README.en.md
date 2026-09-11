@@ -56,7 +56,7 @@ integrations, or optional delivery only when the implementation requires them.
 
 ## Version and verification status
 
-**1.10.0** adds consent-safe queued retries, canonical cross-tab consent authority, WooCommerce order-meta privacy lifecycle handling, and an evidence contract for all six supported form adapters. The WordPress.org package is prepared at this version. Live WordPress, browser, CMP, WooCommerce, and provider verification remains a separate gate; the form manifests stay explicitly runtime-unverified where that evidence is unavailable.
+ClickTrail 1.10.1 records Contact Form 7 conversions only after successful submission, checks current consent before WooCommerce thank-you processing, uses durable visitor-specific consent for queued retries, and prevents duplicate touch-event records. Required queue consent that cannot be resolved defers delivery. Live browser, CMP, WooCommerce, and provider verification remains a separate release gate. The plugin header and WordPress.org stable-tag metadata declare 1.10.1; publication is a separate step.
 
 See [changelog.txt](changelog.txt) for the full history and [readme.txt](readme.txt) for the WordPress.org release notes.
 

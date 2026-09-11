@@ -59,7 +59,7 @@ ClickTrail is designed to keep first-touch and last-touch context alive until th
 
 ## Version and verification status
 
-ClickTrail 1.10.0 adds consent-safe queued delivery, cross-tab consent authority, WooCommerce privacy lifecycle handling, and evidence-labelled form coverage. The WordPress.org package is prepared at the same version; live WordPress, browser, and provider verification remains a separate release gate. See [changelog.txt](changelog.txt) for the full history and [readme.txt](readme.txt) for the WordPress.org release notes.
+ClickTrail 1.10.1 records Contact Form 7 conversions only after successful submission, checks current consent before WooCommerce thank-you processing, uses durable visitor-specific consent for queued retries, and prevents duplicate touch-event records. Required queue consent that cannot be resolved defers delivery. Live browser, CMP, WooCommerce, and provider verification remains a separate release gate. See [changelog.txt](changelog.txt) for the full history and [readme.txt](readme.txt) for the WordPress.org release notes.
 
 ## Documentation By Audience
 

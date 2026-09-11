@@ -4,7 +4,7 @@
 - **Canonical for**: integration roles, source evidence, status boundaries, providers, forms, webhooks, GTM, and delivery adapter keys
 - **Update when**: integration support level, adapter list, provider contract, evidence status, or capability messaging changes
 - **Provider-wide audit baseline**: plugin code `1.9.0`, commit `a45aa9e`, reviewed 2026-08-19
-- **Current release**: plugin code `1.10.0`; consent, queue, WooCommerce privacy, and form evidence contracts have automated coverage
+- **Current release**: plugin code `1.10.1`, with automated consent, queue, WooCommerce privacy, CF7 outcome, and touch-event deduplication coverage
 - **Runtime verification**: provider-wide E2E remains incomplete; bounded WooCommerce and Fluent Forms evidence is recorded below, while six form manifests remain explicitly runtime-unverified
 - **Machine-readable ledger**: [`integration-capabilities.json`](integration-capabilities.json)
 
