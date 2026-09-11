@@ -5,7 +5,7 @@ Author URI: https://vizuh.com
 Tags: attribution, utm, consent mode, woocommerce, server-side tracking
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 1.10.0
+Stable tag: 1.10.1
 Requires PHP: 8.1
 WC requires at least: 10.4.2
 License: GPLv2 or later
@@ -248,6 +248,12 @@ The entries below are historical release notes. They do not replace the current 
 behavior that still requires current runtime verification. In particular, older wording that calls platform-named
 server paths “first-class native delivery adapters” predates the current evidence classification: those paths are
 configured-endpoint relays whose provider authentication, acceptance, and runtime delivery remain unverified.
+
+= 1.10.1 =
+* Contact Form 7: record conversions only after successful submission, excluding aborted and failed sends.
+* WooCommerce: check current visitor consent before processing thank-you purchase events.
+* Delivery: queued retries use current visitor-specific consent and respect local/development delivery restrictions. When required consent cannot be resolved, retries remain deferred; integrations must provide durable consent through `clicutcl_queue_consent_snapshot`.
+* Reporting: prevent duplicate touch-event records with an automatic database schema upgrade that preserves existing records.
 
 = 1.10.0 =
 *   **Consent-safe delivery**: queued retries recheck the current consent snapshot immediately before adapter delivery, so a withdrawal is not replayed from historical queue state.

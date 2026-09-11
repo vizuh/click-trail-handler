@@ -61,6 +61,7 @@ dist/
 
 # Translation source catalog (GlotPress is the publication channel)
 languages/*.pot
+languages/drafts/
 
 # GTM reference / dev files
 assets/GTM-*.json

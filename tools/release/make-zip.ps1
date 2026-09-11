@@ -67,7 +67,8 @@ $excludeDirs = @(
     'tools',
     'vendor',
     'node_modules',
-    'shopify-gtm-container-templates-master'
+    'shopify-gtm-container-templates-master',
+    (Join-Path $repoRoot 'languages\drafts')
 )
 
 $excludeFiles = @(
@@ -146,7 +147,7 @@ try {
 
 $runtimeManifest = "$pluginSlug/config/feature-registry.json"
 $testManifest = "$pluginSlug/config/feature-test-matrix.json"
-if (($entries -notcontains $runtimeManifest) -or ($entries -contains $testManifest)) {
+if (($entries -notcontains $runtimeManifest) -or ($entries -contains $testManifest) -or ($entries -like "$pluginSlug/languages/drafts/*")) {
     Remove-Item -Path $zipPath -Force
     Remove-Item -Path $tempRoot -Recurse -Force
     throw 'Archive manifest validation failed'
