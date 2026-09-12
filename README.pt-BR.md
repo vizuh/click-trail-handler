@@ -50,7 +50,7 @@ quando a implementação exigir.
 
 ## Versão e status de verificação
 
-- **Código do repositório:** o cabeçalho do plugin declara `1.10.0`.
+- **Código do repositório:** o cabeçalho do plugin declara `1.10.1`.
 - **Versões públicas:** consulte [GitHub Releases](https://github.com/vizuh/click-trail-handler/releases)
   e [changelog.txt](changelog.txt). Os metadados do WordPress.org seguem seu
   próprio processo em [readme.txt](readme.txt).
@@ -59,7 +59,7 @@ quando a implementação exigir.
 
 ## Notas da Versao
 
-**1.10.0** adiciona novas tentativas de entrega na fila com verificacao de consentimento atual, uma decisao canonica de consentimento entre abas, ciclo de privacidade de metadados de pedidos WooCommerce e um contrato de evidencias para os seis adaptadores de formularios. O pacote para WordPress.org foi preparado nesta versao. A verificacao em WordPress, navegador, CMP, WooCommerce e provedores continua sendo uma etapa separada; os manifestos dos formularios permanecem explicitamente sem verificacao de runtime quando essa evidencia nao existe.
+**1.10.1** registra conversões do Contact Form 7 somente após envio bem-sucedido, verifica o consentimento atual antes de processar a página de agradecimento do WooCommerce, usa consentimento persistente por visitante nas novas tentativas da fila e evita registros duplicados de eventos. Quando o consentimento obrigatório não pode ser resolvido, a entrega é adiada. O cabeçalho do plugin e os metadados de versão estável do WordPress.org declaram 1.10.1; a publicação é uma etapa separada. A verificação em navegador, CMP, WooCommerce e provedores continua sendo uma etapa separada do release.
 
 Veja o [changelog](changelog.txt) para o historico completo e o [readme do WordPress](readme.txt) para as notas publicas.
 

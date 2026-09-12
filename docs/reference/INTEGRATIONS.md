@@ -4,7 +4,7 @@
 - **Canonical for**: integration roles, source evidence, status boundaries, providers, forms, webhooks, GTM, and delivery adapter keys
 - **Update when**: integration support level, adapter list, provider contract, evidence status, or capability messaging changes
 - **Provider-wide audit baseline**: plugin code `1.9.0`, commit `a45aa9e`, reviewed 2026-08-19
-- **Current release**: plugin code `1.10.0`; consent, queue, WooCommerce privacy, and form evidence contracts have automated coverage
+- **Current release**: plugin code `1.10.1`, with automated consent, queue, WooCommerce privacy, CF7 outcome, and touch-event deduplication coverage
 - **Runtime verification**: provider-wide E2E remains incomplete; bounded WooCommerce and Fluent Forms evidence is recorded below, while six form manifests remain explicitly runtime-unverified
 - **Machine-readable ledger**: [`integration-capabilities.json`](integration-capabilities.json)
 
@@ -170,7 +170,7 @@ WordPress E2E status remain governed by the evidence labels above.
 
 Form integrations fall into three patterns:
 
-- automatic hidden-field injection: Contact Form 7 and Fluent Forms
+- automatic hidden-field injection: Contact Form 7 and Fluent Forms (Fluent Forms native entry/CSV visibility requires configured fields; see below)
 - compatible hidden-field population: Gravity Forms and WPForms
 - submission-hook and stored-attribution path: Elementor Forms (Pro) and Ninja Forms
 
@@ -194,6 +194,18 @@ Source-present form adapters (runtime-unverified in this audit):
 - WPForms
 
 Runtime evidence for `1.9.1`: a consent-not-required browser submission on WordPress 6.9, PHP 8.1, and Fluent Forms 6.2.13 stored `ct_ft_source`, `ct_lt_source`, and campaign metadata in `fluentform_submission_meta`. This does not establish the other adapters, consent-required paths, or erasure behavior.
+
+Visibility evidence for `1.10.1` (2026-09-12): on WordPress 7.1, PHP 8.3 and
+Fluent Forms 6.2.13 free, a successful browser submission stored first/latest
+attribution metadata but the native entry did not display those fields.
+Configuring six native hidden fields for first/latest source, medium and
+campaign made a subsequent submission visible in the native entry and native
+CSV response without plugin code changes. Older entries were not backfilled.
+This consent-not-required fixture does not establish cache, consent-required,
+erasure, or provider-wide compatibility. Follow the
+[lead-form tutorial](../tutorials/01-lead-form-attribution.md) for that explicit
+configuration; automatic metadata persistence alone is not native reporting
+readiness.
 
 What ClickTrail does:
 
