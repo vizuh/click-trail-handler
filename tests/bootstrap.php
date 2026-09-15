@@ -115,6 +115,15 @@ if ( ! function_exists( 'add_action' ) ) {
 	}
 }
 
+if ( ! function_exists( 'do_action' ) ) {
+	function do_action( $tag, ...$args ) {
+		$GLOBALS['clicktrail_test_actions'][] = array(
+			'tag'  => $tag,
+			'args' => $args,
+		);
+	}
+}
+
 if ( ! function_exists( 'get_option' ) ) {
 	function get_option( $option, $default = false ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.defaultFound -- Mirrors WordPress core get_option() signature.
 		return $default;

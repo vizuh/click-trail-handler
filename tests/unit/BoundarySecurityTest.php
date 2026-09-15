@@ -7,15 +7,8 @@
 
 declare(strict_types=1);
 
-namespace CLICUTCL\Modules\Consent_Mode {
-	class Consent_Mode_Settings {
-		public function get_cookie_name(): string {
-			return 'production_consent';
-		}
-	}
-}
-
 namespace {
+	require_once dirname( __DIR__ ) . '/helpers/consent-mode-settings-stub.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-canonicaleventinterfacev2.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-eventv2.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/server-side/class-consent.php';

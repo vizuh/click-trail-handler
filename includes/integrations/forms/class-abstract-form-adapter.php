@@ -59,6 +59,12 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 	protected function log_submission( $platform, $form_id, $attribution, $identity_input = array() ) {
 		global $wpdb;
 
+		// Submission-time consent is authoritative. Do not persist or dispatch
+		// stale/client-posted attribution after marketing consent is withdrawn.
+		if ( ! $this->should_populate() ) {
+			return;
+		}
+
 		if ( empty( $attribution ) ) {
 			return; // Don't log empty attribution events? Maybe log them anyway but data is empty.
 		}

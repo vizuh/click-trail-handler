@@ -91,6 +91,10 @@ class CF7_Adapter extends Abstract_Form_Adapter {
 	 * @param object $arg3 Submission object.
 	 */
 	public function on_submission( $arg1, $arg2 = null, $arg3 = null ) {
+		if ( ! $this->should_populate() ) {
+			return;
+		}
+
 		$contact_form = $arg1;
 		$abort        = $arg2;
 		$submission   = $arg3;

@@ -168,6 +168,10 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 	 * @param array $arg2 Form object.
 	 */
 	public function on_submission( $arg1, $arg2 ) {
+		if ( ! $this->should_populate() ) {
+			return;
+		}
+
 		$entry = $arg1;
 		$form  = $arg2;
 
@@ -338,6 +342,10 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 	 * @param array $original_entry Entry state before the update.
 	 */
 	public function restore_tracking_meta_after_edit( $form, $entry_id, $original_entry ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundBeforeLastUsed
+		if ( ! $this->should_populate() ) {
+			return;
+		}
+
 		if ( ! is_array( $original_entry ) ) {
 			return;
 		}
