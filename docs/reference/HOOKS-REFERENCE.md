@@ -3,7 +3,7 @@
 - **Audience**: contributors, integrators, and maintainers
 - **Canonical for**: public filters and actions exposed by the plugin
 - **Update when**: a public hook is added, removed, renamed, or changes contract
-- **Last verified against version**: `1.8.5`
+- **Last verified against version**: `1.10.0`
 
 This document lists the public custom hooks currently exposed by the active codebase.
 
@@ -216,6 +216,42 @@ Type:
 Purpose:
 
 - receive aggregated delivery failure telemetry when remote telemetry is enabled
+
+## WooCommerce
+
+### `clicutcl_order_attribution_saved`
+
+Type:
+
+- action
+
+Purpose:
+
+- notify local connectors after ClickTrail has written consent-permitted
+  attribution metadata to a WooCommerce order
+
+Arguments:
+
+- `\WC_Order $order` — the order containing the ClickTrail metadata
+
+When it fires:
+
+- after the first-party cookie or nonce-verified `ct_*` checkout fallback has
+  been normalized and written
+- only when at least one attribution value is available; the separate
+  `_clicutcl_consent` snapshot does not trigger this action by itself
+
+Contract:
+
+- read the canonical `_clicutcl_*` order metadata; do not rewrite it
+- `_clicutcl_ft_*` is first touch, `_clicutcl_lt_*` is latest touch, and
+  provider click IDs keep their provider-specific names
+- `_clicutcl_visitor_id` and `_clicutcl_session_id` are pseudonymous join keys,
+  not identity proof
+- this action is a local handoff signal. It is not confirmation of provider
+  delivery, payment, conversion, authorization, or reconciliation
+- denied or unresolved required consent suppresses attribution metadata and
+  this action, while `_clicutcl_consent` still records the checkout snapshot
 
 ## Gravity Forms
 

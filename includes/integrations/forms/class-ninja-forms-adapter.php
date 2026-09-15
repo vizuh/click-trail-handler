@@ -78,6 +78,15 @@ class Ninja_Forms_Adapter extends Abstract_Form_Adapter {
 		}
 
 		if ( ! $this->should_populate() ) {
+			// Remove a stale ClickTrail extra that may have been added before
+			// consent was withdrawn; leave unrelated Ninja Forms extras intact.
+			if ( isset( $form_data['extra'] ) && is_array( $form_data['extra'] ) ) {
+				unset( $form_data['extra'][ Ninja_Forms_Submission_Extra_Handler::EXTRA_VALUE_KEY ] );
+				if ( empty( $form_data['extra'] ) ) {
+					unset( $form_data['extra'] );
+				}
+			}
+
 			return $form_data;
 		}
 
@@ -114,6 +123,10 @@ class Ninja_Forms_Adapter extends Abstract_Form_Adapter {
 	 * @return void
 	 */
 	public function on_submission( $form_data, $arg2 = null ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+		if ( ! $this->should_populate() ) {
+			return;
+		}
+
 		if ( ! is_array( $form_data ) ) {
 			return;
 		}

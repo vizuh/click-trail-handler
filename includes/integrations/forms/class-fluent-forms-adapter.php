@@ -109,6 +109,10 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 	 * @param object $arg3 Form object (optional).
 	 */
 	public function on_submission( $arg1, $arg2, $arg3 = null ) {
+		if ( ! $this->should_populate() ) {
+			return;
+		}
+
 		static $logged = array();
 		$entry_id      = (int) $arg1;
 		if ( isset( $logged[ $entry_id ] ) ) {
