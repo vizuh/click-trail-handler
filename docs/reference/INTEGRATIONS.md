@@ -218,6 +218,7 @@ What ClickTrail does:
 - for Contact Form 7, record and dispatch through `wpcf7_mail_sent`, after CF7 reports success; validation failure, missing acceptance, spam, abort and mail failure do not enter the conversion logger. This denotes CF7 success (including its configured skip-mail behavior), not recipient delivery or CRM acceptance. Hook-lifecycle regression coverage lives in `tests/unit/CF7SubmissionOutcomeTest.php`; real WordPress/cache/receiver proof remains separate.
 - for Elementor Forms, log submissions through Elementor Pro's official `elementor_pro/forms/new_record` hook and read matching `ct_*` hidden fields when they are present, with cookie fallback when they are not
 - for Ninja Forms, store attribution in the submission extra data (`extra.clicktrail_attribution`), show it in the submission detail UI, and use the submission hooks rather than automatic hidden-field injection
+- gate form field injection and submission-time ClickTrail/provider metadata writes through the centralized consent policy; denied consent also removes a stale Ninja Forms `extra.clicktrail_attribution` value while preserving unrelated extras
 
 Where teams see value:
 
@@ -310,6 +311,37 @@ Where teams see value:
 - list merchandising surfaces can feed richer Woo browser events without adding destination-specific logic
 - `view_cart` can be emitted from the cart page, visible mini-cart surfaces, and supported cart-drawer flows when the runtime can resolve current cart contents
 - post-purchase milestones follow the same dispatcher, queue, dedup, and diagnostics model as purchases
+
+### WooCommerce attribution handoff
+
+The checkout handoff is an optional, consent-gated source connector. Hosts remain
+authoritative for order, payment, identity, and provider delivery truth.
+
+At checkout, ClickTrail writes attribution order metadata only when
+`Attribution_Provider::should_populate()` allows processing:
+
+1. Read the consent-gated `ct_attribution` or `attribution` cookie payload.
+2. If no cookie payload is available, accept only nonce-verified `ct_*` POST fields.
+3. With required consent denied or unresolved, or with an invalid or missing checkout nonce, write no attribution fields.
+
+The buyer's consent snapshot is stored separately in `_clicutcl_consent` even
+when attribution is denied. This snapshot records the checkout-time policy
+state; it is not proof of consent for a later request.
+
+Canonical order metadata for external connectors:
+
+- `_clicutcl_ft_*` — immutable first-touch fields.
+- `_clicutcl_lt_*` — latest-touch fields.
+- `_clicutcl_{gclid,fbclid,...}` — provider-scoped click IDs; `ctwa_clid` and other
+  provider names remain unchanged.
+- `_clicutcl_visitor_id` and `_clicutcl_session_id` — pseudonymous join keys when
+  available.
+
+The `_clicutcl_woo_trace_snapshot` diagnostic record and milestone markers are
+internal trace state, not an external attribution handoff. Consumers should read
+these keys and must not rewrite them. `clicutcl_order_attribution_saved`
+receives the `WC_Order` after attribution metadata is written; it is a local
+handoff signal, not confirmation of provider delivery, a sale, or reconciliation.
 
 ### Woo conversion-readiness contract (M6-A)
 

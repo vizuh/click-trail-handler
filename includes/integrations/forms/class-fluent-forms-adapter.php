@@ -110,7 +110,7 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 	 * @param object $arg3 Form object (optional).
 	 */
 	public function on_submission( $arg1, $arg2, $arg3 = null ) {
-		if ( Consent::is_required() && ! Consent::marketing_allowed() ) {
+		if ( ! $this->should_populate() || ( Consent::is_required() && ! Consent::marketing_allowed() ) ) {
 			return;
 		}
 

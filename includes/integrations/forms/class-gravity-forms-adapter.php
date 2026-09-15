@@ -169,7 +169,8 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 	 * @param array $arg2 Form object.
 	 */
 	public function on_submission( $arg1, $arg2 ) {
-		if ( Consent::is_required() && ! Consent::marketing_allowed() ) {
+		// Submission-time consent is authoritative for both provider and legacy modes.
+		if ( ! $this->should_populate() || ( Consent::is_required() && ! Consent::marketing_allowed() ) ) {
 			return;
 		}
 
@@ -343,7 +344,8 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 	 * @param array $original_entry Entry state before the update.
 	 */
 	public function restore_tracking_meta_after_edit( $form, $entry_id, $original_entry ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundBeforeLastUsed
-		if ( Consent::is_required() && ! Consent::marketing_allowed() ) {
+		// Do not restore attribution after consent is withdrawn.
+		if ( ! $this->should_populate() || ( Consent::is_required() && ! Consent::marketing_allowed() ) ) {
 			return;
 		}
 
