@@ -115,6 +115,10 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 	 * @param mixed $entry_id  Entry ID (optional extra).
 	 */
 	public function on_submission( $fields, $entry, $form_data = null, $entry_id = null ) {
+		if ( ! $this->should_populate() ) {
+			return;
+		}
+
 		$payload = $this->get_attribution_payload();
 		if ( empty( $payload ) ) {
 			return;

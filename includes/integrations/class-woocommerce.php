@@ -14,7 +14,6 @@ use CLICUTCL\Server_Side\Dispatcher;
 use CLICUTCL\Server_Side\Consent;
 use CLICUTCL\Tracking\Event_Translator_V1_To_V2;
 use CLICUTCL\Tracking\Identity_Resolver;
-use CLICUTCL\Utils\Attribution;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -95,10 +94,17 @@ class WooCommerce {
 		// snapshot is what allows those contexts to honor checkout-time consent.
 		$order->update_meta_data( self::CONSENT_META_KEY, wp_json_encode( Consent::snapshot() ) );
 
-		// 1. Try server-side cookie first (most reliable if not stripped).
-		$attribution = Attribution::get();
+		// Attribution persistence is consent-gated independently of the stored
+		// checkout snapshot. A denied checkout must not accept stale cookie or
+		// client-posted attribution values.
+		if ( ! Attribution_Provider::should_populate() ) {
+			return;
+		}
 
-		// 2. Fallback to POST data (Client-Side Injection)
+		// 1. Try the consent-gated server-side cookie first (most reliable if not stripped).
+		$attribution = Attribution_Provider::get_payload();
+
+		// 2. Fallback to nonce-verified POST data (Client-Side Injection)
 		if ( empty( $attribution ) ) {
 			$attribution = $this->collect_from_post_data( $data );
 		}
@@ -121,22 +127,20 @@ class WooCommerce {
 			$order->update_meta_data( '_clicutcl_' . $meta_key, sanitize_text_field( $value ) );
 		}
 
-		// visitor_id and session_id live in separate cookies not included in
-		// Utils\Attribution::get(). Write them explicitly so order meta has the
-		// same cross-platform join key available in GF entry meta.
-		if ( Attribution_Provider::should_populate() ) {
-			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-			if ( ! empty( $_COOKIE['ct_visitor_id'] ) && is_scalar( $_COOKIE['ct_visitor_id'] ) ) {
-				$visitor_id = sanitize_text_field( wp_unslash( $_COOKIE['ct_visitor_id'] ) );
-				if ( '' !== $visitor_id ) {
-					$order->update_meta_data( '_clicutcl_visitor_id', $visitor_id );
-				}
+		// visitor_id and session_id are included by the consent-gated provider
+		// payload when available; write them explicitly for compatibility with
+		// the same cross-platform join key available in GF entry meta.
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		if ( ! empty( $_COOKIE['ct_visitor_id'] ) && is_scalar( $_COOKIE['ct_visitor_id'] ) ) {
+			$visitor_id = sanitize_text_field( wp_unslash( $_COOKIE['ct_visitor_id'] ) );
+			if ( '' !== $visitor_id ) {
+				$order->update_meta_data( '_clicutcl_visitor_id', $visitor_id );
 			}
+		}
 
-			$session = Attribution_Provider::get_session();
-			if ( ! empty( $session['session_id'] ) ) {
-				$order->update_meta_data( '_clicutcl_session_id', $session['session_id'] );
-			}
+		$session = Attribution_Provider::get_session();
+		if ( ! empty( $session['session_id'] ) ) {
+			$order->update_meta_data( '_clicutcl_session_id', $session['session_id'] );
 		}
 
 		/**
@@ -153,6 +157,10 @@ class WooCommerce {
 	 * @return array|null
 	 */
 	private function collect_from_post_data( $data ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- Signature kept for the data-fallback contract; values are read from $_POST.
+		if ( ! Attribution_Provider::should_populate() ) {
+			return null;
+		}
+
 		// Nonce check for WooCommerce checkout security.
 		if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['_wpnonce'] ) ), 'woocommerce-process_checkout' ) ) {
 			return null;
@@ -920,7 +928,7 @@ class WooCommerce {
 		// Admin order edits, cron, and REST/AJAX run with a different person's
 		// cookies (or none) and would misattribute the order to that visitor.
 		if ( empty( $attribution['first_touch'] ) && empty( $attribution['last_touch'] ) && $this->is_customer_request_context() ) {
-			$cookie_attr = Attribution::get();
+			$cookie_attr = Attribution_Provider::get_payload();
 			if ( $cookie_attr ) {
 				$attribution = wp_parse_args( $cookie_attr, $attribution );
 			}
