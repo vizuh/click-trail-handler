@@ -24,13 +24,13 @@ shipped.
 
 ### Narrowest defensible proposition
 
-> **ClickTrail keeps campaign attribution alive from ad click to WordPress conversion — through cache, dynamic forms, cross-domain hops, and consent rules — and gives teams diagnostics to verify what was captured, stored, and dispatched.**
+> **ClickTrail is the open-source attribution handoff layer that keeps observed acquisition context attached to conversion records inside the stack you own.**
 
 Short description:
 
-> **Consent-aware WordPress attribution:** first-party capture of UTMs and
-> click IDs, preserved to WooCommerce orders and configured form paths, with
-> optional controlled delivery to endpoints the site owner configures.
+> **Consent-aware acquisition-to-conversion handoff:** deterministic first-party
+> capture of UTMs, click IDs, and referrers, carried through forms, orders, CRM
+> records, browser events, and configured delivery boundaries.
 
 The proposition is intentionally narrower than an attribution suite. ClickTrail
 is a WordPress capture-and-controlled-delivery layer, not:

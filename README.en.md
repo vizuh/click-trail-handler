@@ -20,9 +20,11 @@
 > adapter. See the [integration evidence ledger](docs/reference/integration-capabilities.json) and
 > [integration reference](docs/reference/INTEGRATIONS.md).
 
-Attribution usually breaks somewhere between the ad click and the conversion. ClickTrail keeps campaign context alive through the journey to the WordPress conversion.
+> **ClickTrail is the open-source attribution handoff layer that keeps observed acquisition context attached to conversion records inside the stack you own.**
 
-ClickTrail is a WordPress attribution plugin for sites that need campaign source data to remain available through real-world journeys, especially when WooCommerce orders or lead forms happen several pages after the landing page.
+This repository is ClickTrail's WordPress distribution. It keeps consented
+campaign context available through real-world journeys, especially when
+WooCommerce orders or lead forms happen several pages after the landing page.
 
 **What ClickTrail is not:** it is not an attribution dashboard, a hosted server-side GTM platform, a lead manager, or an ad optimizer. It complements GA4 and GTM. Browser tags remain site-owned, while configured-endpoint server adapters remain source-present/runtime-unverified in the current baseline.
 
@@ -322,6 +324,7 @@ docs, consent/privacy remediation, delivery integrity, provider-contract release
 - [Technical documentation index](docs/README.md)
 - [Contributor guide](CONTRIBUTING.md)
 - [Integrations reference](docs/reference/INTEGRATIONS.md)
+- [Framework and external integrations](docs/reference/FRAMEWORK-INTEGRATIONS.md)
 - [Full changelog](changelog.txt)
 - [WordPress.org readme](readme.txt)
 - [Competitive positioning and acquisition roadmap](docs/guides/COMPETITIVE-POSITIONING-AND-ACQUISITION-ROADMAP-2026-08-22.md)

@@ -14,7 +14,12 @@
 
 A atribuicao costuma quebrar em algum ponto entre o clique no anuncio e a conversao. O ClickTrail mantem o contexto da campanha vivo ao longo da jornada ate a conversao no WordPress.
 
-ClickTrail e um plugin de atribuicao para WordPress feito para sites que precisam manter os dados de origem da campanha disponiveis ao longo da jornada, especialmente quando pedidos do WooCommerce ou formularios acontecem varias paginas depois da landing page.
+> **ClickTrail e a camada open source de handoff de atribuicao que mantem o contexto de aquisicao observado ligado aos registros de conversao dentro da stack que voce controla.**
+
+Este repositorio e a distribuicao WordPress do ClickTrail. Ele mantem o
+contexto de campanha com consentimento ao longo de jornadas reais, especialmente
+quando pedidos do WooCommerce ou formularios acontecem varias paginas depois da
+landing page.
 
 **O que o ClickTrail nao e:** nao e um painel de atribuicao, uma plataforma hospedada de server-side GTM, um gestor de leads nem um otimizador de anuncios. Ele complementa GA4 e GTM. As tags do navegador continuam sob controle do site, enquanto os adaptadores server-side para endpoints configurados permanecem presentes no codigo e sem verificacao de runtime nesta baseline.
 
@@ -306,6 +311,7 @@ remediacao de consentimento/privacidade, integridade de entrega, releases por pr
 - [Indice da documentacao tecnica](docs/README.md)
 - [Guia de contribuicao](CONTRIBUTING.pt-BR.md)
 - [Referencia de integracoes](docs/reference/INTEGRATIONS.md)
+- [Frameworks e integracoes externas](docs/reference/FRAMEWORK-INTEGRATIONS.md)
 - [Readme do WordPress.org](readme.txt)
 - [Roadmap de posicionamento competitivo e aquisicao](docs/guides/COMPETITIVE-POSITIONING-AND-ACQUISITION-ROADMAP-2026-08-22.md)
 

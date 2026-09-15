@@ -30,6 +30,12 @@ ClickTrail keeps the source of the visit, not a profile of the visitor — first
 > not inject Meta/Facebook Pixel, Google tag, TikTok Pixel, LinkedIn Insight, Pinterest Tag, or Reddit Pixel
 > SDKs. Reddit has a **relay-only** destination toggle and `rdt_cid` capture, not a native delivery adapter.
 
+> **ClickTrail is the open-source attribution handoff layer that keeps observed acquisition context attached to conversion records inside the stack you own.**
+
+This repository is the WordPress distribution. The wider ClickTrail workspace
+also provides shared JavaScript, PHP, GTM, framework, workflow, MCP, and agent
+surfaces around the same conversion handoff contract.
+
 ## What ClickTrail Solves
 
 - Keeps campaign context available for WooCommerce orders when the configured path captures it.
