@@ -116,7 +116,8 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 	 * @param mixed $entry_id  Entry ID (optional extra).
 	 */
 	public function on_submission( $fields, $entry, $form_data = null, $entry_id = null ) {
-		if ( Consent::is_required() && ! Consent::marketing_allowed() ) {
+		// Submission-time consent is authoritative for both provider and legacy modes.
+		if ( ! $this->should_populate() || ( Consent::is_required() && ! Consent::marketing_allowed() ) ) {
 			return;
 		}
 

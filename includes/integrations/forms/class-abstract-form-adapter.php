@@ -59,9 +59,9 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 	protected function log_submission( $platform, $form_id, $attribution, $identity_input = array() ) {
 		global $wpdb;
 
-		// Submission hooks may run after a consent withdrawal. Do not persist
-		// attribution or resolve identity when marketing consent is required.
-		if ( Consent::is_required() && ! Consent::marketing_allowed() ) {
+		// Submission-time consent is authoritative. Do not persist or dispatch
+		// stale/client-posted attribution after marketing consent is withdrawn.
+		if ( ! $this->should_populate() || ( Consent::is_required() && ! Consent::marketing_allowed() ) ) {
 			return;
 		}
 

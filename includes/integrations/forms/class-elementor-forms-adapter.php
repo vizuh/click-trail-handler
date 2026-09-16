@@ -64,6 +64,10 @@ class Elementor_Forms_Adapter extends Abstract_Form_Adapter {
 	 * @return void
 	 */
 	public function on_submission( $arg1, $arg2 = null ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
+		if ( ! $this->should_populate() ) {
+			return;
+		}
+
 		$record = $arg1;
 		if ( ! is_object( $record ) || ! method_exists( $record, 'get' ) ) {
 			return;
