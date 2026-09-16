@@ -8,6 +8,7 @@
 namespace CLICUTCL\Integrations\Forms;
 
 use CLICUTCL\Core\Attribution_Provider;
+use CLICUTCL\Server_Side\Consent;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -115,6 +116,10 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 	 * @param mixed $entry_id  Entry ID (optional extra).
 	 */
 	public function on_submission( $fields, $entry, $form_data = null, $entry_id = null ) {
+		if ( Consent::is_required() && ! Consent::marketing_allowed() ) {
+			return;
+		}
+
 		$payload = $this->get_attribution_payload();
 		if ( empty( $payload ) ) {
 			return;

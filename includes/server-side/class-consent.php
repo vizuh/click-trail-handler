@@ -81,6 +81,19 @@ class Consent {
 	}
 
 	/**
+	 * Whether a consent state was observed in the current request.
+	 *
+	 * An empty state means no live cookie was available. This distinction lets
+	 * server-side order/webhook contexts use their stored checkout snapshot while
+	 * queue workers fail closed when they cannot verify current consent.
+	 *
+	 * @return bool
+	 */
+	public static function has_state(): bool {
+		return ! empty( self::get_state() );
+	}
+
+	/**
 	 * Return the current policy requirement.
 	 *
 	 * @return bool

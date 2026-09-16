@@ -422,6 +422,13 @@ class Dispatcher {
 			return true;
 		}
 
+		// A live cookie is authoritative when present, including a withdrawal
+		// that happened after the event snapshot was captured. Background hooks
+		// without a cookie still fall back to the event's checkout snapshot.
+		if ( Consent::has_state() ) {
+			return Consent::marketing_allowed();
+		}
+
 		if ( $event instanceof Event ) {
 			$data = $event->to_array();
 			if ( isset( $data['consent'] ) && is_array( $data['consent'] ) && array_key_exists( 'marketing', $data['consent'] ) ) {

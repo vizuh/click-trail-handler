@@ -95,11 +95,13 @@ class WooCommerce {
 		// snapshot is what allows those contexts to honor checkout-time consent.
 		$order->update_meta_data( self::CONSENT_META_KEY, wp_json_encode( Consent::snapshot() ) );
 
-		// 1. Try server-side cookie first (most reliable if not stripped).
-		$attribution = Attribution::get();
+		// 1. Try server-side cookie first (most reliable if not stripped), but
+		// never read it when the current request is denied.
+		$attribution = Attribution_Provider::should_populate() ? Attribution::get() : null;
 
-		// 2. Fallback to POST data (Client-Side Injection)
-		if ( empty( $attribution ) ) {
+		// 2. Fallback to POST data (Client-Side Injection), subject to the same
+		// live consent gate as the cookie path.
+		if ( empty( $attribution ) && Attribution_Provider::should_populate() ) {
 			$attribution = $this->collect_from_post_data( $data );
 		}
 
@@ -196,6 +198,12 @@ class WooCommerce {
 
 		$order = wc_get_order( $order_id );
 		if ( ! $order ) {
+			return;
+		}
+
+		// Thank-you output is a browser-side emission. It must use the live
+		// request state rather than a checkout snapshot so a withdrawal wins.
+		if ( Consent::is_required() && ! Consent::marketing_allowed() ) {
 			return;
 		}
 
@@ -520,6 +528,13 @@ class WooCommerce {
 	 * @return \CLICUTCL\Server_Side\Adapter_Result
 	 */
 	private function dispatch_order_payload( $order, array $payload, string $event_name, string $source_hook ) {
+		// A live withdrawal must also prevent the trace snapshot from being
+		// written. Background requests with no live cookie retain the stored
+		// checkout snapshot semantics in Dispatcher.
+		if ( Consent::is_required() && Consent::has_state() && ! Consent::marketing_allowed() ) {
+			return \CLICUTCL\Server_Side\Adapter_Result::skipped( 'consent_denied' );
+		}
+
 		$payload['event_name'] = sanitize_key( $event_name );
 		if ( empty( $payload['event_id'] ) && ! empty( $payload['order_id'] ) ) {
 			$payload['event_id'] = sanitize_key( $event_name ) . '_' . absint( $payload['order_id'] );
