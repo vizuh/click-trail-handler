@@ -8,6 +8,7 @@
 namespace CLICUTCL\Integrations\Forms;
 
 use CLICUTCL\Core\Attribution_Provider;
+use CLICUTCL\Server_Side\Consent;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -168,6 +169,11 @@ class Ninja_Forms_Adapter extends Abstract_Form_Adapter {
 			const formChannel = Backbone.Radio.channel('form');
 			
 			formChannel.on('form:submit:response', function(response) {
+				var consent = window.ClickTrailConsent;
+				if (!consent || typeof consent.isGranted !== 'function' || !consent.isGranted()) {
+					return;
+				}
+
 				window.dataLayer = window.dataLayer || [];
 				window.dataLayer.push({
 					event: 'ninja_form_submit',

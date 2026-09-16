@@ -14,6 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 use CLICUTCL\Core\Context;
 use CLICUTCL\Server_Side\Event;
 use CLICUTCL\Tracking\Settings as Tracking_Settings;
+use CLICUTCL\Server_Side\Consent;
 
 /**
  * Class ClickTrail\Modules\Events\Events_Logger
@@ -122,6 +123,10 @@ class Events_Logger {
 	 * @param array  $data  Event data.
 	 */
 	private function set_event_cookie( $name, $data ) {
+		if ( Consent::is_required() && ! Consent::marketing_allowed() ) {
+			return;
+		}
+
 		// Set cookie for 1 minute with security flags.
 		setcookie(
 			$name,
@@ -138,10 +143,38 @@ class Events_Logger {
 	}
 
 	/**
+	 * Expire a pending follow-up event cookie.
+	 *
+	 * @param string $name Cookie name.
+	 * @return void
+	 */
+	private function clear_event_cookie( $name ) {
+		setcookie(
+			$name,
+			'',
+			array(
+				'expires'  => time() - 3600,
+				'path'     => COOKIEPATH,
+				'domain'   => COOKIE_DOMAIN,
+				'secure'   => is_ssl(),
+				'httponly' => true,
+				'samesite' => 'Lax',
+			)
+		);
+	}
+
+	/**
 	 * Render server-side events into dataLayer.
 	 */
 	public function render_server_events() {
-		$events        = array( 'ct_event_login', 'ct_event_signup', 'ct_event_comment' );
+		$events = array( 'ct_event_login', 'ct_event_signup', 'ct_event_comment' );
+		if ( Consent::is_required() && ! Consent::marketing_allowed() ) {
+			foreach ( $events as $cookie_name ) {
+				$this->clear_event_cookie( $cookie_name );
+			}
+			return;
+		}
+
 		$queued_events = array();
 
 		foreach ( $events as $cookie_name ) {
@@ -151,18 +184,7 @@ class Events_Logger {
 				if ( $event_data ) {
 					$queued_events[] = $this->normalize_event_cookie_payload( $event_data );
 					// Clear the cookie after reading.
-					setcookie(
-						$cookie_name,
-						'',
-						array(
-							'expires'  => time() - 3600,
-							'path'     => COOKIEPATH,
-							'domain'   => COOKIE_DOMAIN,
-							'secure'   => is_ssl(),
-							'httponly' => true,
-							'samesite' => 'Lax',
-						)
-					);
+					$this->clear_event_cookie( $cookie_name );
 				}
 			}
 		}

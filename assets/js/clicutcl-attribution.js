@@ -1900,6 +1900,10 @@
         }
 
         pushDL(provider, id, data) {
+            // The listener can outlive a consent withdrawal. Re-check the live
+            // bridge state before creating a lead dataLayer entry.
+            if (!this.canCapture()) return;
+
             window.dataLayer.push({
                 event: 'lead_submit',
                 form_provider: provider,
@@ -1928,6 +1932,10 @@
             const allowedHosts = ['wa.me', 'whatsapp.com', 'api.whatsapp.com', 'web.whatsapp.com'];
 
             const handler = (evt) => {
+                // The listener can outlive a consent withdrawal. Do not append
+                // attribution to the outbound URL after marketing is denied.
+                if (!this.canCapture()) return;
+
                 const a = evt.target.closest('a');
                 if (!a) return;
 

@@ -13,6 +13,7 @@
 namespace CLICUTCL\Integrations\Forms;
 
 use CLICUTCL\Core\Attribution_Provider;
+use CLICUTCL\Server_Side\Consent;
 use CLICUTCL\Settings\Attribution_Settings;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -168,6 +169,10 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 	 * @param array $arg2 Form object.
 	 */
 	public function on_submission( $arg1, $arg2 ) {
+		if ( Consent::is_required() && ! Consent::marketing_allowed() ) {
+			return;
+		}
+
 		$entry = $arg1;
 		$form  = $arg2;
 
@@ -338,6 +343,10 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 	 * @param array $original_entry Entry state before the update.
 	 */
 	public function restore_tracking_meta_after_edit( $form, $entry_id, $original_entry ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundBeforeLastUsed
+		if ( Consent::is_required() && ! Consent::marketing_allowed() ) {
+			return;
+		}
+
 		if ( ! is_array( $original_entry ) ) {
 			return;
 		}
