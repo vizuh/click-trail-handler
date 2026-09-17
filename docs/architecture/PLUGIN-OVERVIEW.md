@@ -199,7 +199,7 @@ Responsibilities:
 - compare versioned form field-presence snapshots across submitted, provider-record, hook-payload, and ClickTrail-event surfaces
 - classify synthetic Woo source/consent/event/dedup/queue/value/refund/HPOS/privacy evidence across 16 scenarios
 
-All three pure analyzers use `evidence_scope: contract_only`. They have no live form or order reader, admin endpoint, persistence, provider call, or runtime-verification claim.
+All three pure analyzers use `evidence_scope: contract_only`. The analyzer classes have no live form or order reader, persistence, provider call, or runtime-verification claim. Attribution Readiness is exposed through a read-only admin wrapper; the form and Woo comparators currently have no admin endpoint.
 
 ## Admin Surfaces
 

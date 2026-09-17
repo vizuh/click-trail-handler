@@ -724,6 +724,7 @@ trait Admin_Diagnostics_Ajax_Trait {
 
 		return array(
 			'status'          => sanitize_key( (string) ( $result['status'] ?? '' ) ),
+			'evidence_scope'  => 'contract_only',
 			'fields'          => $fields,
 			'click_ids'       => $click_ids,
 			'source_evidence' => $source_evidence,

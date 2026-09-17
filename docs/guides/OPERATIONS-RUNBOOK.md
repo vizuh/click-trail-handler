@@ -214,13 +214,13 @@ Diagnostics attribution readiness calls:
 
 - admin AJAX `clicutcl_attribution_readiness`
 
-Use it with a bounded test JSON payload to inspect UTM field status, recognized click-ID keys/platforms, source evidence, issues, and recommendations. Optional source aliases are request-scoped JSON mappings from recognized platforms to lowercase UTM source tokens of at most 64 characters; they are validated and never stored.
+Use it with a bounded test JSON payload to inspect UTM field status, recognized click-ID keys/platforms, source evidence, issues, and recommendations. Optional source aliases are request-scoped JSON mappings from recognized platforms to lowercase UTM source tokens of at most 64 characters; they are validated and never stored. The versioned response includes `analysis.evidence_scope: contract_only`, which marks a bounded inspection of the supplied payload only.
 
 The analyzer can deterministically suggest only `utm_source` when exactly one recognized platform is present. It never invents `utm_medium` or `utm_campaign`. An observed source, unresolved source macro, or multiple platform signals suppresses automatic source suggestion. Referrer evidence remains non-deterministic.
 
 Field output includes `selection_tier` to explain whether the selected value came from `last_touch`, the bare `direct` payload tier, `first_touch`, or no valid tier. `direct` describes key precedence only; it is not a traffic-channel claim. When safe core values exist, the endpoint may also return a copy-only test URL. The builder accepts only a query-free, fragment-free HTTP(S) site URL without userinfo or an explicit port, emits at most the three canonical core UTM keys, and rejects invalid/macro or over-bound output. The admin action uses the Clipboard API only after an explicit click; it does not navigate, rewrite links, persist the URL, or change attribution state.
 
-The response does not include click-ID values and does not prove provider delivery, production runtime behavior, or compliance. An isolated WordPress 6.8.2 / PHP 8.3 / Chrome fixture verified the local admin and browser/PHP M4 contract on 2026-08-23; release and public runtime claims remain separately gated.
+The `pass`, `attention`, and `blocked` statuses describe only the supplied-input contract checks. They are not consent, authorization, persistence, runtime, provider, delivery, or compliance evidence. The response does not include click-ID values and does not prove provider delivery, production runtime behavior, or compliance. An isolated WordPress 6.8.2 / PHP 8.3 / Chrome fixture verified the local admin and browser/PHP M4 contract on 2026-08-23; release and public runtime claims remain separately gated.
 
 ## Form-readiness contract
 

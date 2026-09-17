@@ -46,6 +46,37 @@ final class AttributionReadinessAnalyzerTest extends TestCase {
 		$this->assertSame( array(), $result['recommendations'] );
 	}
 
+	public function test_evidence_scope_is_contract_only_for_every_analysis_status(): void {
+		$cases = array(
+			array(
+				'pass',
+				array(
+					'utm_source'   => 'linkedin',
+					'utm_medium'   => 'paid_social',
+					'utm_campaign' => 'spring-launch',
+				),
+			),
+			array( 'attention', array() ),
+			array(
+				'blocked',
+				array(
+					'utm_source'   => 'linkedin',
+					'utm_medium'   => 'paid_social',
+					'utm_campaign' => '{{campaign.name}}',
+				),
+			),
+		);
+
+		foreach ( $cases as $case ) {
+			$payload                    = $case[1];
+			$payload['evidence_scope'] = 'runtime_verified';
+			$result                     = $this->analyzer->analyze( $payload );
+
+			$this->assertSame( $case[0], $result['status'] );
+			$this->assertSame( 'contract_only', $result['evidence_scope'] );
+		}
+	}
+
 	public function test_linkedin_click_id_deterministically_suggests_source_only(): void {
 		$result = $this->analyzer->analyze( array( 'li_fat_id' => 'never-return-this-value' ) );
 

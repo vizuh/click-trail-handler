@@ -229,6 +229,7 @@ class Attribution_Readiness_Analyzer {
 
 		return array(
 			'status'          => $status,
+			'evidence_scope'  => 'contract_only',
 			'fields'          => $fields,
 			'click_ids'       => array(
 				'keys'      => $signals['keys'],

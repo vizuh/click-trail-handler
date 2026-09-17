@@ -127,6 +127,7 @@ final class AttributionReadinessDiagnosticsContractTest extends TestCase {
 		$this->assertSame( 'configured_alias', $result['recommendations'][0]['value_type'] );
 		$this->assertSame( 'click_id:li_fat_id', $result['recommendations'][0]['basis'] );
 		$this->assertTrue( $result['recommendations'][0]['deterministic'] );
+		$this->assertSame( 'contract_only', $result['evidence_scope'] );
 		$this->assertStringNotContainsString( 'SECRET_CLICK_ID', serialize( $result ) );
 	}
 
@@ -164,6 +165,7 @@ final class AttributionReadinessDiagnosticsContractTest extends TestCase {
 				'recommendations' => array(
 					array( 'code' => 'add_utm_source', 'field' => 'utm_source', 'suggested_value' => 'linkedin', 'deterministic' => true, 'basis' => 'click_id:li_fat_id' ),
 				),
+				'evidence_scope'  => 'runtime_verified',
 				'extra'           => 'drop-me',
 			)
 		);
@@ -178,6 +180,7 @@ final class AttributionReadinessDiagnosticsContractTest extends TestCase {
 		$this->assertSame( array( 'linkedin' ), $result['click_ids']['platforms'] );
 		$this->assertTrue( $result['fields']['utm_source']['deterministic'] );
 		$this->assertSame( 'none', $result['fields']['utm_source']['selection_tier'] );
+		$this->assertSame( 'contract_only', $result['evidence_scope'] );
 	}
 
 	public function test_response_envelope_adds_only_bounded_copy_test_url(): void {
@@ -194,6 +197,7 @@ final class AttributionReadinessDiagnosticsContractTest extends TestCase {
 		$this->assertSame( array( 'version', 'analysis', 'test_url' ), array_keys( $response ) );
 		$this->assertSame( 1, $response['version'] );
 		$this->assertSame( 'direct', $response['analysis']['fields']['utm_source']['selection_tier'] );
+		$this->assertSame( 'contract_only', $response['analysis']['evidence_scope'] );
 		$this->assertSame( 'https://example.com/?utm_source=newsletter&utm_medium=email&utm_campaign=launch', $response['test_url'] );
 	}
 
@@ -221,7 +225,7 @@ final class AttributionReadinessDiagnosticsContractTest extends TestCase {
 		);
 
 		$this->assertSame(
-			array( 'status', 'fields', 'click_ids', 'source_evidence', 'issues', 'recommendations' ),
+			array( 'status', 'evidence_scope', 'fields', 'click_ids', 'source_evidence', 'issues', 'recommendations' ),
 			array_keys( $result )
 		);
 	}
