@@ -1223,6 +1223,9 @@
             let url;
             try { url = new URL(rawHref, window.location.href); } catch (e) { return null; }
 
+            // Only decorate web links (never data:, vbscript:, blob:, etc.)
+            if (url.protocol !== 'http:' && url.protocol !== 'https:') return null;
+
             // Only outbound
             if (url.origin === window.location.origin) return null;
 
@@ -1314,7 +1317,7 @@
             if (window.crypto && typeof window.crypto.randomUUID === 'function') {
                 return window.crypto.randomUUID();
             }
-            return prefix + '_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+            return prefix + '_' + Array.from(window.crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0')).join('');
         },
 
         sessionId: function () {

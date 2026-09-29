@@ -58,7 +58,6 @@ namespace {
 	$grant = \CLICUTCL\Consent\Snapshot_V1::capture( array( 'marketing' => true ), true );
 	$denial = \CLICUTCL\Consent\Snapshot_V1::capture( array( 'marketing' => false ), true );
 	$process = new \ReflectionMethod( \CLICUTCL\Server_Side\Queue::class, 'process_row' );
-	$process->setAccessible( true );
 	$environment = 'production';
 	$allow_environment = false;
 	$mode = 'strict';

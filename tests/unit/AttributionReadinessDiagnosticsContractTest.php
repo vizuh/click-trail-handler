@@ -37,7 +37,6 @@ final class AttributionReadinessDiagnosticsContractTest extends TestCase {
 	 */
 	private function sanitize_result( array $result ): array {
 		$method = new ReflectionMethod( $this->host, 'sanitize_attribution_readiness_result' );
-		$method->setAccessible( true );
 		return $method->invoke( $this->host, $result );
 	}
 
@@ -49,7 +48,6 @@ final class AttributionReadinessDiagnosticsContractTest extends TestCase {
 	 */
 	private function parse_aliases( string $raw ): array {
 		$method = new ReflectionMethod( $this->host, 'parse_attribution_source_aliases' );
-		$method->setAccessible( true );
 		return $method->invoke( $this->host, $raw );
 	}
 
@@ -63,7 +61,6 @@ final class AttributionReadinessDiagnosticsContractTest extends TestCase {
 	private function format_response( array $result, string $base_url ): array {
 		$method   = new ReflectionMethod( $this->host, 'format_attribution_readiness_response' );
 		$analyzer = new \CLICUTCL\Intelligence\Attribution_Readiness_Analyzer();
-		$method->setAccessible( true );
 		return $method->invoke( $this->host, $result, $analyzer, $base_url );
 	}
 

@@ -64,7 +64,6 @@ final class WooCommerceDataLayerContractTest extends TestCase {
 
 	public function test_nested_attribution_is_flattened_for_purchase_data_layer(): void {
 		$method = new ReflectionMethod( WooCommerce::class, 'flatten_attribution_for_event' );
-		$method->setAccessible( true );
 
 		$result = $method->invoke(
 			new WooCommerce(),

@@ -565,7 +565,7 @@
             if (window.crypto && typeof window.crypto.randomUUID === 'function') {
                 return window.crypto.randomUUID();
             }
-            return prefix + '_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+            return prefix + '_' + Array.from(window.crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0')).join('');
         }
 
         getOrCreateSessionId() {
@@ -789,12 +789,15 @@
                     return;
                 }
 
-                const lowerHref = href.toLowerCase();
-                if (el.hasAttribute('data-booking-trigger') || lowerHref.includes('calendly.com') || lowerHref.includes('acuityscheduling.com')) {
+                let hrefHost = '';
+                try { hrefHost = href ? new URL(href, window.location.href).hostname.toLowerCase() : ''; } catch (err) {}
+                const onHost = (domain) => hrefHost === domain || hrefHost.endsWith('.' + domain);
+                const bookingProvider = onHost('calendly.com') ? 'calendly' : (onHost('acuityscheduling.com') ? 'acuity' : '');
+                if (el.hasAttribute('data-booking-trigger') || bookingProvider) {
                     this.pushEvent('book_appointment', {
                         cta_label: this.safeText(el.textContent || ''),
                         lead_context: {
-                            provider: lowerHref.includes('calendly') ? 'calendly' : (lowerHref.includes('acuity') ? 'acuity' : ''),
+                            provider: bookingProvider,
                             submit_status: 'success'
                         }
                     });
