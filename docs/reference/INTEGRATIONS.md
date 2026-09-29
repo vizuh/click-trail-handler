@@ -460,6 +460,26 @@ Security:
 - provider enablement
 - replay-window checks
 
+### Calendly booking handoff
+
+Calendly keeps only `utm_*` and `salesforce_uuid` from a scheduling URL. When link decoration is enabled,
+`calendly.com` is an allowed domain, and marketing consent is granted, ClickTrail decorates Calendly links, inline
+widgets (`.calendly-inline-widget[data-url]`), and `Calendly.initPopupWidget` / `initInlineWidget` /
+`initBadgeWidget` URLs with:
+
+- the stored `utm_*` values (values already in the URL are kept)
+- `salesforce_uuid=ct1;<click_id>=<value>;c=<0|1>`: one click ID (`gclid` first, then `gbraid`, `wbraid`,
+  `fbclid`, `msclkid`, `ttclid`, `li_fat_id`, `twclid`, `dclid`) and the live consent decision. `c` is omitted
+  when there is no decision (consent not required or unresolved). Raw click-ID parameters are not appended,
+  because Calendly drops them. A `salesforce_uuid` already set by the site is never replaced. Decoration is
+  re-checked against live consent on every click, so an in-page withdrawal stops it immediately.
+
+On `invitee.created` the webhook maps `tracking.utm_*` to last touch and parses the stamp back into the click ID
+and a consent snapshot, so a consented booking can be delivered when consent is required. Any other
+`salesforce_uuid` value is treated as the site's own Salesforce ID and ignored. Inline widgets initialised by
+Calendly's script before ClickTrail runs keep their original URL. The `salesforce_uuid` length limit and a live
+booking remain unverified.
+
 ## Lifecycle Updates
 
 Route:

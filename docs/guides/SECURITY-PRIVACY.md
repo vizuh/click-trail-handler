@@ -201,7 +201,10 @@ Verification hardening:
   provider timestamp, and downstream retention behavior still require review
 - Calendly `payload.tracking` UTMs are mapped to last-touch attribution on `invitee.created`; cancellations and other
   Calendly events are acknowledged (2xx, `ignored`) without recording an event. A native Calendly webhook carries no
-  visitor cookie or consent snapshot, so when consent is required the whole booking event is not delivered
+  visitor cookie; its consent snapshot comes only from the `c=` segment of ClickTrail's `salesforce_uuid` stamp
+  (`ct1;…;c=1`), which records the visitor's live consent decision at decoration time and is omitted when no
+  decision exists. That stamp has the same trust level as the consent cookie it was read from. Without `c=1`,
+  when consent is required, the booking event is not delivered
 - every signature is compared on the raw value with constant-time `hash_equals`
 - provider secrets are stored verbatim (not truncated or whitespace-stripped), so long/base64/structured secrets verify correctly
 - replay protection uses an atomic `wp_cache_add()` claim where a persistent object cache exists, falling back to a durable DB transient
