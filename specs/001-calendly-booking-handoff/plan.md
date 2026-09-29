@@ -2,6 +2,10 @@
 
 **Branch**: `feat/calendly-booking-handoff` | **Date**: 2026-09-29 | **Spec**: [spec.md](spec.md) | **Issue**: [#102](https://github.com/vizuh/click-trail-handler/issues/102)
 
+> **Superseded design (2026-09-29):** as built, #108 uses the compact `salesforce_uuid` stamp
+> (`ct1;<click_id>=<value>;c=<0|1>`) instead of the handoff table, mint route and retention below. The signature
+> and webhook-mapping parts shipped in #106 as planned. See research.md for the decision.
+
 ## Summary
 
 Mint a short, opaque handoff reference once consent is granted. Put it in Calendly's `salesforce_uuid` (links and widgets) and keep a server-side record of the attribution and consent snapshots. The Calendly webhook resolves the reference back to full attribution. Calendly's native webhook signature is added so no relay is needed.

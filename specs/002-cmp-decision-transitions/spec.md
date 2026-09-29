@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-29
 
-**Status**: Draft
+**Status**: Implemented in #105. Also fixed the Cookiebot in-page withdrawal and Complianz category parsing bugs found while doing this work.
 
 **Input**: GitHub issue [#103](https://github.com/vizuh/click-trail-handler/issues/103). Some CMPs wipe browser storage at the moment the visitor answers the banner (reproduced in production for Cookiebot in `bfroos/myhb-store#168`). ClickTrail must keep landing-page attribution when consent is granted, leave nothing behind when it is denied, and tell site owners how to classify its storage, all without writing anything before consent.
 

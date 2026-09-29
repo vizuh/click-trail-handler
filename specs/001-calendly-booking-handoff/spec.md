@@ -4,7 +4,7 @@
 
 **Created**: 2026-09-29
 
-**Status**: Draft
+**Status**: Implemented in #106 and #108 with the compact `salesforce_uuid` stamp instead of the handoff record (see research.md). A live Calendly booking (SC-004) is still pending.
 
 **Input**: GitHub issue [#102](https://github.com/vizuh/click-trail-handler/issues/102). When a Calendly booking is the durable conversion record, ClickTrail must connect it to the consented visit that produced it, without pushing raw click IDs through Calendly.
 
