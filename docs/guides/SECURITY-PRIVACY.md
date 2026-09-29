@@ -195,8 +195,13 @@ Verification hardening:
 
 - Typeform uses its native base64 HMAC `Typeform-Signature`
 - HubSpot uses its native SHA-256 `X-HubSpot-Signature`
-- Calendly currently retains ClickTrail's timestamped HMAC contract until its native signing format is verified;
-  the adapter's raw identity, provider timestamp, and downstream retention behavior still require review
+- Calendly subscriptions use the native `Calendly-Webhook-Signature` (`t=<unix>,v1=<hex HMAC-SHA256 of "t.body">`,
+  timestamp checked against the replay window) with the subscription's signing key as the provider secret.
+  Requests without that header keep ClickTrail's timestamped HMAC relay contract. The adapter's raw identity,
+  provider timestamp, and downstream retention behavior still require review
+- Calendly `payload.tracking` UTMs are mapped to last-touch attribution on `invitee.created`; cancellations and other
+  Calendly events are acknowledged (2xx, `ignored`) without recording an event. A native Calendly webhook carries no
+  visitor cookie or consent snapshot, so when consent is required the whole booking event is not delivered
 - every signature is compared on the raw value with constant-time `hash_equals`
 - provider secrets are stored verbatim (not truncated or whitespace-stripped), so long/base64/structured secrets verify correctly
 - replay protection uses an atomic `wp_cache_add()` claim where a persistent object cache exists, falling back to a durable DB transient

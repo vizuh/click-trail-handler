@@ -46,6 +46,22 @@ class Webhook_Auth {
 		} elseif ( 'hubspot' === $provider ) {
 			$signature = trim( (string) $request->get_header( 'x-hubspot-signature' ) );
 			$expected  = hash( 'sha256', $secret . $body );
+		} elseif ( 'calendly' === $provider && '' !== trim( (string) $request->get_header( 'calendly-webhook-signature' ) ) ) {
+			// Native Calendly subscription: "t=<unix>,v1=<hex hmac-sha256 of t.body>".
+			// Requests without this header keep using the ClickTrail relay scheme below.
+			$parts = array();
+			foreach ( explode( ',', (string) $request->get_header( 'calendly-webhook-signature' ) ) as $pair ) {
+				$pair = explode( '=', trim( $pair ), 2 );
+				if ( 2 === count( $pair ) ) {
+					$parts[ $pair[0] ] = $pair[1];
+				}
+			}
+			$timestamp = (string) ( $parts['t'] ?? '' );
+			$signature = (string) ( $parts['v1'] ?? '' );
+			if ( ! ctype_digit( $timestamp ) || abs( time() - (int) $timestamp ) > $max ) {
+				return new WP_Error( 'webhook_timestamp_invalid', 'Invalid or expired webhook timestamp', array( 'status' => 401 ) );
+			}
+			$expected = hash_hmac( 'sha256', $timestamp . '.' . $body, $secret );
 		} else {
 			$timestamp = trim( (string) $request->get_header( 'x-clicutcl-timestamp' ) );
 			$signature = trim( (string) $request->get_header( 'x-clicutcl-signature' ) );
