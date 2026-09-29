@@ -70,6 +70,50 @@ Supported consent sources:
 
 When the plugin is the source, ClickTrail can render its own lightweight consent banner.
 
+The Cookiebot bridge stays subscribed to `CookiebotOnConsentReady`, `CookiebotOnAccept`, and
+`CookiebotOnDecline`, so an in-page change or withdrawal (Cookiebot's renew dialog) clears ClickTrail
+storage without a reload. The Complianz bridge reads `cmplz_has_consent()` (or the accepted
+`event.detail.categories`) on `cmplz_fire_categories` and `cmplz_status_change`.
+
+## Browser Storage Inventory and CMP Classification
+
+With consent required, ClickTrail writes nothing before marketing consent is granted. After a
+refusal, only the consent decision itself remains. A visitor who navigates away from the landing page
+before answering the banner therefore loses the pre-consent click ID; this is intentional.
+
+Some CMPs delete keys their scanner lists as "unclassified" at the moment the visitor answers the
+banner (observed with Cookiebot). ClickTrail writes attribution after the first decision event, so the
+landing-page click survives that wipe. A later renewal that repeats the same choice does not rewrite
+attribution, so unclassified keys wiped at that point are lost: classify the keys below in your CMP.
+Do not classify attribution keys as "Necessary".
+
+`tools/qa/cmp-transition.test.js` runs the consent bridge, attribution, and events scripts and fails
+when they write a key that is missing from this table. The built-in banner's `ct_consent` cookie
+(`clicutcl-consent.js`) is listed manually.
+
+<!-- storage-inventory:start -->
+| Key | Medium | Written by | Purpose | Lifetime | Before consent | CMP category |
+|---|---|---|---|---|---|---|
+| `attribution` | cookie, local, session | `clicutcl-attribution.js` | First/last-touch UTMs, click IDs, landing page, referrer (session copy only when the cookie is too large) | cookie duration setting (default 90 days) | no | Marketing |
+| `ct_session` | cookie, local | `clicutcl-attribution.js` | Session number and timing | 1 day | no | Statistics |
+| `ct_session_id` | cookie, session | `clicutcl-attribution.js`, `clicutcl-events.js` | Pseudonymous session ID | 1 day / tab | no | Statistics |
+| `ct_visitor_id` | cookie, local | `clicutcl-attribution.js`, `clicutcl-events.js` | Pseudonymous visitor ID | 365 days | no | Marketing |
+| `ct_pending_v1` | session | `clicutcl-attribution.js` | Landing-page signals promoted on the next page (only when consent is not required or already granted) | tab | no | Marketing |
+| `ct_thankyou_lead_<path>` | session | `clicutcl-events.js` | Deduplicates a thank-you-page lead | tab | no | Statistics |
+| `ct_consent_state` | cookie | `clicutcl-consent-bridge.js` | Consent decision read by the server | 365 days | decision only | Necessary |
+| `ct_consent_v1` | local | `clicutcl-consent-bridge.js` | Consent decision shared across tabs | until changed | decision only | Necessary |
+| `ct_consent` | cookie | `clicutcl-consent.js` | Built-in banner decision (plugin source only) | 365 days | decision only | Necessary |
+<!-- storage-inventory:end -->
+
+CMP notes:
+
+- **Cookiebot**: declare each key in the Cookiebot manager with the category above (cookies and
+  HTML local/session storage are listed separately). Unclassified keys may be deleted when the visitor
+  answers or renews consent.
+- **OneTrust**: assign the keys to the matching cookie categories (Targeting for Marketing,
+  Performance for Statistics) and keep ClickTrail's consent source set to `onetrust`.
+- **Complianz**: add the keys under Marketing / Statistics in the cookie scan so the cookie policy lists them.
+
 ## Geo Consent Resolution
 
 Region-scoped consent (`geo` mode) must resolve the request's country. Client-supplied

@@ -79,7 +79,7 @@ class Storage {
   }
 }
 
-function makeContext(storage, cookieJar, config = {}) {
+function makeContext(storage, cookieJar, config = {}, setup = () => {}) {
   const document = new CookieDocument();
   document.jar = cookieJar;
   const window = new EventTarget();
@@ -104,6 +104,7 @@ function makeContext(storage, cookieJar, config = {}) {
       this.bubbles = options && options.bubbles;
     }
   };
+  setup(window);
   const context = { window, document, CustomEvent, console: window.console };
   vm.runInNewContext(bridgeSource, context, { filename: 'clicutcl-consent-bridge.js' });
   return { window, document };
@@ -185,7 +186,27 @@ function testCrossTabStorageEvent() {
   assert.strictEqual(updates[updates.length - 1].granted, false);
 }
 
+function testComplianzCategoriesAndChanges() {
+  // Complianz 6+: accepted categories arrive as event.detail.categories.
+  const arrayTab = makeContext(new Storage(), Object.create(null), { cmpSource: 'complianz' }, (w) => { w.complianz = {}; });
+  arrayTab.document.dispatchEvent({ type: 'cmplz_fire_categories', detail: { categories: ['functional', 'statistics', 'marketing'] } });
+  assert.strictEqual(arrayTab.window.ClickTrailConsent.isGranted(), true, 'detail.categories must grant marketing');
+
+  // cmplz_has_consent() is authoritative and later changes are observed.
+  let marketing = true;
+  const apiTab = makeContext(new Storage(), Object.create(null), { cmpSource: 'complianz' }, (w) => {
+    w.complianz = {};
+    w.cmplz_has_consent = (category) => (category === 'marketing' ? marketing : true);
+  });
+  apiTab.document.dispatchEvent({ type: 'cmplz_fire_categories', detail: { categories: [] } });
+  assert.strictEqual(apiTab.window.ClickTrailConsent.isGranted(), true);
+  marketing = false;
+  apiTab.document.dispatchEvent({ type: 'cmplz_status_change', detail: {} });
+  assert.strictEqual(apiTab.window.ClickTrailConsent.isGranted(), false, 'withdrawal via cmplz_status_change must deny');
+}
+
 testGrantWithdrawalRetryAndReload();
 testServerCookieFallback();
 testCrossTabStorageEvent();
+testComplianzCategoriesAndChanges();
 console.log('Consent bridge browser-boundary tests passed.');

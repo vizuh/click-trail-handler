@@ -554,6 +554,12 @@
 
         clearIdentity() {
             try { sessionStorage.removeItem('ct_session_id'); } catch (e) {}
+            try {
+                for (let i = sessionStorage.length - 1; i >= 0; i -= 1) {
+                    const key = sessionStorage.key(i);
+                    if (key && key.indexOf('ct_thankyou_lead_') === 0) sessionStorage.removeItem(key);
+                }
+            } catch (e) {}
             try { localStorage.removeItem('ct_visitor_id'); } catch (e) {}
             this.removeCookie('ct_session_id');
             this.removeCookie('ct_visitor_id');
@@ -2087,6 +2093,11 @@
             const path = window.location.pathname || '/';
             const matched = this.thankYouMatchers.some((matcher) => this.pathMatches(path, String(matcher || '')));
             if (!matched) return;
+
+            // pushEvent() drops the lead without consent; skip the dedupe marker too so
+            // nothing is written to storage before consent.
+            const consentBridge = window.ClickTrailConsent;
+            if (typeof consentBridge === 'undefined' || !consentBridge.isGranted()) return;
 
             const marker = 'ct_thankyou_lead_' + path;
             try {
