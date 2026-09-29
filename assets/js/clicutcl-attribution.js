@@ -1214,8 +1214,17 @@
             return false;
         },
 
+        // Listeners stay installed after an in-page withdrawal, so re-check live consent per call.
+        consentState: function () {
+            const bridge = window.ClickTrailConsent;
+            if (!bridge || typeof bridge.isResolved !== 'function' || !bridge.isResolved()) return null;
+            return !!bridge.isGranted();
+        },
+
         decorateUrl: function (rawHref) {
             if (this.isSkippable(rawHref)) return null;
+            const requiresConsent = CONFIG.requireConsent === true || CONFIG.requireConsent === '1';
+            if (requiresConsent && this.consentState() !== true) return null;
 
             let url;
             try { url = new URL(rawHref, window.location.href); } catch (e) { return null; }
@@ -1239,6 +1248,10 @@
             const data = Store.getData();
             if (!data) return null;
 
+            // Calendly keeps only utm_* and salesforce_uuid from the scheduling URL; click IDs
+            // travel in a compact consent-stamped value instead (parsed by the Calendly webhook).
+            const isCalendly = this.isCalendlyHost(url.hostname);
+
             const keys = [
                 'utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content',
                 'utm_id', 'utm_source_platform', 'utm_creative_format', 'utm_marketing_tactic',
@@ -1260,11 +1273,19 @@
                     val = data[canonicalKey] || data[k] || data['lt_' + canonicalKey] || data['ft_' + canonicalKey];
                 }
 
+                if (isCalendly && !k.startsWith('utm_')) return;
+
                 if (val && !url.searchParams.has(k)) {
                     url.searchParams.set(k, val);
                     changed = true;
                 }
             });
+
+            const stamp = isCalendly && !url.searchParams.has('salesforce_uuid') ? this.calendlyStamp(data) : '';
+            if (stamp) {
+                url.searchParams.set('salesforce_uuid', stamp);
+                changed = true;
+            }
 
             if (CONFIG.linkAppendToken) {
                 const tokenParam = CONFIG.tokenParam || 'ct_token';
@@ -1281,8 +1302,60 @@
             return changed ? url.toString() : null;
         },
 
+        isCalendlyHost: function (hostname) {
+            const host = String(hostname || '').toLowerCase();
+            return host === 'calendly.com' || host.endsWith('.calendly.com');
+        },
+
+        // "ct1;<click_id_key>=<value>;c=<0|1>": one click ID (Google first) plus the live consent
+        // decision. c is omitted when no decision exists (consent not required or unresolved),
+        // so the webhook never infers a grant. Returns '' when there is nothing to carry.
+        calendlyStamp: function (data) {
+            const order = ['gclid', 'gbraid', 'wbraid', 'fbclid', 'msclkid', 'ttclid', 'li_fat_id', 'twclid', 'dclid'];
+            const parts = ['ct1'];
+            for (const key of order) {
+                const value = String(data[key] || data['lt_' + key] || data['ft_' + key] || '');
+                if (/^[A-Za-z0-9._-]{1,200}$/.test(value)) {
+                    parts.push(key + '=' + value);
+                    break;
+                }
+            }
+            const consent = this.consentState();
+            if (consent !== null) parts.push('c=' + (consent ? '1' : '0'));
+            return parts.length > 1 ? parts.join(';') : '';
+        },
+
+        // Inline embeds (data-url) and the Calendly popup/inline JS API never see an anchor click.
+        decorateCalendlyWidgets: function () {
+            document.querySelectorAll('.calendly-inline-widget[data-url]').forEach((el) => {
+                const decorated = this.decorateUrl(el.getAttribute('data-url'));
+                if (decorated) el.setAttribute('data-url', decorated);
+            });
+
+            const calendly = window.Calendly;
+            if (!calendly || calendly.__clicutclWrapped) return;
+            ['initPopupWidget', 'initInlineWidget', 'initBadgeWidget'].forEach((name) => {
+                const original = calendly[name];
+                if (typeof original !== 'function') return;
+                calendly[name] = (options, ...rest) => {
+                    if (options && typeof options.url === 'string') {
+                        const decorated = this.decorateUrl(options.url);
+                        if (decorated) options = Object.assign({}, options, { url: decorated });
+                    }
+                    return original.call(calendly, options, ...rest);
+                };
+            });
+            calendly.__clicutclWrapped = true;
+        },
+
         install: function () {
             if (!CONFIG.linkDecorateEnabled) return;
+
+            this.decorateCalendlyWidgets();
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', () => this.decorateCalendlyWidgets(), { once: true });
+            }
+            window.addEventListener('load', () => this.decorateCalendlyWidgets(), { once: true });
 
             const handler = (evt) => {
                 const a = evt.target.closest("a");

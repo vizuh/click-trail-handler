@@ -137,6 +137,49 @@ namespace {
 			$this->assertFalse( \CLICUTCL\Server_Side\Consent::marketing_allowed() );
 		}
 
+		private function with_stamp( string $stamp ): array {
+			$payload = json_decode( self::BODY, true );
+			$payload['payload']['tracking']['salesforce_uuid'] = $stamp;
+			return ( new CalendlyWebhookAdapter() )->map_to_canonical( $payload );
+		}
+
+		public function test_stamp_restores_click_id_and_consent(): void {
+			$event = $this->with_stamp( 'ct1;gclid=Cj0KCQ-abc_123;c=1' );
+
+			$this->assertSame( 'Cj0KCQ-abc_123', $event['attribution']['gclid'] );
+			$this->assertSame( 'google', $event['attribution']['lt_source'] );
+			$this->assertTrue( $event['consent']['marketing'] );
+		}
+
+		public function test_consent_only_stamp_carries_no_click_id(): void {
+			$event = $this->with_stamp( 'ct1;c=1' );
+
+			$this->assertArrayNotHasKey( 'gclid', $event['attribution'] );
+			$this->assertTrue( $event['consent']['marketing'] );
+		}
+
+		public function test_denied_stamp_does_not_grant(): void {
+			$event = $this->with_stamp( 'ct1;gclid=abc;c=0' );
+
+			$this->assertFalse( $event['consent']['marketing'] );
+		}
+
+		public function test_stamp_without_consent_decision_attaches_no_snapshot(): void {
+			$event = $this->with_stamp( 'ct1;gclid=abc' );
+
+			$this->assertSame( 'abc', $event['attribution']['gclid'] );
+			$this->assertEmpty( $event['consent']['marketing'] ?? false );
+		}
+
+		public function test_foreign_or_malformed_values_are_ignored(): void {
+			foreach ( array( 'ref123', 'a0B5e00000ABCDE', 'ct1', 'ct1;evil_key=x;c=1', 'ct1;gclid=<script>;c=1', 'ct1;gclid=abc;c=1;extra' ) as $value ) {
+				$event = $this->with_stamp( $value );
+				$this->assertArrayNotHasKey( 'gclid', $event['attribution'], $value );
+				$this->assertArrayNotHasKey( 'evil_key', $event['attribution'], $value );
+				$this->assertEmpty( $event['consent']['marketing'] ?? false, $value );
+			}
+		}
+
 		public function test_missing_tracking_yields_empty_attribution(): void {
 			$payload = json_decode( self::BODY, true );
 			unset( $payload['payload']['tracking'] );
