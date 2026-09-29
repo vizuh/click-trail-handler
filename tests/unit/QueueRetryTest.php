@@ -37,7 +37,6 @@ final class QueueRetryTest extends TestCase {
 	 */
 	private function backoff_seconds( int $attempt ): int {
 		$method = new \ReflectionMethod( Queue::class, 'get_backoff_seconds' );
-		$method->setAccessible( true );
 		return $method->invoke( null, $attempt );
 	}
 

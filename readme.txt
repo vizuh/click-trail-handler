@@ -5,7 +5,7 @@ Author URI: https://vizuh.com
 Tags: attribution, utm, consent mode, woocommerce, server-side tracking
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 1.10.1
+Stable tag: 1.10.2
 Requires PHP: 8.1
 WC requires at least: 10.4.2
 License: GPLv2 or later
@@ -248,6 +248,11 @@ The entries below are historical release notes. They do not replace the current 
 behavior that still requires current runtime verification. In particular, older wording that calls platform-named
 server paths “first-class native delivery adapters” predates the current evidence classification: those paths are
 configured-endpoint relays whose provider authentication, acceptance, and runtime delivery remain unverified.
+
+= 1.10.2 =
+* Consent: when required marketing consent is denied or withdrawn, ClickTrail no longer writes attribution to WooCommerce order metadata, form-provider entries, or its own submission log (Contact Form 7, Elementor, Fluent Forms, Gravity Forms, Ninja Forms, WPForms).
+* Consent: queued server retries, follow-up events, WooCommerce purchase dataLayer output, and browser CF7/WhatsApp listeners re-check live consent before sending.
+* Security hardening: browser identifiers use the Web Crypto API when `crypto.randomUUID` is unavailable, link decoration only touches http(s) links, and booking-link detection matches the Calendly/Acuity host instead of a URL substring.
 
 = 1.10.1 =
 * Contact Form 7: record conversions only after successful submission, excluding aborted and failed sends.

@@ -1,6 +1,14 @@
 Changelog
 ========
 
+= 1.10.2 =
+* Gate WooCommerce order attribution, form-provider metadata (CF7, Elementor, Fluent Forms, Gravity Forms, Ninja Forms, WPForms) and submission logging on the central consent boundary; remove stale Ninja Forms extras and block Gravity edit restoration after withdrawal (#99).
+* Re-check live consent before queue adapter delivery (fail closed when state is unavailable), follow-up events, Woo checkout/purchase dataLayer/trace writes, and browser CF7/WhatsApp listeners (#100).
+* Replace the `Math.random` identifier fallback with `crypto.getRandomValues` in `clicutcl-attribution.js` and `clicutcl-events.js` (CodeQL js/insecure-randomness).
+* Link decorator skips non-http(s) URLs after parsing (CodeQL js/incomplete-url-scheme-check).
+* Booking CTA detection matches `calendly.com` / `acuityscheduling.com` hostnames instead of href substrings (CodeQL js/incomplete-url-substring-sanitization).
+* Tests: drop `ReflectionMethod::setAccessible()` calls (no-op since PHP 8.1, deprecated in 8.5) so the suite passes on PHP 8.5.
+
 = 1.10.1 =
 * Record Contact Form 7 conversions only after successful mail submission, excluding aborted and failed sends.
 * Gate Woo thank-you processing on current visitor consent before reading attribution or setting sent markers.
