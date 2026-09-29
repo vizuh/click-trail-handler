@@ -1,5 +1,11 @@
 # Research: Calendly Booking Attribution Handoff
 
+> **Decision update (2026-09-29, Hugo):** R2–R4 are superseded. Instead of a server handoff table and mint route,
+> `salesforce_uuid` carries a compact stamp `ct1;<click_id>=<value>;c=<0|1>`: no new table, and no public route
+> that writes rows. The trade-off is that Calendly receives the one click ID it would otherwise drop.
+> Implemented in #106 (signature, UTMs, event-name fix) and #108 (stamp). R1 and R5 were verified against
+> Calendly's docs. The live booking (T001/T012) is still open.
+
 ## Current state (source, `main` at `b674c15`)
 
 | Surface | File | Finding |
