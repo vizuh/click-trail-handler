@@ -9,6 +9,11 @@ Use the site's existing Cookiebot, OneTrust, Complianz, GTM, or custom consent
 source when possible. Do not configure competing sources without documenting
 which one is authoritative.
 
+Classify ClickTrail's cookies and storage keys in that CMP using the
+[storage inventory](../guides/SECURITY-PRIVACY.md#browser-storage-inventory-and-cmp-classification).
+Some CMPs, including Cookiebot, delete unclassified keys when the visitor
+answers or renews consent.
+
 In **ClickTrail > Settings**:
 
 1. Configure `Capture`.

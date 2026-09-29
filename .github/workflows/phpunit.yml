@@ -42,3 +42,7 @@ jobs:
       - name: Run repository smoke checks
         if: matrix.php == '8.3'
         run: node tools/qa/smoke.js
+
+      - name: Run consent and CMP transition checks
+        if: matrix.php == '8.3'
+        run: npm run test:consent

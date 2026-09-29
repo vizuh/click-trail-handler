@@ -317,9 +317,13 @@
 
         if (window.Cookiebot && window.Cookiebot.hasResponse) {
             readState();
-        } else {
-            window.addEventListener('CookiebotOnConsentReady', readState, { once: true });
         }
+
+        // Stay subscribed: visitors can change or withdraw consent in-page
+        // (Cookiebot renew dialog). resolve() ignores unchanged decisions.
+        ['CookiebotOnConsentReady', 'CookiebotOnAccept', 'CookiebotOnDecline'].forEach(function (type) {
+            window.addEventListener(type, readState);
+        });
 
         return true;
     }
@@ -357,10 +361,29 @@
             return false;
         }
 
-        document.addEventListener('cmplz_fire_categories', function (e) {
-            var cats = (e && e.detail) || {};
-            resolve({ analytics: !!cats.statistics, marketing: !!cats.marketing }, 'complianz', true);
-        });
+        // Complianz 6+ sends accepted categories as event.detail.categories and
+        // exposes cmplz_has_consent(); the flat detail shape is a legacy fallback.
+        function readState(e) {
+            var detail = (e && e.detail) || {};
+            if (typeof window.cmplz_has_consent === 'function') {
+                resolve({
+                    analytics: !!window.cmplz_has_consent('statistics'),
+                    marketing: !!window.cmplz_has_consent('marketing')
+                }, 'complianz', true);
+                return;
+            }
+            if (Array.isArray(detail.categories)) {
+                resolve({
+                    analytics: detail.categories.indexOf('statistics') !== -1,
+                    marketing: detail.categories.indexOf('marketing') !== -1
+                }, 'complianz', true);
+                return;
+            }
+            resolve({ analytics: !!detail.statistics, marketing: !!detail.marketing }, 'complianz', true);
+        }
+
+        document.addEventListener('cmplz_fire_categories', readState);
+        document.addEventListener('cmplz_status_change', readState);
 
         if (window.complianz && window.complianz.consent_data) {
             resolve({

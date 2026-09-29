@@ -949,9 +949,6 @@
             window.ClickTrailIdentity = withIdentity ? Identity.get() : null;
             window.ClickTrailSession = withIdentity ? SessionManager.getPayload() : null;
 
-            // Site Health Timestamp
-            try { localStorage.setItem('clicutcl_js_last_seen', String(Date.now())); } catch (e) { }
-
             // Fire ready event
             document.dispatchEvent(new CustomEvent("ct_ready", { detail: { data: Store.getData() } }));
         }
@@ -1633,6 +1630,8 @@
             SessionManager.clear();
             Identity.clear();
             Injector.clear();
+            // Legacy key written unconditionally in 1.10.2 and earlier; nothing reads it.
+            try { localStorage.removeItem('clicutcl_js_last_seen'); } catch (e) {}
             API.install({ withIdentity: false });
             this.hasRunAttribution = false;
 
@@ -1651,7 +1650,9 @@
             let referrer = document.referrer;
 
             // Phase 2: if this page has no attribution signal, promote the pending capture.
-            // Covers the case where the user navigated away from the landing page before accepting consent.
+            // The pending capture exists only when consent was not required or was already granted
+            // on the landing page. With required consent still pending nothing is stored, so a visitor
+            // who navigates before answering the banner intentionally loses the pre-consent click ID.
             if (!this.hasTouchQuerySignal(currentParams)) {
                 const pending = PendingCapture.read();
                 if (pending && pending.params) {

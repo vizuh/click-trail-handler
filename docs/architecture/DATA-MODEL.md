@@ -265,6 +265,7 @@ Notes:
 - these identifiers are created only after marketing consent and are removed again on denial or withdrawal
 - the richer session object is not stored in `sessionStorage['ct_session_id']`
 - pending attribution is not written to `sessionStorage` while consent is required and unresolved
+- the complete key inventory, with recommended CMP categories, lives in [`docs/guides/SECURITY-PRIVACY.md`](../guides/SECURITY-PRIVACY.md#browser-storage-inventory-and-cmp-classification); `tools/qa/cmp-transition.test.js` keeps it in sync
 
 ## Diagnostics and Queue Transients
 
