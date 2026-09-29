@@ -592,6 +592,15 @@ class Tracking_Controller extends WP_REST_Controller {
 	 * @return array|WP_Error
 	 */
 	private function ingest_webhook_payload( string $provider, WebhookProviderAdapterInterface $adapter, array $payload ) {
+		// Valid provider events that are not conversions (e.g. a Calendly cancellation) are
+		// acknowledged with 2xx so the provider does not retry or disable the subscription.
+		if ( method_exists( $adapter, 'is_ignored_event' ) && $adapter->is_ignored_event( $payload ) ) {
+			return array(
+				'success' => true,
+				'ignored' => true,
+			);
+		}
+
 		if ( ! $adapter->supports( $payload ) ) {
 			return new WP_Error( 'invalid_provider_payload', 'Payload not supported by provider adapter', array( 'status' => 400 ) );
 		}

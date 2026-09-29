@@ -92,7 +92,8 @@ Auth model:
 
 - native Typeform `Typeform-Signature` verification
 - native HubSpot `X-HubSpot-Signature` verification
-- ClickTrail timestamp/signature verification for Calendly until a native contract is verified
+- native Calendly `Calendly-Webhook-Signature` verification; ClickTrail `X-Clicutcl-Timestamp` / `X-Clicutcl-Signature` relay verification when that header is absent
+- provider events that are valid but not conversions (Calendly events other than `invitee.created`) return `{ "success": true, "ignored": true }` so the provider does not retry
 - replay-window enforcement
 - provider enablement and secret checks
 

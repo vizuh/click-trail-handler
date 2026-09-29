@@ -59,6 +59,19 @@ if ( ! function_exists( 'sanitize_key' ) ) {
 	}
 }
 
+if ( ! function_exists( 'wp_rand' ) ) {
+	function wp_rand( $min = 0, $max = 0 ) {
+		return random_int( (int) $min, $max > 0 ? (int) $max : PHP_INT_MAX );
+	}
+}
+
+if ( ! function_exists( 'sanitize_email' ) ) {
+	function sanitize_email( $value ) {
+		$value = trim( (string) $value );
+		return false !== filter_var( $value, FILTER_VALIDATE_EMAIL ) ? $value : '';
+	}
+}
+
 if ( ! function_exists( 'absint' ) ) {
 	function absint( $value ) {
 		return abs( (int) $value );
