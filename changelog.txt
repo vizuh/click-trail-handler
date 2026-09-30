@@ -1,6 +1,18 @@
 Changelog
 ========
 
+= 1.10.3 =
+* Consent bridge: Cookiebot listeners stay subscribed to OnConsentReady/OnAccept/OnDecline, so in-page withdrawal clears storage; Complianz reads cmplz_has_consent() / event.detail.categories and listens to cmplz_status_change (#105).
+* Remove the unread `localStorage['clicutcl_js_last_seen']` write (it ran even after denial) and clear the legacy key on denial; gate and clear the thank-you lead session marker on consent (#105).
+* Storage inventory with CMP classification in SECURITY-PRIVACY.md, enforced by tools/qa/cmp-transition.test.js in CI (#105).
+* Calendly webhook: native `Calendly-Webhook-Signature` verification; `tracking.utm_*` mapped to last touch; fix `invitee.created` parsing (sanitize_key stripped the dot, so bookings were logged as `lead`); non-booking events acknowledged as ignored (#106).
+* Calendly handoff: `salesforce_uuid=ct1;<click_id>=<value>;c=<0|1>` on Calendly links, inline widgets, and Calendly.init*Widget URLs, re-checked against live consent per call; parsed back into the click ID and a consent snapshot by the webhook adapter (#108).
+* Admin: Tailwind-built `assets/css/admin-refresh.css` scoped to the Settings, Logs, and Diagnostics wrappers; Urbanist (SIL OFL) bundled locally; CI scope gate (#110).
+* Packaging: exclude `specs/` from the release zip (#109).
+* Admin: SelectControl backdrop, container, and label styled to match the refreshed inputs.
+* WordPress.org readiness: Plugin Check 2.1.0 reports no findings on WordPress 7.1.2. The readme short description is now the first paragraph (it was the evidence blockquote, truncated at 150 characters), and false-positive sniffs carry justified phpcs:ignore annotations (raw JSON inputs validated by json_decode, plugin-owned table names, bounded privacy meta queries).
+* WordPress.org screenshots replaced with the current admin UI (5 images).
+
 = 1.10.2 =
 * Gate WooCommerce order attribution, form-provider metadata (CF7, Elementor, Fluent Forms, Gravity Forms, Ninja Forms, WPForms) and submission logging on the central consent boundary; remove stale Ninja Forms extras and block Gravity edit restoration after withdrawal (#99).
 * Re-check live consent before queue adapter delivery (fail closed when state is unavailable), follow-up events, Woo checkout/purchase dataLayer/trace writes, and browser CF7/WhatsApp listeners (#100).

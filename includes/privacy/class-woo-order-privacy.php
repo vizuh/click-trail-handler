@@ -260,7 +260,7 @@ class Woo_Order_Privacy {
 				'orderby'       => 'id',
 				'order'         => 'ASC',
 				'return'        => 'objects',
-				'meta_query'    => self::managed_meta_query(),
+				'meta_query'    => self::managed_meta_query(), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Paged privacy export/erase for one customer's orders.
 			)
 		);
 		$removed       = false;
@@ -333,7 +333,7 @@ class Woo_Order_Privacy {
 				'orderby'      => 'date',
 				'order'        => 'ASC',
 				'return'       => 'objects',
-				'meta_query'   => self::managed_meta_query(),
+				'meta_query'   => self::managed_meta_query(), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Bounded, date-filtered retention batch.
 			)
 		);
 		$remaining  = count( $orders ) > $batch_size;

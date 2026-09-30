@@ -506,8 +506,9 @@ trait Admin_Diagnostics_Ajax_Trait {
 		}
 		check_ajax_referer( 'clicutcl_diag', 'nonce' );
 
+		// Raw JSON: sanitize_text_field() would corrupt it. Size-capped and json_decode-validated below.
 		$raw_payload = isset( $_POST['payload'] ) && is_scalar( $_POST['payload'] )
-			? (string) wp_unslash( $_POST['payload'] )
+			? (string) wp_unslash( $_POST['payload'] ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- JSON validated by json_decode().
 			: '';
 		if ( strlen( $raw_payload ) > 65536 ) {
 			wp_send_json_error( array( 'code' => 'oversized_payload' ), 400 );
@@ -531,7 +532,7 @@ trait Admin_Diagnostics_Ajax_Trait {
 
 		$alias_result = $this->parse_attribution_source_aliases(
 			isset( $_POST['source_aliases'] ) && is_scalar( $_POST['source_aliases'] )
-				? (string) wp_unslash( $_POST['source_aliases'] )
+				? (string) wp_unslash( $_POST['source_aliases'] ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- JSON validated by parse_attribution_source_aliases().
 				: ''
 		);
 		if ( '' !== $alias_result['error_code'] ) {
