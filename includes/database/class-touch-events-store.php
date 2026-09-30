@@ -181,7 +181,7 @@ class Touch_Events_Store {
 		$columns      = implode( ', ', array_keys( $row ) );
 		$placeholders = implode( ', ', array_map( static fn( $value ) => null === $value ? 'NULL' : '%s', $row ) );
 		$values       = array_values( array_filter( $row, static fn( $value ) => null !== $value ) );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Table and columns are plugin-owned; placeholders are generated above and every value is prepared.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table and columns are plugin-owned; placeholders are generated above and every value is prepared.
 		$wpdb->query( $wpdb->prepare( "INSERT INTO {$table} ({$columns}) VALUES ({$placeholders}) ON DUPLICATE KEY UPDATE id = id", $values ) );
 	}
 }

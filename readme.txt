@@ -5,19 +5,20 @@ Author URI: https://vizuh.com
 Tags: attribution, utm, consent mode, woocommerce, server-side tracking
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 1.10.2
+Stable tag: 1.10.3
 Requires PHP: 8.1
 WC requires at least: 10.4.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
+First-party campaign-context capture for configured WooCommerce and WordPress form paths, with explicit consent and delivery controls.
+
+== Description ==
+
 > **Integration evidence:** source presence alone does not prove production provider support. Current form, WooCommerce,
 > GTM, and delivery status lives in the [integration reference](https://github.com/vizuh/click-trail-handler/blob/main/docs/reference/INTEGRATIONS.md)
 > and [machine-readable ledger](https://github.com/vizuh/click-trail-handler/blob/main/docs/reference/integration-capabilities.json).
 
-First-party campaign-context capture for configured WooCommerce and WordPress form paths, with explicit consent and delivery controls.
-
-== Description ==
 
 Campaign context observed on arrival is often missing when a form or order is created later. ClickTrail carries that context from the visit to configured WordPress conversion boundaries.
 
@@ -236,10 +237,11 @@ See the [use-case guide](https://github.com/vizuh/click-trail-handler/blob/main/
 
 == Screenshots ==
 
-1. Forms settings for cached and dynamic form attribution.
-2. Delivery settings for optional configured-endpoint transport and consent controls.
-3. Events settings for browser collection and site-owned GTM/dataLayer paths.
-4. Event collection and destination controls for browser and configured delivery paths.
+1. Settings overview: setup checklist, status summary, and capture controls.
+2. Forms: client-side capture for cached and dynamic pages, WhatsApp, and external form sources.
+3. Events: browser event collection and Google Tag Manager loading options.
+4. Delivery: optional server-side transport and privacy and consent controls.
+5. Diagnostics: queue, dispatch, and error status with endpoint test and conflict scan.
 
 == Changelog ==
 
@@ -248,6 +250,15 @@ The entries below are historical release notes. They do not replace the current 
 behavior that still requires current runtime verification. In particular, older wording that calls platform-named
 server paths “first-class native delivery adapters” predates the current evidence classification: those paths are
 configured-endpoint relays whose provider authentication, acceptance, and runtime delivery remain unverified.
+
+= 1.10.3 =
+* Consent: Cookiebot changes made in the page (for example withdrawing consent in the renew dialog) now clear ClickTrail storage immediately instead of on the next page load.
+* Consent: fixed Complianz support, which could treat an accepted banner as a refusal. ClickTrail now reads Complianz's accepted categories.
+* Privacy: removed an unused browser storage write that happened even after consent was refused. The thank-you-page lead marker is only stored with consent and is cleared on withdrawal.
+* Calendly: bookings are now recorded as `book_appointment` (previously `lead`), cancellations are no longer counted, the booking's UTMs are attached, and Calendly's native webhook signature is supported.
+* Calendly: with link decoration enabled and `calendly.com` allowed, booking links, inline widgets, and the Calendly popup API carry the click ID and the visitor's live consent decision in `salesforce_uuid`, so consented bookings keep their ad click.
+* Admin: refreshed look for the Settings, Logs, and Diagnostics screens. Visual only; settings and behavior are unchanged.
+* Docs: a browser storage inventory with recommended CMP categories (Cookiebot, OneTrust, Complianz).
 
 = 1.10.2 =
 * Consent: when required marketing consent is denied or withdrawn, ClickTrail no longer writes attribution to WooCommerce order metadata, form-provider entries, or its own submission log (Contact Form 7, Elementor, Fluent Forms, Gravity Forms, Ninja Forms, WPForms).

@@ -322,6 +322,32 @@
 		@apply pr-10;
 	}
 
+	/* wp.components SelectControl draws its border on a backdrop element, not the <select>. */
+	& .clicktrail-card__body--react .components-input-control__container {
+		@apply min-h-[48px] rounded-xl bg-bgray-100;
+	}
+
+	& .clicktrail-card__body--react .components-input-control__container .components-select-control__input {
+		@apply min-h-[48px] border-0 bg-transparent;
+	}
+
+	& .clicktrail-card__body--react .components-input-control__backdrop {
+		@apply rounded-xl border border-solid border-bgray-600;
+	}
+
+	& .clicktrail-card__body--react .components-input-control__container:focus-within {
+		@apply bg-white;
+	}
+
+	& .clicktrail-card__body--react .components-input-control__container:focus-within .components-input-control__backdrop {
+		@apply border-success-600 ring-4 ring-success-50;
+	}
+
+	/* Doubled class: wp.components injects a triple-class emotion rule at runtime, after this file. */
+	& .clicktrail-card__body--react .components-input-control__label.components-input-control__label {
+		@apply mb-2 text-sm font-semibold normal-case tracking-normal text-bgray-800;
+	}
+
 	& .clicktrail-card__table th,
 	& .form-table th {
 		@apply text-sm font-semibold text-bgray-900;

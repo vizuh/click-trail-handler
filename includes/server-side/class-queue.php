@@ -541,7 +541,7 @@ class Queue {
 		$table_name = self::get_table_name();
 		$now        = current_time( 'mysql', true );
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Plugin-owned table; queue mutation.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned table ($wpdb->prefix + fixed name); queue mutation.
 		$updated = $wpdb->query(
 			$wpdb->prepare(
 				"UPDATE {$table_name} SET status = 'pending', attempts = 0, next_attempt_at = %s WHERE status = 'failed' ORDER BY id ASC LIMIT %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned.
