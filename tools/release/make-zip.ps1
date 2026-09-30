@@ -63,6 +63,7 @@ $excludeDirs = @(
     '.tools',
     'dist',
     'docs',
+    'specs',
     'tests',
     'tools',
     'vendor',

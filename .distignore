@@ -52,6 +52,7 @@ assets/funnelsheet-logo.png
 
 # Internal docs
 docs/
+specs/
 
 # Build tools and dev scripts
 tools/
