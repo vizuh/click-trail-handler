@@ -50,7 +50,7 @@ quando a implementação exigir.
 
 ## Versão e status de verificação
 
-- **Código do repositório:** o cabeçalho do plugin declara `1.10.1`.
+- **Código do repositório:** o cabeçalho do plugin declara `1.10.3`, a mesma versão estável publicada no WordPress.org.
 - **Versões públicas:** consulte [GitHub Releases](https://github.com/vizuh/click-trail-handler/releases)
   e [changelog.txt](changelog.txt). Os metadados do WordPress.org seguem seu
   próprio processo em [readme.txt](readme.txt).
@@ -59,7 +59,7 @@ quando a implementação exigir.
 
 ## Notas da Versao
 
-**1.10.1** registra conversões do Contact Form 7 somente após envio bem-sucedido, verifica o consentimento atual antes de processar a página de agradecimento do WooCommerce, usa consentimento persistente por visitante nas novas tentativas da fila e evita registros duplicados de eventos. Quando o consentimento obrigatório não pode ser resolvido, a entrega é adiada. O cabeçalho do plugin e os metadados de versão estável do WordPress.org declaram 1.10.1; a publicação é uma etapa separada. A verificação em navegador, CMP, WooCommerce e provedores continua sendo uma etapa separada do release.
+**1.10.3** mantém a atribuição da página de entrada quando um CMP como o Cookiebot limpa o armazenamento no momento em que o visitante responde ao banner, remove os dados do ClickTrail imediatamente quando o consentimento é retirado na própria página e lê corretamente as categorias aceitas no Complianz. Agendamentos do Calendly passam a ser registrados como `book_appointment`; com a decoração de links ativa, os links de agendamento levam o click ID e a decisão de consentimento do visitante em `salesforce_uuid`. As telas de Configurações, Logs e Diagnóstico ganharam um visual renovado, sem mudança de comportamento. A verificação em navegador, CMP, WooCommerce, Calendly e provedores continua sendo uma etapa separada do release.
 
 Veja o [changelog](changelog.txt) para o historico completo e o [readme do WordPress](readme.txt) para as notas publicas.
 

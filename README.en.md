@@ -56,7 +56,7 @@ integrations, or optional delivery only when the implementation requires them.
 
 ## Version and verification status
 
-ClickTrail 1.10.1 records Contact Form 7 conversions only after successful submission, checks current consent before WooCommerce thank-you processing, uses durable visitor-specific consent for queued retries, and prevents duplicate touch-event records. Required queue consent that cannot be resolved defers delivery. Live browser, CMP, WooCommerce, and provider verification remains a separate release gate. The plugin header and WordPress.org stable-tag metadata declare 1.10.1; publication is a separate step.
+ClickTrail 1.10.3 is the current release on GitHub and WordPress.org. It keeps landing-page attribution when a CMP such as Cookiebot clears storage at the moment the visitor answers the banner, clears ClickTrail storage immediately when consent is withdrawn in the page, and reads Complianz's accepted categories correctly. Calendly bookings are recorded as `book_appointment`; with link decoration enabled, booking links carry the click ID and the visitor's consent decision in `salesforce_uuid`. The Settings, Logs, and Diagnostics screens have a refreshed look with no change in behavior. Live browser, CMP, WooCommerce, Calendly, and provider verification remains a separate release gate.
 
 See [changelog.txt](changelog.txt) for the full history and [readme.txt](readme.txt) for the WordPress.org release notes.
 
