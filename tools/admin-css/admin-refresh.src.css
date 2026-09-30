@@ -1,0 +1,460 @@
+/*
+ * ClickTrail dashboard visual refresh (Settings, Logs, Diagnostics).
+ *
+ * Source for assets/css/admin-refresh.css. Build: `npm run build:admin-css`.
+ * Loaded after admin.css on the three dashboard screens only; the setup wizard keeps
+ * admin.css as-is. Every rule is nested under the page wrappers, and only existing
+ * class names are styled: no markup or behavior changes.
+ */
+
+/* `base` only emits Tailwind's --tw-* variable defaults (preflight is disabled);
+ * @apply'd transforms, rings, and shadows depend on them. */
+@tailwind base;
+
+@font-face {
+	font-family: 'Urbanist';
+	font-style: normal;
+	font-weight: 400 700;
+	font-display: swap;
+	src: url('../fonts/urbanist-latin-var.woff2') format('woff2');
+	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) {
+	/* Remap the admin.css tokens inside the dashboard only. */
+	--clicktrail-blue: theme('colors.success.300');
+	--clicktrail-blue-soft: theme('colors.success.50');
+	--clicktrail-blue-line: theme('colors.success.100');
+	--clicktrail-border: theme('colors.bgray.200');
+	--clicktrail-border-light: theme('colors.bgray.200');
+	--clicktrail-border-medium: theme('colors.bgray.300');
+	--clicktrail-text: theme('colors.bgray.900');
+	--clicktrail-text-muted: theme('colors.bgray.700');
+	--clicktrail-text-subtle: theme('colors.bgray.700');
+	--clicktrail-card: #fff;
+	--clicktrail-shadow: theme('boxShadow.card');
+	--clicktrail-radius: theme('borderRadius.lg');
+	--clicktrail-radius-lg: theme('borderRadius.xl');
+	--clicktrail-success: theme('colors.success.300');
+	--clicktrail-success-bg: theme('colors.success.50');
+	--clicktrail-warning: theme('colors.warning.200');
+	--clicktrail-warning-bg: theme('colors.warning.50');
+	--clicktrail-danger: theme('colors.error.300');
+	--clicktrail-danger-bg: theme('colors.error.50');
+	--clicktrail-bg-secondary: theme('colors.bgray.100');
+	--clicktrail-bg-hover: theme('colors.bgray.100');
+	/* wp.components accent (toggles, focus rings, primary buttons). */
+	/* #16A34A keeps the wp.components accent (focus rings, spinner) at >= 3:1 on white. */
+	--wp-admin-theme-color: theme('colors.success.400');
+	--wp-admin-theme-color--rgb: 22, 163, 74;
+	--wp-admin-theme-color-darker-10: theme('colors.success.600');
+	--wp-admin-theme-color-darker-10--rgb: 21, 128, 61;
+	--wp-admin-theme-color-darker-20: theme('colors.success.700');
+	--wp-admin-theme-color-darker-20--rgb: 22, 101, 52;
+
+	@apply font-urbanist text-bgray-800 antialiased;
+
+	& :where(input, select, textarea, button, .button, .components-button, .components-base-control):not(.code):not(.clicktrail-field-input--mono) {
+		font-family: inherit;
+	}
+
+	& :is(textarea.code, input.code) {
+		@apply font-mono text-sm;
+	}
+
+	/* ---------- Page header ---------- */
+	& > h1,
+	& .clicktrail-page-title h1 {
+		@apply font-urbanist text-3xl font-bold tracking-tight text-bgray-900;
+	}
+
+	& .clicktrail-page-header {
+		@apply mb-6;
+	}
+
+	& .clicktrail-page-eyebrow {
+		@apply text-xs font-semibold uppercase tracking-widest text-success-700;
+	}
+
+	& .clicktrail-page-description {
+		@apply text-base text-bgray-700;
+	}
+
+	/* ---------- Cards ---------- */
+	& .clicktrail-card,
+	& .clicktrail-section {
+		@apply mb-5 overflow-hidden rounded-2xl border-0 bg-white shadow-card;
+	}
+
+	& .clicktrail-card--danger {
+		@apply ring-1 ring-error-50;
+	}
+
+	& .clicktrail-card__header,
+	& .clicktrail-section-header {
+		@apply gap-4 border-b border-bgray-200 bg-white px-6 py-5 border-solid;
+	}
+
+	& .clicktrail-card__header--static,
+	& .clicktrail-card--collapsible .clicktrail-card__header:hover {
+		@apply bg-white;
+	}
+
+	& .clicktrail-card__icon {
+		@apply h-11 w-11 rounded-full bg-success-50 text-lg text-success-400;
+	}
+
+	& .clicktrail-card--danger .clicktrail-card__icon {
+		@apply bg-error-50 text-error-300;
+	}
+
+	& .clicktrail-card__title,
+	& .clicktrail-section-header h3 {
+		@apply text-lg font-bold text-bgray-900;
+	}
+
+	& .clicktrail-card__description {
+		@apply text-sm leading-snug text-bgray-700;
+	}
+
+	& .clicktrail-card__body--react {
+		@apply px-6 pb-6 pt-2;
+	}
+
+	& .clicktrail-section-body,
+	& .clicktrail-action-row {
+		@apply p-6;
+	}
+
+	& .clicktrail-diagnostics-results,
+	& .clicktrail-ops-links {
+		@apply px-6 pb-6;
+	}
+
+	/* Plain paragraphs placed directly in a card body (Diagnostics forms). */
+	& .clicktrail-card__body > p {
+		@apply mx-0 my-4 px-6;
+	}
+
+	/* ---------- Tags, pills, badges ---------- */
+	& .clicktrail-card__tag,
+	& .clicktrail-tab-badge,
+	& .clicktrail-version-badge {
+		@apply min-h-0 rounded-full border-0 bg-bgray-100 px-2.5 py-1 text-[11px] font-semibold tracking-wide text-bgray-700;
+	}
+
+	& .clicktrail-card__tag--recommended,
+	& .clicktrail-tab-badge {
+		@apply bg-success-50 text-success-600;
+	}
+
+	& .clicktrail-summary-bar {
+		@apply mb-6 gap-3;
+	}
+
+	& .clicktrail-status-pill {
+		@apply min-h-[40px] gap-2 rounded-full border border-bgray-200 bg-white px-4 text-sm text-bgray-700 shadow-none border-solid;
+	}
+
+	& .clicktrail-status-pill__dot {
+		@apply h-2 w-2;
+	}
+
+	& .clicktrail-status-pill__text strong {
+		@apply font-semibold text-bgray-900;
+	}
+
+	& .clicktrail-status-pill--success {
+		@apply border-success-100 bg-success-50;
+	}
+
+	/* ---------- Tabs (pill navigation) ---------- */
+	& .nav-tab-wrapper,
+	& h2.nav-tab-wrapper {
+		@apply mb-6 flex flex-wrap gap-2 border-0 p-0;
+	}
+
+	& .nav-tab {
+		@apply m-0 inline-flex items-center gap-2 rounded-xl border-0 bg-transparent px-5 py-3 text-base font-semibold text-bgray-700 transition-colors;
+	}
+
+	& .nav-tab:hover {
+		@apply bg-bgray-200 text-bgray-900;
+	}
+
+	& .nav-tab .dashicons {
+		@apply text-bgray-600;
+	}
+
+	& .nav-tab-active,
+	& .nav-tab-active:hover,
+	& .nav-tab-active:focus {
+		@apply bg-white text-bgray-900 shadow-card;
+	}
+
+	/* Keep admin.css's single scrollable tab row on small screens. */
+	@media (max-width: 782px) {
+		& .nav-tab-wrapper,
+		& h2.nav-tab-wrapper {
+			@apply flex-nowrap overflow-x-auto whitespace-nowrap pb-1;
+		}
+	}
+
+	& .nav-tab-active .dashicons {
+		@apply text-success-300;
+	}
+
+	& .nav-tab:focus-visible {
+		@apply outline-none ring-2 ring-success-600 ring-offset-2;
+	}
+
+	/* ---------- Stat tiles (checklist + diagnostics) ---------- */
+	& .clicktrail-diagnostics-grid {
+		@apply mb-5 gap-4;
+	}
+
+	& .clicktrail-diagnostics-grid--compact {
+		@apply m-0 p-6;
+	}
+
+	& .clicktrail-diagnostic-stat {
+		@apply rounded-xl border border-bgray-200 bg-white py-5 pl-6 pr-5 shadow-none border-solid;
+	}
+
+	& .clicktrail-diagnostic-stat::before {
+		@apply bottom-5 top-5 w-1 rounded-r-full;
+	}
+
+	& .clicktrail-diagnostic-stat--action:hover {
+		@apply border-success-100 bg-bgray-100;
+	}
+
+	& .clicktrail-diagnostic-stat--action:focus-visible {
+		@apply outline-none ring-2 ring-success-600 ring-offset-2;
+	}
+
+	& .clicktrail-diagnostic-stat__label {
+		@apply mb-2 text-xs font-semibold uppercase tracking-wider text-bgray-700;
+	}
+
+	& .clicktrail-diagnostic-stat__value {
+		@apply text-2xl font-bold tracking-tight text-bgray-900;
+	}
+
+	& .clicktrail-diagnostic-stat__sub {
+		@apply mt-1 text-sm text-bgray-700;
+	}
+
+	/* ---------- Forms: wp.components ---------- */
+	& .clicktrail-card__body--react .components-toggle-control {
+		@apply border-bgray-200 py-4;
+	}
+
+	& .clicktrail-card__body--react .components-toggle-control__label,
+	& .clicktrail-card__body--react .components-toggle-control .components-base-control__label {
+		@apply text-base font-semibold text-bgray-900;
+	}
+
+	& .clicktrail-card__body--react .components-base-control__help,
+	& .clicktrail-card__body--react .components-toggle-control .components-base-control__help,
+	& .description,
+	& .clicktrail-description {
+		@apply text-sm leading-normal text-bgray-700;
+	}
+
+	& .clicktrail-card__body--react .components-base-control__label {
+		@apply mb-2 text-sm font-semibold normal-case tracking-normal text-bgray-800;
+	}
+
+	& .clicktrail-card__body--react .components-form-toggle {
+		@apply h-6 w-11 min-w-[44px];
+	}
+
+	& .clicktrail-card__body--react .components-form-toggle__track {
+		@apply h-6 w-11 border-0 bg-bgray-600;
+	}
+
+	& .clicktrail-card__body--react .components-form-toggle.is-checked .components-form-toggle__track {
+		@apply bg-success-400;
+	}
+
+	& .clicktrail-card__body--react .components-form-toggle__thumb {
+		@apply left-[3px] top-[3px] h-[18px] w-[18px] border-0 bg-white shadow;
+	}
+
+	& .clicktrail-card__body--react .components-form-toggle.is-checked .components-form-toggle__thumb {
+		@apply translate-x-5;
+	}
+
+	& .clicktrail-card__body--react .components-form-toggle__input:focus + .components-form-toggle__track {
+		@apply ring-2 ring-success-600 ring-offset-2;
+	}
+
+	/* Filled inputs; the bgray-600 border keeps the 3:1 non-text contrast (WCAG 1.4.11). */
+	& .clicktrail-card__body--react :is(.components-text-control__input, .components-textarea-control__input, .components-select-control__input),
+	& :is(.clicktrail-field-input, .clicktrail-field-select),
+	& .form-table :is(input[type='text'], input[type='number'], input[type='url'], input[type='email'], textarea, select),
+	& :is(.regular-text, .large-text) {
+		@apply rounded-xl border border-bgray-600 bg-bgray-100 px-4 text-base text-bgray-900 shadow-none transition-colors border-solid;
+	}
+
+	& .clicktrail-card__body--react :is(.components-text-control__input, .components-select-control__input),
+	& :is(.clicktrail-field-input, .clicktrail-field-select),
+	& .form-table :is(input[type='text'], input[type='number'], input[type='url'], input[type='email'], select),
+	& .regular-text {
+		@apply min-h-[48px];
+	}
+
+	& .clicktrail-card__body--react .components-textarea-control__input,
+	& .form-table textarea,
+	& textarea.large-text {
+		@apply py-3;
+	}
+
+	& .clicktrail-card__body--react :is(.components-text-control__input, .components-textarea-control__input, .components-select-control__input):focus,
+	& :is(.clicktrail-field-input, .clicktrail-field-select):focus,
+	& .form-table :is(input, textarea, select):focus,
+	& :is(.regular-text, .large-text):focus {
+		@apply border-success-600 bg-white outline-none ring-4 ring-success-50;
+	}
+
+	& :is(.clicktrail-card__body--react .components-select-control__input, .clicktrail-field-select, .form-table select) {
+		@apply pr-10;
+	}
+
+	& .clicktrail-card__table th,
+	& .form-table th {
+		@apply text-sm font-semibold text-bgray-900;
+	}
+
+	/* ---------- Buttons ---------- */
+	/* Dark text on the green fill: white on #22C55E is ~2.3:1, ink is ~7:1 (WCAG AA). */
+	& :is(.button-primary, .components-button.is-primary) {
+		@apply inline-flex h-11 min-h-0 items-center justify-center rounded-xl border-0 bg-success-300 px-5 text-sm font-bold text-ink shadow-none transition-colors;
+	}
+
+	& :is(.button-primary, .components-button.is-primary):hover:not(:disabled) {
+		@apply bg-success-200 text-ink;
+	}
+
+	& :is(.button-primary, .components-button.is-primary):focus-visible {
+		@apply outline-none ring-2 ring-success-600 ring-offset-2;
+	}
+
+	& :is(.button:not(.button-primary), .components-button.is-secondary) {
+		@apply inline-flex h-11 min-h-0 items-center justify-center rounded-xl border border-bgray-300 bg-white px-5 text-sm font-semibold text-bgray-900 shadow-none transition-colors border-solid;
+	}
+
+	& :is(.button:not(.button-primary), .components-button.is-secondary):hover:not(:disabled) {
+		@apply border-success-300 bg-success-50 text-bgray-900;
+	}
+
+	& :is(.button:not(.button-primary), .components-button.is-secondary):focus-visible {
+		@apply outline-none ring-2 ring-success-600 ring-offset-2;
+	}
+
+	& :is(.button, .components-button):disabled,
+	& .button.disabled {
+		@apply cursor-not-allowed border-bgray-200 bg-bgray-100 text-bgray-600;
+	}
+
+	& .clicktrail-card--danger :is(.button:not(.button-primary), .components-button.is-secondary),
+	& .clicktrail-card--danger :is(.button:not(.button-primary), .components-button.is-secondary):hover:not(:disabled) {
+		@apply border-error-300 bg-white text-error-300;
+	}
+
+	& .clicktrail-card--danger :is(.button:not(.button-primary), .components-button.is-secondary):hover:not(:disabled) {
+		@apply bg-error-50 text-bgray-900;
+	}
+
+	/* WP_List_Table pagination lives in core's fixed-height .tablenav: keep core sizing. */
+	& .tablenav .button {
+		@apply h-[30px] min-h-[30px] rounded-lg px-2.5 text-[13px] leading-[28px];
+	}
+
+	/* ---------- Save bar ---------- */
+	& .clicktrail-save-bar {
+		@apply mt-5 gap-4 rounded-2xl border-0 bg-white/95 px-6 py-4 shadow-bar;
+	}
+
+	& .clicktrail-save-bar__hint {
+		@apply text-sm text-bgray-700;
+	}
+
+	& .clicktrail-save-bar code {
+		@apply rounded-md bg-bgray-100 px-2 py-0.5 text-xs;
+	}
+
+	/* ---------- Notices ---------- */
+	& .clicktrail-inline-notice {
+		@apply gap-3 rounded-xl border-0 border-l-4 border-solid border-success-300 bg-success-50 px-4 py-3 text-sm text-bgray-900;
+	}
+
+	& .clicktrail-inline-notice--warning {
+		@apply border-warning-200 bg-warning-50 text-warning-700;
+	}
+
+	& .notice {
+		@apply rounded-xl border-0 border-l-4 border-solid shadow-card;
+	}
+
+	/* ---------- Tables ---------- */
+	& :is(.widefat, .clicktrail-data-table) {
+		@apply overflow-hidden rounded-xl border border-bgray-200 shadow-none border-solid;
+	}
+
+	& .clicktrail-card :is(.widefat, .clicktrail-data-table) {
+		@apply rounded-none border-0 border-t border-solid;
+	}
+
+	& :is(.widefat, .clicktrail-data-table) :is(thead, tfoot) :is(th, td):not(.check-column) {
+		@apply border-bgray-200 bg-bgray-100 px-4 py-3 text-xs font-semibold uppercase tracking-wider text-bgray-700;
+	}
+
+	& :is(.widefat, .clicktrail-data-table) tbody :is(th, td):not(.check-column) {
+		@apply border-bgray-200 px-4 py-3 text-sm text-bgray-800;
+	}
+
+	& .striped > tbody > :nth-child(odd) {
+		@apply bg-bgray-50;
+	}
+
+	& :is(.widefat, .clicktrail-data-table) tbody tr:hover :is(td, th) {
+		@apply bg-bgray-100;
+	}
+
+	& :is(.widefat, .clicktrail-data-table) :is(thead, tfoot) a {
+		@apply text-bgray-800;
+	}
+
+	/* ---------- Misc ---------- */
+	& .clicktrail-json-preview {
+		@apply rounded-xl bg-bgray-900 text-bgray-200;
+	}
+
+	/* An empty preview otherwise renders as a dark strip before any result exists. */
+	& .clicktrail-json-preview:empty {
+		@apply hidden;
+	}
+
+	& .clicktrail-help-tip {
+		@apply bg-bgray-200 text-bgray-800;
+	}
+
+	/* :where() keeps plain-link styling below table-header and button rules. */
+	& :where(a:not(.button, .nav-tab, .components-button)) {
+		@apply text-success-700 underline-offset-2;
+	}
+
+	& :where(a:not(.button, .nav-tab, .components-button)):hover {
+		@apply text-bgray-900 underline;
+	}
+
+	& .clicktrail-loading {
+		@apply border-t-success-300;
+	}
+
+	& code {
+		@apply rounded-md bg-bgray-100 px-1.5 py-0.5 text-bgray-800;
+	}
+}

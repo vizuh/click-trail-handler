@@ -241,6 +241,16 @@ class Admin {
 		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only routing context.
 		$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : '';
 
+		// Dashboard visual layer (built from tools/admin-css); the setup wizard keeps admin.css only.
+		if ( in_array( $page, array( 'clicutcl-settings', 'clicutcl-logs', 'clicutcl-diagnostics' ), true ) ) {
+			wp_enqueue_style(
+				'clicutcl-admin-refresh',
+				CLICUTCL_URL . 'assets/css/admin-refresh.css',
+				array( 'clicutcl-admin' ),
+				CLICUTCL_VERSION
+			);
+		}
+
 		if ( strpos( $hook, 'clicutcl-diagnostics' ) !== false ) {
 			wp_register_script(
 				'clicutcl-admin-diagnostics',

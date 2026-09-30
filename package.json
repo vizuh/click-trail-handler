@@ -4,6 +4,10 @@
   "scripts": {
     "smoke": "node -e \"require('./tools/qa/smoke.js')\"",
     "test:consent": "node tools/qa/consent-bridge.test.js && node tools/qa/cmp-transition.test.js",
-    "make-zip": "node tools/release/make-zip.js"
+    "make-zip": "node tools/release/make-zip.js",
+    "build:admin-css": "tailwindcss --postcss tools/admin-css/postcss.config.js -c tools/admin-css/tailwind.config.js -i tools/admin-css/admin-refresh.src.css -o assets/css/admin-refresh.css"
+  },
+  "devDependencies": {
+    "tailwindcss": "3.4.17"
   }
 }
