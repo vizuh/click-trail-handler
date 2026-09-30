@@ -46,3 +46,7 @@ jobs:
       - name: Run consent and CMP transition checks
         if: matrix.php == '8.3'
         run: npm run test:consent
+
+      - name: Check admin CSS stays scoped to the dashboard
+        if: matrix.php == '8.3'
+        run: node tools/admin-css/check-scope.js

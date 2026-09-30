@@ -159,6 +159,15 @@ Primary settings assets:
 
 - `assets/js/admin-settings-app.js`
 - `assets/css/admin.css`
+- `assets/css/admin-refresh.css`: visual layer for Settings, Logs, and Diagnostics only (the setup wizard keeps
+  `admin.css`). Compiled by Tailwind from `tools/admin-css/admin-refresh.src.css`; do not edit the output by hand.
+  - Rebuild: `npm install && npm run build:admin-css`, then commit the compiled file.
+  - Rules use `@apply` only and are nested under `.clicktrail-settings-wrap`, `.clicktrail-diagnostics-wrap`, and
+    `.clicktrail-logs-wrap`, so nothing leaks into the rest of wp-admin. CI runs `tools/admin-css/check-scope.js`
+    to enforce this.
+  - Styling targets existing class names only; markup and behavior are unchanged.
+  - Font: Urbanist (SIL OFL 1.1), bundled at `assets/fonts/urbanist-latin-var.woff2` with `assets/fonts/OFL.txt`;
+    no remote font requests.
 
 Other admin assets:
 
