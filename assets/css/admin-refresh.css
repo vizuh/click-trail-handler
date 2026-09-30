@@ -1,9 +1,8 @@
 /*
- * ClickTrail dashboard visual refresh (Settings, Logs, Diagnostics).
+ * ClickTrail dashboard visual refresh (Settings, Logs, Diagnostics, Setup wizard).
  *
  * Source for assets/css/admin-refresh.css. Build: `npm run build:admin-css`.
- * Loaded after admin.css on the three dashboard screens only; the setup wizard keeps
- * admin.css as-is. Every rule is nested under the page wrappers, and only existing
+ * Loaded after admin.css (and wizard.css on the setup screen) on the ClickTrail screens only. Every rule is nested under the page wrappers, and only existing
  * class names are styled: no markup or behavior changes.
  */
 
@@ -132,7 +131,7 @@
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) {
   /* Remap the admin.css tokens inside the dashboard only. */
   --clicktrail-blue: #22C55E;
   --clicktrail-blue-soft: #D9FBE6;
@@ -170,11 +169,11 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) :where(input, select, textarea, button, .button, .components-button, .components-base-control):not(.code):not(.clicktrail-field-input--mono) {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) :where(input, select, textarea, button, .button, .components-button, .components-base-control):not(.code):not(.clicktrail-field-input--mono) {
   font-family: inherit;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) :is(textarea.code, input.code) {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) :is(textarea.code, input.code) {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-size: 0.875rem;
   line-height: 1.25rem;
@@ -182,8 +181,8 @@
 
 /* ---------- Page header ---------- */
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) > h1,
-	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-page-title h1 {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) > h1,
+	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-page-title h1 {
   font-family: Urbanist, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 1.875rem;
   line-height: 2.25rem;
@@ -193,11 +192,11 @@
   color: rgb(26 32 44 / var(--tw-text-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-page-header {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-page-header {
   margin-bottom: 1.5rem;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-page-eyebrow {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-page-eyebrow {
   font-size: 0.75rem;
   line-height: 1rem;
   font-weight: 600;
@@ -207,7 +206,7 @@
   color: rgb(22 101 52 / var(--tw-text-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-page-description {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-page-description {
   font-size: 1rem;
   line-height: 1.5rem;
   --tw-text-opacity: 1;
@@ -216,8 +215,8 @@
 
 /* ---------- Cards ---------- */
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card,
-	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-section {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card,
+	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-section {
   margin-bottom: 1.25rem;
   overflow: hidden;
   border-radius: 1rem;
@@ -229,7 +228,7 @@
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card--danger {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card--danger {
   --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
   --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color);
   box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
@@ -237,8 +236,8 @@
   --tw-ring-color: rgb(252 222 222 / var(--tw-ring-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__header,
-	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-section-header {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__header,
+	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-section-header {
   gap: 1rem;
   border-bottom-width: 1px;
   border-style: solid;
@@ -252,13 +251,13 @@
   padding-bottom: 1.25rem;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__header--static,
-	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card--collapsible .clicktrail-card__header:hover {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__header--static,
+	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card--collapsible .clicktrail-card__header:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(255 255 255 / var(--tw-bg-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__icon {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__icon {
   height: 2.75rem;
   width: 2.75rem;
   border-radius: 9999px;
@@ -270,15 +269,15 @@
   color: rgb(22 163 74 / var(--tw-text-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card--danger .clicktrail-card__icon {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card--danger .clicktrail-card__icon {
   --tw-bg-opacity: 1;
   background-color: rgb(252 222 222 / var(--tw-bg-opacity, 1));
   --tw-text-opacity: 1;
   color: rgb(221 51 51 / var(--tw-text-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__title,
-	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-section-header h3 {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__title,
+	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-section-header h3 {
   font-size: 1.125rem;
   line-height: 1.75rem;
   font-weight: 700;
@@ -286,7 +285,7 @@
   color: rgb(26 32 44 / var(--tw-text-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__description {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__description {
   font-size: 0.875rem;
   line-height: 1.25rem;
   line-height: 1.375;
@@ -294,20 +293,20 @@
   color: rgb(74 85 104 / var(--tw-text-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__body--react {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__body--react {
   padding-left: 1.5rem;
   padding-right: 1.5rem;
   padding-bottom: 1.5rem;
   padding-top: 0.5rem;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-section-body,
-	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-action-row {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-section-body,
+	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-action-row {
   padding: 1.5rem;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-diagnostics-results,
-	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-ops-links {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-diagnostics-results,
+	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-ops-links {
   padding-left: 1.5rem;
   padding-right: 1.5rem;
   padding-bottom: 1.5rem;
@@ -315,7 +314,7 @@
 
 /* Plain paragraphs placed directly in a card body (Diagnostics forms). */
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__body > p {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__body > p {
   margin-left: 0px;
   margin-right: 0px;
   margin-top: 1rem;
@@ -326,9 +325,9 @@
 
 /* ---------- Tags, pills, badges ---------- */
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__tag,
-	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-tab-badge,
-	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-version-badge {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__tag,
+	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-tab-badge,
+	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-version-badge {
   min-height: 0px;
   border-radius: 9999px;
   border-width: 0px;
@@ -345,20 +344,20 @@
   color: rgb(74 85 104 / var(--tw-text-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__tag--recommended,
-	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-tab-badge {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__tag--recommended,
+	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-tab-badge {
   --tw-bg-opacity: 1;
   background-color: rgb(217 251 230 / var(--tw-bg-opacity, 1));
   --tw-text-opacity: 1;
   color: rgb(21 128 61 / var(--tw-text-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-summary-bar {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-summary-bar {
   margin-bottom: 1.5rem;
   gap: 0.75rem;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-status-pill {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-status-pill {
   min-height: 40px;
   gap: 0.5rem;
   border-radius: 9999px;
@@ -379,18 +378,18 @@
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-status-pill__dot {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-status-pill__dot {
   height: 0.5rem;
   width: 0.5rem;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-status-pill__text strong {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-status-pill__text strong {
   font-weight: 600;
   --tw-text-opacity: 1;
   color: rgb(26 32 44 / var(--tw-text-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-status-pill--success {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-status-pill--success {
   --tw-border-opacity: 1;
   border-color: rgb(183 255 209 / var(--tw-border-opacity, 1));
   --tw-bg-opacity: 1;
@@ -399,8 +398,8 @@
 
 /* ---------- Tabs (pill navigation) ---------- */
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .nav-tab-wrapper,
-	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) h2.nav-tab-wrapper {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .nav-tab-wrapper,
+	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) h2.nav-tab-wrapper {
   margin-bottom: 1.5rem;
   display: flex;
   flex-wrap: wrap;
@@ -409,7 +408,7 @@
   padding: 0px;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .nav-tab {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .nav-tab {
   margin: 0px;
   display: inline-flex;
   align-items: center;
@@ -431,21 +430,21 @@
   transition-duration: 150ms;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .nav-tab:hover {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .nav-tab:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(237 242 247 / var(--tw-bg-opacity, 1));
   --tw-text-opacity: 1;
   color: rgb(26 32 44 / var(--tw-text-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .nav-tab .dashicons {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .nav-tab .dashicons {
   --tw-text-opacity: 1;
   color: rgb(113 128 150 / var(--tw-text-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .nav-tab-active,
-	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .nav-tab-active:hover,
-	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .nav-tab-active:focus {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .nav-tab-active,
+	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .nav-tab-active:hover,
+	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .nav-tab-active:focus {
   --tw-bg-opacity: 1;
   background-color: rgb(255 255 255 / var(--tw-bg-opacity, 1));
   --tw-text-opacity: 1;
@@ -458,8 +457,8 @@
 /* Keep admin.css's single scrollable tab row on small screens. */
 
 @media (max-width: 782px) {
-  :is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .nav-tab-wrapper,
-		:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) h2.nav-tab-wrapper {
+  :is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .nav-tab-wrapper,
+		:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) h2.nav-tab-wrapper {
     flex-wrap: nowrap;
     overflow-x: auto;
     white-space: nowrap;
@@ -467,12 +466,12 @@
   }
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .nav-tab-active .dashicons {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .nav-tab-active .dashicons {
   --tw-text-opacity: 1;
   color: rgb(34 197 94 / var(--tw-text-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .nav-tab:focus-visible {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .nav-tab:focus-visible {
   outline: 2px solid transparent;
   outline-offset: 2px;
   --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
@@ -485,17 +484,17 @@
 
 /* ---------- Stat tiles (checklist + diagnostics) ---------- */
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-diagnostics-grid {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-diagnostics-grid {
   margin-bottom: 1.25rem;
   gap: 1rem;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-diagnostics-grid--compact {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-diagnostics-grid--compact {
   margin: 0px;
   padding: 1.5rem;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-diagnostic-stat {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-diagnostic-stat {
   border-radius: 0.75rem;
   border-width: 1px;
   border-style: solid;
@@ -512,7 +511,7 @@
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-diagnostic-stat::before {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-diagnostic-stat::before {
   bottom: 1.25rem;
   top: 1.25rem;
   width: 0.25rem;
@@ -520,14 +519,14 @@
   border-bottom-right-radius: 9999px;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-diagnostic-stat--action:hover {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-diagnostic-stat--action:hover {
   --tw-border-opacity: 1;
   border-color: rgb(183 255 209 / var(--tw-border-opacity, 1));
   --tw-bg-opacity: 1;
   background-color: rgb(247 250 252 / var(--tw-bg-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-diagnostic-stat--action:focus-visible {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-diagnostic-stat--action:focus-visible {
   outline: 2px solid transparent;
   outline-offset: 2px;
   --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
@@ -538,7 +537,7 @@
   --tw-ring-offset-width: 2px;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-diagnostic-stat__label {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-diagnostic-stat__label {
   margin-bottom: 0.5rem;
   font-size: 0.75rem;
   line-height: 1rem;
@@ -549,7 +548,7 @@
   color: rgb(74 85 104 / var(--tw-text-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-diagnostic-stat__value {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-diagnostic-stat__value {
   font-size: 1.5rem;
   line-height: 2rem;
   font-weight: 700;
@@ -558,7 +557,7 @@
   color: rgb(26 32 44 / var(--tw-text-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-diagnostic-stat__sub {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-diagnostic-stat__sub {
   margin-top: 0.25rem;
   font-size: 0.875rem;
   line-height: 1.25rem;
@@ -568,15 +567,15 @@
 
 /* ---------- Forms: wp.components ---------- */
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__body--react .components-toggle-control {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__body--react .components-toggle-control {
   --tw-border-opacity: 1;
   border-color: rgb(237 242 247 / var(--tw-border-opacity, 1));
   padding-top: 1rem;
   padding-bottom: 1rem;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__body--react .components-toggle-control__label,
-	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__body--react .components-toggle-control .components-base-control__label {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__body--react .components-toggle-control__label,
+	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__body--react .components-toggle-control .components-base-control__label {
   font-size: 1rem;
   line-height: 1.5rem;
   font-weight: 600;
@@ -584,10 +583,10 @@
   color: rgb(26 32 44 / var(--tw-text-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__body--react .components-base-control__help,
-	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__body--react .components-toggle-control .components-base-control__help,
-	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .description,
-	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-description {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__body--react .components-base-control__help,
+	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__body--react .components-toggle-control .components-base-control__help,
+	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .description,
+	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-description {
   font-size: 0.875rem;
   line-height: 1.25rem;
   line-height: 1.5;
@@ -595,7 +594,7 @@
   color: rgb(74 85 104 / var(--tw-text-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__body--react .components-base-control__label {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__body--react .components-base-control__label {
   margin-bottom: 0.5rem;
   font-size: 0.875rem;
   line-height: 1.25rem;
@@ -606,13 +605,13 @@
   color: rgb(45 55 72 / var(--tw-text-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__body--react .components-form-toggle {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__body--react .components-form-toggle {
   height: 1.5rem;
   width: 2.75rem;
   min-width: 44px;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__body--react .components-form-toggle__track {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__body--react .components-form-toggle__track {
   height: 1.5rem;
   width: 2.75rem;
   border-width: 0px;
@@ -620,12 +619,12 @@
   background-color: rgb(113 128 150 / var(--tw-bg-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__body--react .components-form-toggle.is-checked .components-form-toggle__track {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__body--react .components-form-toggle.is-checked .components-form-toggle__track {
   --tw-bg-opacity: 1;
   background-color: rgb(22 163 74 / var(--tw-bg-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__body--react .components-form-toggle__thumb {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__body--react .components-form-toggle__thumb {
   left: 3px;
   top: 3px;
   height: 18px;
@@ -638,12 +637,12 @@
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__body--react .components-form-toggle.is-checked .components-form-toggle__thumb {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__body--react .components-form-toggle.is-checked .components-form-toggle__thumb {
   --tw-translate-x: 1.25rem;
   transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__body--react .components-form-toggle__input:focus + .components-form-toggle__track {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__body--react .components-form-toggle__input:focus + .components-form-toggle__track {
   --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
   --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
   box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
@@ -654,7 +653,7 @@
 
 /* Filled inputs; the bgray-600 border keeps the 3:1 non-text contrast (WCAG 1.4.11). */
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__body--react :is(.components-text-control__input, .components-textarea-control__input, .components-select-control__input), :is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) :is(.clicktrail-field-input, .clicktrail-field-select), :is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .form-table :is(input[type='text'], input[type='number'], input[type='url'], input[type='email'], textarea, select), :is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) :is(.regular-text, .large-text) {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__body--react :is(.components-text-control__input, .components-textarea-control__input, .components-select-control__input), :is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) :is(.clicktrail-field-input, .clicktrail-field-select), :is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .form-table :is(input[type='text'], input[type='number'], input[type='url'], input[type='email'], textarea, select), :is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) :is(.regular-text, .large-text) {
   border-radius: 0.75rem;
   border-width: 1px;
   border-style: solid;
@@ -676,18 +675,18 @@
   transition-duration: 150ms;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__body--react :is(.components-text-control__input, .components-select-control__input), :is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) :is(.clicktrail-field-input, .clicktrail-field-select), :is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .form-table :is(input[type='text'], input[type='number'], input[type='url'], input[type='email'], select), :is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .regular-text {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__body--react :is(.components-text-control__input, .components-select-control__input), :is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) :is(.clicktrail-field-input, .clicktrail-field-select), :is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .form-table :is(input[type='text'], input[type='number'], input[type='url'], input[type='email'], select), :is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .regular-text {
   min-height: 48px;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__body--react .components-textarea-control__input,
-	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .form-table textarea,
-	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) textarea.large-text {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__body--react .components-textarea-control__input,
+	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .form-table textarea,
+	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) textarea.large-text {
   padding-top: 0.75rem;
   padding-bottom: 0.75rem;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__body--react :is(.components-text-control__input, .components-textarea-control__input, .components-select-control__input):focus, :is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) :is(.clicktrail-field-input, .clicktrail-field-select):focus, :is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .form-table :is(input, textarea, select):focus, :is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) :is(.regular-text, .large-text):focus {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__body--react :is(.components-text-control__input, .components-textarea-control__input, .components-select-control__input):focus, :is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) :is(.clicktrail-field-input, .clicktrail-field-select):focus, :is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .form-table :is(input, textarea, select):focus, :is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) :is(.regular-text, .large-text):focus {
   --tw-border-opacity: 1;
   border-color: rgb(21 128 61 / var(--tw-border-opacity, 1));
   --tw-bg-opacity: 1;
@@ -701,26 +700,26 @@
   --tw-ring-color: rgb(217 251 230 / var(--tw-ring-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) :is(.clicktrail-card__body--react .components-select-control__input, .clicktrail-field-select, .form-table select) {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) :is(.clicktrail-card__body--react .components-select-control__input, .clicktrail-field-select, .form-table select) {
   padding-right: 2.5rem;
 }
 
 /* wp.components SelectControl draws its border on a backdrop element, not the <select>. */
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__body--react .components-input-control__container {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__body--react .components-input-control__container {
   min-height: 48px;
   border-radius: 0.75rem;
   --tw-bg-opacity: 1;
   background-color: rgb(247 250 252 / var(--tw-bg-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__body--react .components-input-control__container .components-select-control__input {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__body--react .components-input-control__container .components-select-control__input {
   min-height: 48px;
   border-width: 0px;
   background-color: transparent;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__body--react .components-input-control__backdrop {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__body--react .components-input-control__backdrop {
   border-radius: 0.75rem;
   border-width: 1px;
   border-style: solid;
@@ -728,12 +727,12 @@
   border-color: rgb(113 128 150 / var(--tw-border-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__body--react .components-input-control__container:focus-within {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__body--react .components-input-control__container:focus-within {
   --tw-bg-opacity: 1;
   background-color: rgb(255 255 255 / var(--tw-bg-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__body--react .components-input-control__container:focus-within .components-input-control__backdrop {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__body--react .components-input-control__container:focus-within .components-input-control__backdrop {
   --tw-border-opacity: 1;
   border-color: rgb(21 128 61 / var(--tw-border-opacity, 1));
   --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
@@ -745,7 +744,7 @@
 
 /* Doubled class: wp.components injects a triple-class emotion rule at runtime, after this file. */
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__body--react .components-input-control__label.components-input-control__label {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__body--react .components-input-control__label.components-input-control__label {
   margin-bottom: 0.5rem;
   font-size: 0.875rem;
   line-height: 1.25rem;
@@ -756,8 +755,8 @@
   color: rgb(45 55 72 / var(--tw-text-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card__table th,
-	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .form-table th {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card__table th,
+	:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .form-table th {
   font-size: 0.875rem;
   line-height: 1.25rem;
   font-weight: 600;
@@ -769,7 +768,7 @@
 
 /* Dark text on the green fill: white on #22C55E is ~2.3:1, ink is ~7:1 (WCAG AA). */
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) :is(.button-primary, .components-button.is-primary) {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) :is(.button-primary, .components-button.is-primary) {
   display: inline-flex;
   height: 2.75rem;
   min-height: 0px;
@@ -794,14 +793,14 @@
   transition-duration: 150ms;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) :is(.button-primary, .components-button.is-primary):hover:not(:disabled) {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) :is(.button-primary, .components-button.is-primary):hover:not(:disabled) {
   --tw-bg-opacity: 1;
   background-color: rgb(74 222 128 / var(--tw-bg-opacity, 1));
   --tw-text-opacity: 1;
   color: rgb(4 9 30 / var(--tw-text-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) :is(.button-primary, .components-button.is-primary):focus-visible {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) :is(.button-primary, .components-button.is-primary):focus-visible {
   outline: 2px solid transparent;
   outline-offset: 2px;
   --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
@@ -812,7 +811,7 @@
   --tw-ring-offset-width: 2px;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) :is(.button:not(.button-primary), .components-button.is-secondary) {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) :is(.button:not(.button-primary), .components-button.is-secondary) {
   display: inline-flex;
   height: 2.75rem;
   min-height: 0px;
@@ -840,7 +839,7 @@
   transition-duration: 150ms;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) :is(.button:not(.button-primary), .components-button.is-secondary):hover:not(:disabled) {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) :is(.button:not(.button-primary), .components-button.is-secondary):hover:not(:disabled) {
   --tw-border-opacity: 1;
   border-color: rgb(34 197 94 / var(--tw-border-opacity, 1));
   --tw-bg-opacity: 1;
@@ -849,7 +848,7 @@
   color: rgb(26 32 44 / var(--tw-text-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) :is(.button:not(.button-primary), .components-button.is-secondary):focus-visible {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) :is(.button:not(.button-primary), .components-button.is-secondary):focus-visible {
   outline: 2px solid transparent;
   outline-offset: 2px;
   --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
@@ -860,7 +859,7 @@
   --tw-ring-offset-width: 2px;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) :is(.button, .components-button):disabled, :is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .button.disabled {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) :is(.button, .components-button):disabled, :is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .button.disabled {
   cursor: not-allowed;
   --tw-border-opacity: 1;
   border-color: rgb(237 242 247 / var(--tw-border-opacity, 1));
@@ -870,7 +869,7 @@
   color: rgb(113 128 150 / var(--tw-text-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card--danger :is(.button:not(.button-primary), .components-button.is-secondary), :is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card--danger :is(.button:not(.button-primary), .components-button.is-secondary):hover:not(:disabled) {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card--danger :is(.button:not(.button-primary), .components-button.is-secondary), :is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card--danger :is(.button:not(.button-primary), .components-button.is-secondary):hover:not(:disabled) {
   --tw-border-opacity: 1;
   border-color: rgb(221 51 51 / var(--tw-border-opacity, 1));
   --tw-bg-opacity: 1;
@@ -879,7 +878,7 @@
   color: rgb(221 51 51 / var(--tw-text-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card--danger :is(.button:not(.button-primary), .components-button.is-secondary):hover:not(:disabled) {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card--danger :is(.button:not(.button-primary), .components-button.is-secondary):hover:not(:disabled) {
   --tw-bg-opacity: 1;
   background-color: rgb(252 222 222 / var(--tw-bg-opacity, 1));
   --tw-text-opacity: 1;
@@ -888,7 +887,7 @@
 
 /* WP_List_Table pagination lives in core's fixed-height .tablenav: keep core sizing. */
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .tablenav .button {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .tablenav .button {
   height: 30px;
   min-height: 30px;
   border-radius: 0.5rem;
@@ -900,7 +899,7 @@
 
 /* ---------- Save bar ---------- */
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-save-bar {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-save-bar {
   margin-top: 1.25rem;
   gap: 1rem;
   border-radius: 1rem;
@@ -915,14 +914,14 @@
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-save-bar__hint {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-save-bar__hint {
   font-size: 0.875rem;
   line-height: 1.25rem;
   --tw-text-opacity: 1;
   color: rgb(74 85 104 / var(--tw-text-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-save-bar code {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-save-bar code {
   border-radius: 0.375rem;
   --tw-bg-opacity: 1;
   background-color: rgb(247 250 252 / var(--tw-bg-opacity, 1));
@@ -936,7 +935,7 @@
 
 /* ---------- Notices ---------- */
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-inline-notice {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-inline-notice {
   gap: 0.75rem;
   border-radius: 0.75rem;
   border-width: 0px;
@@ -956,7 +955,7 @@
   color: rgb(26 32 44 / var(--tw-text-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-inline-notice--warning {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-inline-notice--warning {
   --tw-border-opacity: 1;
   border-color: rgb(250 204 21 / var(--tw-border-opacity, 1));
   --tw-bg-opacity: 1;
@@ -965,7 +964,7 @@
   color: rgb(133 77 14 / var(--tw-text-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .notice {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .notice {
   border-radius: 0.75rem;
   border-width: 0px;
   border-left-width: 4px;
@@ -977,7 +976,7 @@
 
 /* ---------- Tables ---------- */
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) :is(.widefat, .clicktrail-data-table) {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) :is(.widefat, .clicktrail-data-table) {
   overflow: hidden;
   border-radius: 0.75rem;
   border-width: 1px;
@@ -989,14 +988,14 @@
   box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-card :is(.widefat, .clicktrail-data-table) {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-card :is(.widefat, .clicktrail-data-table) {
   border-radius: 0px;
   border-width: 0px;
   border-top-width: 1px;
   border-style: solid;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) :is(.widefat, .clicktrail-data-table) :is(thead, tfoot) :is(th, td):not(.check-column) {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) :is(.widefat, .clicktrail-data-table) :is(thead, tfoot) :is(th, td):not(.check-column) {
   --tw-border-opacity: 1;
   border-color: rgb(237 242 247 / var(--tw-border-opacity, 1));
   --tw-bg-opacity: 1;
@@ -1014,7 +1013,7 @@
   color: rgb(74 85 104 / var(--tw-text-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) :is(.widefat, .clicktrail-data-table) tbody :is(th, td):not(.check-column) {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) :is(.widefat, .clicktrail-data-table) tbody :is(th, td):not(.check-column) {
   --tw-border-opacity: 1;
   border-color: rgb(237 242 247 / var(--tw-border-opacity, 1));
   padding-left: 1rem;
@@ -1027,24 +1026,24 @@
   color: rgb(45 55 72 / var(--tw-text-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .striped > tbody > :nth-child(odd) {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .striped > tbody > :nth-child(odd) {
   --tw-bg-opacity: 1;
   background-color: rgb(250 250 250 / var(--tw-bg-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) :is(.widefat, .clicktrail-data-table) tbody tr:hover :is(td, th) {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) :is(.widefat, .clicktrail-data-table) tbody tr:hover :is(td, th) {
   --tw-bg-opacity: 1;
   background-color: rgb(247 250 252 / var(--tw-bg-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) :is(.widefat, .clicktrail-data-table) :is(thead, tfoot) a {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) :is(.widefat, .clicktrail-data-table) :is(thead, tfoot) a {
   --tw-text-opacity: 1;
   color: rgb(45 55 72 / var(--tw-text-opacity, 1));
 }
 
 /* ---------- Misc ---------- */
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-json-preview {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-json-preview {
   border-radius: 0.75rem;
   --tw-bg-opacity: 1;
   background-color: rgb(26 32 44 / var(--tw-bg-opacity, 1));
@@ -1054,11 +1053,11 @@
 
 /* An empty preview otherwise renders as a dark strip before any result exists. */
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-json-preview:empty {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-json-preview:empty {
   display: none;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-help-tip {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-help-tip {
   --tw-bg-opacity: 1;
   background-color: rgb(237 242 247 / var(--tw-bg-opacity, 1));
   --tw-text-opacity: 1;
@@ -1067,24 +1066,24 @@
 
 /* :where() keeps plain-link styling below table-header and button rules. */
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) :where(a:not(.button, .nav-tab, .components-button)) {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) :where(a:not(.button, .nav-tab, .components-button)) {
   --tw-text-opacity: 1;
   color: rgb(22 101 52 / var(--tw-text-opacity, 1));
   text-underline-offset: 2px;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) :where(a:not(.button, .nav-tab, .components-button)):hover {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) :where(a:not(.button, .nav-tab, .components-button)):hover {
   --tw-text-opacity: 1;
   color: rgb(26 32 44 / var(--tw-text-opacity, 1));
   text-decoration-line: underline;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) .clicktrail-loading {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicktrail-loading {
   --tw-border-opacity: 1;
   border-top-color: rgb(34 197 94 / var(--tw-border-opacity, 1));
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) code {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) code {
   border-radius: 0.375rem;
   --tw-bg-opacity: 1;
   background-color: rgb(247 250 252 / var(--tw-bg-opacity, 1));
@@ -1094,4 +1093,437 @@
   padding-bottom: 0.125rem;
   --tw-text-opacity: 1;
   color: rgb(45 55 72 / var(--tw-text-opacity, 1));
+}
+
+/* ---------- Setup wizard ---------- */
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard {
+  margin-top: 2.5rem;
+  margin-bottom: 2.5rem;
+  max-width: 680px;
+  overflow: hidden;
+  border-radius: 1rem;
+  border-width: 0px;
+  --tw-bg-opacity: 1;
+  background-color: rgb(255 255 255 / var(--tw-bg-opacity, 1));
+  --tw-shadow: 0 1px 2px rgba(26, 32, 44, 0.04), 0 4px 16px rgba(26, 32, 44, 0.04);
+  --tw-shadow-colored: 0 1px 2px var(--tw-shadow-color), 0 4px 16px var(--tw-shadow-color);
+  box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__header {
+  border-width: 0px;
+  border-bottom-width: 1px;
+  border-style: solid;
+  --tw-border-opacity: 1;
+  border-color: rgb(237 242 247 / var(--tw-border-opacity, 1));
+  padding-left: 2rem;
+  padding-right: 2rem;
+  padding-top: 1.25rem;
+  padding-bottom: 1.25rem;
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__logo {
+  gap: 0.75rem;
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  font-weight: 700;
+  --tw-text-opacity: 1;
+  color: rgb(26 32 44 / var(--tw-text-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__logo .dashicons {
+  display: flex;
+  height: 2.25rem;
+  width: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  --tw-bg-opacity: 1;
+  background-color: rgb(217 251 230 / var(--tw-bg-opacity, 1));
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  --tw-text-opacity: 1;
+  color: rgb(22 163 74 / var(--tw-text-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__skip {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 600;
+  --tw-text-opacity: 1;
+  color: rgb(74 85 104 / var(--tw-text-opacity, 1));
+  text-decoration-line: none;
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__steps {
+  padding-left: 2rem;
+  padding-right: 2rem;
+  padding-top: 1.75rem;
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__step-number {
+  height: 2.5rem;
+  width: 2.5rem;
+  border-width: 2px;
+  border-style: solid;
+  --tw-border-opacity: 1;
+  border-color: rgb(226 232 240 / var(--tw-border-opacity, 1));
+  --tw-bg-opacity: 1;
+  background-color: rgb(255 255 255 / var(--tw-bg-opacity, 1));
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  --tw-text-opacity: 1;
+  color: rgb(74 85 104 / var(--tw-text-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__step-label {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  font-weight: 600;
+  --tw-text-opacity: 1;
+  color: rgb(74 85 104 / var(--tw-text-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__step-connector {
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+  margin-bottom: 1.5rem;
+  height: 0.25rem;
+  border-radius: 9999px;
+  --tw-bg-opacity: 1;
+  background-color: rgb(237 242 247 / var(--tw-bg-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__step.is-active .clicutcl-wizard__step-number {
+  --tw-border-opacity: 1;
+  border-color: rgb(34 197 94 / var(--tw-border-opacity, 1));
+  --tw-bg-opacity: 1;
+  background-color: rgb(34 197 94 / var(--tw-bg-opacity, 1));
+  --tw-text-opacity: 1;
+  color: rgb(4 9 30 / var(--tw-text-opacity, 1));
+  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(4px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+  --tw-ring-opacity: 1;
+  --tw-ring-color: rgb(217 251 230 / var(--tw-ring-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__step.is-active .clicutcl-wizard__step-label {
+  --tw-text-opacity: 1;
+  color: rgb(26 32 44 / var(--tw-text-opacity, 1));
+}
+
+/* White check icon on #15803D (~5:1). */
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__step.is-complete .clicutcl-wizard__step-number {
+  --tw-border-opacity: 1;
+  border-color: rgb(21 128 61 / var(--tw-border-opacity, 1));
+  --tw-bg-opacity: 1;
+  background-color: rgb(21 128 61 / var(--tw-bg-opacity, 1));
+  --tw-text-opacity: 1;
+  color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__step.is-complete .clicutcl-wizard__step-label {
+  --tw-text-opacity: 1;
+  color: rgb(22 101 52 / var(--tw-text-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__step.is-complete + .clicutcl-wizard__step-connector {
+  --tw-bg-opacity: 1;
+  background-color: rgb(22 163 74 / var(--tw-bg-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__panel {
+  padding-left: 2rem;
+  padding-right: 2rem;
+  padding-top: 2rem;
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__title {
+  margin-bottom: 0.5rem;
+  margin-top: 0px;
+  font-size: 1.5rem;
+  line-height: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  --tw-text-opacity: 1;
+  color: rgb(26 32 44 / var(--tw-text-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__subtitle {
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  line-height: 1.625;
+  --tw-text-opacity: 1;
+  color: rgb(74 85 104 / var(--tw-text-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) :is(.clicutcl-wizard__checklist, .clicutcl-wizard__toggles) {
+  border-radius: 0.75rem;
+  border-width: 1px;
+  border-style: solid;
+  --tw-border-opacity: 1;
+  border-color: rgb(237 242 247 / var(--tw-border-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) :is(.clicutcl-wizard__check-row, .clicutcl-wizard__toggle-row) {
+  --tw-border-opacity: 1;
+  border-color: rgb(237 242 247 / var(--tw-border-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__check-row {
+  gap: 0.75rem;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+  padding-top: 0.875rem;
+  padding-bottom: 0.875rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__check-label {
+  font-weight: 600;
+  --tw-text-opacity: 1;
+  color: rgb(26 32 44 / var(--tw-text-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__check-badge {
+  border-radius: 9999px;
+  border-width: 0px;
+  padding-left: 0.625rem;
+  padding-right: 0.625rem;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  font-size: 11px;
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__check-badge--on {
+  --tw-bg-opacity: 1;
+  background-color: rgb(217 251 230 / var(--tw-bg-opacity, 1));
+  --tw-text-opacity: 1;
+  color: rgb(22 101 52 / var(--tw-text-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__check-badge--off {
+  --tw-bg-opacity: 1;
+  background-color: rgb(247 250 252 / var(--tw-bg-opacity, 1));
+  --tw-text-opacity: 1;
+  color: rgb(74 85 104 / var(--tw-text-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__field-label {
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  --tw-text-opacity: 1;
+  color: rgb(26 32 44 / var(--tw-text-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__field-optional {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  --tw-text-opacity: 1;
+  color: rgb(74 85 104 / var(--tw-text-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__input {
+  max-width: 360px;
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__input.is-invalid {
+  --tw-border-opacity: 1;
+  border-color: rgb(221 51 51 / var(--tw-border-opacity, 1));
+  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(4px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+  --tw-ring-opacity: 1;
+  --tw-ring-color: rgb(252 222 222 / var(--tw-ring-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__checkbox-label {
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 600;
+  --tw-text-opacity: 1;
+  color: rgb(26 32 44 / var(--tw-text-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__toggle-row {
+  gap: 1rem;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__toggle-row:hover {
+  --tw-bg-opacity: 1;
+  background-color: rgb(247 250 252 / var(--tw-bg-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__toggle-switch {
+  height: 1.5rem;
+  width: 2.75rem;
+  --tw-bg-opacity: 1;
+  background-color: rgb(113 128 150 / var(--tw-bg-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__toggle-switch::after {
+  height: 18px;
+  width: 18px;
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__toggle-row.is-checked .clicutcl-wizard__toggle-switch {
+  --tw-bg-opacity: 1;
+  background-color: rgb(22 163 74 / var(--tw-bg-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__toggle-row.is-checked .clicutcl-wizard__toggle-switch::after {
+  --tw-translate-x: 1.25rem;
+  transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__toggle-input:focus-visible + .clicutcl-wizard__toggle-switch {
+  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+  box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+  --tw-ring-opacity: 1;
+  --tw-ring-color: rgb(21 128 61 / var(--tw-ring-opacity, 1));
+  --tw-ring-offset-width: 2px;
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__toggle-text strong {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 700;
+  --tw-text-opacity: 1;
+  color: rgb(26 32 44 / var(--tw-text-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__toggle-text span {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  --tw-text-opacity: 1;
+  color: rgb(74 85 104 / var(--tw-text-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__success-icon {
+  height: 4rem;
+  width: 4rem;
+  --tw-bg-opacity: 1;
+  background-color: rgb(217 251 230 / var(--tw-bg-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__success-icon .dashicons {
+  height: 2rem;
+  width: 2rem;
+  font-size: 32px;
+  --tw-text-opacity: 1;
+  color: rgb(22 163 74 / var(--tw-text-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__summary {
+  border-radius: 0.75rem;
+  border-width: 0px;
+  --tw-bg-opacity: 1;
+  background-color: rgb(247 250 252 / var(--tw-bg-opacity, 1));
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+  padding-top: 1rem;
+  padding-bottom: 1rem;
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__summary-line {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  --tw-text-opacity: 1;
+  color: rgb(26 32 44 / var(--tw-text-opacity, 1));
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__summary-ga4 {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  --tw-text-opacity: 1;
+  color: rgb(22 101 52 / var(--tw-text-opacity, 1));
+}
+
+/* wizard.css sets display:flex, which defeated the hidden attribute (stray check icon). */
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__summary-ga4[hidden] {
+  display: none;
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__test-tip {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  --tw-text-opacity: 1;
+  color: rgb(74 85 104 / var(--tw-text-opacity, 1));
+}
+
+/* Full-bleed action bar: cancel the panel's side padding. */
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__actions {
+  margin-left: -2rem;
+  margin-right: -2rem;
+  margin-top: 0.5rem;
+  border-radius: 0px;
+  border-width: 0px;
+  border-top-width: 1px;
+  border-style: solid;
+  --tw-border-opacity: 1;
+  border-color: rgb(237 242 247 / var(--tw-border-opacity, 1));
+  --tw-bg-opacity: 1;
+  background-color: rgb(247 250 252 / var(--tw-bg-opacity, 1));
+  padding-left: 2rem;
+  padding-right: 2rem;
+  padding-top: 1.25rem;
+  padding-bottom: 1.25rem;
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__btn {
+  gap: 0.375rem;
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__btn .dashicons {
+  height: 1rem;
+  width: 1rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  line-height: 1;
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__advanced-link {
+  padding-left: 2rem;
+  padding-right: 2rem;
+  padding-bottom: 1.5rem;
+  padding-top: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__advanced-link a {
+  --tw-text-opacity: 1;
+  color: rgb(74 85 104 / var(--tw-text-opacity, 1));
+}
+
+@media screen and (max-width: 700px) {
+  :is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard {
+    margin: 0.75rem;
+  }
+
+  :is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) :is(.clicutcl-wizard__header, .clicutcl-wizard__steps, .clicutcl-wizard__panel, .clicutcl-wizard__advanced-link) {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  :is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) .clicutcl-wizard__actions {
+    margin-left: -1rem;
+    margin-right: -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
 }
