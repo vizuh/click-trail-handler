@@ -123,6 +123,8 @@ This map is organized around the active code paths first, then compatibility and
 - `assets/js/admin-diagnostics.js`
 - `assets/js/admin-sitehealth.js`
 - `assets/css/admin.css`
+- `assets/css/admin-refresh.css`: compiled visual layer for Settings, Logs, and Diagnostics (source in `tools/admin-css/`)
+- `assets/fonts/urbanist-latin-var.woff2` and `assets/fonts/OFL.txt`: bundled admin font
 
 ### Branding
 
@@ -132,6 +134,9 @@ This map is organized around the active code paths first, then compatibility and
 
 - `tools/qa/smoke.js`: structural smoke harness for registry-backed capabilities
 - `tools/qa/check-typing-policy.php`: repository typing policy check
+- `tools/qa/consent-bridge.test.js`, `tools/qa/cmp-transition.test.js`: consent bridge and CMP transition checks (`npm run test:consent`)
+- `tools/admin-css/`: Tailwind source, config, and `check-scope.js` for `assets/css/admin-refresh.css` (`npm run build:admin-css`)
+- `tools/release/`: packaging (`make-zip.js`, `make-zip.ps1`) and WordPress.org asset validation
 
 ## Active Data Surfaces
 

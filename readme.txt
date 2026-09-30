@@ -49,7 +49,8 @@ In WooCommerce, ClickTrail stores attribution on the order, pushes enriched purc
 * **Configured WooCommerce journey signals**: WooCommerce storefront journeys can emit opt-in `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` signals through the same ClickTrail event layer used elsewhere in the plugin.
 * **Client-side support for cached or dynamic forms**: Hidden fields can fail on cached pages or dynamically rendered forms. ClickTrail includes client-side fallback and dynamic-content support for configured paths.
 * **Configured cross-domain continuity**: Approved link decoration and attribution tokens can preserve observed context between configured domains or subdomains.
-* **Consent and privacy lifecycle**: queued retries recheck current consent immediately before delivery; browser consent authority is synchronized across tabs; and WooCommerce order metadata has an allowlisted export, erase, retention, and uninstall lifecycle. Live WordPress, browser, CMP, WooCommerce, and provider verification remains a separate release gate.
+* **Calendly bookings**: with link decoration enabled and `calendly.com` allowed, booking links and embeds carry the click ID and the visitor's consent decision, and the signed Calendly webhook records the booking as `book_appointment` with its UTMs. A live Calendly round trip is not yet part of the verified evidence.
+* **Consent and privacy lifecycle**: nothing is stored before consent when consent is required; Cookiebot and Complianz decisions, including in-page withdrawals, are followed; queued retries recheck current consent immediately before delivery; browser consent authority is synchronized across tabs; and WooCommerce order metadata has an allowlisted export, erase, retention, and uninstall lifecycle. Live WordPress, browser, CMP, WooCommerce, and provider verification remains a separate release gate.
 
 = Core capabilities =
 

@@ -3,7 +3,7 @@
 - **Audience**: contributors, integrators, and maintainers
 - **Canonical for**: public filters and actions exposed by the plugin
 - **Update when**: a public hook is added, removed, renamed, or changes contract
-- **Last verified against version**: `1.10.0`
+- **Last verified against version**: `1.10.3` (every `apply_filters` / `do_action` name in `includes/`, `clicutcl.php`, and `uninstall.php` is listed)
 
 This document lists the public custom hooks currently exposed by the active codebase.
 
@@ -87,6 +87,28 @@ Arguments:
 
 - `array $region_defaults`
 - `string $mode`
+
+### `clicutcl_request_country_code`
+
+Purpose:
+
+- supply an authoritative ISO 3166-1 alpha-2 country code (for example from a server-side GeoIP provider) for `geo` consent mode
+- a valid two-letter code bypasses the request-header lookup entirely; this is the recommended source
+
+Arguments:
+
+- `$country` (`string`): pre-resolved country code, `''` by default
+
+### `clicutcl_trust_geo_request_headers`
+
+Purpose:
+
+- opt in to trusting client-visible geo headers (`CF-IPCOUNTRY`, `X-Country-Code`, `GeoIP-*`) when no authoritative country code is supplied
+- default `false`: these headers are spoofable unless a trusted edge strips and re-sets them, so an unknown country fails safe to requiring consent
+
+Arguments:
+
+- `$trust` (`bool`): default `false`
 
 ### `clicutcl_identity_fields_allowed`
 
@@ -191,6 +213,17 @@ Purpose:
 
 - control dedup-marker lifetime and queue retention during cleanup
 
+### `clicutcl_queue_dead_letter_retention_days`
+
+Purpose:
+
+- retention in days for dead-letter queue rows (`status = 'failed'`), kept longer than ordinary rows so they stay replayable through Diagnostics
+- default `30`; values below `clicutcl_queue_retention_days` are raised to it
+
+Arguments:
+
+- `$days` (`int`)
+
 ## Miscellaneous
 
 ### `clicutcl_cookie_name`
@@ -207,6 +240,28 @@ Purpose:
 
 ## Public Custom Action
 
+### `clicutcl_cleanup_batch_incomplete`
+
+Purpose:
+
+- fires when the daily cleanup stops before finishing a bounded batch, so the remainder is processed on the next run
+- currently emitted for `woocommerce_order_meta` retention
+
+Arguments:
+
+- `$scope` (`string`): for example `woocommerce_order_meta`
+- `$result` (`array`): batch result, including `remaining`
+
+### `clicutcl_uninstall_order_meta_incomplete`
+
+Purpose:
+
+- fires during uninstall when ClickTrail WooCommerce order metadata could not all be removed in one pass
+
+Arguments:
+
+- `$result` (`array`): purge result, including `remaining`
+
 ### `clicutcl_failure_telemetry_remote`
 
 Type:
@@ -218,6 +273,43 @@ Purpose:
 - receive aggregated delivery failure telemetry when remote telemetry is enabled
 
 ## WooCommerce
+
+### `clicutcl_woocommerce_purchase_payload`
+
+Purpose:
+
+- filter the final purchase payload before ClickTrail pushes it to the `dataLayer` and the server-side dispatcher
+- returned arrays are merged over the defaults with `wp_parse_args()`; a non-array return keeps the defaults
+
+Arguments:
+
+- `$payload` (`array`)
+- `$order` (`WC_Order`)
+
+### `clicutcl_woocommerce_order_milestone_payload`
+
+Purpose:
+
+- filter an order-status milestone payload before dispatch (same merge behavior as the purchase filter)
+
+Arguments:
+
+- `$payload` (`array`)
+- `$order` (`WC_Order`)
+- `$event_name` (`string`)
+- `$source_hook` (`string`): the WooCommerce hook that triggered the milestone
+
+### `clicutcl_woocommerce_order_refund_payload`
+
+Purpose:
+
+- filter the `order_refund` payload before dispatch (same merge behavior as the purchase filter)
+
+Arguments:
+
+- `$payload` (`array`)
+- `$order` (`WC_Order`)
+- `$refund` (`WC_Order_Refund`)
 
 ### `clicutcl_order_attribution_saved`
 

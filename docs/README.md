@@ -3,7 +3,7 @@
 - **Audience**: implementers, contributors, maintainers, support teams, reviewers, and AI agents
 - **Canonical for**: engineering navigation, adoption guidance, and source-of-truth lookup
 - **Update when**: docs move, ownership changes, or a new subsystem or rollout pattern needs a canonical reference
-- **Current release baseline**: plugin code `1.10.1`, including the CF7 success boundary, current WooCommerce consent gate, subject-specific queue consent, and touch-event deduplication recorded in the changelog
+- **Current release baseline**: plugin code `1.10.3` (WordPress.org stable), including CMP decision-transition handling (Cookiebot in-page withdrawal, Complianz categories), the Calendly booking handoff, and the refreshed admin screens recorded in the changelog
 - **Automated verification**: PHP 8.1–8.3, PHPCS, PHP compatibility, Node contract checks, and smoke checks pass for the release PRs
 - **Live verification boundary**: WordPress, browser/CMP, WooCommerce classic/HPOS staging, and provider E2E remain separate release gates
 
