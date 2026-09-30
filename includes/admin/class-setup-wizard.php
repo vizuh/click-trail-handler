@@ -183,6 +183,12 @@ class Setup_Wizard {
 			array( 'clicutcl-admin' ),
 			CLICUTCL_VERSION
 		);
+		wp_enqueue_style(
+			'clicutcl-admin-refresh',
+			CLICUTCL_URL . 'assets/css/admin-refresh.css',
+			array( 'clicutcl-wizard' ),
+			CLICUTCL_VERSION
+		);
 		wp_enqueue_script(
 			'clicutcl-wizard',
 			CLICUTCL_URL . 'assets/js/wizard.js',

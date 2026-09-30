@@ -1,9 +1,8 @@
 /*
- * ClickTrail dashboard visual refresh (Settings, Logs, Diagnostics).
+ * ClickTrail dashboard visual refresh (Settings, Logs, Diagnostics, Setup wizard).
  *
  * Source for assets/css/admin-refresh.css. Build: `npm run build:admin-css`.
- * Loaded after admin.css on the three dashboard screens only; the setup wizard keeps
- * admin.css as-is. Every rule is nested under the page wrappers, and only existing
+ * Loaded after admin.css (and wizard.css on the setup screen) on the ClickTrail screens only. Every rule is nested under the page wrappers, and only existing
  * class names are styled: no markup or behavior changes.
  */
 
@@ -20,7 +19,7 @@
 	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap) {
+:is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap) {
 	/* Remap the admin.css tokens inside the dashboard only. */
 	--clicktrail-blue: theme('colors.success.300');
 	--clicktrail-blue-soft: theme('colors.success.50');
@@ -482,5 +481,223 @@
 
 	& code {
 		@apply rounded-md bg-bgray-100 px-1.5 py-0.5 text-bgray-800;
+	}
+
+	/* ---------- Setup wizard ---------- */
+	& .clicutcl-wizard {
+		@apply my-10 max-w-[680px] overflow-hidden rounded-2xl border-0 bg-white shadow-card;
+	}
+
+	& .clicutcl-wizard__header {
+		@apply border-0 border-b border-solid border-bgray-200 px-8 py-5;
+	}
+
+	& .clicutcl-wizard__logo {
+		@apply gap-3 text-lg font-bold text-bgray-900;
+	}
+
+	& .clicutcl-wizard__logo .dashicons {
+		@apply flex h-9 w-9 items-center justify-center rounded-full bg-success-50 text-lg text-success-400;
+	}
+
+	& .clicutcl-wizard__skip {
+		@apply text-sm font-semibold text-bgray-700 no-underline;
+	}
+
+	& .clicutcl-wizard__steps {
+		@apply px-8 pt-7;
+	}
+
+	& .clicutcl-wizard__step-number {
+		@apply h-10 w-10 border-2 border-solid border-bgray-300 bg-white text-sm text-bgray-700;
+	}
+
+	& .clicutcl-wizard__step-label {
+		@apply text-xs font-semibold text-bgray-700;
+	}
+
+	& .clicutcl-wizard__step-connector {
+		@apply mx-2 mb-6 h-1 rounded-full bg-bgray-200;
+	}
+
+	& .clicutcl-wizard__step.is-active .clicutcl-wizard__step-number {
+		@apply border-success-300 bg-success-300 text-ink ring-4 ring-success-50;
+	}
+
+	& .clicutcl-wizard__step.is-active .clicutcl-wizard__step-label {
+		@apply text-bgray-900;
+	}
+
+	/* White check icon on #15803D (~5:1). */
+	& .clicutcl-wizard__step.is-complete .clicutcl-wizard__step-number {
+		@apply border-success-600 bg-success-600 text-white;
+	}
+
+	& .clicutcl-wizard__step.is-complete .clicutcl-wizard__step-label {
+		@apply text-success-700;
+	}
+
+	& .clicutcl-wizard__step.is-complete + .clicutcl-wizard__step-connector {
+		@apply bg-success-400;
+	}
+
+	& .clicutcl-wizard__panel {
+		@apply px-8 pt-8;
+	}
+
+	& .clicutcl-wizard__title {
+		@apply mb-2 mt-0 text-2xl font-bold tracking-tight text-bgray-900;
+	}
+
+	& .clicutcl-wizard__subtitle {
+		@apply mb-6 text-base leading-relaxed text-bgray-700;
+	}
+
+	& :is(.clicutcl-wizard__checklist, .clicutcl-wizard__toggles) {
+		@apply rounded-xl border border-solid border-bgray-200;
+	}
+
+	& :is(.clicutcl-wizard__check-row, .clicutcl-wizard__toggle-row) {
+		@apply border-bgray-200;
+	}
+
+	& .clicutcl-wizard__check-row {
+		@apply gap-3 px-5 py-3.5 text-sm;
+	}
+
+	& .clicutcl-wizard__check-label {
+		@apply font-semibold text-bgray-900;
+	}
+
+	& .clicutcl-wizard__check-badge {
+		@apply rounded-full border-0 px-2.5 py-1 text-[11px];
+	}
+
+	& .clicutcl-wizard__check-badge--on {
+		@apply bg-success-50 text-success-700;
+	}
+
+	& .clicutcl-wizard__check-badge--off {
+		@apply bg-bgray-100 text-bgray-700;
+	}
+
+	& .clicutcl-wizard__field-label {
+		@apply mb-2 text-sm text-bgray-900;
+	}
+
+	& .clicutcl-wizard__field-optional {
+		@apply text-xs text-bgray-700;
+	}
+
+	& .clicutcl-wizard__input {
+		@apply max-w-[360px];
+	}
+
+	& .clicutcl-wizard__input.is-invalid {
+		@apply border-error-300 ring-4 ring-error-50;
+	}
+
+	& .clicutcl-wizard__checkbox-label {
+		@apply gap-3 text-sm font-semibold text-bgray-900;
+	}
+
+	& .clicutcl-wizard__toggle-row {
+		@apply gap-4 px-5 py-4;
+	}
+
+	& .clicutcl-wizard__toggle-row:hover {
+		@apply bg-bgray-100;
+	}
+
+	& .clicutcl-wizard__toggle-switch {
+		@apply h-6 w-11 bg-bgray-600;
+	}
+
+	& .clicutcl-wizard__toggle-switch::after {
+		@apply h-[18px] w-[18px];
+	}
+
+	& .clicutcl-wizard__toggle-row.is-checked .clicutcl-wizard__toggle-switch {
+		@apply bg-success-400;
+	}
+
+	& .clicutcl-wizard__toggle-row.is-checked .clicutcl-wizard__toggle-switch::after {
+		@apply translate-x-5;
+	}
+
+	& .clicutcl-wizard__toggle-input:focus-visible + .clicutcl-wizard__toggle-switch {
+		@apply ring-2 ring-success-600 ring-offset-2;
+	}
+
+	& .clicutcl-wizard__toggle-text strong {
+		@apply text-base font-bold text-bgray-900;
+	}
+
+	& .clicutcl-wizard__toggle-text span {
+		@apply text-sm text-bgray-700;
+	}
+
+	& .clicutcl-wizard__success-icon {
+		@apply h-16 w-16 bg-success-50;
+	}
+
+	& .clicutcl-wizard__success-icon .dashicons {
+		@apply h-8 w-8 text-[32px] text-success-400;
+	}
+
+	& .clicutcl-wizard__summary {
+		@apply rounded-xl border-0 bg-bgray-100 px-5 py-4;
+	}
+
+	& .clicutcl-wizard__summary-line {
+		@apply text-sm text-bgray-900;
+	}
+
+	& .clicutcl-wizard__summary-ga4 {
+		@apply text-sm text-success-700;
+	}
+
+	/* wizard.css sets display:flex, which defeated the hidden attribute (stray check icon). */
+	& .clicutcl-wizard__summary-ga4[hidden] {
+		@apply hidden;
+	}
+
+	& .clicutcl-wizard__test-tip {
+		@apply text-sm text-bgray-700;
+	}
+
+	/* Full-bleed action bar: cancel the panel's side padding. */
+	& .clicutcl-wizard__actions {
+		@apply -mx-8 mt-2 rounded-none border-0 border-t border-solid border-bgray-200 bg-bgray-100 px-8 py-5;
+	}
+
+	& .clicutcl-wizard__btn {
+		@apply gap-1.5;
+	}
+
+	& .clicutcl-wizard__btn .dashicons {
+		@apply h-4 w-4 text-base leading-none;
+	}
+
+	& .clicutcl-wizard__advanced-link {
+		@apply px-8 pb-6 pt-4 text-sm;
+	}
+
+	& .clicutcl-wizard__advanced-link a {
+		@apply text-bgray-700;
+	}
+
+	@media screen and (max-width: 700px) {
+		& .clicutcl-wizard {
+			@apply m-3;
+		}
+
+		& :is(.clicutcl-wizard__header, .clicutcl-wizard__steps, .clicutcl-wizard__panel, .clicutcl-wizard__advanced-link) {
+			@apply px-4;
+		}
+
+		& .clicutcl-wizard__actions {
+			@apply -mx-4 px-4;
+		}
 	}
 }

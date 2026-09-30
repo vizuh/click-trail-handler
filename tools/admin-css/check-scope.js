@@ -7,7 +7,7 @@ const path = require('path');
 
 const css = fs.readFileSync(path.join(__dirname, '..', '..', 'assets/css/admin-refresh.css'), 'utf8')
   .replace(/\/\*[\s\S]*?\*\//g, '');
-const SCOPE = ':is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap)';
+const SCOPE = ':is(.clicktrail-settings-wrap, .clicktrail-diagnostics-wrap, .clicktrail-logs-wrap, .clicutcl-wizard-wrap)';
 const offenders = [];
 const re = /([^{}]+)\{([^{}]*)\}/g;
 let match;
