@@ -33,6 +33,7 @@ If you are new to the plugin, read these in order:
 - [tutorials/README.md](tutorials/README.md): short implementation tutorials for forms, WooCommerce, consent-aware events, and GTM setup
 - [guides/SETTINGS-AND-ADMIN.md](guides/SETTINGS-AND-ADMIN.md): current settings IA and option mapping
 - [reference/INTEGRATIONS.md](reference/INTEGRATIONS.md): evidence-labelled forms, commerce, consent, webhook, GTM, platform, and delivery integration paths
+- [reference/FRAMEWORK-INTEGRATIONS.md](reference/FRAMEWORK-INTEGRATIONS.md): Angular, React, Vue, Svelte, JavaScript, payments, webhooks, and Apointoo handoff boundaries
 - [reference/integration-capabilities.json](reference/integration-capabilities.json): machine-readable status, source evidence, smoke IDs, and known limitations
 - [guides/COMPETITOR-MAP-2026-08-22.md](guides/COMPETITOR-MAP-2026-08-22.md): five-competitor features, reviews, complaints, discussions, and issue signals
 - [guides/COMPETITOR-ROADMAP-2026-08-22.md](guides/COMPETITOR-ROADMAP-2026-08-22.md): public competitor signals, integration patterns, and consulting-first roadmap

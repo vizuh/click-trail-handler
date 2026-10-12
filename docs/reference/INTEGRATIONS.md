@@ -13,6 +13,7 @@ acceptance, consent transitions, retry safety, or deletion behavior.
 
 For rollout guidance by site type, see [../guides/IMPLEMENTATION-PLAYBOOK.md](../guides/IMPLEMENTATION-PLAYBOOK.md).
 For release gates, see [RELEASE-PHASING-AND-INTEGRATION-DOCS.md](../guides/RELEASE-PHASING-AND-INTEGRATION-DOCS.md).
+For Angular, React, Vue, Svelte, JavaScript, payment-return, webhook, and Apointoo handoff patterns, see [FRAMEWORK-INTEGRATIONS.md](FRAMEWORK-INTEGRATIONS.md).
 
 ## Normalized marketing trail envelope
 
