@@ -3,7 +3,7 @@
 - **Audience**: contributors, integrators, and maintainers
 - **Canonical for**: public filters and actions exposed by the plugin
 - **Update when**: a public hook is added, removed, renamed, or changes contract
-- **Last verified against version**: `1.10.3` (every `apply_filters` / `do_action` name in `includes/`, `clicutcl.php`, and `uninstall.php` is listed)
+- **Last verified against version**: `1.10.4` (every `apply_filters` / `do_action` name in `includes/`, `clicutcl.php`, and `uninstall.php` is listed)
 
 This document lists the public custom hooks currently exposed by the active codebase.
 

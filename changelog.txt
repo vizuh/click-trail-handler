@@ -1,6 +1,11 @@
 Changelog
 ========
 
+= 1.10.4 =
+* Admin: the setup wizard (`.clicutcl-wizard-wrap`) joins the Tailwind `admin-refresh.css` layer: token remap, Urbanist, rounded card, pill step indicator, filled inputs, green toggles and buttons, full-bleed action bar. `admin-refresh.css` is enqueued after `wizard.css` on the wizard page and the scope gate (`tools/admin-css/check-scope.js`) allows the four ClickTrail wrappers (#113). Visual only; completing the wizard still saves settings, marks setup complete, and redirects to Settings.
+* Admin: fixed the GA4 summary line showing a stray check icon (`wizard.css` `display:flex` defeated `[hidden]`) and Next/Back arrow icons sitting above the text baseline.
+* Docs: READMEs, readme.txt feature list (Calendly booking handoff, CMP consent behavior), and reference docs aligned with 1.10.3; 8 previously undocumented public hooks added to HOOKS-REFERENCE; CODE-MAP and TRANSLATIONS status corrected (#112).
+
 = 1.10.3 =
 * Consent bridge: Cookiebot listeners stay subscribed to OnConsentReady/OnAccept/OnDecline, so in-page withdrawal clears storage; Complianz reads cmplz_has_consent() / event.detail.categories and listens to cmplz_status_change (#105).
 * Remove the unread `localStorage['clicutcl_js_last_seen']` write (it ran even after denial) and clear the legacy key on denial; gate and clear the thank-you lead session marker on consent (#105).
