@@ -1436,6 +1436,14 @@
             return changed ? url.toString() : null;
         },
 
+        // ClickTrail only ever writes http(s) URLs to an href; anything else is left untouched.
+        setHref: function (a, value) {
+            let url;
+            try { url = new URL(value, window.location.href); } catch (e) { return; }
+            if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+            a.setAttribute('href', url.href);
+        },
+
         // Remove the params ClickTrail added (present in its decoration, absent from the site's
         // original) from an href the site may have edited since; site params are kept.
         withoutAddedParams: function (current, original, decorated) {
@@ -1470,7 +1478,7 @@
             }
             const decorated = this.decorateUrl(original);
             const next = decorated || original;
-            if (next !== current) a.setAttribute('href', next);
+            if (next !== current) this.setHref(a, next);
             if (decorated) {
                 a.setAttribute('data-clicutcl-href', original);
                 a.setAttribute('data-clicutcl-decorated', decorated);
@@ -1488,7 +1496,7 @@
                 const current = a.getAttribute('href');
                 const decorated = a.getAttribute('data-clicutcl-decorated');
                 const original = a.getAttribute('data-clicutcl-href');
-                a.setAttribute('href', current === decorated ? original : this.withoutAddedParams(current, original, decorated || ''));
+                this.setHref(a, current === decorated ? original : this.withoutAddedParams(current, original, decorated || ''));
                 a.removeAttribute('data-clicutcl-href');
                 a.removeAttribute('data-clicutcl-decorated');
             });
