@@ -340,6 +340,19 @@ const tests = {
     assert.strictEqual(params.get('step'), '2', 'withdrawal keeps later site edits');
   },
 
+  'a tampered stored original never puts a non-http URL into an href'() {
+    const href = 'https://apply.example.test/form?gclid=G1';
+    const link = element('a', { href, 'data-clicutcl-href': 'javascript:alert(1)', 'data-clicutcl-decorated': href });
+    const page = boot({ cookiebot: grantedCookiebot(), config: { linkDecorateEnabled: true }, elements: [link] });
+    page.document.dispatchEvent({ type: 'mousedown', target: link });
+    assert.ok(!/^javascript:/i.test(link.getAttribute('href')), 'decoration does not write javascript:');
+    link.setAttribute('data-clicutcl-href', 'javascript:alert(1)');
+    link.setAttribute('data-clicutcl-decorated', link.getAttribute('href'));
+    page.window.Cookiebot.consent = { marketing: false, statistics: false };
+    page.window.dispatchEvent(new page.window.CustomEvent('CookiebotOnDecline'));
+    assert.ok(!/^javascript:/i.test(link.getAttribute('href')), 'restore does not write javascript:');
+  },
+
   'WhatsApp links carry one CT payload and are restored on withdrawal'() {
     const original = 'https://wa.me/5511999999999?text=Hi';
     const link = element('a', { href: original });
