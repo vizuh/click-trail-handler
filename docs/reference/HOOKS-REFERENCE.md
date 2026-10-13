@@ -159,6 +159,22 @@ Purpose:
 
 - control webhook replay behavior, provider enablement, and provider secret resolution
 
+## Webhook Mapping
+
+### `clicutcl_hubspot_qualified_lead_rule`
+
+Type:
+
+- filter
+
+Purpose:
+
+- choose which HubSpot contact property change counts as a `qualified_lead`; other property changes are ignored
+
+Arguments:
+
+- `array $rule` with `property` (default `lifecyclestage`) and `values` (default `marketingqualifiedlead`, `salesqualifiedlead`), compared case-insensitively
+
 ## Lifecycle and Settings Security
 
 ### `clicutcl_lifecycle_token`
