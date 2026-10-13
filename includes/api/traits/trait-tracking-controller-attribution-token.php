@@ -145,12 +145,11 @@ trait Tracking_Controller_Attribution_Token_Trait {
 	private function normalize_click_ids_for_token( array $attribution ): array {
 		$keys = array( 'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid', 'twclid', 'li_fat_id', 'sccid', 'epik' );
 		foreach ( $keys as $key ) {
-			if ( empty( $attribution[ $key ] ) ) {
-				if ( ! empty( $attribution[ 'lt_' . $key ] ) ) {
-					$attribution[ $key ] = $attribution[ 'lt_' . $key ];
-				} elseif ( ! empty( $attribution[ 'ft_' . $key ] ) ) {
-					$attribution[ $key ] = $attribution[ 'ft_' . $key ];
-				}
+			// Last touch wins so a returning visitor's new click replaces the first visit's copy.
+			if ( ! empty( $attribution[ 'lt_' . $key ] ) ) {
+				$attribution[ $key ] = $attribution[ 'lt_' . $key ];
+			} elseif ( empty( $attribution[ $key ] ) && ! empty( $attribution[ 'ft_' . $key ] ) ) {
+				$attribution[ $key ] = $attribution[ 'ft_' . $key ];
 			}
 		}
 

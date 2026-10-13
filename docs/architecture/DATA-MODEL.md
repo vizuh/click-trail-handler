@@ -111,7 +111,7 @@ Current destination state lives here as well, including:
 
 Cookie key:
 
-- `attribution` (or `ct_attribution` on older installs still carrying the legacy name)
+- `attribution` (canonical). Browsers can still carry the legacy `ct_attribution` cookie; JavaScript and PHP both read `attribution` first and fall back to `ct_attribution`. The legacy cookie is never rewritten or mirrored into localStorage on read (either would refresh its retention); it is removed the next time ClickTrail saves attribution, which only happens on a new touch with consent
 
 Browser storage behavior:
 
@@ -122,6 +122,8 @@ Browser storage behavior:
 - when consent resolves to denied, both the attribution cookie and the localStorage mirror are cleared
 - attribution metadata fields use the same `ft_` / `lt_` key convention as the rest of the schema, and legacy `first_*` / `last_*` aliases are normalized back to the canonical keys on read
 - campaign attribution now includes the extended GA-style query fields `utm_id`, `utm_source_platform`, `utm_creative_format`, and `utm_marketing_tactic` under `ft_*` / `lt_*` keys
+- top-level click IDs (`gclid`, `fbclid`, ...) mirror the last touch: `lt_<id>` overwrites the top-level copy on read, on save, and in the PHP normalizers; `ft_<id>` fills it only when no last-touch or top-level value exists. Link decoration, the Calendly stamp, the cross-domain token, `ct_page_view`, injected hidden fields (`gclid` / `ct_gclid`), form entry meta (`ct_gclid`), and WooCommerce order meta (`_clicutcl_<id>`) read this mirror. Cookies written before 1.10.5 can still hold the first visit's value at the top level; every reader normalizes on read, so they resolve to the last touch
+- click-ID selection (D3, same contract as `clicktrail-js`): each touch that carries ad click IDs (`gclid`, `wbraid`, `gbraid`, `fbclid`, `ttclid`, `msclkid`, `twclid`, `li_fat_id`, `sccid`, `epik`) appends `{k, v, t}` entries to `click_id_history` (50 newest kept) and sets `attribution_selected_click_id` to the newest one, with `attribution_selected_click_id_reason` (`newest_valid` or `newest_valid_superseded_previous`). A touch without a click ID never clears the selection. `click_id_history` lives only inside the browser's localStorage/sessionStorage attribution envelope (it would overflow the 4 KB cookie), expires with that envelope (`cookie_days`), is cleared on consent withdrawal, and is never returned by `ClickTrail.getData()`, pushed to the `dataLayer` or posted with forms; the selected ID and reason ride the cookie, so forms, WooCommerce order meta (`_clicutcl_attribution_selected_click_id`) and the Calendly stamp can use them (with a selection the stamp carries only the selected click, never an older one from another platform; the fixed Google-first order applies only to payloads saved before 1.10.5). Extra captured IDs (`rdt_cid`, `pin_cid`, `snap_cid`, `mc_cid`, `mc_eid`, `dclid`) are stored but never selected
 - browser-level identifiers such as `fbc`, `fbp`, `ttp`, `li_gc`, `ga_client_id`, and `ga_session_id` are stored at the top level of the attribution payload when available and permitted by consent
 
 ## Custom Database Tables

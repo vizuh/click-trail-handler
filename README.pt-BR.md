@@ -50,7 +50,7 @@ quando a implementação exigir.
 
 ## Versão e status de verificação
 
-- **Código do repositório:** o cabeçalho do plugin declara `1.10.4`; a versão estável publicada no WordPress.org é a `1.10.3`.
+- **Código do repositório:** o cabeçalho do plugin declara `1.10.5`, a mesma versão estável publicada no WordPress.org.
 - **Versões públicas:** consulte [GitHub Releases](https://github.com/vizuh/click-trail-handler/releases)
   e [changelog.txt](changelog.txt). Os metadados do WordPress.org seguem seu
   próprio processo em [readme.txt](readme.txt).
@@ -59,7 +59,7 @@ quando a implementação exigir.
 
 ## Notas da Versao
 
-**1.10.4** mantém a atribuição da página de entrada quando um CMP como o Cookiebot limpa o armazenamento no momento em que o visitante responde ao banner, remove os dados do ClickTrail imediatamente quando o consentimento é retirado na própria página e lê corretamente as categorias aceitas no Complianz. Agendamentos do Calendly passam a ser registrados como `book_appointment`; com a decoração de links ativa, os links de agendamento levam o click ID e a decisão de consentimento do visitante em `salesforce_uuid`. As telas de Configurações, Logs, Diagnóstico e o assistente de configuração ganharam um visual renovado, sem mudança de comportamento. A verificação em navegador, CMP, WooCommerce, Calendly e provedores continua sendo uma etapa separada do release.
+**1.10.5** envia o clique de anúncio mais recente do visitante que retorna, e não o da primeira visita, nos links decorados, formulários, agendamentos do Calendly, pedidos do WooCommerce e eventos server-side, registra qual clique é o mais recente entre as plataformas de anúncio e remove os próprios parâmetros dos links quando o consentimento é retirado na página. Desde a 1.10.3 o plugin também mantém a atribuição da página de entrada quando um CMP como o Cookiebot limpa o armazenamento no momento em que o visitante responde ao banner, remove os dados do ClickTrail imediatamente quando o consentimento é retirado na própria página e lê corretamente as categorias aceitas no Complianz. Agendamentos do Calendly passam a ser registrados como `book_appointment`; com a decoração de links ativa, os links de agendamento levam o click ID e a decisão de consentimento do visitante em `salesforce_uuid`. As telas de Configurações, Logs, Diagnóstico e o assistente de configuração ganharam um visual renovado, sem mudança de comportamento. A verificação em navegador, CMP, WooCommerce, Calendly e provedores continua sendo uma etapa separada do release.
 
 Veja o [changelog](changelog.txt) para o historico completo e o [readme do WordPress](readme.txt) para as notas publicas.
 
@@ -277,7 +277,7 @@ O ClickTrail pode ser adotado por partes. Uma configuracao basica para formulari
 1. Instale o plugin pelo WordPress ou envie-o para `/wp-content/plugins/click-trail-handler/`.
 2. Ative o plugin e abra `ClickTrail > Settings`.
 3. Em `Capture`, mantenha a atribuicao ligada, escolha uma janela de retencao compativel com o seu ciclo de venda e ative a continuidade cross-domain apenas se o visitante realmente passar por dominios ou subdominios aprovados.
-4. Em `Forms`, ligue apenas as integracoes que voce usa. Contact Form 7 e Fluent Forms podem receber os campos de atribuicao automaticamente. Gravity Forms e WPForms devem ter os campos hidden `ct_*` que voce quer preservar, como `ct_ft_source`, `ct_lt_source` ou `ct_gclid`.
+4. Em `Forms`, ligue apenas as integracoes que voce usa. Contact Form 7 e Fluent Forms podem receber os campos de atribuicao automaticamente. Gravity Forms e WPForms devem ter os campos hidden `ct_*` que voce quer preservar, como `ct_ft_source`, `ct_lt_source` ou `ct_gclid` (clique mais recente; use `ct_ft_gclid` ou `ct_lt_gclid` para fixar o toque).
 5. Em `Events`, deixe a coleta no navegador ligada apenas se voce quiser pushes para o `dataLayer` e captura de eventos no site. Ative os eventos de storefront do Woo apenas se quiser `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart` e `begin_checkout`. Ative o contrato enriquecido de `dataLayer` do Woo apenas se quiser `event_id` e `user_data` sensivel a consentimento em fluxos GTM-first. Preencha o container ID do GTM apenas se o site ainda nao injeta GTM em outro lugar.
 6. Em `Delivery`, deixe o server-side desligado se voce ainda nao tem collector, sGTM ou endpoint de destino pronto. Se houver exigencia de consentimento, escolha aqui a fonte e o modo corretos antes de colocar em producao.
 7. Abra `ClickTrail > Diagnostics` e rode as verificacoes relevantes.

@@ -193,7 +193,27 @@ Typical fixes:
 - correct endpoint or adapter mismatch
 - clear stale locks in staging if a worker crashed
 
-## 6. Historical failures remain visible after server-side is disabled
+## 6. A booking or lead shows an older ad click
+
+Symptoms:
+
+- a CRM record carries `gclid` from an earlier Google visit although the visitor last came from another platform
+
+Checks:
+
+- read `attribution_selected_click_id` (and its reason) on the form entry, order meta or dispatched event; it is the
+  newest ad click across platforms (D3). Top-level `gclid`, `fbclid`, ... each hold the newest click per platform
+- in the browser, `localStorage['attribution']` holds the envelope whose `data.click_id_history` lists the clicks in
+  order (50 newest, browser-only; not returned by `ClickTrail.getData()`)
+- for Calendly, `salesforce_uuid=ct1;<key>=<value>` names the click sent: the selected click, or none. The fixed
+  Google-first order only applies to attribution saved before 1.10.5, which has no selection
+
+Typical fixes:
+
+- map downstream systems to `attribution_selected_click_id` rather than pairing `gclid` with the last-touch UTMs
+- replay the round trip locally with `tools/qa/e2e/` (see its README)
+
+## 7. Historical failures remain visible after server-side is disabled
 
 Symptoms:
 

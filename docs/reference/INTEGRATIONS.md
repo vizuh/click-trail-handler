@@ -4,7 +4,7 @@
 - **Canonical for**: integration roles, source evidence, status boundaries, providers, forms, webhooks, GTM, and delivery adapter keys
 - **Update when**: integration support level, adapter list, provider contract, evidence status, or capability messaging changes
 - **Provider-wide audit baseline**: plugin code `1.9.0`, commit `a45aa9e`, reviewed 2026-08-19
-- **Current release**: plugin code `1.10.4`, with automated consent, queue, WooCommerce privacy, CF7 outcome, touch-event deduplication, CMP decision-transition, and Calendly webhook coverage; the live Calendly booking round trip remains unverified
+- **Current release**: plugin code `1.10.5`, with automated consent, queue, WooCommerce privacy, CF7 outcome, touch-event deduplication, CMP decision-transition, Calendly webhook, and attribution round-trip E2E (`tools/qa/e2e/`, CI) coverage; the live Calendly booking round trip remains unverified
 - **Runtime verification**: provider-wide E2E remains incomplete; bounded WooCommerce and Fluent Forms evidence is recorded below, while six form manifests remain explicitly runtime-unverified
 - **Machine-readable ledger**: [`integration-capabilities.json`](integration-capabilities.json)
 
@@ -216,6 +216,7 @@ What ClickTrail does:
 - keep attribution attached to submissions
 - dispatch form-related events when applicable
 - for Contact Form 7, record and dispatch through `wpcf7_mail_sent`, after CF7 reports success; validation failure, missing acceptance, spam, abort and mail failure do not enter the conversion logger. This denotes CF7 success (including its configured skip-mail behavior), not recipient delivery or CRM acceptance. Hook-lifecycle regression coverage lives in `tests/unit/CF7SubmissionOutcomeTest.php`; real WordPress/cache/receiver proof remains separate.
+- for Contact Form 7, the attribution cookie sent with the submit wins over the posted `ct_*` hidden fields; posted values only fill keys the cookie lacks (for example when cookies are blocked). CF7 renders those hidden fields server-side from the cookie at page load, which on a landing visit is one touch behind and lacks keys that touch adds (before 1.10.5 a Google-then-Meta visitor's lead was stored as Google). The browser runtime also treats `ct_*` inputs as its own and refreshes them on load and at submit.
 - for Elementor Forms, log submissions through Elementor Pro's official `elementor_pro/forms/new_record` hook and read matching `ct_*` hidden fields when they are present, with cookie fallback when they are not
 - for Ninja Forms, store attribution in the submission extra data (`extra.clicktrail_attribution`), show it in the submission detail UI, and use the submission hooks rather than automatic hidden-field injection
 - gate form field injection and submission-time ClickTrail/provider metadata writes through the centralized consent policy; denied consent also removes a stale Ninja Forms `extra.clicktrail_attribution` value while preserving unrelated extras
@@ -332,8 +333,10 @@ Canonical order metadata for external connectors:
 
 - `_clicutcl_ft_*` — immutable first-touch fields.
 - `_clicutcl_lt_*` — latest-touch fields.
-- `_clicutcl_{gclid,fbclid,...}` — provider-scoped click IDs; `ctwa_clid` and other
-  provider names remain unchanged.
+- `_clicutcl_{gclid,fbclid,...}` — provider-scoped click IDs holding the latest-touch value
+  (`_clicutcl_lt_<id>` wins; the first-touch copy is only a fallback). Orders saved before 1.10.5
+  can hold the first visit's value; order events prefer `_clicutcl_lt_<id>` for them. `ctwa_clid`
+  and other provider names remain unchanged.
 - `_clicutcl_visitor_id` and `_clicutcl_session_id` — pseudonymous join keys when
   available.
 
@@ -467,12 +470,22 @@ Calendly keeps only `utm_*` and `salesforce_uuid` from a scheduling URL. When li
 widgets (`.calendly-inline-widget[data-url]`), and `Calendly.initPopupWidget` / `initInlineWidget` /
 `initBadgeWidget` URLs with:
 
-- the stored `utm_*` values (values already in the URL are kept)
-- `salesforce_uuid=ct1;<click_id>=<value>;c=<0|1>`: one click ID (`gclid` first, then `gbraid`, `wbraid`,
-  `fbclid`, `msclkid`, `ttclid`, `li_fat_id`, `twclid`, `dclid`) and the live consent decision. `c` is omitted
+- the stored last-touch `utm_*` values (values already in the URL are kept)
+- `salesforce_uuid=ct1;<click_id>=<value>;c=<0|1>`: one click ID and the live consent decision. The click is
+  `attribution_selected_click_id` (the newest ad click across platforms, D3), so Google A then Meta B stamps
+  `fbclid=B`. When a selection exists the stamp carries that click or none (a consent-only `ct1;c=1`), never an
+  older click from another platform. The webhook parses `gclid`, `gbraid`, `wbraid`, `fbclid`, `msclkid`, `ttclid`,
+  `li_fat_id`, `twclid`, `sccid`, `epik` and `dclid`. Payloads without a selection (written before 1.10.5) fall back to the fixed order `gclid`, `gbraid`,
+  `wbraid`, `fbclid`, `msclkid`, `ttclid`, `li_fat_id`, `twclid`, `dclid`. `c` is omitted
   when there is no decision (consent not required or unresolved). Raw click-ID parameters are not appended,
   because Calendly drops them. A `salesforce_uuid` already set by the site is never replaced. Decoration is
   re-checked against live consent on every click, so an in-page withdrawal stops it immediately.
+
+Links and inline widgets are decorated from the site's original URL every time (kept in `data-clicutcl-href` /
+`data-clicutcl-url`), never from an earlier decoration. A newer touch replaces ClickTrail's parameters instead of
+leaving stale ones, and parameters the site wrote itself, including edits made after decoration, are kept. On
+consent withdrawal ClickTrail removes the parameters it added from every decorated link. An inline Calendly iframe
+or a popup that already loaded keeps the URL it loaded with; the restored `data-url` only affects later renders.
 
 On `invitee.created` the webhook maps `tracking.utm_*` to last touch and parses the stamp back into the click ID
 and a consent snapshot, so a consented booking can be delivered when consent is required. Any other

@@ -24,7 +24,8 @@ class Attribution {
 	 * @return array|null The attribution data array or null if not found.
 	 */
 	public static function get() {
-		$keys = array( 'ct_attribution', 'attribution' );
+		// Canonical cookie first, like the browser runtime; `ct_attribution` is the legacy name.
+		$keys = array( 'attribution', 'ct_attribution' );
 
 		foreach ( $keys as $key ) {
 			if ( filter_input( INPUT_COOKIE, $key, FILTER_DEFAULT ) ) {

@@ -222,6 +222,183 @@ function validateCachedFormActionBoundary(failures) {
   assert(form.action === '/?gclid=visitor-a', 'ClickTrail must not treat or rewrite a cached form action as attribution input', failures);
 }
 
+// vm browser around the real attribution script; cookie jar and storage persist across visits.
+function makeBrowser(cookieName) {
+  const values = new Map();
+  const memoryStorage = {
+    getItem(key) { return values.has(key) ? values.get(key) : null; },
+    setItem(key, value) { values.set(key, String(value)); },
+    removeItem(key) { values.delete(key); }
+  };
+  const listeners = {};
+  const document = {
+    forms: [],
+    referrer: '',
+    readyState: 'complete',
+    addEventListener(type, fn) { listeners[type] = fn; },
+    dispatchEvent() {},
+    querySelector() { return null; },
+    querySelectorAll() { return []; }
+  };
+  let cookies = '';
+  Object.defineProperty(document, 'cookie', {
+    get() { return cookies; },
+    set(value) {
+      const pair = String(value).split(';', 1)[0];
+      const name = pair.slice(0, pair.indexOf('='));
+      const keep = cookies.split('; ').filter((cookie) => cookie && !cookie.startsWith(`${name}=`));
+      if (!/Max-Age=0|expires=Thu, 01 Jan 1970/i.test(value)) keep.push(pair);
+      cookies = keep.join('; ');
+    }
+  });
+
+  let uuid = 0;
+  const window = {
+    clicutcl_config: {
+      cookieName,
+      cookieDays: 90,
+      requireConsent: false,
+      injectEnabled: false,
+      linkDecorateEnabled: true,
+      linkAllowedDomains: ['calendly.com'],
+      linkAppendToken: false,
+      enableWhatsapp: false
+    },
+    addEventListener() {},
+    crypto: { randomUUID: () => `test-${++uuid}` },
+    dataLayer: []
+  };
+  const context = {
+    window,
+    document,
+    navigator: { userAgent: 'ClickTrail smoke', webdriver: false },
+    localStorage: memoryStorage,
+    sessionStorage: memoryStorage,
+    URL,
+    Event,
+    CustomEvent: class CustomEvent {
+      constructor(type, options) { this.type = type; this.detail = options && options.detail; }
+    },
+    console
+  };
+  const source = readFile('assets/js/clicutcl-attribution.js');
+  const visit = (search) => {
+    window.location = {
+      href: `https://example.test/${search}`,
+      origin: 'https://example.test',
+      protocol: 'https:',
+      hostname: 'example.test',
+      pathname: '/',
+      search
+    };
+    vm.runInNewContext(source, context);
+  };
+  const decorate = (href) => {
+    const attrs = { href };
+    const anchor = {
+      getAttribute: (name) => (name in attrs ? attrs[name] : null),
+      setAttribute: (name, value) => { attrs[name] = String(value); },
+      hasAttribute: (name) => name in attrs,
+      removeAttribute: (name) => { delete attrs[name]; }
+    };
+    // Like the DOM, the href property and attribute are one value.
+    Object.defineProperty(anchor, 'href', { get: () => attrs.href, set: (v) => { attrs.href = String(v); } });
+    listeners.mousedown({ target: { closest: () => anchor } });
+    return new URL(attrs.href).searchParams;
+  };
+
+  return {
+    window,
+    values,
+    visit,
+    decorate,
+    cookie(name) {
+      const raw = cookies.split('; ').find((cookie) => cookie.startsWith(`${name}=`));
+      return raw ? JSON.parse(decodeURIComponent(raw.slice(name.length + 1))) : null;
+    },
+    setCookie(name, data) {
+      cookies = [cookies, `${name}=${encodeURIComponent(JSON.stringify(data))}`].filter(Boolean).join('; ');
+    },
+    resetCookies() { cookies = ''; }
+  };
+}
+
+// Returning visitor with a new ad click: link decoration and the persisted cookie must carry the
+// last-touch click ID, not the first visit's copy.
+function validateReturningVisitorClickId(failures) {
+  const browser = makeBrowser('ct_attribution');
+  const { window, values, visit, decorate } = browser;
+
+  visit('?gclid=TEST_GCLID_123&utm_source=google&utm_campaign=first');
+  visit('?gclid=TEST_PERSIST_456&utm_source=google&utm_campaign=repeat');
+
+  const applyLink = decorate('https://apply.example.test/form');
+  assert(applyLink.get('gclid') === 'TEST_PERSIST_456', `Decorated link must carry last-touch gclid, got ${applyLink.get('gclid')}`, failures);
+  assert(applyLink.get('utm_campaign') === 'repeat', 'Decorated link must carry last-touch UTMs', failures);
+
+  const stamp = decorate('https://calendly.com/acme/intro').get('salesforce_uuid') || '';
+  assert(stamp.includes('gclid=TEST_PERSIST_456'), `Calendly stamp must carry last-touch gclid, got ${stamp}`, failures);
+
+  const stored = browser.cookie('ct_attribution') || {};
+  assert(stored.gclid === 'TEST_PERSIST_456', `Persisted top-level gclid must mirror lt_gclid, got ${stored.gclid}`, failures);
+  assert(stored.ft_gclid === 'TEST_GCLID_123', 'First-touch gclid must keep the first visit value', failures);
+
+  const pageView = window.dataLayer.filter((entry) => entry.event === 'ct_page_view').pop();
+  const pageGclid = pageView && pageView.marketing_trail.click_ids.gclid;
+  assert(pageGclid === 'TEST_PERSIST_456', `ct_page_view must carry last-touch gclid, got ${pageGclid}`, failures);
+
+  // Cookie written before the fix, visitor returns with no URL signal: still decorates with last touch.
+  values.clear();
+  browser.resetCookies();
+  browser.setCookie('ct_attribution', { gclid: 'TEST_GCLID_123', ft_gclid: 'TEST_GCLID_123', lt_gclid: 'TEST_PERSIST_456' });
+  visit('');
+  const legacyGclid = decorate('https://apply.example.test/form').get('gclid');
+  assert(legacyGclid === 'TEST_PERSIST_456', `Legacy cookie must decorate with last-touch gclid, got ${legacyGclid}`, failures);
+}
+
+// D3 (clicktrail-js ruling): Google A then Meta B selects B; history stays browser-side.
+// Cookie migration: canonical `attribution` wins, legacy `ct_attribution` is read but never refreshed.
+function validateClickIdSelectionAndCookieMigration(failures) {
+  const meta = makeBrowser('attribution');
+  meta.visit('?gclid=GA&utm_source=google&utm_medium=cpc&utm_campaign=g1');
+  meta.visit('?fbclid=FB&utm_source=facebook&utm_medium=paid&utm_campaign=m1');
+  const data = meta.window.ClickTrail.getData();
+  assert(data.attribution_selected_click_id === 'FB', `Selected click must be the newest (FB), got ${data.attribution_selected_click_id}`, failures);
+  assert(data.attribution_selected_click_id_reason === 'newest_valid_superseded_previous', `Unexpected selection reason ${data.attribution_selected_click_id_reason}`, failures);
+  const envelope = JSON.parse(meta.values.get('attribution') || '{}');
+  const history = JSON.parse((envelope.data || {}).click_id_history || '[]').map((entry) => `${entry.k}=${entry.v}`).join(',');
+  assert(history === 'gclid=GA,fbclid=FB', `click_id_history must record both clicks in order, got ${history}`, failures);
+  assert(!('click_id_history' in data), 'click_id_history must not leave browser storage via ClickTrail.getData()', failures);
+  meta.visit(''); // a page view without a new touch is not saved, but still pushes ct_page_view
+  const leaked = meta.window.dataLayer.some((entry) => entry.ct_attribution && 'click_id_history' in entry.ct_attribution);
+  assert(!leaked, 'click_id_history must not reach the dataLayer', failures);
+  assert(data.gclid === 'GA' && data.fbclid === 'FB', 'Per-platform top-level click IDs are both kept', failures);
+  const cookie = meta.cookie('attribution') || {};
+  assert(!('click_id_history' in cookie), 'click_id_history must stay out of the server cookie', failures);
+  assert(cookie.attribution_selected_click_id === 'FB', 'Selected click must reach the server cookie', failures);
+  const stamp = meta.decorate('https://calendly.com/acme/intro').get('salesforce_uuid') || '';
+  assert(stamp.includes('fbclid=FB') && !stamp.includes('gclid'), `Calendly stamp must carry the selected click, got ${stamp}`, failures);
+
+  const snap = makeBrowser('attribution');
+  snap.visit('?gclid=GA&utm_source=google');
+  snap.visit('?ScCid=SNAP&utm_source=snapchat');
+  assert(snap.window.ClickTrail.getData().attribution_selected_click_id === 'SNAP', 'Snap click is selected', failures);
+  const snapStamp = snap.decorate('https://calendly.com/acme/intro').get('salesforce_uuid') || '';
+  assert(snapStamp === 'ct1;sccid=SNAP', `Stamp must carry the selected Snap click, never the older Google one, got ${snapStamp}`, failures);
+
+  const legacy = makeBrowser('attribution');
+  legacy.setCookie('ct_attribution', { lt_source: 'old', lt_gclid: 'OLD', gclid: 'OLD' });
+  legacy.visit('');
+  assert(legacy.window.ClickTrail.getData().gclid === 'OLD', 'Legacy-only cookie is still read', failures);
+  assert(!legacy.values.has('attribution'), 'A legacy-only cookie is not mirrored into localStorage with a fresh expiry', failures);
+  assert(legacy.cookie('attribution') === null, 'Reading the legacy cookie must not rewrite it (no retention refresh)', failures);
+  legacy.setCookie('attribution', { lt_source: 'new', lt_gclid: 'NEW', gclid: 'NEW' });
+  assert(legacy.window.ClickTrail.getData().gclid === 'NEW', 'Canonical cookie wins over the legacy one', failures);
+  legacy.visit('?gclid=NEWER&utm_source=google');
+  assert(legacy.cookie('ct_attribution') === null, 'Saving drops the legacy cookie', failures);
+  assert((legacy.cookie('attribution') || {}).gclid === 'NEWER', 'Canonical cookie holds the new touch', failures);
+}
+
 function validateWooRuntimeRemediations(failures) {
   const integration = readFile('includes/integrations/class-woocommerce.php');
   const admin = readFile('includes/admin/class-clicutcl-woocommerce-admin.php');
@@ -269,6 +446,8 @@ function main() {
   validateConsentRuntime(failures);
   validatePendingCaptureConsentGate(failures);
   validateCachedFormActionBoundary(failures);
+  validateReturningVisitorClickId(failures);
+  validateClickIdSelectionAndCookieMigration(failures);
   validateWooRuntimeRemediations(failures);
   validateWooConsentSnapshotV1(failures);
   failures.push(...formRuntimeEvidence.validate(root));

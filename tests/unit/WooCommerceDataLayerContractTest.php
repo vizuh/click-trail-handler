@@ -84,4 +84,21 @@ final class WooCommerceDataLayerContractTest extends TestCase {
 		$this->assertSame( 'spring', $result['ft_campaign'] );
 		$this->assertSame( 'newsletter', $result['lt_source'] );
 	}
+
+	public function test_legacy_top_level_click_id_yields_to_last_touch(): void {
+		$method = new ReflectionMethod( WooCommerce::class, 'flatten_attribution_for_event' );
+
+		$result = $method->invoke(
+			new WooCommerce(),
+			array(
+				'gclid'       => 'TEST_GCLID_123',
+				'first_touch' => array( 'gclid' => 'TEST_GCLID_123' ),
+				'last_touch'  => array( 'gclid' => 'TEST_PERSIST_456' ),
+			)
+		);
+
+		$this->assertSame( 'TEST_PERSIST_456', $result['gclid'] );
+		$this->assertSame( 'TEST_GCLID_123', $result['ft_gclid'] );
+		$this->assertSame( 'TEST_PERSIST_456', $result['lt_gclid'] );
+	}
 }

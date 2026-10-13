@@ -4,7 +4,7 @@
 - **Canonical for**: consent behavior, token handling, replay protection, and secret treatment
 - **Update when**: consent flow, auth, signing, secret storage, or privacy behavior changes
 - **Historical audit baseline**: plugin code `1.9.0`, commit `a45aa9e`, reviewed 2026-08-19
-- **Current release**: plugin code `1.10.4`, with automated consent, queue, WooCommerce privacy, CF7 outcome, touch-event deduplication, CMP decision-transition, and Calendly webhook coverage; the browser storage inventory is below
+- **Current release**: plugin code `1.10.5`, with automated consent, queue, WooCommerce privacy, CF7 outcome, touch-event deduplication, CMP decision-transition, Calendly webhook, and attribution round-trip E2E (`tools/qa/e2e/`, CI) coverage; the browser storage inventory is below
 - **Runtime verification**: PHP/WordPress/browser/CMP/provider E2E remains incomplete; live behavior is not implied by automated fixtures
 
 ClickTrail is designed to capture attribution and events without treating privacy and delivery as separate concerns.
@@ -72,7 +72,17 @@ When the plugin is the source, ClickTrail can render its own lightweight consent
 
 The Cookiebot bridge stays subscribed to `CookiebotOnConsentReady`, `CookiebotOnAccept`, and
 `CookiebotOnDecline`, so an in-page change or withdrawal (Cookiebot's renew dialog) clears ClickTrail
-storage without a reload. The Complianz bridge reads `cmplz_has_consent()` (or the accepted
+storage without a reload. The same withdrawal removes the parameters ClickTrail added from every link it decorated, including the
+`CT:` payload on WhatsApp links (later site edits to those links are kept) and restores the `data-url` of inline Calendly widgets; an inline iframe or
+popup that already loaded keeps the URL it loaded with. It clears every `ct_*` hidden field and plain-name fields
+(`gclid`, `utm_source`, ...) only when ClickTrail filled them. `ct_*` inputs are ClickTrail's namespace: while
+consent allows, they are refreshed from current attribution even when `injectOverwrite` is off. After withdrawal, form listeners refill nothing and
+mint no visitor or session IDs. Re-granting on the same page decorates and fills again from current attribution.
+
+The click-ID audit trail (`click_id_history`, D3) holds up to 50 `{platform key, click ID, timestamp}` entries in
+the existing localStorage/sessionStorage attribution envelope, never in the cookie. It shares the envelope's
+`cookie_days` retention, is cleared on withdrawal, and is not exposed through `ClickTrail.getData()`, the
+`dataLayer` or form posts. Only `attribution_selected_click_id` and its reason reach the cookie and the server. The Complianz bridge reads `cmplz_has_consent()` (or the accepted
 `event.detail.categories`) on `cmplz_fire_categories` and `cmplz_status_change`.
 
 ## Browser Storage Inventory and CMP Classification

@@ -18,6 +18,7 @@ namespace CLICUTCL\Integrations\Forms {
 }
 
 namespace {
+	require_once dirname( __DIR__, 2 ) . '/includes/Core/class-attribution-provider.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/integrations/forms/interface-form-adapter.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/integrations/forms/class-abstract-form-adapter.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/integrations/forms/class-cf7-adapter.php';
@@ -25,6 +26,7 @@ namespace {
 	class WPCF7_Submission {
 		public static $instance;
 		public $status = 'init';
+		public $posted = array();
 
 		public static function get_instance() {
 			return self::$instance;
@@ -35,7 +37,7 @@ namespace {
 		}
 
 		public function get_posted_data() {
-			return array();
+			return $this->posted;
 		}
 	}
 
@@ -86,6 +88,45 @@ namespace {
 			}
 			$submission->status = $status;
 			$this->fire( 'wpcf7_' . $status, array( $form ) );
+		}
+
+		public function test_submit_time_cookie_wins_over_hidden_fields_rendered_one_touch_behind(): void {
+			$submission                 = new WPCF7_Submission();
+			$submission->status         = 'mail_sent';
+			$submission->posted         = array(
+				'ct_lt_campaign'                   => 'google_first_visit',
+				'ct_gclid'                         => 'GA',
+				'ct_attribution_selected_click_id' => 'GA',
+			);
+			WPCF7_Submission::$instance = $submission;
+			$GLOBALS['ct_cf7_hooks']    = array();
+			$form = new class() {
+				public function id() {
+					return 17;
+				}
+			};
+			$adapter = $this->getMockBuilder( \CLICUTCL\Integrations\Forms\CF7_Adapter::class )
+				->onlyMethods( array( 'log_submission', 'get_attribution_payload' ) )->getMock();
+			$adapter->method( 'get_attribution_payload' )->willReturn(
+				array(
+					'lt_campaign'                   => 'meta_this_visit',
+					'fbclid'                        => 'FB',
+					'attribution_selected_click_id' => 'FB',
+				)
+			);
+			$adapter->expects( $this->once() )->method( 'log_submission' )->with(
+				'contact-form-7',
+				17,
+				array(
+					'lt_campaign'                   => 'meta_this_visit',
+					'gclid'                         => 'GA',
+					'attribution_selected_click_id' => 'FB',
+					'fbclid'                        => 'FB',
+				)
+			);
+			$adapter->register_hooks();
+			$this->fire( 'wpcf7_before_send_mail', array( $form, false, $submission ) );
+			$this->fire( 'wpcf7_mail_sent', array( $form ) );
 		}
 
 		private function fire( string $hook, array $args ): void {

@@ -14,7 +14,7 @@ Envelope v1 fields:
 - `workspace_id` and `site_id`: optional routing identifiers.
 - `event_name`, `occurred_at`, landing page, referrer, latest-touch source,
   medium and campaign with first-touch fallback.
-- `click_ids`: normalized advertising identifiers.
+- `click_ids`: normalized advertising identifiers, latest-touch values.
 - `consent`: capture-time `analytics` and `advertising` state.
 - `form`: provider and form ID when a form is involved.
 

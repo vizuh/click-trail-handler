@@ -127,7 +127,7 @@ Supported browser/platform identifiers when available and allowed by consent:
 - `ga_session_id`
 - `ga_session_number`
 
-Persist attribution in a canonical flat shape using `ft_` and `lt_` prefixes for first-touch and last-touch values. Also keep the top-level click IDs and browser identifiers for convenience and downstream export. Normalize legacy aliases back to canonical keys on read.
+Persist attribution in a canonical flat shape using `ft_` and `lt_` prefixes for first-touch and last-touch values. Also keep the top-level click IDs and browser identifiers for convenience and downstream export; a top-level click ID mirrors the last touch (`lt_<id>` overwrites it, `ft_<id>` only fills it when empty), so a returning visitor's new click is never shadowed by the first one. Normalize legacy aliases back to canonical keys on read.
 
 Use a payload shape equivalent to:
 

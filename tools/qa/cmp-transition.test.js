@@ -44,8 +44,41 @@ class FakeStorage {
   get length() { return Object.keys(this.values).length; }
 }
 
-function boot({ search = '?gclid=G1&utm_source=google', cookiebot, seed = {} } = {}) {
+// Minimal element: attributes plus a value; enough for the decorator and the hidden-field injector.
+function element(tag, attrs = {}, value = '') {
+  const at = Object.assign({}, attrs);
+  const el = {
+    tagName: tag.toUpperCase(),
+    nodeType: 1,
+    name: at.name || '',
+    value,
+    dataset: {},
+    getAttribute: (name) => (name in at ? at[name] : null),
+    setAttribute: (name, v) => { at[name] = String(v); },
+    hasAttribute: (name) => name in at,
+    removeAttribute: (name) => { delete at[name]; },
+    dispatchEvent() {},
+    closest: () => el,
+  };
+  // Like the DOM, the href property and attribute are one value.
+  Object.defineProperty(el, 'href', { get: () => at.href, set: (v) => { at.href = String(v); } });
+  return el;
+}
+
+// Supports the selectors the runtime uses on these elements: anchors it decorated and inputs by name.
+function selectorFor(elements) {
+  return (selector) => elements.filter((el) => selector.split(',').some((part) => {
+    if (/^\s*a\[data-clicutcl-href\]\s*$/.test(part)) return el.tagName === 'A' && el.hasAttribute('data-clicutcl-href');
+    const name = part.match(/^\s*input\[name="([^"]+)"\]/);
+    return !!name && el.tagName === 'INPUT' && el.name === name[1];
+  }));
+}
+
+function boot({ search = '?gclid=G1&utm_source=google', cookiebot, seed = {}, config = {}, eventsConfig = {}, elements = [], calendly } = {}) {
   const writes = new Set();
+  // Deferred work and network sends are recorded, never run implicitly, so a test can fire them on purpose.
+  const timers = [];
+  const sent = [];
   const jar = Object.create(null);
   const document = new Bus();
   Object.assign(document, {
@@ -56,7 +89,7 @@ function boot({ search = '?gclid=G1&utm_source=google', cookiebot, seed = {} } =
     body: { appendChild() {} },
     head: { appendChild() {} },
     documentElement: {},
-    querySelectorAll: () => [],
+    querySelectorAll: selectorFor(elements),
     querySelector: () => null,
     getElementsByTagName: () => [],
     createElement: () => ({ setAttribute() {}, appendChild() {}, style: {} }),
@@ -85,29 +118,36 @@ function boot({ search = '?gclid=G1&utm_source=google', cookiebot, seed = {} } =
     localStorage: new FakeStorage('local', writes),
     sessionStorage: new FakeStorage('session', writes),
     location: { href: url.href, search: url.search, protocol: url.protocol, hostname: url.hostname, origin: url.origin, pathname: url.pathname },
-    navigator: { userAgent: 'Mozilla/5.0 Chrome/140', webdriver: false, language: 'en' },
+    navigator: {
+      userAgent: 'Mozilla/5.0 Chrome/140',
+      webdriver: false,
+      language: 'en',
+      sendBeacon: (...args) => { sent.push(['beacon', JSON.stringify(args)]); return true; },
+    },
     screen: { width: 1280, height: 800 },
     innerWidth: 1280,
     innerHeight: 800,
     crypto: require('crypto').webcrypto,
     dataLayer: [],
     console: { log() {}, warn() {}, error() {} },
-    setTimeout: () => 0,
+    setTimeout: (fn) => { timers.push(fn); return timers.length; },
     clearTimeout() {},
-    setInterval: () => 0,
+    setInterval: (fn) => { timers.push(fn); return timers.length; },
     clearInterval() {},
+    fetch: (...args) => { sent.push(['fetch', JSON.stringify(args)]); return Promise.resolve({ ok: true, json: () => ({}) }); },
     CSS: { escape: (value) => String(value) },
     CustomEvent: class CustomEvent {
       constructor(type, options) { this.type = type; this.detail = options && options.detail; }
     },
     URL,
     URLSearchParams,
+    Event: class Event { constructor(type) { this.type = type; } },
     TextEncoder,
     btoa,
     atob,
-    clicutcl_config: { cookieName: 'attribution', cookieDays: 90, requireConsent: true },
+    clicutcl_config: Object.assign({ cookieName: 'attribution', cookieDays: 90, requireConsent: true }, config),
     // Thank-you matcher on the landing path exercises the events script's session marker.
-    clicutclEventsConfig: { enabled: true, thankYouMatchers: ['/landing'] },
+    clicutclEventsConfig: Object.assign({ enabled: true, thankYouMatchers: ['/landing'] }, eventsConfig),
     ctConsentBridgeConfig: {
       enabled: true,
       cookieName: 'ct_consent',
@@ -120,6 +160,7 @@ function boot({ search = '?gclid=G1&utm_source=google', cookiebot, seed = {} } =
   window.window = window;
   window.self = window;
   if (cookiebot) window.Cookiebot = cookiebot;
+  if (calendly) window.Calendly = calendly;
   Object.entries(seed).forEach(([key, value]) => { window.localStorage.values[key] = value; });
 
   const context = vm.createContext(window);
@@ -142,7 +183,7 @@ function boot({ search = '?gclid=G1&utm_source=google', cookiebot, seed = {} } =
   };
 
   const data = () => JSON.stringify((window.ClickTrail && window.ClickTrail.getData()) || {});
-  return { window, writes, present, decide, data };
+  return { window, document, jar, writes, present, decide, data, timers, sent };
 }
 
 const pendingCookiebot = () => ({ hasResponse: false, consent: { marketing: false, statistics: false } });
@@ -214,6 +255,175 @@ const tests = {
     const deniedCookiebot = { hasResponse: true, consent: { marketing: false, statistics: false } };
     const page = boot({ cookiebot: deniedCookiebot, seed: { clicutcl_js_last_seen: '1' } });
     assert.ok(!page.present().includes('local:clicutcl_js_last_seen'));
+  },
+
+  'same-page grant, withdrawal and re-grant: links and filled fields follow live consent'() {
+    const original = 'https://apply.example.test/form?ref=site';
+    const link = element('a', { href: original });
+    const ctField = element('input', { name: 'ct_gclid' });
+    // Rendered server-side from the previous visit's cookie (CF7 hidden fields).
+    const renderedField = element('input', { name: 'ct_lt_source' }, 'previous-visit');
+    const siteField = element('input', { name: 'utm_source' }, 'site-supplied');
+    const page = boot({
+      cookiebot: pendingCookiebot(),
+      config: { linkDecorateEnabled: true, injectEnabled: true },
+      elements: [link, ctField, renderedField, siteField],
+    });
+    const click = () => {
+      page.document.dispatchEvent({ type: 'mousedown', target: link });
+      return new URL(link.getAttribute('href')).searchParams;
+    };
+
+    page.decide(true, ['CookiebotOnConsentReady', 'CookiebotOnAccept']);
+    let params = click();
+    assert.strictEqual(params.get('gclid'), 'G1', 'granted: link carries the click ID');
+    assert.strictEqual(params.get('ref'), 'site', 'site parameters are kept');
+    assert.strictEqual(ctField.value, 'G1', 'granted: ClickTrail fills its field');
+    assert.strictEqual(renderedField.value, 'google', 'a ct_* field rendered one touch behind is refreshed');
+    assert.strictEqual(siteField.value, 'site-supplied', 'site-supplied value is never overwritten');
+
+    page.window.Cookiebot.consent = { marketing: false, statistics: false };
+    page.window.dispatchEvent(new page.window.CustomEvent('CookiebotOnDecline'));
+    assert.strictEqual(link.getAttribute('href'), original, 'withdrawal restores the original URL');
+    assert.strictEqual(click().get('gclid'), null, 'a click after withdrawal adds no click ID');
+    assert.strictEqual(link.getAttribute('href'), original);
+    assert.strictEqual(ctField.value, '', 'withdrawal clears the ClickTrail field');
+    assert.strictEqual(siteField.value, 'site-supplied', 'withdrawal keeps the site-supplied value');
+    page.document.dispatchEvent({ type: 'submit' });
+    assert.deepStrictEqual(page.present().filter((key) => !CONSENT_KEYS.includes(key)), [], 'a submit after withdrawal writes nothing');
+    assert.strictEqual(ctField.value, '', 'a submit after withdrawal refills nothing');
+
+    page.window.Cookiebot.consent = { marketing: true, statistics: true };
+    page.window.dispatchEvent(new page.window.CustomEvent('CookiebotOnAccept'));
+    assert.strictEqual(click().get('gclid'), 'G1', 're-grant decorates again');
+
+    // Another tab captured a newer click: the already-decorated link must follow it.
+    const stored = JSON.parse(decodeURIComponent(page.jar.attribution));
+    page.jar.attribution = encodeURIComponent(JSON.stringify(Object.assign(stored, { gclid: 'G2', lt_gclid: 'G2' })));
+    params = click();
+    assert.strictEqual(params.get('gclid'), 'G2', 'a decorated link is rebuilt from the latest touch');
+    assert.strictEqual(params.getAll('gclid').length, 1);
+    assert.strictEqual(params.get('ref'), 'site');
+    page.document.dispatchEvent({ type: 'submit' });
+    assert.strictEqual(ctField.value, 'G2', 'submit refreshes the field ClickTrail filled');
+    assert.strictEqual(siteField.value, 'site-supplied', 'submit keeps the site-supplied value');
+  },
+
+  'site edits to a decorated link survive; only ClickTrail params are replaced or removed'() {
+    const link = element('a', { href: 'https://apply.example.test/form' });
+    const local = element('a', { href: '/pricing' });
+    const page = boot({ cookiebot: grantedCookiebot(), config: { linkDecorateEnabled: true }, elements: [link, local] });
+    const click = (a) => {
+      page.document.dispatchEvent({ type: 'mousedown', target: a });
+      return new URL(a.getAttribute('href'), 'https://example.test/').searchParams;
+    };
+
+    assert.strictEqual(click(link).get('gclid'), 'G1');
+    click(local);
+    assert.strictEqual(local.getAttribute('href'), '/pricing', 'same-origin link untouched');
+    assert.ok(!local.hasAttribute('data-clicutcl-href'), 'an anchor ClickTrail did not decorate is not tracked');
+
+    link.setAttribute('href', link.getAttribute('href') + '&site=1');
+    const stored = JSON.parse(decodeURIComponent(page.jar.attribution));
+    page.jar.attribution = encodeURIComponent(JSON.stringify(Object.assign(stored, { gclid: 'G2', lt_gclid: 'G2' })));
+    let params = click(link);
+    assert.strictEqual(params.get('gclid'), 'G2', 'a newer touch replaces the old click on a site-edited link');
+    assert.strictEqual(params.get('site'), '1', 'the site edit is kept');
+
+    link.setAttribute('href', link.getAttribute('href') + '&step=2');
+    page.window.Cookiebot.consent = { marketing: false, statistics: false };
+    page.window.dispatchEvent(new page.window.CustomEvent('CookiebotOnDecline'));
+    params = new URL(link.getAttribute('href')).searchParams;
+    assert.strictEqual(params.get('gclid'), null, 'withdrawal removes the click ID from a site-edited link');
+    assert.strictEqual(params.get('utm_source'), null, 'withdrawal removes ClickTrail UTMs');
+    assert.strictEqual(params.get('site'), '1');
+    assert.strictEqual(params.get('step'), '2', 'withdrawal keeps later site edits');
+  },
+
+  'a tampered stored original never puts a non-http URL into an href'() {
+    const href = 'https://apply.example.test/form?gclid=G1';
+    const link = element('a', { href, 'data-clicutcl-href': 'javascript:alert(1)', 'data-clicutcl-decorated': href });
+    const page = boot({ cookiebot: grantedCookiebot(), config: { linkDecorateEnabled: true }, elements: [link] });
+    page.document.dispatchEvent({ type: 'mousedown', target: link });
+    assert.ok(!/^javascript:/i.test(link.getAttribute('href')), 'decoration does not write javascript:');
+    link.setAttribute('data-clicutcl-href', 'javascript:alert(1)');
+    link.setAttribute('data-clicutcl-decorated', link.getAttribute('href'));
+    page.window.Cookiebot.consent = { marketing: false, statistics: false };
+    page.window.dispatchEvent(new page.window.CustomEvent('CookiebotOnDecline'));
+    assert.ok(!/^javascript:/i.test(link.getAttribute('href')), 'restore does not write javascript:');
+  },
+
+  'WhatsApp links carry one CT payload and are restored on withdrawal'() {
+    const original = 'https://wa.me/5511999999999?text=Hi';
+    const link = element('a', { href: original });
+    const page = boot({
+      cookiebot: grantedCookiebot(),
+      config: { enableWhatsapp: true, whatsappAppendAttribution: true },
+      elements: [link],
+    });
+    const click = () => {
+      page.document.dispatchEvent({ type: 'click', target: link });
+      return new URL(link.getAttribute('href')).searchParams.get('text');
+    };
+    assert.ok(click().includes('CT:'), 'granted: WhatsApp text carries attribution');
+    assert.strictEqual(click().split('CT:').length, 2, 'a second click does not stack another CT payload');
+
+    page.window.Cookiebot.consent = { marketing: false, statistics: false };
+    page.window.dispatchEvent(new page.window.CustomEvent('CookiebotOnDecline'));
+    assert.strictEqual(link.getAttribute('href'), original, 'withdrawal restores the WhatsApp link');
+    assert.strictEqual(click(), 'Hi', 'a click after withdrawal adds nothing');
+  },
+
+  'after withdrawal no event path stores, sends or pushes identifiers'() {
+    const popupUrls = [];
+    const calendly = { initPopupWidget: (options) => { popupUrls.push(options.url); } };
+    const link = element('a', { href: 'https://apply.example.test/form' });
+    const page = boot({
+      cookiebot: grantedCookiebot(),
+      config: { linkDecorateEnabled: true, linkAllowedDomains: ['calendly.com'], injectEnabled: true },
+      // Browser event transport on, so "no sends after withdrawal" can fail.
+      eventsConfig: { transportEnabled: true, eventsBatchUrl: 'https://example.test/wp-json/clicutcl/v2/events/batch', eventsToken: 'test-token' },
+      elements: [link],
+      calendly,
+    });
+
+    // Everything a page can still trigger: pending timers, user events, lifecycle, a Calendly popup.
+    const errors = [];
+    const attempt = (fn) => { try { fn(); } catch (e) { errors.push(String(e && e.message)); } };
+    const fireAll = () => {
+      page.timers.splice(0).forEach((fn) => attempt(() => typeof fn === 'function' && fn()));
+      ['mousedown', 'click', 'touchstart', 'submit', 'visibilitychange', 'scroll', 'ct_ready'].forEach((type) => {
+        attempt(() => page.document.dispatchEvent({ type, target: link }));
+      });
+      ['scroll', 'pagehide', 'beforeunload', 'load', 'focus', 'blur'].forEach((type) => {
+        attempt(() => page.window.dispatchEvent(new page.window.CustomEvent(type)));
+      });
+      page.window.Calendly.initPopupWidget({ url: 'https://calendly.com/acme/intro' });
+      page.timers.splice(0).forEach((fn) => attempt(() => typeof fn === 'function' && fn()));
+    };
+
+    fireAll();
+    assert.ok(popupUrls[0].includes('salesforce_uuid'), 'granted: popup URL carries the stamp');
+    assert.ok(page.sent.length > 0, 'control: with consent the same triggers do send events');
+
+    page.window.Cookiebot.consent = { marketing: false, statistics: false };
+    page.window.dispatchEvent(new page.window.CustomEvent('CookiebotOnDecline'));
+    // Timers queued while consent was granted still fire below: a flush after the decision must send nothing.
+    const layerBefore = page.window.dataLayer.length;
+    const sentBefore = page.sent.length;
+    const writesBefore = new Set(page.writes);
+    const popupsBefore = popupUrls.length;
+
+    fireAll();
+
+    assert.deepStrictEqual(page.present().filter((key) => !CONSENT_KEYS.includes(key)), [], 'nothing stored after withdrawal');
+    assert.deepStrictEqual([...page.writes].filter((key) => !writesBefore.has(key) && !CONSENT_KEYS.includes(key)), [], 'no new storage writes');
+    assert.deepStrictEqual(page.sent.slice(sentBefore), [], 'no network sends after withdrawal');
+    const pushed = JSON.stringify(page.window.dataLayer.slice(layerBefore));
+    assert.ok(!/G1|visitor_id|session_id|ct_attribution|click_ids/.test(pushed), 'no identifiers pushed after withdrawal: ' + pushed.slice(0, 200));
+    assert.strictEqual(popupUrls[popupsBefore], 'https://calendly.com/acme/intro', 'a popup opened after withdrawal gets the site URL only');
+    assert.strictEqual(link.getAttribute('href'), 'https://apply.example.test/form');
+    assert.deepStrictEqual(errors, [], 'no handler threw');
   },
 
   'every written storage key is listed in the inventory'() {
