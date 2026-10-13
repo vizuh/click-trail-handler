@@ -5,7 +5,7 @@ Author URI: https://vizuh.com
 Tags: attribution, utm, consent mode, woocommerce, server-side tracking
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 1.10.3
+Stable tag: 1.10.5
 Requires PHP: 8.1
 WC requires at least: 10.4.2
 License: GPLv2 or later
