@@ -4,15 +4,22 @@ Proves Google A, then Meta B, then a Contact Form 7 submit and a Calendly bookin
 attribution in what ClickTrail stores and dispatches, not only in the URL or `dataLayer`.
 
 ```sh
-tools/qa/e2e/setup.sh                 # podman pod ct-e2e on 127.0.0.1:8088; mounts this plugin read-only
-python3 tools/qa/e2e/run.py > /tmp/ct-e2e.json    # Playwright Chromium: two visits, links, form submit
-python3 tools/qa/e2e/webhook.py /tmp/ct-e2e.json  # signed Calendly invitee.created with the browser's stamp
-podman exec ct-e2e-wp tail -2 /var/www/html/wp-content/ct-capture.jsonl   # dispatched lead + booking
-podman pod rm -f ct-e2e && podman volume rm ct-e2e-wp ct-e2e-db
+tools/qa/e2e/ci.sh [plugin-root]      # whole round trip + assertions; tears the pod down; exit 1 on any mismatch
 ```
 
+CI runs the same script on every pull request and push to `main`
+(`.github/workflows/e2e-attribution.yml`, `ubuntu-24.04`, podman + Playwright 1.59.0). Against plugin
+1.10.4 code 10 of its 15 checks fail; against 1.10.5 all pass.
+
+`ci.sh` runs, in order: `setup.sh` (podman pod `ct-e2e` on 127.0.0.1:8088, plugin mounted read-only, Contact
+Form 7 pinned), `run.py` (Google A then Meta B, links, CF7 submit), `webhook.py` (signed Calendly
+`invitee.created` with the browser's stamp), `dual.py` (both cookies with different click IDs), then
+`verify.py` over the browser JSON, the stored `wp_clicutcl_events` rows and the captured dispatches. Set
+`CT_E2E_OUT` to keep the evidence directory. `wp.sh` runs wp-cli inside the pod for manual digging.
+
 Expected for 1.10.5: stamp `ct1;fbclid=FB`; stored and dispatched lead `lt_campaign=m1`, `fbclid=FB`,
-`attribution_selected_click_id=FB`; dispatched `book_appointment` with `fbclid=FB` and no `gclid`.
+`attribution_selected_click_id=FB`; dispatched `book_appointment` with `fbclid=FB` and no `gclid`; with both
+cookies present the canonical one wins in the browser, the rendered field and the stored lead.
 
 Notes:
 

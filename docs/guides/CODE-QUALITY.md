@@ -61,7 +61,7 @@ That improves breadth safety, but it is still not a full WordPress runtime or in
 
 ## 5. Repeat-visit attribution (1.10.5 status)
 
-Repro: `node tools/qa/repeat-visit-scenarios.js [plugin-root]` replays visits through the real attribution script and prints what the stored payload, a decorated link and the Calendly stamp carry. Asserted coverage lives in `tools/qa/smoke.js`, `tools/qa/cmp-transition.test.js`, `tests/unit/ClickIdPrecedenceTest.php` and `tests/unit/CF7SubmissionOutcomeTest.php`; `tools/qa/e2e/` replays the full browser, form and Calendly webhook round trip on a throwaway local WordPress.
+Repro: `node tools/qa/repeat-visit-scenarios.js [plugin-root]` replays visits through the real attribution script and prints what the stored payload, a decorated link and the Calendly stamp carry. Asserted coverage lives in `tools/qa/smoke.js`, `tools/qa/cmp-transition.test.js`, `tests/unit/ClickIdPrecedenceTest.php` and `tests/unit/CF7SubmissionOutcomeTest.php`; `tools/qa/e2e/ci.sh` replays and asserts the full browser, form and Calendly webhook round trip on a throwaway WordPress, in CI on every pull request (`.github/workflows/e2e-attribution.yml`).
 
 | Scenario | 1.10.4 | 1.10.5 |
 |---|---|---|
