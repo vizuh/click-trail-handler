@@ -259,6 +259,10 @@ configured-endpoint relays whose provider authentication, acceptance, and runtim
 * Forms: attribution fields ClickTrail filled are refreshed before submit; values your site or the visitor entered in other fields are never overwritten.
 * Contact Form 7: a visitor who lands from a new ad and submits on the same page is now credited to that ad. Before, the form could send the previous visit's campaign.
 
+= 1.10.4 =
+* Admin: the setup wizard now matches the refreshed ClickTrail screens. Visual only; completing the wizard still saves your settings.
+* Admin: fixed a stray check icon on the wizard's GA4 summary line and Next/Back arrows that sat above the text baseline.
+
 = 1.10.3 =
 * Consent: Cookiebot changes made in the page (for example withdrawing consent in the renew dialog) now clear ClickTrail storage immediately instead of on the next page load.
 * Consent: fixed Complianz support, which could treat an accepted banner as a refusal. ClickTrail now reads Complianz's accepted categories.
