@@ -18,3 +18,8 @@ updates:
     cooldown:
       default-days: 7
     open-pull-requests-limit: 5
+    groups:
+      # init, autobuild, analyze and upload-sarif must run the same CodeQL version.
+      codeql-action:
+        patterns:
+          - "github/codeql-action*"
