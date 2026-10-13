@@ -24,7 +24,7 @@ that WordPress.org has approved or published that locale. The current POT contai
 | English (US) | — | Source | US English is the canonical source language, not a separate translation. |
 
 The live project is [ClickTrail on translate.wordpress.org](https://translate.wordpress.org/projects/wp-plugins/click-trail-handler/).
-The stable WordPress.org listing is 1.10.3; GitHub `main` is 1.10.4.
+The stable WordPress.org listing and GitHub `main` are both 1.10.5.
 Language packs follow GlotPress approval; the POT catalog is not shipped in the plugin package.
 
 ## How WordPress.org translations work
@@ -42,7 +42,7 @@ admin screens have been checked on a localized WordPress installation.
 
 ### Phase 1: refresh the existing catalogs
 
-- Regenerate the POT catalog from the current source (1.10.4).
+- Regenerate the POT catalog from the current source (1.10.5).
 - Run `msgmerge` for `de_DE` and `pt_BR`.
 - Remove or review fuzzy entries before release.
 - Recompile `.mo` files with `msgfmt --check`.
