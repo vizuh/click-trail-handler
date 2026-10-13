@@ -12,251 +12,78 @@
 
 ![ClickTrail](.github/clicktrail-cover.png)
 
-**Carry the right acquisition context from visit to WordPress conversion.**
+**Keep the campaign attached to the conversion.**
 
-A visitor can arrive with UTMs or ad click IDs, then submit a form or place an
-order several pages later. ClickTrail captures observed first-touch and
-last-touch context in first-party storage and makes it available at configured
-WordPress form and WooCommerce boundaries, including client-side paths for
-cached and dynamic pages.
+Someone clicks your ad. Three pages later, they send a form or place an order. By then the campaign is usually gone, and the lead looks like it came from nowhere.
 
-ClickTrail helps answer “what campaign context reached this conversion
-record?” It does not prove which click caused a sale, resolve a person's
-identity across devices, or decide which channel deserves revenue credit.
+ClickTrail keeps what the visitor arrived with: the UTMs, the ad click ID, the referrer. It carries that context to the form entry or the WooCommerce order, and to a Calendly booking. You open the record and see where it came from.
 
-**What ClickTrail is not:** an attribution dashboard, a hosted server-side GTM
-platform, a lead manager, or an ad optimizer. It complements GA4 and GTM.
-Browser tags remain site-owned.
+ClickTrail records what arrived. It does not decide what caused the sale.
 
-> **Integration verification status (2026-08-19):** The source registry shows wiring, not production provider support.
-> PHP/WordPress/provider E2E verification was unavailable for this audit. Platform-named server adapters are
-> **source-present / runtime-unverified configured-endpoint adapters**. GTM can mediate site-owned provider tags;
-> ClickTrail does not inject Meta/Facebook Pixel, Google tag, TikTok Pixel, LinkedIn Insight, Pinterest Tag, or
-> Reddit Pixel SDKs. Reddit has a **relay-only** destination toggle and `rdt_cid` capture, not a native delivery
-> adapter. See the [integration evidence ledger](docs/reference/integration-capabilities.json) and
-> [integration reference](docs/reference/INTEGRATIONS.md).
+## Start here
 
-## What ClickTrail Does
+Pick the path that matches your site.
 
-ClickTrail captures observed campaign context, applies documented first-touch
-and last-touch rules, and keeps the result available until a configured
-WordPress conversion boundary needs it.
+- **WooCommerce store**: turn on Capture and WooCommerce. Orders carry the campaign. Add storefront events later if you want funnel signals.
+- **Lead forms**: turn on Capture and Forms. Contact Form 7 and Fluent Forms get hidden fields on their own. Gravity Forms and WPForms fill the `ct_*` fields you add.
+- **GTM or server-side GTM**: turn on Capture, Events, and Delivery. Events go to the `dataLayer`, and ClickTrail can send canonical JSON to an endpoint you set.
 
-It combines:
+Then place one test order or send one test form, and look at what was stored. The [use-case guide](docs/guides/USE-CASES.md) and [tutorials](docs/tutorials/README.md) walk through each path.
 
-- attribution capture
-- WooCommerce order attribution and purchase enrichment
-- form enrichment
-- browser event collection
-- consent controls with documented runtime verification boundaries
-- optional server-side transport with retries and diagnostics
+## What it does
 
-Start with one configured form or WooCommerce path. Add browser events, consent
-integrations, or optional delivery only when the implementation requires them.
+ClickTrail only acts on the paths you turn on and set up in its settings. That is what "configured" means everywhere in these docs.
 
-## Version and verification status
+- Capture: first-touch and last-touch UTMs, ad click IDs, and the referrer, with organic, social, and referral fallback when there are no UTMs. When a visitor comes back through a new ad, the newest click is the one that travels. Context lives in first-party storage, falls back to `sessionStorage` when cookies are blocked, and your own admin browsing stays out of it.
+- WooCommerce: attribution saved on the order, an enriched purchase event on the thank-you page, optional storefront events (`view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, `begin_checkout`), and optional order-status milestones. Order metadata has export, erase, retention, and uninstall handling.
+- Forms: Contact Form 7 and Fluent Forms get hidden fields automatically. Gravity Forms and WPForms fill the `ct_*` fields you add; Gravity Forms also gets a channel label, nine `{clicutcl_*}` merge tags, and a per-form switch. Elementor Forms (Pro) and Ninja Forms keep attribution with the submission record. A client-side fallback covers cached pages and forms that load late, and WhatsApp links can carry the context too.
+- Bookings and your other domains: links to domains you approve carry the campaign, with a signed token between your own sites. Calendly booking links hold the newest click and the visitor's consent decision, and the signed Calendly webhook records the booking as `book_appointment` with its UTMs.
+- Events and delivery: browser events to the `dataLayer`, a REST intake, webhooks from Calendly, HubSpot, and Typeform, lifecycle updates, and one-time WordPress events such as `login`, `sign_up`, and `comment_submit`. Optional server-side delivery adds a retry queue and diagnostics.
 
-ClickTrail 1.10.5 is the current release on GitHub and WordPress.org. It sends a returning visitor's newest ad click, not the first visit's, in decorated links, forms, Calendly bookings, WooCommerce orders, and server-side events, records which click is newest across ad platforms, and removes its own link parameters when consent is withdrawn in the page. Since 1.10.3 it also keeps landing-page attribution when a CMP such as Cookiebot clears storage at the moment the visitor answers the banner, clears ClickTrail storage immediately when consent is withdrawn in the page, and reads Complianz's accepted categories correctly. Calendly bookings are recorded as `book_appointment`; with link decoration enabled, booking links carry the click ID and the visitor's consent decision in `salesforce_uuid`. The Settings, Logs, Diagnostics, and setup wizard screens have a refreshed look with no change in behavior. Live browser, CMP, WooCommerce, Calendly, and provider verification remains a separate release gate.
+## Consent and privacy
 
-See [changelog.txt](changelog.txt) for the full history and [readme.txt](readme.txt) for the WordPress.org release notes.
+When consent is required, nothing is stored until the visitor agrees. ClickTrail listens to its own banner, Cookiebot, OneTrust, Complianz, GTM, or a custom source, or detects the source for you. ClickTrail follows Cookiebot and Complianz decisions, including changes the visitor makes on the page. On withdrawal, ClickTrail clears its storage and removes the parameters it added to links. Queued deliveries check current consent again right before they are sent, and the consent decision stays in sync across tabs. Consent behavior can be strict, relaxed, or geo-based. ClickTrail helps you implement consent; compliance still depends on your legal requirements and your settings.
 
-## Problems It Solves
+## What it does not do
 
-### 1. Lost campaign attribution in WordPress
+- It does not prove which click caused a sale, and it does not decide which channel deserves the revenue.
+- It does not resolve one person's identity across devices.
+- It is not an attribution dashboard, a hosted server-side GTM platform, a lead manager, or an ad optimizer. It works alongside GA4 and GTM. For call tracking, lead scoring, or ad-spend optimization, pair it with a specialist tool.
+- It does not install ad pixels. The Meta Pixel, Google tag, TikTok Pixel, LinkedIn Insight Tag, Pinterest Tag, and Reddit Pixel stay yours, usually through GTM.
+- Server-side delivery sends JSON to the endpoint you configure. The adapters named after Meta, Google Ads / GA4, LinkedIn, Pinterest, and TikTok exist in the code, but we have not verified that any provider accepts them end to end. Reddit is a relay-only destination.
+- We have not yet verified a live Calendly booking round trip.
 
-Users land with UTMs or ad click IDs, browse a few pages, and convert later. Other visitors arrive from organic search or social referrals with no tags at all. Without persistence, the conversion record loses the original source.
+Having code for an integration is not proof that it works in production. Current status lives in the [integration reference](docs/reference/INTEGRATIONS.md) and the [machine-readable ledger](docs/reference/integration-capabilities.json). The [release-phasing plan](docs/guides/RELEASE-PHASING-AND-INTEGRATION-DOCS.md) shows what gets checked next.
 
-ClickTrail keeps the source trail available through forms, checkout, and event payloads.
+## Reference
 
-### 2. Cached and dynamic pages breaking hidden fields
+**Supported click IDs**
 
-Many attribution plugins rely on server-rendered hidden fields only. That breaks when pages are cached or forms are injected after page load.
+| Platform | Parameters |
+|---|---|
+| Google | `gclid`, `wbraid`, `gbraid` |
+| Meta | `fbclid` |
+| TikTok | `ttclid` |
+| Microsoft | `msclkid` |
+| X / Twitter | `twclid` |
+| LinkedIn | `li_fat_id` |
+| Snapchat | `sccid`, `snap_cid` |
+| Pinterest | `epik`, `pin_cid` |
+| Reddit | `rdt_cid` |
+| Mailchimp | `mc_cid`, `mc_eid` |
+| Display & Video 360 | `dclid` |
 
-ClickTrail includes a client-side capture fallback and dynamic-content watching so attribution still reaches configured forms and matching hidden fields.
+**Integrations**
 
-### 3. WooCommerce orders with weak or missing source data
+- **Forms**: Contact Form 7, Elementor Forms (Pro), Fluent Forms, Gravity Forms, Ninja Forms, WPForms
+- **Commerce**: WooCommerce
+- **Consent sources**: ClickTrail banner, Cookiebot, OneTrust, Complianz, GTM, custom
+- **Webhooks**: Calendly, HubSpot, Typeform
+- **Server-side adapter keys**: generic collector, sGTM, Meta CAPI, Google Ads / GA4, LinkedIn CAPI, Pinterest Conversions API, TikTok Events API (status above)
+- **Extra fields captured**: `utm_id`, `utm_source_platform`, `utm_creative_format`, `utm_marketing_tactic`, `fbc`, `fbp`, `_ttp`, `li_gc`, `ga_client_id`, `ga_session_id`
+- **Caching and minification**: ClickTrail script tags carry exclusion attributes for Autoptimize, Cloudflare Rocket Loader, WP Rocket, and LiteSpeed Cache.
 
-Paid traffic often ends up looking like direct traffic in order records.
-
-ClickTrail stores attribution on the order, pushes enriched purchase data to the dataLayer, and can optionally extend the same Woo journey into `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, `begin_checkout`, richer Woo `user_data`, post-purchase milestones, and server-side dispatch.
-
-### 4. Cross-domain journeys losing continuity
-
-If users move between marketing site, app, scheduler, or checkout domain, attribution often resets.
-
-ClickTrail supports approved cross-domain link decoration and token-based attribution continuity.
-
-### 5. Consent and delivery living in separate tools
-
-Teams often need privacy controls, event delivery, and attribution logic to agree with each other.
-
-ClickTrail keeps consent, event intake, and delivery configuration in the same plugin.
-
-## Core Capabilities
-
-### Capture
-
-- First-touch and last-touch UTMs, including `utm_id`, `utm_source_platform`, `utm_creative_format`, and `utm_marketing_tactic`
-- Referrer capture with automatic organic, social, and referral fallback when UTMs are absent
-- Major ad click ID and first-party ad/browser identifier capture
-- Configurable attribution retention
-- Cross-domain link decoration
-- Optional attribution token continuity
-
-Supported click IDs include:
-
-- `gclid`
-- `wbraid`
-- `gbraid`
-- `fbclid`
-- `ttclid`
-- `msclkid`
-- `twclid`
-- `li_fat_id`
-- `sccid`
-- `epik`
-
-Additional browser identifiers include:
-
-- `fbc`
-- `fbp`
-- `_ttp`
-- `li_gc`
-- `ga_client_id`
-- `ga_session_id`
-
-### Forms (source connectors; runtime-unverified in this audit)
-
-ClickTrail connects to forms in three documented patterns. Confirm which pattern applies before testing:
-
-1. **Automatic hidden fields:** Contact Form 7 and Fluent Forms receive attribution fields through the documented path.
-2. **Matching hidden fields:** Gravity Forms and WPForms populate the `ct_*` fields you add to the form.
-3. **Submission storage:** Elementor Forms (Pro) and Ninja Forms attach attribution to the submission record instead of injecting hidden fields.
-
-- Automatic hidden-field enrichment for Contact Form 7 and Fluent Forms
-- Compatible hidden-field population for Gravity Forms and WPForms when matching hidden fields are present
-- Recommended for Gravity Forms and WPForms: add the hidden fields you want stored or exported, and ClickTrail will fill them
-- Client-side fallback for cached pages
-- Dynamic form detection
-- Optional replacement of existing attribution values
-- WhatsApp attribution append support
-- External form source webhook intake for documented providers; runtime verification remains separate
-
-### Events
-
-- Browser event collection
-- GA4-friendly `dataLayer` pushes
-- Search, file download, scroll depth, time-on-page, lead-gen interaction events, and one-time WordPress follow-up events such as `login`, `sign_up`, and `comment_submit`
-- Optional Woo storefront `view_item_list` with `item_list_name` and `item_list_index` context
-- Optional richer Woo `dataLayer` contract with a consent-sensitive `user_data` branch; runtime edge cases remain under the release gates
-- Lifecycle update intake for downstream CRM / backend workflows
-- Unified canonical event pipeline behind the scenes
-
-### Delivery
-
-- Optional server-side transport
-- Retry queue with backoff
-- Delivery diagnostics and failure telemetry
-- Dispatcher consent gating with documented edge cases
-- Queue backlog visibility and endpoint tests
-
-## Integration inventory and status
-
-### WordPress and frontend
-
-- WordPress 6.5+
-- PHP 8.1+
-- Built-in consent banner when using the plugin as consent source
-- GTM container injection when needed
-- sGTM compatibility mode with tagging-server URL, first-party script delivery, and custom loader support
-
-### Forms sources (source-present / runtime-unverified)
-
-- Contact Form 7
-- Elementor Forms (Pro)
-- Fluent Forms
-- Gravity Forms
-- Ninja Forms
-- WPForms
-
-Form behavior by plugin:
-
-- Contact Form 7 and Fluent Forms can receive hidden attribution fields automatically
-- Gravity Forms and WPForms can populate matching hidden fields you add to the form
-- Elementor Forms (Pro) use their submission hooks and attribution fallback instead of automatic hidden-field injection
-- Ninja Forms stores attribution with the submission record and surfaces it in the submission detail UI instead of automatic hidden-field injection
-
-### Commerce source (runtime-unverified in this audit)
-
-- WooCommerce order attribution
-- WooCommerce enriched purchase event push to `dataLayer`
-- Optional Woo storefront events for `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout`
-- Optional richer Woo `dataLayer` contract for GTM-first setups
-- Optional server-side purchase dispatch
-- WooCommerce HPOS compatibility declaration for order storage/tracking
-
-### Webhook ingress sources (source-present / runtime-unverified)
-
-- Calendly
-- HubSpot
-- Typeform
-
-### Server-side adapter keys (source-present / runtime-unverified)
-
-- Generic collector: configured endpoint relay
-- sGTM: configured endpoint relay; preview SSRF hardening remains open
-- Meta CAPI: adapter key present; provider API/auth contract not runtime-verified
-- Google Ads / GA4: adapter key present; provider API/auth contract not runtime-verified
-- LinkedIn CAPI: adapter key present; provider API/auth contract not runtime-verified
-- Pinterest Conversions API: adapter key present; provider API/auth contract not runtime-verified
-- TikTok Events API: adapter key present; provider API/auth contract not runtime-verified
-
-These classes currently serialize canonical JSON to a configured endpoint. They are not turnkey provider
-SDK/API integrations until provider-specific fixtures and staged delivery evidence pass.
-
-### Browser and GTM-mediated destinations
-
-- Google Tag Manager and site-owned dataLayer configuration
-- Meta/Facebook Pixel, Google tag/GA4, TikTok Pixel, LinkedIn Insight, Pinterest Tag, and Reddit Pixel only
-  through a site-owned GTM/container setup; ClickTrail does not inject these SDKs
-- Reddit destination toggle and `rdt_cid` capture are relay-only; no native Reddit delivery adapter is present
-
-See the [full capability matrix](docs/reference/INTEGRATIONS.md#capability-matrix) for forms, WooCommerce,
-webhook ingress, consent sources, and evidence IDs.
-
-## Admin Experience
-
-The main settings experience is organized by capability instead of internal implementation names:
-
-- **Capture**: source capture, retention, and cross-domain continuity
-- **Forms**: on-site form diagnostics, WhatsApp, and external form sources
-- **Events**: browser event collection, GTM, destinations, and lifecycle updates
-- **Delivery**: server-side transport, privacy, and operational safeguards
-
-Separate operational screens remain available for:
-
-- **Logs**
-- **Diagnostics**
-
-Operational tooling now includes:
-
-- a read-only setup checklist in Settings
-- an interactive conflict scan
-- settings backup export and restore
-- Woo order trace lookup for stored purchase and milestone payloads
-
-This keeps the main configuration flow focused while still exposing queue health and debugging tools when needed.
-
-## Privacy and Consent
-
-ClickTrail 1.10.0 adds a canonical cross-tab consent decision, rechecks current consent before queued delivery, and covers WooCommerce order metadata through an allowlisted export, erase, retention, and uninstall lifecycle. Live WordPress, browser, CMP, WooCommerce, and provider verification remains a separate release gate.
-
-- Consent mode can be enabled or disabled.
-- Consent behavior supports `strict`, `relaxed`, and `geo`.
-- CMP source can be auto-detected or set to plugin, Cookiebot, OneTrust, Complianz, GTM, or custom.
-- The plugin can run its own lightweight consent banner when configured as the consent source.
-
-ClickTrail helps with privacy-aware implementation, but compliance still depends on your legal requirements and configuration choices.
+The current release is 1.10.5. See the [changelog](changelog.txt) for history.
 
 ## Installation
 
@@ -292,26 +119,11 @@ ClickTrail does not need to be fully enabled on day one. A basic forms or WooCom
 
 Start with `Capture` and the integrations you already use. Add `Events` next if you want browser analytics signals. Add `Delivery` only when you are ready to send data to a collector or advertising endpoint.
 
-## Typical Use Cases
-
-- [Agencies and service businesses that need attribution inside lead forms](docs/guides/USE-CASES.md#lead-generation-forms)
-- [WooCommerce stores that want campaign-aware order data](docs/guides/USE-CASES.md#woocommerce-orders)
-- [Sites with aggressive caching or dynamic form rendering](docs/guides/USE-CASES.md#cached-and-dynamic-forms)
-- [Businesses running approved multi-domain funnels](docs/guides/USE-CASES.md#approved-multi-domain-funnels)
-- [Teams aligning capture with an existing consent source](docs/guides/USE-CASES.md#consent-aware-sites)
-
-If you need call tracking, lead scoring, multi-touch revenue modeling, or ad-spend optimization, ClickTrail is not that tool; pair it with the specialist platform you already use.
-
 ## Tutorials
 
 - [Lead form attribution](docs/tutorials/01-lead-form-attribution.md)
 - [WooCommerce order attribution](docs/tutorials/02-woocommerce-order-attribution.md)
 - [Consent and browser events](docs/tutorials/03-consent-and-events.md)
-
-## Release phasing and evidence
-
-The [release-phasing plan](docs/guides/RELEASE-PHASING-AND-INTEGRATION-DOCS.md) separates truth-containment
-docs, consent/privacy remediation, delivery integrity, provider-contract releases, and later reach work.
 
 ## Repository Docs
 

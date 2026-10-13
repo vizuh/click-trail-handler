@@ -4,262 +4,78 @@
 
 ![ClickTrail](.github/clicktrail-cover.png)
 
-**Leve o contexto de aquisição certo da visita até a conversão no WordPress.**
+**Mantenha a campanha ligada à conversão.**
 
-Uma pessoa pode chegar com UTMs ou IDs de clique e só enviar um formulário ou
-fazer um pedido várias páginas depois. O ClickTrail captura o contexto observado
-de primeiro e último toque em armazenamento first-party e o disponibiliza nos
-pontos configurados de formulários e WooCommerce, inclusive em caminhos
-client-side para páginas em cache e formulários dinâmicos.
+Alguém clica no seu anúncio. Três páginas depois, envia um formulário ou faz um pedido. A essa altura a campanha quase sempre se perdeu, e o lead parece ter vindo do nada.
 
-O ClickTrail ajuda a responder “qual contexto de campanha chegou a este registro
-de conversão?”. Ele não prova qual clique causou uma venda, não resolve a
-identidade de uma pessoa entre dispositivos e não decide qual canal merece o
-crédito da receita.
+O ClickTrail guarda aquilo com que o visitante chegou: as UTMs, o ID de clique do anúncio, o referenciador. Ele leva esse contexto até o envio do formulário ou o pedido do WooCommerce, e também até um agendamento no Calendly. Você abre o registro e vê de onde ele veio.
 
-**O que o ClickTrail não é:** um painel de atribuição, uma plataforma hospedada
-de server-side GTM, um gestor de leads ou um otimizador de anúncios. Ele
-complementa GA4 e GTM. As tags do navegador continuam sob controle do site.
+O ClickTrail registra o que chegou. Ele não decide o que causou a venda.
 
-> **Status de verificacao das integracoes (2026-08-19):** o registry e o codigo comprovam wiring, nao suporte
-> de producao nos provedores. Os testes E2E de PHP/WordPress/provedores nao estavam disponiveis nesta auditoria.
-> Os adaptadores server-side com nome de plataforma estao **presentes no codigo / runtime nao verificado** e
-> enviam JSON para endpoint configurado. O GTM pode mediar tags do site; o ClickTrail nao injeta SDKs de Meta/
-> Facebook Pixel, Google tag, TikTok Pixel, LinkedIn Insight, Pinterest Tag ou Reddit Pixel. Reddit possui apenas
-> um destino **relay-only** e captura de `rdt_cid`, nao um adaptador nativo. Veja a [referencia de integracoes](docs/reference/INTEGRATIONS.md)
-> e o [ledger de evidencias](docs/reference/integration-capabilities.json).
+## Por onde começar
 
-## O Que o ClickTrail Faz
+Escolha o caminho que combina com o seu site.
 
-O ClickTrail captura o contexto de campanha observado, aplica regras
-documentadas de primeiro e último toque e mantém o resultado disponível até que
-um ponto de conversão configurado no WordPress precise dele.
+- **Loja WooCommerce**: ative Capture e WooCommerce. Os pedidos passam a levar a campanha. Ative os eventos de vitrine depois, se quiser sinais de funil.
+- **Formulários de leads**: ative Capture e Forms. Contact Form 7 e Fluent Forms recebem os campos ocultos sozinhos. Gravity Forms e WPForms preenchem os campos `ct_*` que você adicionar.
+- **GTM ou GTM server-side**: ative Capture, Events e Delivery. Os eventos vão para o `dataLayer`, e o ClickTrail pode enviar JSON canônico para um endpoint que você definir.
 
-Ele combina:
+Depois, faça um pedido de teste ou envie um formulário de teste e veja o que ficou salvo. O [guia de casos de uso](docs/guides/USE-CASES.md) e os [tutoriais](docs/tutorials/README.md) mostram cada caminho.
 
-- captura de atribuicao
-- atribuicao em pedidos do WooCommerce com payload de compra enriquecido
-- enriquecimento de formularios
-- coleta de eventos no navegador
-- controles de consentimento com limites de verificacao documentados
-- transporte server-side opcional com fila e diagnosticos
+## O que ele faz
 
-Comece com um formulário configurado ou um caminho do WooCommerce. Adicione
-eventos no navegador, integrações de consentimento ou entrega opcional apenas
-quando a implementação exigir.
+O ClickTrail só age nos caminhos que você ativa e ajusta nas configurações dele. É isso que "configurado" significa em toda esta documentação.
 
-## Versão e status de verificação
+- Captura: UTMs de primeiro e último toque, IDs de clique de anúncios e o referenciador, com fallback para orgânico, social e referência quando não há UTMs. Quando um visitante volta por um novo anúncio, é o clique mais recente que segue adiante. O contexto fica em armazenamento first-party, usa o `sessionStorage` quando os cookies estão bloqueados, e a sua própria navegação como administrador fica de fora.
+- WooCommerce: atribuição salva no pedido, um evento de compra enriquecido na página de agradecimento, eventos de vitrine opcionais (`view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, `begin_checkout`) e marcos opcionais de status do pedido. Os metadados do pedido têm exportação, exclusão, retenção e tratamento na desinstalação.
+- Formulários: Contact Form 7 e Fluent Forms recebem campos ocultos automaticamente. Gravity Forms e WPForms preenchem os campos `ct_*` que você adicionar; o Gravity Forms também ganha um rótulo de canal, nove merge tags `{clicutcl_*}` e uma chave por formulário. Elementor Forms (Pro) e Ninja Forms guardam a atribuição junto com o registro do envio. Um fallback client-side cobre páginas em cache e formulários que carregam depois, e links do WhatsApp também podem levar o contexto.
+- Agendamentos e seus outros domínios: links para domínios que você aprova levam a campanha, com um token assinado entre os seus próprios sites. Os links de agendamento do Calendly levam o clique mais recente e a decisão de consentimento do visitante, e o webhook assinado do Calendly registra o agendamento como `book_appointment` com as UTMs.
+- Eventos e entrega: eventos do navegador para o `dataLayer`, uma entrada REST, webhooks de Calendly, HubSpot e Typeform, atualizações de ciclo de vida e eventos únicos do WordPress como `login`, `sign_up` e `comment_submit`. A entrega server-side opcional adiciona fila de novas tentativas e diagnósticos.
 
-- **Código do repositório:** o cabeçalho do plugin declara `1.10.5`, a mesma versão estável publicada no WordPress.org.
-- **Versões públicas:** consulte [GitHub Releases](https://github.com/vizuh/click-trail-handler/releases)
-  e [changelog.txt](changelog.txt). Os metadados do WordPress.org seguem seu
-  próprio processo em [readme.txt](readme.txt).
-- **Status das integrações:** wiring no código não comprova suporte em produção.
-  Consulte o ledger de evidências e a referência de integrações acima.
+## Consentimento e privacidade
 
-## Notas da Versao
+Quando o consentimento é obrigatório, nada é armazenado até o visitante aceitar. O ClickTrail escuta o próprio banner, Cookiebot, OneTrust, Complianz, GTM ou uma fonte personalizada, ou detecta a fonte para você. O ClickTrail segue as decisões do Cookiebot e do Complianz, inclusive mudanças que o visitante faz na própria página. Quando o consentimento é retirado, o ClickTrail limpa o que armazenou e remove dos links os parâmetros que ele mesmo adicionou. Itens na fila de entrega verificam o consentimento atual de novo logo antes do envio, e a decisão de consentimento fica sincronizada entre abas. O comportamento pode ser strict, relaxed ou por região (geo). O ClickTrail ajuda você a implementar o consentimento; a conformidade continua dependendo das suas exigências legais e das suas configurações.
 
-**1.10.5** envia o clique de anúncio mais recente do visitante que retorna, e não o da primeira visita, nos links decorados, formulários, agendamentos do Calendly, pedidos do WooCommerce e eventos server-side, registra qual clique é o mais recente entre as plataformas de anúncio e remove os próprios parâmetros dos links quando o consentimento é retirado na página. Desde a 1.10.3 o plugin também mantém a atribuição da página de entrada quando um CMP como o Cookiebot limpa o armazenamento no momento em que o visitante responde ao banner, remove os dados do ClickTrail imediatamente quando o consentimento é retirado na própria página e lê corretamente as categorias aceitas no Complianz. Agendamentos do Calendly passam a ser registrados como `book_appointment`; com a decoração de links ativa, os links de agendamento levam o click ID e a decisão de consentimento do visitante em `salesforce_uuid`. As telas de Configurações, Logs, Diagnóstico e o assistente de configuração ganharam um visual renovado, sem mudança de comportamento. A verificação em navegador, CMP, WooCommerce, Calendly e provedores continua sendo uma etapa separada do release.
+## O que ele não faz
 
-Veja o [changelog](changelog.txt) para o historico completo e o [readme do WordPress](readme.txt) para as notas publicas.
+- Não prova qual clique causou uma venda e não decide qual canal merece a receita.
+- Não resolve a identidade de uma pessoa entre dispositivos.
+- Não é um painel de atribuição, uma plataforma hospedada de GTM server-side, um gestor de leads nem um otimizador de anúncios. Ele trabalha ao lado do GA4 e do GTM. Para call tracking, lead scoring ou otimização de investimento em anúncios, combine-o com uma ferramenta especializada.
+- Não instala pixels de anúncios. Meta Pixel, Google tag, TikTok Pixel, LinkedIn Insight Tag, Pinterest Tag e Reddit Pixel continuam com você, normalmente via GTM.
+- A entrega server-side envia JSON para o endpoint que você configurar. Os adaptadores com nome de Meta, Google Ads / GA4, LinkedIn, Pinterest e TikTok existem no código, mas ainda não verificamos se algum provedor aceita esses envios de ponta a ponta. O Reddit é um destino apenas de repasse (relay-only).
+- Ainda não verificamos um agendamento real no Calendly de ponta a ponta.
 
-## Problemas Que Ele Resolve
+Ter código para uma integração não prova que ela funciona em produção. O status atual está na [referência de integrações](docs/reference/INTEGRATIONS.md) e no [ledger legível por máquina](docs/reference/integration-capabilities.json). O [plano de fases](docs/guides/RELEASE-PHASING-AND-INTEGRATION-DOCS.md) mostra o que será verificado em seguida.
 
-### 1. Perda de atribuicao dentro do WordPress
+## Referência
 
-O usuario entra com UTMs ou click IDs, navega algumas paginas e converte depois. Outros visitantes chegam por busca organica ou redes sociais sem tags. Sem persistencia, o formulario ou pedido perde a origem original.
+**IDs de clique suportados**
 
-O ClickTrail mantem a trilha da origem disponivel em formularios, checkout e payloads de evento.
+| Plataforma | Parâmetros |
+|---|---|
+| Google | `gclid`, `wbraid`, `gbraid` |
+| Meta | `fbclid` |
+| TikTok | `ttclid` |
+| Microsoft | `msclkid` |
+| X / Twitter | `twclid` |
+| LinkedIn | `li_fat_id` |
+| Snapchat | `sccid`, `snap_cid` |
+| Pinterest | `epik`, `pin_cid` |
+| Reddit | `rdt_cid` |
+| Mailchimp | `mc_cid`, `mc_eid` |
+| Display & Video 360 | `dclid` |
 
-### 2. Cache e formularios dinamicos quebrando campos ocultos
+**Integrações**
 
-Muitos plugins de atribuicao dependem apenas de campos hidden renderizados no servidor. Isso falha quando a pagina esta em cache ou quando o formulario entra depois do carregamento.
+- **Formulários**: Contact Form 7, Elementor Forms (Pro), Fluent Forms, Gravity Forms, Ninja Forms, WPForms
+- **Comércio**: WooCommerce
+- **Fontes de consentimento**: banner do ClickTrail, Cookiebot, OneTrust, Complianz, GTM, personalizada
+- **Webhooks**: Calendly, HubSpot, Typeform
+- **Chaves de adaptadores server-side**: coletor genérico, sGTM, Meta CAPI, Google Ads / GA4, LinkedIn CAPI, Pinterest Conversions API, TikTok Events API (status acima)
+- **Campos extras capturados**: `utm_id`, `utm_source_platform`, `utm_creative_format`, `utm_marketing_tactic`, `fbc`, `fbp`, `_ttp`, `li_gc`, `ga_client_id`, `ga_session_id`
+- **Cache e minificação**: as tags de script do ClickTrail têm atributos de exclusão para Autoptimize, Cloudflare Rocket Loader, WP Rocket e LiteSpeed Cache.
 
-O ClickTrail inclui fallback client-side e observacao de conteudo dinamico para continuar levando a atribuicao aos formularios configurados e aos campos hidden compativeis.
-
-### 3. Pedidos do WooCommerce sem origem de campanha
-
-Trafego pago frequentemente acaba aparecendo como direto dentro dos pedidos.
-
-O ClickTrail grava a atribuicao no pedido, envia um evento de compra enriquecido para o `dataLayer` e pode estender a mesma jornada Woo para `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, `begin_checkout`, `user_data` opcional no `dataLayer`, marcos pos-compra e dispatch server-side opcional.
-
-### 4. Jornadas entre dominios perdendo continuidade
-
-Quando o usuario sai do site principal para app, agenda, checkout ou outro subdominio, a atribuicao costuma reiniciar.
-
-O ClickTrail oferece decoracao de links entre dominios permitidos e continuidade via token de atribuicao.
-
-### 5. Consentimento e entrega separados em ferramentas diferentes
-
-Muitas equipes precisam que privacidade, captura de evento e entrega conversem entre si.
-
-O ClickTrail junta consentimento, intake de eventos e configuracao de entrega no mesmo plugin.
-
-## Capacidades Principais
-
-### Capture
-
-- UTMs de primeiro toque e ultimo toque, incluindo `utm_id`, `utm_source_platform`, `utm_creative_format` e `utm_marketing_tactic`
-- captura de referrer com inferencia automatica de origem organica, social ou referral quando nao existem UTMs
-- captura dos principais click IDs de anuncios e identificadores first-party de browser/plataforma
-- retencao configuravel da atribuicao
-- decoracao de links cross-domain
-- continuidade opcional com token de atribuicao
-
-Click IDs suportados:
-
-- `gclid`
-- `wbraid`
-- `gbraid`
-- `fbclid`
-- `ttclid`
-- `msclkid`
-- `twclid`
-- `li_fat_id`
-- `sccid`
-- `epik`
-
-Identificadores adicionais de browser incluem:
-
-- `fbc`
-- `fbp`
-- `_ttp`
-- `li_gc`
-- `ga_client_id`
-- `ga_session_id`
-
-### Forms
-
-O ClickTrail se conecta a formularios por tres padroes documentados. Confirme qual padrao se aplica antes de testar:
-
-1. **Campos hidden automaticos:** Contact Form 7 e Fluent Forms recebem os campos de atribuicao pelo caminho documentado.
-2. **Campos hidden correspondentes:** Gravity Forms e WPForms preenchem os campos `ct_*` que voce adiciona ao formulario.
-3. **Armazenamento na submissao:** Elementor Forms (Pro) e Ninja Forms anexam a atribuicao ao registro da submissao em vez de injetar campos hidden.
-
-- enriquecimento automatico de campos hidden no Contact Form 7 e no Fluent Forms
-- preenchimento compativel de campos hidden ja existentes no Gravity Forms e no WPForms
-- recomendado para Gravity Forms e WPForms: adicione os campos hidden que deseja armazenar ou exportar, e o ClickTrail faz o preenchimento
-- fallback client-side para paginas com cache
-- deteccao de formularios dinamicos
-- opcao para substituir valores de atribuicao ja existentes
-- suporte para append de atribuicao no WhatsApp
-- intake de webhooks de fontes externas documentadas; runtime ainda nao verificado
-
-### Events
-
-- coleta de eventos no navegador
-- pushes para `dataLayer` em formato amigavel para GA4
-- eventos de busca, download, scroll, tempo na pagina, interacoes de lead gen e eventos pontuais do WordPress como `login`, `sign_up` e `comment_submit`
-- `view_item_list` opcional do Woo com contexto de `item_list_name` e `item_list_index`
-- contrato enriquecido opcional de `dataLayer` do Woo com `user_data` sensivel a consentimento
-- intake de atualizacoes de lifecycle para CRM ou backend
-- pipeline canonico unificado por tras da interface
-
-### Delivery
-
-- transporte server-side opcional
-- fila de retry com backoff
-- diagnosticos de entrega e telemetria de falha
-- bloqueio por consentimento quando necessario
-- visao de backlog da fila e teste de endpoint
-
-## Inventario de integracoes e status
-
-### WordPress e frontend
-
-- WordPress 6.5+
-- PHP 8.1+
-- banner de consentimento proprio quando o plugin e a fonte de consentimento
-- injecao opcional de container do GTM
-- modo de compatibilidade sGTM com URL do tagging server, entrega first-party do script e suporte a custom loader
-
-### Formularios (conectores de origem; runtime nao verificado nesta auditoria)
-
-- Contact Form 7
-- Elementor Forms (Pro)
-- Fluent Forms
-- Gravity Forms
-- Ninja Forms
-- WPForms
-
-Comportamento por plugin:
-
-- Contact Form 7 e Fluent Forms podem receber campos hidden de atribuicao automaticamente
-- Gravity Forms e WPForms podem preencher campos hidden compativeis que voce adiciona ao formulario
-- Elementor Forms (Pro) usam hooks de submissao e fallback de atribuicao, nao injecao automatica de campos hidden
-- Ninja Forms grava a atribuicao junto da submissao e mostra esses dados no detalhe do registro, em vez de injecao automatica de campos hidden
-
-### Comercio (origem; runtime nao verificado nesta auditoria)
-
-- atribuicao em pedidos do WooCommerce
-- push enriquecido do evento de compra para o `dataLayer`
-- eventos opcionais de storefront para `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart` e `begin_checkout`
-- contrato enriquecido opcional do `dataLayer` do Woo para setups GTM-first
-- dispatch server-side opcional para compras
-- declaracao de compatibilidade com WooCommerce HPOS para armazenamento/rastreamento de pedidos
-
-### Fontes de webhook (presentes no codigo; runtime nao verificado)
-
-- Calendly
-- HubSpot
-- Typeform
-
-### Chaves de adaptadores server-side (presentes no codigo / runtime nao verificado)
-
-- Generic collector: relay para endpoint configurado
-- sGTM: relay para endpoint configurado; hardening de SSRF do preview ainda esta pendente
-- Meta CAPI: chave presente; contrato de API/autenticacao nao verificado em runtime
-- Google Ads / GA4: chave presente; contrato de API/autenticacao nao verificado em runtime
-- LinkedIn CAPI: chave presente; contrato de API/autenticacao nao verificado em runtime
-- Pinterest Conversions API: chave presente; contrato de API/autenticacao nao verificado em runtime
-- TikTok Events API: chave presente; contrato de API/autenticacao nao verificado em runtime
-
-Essas classes serializam o evento canonico para um endpoint configurado. Nao sao integracoes turnkey das
-APIs dos provedores ate que fixtures especificas e evidencia de entrega em ambiente de teste passem.
-
-### Destinos mediados por browser e GTM
-
-- Google Tag Manager e configuracao do `dataLayer` do proprio site
-- Meta/Facebook Pixel, Google tag/GA4, TikTok Pixel, LinkedIn Insight, Pinterest Tag e Reddit Pixel somente
-  por um container GTM configurado pelo site; o ClickTrail nao injeta esses SDKs
-- destino Reddit e captura de `rdt_cid` sao relay-only; nao existe adaptador nativo de entrega Reddit
-
-Veja a [matriz completa](docs/reference/INTEGRATIONS.md#capability-matrix) para formularios, WooCommerce,
-webhooks, consentimento e IDs de evidencia.
-
-## Experiencia no Admin
-
-A tela principal de configuracao agora e organizada por capacidade, e nao por nomes internos de implementacao:
-
-- **Capture**: captura de origem, retencao e continuidade entre dominios
-- **Forms**: diagnostico de formularios, WhatsApp e fontes externas
-- **Events**: coleta no navegador, GTM, destinos e lifecycle
-- **Delivery**: transporte server-side, privacidade e protecoes operacionais
-
-As telas operacionais continuam separadas:
-
-- **Logs**
-- **Diagnostics**
-
-As ferramentas operacionais agora incluem:
-
-- checklist de setup em modo somente leitura dentro de Settings
-- conflict scan interativo
-- exportacao e restauracao de backup das configuracoes
-- consulta de rastros de pedidos Woo para compras e marcos
-
-Isso deixa a configuracao principal mais clara sem esconder saude de fila e ferramentas de debug.
-
-## Privacidade e Consentimento
-
-A versao 1.10.0 adiciona uma decisao canonica de consentimento entre abas, verifica o consentimento atual antes de entregar itens da fila e cobre os metadados de pedidos WooCommerce com exportacao, apagamento, retencao e desinstalacao por allowlist. A verificacao em WordPress, navegador, CMP, WooCommerce e provedores continua sendo uma etapa separada do release.
-
-- Consent mode pode ser ligado ou desligado.
-- O comportamento aceita `strict`, `relaxed` e `geo`.
-- A fonte de consentimento pode ser auto, plugin, Cookiebot, OneTrust, Complianz, GTM ou custom.
-- O plugin pode exibir seu proprio banner leve quando configurado como fonte de consentimento.
-
-O plugin ajuda numa implementacao orientada a privacidade, mas a conformidade final depende da sua configuracao e do seu contexto juridico.
+A versão atual é a 1.10.5. O histórico está no [changelog](changelog.txt).
 
 ## Instalacao
 
@@ -295,26 +111,11 @@ O ClickTrail pode ser adotado por partes. Uma configuracao basica para formulari
 
 Comece por `Capture` e pelas integracoes que ja estao em uso. Adicione `Events` depois, se quiser sinais de analytics no navegador. Adicione `Delivery` apenas quando estiver pronto para enviar dados para um collector ou endpoint de publicidade.
 
-## Casos de Uso Comuns
-
-- [agencias e negocios de servico que precisam da origem nos leads](docs/guides/USE-CASES.md#lead-generation-forms)
-- [lojas WooCommerce que querem pedidos com atribuicao de campanha](docs/guides/USE-CASES.md#woocommerce-orders)
-- [sites com cache agressivo ou formularios dinamicos](docs/guides/USE-CASES.md#cached-and-dynamic-forms)
-- [negocios com funis em multiplos dominios aprovados](docs/guides/USE-CASES.md#approved-multi-domain-funnels)
-- [equipes que precisam alinhar captura com uma fonte de consentimento existente](docs/guides/USE-CASES.md#consent-aware-sites)
-
-Se voce precisa de call tracking, lead scoring, modelagem de receita multi-touch ou otimizacao de investimento em anuncios, o ClickTrail nao e essa ferramenta; combine-o com a plataforma especializada que voce ja usa.
-
 ## Tutoriais
 
 - [Atribuicao em formularios](docs/tutorials/01-lead-form-attribution.md)
 - [Atribuicao de pedidos WooCommerce](docs/tutorials/02-woocommerce-order-attribution.md)
 - [Consentimento e eventos no navegador](docs/tutorials/03-consent-and-events.md)
-
-## Fases de release e evidencias
-
-O [plano de fases](docs/guides/RELEASE-PHASING-AND-INTEGRATION-DOCS.md) separa documentacao de verdade,
-remediacao de consentimento/privacidade, integridade de entrega, releases por provedor e o trabalho posterior de alcance.
 
 ## Documentacao do Repositorio
 
