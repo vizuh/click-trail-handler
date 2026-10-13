@@ -58,7 +58,7 @@ class CalendlyWebhookAdapter implements WebhookProviderAdapterInterface {
 	 * @return array{click_ids:array<string,string>,consent:?bool}|null
 	 */
 	private static function parse_stamp( string $value ): ?array {
-		$keys = 'gclid|gbraid|wbraid|fbclid|msclkid|ttclid|li_fat_id|twclid|dclid';
+		$keys = 'gclid|gbraid|wbraid|fbclid|msclkid|ttclid|li_fat_id|twclid|sccid|epik|dclid';
 		if ( 'ct1' === $value || ! preg_match( '/^ct1(?:;(' . $keys . ')=([A-Za-z0-9._-]{1,200}))?(?:;c=([01]))?$/', $value, $match ) ) {
 			return null;
 		}

@@ -34,7 +34,8 @@ denied or unresolved:
 - the checkout fallback accepts `ct_*` fields only after the WooCommerce nonce
   is verified, and only when no consent-permitted cookie payload is available
 - `_clicutcl_ft_*` remains first touch, `_clicutcl_lt_*` remains latest touch,
-  and click IDs keep provider-specific names such as `_clicutcl_fbclid`
+  and click IDs keep provider-specific names such as `_clicutcl_fbclid` and hold
+  the latest-touch value
 
 A local connector may listen to `clicutcl_order_attribution_saved` and read the
 order metadata. It must not rewrite the keys or treat the action as proof of

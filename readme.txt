@@ -146,7 +146,7 @@ ClickTrail can be rolled out in layers. A basic attribution setup for forms or W
 5. In **Forms**:
    * enable only the integrations you actually use
    * for Contact Form 7 and Fluent Forms, ClickTrail can add attribution hidden fields automatically
-   * for Gravity Forms and WPForms, add the matching `ct_*` hidden fields you want to preserve, such as `ct_ft_source`, `ct_lt_source`, or `ct_gclid`
+   * for Gravity Forms and WPForms, add the matching `ct_*` hidden fields you want to preserve, such as `ct_ft_source`, `ct_lt_source`, or `ct_gclid` (latest click; use `ct_ft_gclid` or `ct_lt_gclid` to pin a touch)
 6. In **Events**:
    * leave browser events enabled only if you want `dataLayer` pushes and on-site event capture
    * enable **WooCommerce storefront events** only if you want `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` in the browser event layer
@@ -251,6 +251,13 @@ The entries below are historical release notes. They do not replace the current 
 behavior that still requires current runtime verification. In particular, older wording that calls platform-named
 server paths “first-class native delivery adapters” predates the current evidence classification: those paths are
 configured-endpoint relays whose provider authentication, acceptance, and runtime delivery remain unverified.
+
+= 1.10.5 =
+* Attribution: when a visitor comes back through a new ad, ClickTrail now sends the new click ID (for example `gclid`) in decorated links, Calendly bookings, form fields, WooCommerce orders and server-side events. Before, the click ID from the first visit was sent alongside current UTMs, so a CRM could credit the wrong ad click. First-touch fields are unchanged.
+* Attribution: when a visitor clicks ads on different platforms, ClickTrail records which click is the newest (`attribution_selected_click_id`) and uses it for Calendly bookings.
+* Privacy: withdrawing consent on a page now also removes ClickTrail's parameters from links it already decorated. Before, a link decorated earlier could still carry the click ID.
+* Forms: attribution fields ClickTrail filled are refreshed before submit; values your site or the visitor entered in other fields are never overwritten.
+* Contact Form 7: a visitor who lands from a new ad and submits on the same page is now credited to that ad. Before, the form could send the previous visit's campaign.
 
 = 1.10.3 =
 * Consent: Cookiebot changes made in the page (for example withdrawing consent in the renew dialog) now clear ClickTrail storage immediately instead of on the next page load.

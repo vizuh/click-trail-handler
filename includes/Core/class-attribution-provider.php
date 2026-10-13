@@ -114,7 +114,8 @@ class Attribution_Provider {
 			return array();
 		}
 
-		$keys = array( 'ct_attribution', 'attribution' );
+		// Canonical cookie first, like the browser runtime; `ct_attribution` is the legacy name.
+		$keys = array( 'attribution', 'ct_attribution' );
 		$data = array();
 
 		foreach ( $keys as $key ) {
@@ -292,6 +293,8 @@ class Attribution_Provider {
 				'visitor_id',
 				'session_id',
 				'trail_id',
+				'attribution_selected_click_id',
+				'attribution_selected_click_id_reason',
 			)
 		);
 	}
@@ -392,19 +395,18 @@ class Attribution_Provider {
 	}
 
 	/**
-	 * Fill canonical top-level click IDs from last-touch / first-touch copies.
+	 * Set canonical top-level click IDs: last touch wins, first touch only fills an empty value.
 	 *
 	 * @param array $data Sanitized attribution data.
 	 * @return array
 	 */
 	private static function normalize_click_ids( array $data ) {
 		foreach ( self::CLICK_ID_FIELDS as $field ) {
-			if ( empty( $data[ $field ] ) ) {
-				if ( ! empty( $data[ 'lt_' . $field ] ) ) {
-					$data[ $field ] = $data[ 'lt_' . $field ];
-				} elseif ( ! empty( $data[ 'ft_' . $field ] ) ) {
-					$data[ $field ] = $data[ 'ft_' . $field ];
-				}
+			// Last touch wins so a returning visitor's new click replaces the first visit's copy.
+			if ( ! empty( $data[ 'lt_' . $field ] ) ) {
+				$data[ $field ] = $data[ 'lt_' . $field ];
+			} elseif ( empty( $data[ $field ] ) && ! empty( $data[ 'ft_' . $field ] ) ) {
+				$data[ $field ] = $data[ 'ft_' . $field ];
 			}
 		}
 
