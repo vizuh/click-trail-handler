@@ -1,0 +1,36 @@
+name: Attribution E2E
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  e2e:
+    name: Attribution round trip (WordPress + CF7 + Calendly webhook)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install Playwright and Chromium
+        run: |
+          python3 -m venv "$RUNNER_TEMP/e2e-venv"
+          "$RUNNER_TEMP/e2e-venv/bin/pip" install --quiet playwright==1.59.0
+          "$RUNNER_TEMP/e2e-venv/bin/python" -m playwright install --with-deps chromium
+
+      # Throwaway WordPress pod (podman) with this checkout mounted read-only: Google A then
+      # Meta B, decorated links, a CF7 submit, a signed Calendly webhook, both-cookies case.
+      # Asserts what is stored and dispatched; see tools/qa/e2e/README.md.
+      - name: Run attribution round trip
+        run: PATH="$RUNNER_TEMP/e2e-venv/bin:$PATH" CT_E2E_OUT="$RUNNER_TEMP/e2e-evidence" tools/qa/e2e/ci.sh
