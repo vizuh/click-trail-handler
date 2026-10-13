@@ -463,6 +463,20 @@ Security:
 - provider enablement
 - replay-window checks
 
+### HubSpot mapping
+
+- `contact.creation` and other non-property events record a `lead`.
+- `contact.propertyChange` records a `qualified_lead` only when the changed property is `lifecyclestage` and the new
+  value is `marketingqualifiedlead` or `salesqualifiedlead`. The event ID includes the stage and HubSpot's `eventId`:
+  an MQL and a later SQL, or a later re-entry into a stage, are separate events, while a retry of the same delivery
+  is deduplicated. Without an `eventId`, repeats of one stage for one contact dedupe within the dedup TTL
+  (`clicutcl_v2_dedup_ttl`). Change the rule with the `clicutcl_hubspot_qualified_lead_rule` filter.
+- Every other property change is acknowledged (2xx, `ignored`) without recording an event. Before #107 the dot in
+  `contact.propertyChange` was stripped, so every HubSpot webhook, including every property change, was recorded as
+  `lead`; sites subscribed to property changes now record fewer, qualified events.
+- Batched HubSpot payloads are evaluated item by item. Non-qualified events keep their earlier event IDs, so
+  deduplication of retries is unaffected.
+
 ### Calendly booking handoff
 
 Calendly keeps only `utm_*` and `salesforce_uuid` from a scheduling URL. When link decoration is enabled,

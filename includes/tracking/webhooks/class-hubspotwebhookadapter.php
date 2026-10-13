@@ -38,21 +38,114 @@ class HubSpotWebhookAdapter implements WebhookProviderAdapterInterface {
 	}
 
 	/**
+	 * A contact property change that does not meet the qualified-lead rule is not a
+	 * conversion; it is acknowledged without recording an event.
+	 *
+	 * @param array $payload Payload.
+	 * @return bool
+	 */
+	public function is_ignored_event( array $payload ): bool {
+		return self::is_property_change( $payload ) && ! self::is_qualifying_change( $payload );
+	}
+
+	/**
+	 * Normalized subscription type. HubSpot names contain a dot ("contact.propertyChange"),
+	 * which sanitize_key() would strip.
+	 *
+	 * @param array $payload Payload.
+	 * @return string
+	 */
+	private static function event_type( array $payload ): string {
+		$raw = '' !== self::text( $payload, 'eventType' ) ? self::text( $payload, 'eventType' ) : self::text( $payload, 'subscriptionType' );
+		return strtolower( (string) preg_replace( '/[^A-Za-z0-9._-]/', '', $raw ) );
+	}
+
+	/**
+	 * Scalar payload value as a string; arrays and objects read as empty.
+	 *
+	 * @param array  $payload Payload.
+	 * @param string $key     Key.
+	 * @return string
+	 */
+	private static function text( array $payload, string $key ): string {
+		return isset( $payload[ $key ] ) && is_scalar( $payload[ $key ] ) ? (string) $payload[ $key ] : '';
+	}
+
+	/**
+	 * Whether the payload is a contact property change.
+	 *
+	 * @param array $payload Payload.
+	 * @return bool
+	 */
+	private static function is_property_change( array $payload ): bool {
+		return in_array( self::event_type( $payload ), array( 'contact.propertychange', 'contact_propertychange' ), true );
+	}
+
+	/**
+	 * Whether a property change moves the contact into a qualified lifecycle stage.
+	 * Default: lifecyclestage set to marketingqualifiedlead or salesqualifiedlead.
+	 *
+	 * @param array $payload Payload.
+	 * @return bool
+	 */
+	private static function is_qualifying_change( array $payload ): bool {
+		if ( ! self::is_property_change( $payload ) ) {
+			return false;
+		}
+
+		/**
+		 * Filter the HubSpot property and values that mark a qualified lead.
+		 *
+		 * @param array $rule { property: string, values: string[] }.
+		 */
+		$rule = apply_filters(
+			'clicutcl_hubspot_qualified_lead_rule',
+			array(
+				'property' => 'lifecyclestage',
+				'values'   => array( 'marketingqualifiedlead', 'salesqualifiedlead' ),
+			)
+		);
+
+		$property = is_array( $rule ) && isset( $rule['property'] ) && is_scalar( $rule['property'] ) ? strtolower( (string) $rule['property'] ) : '';
+		$values   = is_array( $rule ) && isset( $rule['values'] ) && is_array( $rule['values'] ) ? $rule['values'] : array();
+		$values   = array_filter(
+			array_map(
+				static fn( $value ) => is_scalar( $value ) ? strtolower( (string) $value ) : '',
+				$values
+			),
+			'strlen'
+		);
+		$value    = strtolower( self::text( $payload, 'propertyValue' ) );
+
+		return '' !== $property
+			&& '' !== $value
+			&& strtolower( self::text( $payload, 'propertyName' ) ) === $property
+			&& in_array( $value, $values, true );
+	}
+
+	/**
 	 * Map payload to canonical event.
 	 *
 	 * @param array $payload Payload.
 	 * @return array
 	 */
 	public function map_to_canonical( array $payload ): array {
-		$event_type = sanitize_key( (string) ( $payload['eventType'] ?? $payload['subscriptionType'] ?? '' ) );
-		$event_name = in_array( $event_type, array( 'contact.propertychange', 'contact_propertychange' ), true ) ? 'qualified_lead' : 'lead';
+		$event_type = self::event_type( $payload );
+		$qualified  = self::is_qualifying_change( $payload );
+		$event_name = $qualified ? 'qualified_lead' : 'lead';
 
-		$object_id = isset( $payload['objectId'] ) ? sanitize_text_field( (string) $payload['objectId'] ) : '';
+		$object_id = sanitize_text_field( self::text( $payload, 'objectId' ) );
+		// Non-qualified events keep the pre-#107 ID basis so retries already in flight still dedupe.
+		// A qualified event adds the stage and HubSpot's own eventId: MQL then SQL, or a later
+		// re-entry into a stage, are separate events, while a retry of the same delivery is not.
+		$id_basis = $qualified
+			? $event_type . '|' . $object_id . '|' . strtolower( self::text( $payload, 'propertyValue' ) ) . '|' . self::text( $payload, 'eventId' )
+			: sanitize_key( $event_type ) . '|' . $object_id;
 
 		return Event_Translator_V1_To_V2::translate(
 			array(
 				'event_name'   => $event_name,
-				'event_id'     => $object_id ? 'hs_' . md5( $event_type . '|' . $object_id ) : ( function_exists( 'wp_generate_uuid4' ) ? wp_generate_uuid4() : uniqid( 'hs_', true ) ),
+				'event_id'     => $object_id ? 'hs_' . md5( $id_basis ) : ( function_exists( 'wp_generate_uuid4' ) ? wp_generate_uuid4() : uniqid( 'hs_', true ) ),
 				'source'       => 'webhook',
 				'lead_context' => array(
 					'provider'      => 'hubspot',
