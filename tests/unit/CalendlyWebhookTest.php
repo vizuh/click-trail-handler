@@ -151,6 +151,11 @@ namespace {
 			$this->assertTrue( $event['consent']['marketing'] );
 		}
 
+		public function test_stamp_carries_any_d3_selectable_click_id(): void {
+			$this->assertSame( 'SNAP-1', $this->with_stamp( 'ct1;sccid=SNAP-1;c=1' )['attribution']['sccid'] );
+			$this->assertSame( 'EPIK1', $this->with_stamp( 'ct1;epik=EPIK1;c=1' )['attribution']['epik'] );
+		}
+
 		public function test_consent_only_stamp_carries_no_click_id(): void {
 			$event = $this->with_stamp( 'ct1;c=1' );
 

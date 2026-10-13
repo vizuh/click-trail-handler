@@ -123,10 +123,10 @@ class CF7_Adapter extends Abstract_Form_Adapter {
 			}
 		}
 
-		if ( empty( $attribution ) ) {
-			// If empty, maybe try getting payload directly.
-			$attribution = $this->get_attribution_payload();
-		}
+		// The cookie sent with the submit already holds this visit's touch. Hidden fields were
+		// rendered from the cookie at page load (one touch behind on a landing visit, and missing
+		// keys that touch added), so they only fill what the cookie lacks, e.g. cookies blocked.
+		$attribution = array_merge( $attribution, $this->get_attribution_payload() );
 
 		$form_id = $contact_form->id();
 		$this->log_submission( 'contact-form-7', $form_id, $attribution, is_array( $posted_data ) ? $posted_data : array() );

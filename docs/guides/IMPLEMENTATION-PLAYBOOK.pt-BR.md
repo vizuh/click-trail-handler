@@ -254,7 +254,7 @@ function ct(key) {
 | `lt_medium` | Mídia da visita que converteu |
 | `lt_campaign` | Campanha que converteu |
 | `lt_channel` | Canal que converteu |
-| `gclid` | Google Click ID — necessário para importar conversões no Google Ads |
+| `gclid` | Google Click ID do clique mais recente (último toque), necessário para importar conversões no Google Ads |
 | `wbraid` | Click ID Google (iOS / consent mode) |
 | `gbraid` | Click ID Google (apps / consent mode) |
 | `fbclid` | Facebook Click ID |

@@ -1041,6 +1041,13 @@ class WooCommerce {
 			'last_touch'  => $last_touch,
 		);
 
+		// Orders saved before 1.10.5 can hold a first-visit top-level click ID; the last touch wins.
+		foreach ( Attribution_Provider::get_click_id_fields() as $key ) {
+			if ( ! empty( $last_touch[ $key ] ) ) {
+				$raw_attribution[ $key ] = $last_touch[ $key ];
+			}
+		}
+
 		$flat = array_fill_keys(
 			array_filter(
 				Attribution_Provider::get_field_mapping(),

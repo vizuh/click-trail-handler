@@ -30,6 +30,11 @@
         'rdt_cid', 'pin_cid', 'snap_cid', 'mc_cid', 'mc_eid', 'dclid'
     ];
     const CLICK_ID_SIGNAL_KEYS = CLICK_ID_KEYS.concat(['sc_click_id']);
+    // D3 (clicktrail-js ruling): ad click IDs that enter the selection audit, in engine order.
+    // Extras such as mc_eid (Mailchimp) or rdt_cid are captured but never selected.
+    const D3_CLICK_ID_KEYS = ['gclid', 'wbraid', 'gbraid', 'fbclid', 'ttclid', 'msclkid', 'twclid', 'li_fat_id', 'sccid', 'epik'];
+    const CLICK_ID_HISTORY_KEY = 'click_id_history';
+    const CLICK_ID_HISTORY_LIMIT = 50;
     const BROWSER_IDENTIFIER_KEYS = [
         'fbc', 'fbp', 'ttp', 'li_gc', 'ga_client_id', 'ga_session_id', 'ga_session_number'
     ];
@@ -125,6 +130,11 @@
             }
 
             const rawValue = input[rawKey];
+            if (key === CLICK_ID_HISTORY_KEY) {
+                const history = sanitizeClickIdHistory(rawValue);
+                if (history.length) out[key] = JSON.stringify(history);
+                return;
+            }
             if (typeof rawValue === 'boolean') {
                 out[key] = rawValue;
                 return;
@@ -172,21 +182,113 @@
         if (!raw || typeof raw !== 'object') return '';
         const aliases = CLICK_ID_ALIASES[key] || [key];
 
-        for (let i = 0; i < aliases.length; i++) {
-            const alias = aliases[i];
-            if (raw[alias]) return raw[alias];
-            if (raw['lt_' + alias]) return raw['lt_' + alias];
-            if (raw['ft_' + alias]) return raw['ft_' + alias];
+        // Last touch wins: the top-level copy mirrors the latest click, never freezes the first one.
+        const prefixes = ['lt_', '', 'ft_'];
+        for (let p = 0; p < prefixes.length; p++) {
+            for (let i = 0; i < aliases.length; i++) {
+                const value = raw[prefixes[p] + aliases[i]];
+                if (value) return value;
+            }
         }
 
         return '';
+    }
+
+    // Entries are {k, v, t}; malformed history is dropped, never fatal (D3).
+    function sanitizeClickIdHistory(raw) {
+        let parsed = raw;
+        if (typeof raw === 'string') {
+            try { parsed = JSON.parse(raw); } catch (e) { return []; }
+        }
+        if (!Array.isArray(parsed)) return [];
+        return parsed
+            .filter((e) => e && D3_CLICK_ID_KEYS.includes(e.k) && sanitizeValue(e.v, 128))
+            .map((e) => ({ k: e.k, v: sanitizeValue(e.v, 128), t: sanitizeValue(e.t, 40) }))
+            .slice(-CLICK_ID_HISTORY_LIMIT);
+    }
+
+    // D3 audit: append this touch's click IDs to history and select the newest valid one.
+    function applyClickIdSelection(data, fields, timestamp) {
+        const captured = D3_CLICK_ID_KEYS.filter((k) => fields[k]).map((k) => ({ k: k, v: String(fields[k]), t: timestamp }));
+        const history = sanitizeClickIdHistory(data[CLICK_ID_HISTORY_KEY]).concat(captured).slice(-CLICK_ID_HISTORY_LIMIT);
+        if (history.length) data[CLICK_ID_HISTORY_KEY] = JSON.stringify(history);
+
+        const newest = history[history.length - 1];
+        if (!newest) return;
+        const previous = data.attribution_selected_click_id;
+        if (!previous) {
+            data.attribution_selected_click_id = newest.v;
+            data.attribution_selected_click_id_reason = 'newest_valid';
+        } else if (previous !== newest.v) {
+            data.attribution_selected_click_id = newest.v;
+            data.attribution_selected_click_id_reason = 'newest_valid_superseded_previous';
+        } else if (captured.length) {
+            data.attribution_selected_click_id_reason = 'newest_valid';
+        }
+    }
+
+    // Key of the selected click ID; top-level IDs are per-platform newest, so the match is unique.
+    function selectedClickIdKey(data) {
+        const selected = data && data.attribution_selected_click_id;
+        if (!selected) return '';
+        return D3_CLICK_ID_KEYS.find((k) => data[k] === selected) || '';
+    }
+
+    // Consent state from the bridge, else the consent cookie; null when nothing is decided.
+    function readConsent() {
+        const bridge = window.ClickTrailConsent;
+        if (
+            bridge &&
+            typeof bridge.isResolved === 'function' &&
+            typeof bridge.isGranted === 'function' &&
+            bridge.isResolved()
+        ) {
+            const state = typeof bridge.getState === 'function' ? bridge.getState() : null;
+            const granted = !!bridge.isGranted();
+            return {
+                resolved: true,
+                marketing: state && typeof state.marketing !== 'undefined' ? !!state.marketing : granted,
+                analytics: state && typeof state.analytics !== 'undefined' ? !!state.analytics : granted
+            };
+        }
+
+        try {
+            const c = Store.getCookie(getConsentCookieName());
+            if (!c) return null;
+
+            const parsed = JSON.parse(c);
+            return {
+                resolved: true,
+                marketing: !!(parsed && parsed.marketing),
+                analytics: !!(parsed && parsed.analytics)
+            };
+        } catch (e) {
+            const raw = Store.getCookie(getConsentCookieName());
+            const lowered = String(raw || '').trim().toLowerCase();
+            if (lowered === 'granted' || lowered === '1' || lowered === 'true' || lowered === 'yes') {
+                return { resolved: true, marketing: true, analytics: true };
+            }
+            if (lowered === 'denied' || lowered === '0' || lowered === 'false' || lowered === 'no') {
+                return { resolved: true, marketing: false, analytics: false };
+            }
+            return null;
+        }
+    
+    }
+
+    // One rule for capture and page-time work (fields, links, WhatsApp): a resolved decision
+    // wins; otherwise the requireConsent setting decides.
+    function liveConsentAllows() {
+        const consent = readConsent();
+        if (consent && consent.resolved) return !!consent.marketing;
+        return !(CONFIG.requireConsent === true || CONFIG.requireConsent === '1');
     }
 
     function withCanonicalClickIds(raw) {
         const out = Object.assign({}, raw || {});
         CLICK_ID_KEYS.forEach((key) => {
             const value = pickClickId(raw, key);
-            if (value && !out[key]) out[key] = String(value);
+            if (value) out[key] = String(value);
         });
         return out;
     }
@@ -567,14 +669,21 @@
             this.signedTokenPayloadHash = '';
         },
 
-        getData: function () {
+        // click_id_history stays browser-internal: only the capture paths that save it back
+        // (options.includeHistory) see it, never the public API, dataLayer or form payloads.
+        getData: function (options) {
+            const withHistory = (data) => {
+                if (!(options && options.includeHistory)) delete data[CLICK_ID_HISTORY_KEY];
+                return data;
+            };
             // Admin QA mode: session-scoped reads only, no persistent cookie/localStorage.
             if (isAdminQaMode()) {
                 const ssData = this.getSessionData();
-                return normalizeStoredAttribution(ssData || {});
+                return withHistory(normalizeStoredAttribution(ssData || {}));
             }
-            // 1. Try Cookie
-            const cookieRaw = this.getCookie(CONFIG.cookieName) || (
+            // 1. Try Cookie (canonical name first; the legacy name is read but never re-persisted)
+            const canonicalRaw = this.getCookie(CONFIG.cookieName);
+            const cookieRaw = canonicalRaw || (
                 CONFIG.cookieName !== 'ct_attribution' ? this.getCookie('ct_attribution') : null
             );
             const cookieObj = cookieRaw ? this.safeJsonParse(cookieRaw) : null;
@@ -582,7 +691,7 @@
             // 2. Try LocalStorage
             const lsObj = this.getLocalData();
 
-            if (cookieObj && typeof cookieObj === 'object' && !lsObj) {
+            if (canonicalRaw && cookieObj && typeof cookieObj === 'object' && !lsObj) {
                 this.setLocalData(cookieObj);
             }
 
@@ -590,11 +699,11 @@
             const ssObj = !cookieObj && !lsObj ? this.getSessionData() : null;
 
             // Cookie takes precedence; sessionStorage is last resort
-            return normalizeStoredAttribution(Object.assign({}, ssObj || {}, lsObj || {}, cookieObj || {}));
+            return withHistory(normalizeStoredAttribution(Object.assign({}, ssObj || {}, lsObj || {}, cookieObj || {})));
         },
 
         saveData: function (data) {
-            const sanitized = sanitizeAttributionData(data);
+            const sanitized = normalizeStoredAttribution(data);
             if (!Object.keys(sanitized).length) {
                 this.clearData();
                 return;
@@ -604,8 +713,14 @@
                 this.setSessionData(sanitized);
                 return;
             }
-            const dataStr = JSON.stringify(sanitized);
-            const cookiePersisted = this.setCookie(CONFIG.cookieName, dataStr, CONFIG.cookieDays);
+            // click_id_history is browser-side audit data; it would overflow the 4 KB server cookie.
+            const cookieData = Object.assign({}, sanitized);
+            delete cookieData[CLICK_ID_HISTORY_KEY];
+            const cookiePersisted = this.setCookie(CONFIG.cookieName, JSON.stringify(cookieData), CONFIG.cookieDays);
+            // Legacy name: migrate by rewrite only (no retention refresh on read), then remove it.
+            if (cookiePersisted && CONFIG.cookieName !== 'ct_attribution') {
+                this.removeCookie('ct_attribution');
+            }
             this.setLocalData(sanitized);
             // Keep the browser copy when the server cookie is blocked or too large.
             if (!cookiePersisted) {
@@ -1004,6 +1119,8 @@
                 ['ft_touch_timestamp', ['ct_ft_touch_timestamp', 'ct_first_touch_timestamp']],
                 ['lt_touch_timestamp', ['ct_lt_touch_timestamp', 'ct_last_touch_timestamp']],
                 ['trail_id', ['ct_trail_id']],
+                ['attribution_selected_click_id', ['ct_attribution_selected_click_id']],
+                ['attribution_selected_click_id_reason', ['ct_attribution_selected_click_id_reason']],
                 ['session_count', ['ct_session_count']]
             );
 
@@ -1014,8 +1131,14 @@
             if (!input) return;
             // Config: Overwrite?
             const overwrite = CONFIG.injectOverwrite === true || CONFIG.injectOverwrite === '1';
+            // ct_* fields are ClickTrail's own (some are server-rendered from the cookie one touch
+            // behind); plain names count as ours only when ClickTrail wrote the current value.
+            const ours = String(input.name || '').startsWith('ct_') ||
+                input.value === input.getAttribute('data-clicutcl-value');
 
-            if (!overwrite && input.value) return; // Skip if has value and no overwrite
+            if (!overwrite && input.value && !ours) return; // Skip if has value and no overwrite
+            input.setAttribute('data-clicutcl-value', value);
+            if (input.value === value) return;
 
             input.value = value;
             // Trigger events for frameworks (React, Vue, jQuery listeners)
@@ -1025,6 +1148,8 @@
 
         run: function () {
             if (!CONFIG.injectEnabled) return;
+            // Listeners outlive an in-page withdrawal; never refill fields or mint IDs after it.
+            if (!liveConsentAllows()) return;
 
             const data = Object.assign({}, Store.getData() || {});
             const identity = Identity.get();
@@ -1049,6 +1174,10 @@
                 const inputs = this.findInputs(fieldNames);
                 inputs.forEach((input) => {
                     if (!input || input.value === '') return;
+                    // ct_* names are ClickTrail's own; plain names (gclid, utm_source) only if ClickTrail filled them.
+                    const filled = input.hasAttribute('data-clicutcl-value');
+                    input.removeAttribute('data-clicutcl-value');
+                    if (!String(input.name || '').startsWith('ct_') && !filled) return;
                     input.value = '';
                     input.dispatchEvent(new Event("input", { bubbles: true }));
                     input.dispatchEvent(new Event("change", { bubbles: true }));
@@ -1131,6 +1260,12 @@
 
             // 6. Fallback
             setTimeout(run, 1500);
+
+            // 7. Submit: refresh from the latest stored touch (another tab may have captured one).
+            if (!this.submitListening) {
+                this.submitListening = true;
+                document.addEventListener('submit', () => this.run(), true);
+            }
         }
     };
 
@@ -1223,8 +1358,7 @@
 
         decorateUrl: function (rawHref) {
             if (this.isSkippable(rawHref)) return null;
-            const requiresConsent = CONFIG.requireConsent === true || CONFIG.requireConsent === '1';
-            if (requiresConsent && this.consentState() !== true) return null;
+            if (!liveConsentAllows()) return null;
 
             let url;
             try { url = new URL(rawHref, window.location.href); } catch (e) { return null; }
@@ -1302,16 +1436,85 @@
             return changed ? url.toString() : null;
         },
 
+        // Remove the params ClickTrail added (present in its decoration, absent from the site's
+        // original) from an href the site may have edited since; site params are kept.
+        withoutAddedParams: function (current, original, decorated) {
+            try {
+                const base = window.location.href;
+                const url = new URL(current, base);
+                const from = new URL(original, base).searchParams;
+                let changed = false;
+                new URL(decorated, base).searchParams.forEach((value, key) => {
+                    if (!from.has(key) && url.searchParams.get(key) === value) {
+                        url.searchParams.delete(key);
+                        changed = true;
+                    }
+                });
+                return changed ? url.toString() : current;
+            } catch (e) {
+                return current;
+            }
+        },
+
+        // Decorate Just-In-Time from the site's own href, never from a previous decoration, so a
+        // newer touch or a withdrawn consent never leaves stale ClickTrail params on the link.
+        decorateAnchor: function (a) {
+            const current = a.getAttribute('href');
+            if (current === null) return;
+            const decoratedBefore = a.getAttribute('data-clicutcl-decorated');
+            let original = current;
+            if (decoratedBefore !== null) {
+                original = current === decoratedBefore
+                    ? a.getAttribute('data-clicutcl-href')
+                    : this.withoutAddedParams(current, a.getAttribute('data-clicutcl-href'), decoratedBefore);
+            }
+            const decorated = this.decorateUrl(original);
+            const next = decorated || original;
+            if (next !== current) a.setAttribute('href', next);
+            if (decorated) {
+                a.setAttribute('data-clicutcl-href', original);
+                a.setAttribute('data-clicutcl-decorated', decorated);
+            } else {
+                a.removeAttribute('data-clicutcl-href');
+                a.removeAttribute('data-clicutcl-decorated');
+            }
+        },
+
+        // Consent withdrawal: strip what ClickTrail added from every link it decorated, keeping
+        // any later site change. An inline Calendly iframe or popup that already loaded keeps its
+        // URL; the restored data-url only affects later renders.
+        restore: function () {
+            document.querySelectorAll('a[data-clicutcl-href]').forEach((a) => {
+                const current = a.getAttribute('href');
+                const decorated = a.getAttribute('data-clicutcl-decorated');
+                const original = a.getAttribute('data-clicutcl-href');
+                a.setAttribute('href', current === decorated ? original : this.withoutAddedParams(current, original, decorated || ''));
+                a.removeAttribute('data-clicutcl-href');
+                a.removeAttribute('data-clicutcl-decorated');
+            });
+            document.querySelectorAll('.calendly-inline-widget[data-clicutcl-url]').forEach((el) => {
+                el.setAttribute('data-url', el.getAttribute('data-clicutcl-url'));
+                el.removeAttribute('data-clicutcl-url');
+            });
+        },
+
         isCalendlyHost: function (hostname) {
             const host = String(hostname || '').toLowerCase();
             return host === 'calendly.com' || host.endsWith('.calendly.com');
         },
 
-        // "ct1;<click_id_key>=<value>;c=<0|1>": one click ID (Google first) plus the live consent
+        // "ct1;<click_id_key>=<value>;c=<0|1>": one click ID (the D3-selected newest click; Google first only for legacy payloads) plus the live consent
         // decision. c is omitted when no decision exists (consent not required or unresolved),
         // so the webhook never infers a grant. Returns '' when there is nothing to carry.
         calendlyStamp: function (data) {
-            const order = ['gclid', 'gbraid', 'wbraid', 'fbclid', 'msclkid', 'ttclid', 'li_fat_id', 'twclid', 'dclid'];
+            // With a D3 selection the stamp carries that click or none: falling back would credit
+            // the booking to an older click from another platform. The fixed Google-first order is
+            // only for payloads saved before the selection existed. Keys match
+            // CalendlyWebhookAdapter::parse_stamp.
+            const selected = selectedClickIdKey(data);
+            const order = data.attribution_selected_click_id
+                ? (selected ? [selected] : [])
+                : ['gclid', 'gbraid', 'wbraid', 'fbclid', 'msclkid', 'ttclid', 'li_fat_id', 'twclid', 'dclid'];
             const parts = ['ct1'];
             for (const key of order) {
                 const value = String(data[key] || data['lt_' + key] || data['ft_' + key] || '');
@@ -1328,8 +1531,9 @@
         // Inline embeds (data-url) and the Calendly popup/inline JS API never see an anchor click.
         decorateCalendlyWidgets: function () {
             document.querySelectorAll('.calendly-inline-widget[data-url]').forEach((el) => {
-                const decorated = this.decorateUrl(el.getAttribute('data-url'));
-                if (decorated) el.setAttribute('data-url', decorated);
+                if (!el.hasAttribute('data-clicutcl-url')) el.setAttribute('data-clicutcl-url', el.getAttribute('data-url'));
+                const original = el.getAttribute('data-clicutcl-url');
+                el.setAttribute('data-url', this.decorateUrl(original) || original);
             });
 
             const calendly = window.Calendly;
@@ -1359,14 +1563,7 @@
 
             const handler = (evt) => {
                 const a = evt.target.closest("a");
-                if (!a) return;
-
-                const href = a.getAttribute("href");
-                const decorated = this.decorateUrl(href);
-
-                if (decorated) {
-                    a.href = decorated; // Update Just-In-Time
-                }
+                if (a) this.decorateAnchor(a);
             };
 
             document.addEventListener("mousedown", handler, true);
@@ -1646,54 +1843,11 @@
         }
 
         getConsent() {
-            const bridge = window.ClickTrailConsent;
-            if (
-                bridge &&
-                typeof bridge.isResolved === 'function' &&
-                typeof bridge.isGranted === 'function' &&
-                bridge.isResolved()
-            ) {
-                const state = typeof bridge.getState === 'function' ? bridge.getState() : null;
-                const granted = !!bridge.isGranted();
-                return {
-                    resolved: true,
-                    marketing: state && typeof state.marketing !== 'undefined' ? !!state.marketing : granted,
-                    analytics: state && typeof state.analytics !== 'undefined' ? !!state.analytics : granted
-                };
-            }
-
-            try {
-                const c = Store.getCookie(getConsentCookieName());
-                if (!c) return null;
-
-                const parsed = JSON.parse(c);
-                return {
-                    resolved: true,
-                    marketing: !!(parsed && parsed.marketing),
-                    analytics: !!(parsed && parsed.analytics)
-                };
-            } catch (e) {
-                const raw = Store.getCookie(getConsentCookieName());
-                const lowered = String(raw || '').trim().toLowerCase();
-                if (lowered === 'granted' || lowered === '1' || lowered === 'true' || lowered === 'yes') {
-                    return { resolved: true, marketing: true, analytics: true };
-                }
-                if (lowered === 'denied' || lowered === '0' || lowered === 'false' || lowered === 'no') {
-                    return { resolved: true, marketing: false, analytics: false };
-                }
-                return null;
-            }
+            return readConsent();
         }
 
         canCapture() {
-            const requiresConsent = CONFIG.requireConsent === true || CONFIG.requireConsent === '1';
-            const consent = this.getConsent();
-
-            if (consent && consent.resolved) {
-                return !!consent.marketing;
-            }
-
-            return !requiresConsent;
+            return liveConsentAllows();
         }
 
         handleConsentDenied() {
@@ -1703,6 +1857,7 @@
             SessionManager.clear();
             Identity.clear();
             Injector.clear();
+            Decorator.restore();
             // Legacy key written unconditionally in 1.10.2 and earlier; nothing reads it.
             try { localStorage.removeItem('clicutcl_js_last_seen'); } catch (e) {}
             API.install({ withIdentity: false });
@@ -1753,7 +1908,7 @@
                             return;
                         }
 
-                        let stored = Store.getData() || {};
+                        let stored = Store.getData({ includeHistory: true }) || {};
                         const now = new Date().toISOString();
 
                         // Merge token data without overwriting existing values.
@@ -1772,7 +1927,7 @@
             const touch = this.resolveTouch(currentParams, referrer);
             const hasAttributionSignal = touch.hasSignal;
 
-            let storedData = Store.getData() || {};
+            let storedData = Store.getData({ includeHistory: true }) || {};
             let shouldPersist = false;
 
             if (this.mergeTopLevelIdentifiers(storedData, BrowserIdentifiers.collect(currentParams))) {
@@ -1790,6 +1945,7 @@
 
                 // Last Touch (Always update on signal)
                 this.applyTouch('lt', storedData, fields, now);
+                applyClickIdSelection(storedData, fields, now);
 
                 shouldPersist = true;
             }
@@ -1800,6 +1956,8 @@
                 // Pending capture fulfilled — clear so it isn't re-promoted on subsequent pages.
                 PendingCapture.clear();
             }
+            // Only the save above needs the browser-only history; nothing below may push it.
+            delete storedData[CLICK_ID_HISTORY_KEY];
 
             // Touch session (creates or resumes based on 30-min inactivity)
             const session = SessionManager.touch();
@@ -2016,8 +2174,12 @@
                 const a = evt.target.closest('a');
                 if (!a) return;
 
-                const href = a.getAttribute('href');
-                if (!href) return;
+                const current = a.getAttribute('href');
+                if (!current) return;
+                // Same bookkeeping as Decorator.decorateAnchor, so Decorator.restore() covers it.
+                const href = current === a.getAttribute('data-clicutcl-decorated')
+                    ? a.getAttribute('data-clicutcl-href')
+                    : current;
 
                 let url;
                 try {
@@ -2034,7 +2196,9 @@
                         const text = url.searchParams.get('text') || '';
                         const glue = text ? '\n\n' : '';
                         url.searchParams.set('text', text + glue + 'CT:' + encoded);
-                        a.href = url.toString();
+                        a.setAttribute('data-clicutcl-href', href);
+                        a.setAttribute('data-clicutcl-decorated', url.toString());
+                        a.setAttribute('href', url.toString());
                     }
                 }
             };

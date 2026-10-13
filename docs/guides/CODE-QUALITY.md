@@ -59,6 +59,32 @@ That improves breadth safety, but it is still not a full WordPress runtime or in
 - WooCommerce browser events and milestone hooks
 - adapter payload translation against real downstream endpoints
 
+## 5. Repeat-visit attribution (1.10.5 status)
+
+Repro: `node tools/qa/repeat-visit-scenarios.js [plugin-root]` replays visits through the real attribution script and prints what the stored payload, a decorated link and the Calendly stamp carry. Asserted coverage lives in `tools/qa/smoke.js`, `tools/qa/cmp-transition.test.js`, `tests/unit/ClickIdPrecedenceTest.php` and `tests/unit/CF7SubmissionOutcomeTest.php`; `tools/qa/e2e/` replays the full browser, form and Calendly webhook round trip on a throwaway local WordPress.
+
+| Scenario | 1.10.4 | 1.10.5 |
+|---|---|---|
+| Google A, then Google B | link and stamp send A (frozen top-level copy) | B everywhere; `ft_gclid` keeps A |
+| Google A, then Meta B | stamp sends `gclid=A` | stamp sends `fbclid=B` (D3 selection); link carries both IDs, per platform newest |
+| Google A, then UTM-only visit | `gclid=A` next to the new UTMs | unchanged: D3 keeps the newest click until a newer one arrives |
+| Google A, then direct visit | no new touch; A kept | unchanged |
+| Consent withdrawn after a link was decorated | link kept the click ID | original URL restored; re-grant decorates again |
+| Both `attribution` and legacy `ct_attribution` cookies | PHP read the legacy one | both runtimes read `attribution` first |
+| Google A, then Meta B, then CF7 submit on that landing page | lead stored as Google (`lt_campaign` of the first visit, no `fbclid`) | lead stored as Meta with `fbclid` and selection `FB` (local end-to-end run) |
+| Same visitor books through the decorated Calendly link (replayed webhook) | stamp `gclid=A` | `book_appointment` dispatched with `fbclid=B`, no `gclid` |
+
+Still open (pre-existing, not changed by 1.10.5):
+
+- **Medium. Stale last-touch fields.** `applyTouch('lt', ...)` writes only non-empty fields, so a later touch without `utm_term` keeps the previous touch's `lt_term` (Google A with `utm_term=kw`, then a newsletter visit, leaves `lt_term=kw` beside `lt_campaign=n1`). `clicktrail-js` overwrites every `lt_` field per touch; no parity ruling covers it yet because the parity fixtures are single-visit.
+- **Medium. Link carries every platform's newest click.** After Google A then Meta B, a decorated link sends `utm_campaign=<meta campaign>` with both `gclid=A` and `fbclid=B`. D3 allows keeping both; a downstream reader that pairs `gclid` with the link's UTMs credits the wrong campaign. Readers should use `attribution_selected_click_id`.
+- **Medium. Plain-name inputs mix touches.** `utm_*` hidden fields and the Gravity Forms `{clicutcl_utm_*}` merge tags read first touch, while `gclid` / `ct_gclid` and `{clicutcl_click_id}` read the latest click.
+- **Low. Cross-domain token.** The token carries top-level click IDs only (no `lt_`, no selection), the receiving side merges fill-if-empty, and the PHP sign allowlist drops `rdt_cid`, `pin_cid`, `snap_cid`, `mc_cid`, `mc_eid`, `dclid`.
+- **Low. Already-loaded embeds.** An inline Calendly iframe or popup that loaded before a withdrawal keeps the URL it loaded with; ClickTrail cannot recall what a loaded third-party frame received. Popups opened and widgets rendered after the withdrawal get the site's URL only (`cmp-transition.test.js`). A site edit to an inline widget's `data-url` after decoration is reset to the stored original on the next widget pass.
+- **Low. Re-grant listeners.** A same-page re-grant re-runs install, so link-decoration handlers and MutationObservers are added again (handlers are idempotent; the submit listener is registered once).
+- **Low, unreproduced. Cross-tab writes.** Both write paths re-read storage right before saving, which removes stale-snapshot writes, but a read-modify-write across two tabs is not atomic. No failing case is known.
+- **Unverified.** A live Calendly booking (does Calendly keep the `salesforce_uuid` stamp end to end). `clicktrail-js` parity was run against this branch with the pin check bypassed in a throwaway worktree: 15 match, 10 ruled, 0 new findings, same as plugin `main`; `attribution_selected_click_id`/`_reason` now match the engine and only `click_id_history` (kept out of `getData()`) stays a ruled D3 difference. The runner still pins plugin `ead6682` and needs a deliberate re-pin to the merged commit.
+
 ## Static Compatibility Check (CI)
 
 The repository runs two PHP static checks on every push and pull request:
