@@ -74,7 +74,8 @@ The Cookiebot bridge stays subscribed to `CookiebotOnConsentReady`, `CookiebotOn
 `CookiebotOnDecline`, so an in-page change or withdrawal (Cookiebot's renew dialog) clears ClickTrail
 storage without a reload. The same withdrawal removes the parameters ClickTrail added from every link it decorated, including the
 `CT:` payload on WhatsApp links (later site edits to those links are kept) and restores the `data-url` of inline Calendly widgets; an inline iframe or
-popup that already loaded keeps the URL it loaded with. It clears every `ct_*` hidden field and plain-name fields
+popup that already loaded keeps the URL it loaded with. The same holds for an embed iframe whose URL came from
+`ClickTrail.decorateEmbedUrl()`; after withdrawal that function returns URLs unchanged. It clears every `ct_*` hidden field and plain-name fields
 (`gclid`, `utm_source`, ...) only when ClickTrail filled them. `ct_*` inputs are ClickTrail's namespace: while
 consent allows, they are refreshed from current attribution even when `injectOverwrite` is off. After withdrawal, form listeners refill nothing and
 mint no visitor or session IDs. Re-granting on the same page decorates and fills again from current attribution.
@@ -189,6 +190,19 @@ Security properties:
 - subdomain acceptance is filterable
 - attribution payload is normalized before use
 - both `/sign` and `/verify` require the page-embedded signed client token (verify is only meaningful on the install that signed the token)
+
+## Embed URL Handoff
+
+`window.ClickTrail.decorateEmbedUrl(url)` adds last-touch `utm_*` and one click ID (the D3 selection) to a URL the
+site's own script loads in an iframe. It sends nothing unless:
+
+- the host is listed in `embed_allowed_domains` (empty by default; exact host match, so a third-party widget on a
+  sibling subdomain must be listed explicitly) or added through `clicutcl_embed_allowed_domains`
+- the URL is https, and carries no signature parameter while `link_skip_signed` is on (default)
+- live marketing consent allows it (same rule as link decoration)
+
+No visitor ID, session ID, click history or cross-domain token is added. The widget vendor receives the values in
+its URL and its own request logs; what it stores is the vendor's responsibility.
 
 ## Webhook Security
 

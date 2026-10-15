@@ -657,6 +657,9 @@
                     }),
                     renderToggle('capture.pass_token', __('Pass cross-domain attribution token', 'click-trail-handler'), __('Adds a temporary token to preserve attribution across approved domains. No personal data is included.', 'click-trail-handler'), {
                         disabled: !linkDecorationEnabled
+                    }),
+                    renderTextarea('capture.embed_domains', __('Embedded widget hosts', 'click-trail-handler'), __('Exact hosts of booking or form iframes your own script loads. Your script calls window.ClickTrail.decorateEmbedUrl(url) to add UTMs and one click ID.', 'click-trail-handler'), {
+                        placeholder: 'booking.example.com'
                     })
                 ])
             ];

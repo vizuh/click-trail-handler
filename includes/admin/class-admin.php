@@ -596,6 +596,7 @@ class Admin {
 				'retention_days'   => absint( $attr_options['cookie_days'] ?? 90 ),
 				'decorate_links'   => ! empty( $attr_options['enable_link_decoration'] ) ? 1 : 0,
 				'allowed_domains'  => $this->format_multiline_setting( $attr_options['link_allowed_domains'] ?? '' ),
+				'embed_domains'    => $this->format_multiline_setting( $attr_options['embed_allowed_domains'] ?? '' ),
 				'skip_signed_urls' => ! empty( $attr_options['link_skip_signed'] ) ? 1 : 0,
 				'pass_token'       => ! empty( $attr_options['enable_cross_domain_token'] ) ? 1 : 0,
 			),
@@ -990,6 +991,7 @@ class Admin {
 			'cookie_days'                 => $capture['retention_days'] ?? 90,
 			'enable_link_decoration'      => ! empty( $capture['decorate_links'] ) ? 1 : 0,
 			'link_allowed_domains'        => $capture['allowed_domains'] ?? '',
+			'embed_allowed_domains'       => $capture['embed_domains'] ?? '',
 			'link_skip_signed'            => ! empty( $capture['skip_signed_urls'] ) ? 1 : 0,
 			'enable_cross_domain_token'   => ! empty( $capture['pass_token'] ) ? 1 : 0,
 			'enable_js_injection'         => ! empty( $forms['client_fallback'] ) ? 1 : 0,
@@ -1167,6 +1169,10 @@ class Admin {
 				'sanitize' => array( $this, 'sanitize_toggle' ),
 			),
 			'link_allowed_domains'        => array(
+				'default'  => '',
+				'sanitize' => array( $this, 'sanitize_domains_csv' ),
+			),
+			'embed_allowed_domains'       => array(
 				'default'  => '',
 				'sanitize' => array( $this, 'sanitize_domains_csv' ),
 			),

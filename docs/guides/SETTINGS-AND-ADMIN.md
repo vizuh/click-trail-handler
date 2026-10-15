@@ -81,6 +81,7 @@ Primary user-facing controls:
 - allowed domains
 - skip signed URLs
 - pass cross-domain token
+- embedded widget hosts (exact hosts for `window.ClickTrail.decorateEmbedUrl()`)
 
 ## Forms
 
@@ -197,6 +198,7 @@ Relevant keys:
 - `link_allowed_domains`
 - `link_skip_signed`
 - `enable_cross_domain_token`
+- `embed_allowed_domains`
 - `enable_whatsapp`
 - `whatsapp_append_attribution`
 
