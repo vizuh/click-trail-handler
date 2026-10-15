@@ -1,6 +1,9 @@
 Changelog
 ========
 
+= Unreleased =
+* Attribution: `window.ClickTrail.decorateEmbedUrl(url)` for booking and form iframes the site's own script creates. For an https host listed in the new **Embedded widget hosts** setting (`embed_allowed_domains`, filter `clicutcl_embed_allowed_domains`, empty by default, exact match) it returns the URL with last-touch `utm_*` and one click ID (the D3 selection, `wbraid` / `gbraid` under their own keys); otherwise, without marketing consent, for signed URLs (while `link_skip_signed` is on), or with no stored attribution it returns the input unchanged. Site parameters are never overwritten, and stored UTMs are skipped when the URL already has any `utm_*`. Hosts from the filter are normalized like the admin setting. `Decorator.oneClickId` now backs both this and the Calendly stamp. Smoke checks in `tools/qa/smoke.js`.
+
 = 1.10.5 =
 * Attribution: top-level click IDs (`gclid`, `fbclid`, ...) now mirror the last touch. They used to freeze on the first visit, so a returning visitor's new ad click was replaced by the old one in decorated links, the Calendly `salesforce_uuid` stamp, the cross-domain token, `ct_page_view` `click_ids`, injected `gclid` / `ct_gclid` hidden fields, form entry meta, Woo `_clicutcl_<id>` order meta and server-side events. `lt_<id>` wins in `pickClickId` / `withCanonicalClickIds`, `Store.saveData` persists the normalized shape, and the PHP normalizers (`Attribution_Provider`, `EventV2`, attribution token) apply the same rule, so cookies written by earlier versions resolve to the last touch on read. `ft_<id>` is unchanged.
 * WooCommerce: order event flattening prefers `last_touch` click IDs over a stale top-level copy on orders saved before this release.
