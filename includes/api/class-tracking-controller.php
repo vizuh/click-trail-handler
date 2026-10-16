@@ -617,6 +617,20 @@ class Tracking_Controller extends WP_REST_Controller {
 	}
 
 	/**
+	 * Whether queued retries can be delivered without a request cookie.
+	 *
+	 * In strict and geo modes the queue sends only when a subject-consent resolver
+	 * (`clicutcl_queue_consent_snapshot`) is hooked; without one, queued rows stay
+	 * pending until retention purges them, so a webhook must not be acknowledged.
+	 *
+	 * @return bool
+	 */
+	private static function queue_can_deliver_retries(): bool {
+		return ! \CLICUTCL\Server_Side\Consent::is_required_for_queue()
+			|| ( function_exists( 'has_filter' ) && false !== has_filter( 'clicutcl_queue_consent_snapshot' ) );
+	}
+
+	/**
 	 * Validate and dispatch one provider webhook payload.
 	 *
 	 * @param string                          $provider Provider key.
@@ -654,9 +668,10 @@ class Tracking_Controller extends WP_REST_Controller {
 
 		$dispatch = Dispatcher::dispatch_from_v2( $canonical );
 		$queued   = ! $dispatch->success && ! $dispatch->skipped && is_array( $dispatch->meta ?? null ) && ! empty( $dispatch->meta['queued'] );
-		if ( $queued ) {
-			// The Dispatcher queued a retryable delivery failure for its own retries, so
-			// the event is accepted: acknowledge it and stop the provider resending it.
+		if ( $queued && self::queue_can_deliver_retries() ) {
+			// The Dispatcher queued a retryable delivery failure and the queue can send it,
+			// so the event is accepted: acknowledge it and stop the provider resending it.
+			// Otherwise fall through to a 5xx so the provider's own retry recovers it.
 			Dedup_Store::mark( 'webhook_' . $provider, (string) $canonical['event_name'], (string) $canonical['event_id'] );
 			return array(
 				'success'    => true,

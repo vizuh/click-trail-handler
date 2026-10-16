@@ -99,7 +99,7 @@ Auth model:
 
 HubSpot webhook arrays are processed item by item, up to 100 notifications per request (HubSpot's batch size); larger arrays are rejected with `413 batch_too_large` instead of being truncated. Every item is attempted even when an earlier one fails; per-item results are returned in `events`.
 
-A delivery failure that the Dispatcher queued for retry is acknowledged with HTTP success and `queued: true`, so the provider does not resend it. A server-side failure that was not queued returns `500 dispatch_failed` and releases the request's replay claim, so the provider's identical resend is processed instead of rejected with `409`; items already delivered are skipped on that resend by their webhook dedup mark.
+A delivery failure that the Dispatcher queued for retry is acknowledged with HTTP success and `queued: true`, so the provider does not resend it, but only when the queue can send it: consent mode off or `relaxed`, or a `clicutcl_queue_consent_snapshot` resolver hooked. In strict and geo modes without a resolver, queued rows cannot be sent, so the request returns `500 dispatch_failed` and the provider's own retry recovers the event. A server-side failure that was not queued returns `500 dispatch_failed` and releases the request's replay claim, so the provider's identical resend is processed instead of rejected with `409`; items already delivered are skipped on that resend by their webhook dedup mark.
 
 Consent-blocked webhook and lifecycle requests still return HTTP success to prevent retries, but their JSON body reports `success: false`, `skipped: true`, and the skip reason.
 

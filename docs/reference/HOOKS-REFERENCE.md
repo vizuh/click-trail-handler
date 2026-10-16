@@ -245,7 +245,7 @@ Arguments:
 Purpose:
 
 - seconds one queue run may spend draining due rows in batches of 10
-- default `60`; clamped to 10 through half of the 120-second processing lock TTL
+- default `20` (kept well under the 30-60 second wall-clock limits common on managed hosts); clamped to 10 through half of the 120-second processing lock TTL
 
 Arguments:
 

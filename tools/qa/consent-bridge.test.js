@@ -252,11 +252,29 @@ function testGoogleConsentModeDefaultIsNotADecision() {
   const next = makeContext(storage, cookies, { cmpSource: 'auto' }, withDefault);
   assert.strictEqual(next.window.ClickTrailConsent.isGranted(), true, 'the banner choice survives the next page default');
 
-  // A region-scoped default may not apply to this visitor.
+  // The visitor's region is unknown, so a regional denial applies (fail closed), and a
+  // global default grant must not override it (Google's documented regional pattern).
   const regional = makeContext(new Storage(), Object.create(null), { cmpSource: 'gtm' }, (w) => {
-    w.dataLayer.push(gtag('consent', 'default', { ad_storage: 'denied', region: ['FR'] }));
+    w.dataLayer.push(gtag('consent', 'default', { ad_storage: 'denied', analytics_storage: 'denied', region: ['AT', 'FR'] }));
+    w.dataLayer.push(gtag('consent', 'default', { ad_storage: 'granted', analytics_storage: 'granted' }));
   });
-  assert.strictEqual(regional.window.ClickTrailConsent.isResolved(), false, 'a region-scoped default does not resolve consent');
+  assert.strictEqual(regional.window.ClickTrailConsent.isGranted(), false, 'a global default grant must not override a regional denial');
+  regional.window.dataLayer.push(gtag('consent', 'update', { ad_storage: 'granted', analytics_storage: 'granted' }));
+  assert.strictEqual(regional.window.ClickTrailConsent.isGranted(), true, 'an update still grants');
+
+  // A regional grant never grants by itself.
+  const regionalGrant = makeContext(new Storage(), Object.create(null), { cmpSource: 'gtm' }, (w) => {
+    w.dataLayer.push(gtag('consent', 'default', { ad_storage: 'granted', region: ['US-CA'] }));
+  });
+  assert.strictEqual(regionalGrant.window.ClickTrailConsent.isGranted(), false);
+
+  // A global default grant resolves granted and is mirrored to the server cookie so PHP agrees.
+  const grantCookies = Object.create(null);
+  const globalGrant = makeContext(new Storage(), grantCookies, { cmpSource: 'gtm' }, (w) => {
+    w.dataLayer.push(gtag('consent', 'default', { ad_storage: 'granted', analytics_storage: 'granted' }));
+  });
+  assert.strictEqual(globalGrant.window.ClickTrailConsent.isGranted(), true);
+  assert.ok(grantCookies.ct_consent_state && decodeURIComponent(grantCookies.ct_consent_state).includes('"marketing":true'), 'default grant reaches PHP');
 }
 
 testGrantWithdrawalRetryAndReload();

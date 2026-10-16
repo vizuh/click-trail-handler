@@ -337,8 +337,9 @@ class Queue {
 			// Drain batches until nothing new is due or the time budget is spent. One batch
 			// per cron run capped throughput at 10 rows per 5 minutes, so a backlog after an
 			// outage outlived queue retention. The budget stays under LOCK_TTL so a slow run
-			// does not let a second worker take over the lock.
-			$budget   = (int) apply_filters( 'clicutcl_queue_time_budget', 60 );
+			// does not let a second worker take over the lock, and well under the 30-60 s
+			// wall-clock kills common on managed hosts, which would skip the finally block.
+			$budget   = (int) apply_filters( 'clicutcl_queue_time_budget', 20 );
 			$deadline = time() + max( 10, min( (int) ( self::LOCK_TTL / 2 ), $budget ) );
 			$seen     = array();
 			do {

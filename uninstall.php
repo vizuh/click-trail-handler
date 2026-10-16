@@ -116,6 +116,9 @@ if ( ! $clicutcl_preserve_data ) {
 			switch_to_blog( (int) $clicutcl_site_id );
 			wp_clear_scheduled_hook( 'clicutcl_dispatch_queue' );
 			wp_clear_scheduled_hook( 'clicutcl_daily_cleanup' );
+			if ( function_exists( 'as_unschedule_all_actions' ) ) {
+				as_unschedule_all_actions( 'clicutcl_dispatch_queue', array(), 'clicktrail-delivery' );
+			}
 			clicutcl_uninstall_site_data();
 			restore_current_blog();
 		}

@@ -218,8 +218,10 @@
         }
 
         // Fallbacks resolve the page but are not decisions: they are never persisted,
-        // never written to the server cookie and never clear the banner's cookie.
-        var isPluginFallback = nextSource === 'plugin-cookie' || nextSource === 'gcm-default';
+        // never written to the server cookie and never clear the banner's cookie. A GCM
+        // default grant is still mirrored to the server cookie below so PHP gates agree
+        // with the browser; a default denial is not, so it cannot clear a banner choice.
+        var isPluginFallback = nextSource === 'plugin-cookie' || (nextSource === 'gcm-default' && !normalized.marketing);
         var shouldPersist = CONFIG.enabled !== false && persistDecision !== false && !isPluginFallback && nextSource.indexOf('storage:') !== 0;
         resolved = true;
         consentState = normalized;
@@ -442,16 +444,32 @@
         var dl = window.dataLayer;
         var targetKey = String(CONFIG.gtmConsentKey || 'analytics_storage');
         var gcm = { analytics: null, marketing: null, updated: false };
+        var regionDenied = { analytics: false, marketing: false };
 
         // Mirror Consent Mode semantics: defaults set the starting state, updates
-        // override it key by key, and the latest update wins. A region-scoped default
-        // may not apply to this visitor, and a default never overrides an update.
+        // override it key by key, and the latest update wins; a default never overrides
+        // an update. The bridge cannot know the visitor's region, so it fails closed:
+        // a region-scoped default can only deny, and a key a region-scoped default
+        // denied is never granted by a global default (region defaults take precedence).
+        function setKey(key, value, cmd) {
+            if (value === null) return;
+            if (cmd.type === 'default') {
+                if (cmd.region) {
+                    if (value) return;
+                    regionDenied[key] = true;
+                } else if (value && regionDenied[key]) {
+                    return;
+                }
+            }
+            gcm[key] = value;
+        }
+
         function apply(entry) {
             var cmd = gcmCommand(entry, targetKey);
             if (!cmd) return false;
-            if (cmd.type === 'default' && (cmd.region || gcm.updated)) return false;
-            if (cmd.analytics !== null) gcm.analytics = cmd.analytics;
-            if (cmd.marketing !== null) gcm.marketing = cmd.marketing;
+            if (cmd.type === 'default' && gcm.updated) return false;
+            setKey('analytics', cmd.analytics, cmd);
+            setKey('marketing', cmd.marketing, cmd);
             if (cmd.type !== 'default') gcm.updated = true;
             return true;
         }

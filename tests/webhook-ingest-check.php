@@ -30,6 +30,15 @@ namespace CLICUTCL\Server_Side {
 	}
 }
 
+namespace CLICUTCL\Modules\Consent_Mode {
+	class Consent_Mode_Settings {
+		public function is_consent_mode_enabled() { return ! empty( $GLOBALS['clicktrail_test_consent_mode'] ); }
+		public function get_mode() { return (string) ( $GLOBALS['clicktrail_test_consent_mode'] ?? 'strict' ); }
+		public function is_consent_required_for_request() { return 'relaxed' !== $this->get_mode(); }
+		public function get_cookie_name() { return 'ct_consent'; }
+	}
+}
+
 namespace CLICUTCL\Api {
 	function time() {
 		return $GLOBALS['clicktrail_test_now'] ?? \time();
@@ -63,6 +72,8 @@ namespace {
 	) as $file ) {
 		require_once $root . $file;
 	}
+
+	function has_filter( $tag ) { return ! empty( $GLOBALS['clicktrail_test_filters'][ $tag ] ); }
 
 	use CLICUTCL\Api\Tracking_Controller;
 	use CLICUTCL\Core\Storage\Option_Cache;
@@ -142,6 +153,25 @@ namespace {
 	Dispatcher::$next = static fn() => Dispatcher::result( false, false, 'http_503', array( 'queued' => true ) );
 	$out              = $hubspot( $items( 1, 3000 ) );
 	$check( is_array( $out ) && ! empty( $out['success'] ) && ! empty( $out['queued'] ), 'queued delivery failure returns success' );
+
+	// Strict consent without a subject-consent resolver: the queue cannot send the row,
+	// so the provider must keep its own retry (5xx, replay claim released).
+	$GLOBALS['clicktrail_test_consent_mode'] = 'strict';
+	$reset();
+	Dispatcher::$next = static fn() => Dispatcher::result( false, false, 'http_503', array( 'queued' => true ) );
+	$out              = $hubspot( $items( 1, 3500 ) );
+	$check( is_wp_error( $out ) && 'dispatch_failed' === $out->get_error_code(), 'undeliverable queued row is not acknowledged' );
+	Dispatcher::$next = null;
+	$retry            = $hubspot( $items( 1, 3500 ) );
+	$check( is_array( $retry ) && ! empty( $retry['success'] ), 'provider resend is processed' );
+
+	// With a resolver hooked, the queue can deliver: acknowledge.
+	$GLOBALS['clicktrail_test_filters']['clicutcl_queue_consent_snapshot'] = true;
+	$reset();
+	Dispatcher::$next = static fn() => Dispatcher::result( false, false, 'http_503', array( 'queued' => true ) );
+	$out              = $hubspot( $items( 1, 3600 ) );
+	$check( is_array( $out ) && ! empty( $out['queued'] ), 'queued row with a consent resolver is acknowledged' );
+	unset( $GLOBALS['clicktrail_test_consent_mode'], $GLOBALS['clicktrail_test_filters'] );
 
 	// An unqueued server failure releases the replay claim so the identical resend is processed.
 	$reset();
