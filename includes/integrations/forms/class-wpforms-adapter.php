@@ -56,6 +56,38 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 	}
 
 	/**
+	 * Resolve the WPForms entry meta handler, when this install has one.
+	 *
+	 * WPForms exposes it through a registry behind __get() and defines no __isset(),
+	 * so isset( wpforms()->entry_meta ) is always false; read it directly instead.
+	 *
+	 * @return object|null
+	 */
+	private function get_entry_meta_handler() {
+		if ( ! function_exists( 'wpforms' ) ) {
+			return null;
+		}
+
+		$wpforms = wpforms();
+		if ( ! is_object( $wpforms ) ) {
+			return null;
+		}
+
+		// obj() since WPForms 1.9.1; get() before it (deprecated, still present).
+		$handler = null;
+		if ( method_exists( $wpforms, 'obj' ) ) {
+			$handler = $wpforms->obj( 'entry_meta' );
+		} elseif ( method_exists( $wpforms, 'get' ) ) {
+			$handler = $wpforms->get( 'entry_meta' );
+		}
+		if ( ! is_object( $handler ) && ( property_exists( $wpforms, 'entry_meta' ) || method_exists( $wpforms, '__get' ) ) ) {
+			$handler = $wpforms->entry_meta;
+		}
+
+		return is_object( $handler ) && method_exists( $handler, 'add' ) ? $handler : null;
+	}
+
+	/**
 	 * Populate field via filter.
 	 *
 	 * @param string $value     Field value.
@@ -131,17 +163,11 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 
 		// Save to WPForms entry meta only when a real entry exists.
 		// Lite installs and some processing paths may not provide one.
-		if (
-			$entry_id > 0 &&
-			$form_id > 0 &&
-			function_exists( 'wpforms' ) &&
-			isset( wpforms()->entry_meta ) &&
-			is_object( wpforms()->entry_meta ) &&
-			method_exists( wpforms()->entry_meta, 'add' )
-		) {
+		$entry_meta = $this->get_entry_meta_handler();
+		if ( $entry_id > 0 && $form_id > 0 && $entry_meta ) {
 			foreach ( $payload as $key => $value ) {
 				$meta_key = $this->get_field_name( $key );
-				wpforms()->entry_meta->add(
+				$entry_meta->add(
 					array(
 						'entry_id' => $entry_id,
 						'form_id'  => $form_id,

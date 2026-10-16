@@ -335,6 +335,7 @@ read, or sent marker. An order's historical grant cannot authorize this browser 
 - clears ClickTrail transients
 - removes allowlisted ClickTrail Woo order metadata through the WooCommerce CRUD API
 - drops the queue, events, and touch events tables by default
+- on multisite, runs the same per-site cleanup inside `switch_to_blog()` for every site, then deletes the network option
 
 Data preservation can be overridden with:
 

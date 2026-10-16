@@ -381,6 +381,7 @@ Default uninstall behavior:
 - clear transients
 - clear scheduled hooks
 - drop plugin tables
+- on multisite, repeat the cleanup on every site of the network (each site has its own prefixed tables and options)
 
 Preservation override:
 

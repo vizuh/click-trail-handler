@@ -17,8 +17,14 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
  */
 $clicutcl_preserve_data = (bool) apply_filters( 'clicutcl_preserve_data_on_uninstall', false );
 
-// Delete plugin options only when data preservation was not requested.
-if ( ! $clicutcl_preserve_data ) {
+/**
+ * Delete one site's ClickTrail options, transients, order metadata and tables.
+ *
+ * @return void
+ */
+function clicutcl_uninstall_site_data() {
+	global $wpdb;
+
 	$clicutcl_option_keys = array(
 		'clicutcl_attribution_settings',
 		'clicutcl_consent_mode',
@@ -39,6 +45,14 @@ if ( ! $clicutcl_preserve_data ) {
 		'clicutcl_queue_table_checked_at',
 		'clicutcl_touch_events_table_ready',
 		'clicutcl_touch_events_table_checked_at',
+		'clicutcl_db_version',
+		'clicutcl_mode',
+		'clicutcl_setup_complete',
+		'clicutcl_activated_at',
+		'clicutcl_first_order_tracked_at',
+		'clicutcl_gtm_offer_dismissed',
+		'clicutcl_gtm_offer_subscribed',
+		'clicutcl_queue_lock',
 		'_transient_clicutcl_debug_until',
 		'_transient_timeout_clicutcl_debug_until',
 	);
@@ -46,23 +60,7 @@ if ( ! $clicutcl_preserve_data ) {
 		delete_option( $clicutcl_option_key );
 	}
 
-	if ( function_exists( 'is_multisite' ) && is_multisite() ) {
-		delete_site_option( 'clicutcl_server_side_network' );
-	}
-}
-
-// Clear scheduled hooks.
-wp_clear_scheduled_hook( 'clicutcl_dispatch_queue' );
-wp_clear_scheduled_hook( 'clicutcl_daily_cleanup' );
-
-// Cancel Action Scheduler recurring actions when AS library is present.
-if ( function_exists( 'as_unschedule_all_actions' ) ) {
-	as_unschedule_all_actions( 'clicutcl_dispatch_queue', array(), 'clicktrail-delivery' );
-}
-
-if ( ! $clicutcl_preserve_data ) {
 	// Clear known transients used for diagnostics, dedup, rate limits, and replay guards.
-	global $wpdb;
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Uninstall cleanup; no cache needed.
 	$wpdb->query(
 		$wpdb->prepare(
@@ -71,9 +69,7 @@ if ( ! $clicutcl_preserve_data ) {
 			'_transient_timeout_clicutcl_%'
 		)
 	);
-}
 
-if ( ! $clicutcl_preserve_data ) {
 	// Load the lifecycle helper because WordPress may include uninstall.php
 	// without loading the plugin bootstrap first.
 	$clicutcl_woo_privacy_file = __DIR__ . '/includes/privacy/class-woo-order-privacy.php';
@@ -95,4 +91,35 @@ if ( ! $clicutcl_preserve_data ) {
 	$wpdb->query( "DROP TABLE IF EXISTS {$clicutcl_events_table}" );
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Uninstall cleanup.
 	$wpdb->query( "DROP TABLE IF EXISTS {$clicutcl_touch_events_table}" );
+}
+
+// Clear scheduled hooks.
+wp_clear_scheduled_hook( 'clicutcl_dispatch_queue' );
+wp_clear_scheduled_hook( 'clicutcl_daily_cleanup' );
+
+// Cancel Action Scheduler recurring actions when AS library is present.
+if ( function_exists( 'as_unschedule_all_actions' ) ) {
+	as_unschedule_all_actions( 'clicutcl_dispatch_queue', array(), 'clicktrail-delivery' );
+}
+
+if ( ! $clicutcl_preserve_data ) {
+	if ( function_exists( 'is_multisite' ) && is_multisite() && function_exists( 'get_sites' ) ) {
+		// Each subsite has its own prefixed tables and options, and WordPress runs this
+		// file once, in the main site's context; clean every site, not just the current one.
+		delete_site_option( 'clicutcl_server_side_network' );
+		foreach ( get_sites(
+			array(
+				'fields' => 'ids',
+				'number' => 0,
+			)
+		) as $clicutcl_site_id ) {
+			switch_to_blog( (int) $clicutcl_site_id );
+			wp_clear_scheduled_hook( 'clicutcl_dispatch_queue' );
+			wp_clear_scheduled_hook( 'clicutcl_daily_cleanup' );
+			clicutcl_uninstall_site_data();
+			restore_current_blog();
+		}
+	} else {
+		clicutcl_uninstall_site_data();
+	}
 }
