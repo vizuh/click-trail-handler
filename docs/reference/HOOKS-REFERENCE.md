@@ -240,6 +240,17 @@ Arguments:
 
 - `$days` (`int`)
 
+### `clicutcl_queue_time_budget`
+
+Purpose:
+
+- seconds one queue run may spend draining due rows in batches of 10
+- default `60`; clamped to 10 through half of the 120-second processing lock TTL
+
+Arguments:
+
+- `$seconds` (`int`)
+
 ## Miscellaneous
 
 ### `clicutcl_cookie_name`

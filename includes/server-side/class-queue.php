@@ -46,6 +46,11 @@ class Queue {
 	const LOCK_TTL = 120;
 
 	/**
+	 * Rows fetched per query while draining the queue.
+	 */
+	const BATCH_SIZE = 10;
+
+	/**
 	 * Lock option name (options table is used for an atomic INSERT-based lock;
 	 * transients are get-then-set and allow concurrent crons to double-send).
 	 */
@@ -329,26 +334,48 @@ class Queue {
 				return;
 			}
 
-			$now = current_time( 'mysql', true );
+			// Drain batches until nothing new is due or the time budget is spent. One batch
+			// per cron run capped throughput at 10 rows per 5 minutes, so a backlog after an
+			// outage outlived queue retention. The budget stays under LOCK_TTL so a slow run
+			// does not let a second worker take over the lock.
+			$budget   = (int) apply_filters( 'clicutcl_queue_time_budget', 60 );
+			$deadline = time() + max( 10, min( (int) ( self::LOCK_TTL / 2 ), $budget ) );
+			$seen     = array();
+			do {
+				$now = current_time( 'mysql', true );
+				if ( self::db_supports_status() ) {
+					$query = $wpdb->prepare(
+						"SELECT * FROM {$table_name} WHERE status = 'pending' AND next_attempt_at <= %s ORDER BY next_attempt_at ASC LIMIT %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned.
+						$now,
+						self::BATCH_SIZE
+					);
+				} else {
+					$query = $wpdb->prepare(
+						"SELECT * FROM {$table_name} WHERE next_attempt_at <= %s ORDER BY next_attempt_at ASC LIMIT %d", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned.
+						$now,
+						self::BATCH_SIZE
+					);
+				}
 
-			if ( self::db_supports_status() ) {
-				$query = $wpdb->prepare(
-					"SELECT * FROM {$table_name} WHERE status = 'pending' AND next_attempt_at <= %s ORDER BY next_attempt_at ASC LIMIT 10", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned.
-					$now
-				);
-			} else {
-				$query = $wpdb->prepare(
-					"SELECT * FROM {$table_name} WHERE next_attempt_at <= %s ORDER BY next_attempt_at ASC LIMIT 10", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned.
-					$now
-				);
-			}
-
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above; variable passed for readability.
-			$rows = $wpdb->get_results( $query, ARRAY_A );
-
-			foreach ( $rows as $row ) {
-				self::process_row( $row );
-			}
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above; variable passed for readability.
+				$rows       = (array) $wpdb->get_results( $query, ARRAY_A );
+				$full_batch = count( $rows ) >= self::BATCH_SIZE;
+				$fresh      = 0;
+				foreach ( $rows as $row ) {
+					$id = (int) ( $row['id'] ?? 0 );
+					// A row still due after processing (e.g. a non-production environment
+					// leaves it untouched) comes back; stop instead of spinning on it.
+					if ( isset( $seen[ $id ] ) ) {
+						continue;
+					}
+					$seen[ $id ] = true;
+					++$fresh;
+					self::process_row( $row );
+					if ( time() >= $deadline ) {
+						break 2;
+					}
+				}
+			} while ( $fresh > 0 && $full_batch && time() < $deadline );
 		} finally {
 			self::release_lock();
 		}

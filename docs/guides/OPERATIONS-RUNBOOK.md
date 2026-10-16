@@ -82,7 +82,7 @@ Defaults:
 
 - cron hook: `clicutcl_dispatch_queue`
 - interval: every 5 minutes
-- batch size: 10 rows
+- batch size: 10 rows per query; one run keeps fetching batches until no new row is due or its time budget (`clicutcl_queue_time_budget`, default 60 seconds) is spent
 - max attempts: 5
 - lock transient: `clicutcl_queue_lock`
 
