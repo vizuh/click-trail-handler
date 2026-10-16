@@ -426,6 +426,37 @@ const tests = {
     assert.deepStrictEqual(errors, [], 'no handler threw');
   },
 
+  'signed URLs are never decorated, whatever the query key casing'() {
+    const hrefs = [
+      'https://files.example.com/r.pdf?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Signature=abc',
+      'https://cdn.example.com/v.mp4?Expires=1&Signature=a~b&Key-Pair-Id=K',
+      'https://files.example.com/r.pdf?x-amz-signature=abc',
+    ];
+    const links = hrefs.map((href) => element('a', { href }));
+    const page = boot({
+      cookiebot: grantedCookiebot(),
+      config: { linkDecorateEnabled: true, linkAllowedDomains: ['example.com'], linkSkipSigned: true },
+      elements: links,
+    });
+    links.forEach((link, i) => {
+      page.document.dispatchEvent({ type: 'mousedown', target: link });
+      assert.strictEqual(link.getAttribute('href'), hrefs[i], 'signed URL left byte for byte');
+    });
+  },
+
+  'one CF7 submission after a same-page withdrawal and re-grant pushes one lead_submit'() {
+    const page = boot({ cookiebot: grantedCookiebot() });
+    page.window.Cookiebot.consent = { marketing: false, statistics: false };
+    page.window.dispatchEvent(new page.window.CustomEvent('CookiebotOnDecline'));
+    page.window.Cookiebot.consent = { marketing: true, statistics: true };
+    page.window.dispatchEvent(new page.window.CustomEvent('CookiebotOnAccept'));
+    const before = page.window.dataLayer.length;
+    page.document.dispatchEvent({ type: 'wpcf7mailsent', detail: { contactFormId: 42 } });
+    const leads = page.window.dataLayer.slice(before).filter((entry) => entry && entry.event === 'lead_submit');
+    assert.strictEqual(leads.length, 1);
+    assert.ok(JSON.stringify(leads[0].attribution).includes('G1'), 'carries the current attribution');
+  },
+
   'every written storage key is listed in the inventory'() {
     const page = boot({ cookiebot: pendingCookiebot() });
     page.decide(true, ['CookiebotOnConsentReady', 'CookiebotOnAccept']);

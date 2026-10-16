@@ -1374,9 +1374,11 @@
 
             // Signed URL skip
             if (CONFIG.linkSkipSigned) {
-                const qs = url.searchParams;
-                const bad = ["x-amz-signature", "signature", "sig", "token"];
-                if (bad.some(k => qs.has(k) || qs.has(k.toUpperCase()))) return null;
+                // Query keys are case-sensitive and real signers mix case (AWS SigV4
+                // X-Amz-Signature, CloudFront Signature/Key-Pair-Id), so compare lowercased.
+                const bad = ["x-amz-signature", "x-goog-signature", "signature", "sig", "token", "key-pair-id"];
+                const qsKeys = Array.from(url.searchParams.keys(), k => k.toLowerCase());
+                if (qsKeys.some(k => bad.includes(k))) return null;
             }
 
             const data = Store.getData();
@@ -2020,7 +2022,7 @@
                 }
             });
 
-            this.initFormListeners(storedData);
+            this.initFormListeners();
             this.initWhatsAppListener(storedData);
             Store.prepareSignedToken(storedData);
         }
@@ -2134,12 +2136,15 @@
             };
         }
 
-        initFormListeners(data) {
-            // Listener logic (Contact Form 7, etc) - bridging to DataLayer for submission events
+        initFormListeners() {
+            // runAttribution() runs again on every consent re-grant; register once so one
+            // submission pushes one lead_submit, and read attribution when it fires so the
+            // entry carries the current data rather than a pre-withdrawal snapshot.
+            if (this.formListenersInstalled) return;
+            this.formListenersInstalled = true;
             document.addEventListener('wpcf7mailsent', (e) => {
-                this.pushDL('cf7', e.detail.contactFormId, data);
+                this.pushDL('cf7', e.detail.contactFormId, Store.getData() || {});
             });
-            // ... (other listeners from original file can be preserved or simplified)
         }
 
         pushDL(provider, id, data) {

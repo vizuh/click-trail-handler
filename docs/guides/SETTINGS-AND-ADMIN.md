@@ -79,7 +79,7 @@ Primary user-facing controls:
 - attribution retention
 - link decoration
 - allowed domains
-- skip signed URLs
+- skip signed URLs (any query key `X-Amz-Signature`, `X-Goog-Signature`, `Signature`, `Sig`, `Token` or `Key-Pair-Id`, compared case-insensitively)
 - pass cross-domain token
 
 ## Forms
