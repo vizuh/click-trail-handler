@@ -537,7 +537,9 @@ class WooCommerce {
 		// A live withdrawal must also prevent the trace snapshot from being
 		// written. Background requests with no live cookie retain the stored
 		// checkout snapshot semantics in Dispatcher.
-		if ( Consent::is_required() && Consent::has_state() && ! Consent::marketing_allowed() ) {
+		// Only the buyer's own request carries their cookie; an operator's cookie in
+		// wp-admin must not suppress (or allow) the buyer's events.
+		if ( Consent::is_required() && Consent::has_state() && $this->is_customer_request_context() && ! Consent::marketing_allowed() ) {
 			return \CLICUTCL\Server_Side\Adapter_Result::skipped( 'consent_denied' );
 		}
 
@@ -974,6 +976,34 @@ class WooCommerce {
 	}
 
 	/**
+	 * Whether the buyer allowed marketing for this order's identity data.
+	 *
+	 * In the buyer's own request a live cookie reflects their latest choice;
+	 * elsewhere (admin, cron, webhooks) the snapshot stored at checkout decides.
+	 *
+	 * @param \WC_Order $order Order instance.
+	 * @param bool      $customer_request Whether this is the buyer's own request.
+	 * @return bool
+	 */
+	private function order_marketing_allowed( $order, bool $customer_request ): bool {
+		if ( $customer_request && Consent::has_state() ) {
+			return Consent::marketing_allowed();
+		}
+
+		$snapshot = $this->get_order_consent_snapshot( $order );
+		if ( array_key_exists( 'marketing', $snapshot ) ) {
+			return ! empty( $snapshot['marketing'] );
+		}
+
+		if ( $customer_request ) {
+			return Consent::marketing_allowed();
+		}
+
+		// No stored decision and no buyer cookie: resolve as if no cookie were present.
+		return ! empty( Snapshot_V1::capture( array(), Consent::is_required() )['marketing'] );
+	}
+
+	/**
 	 * Resolve purchase identity for server-side delivery.
 	 *
 	 * @param \WC_Order $order Order instance.
@@ -989,7 +1019,8 @@ class WooCommerce {
 		if ( method_exists( $order, 'get_customer_ip_address' ) ) {
 			$ip = (string) $order->get_customer_ip_address();
 		}
-		if ( '' === $ip && isset( $_SERVER['REMOTE_ADDR'] ) ) {
+		$customer_request = $this->is_customer_request_context();
+		if ( '' === $ip && $customer_request && isset( $_SERVER['REMOTE_ADDR'] ) ) {
 			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Validated by Identity_Resolver.
 			$ip = wp_unslash( $_SERVER['REMOTE_ADDR'] );
 		}
@@ -1004,7 +1035,7 @@ class WooCommerce {
 		if ( '' === $user_agent ) {
 			$user_agent = (string) $order->get_meta( '_customer_user_agent', true );
 		}
-		if ( '' === $user_agent && isset( $_SERVER['HTTP_USER_AGENT'] ) ) {
+		if ( '' === $user_agent && $customer_request && isset( $_SERVER['HTTP_USER_AGENT'] ) ) {
 			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Sanitized by Identity_Resolver.
 			$user_agent = wp_unslash( $_SERVER['HTTP_USER_AGENT'] );
 		}
@@ -1017,7 +1048,7 @@ class WooCommerce {
 		return $resolver->resolve(
 			$input,
 			array(
-				'marketing_allowed' => Consent::marketing_allowed(),
+				'marketing_allowed' => $this->order_marketing_allowed( $order, $customer_request ),
 				'include_ip_ua'     => true,
 			)
 		);

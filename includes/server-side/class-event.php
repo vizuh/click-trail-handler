@@ -457,6 +457,11 @@ class Event {
 				'marketing' => ! empty( $payload['consent']['marketing'] ),
 				'analytics' => ! empty( $payload['consent']['analytics'] ),
 			);
+			// A versioned snapshot is the subject's stored decision (e.g. order meta).
+			// Keep its marker so the Dispatcher does not let request state override it.
+			if ( isset( $payload['consent']['schema_version'] ) ) {
+				$data['consent']['schema_version'] = sanitize_text_field( (string) $payload['consent']['schema_version'] );
+			}
 		} else {
 			$consent = Consent::get_state();
 			if ( ! empty( $consent ) ) {

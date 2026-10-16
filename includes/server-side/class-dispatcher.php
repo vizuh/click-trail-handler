@@ -408,35 +408,66 @@ class Dispatcher {
 	/**
 	 * Consent gate for sending.
 	 *
-	 * Prefers the consent snapshot carried on the event itself (captured in the
-	 * buyer's browser context and persisted, e.g. to order meta). The live
-	 * cookie is only a fallback: payment webhooks, cron, and admin requests
-	 * have no visitor cookie, and reading it there would silently drop
-	 * conversions from buyers who did consent at capture time.
+	 * The live cookie decides only in the subject's own front-end request, where
+	 * it reflects their latest choice (including a withdrawal after capture).
+	 * In admin, cron, REST or CLI requests the cookie and geography belong to an
+	 * operator or a remote server, so a stored snapshot carried on the event
+	 * (e.g. captured at checkout into order meta) decides instead.
 	 *
 	 * @param Event|null $event Event being dispatched, when available.
 	 * @return bool
 	 */
 	private static function consent_allows( ?Event $event = null ) {
-		if ( ! Consent::is_required() ) {
-			return true;
+		$consent = array();
+		if ( $event instanceof Event ) {
+			$data    = $event->to_array();
+			$consent = isset( $data['consent'] ) && is_array( $data['consent'] ) ? $data['consent'] : array();
 		}
+		$has_snapshot = array_key_exists( 'marketing', $consent );
+		$required     = Consent::is_required();
 
-		// A live cookie is authoritative when present, including a withdrawal
-		// that happened after the event snapshot was captured. Background hooks
-		// without a cookie still fall back to the event's checkout snapshot.
-		if ( Consent::has_state() ) {
+		if ( $required && Consent::has_state() && self::is_subject_request() ) {
 			return Consent::marketing_allowed();
 		}
 
-		if ( $event instanceof Event ) {
-			$data = $event->to_array();
-			if ( isset( $data['consent'] ) && is_array( $data['consent'] ) && array_key_exists( 'marketing', $data['consent'] ) ) {
-				return ! empty( $data['consent']['marketing'] );
-			}
+		// A stored snapshot already resolved whether consent was required for the
+		// subject; this request's geography must not waive a stored denial.
+		if ( $has_snapshot && isset( $consent['schema_version'] ) ) {
+			return ! empty( $consent['marketing'] );
+		}
+
+		if ( ! $required ) {
+			return true;
+		}
+
+		if ( $has_snapshot ) {
+			return ! empty( $consent['marketing'] );
 		}
 
 		return Consent::marketing_allowed();
+	}
+
+	/**
+	 * Whether this request is the data subject's own front-end request, so
+	 * its cookies describe that subject rather than an operator or a server.
+	 *
+	 * @return bool
+	 */
+	public static function is_subject_request(): bool {
+		if ( is_admin() ) {
+			return false;
+		}
+		if ( function_exists( 'wp_doing_cron' ) && wp_doing_cron() ) {
+			return false;
+		}
+		if ( defined( 'REST_REQUEST' ) && REST_REQUEST ) {
+			return false;
+		}
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**

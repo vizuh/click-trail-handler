@@ -329,6 +329,13 @@ The buyer's consent snapshot is stored separately in `_clicutcl_consent` even
 when attribution is denied. This snapshot records the checkout-time policy
 state; it is not proof of consent for a later request.
 
+Outside the buyer's own front-end request (wp-admin, cron, REST, WP-CLI) the request's
+cookie and geography belong to an operator or a remote server, so they are ignored for order
+events: the stored snapshot decides dispatch and purchase identity, and the request's IP and
+user agent are not used as the buyer's. A stored denial is never waived by the request's
+geography. In the buyer's own request, a live consent cookie still wins, so a withdrawal (or a
+grant) after checkout applies.
+
 Canonical order metadata for external connectors:
 
 - `_clicutcl_ft_*` — immutable first-touch fields.
@@ -365,7 +372,6 @@ thank-you output before attribution reads, resolves retry consent by queued subj
 covers allowlisted Woo metadata export/erase/purge/uninstall. Their focused regression checks
 do not replace browser/CMP and provider validation. Remaining boundaries include:
 
-- purchase identity still reads live-cookie consent in server-context milestone paths
 - purchase-path skipped dispatch can set the sent marker after the browser consent gate passes
 - dedup check/send/mark is non-atomic
 - queue uniqueness omits destination; strict/geo retries require a durable subject-consent resolver

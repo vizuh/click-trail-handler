@@ -311,4 +311,10 @@ if ( ! function_exists( 'delete_transient' ) ) {
 	}
 }
 
+if ( ! function_exists( 'is_admin' ) ) {
+	function is_admin() {
+		return ! empty( $GLOBALS['clicktrail_test_is_admin'] );
+	}
+}
+
 // Each test file is responsible for `require_once`-ing its target classes.
