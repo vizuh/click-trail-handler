@@ -207,6 +207,13 @@ class WooCommerce {
 			return;
 		}
 
+		// WooCommerce still fires woocommerce_thankyou for a declined (failed) or
+		// cancelled order. That is not a purchase, and marking it sent would suppress
+		// the real purchase when the buyer pays again from the order's pay link.
+		if ( in_array( (string) $order->get_status(), array( 'failed', 'cancelled' ), true ) ) {
+			return;
+		}
+
 		// Thank-you output is a browser-side emission. It must use the live
 		// request state rather than a checkout snapshot so a withdrawal wins.
 		if ( Consent::is_required() && ! Consent::marketing_allowed() ) {

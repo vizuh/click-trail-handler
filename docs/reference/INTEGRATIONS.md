@@ -292,7 +292,7 @@ What the current source paths implement:
 
 - save attribution on checkout
 - render attribution in WooCommerce admin
-- push purchase event to `dataLayer` only when current visitor consent permits processing
+- push purchase event to `dataLayer` only when current visitor consent permits processing and the order is not `failed` or `cancelled` (WooCommerce fires `woocommerce_thankyou` for declined orders too; skipping them leaves the sent marker unset so the paid retry is reported)
 - optionally emit storefront `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` browser events
 - preserve `item_list_name` and `item_list_index` when list context is available
 - optionally widen Woo `dataLayer` pushes with `event_id` and consent-aware `user_data` for GTM-first setups
