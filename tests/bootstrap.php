@@ -80,7 +80,11 @@ if ( ! function_exists( 'absint' ) ) {
 
 if ( ! function_exists( 'wp_unslash' ) ) {
 	function wp_unslash( $value ) {
-		return $value;
+		// Mirrors WordPress: stripslashes_deep() on strings.
+		if ( is_array( $value ) ) {
+			return array_map( 'wp_unslash', $value );
+		}
+		return is_string( $value ) ? stripslashes( $value ) : $value;
 	}
 }
 

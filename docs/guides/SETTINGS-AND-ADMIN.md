@@ -303,6 +303,8 @@ Implemented in:
 
 - `includes/admin/traits/trait-admin-diagnostics-ajax.php`
 
+The save action decodes the posted JSON document and sanitizes each field through its option store's schema; it does not run `sanitize_text_field()` over the whole document, so provider secrets and the lifecycle token are stored byte for byte. A body that does not decode to an object returns HTTP 400 and saves nothing (it previously saved an empty payload, which reset every setting). The consent `cookie_name` and `gcm_analytics_key` are not on the screen; a save keeps their stored values.
+
 The grouped payload is translated back into:
 
 - `clicutcl_attribution_settings`

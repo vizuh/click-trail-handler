@@ -131,7 +131,9 @@ class Settings {
 
 		$defaults = self::defaults();
 		$merged   = self::merge_defaults( $current, $defaults );
-		$input    = is_array( $input ) ? wp_unslash( $input ) : array();
+		// Callers pass decoded JSON (admin save, backup import), which is not slashed;
+		// unslashing here would strip backslashes from provider secrets and tokens.
+		$input = is_array( $input ) ? $input : array();
 
 		// Feature flags.
 		if ( isset( $input['feature_flags'] ) && is_array( $input['feature_flags'] ) ) {

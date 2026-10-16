@@ -271,15 +271,14 @@ trait Admin_Diagnostics_Ajax_Trait {
 		}
 		check_ajax_referer( 'clicutcl_admin_settings', 'nonce' );
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above.
-		$raw = isset( $_POST['settings'] ) ? sanitize_text_field( wp_unslash( $_POST['settings'] ) ) : '';
-		if ( is_string( $raw ) ) {
-			$decoded = json_decode( $raw, true );
-			$raw     = is_array( $decoded ) ? $decoded : array();
-		}
-
+		// The JSON document is decoded first and every field is sanitized by its own
+		// schema in save_unified_admin_settings(). Running sanitize_text_field() over the
+		// whole document would rewrite secrets (`<`, `%xx`, repeated spaces) and can break
+		// the JSON itself, which used to save an empty payload and reset every setting.
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce verified above; decoded JSON is sanitized per field.
+		$raw = isset( $_POST['settings'] ) && is_string( $_POST['settings'] ) ? json_decode( wp_unslash( $_POST['settings'] ), true ) : null;
 		if ( ! is_array( $raw ) ) {
-			$raw = array();
+			wp_send_json_error( array( 'message' => __( 'Settings could not be read. Nothing was saved.', 'click-trail-handler' ) ), 400 );
 		}
 
 		wp_send_json_success(

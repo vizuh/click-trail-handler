@@ -136,10 +136,12 @@ class Consent_Mode_Settings extends Setting {
 			$cmp_timeout_ms              = isset( $value['cmp_timeout_ms'] ) ? absint( $value['cmp_timeout_ms'] ) : 3000;
 			$new_value['cmp_timeout_ms'] = min( 10000, max( 500, $cmp_timeout_ms ) );
 
-			$cookie_name              = isset( $value['cookie_name'] ) ? sanitize_key( (string) $value['cookie_name'] ) : 'ct_consent';
+			// The admin settings screen does not post these two keys; keep the stored value
+			// (e.g. one restored from a backup) instead of resetting it on every save.
+			$cookie_name              = sanitize_key( (string) ( $value['cookie_name'] ?? $new_value['cookie_name'] ?? 'ct_consent' ) );
 			$new_value['cookie_name'] = '' !== $cookie_name ? $cookie_name : 'ct_consent';
 
-			$gcm_analytics_key              = isset( $value['gcm_analytics_key'] ) ? sanitize_key( (string) $value['gcm_analytics_key'] ) : 'analytics_storage';
+			$gcm_analytics_key              = sanitize_key( (string) ( $value['gcm_analytics_key'] ?? $new_value['gcm_analytics_key'] ?? 'analytics_storage' ) );
 			$new_value['gcm_analytics_key'] = '' !== $gcm_analytics_key ? $gcm_analytics_key : 'analytics_storage';
 
 			return $new_value;
