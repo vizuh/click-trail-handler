@@ -217,7 +217,9 @@
             return;
         }
 
-        var isPluginFallback = nextSource === 'plugin-cookie';
+        // Fallbacks resolve the page but are not decisions: they are never persisted,
+        // never written to the server cookie and never clear the banner's cookie.
+        var isPluginFallback = nextSource === 'plugin-cookie' || nextSource === 'gcm-default';
         var shouldPersist = CONFIG.enabled !== false && persistDecision !== false && !isPluginFallback && nextSource.indexOf('storage:') !== 0;
         resolved = true;
         consentState = normalized;
@@ -419,25 +421,58 @@
         return null;
     }
 
+    // Classify one dataLayer entry as a Consent Mode command. Returns null for
+    // anything else, so ordinary dataLayer events are ignored.
+    function gcmCommand(entry, targetKey) {
+        var analytics = extractGcmState(entry, targetKey);
+        var marketing = extractGcmState(entry, 'ad_storage');
+        if (analytics === null && marketing === null) return null;
+
+        var type = 'update';
+        var region = false;
+        if (entry && typeof entry === 'object' && entry[0] === 'consent') {
+            type = entry[1] === 'default' ? 'default' : 'update';
+            region = !!(entry[2] && entry[2].region);
+        }
+        return { type: type, region: region, analytics: analytics, marketing: marketing };
+    }
+
     function tryGoogleConsentMode() {
         window.dataLayer = window.dataLayer || [];
         var dl = window.dataLayer;
         var targetKey = String(CONFIG.gtmConsentKey || 'analytics_storage');
+        var gcm = { analytics: null, marketing: null, updated: false };
 
-        function readState(entry) {
-            var analytics = extractGcmState(entry, targetKey);
-            var marketing = extractGcmState(entry, 'ad_storage');
-            if (analytics === null && marketing === null) return null;
-            return { analytics: analytics === true, marketing: marketing === true };
+        // Mirror Consent Mode semantics: defaults set the starting state, updates
+        // override it key by key, and the latest update wins. A region-scoped default
+        // may not apply to this visitor, and a default never overrides an update.
+        function apply(entry) {
+            var cmd = gcmCommand(entry, targetKey);
+            if (!cmd) return false;
+            if (cmd.type === 'default' && (cmd.region || gcm.updated)) return false;
+            if (cmd.analytics !== null) gcm.analytics = cmd.analytics;
+            if (cmd.marketing !== null) gcm.marketing = cmd.marketing;
+            if (cmd.type !== 'default') gcm.updated = true;
+            return true;
+        }
+
+        // An update is the visitor's (or their CMP's) decision. A default is only the
+        // site's starting assumption: it resolves the page without being persisted, so a
+        // later banner or CMP decision can still override it on this and later pages.
+        function publish(fromPush) {
+            if (gcm.analytics === null && gcm.marketing === null) return;
+            var state = { analytics: gcm.analytics === true, marketing: gcm.marketing === true };
+            if (gcm.updated) {
+                resolve(state, 'gcm-datalayer', fromPush);
+            } else {
+                resolve(state, 'gcm-default', false, false);
+            }
         }
 
         for (var i = 0; i < dl.length; i++) {
-            var state = readState(dl[i]);
-            if (state !== null) {
-                resolve(state, 'gcm-datalayer');
-                return true;
-            }
+            apply(dl[i]);
         }
+        publish(false);
 
         // Optional bridge from external code (for custom integrations).
         document.addEventListener('ct:gtmConsentUpdate', function (e) {
@@ -450,18 +485,23 @@
             }
         });
 
-        // Official GTM hook pattern: dataLayer function callbacks.
-        dl.push(function () {
-            var self = this;
-            if (!self) return;
-
-            var state = readState(self);
-            if (state !== null) {
-                resolve(state, 'gcm-datalayer-push', true);
+        // Observe consent commands pushed after load (gtag('consent', 'update', ...)).
+        // Wrap push and delegate to the current implementation, which GTM and gtag.js
+        // may have installed, so their processing is unchanged.
+        var previousPush = dl.push;
+        dl.push = function () {
+            var result = previousPush.apply(dl, arguments);
+            var changed = false;
+            for (var j = 0; j < arguments.length; j++) {
+                changed = apply(arguments[j]) || changed;
             }
-        });
+            if (changed) {
+                publish(true);
+            }
+            return result;
+        };
 
-        return false;
+        return gcm.analytics !== null || gcm.marketing !== null;
     }
 
     function startTimeoutFallback() {

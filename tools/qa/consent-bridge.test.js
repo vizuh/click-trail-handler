@@ -205,8 +205,64 @@ function testComplianzCategoriesAndChanges() {
   assert.strictEqual(apiTab.window.ClickTrailConsent.isGranted(), false, 'withdrawal via cmplz_status_change must deny');
 }
 
+function gtag() {
+  return arguments;
+}
+
+function testGoogleConsentModeFollowsUpdates() {
+  // The latest update decides, not the first consent entry.
+  const storage = new Storage();
+  const cookies = Object.create(null);
+  const optOut = makeContext(storage, cookies, { cmpSource: 'gtm' }, (w) => {
+    w.dataLayer.push(gtag('consent', 'default', { ad_storage: 'granted', analytics_storage: 'granted' }));
+    w.dataLayer.push(gtag('consent', 'update', { ad_storage: 'denied', analytics_storage: 'denied' }));
+  });
+  assert.strictEqual(optOut.window.ClickTrailConsent.isGranted(), false, 'a later update denial must win over the default grant');
+
+  // Updates pushed after load are observed in both directions.
+  const live = makeContext(new Storage(), Object.create(null), { cmpSource: 'gtm' }, (w) => {
+    w.dataLayer.push(gtag('consent', 'default', { ad_storage: 'denied', analytics_storage: 'denied' }));
+  });
+  assert.strictEqual(live.window.ClickTrailConsent.isGranted(), false);
+  live.window.dataLayer.push(gtag('consent', 'update', { ad_storage: 'granted', analytics_storage: 'granted' }));
+  assert.strictEqual(live.window.ClickTrailConsent.isGranted(), true, 'a gtag update grant after load must be observed');
+  live.window.dataLayer.push(gtag('consent', 'update', { ad_storage: 'denied' }));
+  assert.strictEqual(live.window.ClickTrailConsent.isGranted(), false, 'a gtag withdrawal after load must be observed');
+  live.window.dataLayer.push(gtag('consent', 'default', { ad_storage: 'granted' }));
+  assert.strictEqual(live.window.ClickTrailConsent.isGranted(), false, 'a later default must not override an update');
+  assert.strictEqual(live.window.dataLayer.length, 4, 'pushes still reach the dataLayer');
+}
+
+function testGoogleConsentModeDefaultIsNotADecision() {
+  // A site's default denial resolves the page but is not persisted, so the visitor's
+  // banner choice can override it and survives the next page load.
+  const storage = new Storage();
+  const cookies = Object.create(null);
+  const withDefault = (w) => {
+    w.dataLayer.push(gtag('consent', 'default', { ad_storage: 'denied', analytics_storage: 'denied' }));
+  };
+  const first = makeContext(storage, cookies, { cmpSource: 'auto' }, withDefault);
+  assert.strictEqual(first.window.ClickTrailConsent.isGranted(), false);
+  assert.strictEqual(storage.getItem('ct_consent_v1'), null, 'a default must not be persisted as the decision');
+  assert.strictEqual(cookies.ct_consent_state, undefined, 'a default must not be written to the server cookie');
+
+  first.window.ClickTrailConsent.update({ marketing: true, analytics: true }, 'plugin-banner');
+  assert.strictEqual(first.window.ClickTrailConsent.isGranted(), true, 'the banner choice overrides a default');
+
+  const next = makeContext(storage, cookies, { cmpSource: 'auto' }, withDefault);
+  assert.strictEqual(next.window.ClickTrailConsent.isGranted(), true, 'the banner choice survives the next page default');
+
+  // A region-scoped default may not apply to this visitor.
+  const regional = makeContext(new Storage(), Object.create(null), { cmpSource: 'gtm' }, (w) => {
+    w.dataLayer.push(gtag('consent', 'default', { ad_storage: 'denied', region: ['FR'] }));
+  });
+  assert.strictEqual(regional.window.ClickTrailConsent.isResolved(), false, 'a region-scoped default does not resolve consent');
+}
+
 testGrantWithdrawalRetryAndReload();
 testServerCookieFallback();
 testCrossTabStorageEvent();
 testComplianzCategoriesAndChanges();
+testGoogleConsentModeFollowsUpdates();
+testGoogleConsentModeDefaultIsNotADecision();
 console.log('Consent bridge browser-boundary tests passed.');
