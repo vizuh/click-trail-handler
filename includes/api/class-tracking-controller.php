@@ -61,6 +61,14 @@ class Tracking_Controller extends WP_REST_Controller {
 	private const MAX_BATCH_EVENTS = 50;
 
 	/**
+	 * Maximum notifications accepted per HubSpot webhook request.
+	 *
+	 * HubSpot batches up to 100 notifications per request; larger batches are
+	 * rejected rather than silently truncated so nothing is acknowledged unread.
+	 */
+	private const MAX_HUBSPOT_BATCH_EVENTS = 100;
+
+	/**
 	 * Default rate limit (requests per window).
 	 */
 	private const RATE_LIMIT_DEFAULT = 60;
@@ -358,7 +366,7 @@ class Tracking_Controller extends WP_REST_Controller {
 
 		$resolver              = new Identity_Resolver();
 		$canonical['identity'] = $resolver->resolve(
-			$raw_event['identity'] ?? array(),
+			isset( $raw_event['identity'] ) && is_array( $raw_event['identity'] ) ? $raw_event['identity'] : array(),
 			array(
 				'marketing_allowed' => ! empty( $canonical['consent']['marketing'] ),
 			)
@@ -557,20 +565,45 @@ class Tracking_Controller extends WP_REST_Controller {
 
 		$payload  = $request->get_json_params();
 		$payload  = is_array( $payload ) ? $payload : array();
-		$payloads = 'hubspot' === $provider && array_is_list( $payload )
-			? array_slice( $payload, 0, self::MAX_BATCH_EVENTS )
-			: array( $payload );
-		$results  = array();
+		$is_batch = 'hubspot' === $provider && array_is_list( $payload );
+		$payloads = $is_batch ? $payload : array( $payload );
 		if ( empty( $payloads ) ) {
 			return new WP_Error( 'invalid_provider_payload', 'Provider payload is empty', array( 'status' => 400 ) );
 		}
+		if ( count( $payloads ) > self::MAX_HUBSPOT_BATCH_EVENTS ) {
+			return new WP_Error( 'batch_too_large', 'Too many events in one webhook request', array( 'status' => 413 ) );
+		}
 
+		// Attempt every item: one failing notification must not stop the rest of the batch.
+		$results     = array();
+		$retry_error = null;
 		foreach ( $payloads as $provider_payload ) {
 			$result = $this->ingest_webhook_payload( $provider, $adapter, is_array( $provider_payload ) ? $provider_payload : array() );
 			if ( is_wp_error( $result ) ) {
-				return $result;
+				$data = $result->get_error_data();
+				if ( ( is_array( $data ) ? (int) ( $data['status'] ?? 500 ) : 500 ) >= 500 ) {
+					$retry_error = $retry_error ?? $result;
+				}
+				if ( ! $is_batch ) {
+					break;
+				}
+				$result = array(
+					'success' => false,
+					'error'   => $result->get_error_code(),
+				);
 			}
 			$results[] = $result;
+		}
+
+		if ( $retry_error ) {
+			// A server-side failure asks the provider to resend the identical signed body.
+			// Release its replay claim so that resend is processed rather than 409'd; items
+			// already delivered are then skipped by their webhook dedup mark.
+			Webhook_Auth::release_replay_claim( $request );
+			return $retry_error;
+		}
+		if ( is_wp_error( $result ) ) {
+			return $result;
 		}
 
 		if ( 1 === count( $results ) ) {
@@ -620,6 +653,21 @@ class Tracking_Controller extends WP_REST_Controller {
 		}
 
 		$dispatch = Dispatcher::dispatch_from_v2( $canonical );
+		$queued   = ! $dispatch->success && ! $dispatch->skipped && is_array( $dispatch->meta ?? null ) && ! empty( $dispatch->meta['queued'] );
+		if ( $queued ) {
+			// The Dispatcher queued a retryable delivery failure for its own retries, so
+			// the event is accepted: acknowledge it and stop the provider resending it.
+			Dedup_Store::mark( 'webhook_' . $provider, (string) $canonical['event_name'], (string) $canonical['event_id'] );
+			return array(
+				'success'    => true,
+				'queued'     => true,
+				'skipped'    => false,
+				'detail'     => sanitize_key( (string) $dispatch->message ),
+				'duplicate'  => false,
+				'event_id'   => $canonical['event_id'],
+				'event_name' => $canonical['event_name'],
+			);
+		}
 		if ( ! $dispatch->success && ! $dispatch->skipped ) {
 			return new WP_Error( 'dispatch_failed', sanitize_text_field( (string) $dispatch->message ), array( 'status' => 500 ) );
 		}

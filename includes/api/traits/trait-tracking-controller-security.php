@@ -75,7 +75,10 @@ trait Tracking_Controller_Security_Trait {
 		}
 
 		// No persistent object cache: best-effort, non-atomic transient fallback.
-		$hit = (int) get_transient( $key );
+		// set_transient() pushes the expiry forward on every write, so the counter
+		// would never reset under steady traffic; bucket the key by fixed window instead.
+		$key .= '_' . (int) floor( time() / $window );
+		$hit  = (int) get_transient( $key );
 		if ( $hit >= $limit ) {
 			return new WP_Error( 'rate_limited', 'Too many requests', array( 'status' => 429 ) );
 		}

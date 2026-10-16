@@ -19,6 +19,35 @@ if ( ! defined( 'ABSPATH' ) ) {
  */
 class Webhook_Auth {
 	/**
+	 * Replay keys claimed during this PHP request, keyed by request object id.
+	 *
+	 * @var array<int, string>
+	 */
+	private static $claimed = array();
+
+	/**
+	 * Release the replay claim taken for a request that failed server-side, so the
+	 * provider's retry of the identical signed body is processed instead of rejected.
+	 *
+	 * @param WP_REST_Request $request Request whose signature was verified.
+	 * @return void
+	 */
+	public static function release_replay_claim( WP_REST_Request $request ): void {
+		$id = spl_object_id( $request );
+		if ( empty( self::$claimed[ $id ] ) ) {
+			return;
+		}
+
+		$replay_key = self::$claimed[ $id ];
+		unset( self::$claimed[ $id ] );
+		if ( wp_using_ext_object_cache() ) {
+			wp_cache_delete( $replay_key, 'clicutcl_webhook' );
+		} else {
+			delete_transient( $replay_key );
+		}
+	}
+
+	/**
 	 * Verify the provider's native webhook signature.
 	 *
 	 * @param WP_REST_Request $request Request.
@@ -92,6 +121,7 @@ class Webhook_Auth {
 				}
 				set_transient( $replay_key, 1, $max );
 			}
+			self::$claimed[ spl_object_id( $request ) ] = $replay_key;
 		}
 
 		return true;

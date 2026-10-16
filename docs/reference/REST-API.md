@@ -34,7 +34,7 @@ Important constraints:
 
 - browser event collection must be enabled
 - request body size is capped
-- request rate limiting is enforced
+- request rate limiting is enforced (fixed windows; without a persistent object cache the transient counter is keyed per window so it resets even under steady traffic)
 - each page token is limited to 20 browser-batch requests by default
 - only the browser events emitted by `clicutcl-events.js` are accepted; purchase and lifecycle outcomes use trusted server routes
 
@@ -97,7 +97,11 @@ Auth model:
 - replay-window enforcement
 - provider enablement and secret checks
 
-HubSpot webhook arrays are processed item by item. Consent-blocked webhook and lifecycle requests still return HTTP success to prevent retries, but their JSON body reports `success: false`, `skipped: true`, and the skip reason.
+HubSpot webhook arrays are processed item by item, up to 100 notifications per request (HubSpot's batch size); larger arrays are rejected with `413 batch_too_large` instead of being truncated. Every item is attempted even when an earlier one fails; per-item results are returned in `events`.
+
+A delivery failure that the Dispatcher queued for retry is acknowledged with HTTP success and `queued: true`, so the provider does not resend it. A server-side failure that was not queued returns `500 dispatch_failed` and releases the request's replay claim, so the provider's identical resend is processed instead of rejected with `409`; items already delivered are skipped on that resend by their webhook dedup mark.
+
+Consent-blocked webhook and lifecycle requests still return HTTP success to prevent retries, but their JSON body reports `success: false`, `skipped: true`, and the skip reason.
 
 ## `POST /clicutcl/v2/lifecycle/update`
 
