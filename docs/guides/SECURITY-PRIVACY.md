@@ -46,6 +46,7 @@ Current source behavior (audit status):
 
 - server snapshot capture and `Dispatcher` share one policy requirement helper; when consent mode is disabled, both treat consent as not required rather than reading the legacy hidden gate
 - when consent mode is enabled, the runtime asks `Consent_Mode_Settings` whether the current request requires consent
+- form and Woo attribution gates (`Attribution_Provider::should_populate()`) read consent through `Server_Side\Consent`, the same reader as dispatch, so a CMP decision stored only in `ct_consent_state` is honored
 - new Woo orders store a v1 decision snapshot; historical boolean order snapshots remain readable and are explicitly labeled `legacy_unversioned`
 - `Dispatcher` reads the live consent cookie only in the subject's own front-end request (`Dispatcher::is_subject_request()`); in admin, cron, REST and CLI requests a versioned snapshot carried on the event decides, and the request's geography cannot waive a stored denial
 - frontend attribution consumes the consent bridge as its primary runtime contract, but stale-cookie/CMP precedence

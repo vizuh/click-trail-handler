@@ -48,6 +48,33 @@ namespace {
 			$this->assertSame( array( 'marketing' => false, 'analytics' => true ), Consent::get_state() );
 		}
 
+		/**
+		 * A CMP grant reaches PHP only as ct_consent_state; attribution must still populate.
+		 *
+		 * @runInSeparateProcess
+		 * @preserveGlobalState disabled
+		 */
+		public function test_attribution_populates_from_cmp_consent_state_cookie(): void {
+			require_once dirname( __DIR__ ) . '/helpers/consent-mode-settings-stub.php';
+			foreach ( array( 'class-decision-v1.php', 'class-resolver-v1.php', 'class-snapshot-v1.php' ) as $file ) {
+				require_once dirname( __DIR__, 2 ) . '/includes/Consent/' . $file;
+			}
+			$GLOBALS['clicktrail_test_consent_mode_enabled'] = true;
+			$GLOBALS['clicktrail_test_consent_required']     = true;
+
+			$_COOKIE = array( 'ct_consent_state' => '{"marketing":true,"analytics":true,"source":"cookiebot"}' );
+			$this->assertTrue( \CLICUTCL\Core\Attribution_Provider::should_populate() );
+
+			$_COOKIE = array( 'ct_consent_state' => '{"marketing":false,"analytics":true,"source":"cookiebot"}' );
+			$this->assertFalse( \CLICUTCL\Core\Attribution_Provider::should_populate() );
+
+			$_COOKIE = array();
+			$this->assertFalse( \CLICUTCL\Core\Attribution_Provider::should_populate() );
+
+			$GLOBALS['clicktrail_test_consent_required'] = false;
+			$this->assertTrue( \CLICUTCL\Core\Attribution_Provider::should_populate() );
+		}
+
 		public function test_retry_payload_drops_raw_transport_identity(): void {
 			$payload = Queue::redact_retry_payload(
 				array(

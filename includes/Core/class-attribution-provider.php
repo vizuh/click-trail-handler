@@ -160,38 +160,14 @@ class Attribution_Provider {
 	 * @return bool
 	 */
 	public static function should_populate() {
-		$require_consent = false; // Default: no consent gate unless Consent Mode is explicitly enabled.
-		$cookie_name     = 'ct_consent';
-
-		if ( class_exists( 'CLICUTCL\\Modules\\Consent_Mode\\Consent_Mode_Settings' ) ) {
-			$consent_settings = new \CLICUTCL\Modules\Consent_Mode\Consent_Mode_Settings();
-			if ( $consent_settings->is_consent_mode_enabled() ) {
-				$require_consent = $consent_settings->is_consent_required_for_request();
-				$cookie_name     = $consent_settings->get_cookie_name();
-			}
-		}
-
-		if ( ! $require_consent ) {
+		// One consent reader for every PHP gate: Server_Side\Consent reads the plugin
+		// cookie and falls back to ct_consent_state, which is the only cookie the consent
+		// bridge writes when a CMP (Cookiebot, OneTrust, Complianz, GCM) is the source.
+		if ( ! \CLICUTCL\Server_Side\Consent::is_required() ) {
 			return true;
 		}
 
-		// Check consent cookie.
-		if ( isset( $_COOKIE[ $cookie_name ] ) ) {
-			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-			$consent_json = wp_unslash( $_COOKIE[ $cookie_name ] );
-			$normalized   = strtolower( trim( (string) $consent_json ) );
-			if ( in_array( $normalized, array( 'granted', '1', 'true', 'yes' ), true ) ) {
-				return true;
-			}
-			if ( in_array( $normalized, array( 'denied', '0', 'false', 'no' ), true ) ) {
-				return false;
-			}
-			$consent = json_decode( $consent_json, true );
-
-			return isset( $consent['marketing'] ) && $consent['marketing'];
-		}
-
-		return false; // Consent required but not found.
+		return \CLICUTCL\Server_Side\Consent::marketing_allowed();
 	}
 
 	/**
