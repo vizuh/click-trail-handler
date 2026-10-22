@@ -461,11 +461,19 @@ Security:
 
 - provider signature verification
 - provider enablement
-- replay-window checks
+- replay-window checks for timestamped signatures (native Calendly, ClickTrail relay). HubSpot's v1
+  `X-HubSpot-Signature` has no timestamp, so HubSpot requests are not replay-checked beyond event-ID dedup
+  ([#128](https://github.com/vizuh/click-trail-handler/issues/128))
 
 ### HubSpot mapping
 
-- `contact.creation` and other non-property events record a `lead`.
+- `contact.creation` and every other non-property-change subscription type (including `contact.deletion`,
+  `contact.merge`, `contact.restore`, `contact.associationChange`) records a `lead`. An event-type allowlist is
+  tracked in [#128](https://github.com/vizuh/click-trail-handler/issues/128); until then subscribe only to
+  `contact.creation` and `contact.propertyChange`.
+- Only HubSpot developer/private-app webhook subscriptions fit this route. HubSpot workflow "Send a webhook"
+  actions sign with v2 (`secret + method + URI + body`) and send the contact record without `subscriptionType`,
+  so they fail both signature verification and `supports()`.
 - `contact.propertyChange` records a `qualified_lead` only when the changed property is `lifecyclestage` and the new
   value is `marketingqualifiedlead` or `salesqualifiedlead`. The event ID includes the stage and HubSpot's `eventId`:
   an MQL and a later SQL, or a later re-entry into a stage, are separate events, while a retry of the same delivery
@@ -476,6 +484,29 @@ Security:
   `lead`; sites subscribed to property changes now record fewer, qualified events.
 - Batched HubSpot payloads are evaluated item by item. Non-qualified events keep their earlier event IDs, so
   deduplication of retries is unaffected.
+
+### HubSpot embedded forms (not captured today)
+
+A HubSpot form embedded on a WordPress page produces no ClickTrail `lead` and receives no attribution in 1.10.5:
+
+- Updated-editor forms render in a cross-origin `js-na1.hsforms.net` iframe and announce submissions with
+  `hs-form-event:on-submission:success` on `window`. Nothing listens for it. The DOM `submit` listener and the
+  hidden-field injector cannot reach inside the iframe.
+- Legacy `hbspt.forms.create` forms post `{type: "hsFormCallback", eventName: "onFormSubmitted"}` to the page.
+  The external message bridge only accepts `hubspot-form-submit`, `lead` and similar types, so it never matches.
+- The leadin WordPress plugin's shortcode uses the legacy loader. Observed on one live site (not in HubSpot's
+  docs): when the form is an updated-editor form, that loader falls back to the iframe embed, so the site gets the
+  first case even though its markup looks legacy.
+
+Planned: `specs/003-hubspot-form-capture/` ([#126](https://github.com/vizuh/click-trail-handler/issues/126))
+adds a feature-detected browser adapter (one consent-gated `lead` per submission, attribution written into hidden
+HubSpot fields through `HubSpotFormsV4.setFieldValue()`, legacy message support). Opt-in `user_data` for Google
+Ads Enhanced Conversions is a separate, privacy-reviewed spec (`specs/004-hubspot-enhanced-conversions/`,
+[#127](https://github.com/vizuh/click-trail-handler/issues/127)).
+
+Note for sites that also subscribe HubSpot webhooks: a browser-origin `lead` and a webhook `lead` for the same
+contact never deduplicate against each other, because deduplication is keyed per destination. Pick one source per
+event.
 
 ### Calendly booking handoff
 

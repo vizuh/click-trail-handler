@@ -56,7 +56,10 @@ Browser events currently include:
 - selected lead-gen CTA interactions
 - WooCommerce storefront signals including `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` when the storefront-events flag is enabled
 - thank-you page lead detection
-- external message bridge events for supported embedded providers
+- external message bridge events for supported embedded providers. A HubSpot form embedded in a cross-origin
+  iframe (updated editor) or through the legacy `hbspt.forms.create` loader is not captured today; neither path
+  emits a message the bridge recognises, and the DOM `submit` listener cannot see inside the iframe. Planned in
+  `specs/003-hubspot-form-capture/` ([#126](https://github.com/vizuh/click-trail-handler/issues/126))
 
 Flow:
 
@@ -119,7 +122,7 @@ Flow:
 
 1. provider webhook hits `/clicutcl/v2/webhooks/{provider}`
 2. provider signature is validated
-3. replay-window checks run
+3. replay-window checks run for timestamped signatures (Calendly native, ClickTrail relay); HubSpot v1 has no timestamp and relies on event-ID dedup
 4. provider payload is mapped into canonical lead or booking events
 5. event enters the same dispatcher path as browser-originated events
 

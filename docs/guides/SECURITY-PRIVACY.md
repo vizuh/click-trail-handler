@@ -204,7 +204,10 @@ Controls include:
 Verification hardening:
 
 - Typeform uses its native base64 HMAC `Typeform-Signature`
-- HubSpot uses its native SHA-256 `X-HubSpot-Signature`
+- HubSpot uses its native SHA-256 `X-HubSpot-Signature` (v1: `sha256(secret . body)`). That scheme has no
+  timestamp, so the replay window does not apply to HubSpot; a captured signed body is rejected only by event-ID
+  deduplication within the dedup TTL. HubSpot's v3 signature with `X-HubSpot-Request-Timestamp`, an event-type
+  allowlist, and retry-safe responses are tracked in [#128](https://github.com/vizuh/click-trail-handler/issues/128)
 - Calendly subscriptions use the native `Calendly-Webhook-Signature` (`t=<unix>,v1=<hex HMAC-SHA256 of "t.body">`,
   timestamp checked against the replay window) with the subscription's signing key as the provider secret.
   Requests without that header keep ClickTrail's timestamped HMAC relay contract. The adapter's raw identity,

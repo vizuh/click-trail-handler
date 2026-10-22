@@ -94,7 +94,10 @@ Auth model:
 - native HubSpot `X-HubSpot-Signature` verification
 - native Calendly `Calendly-Webhook-Signature` verification; ClickTrail `X-Clicutcl-Timestamp` / `X-Clicutcl-Signature` relay verification when that header is absent
 - provider events that are valid but not conversions (Calendly events other than `invitee.created`) return `{ "success": true, "ignored": true }` so the provider does not retry
-- replay-window enforcement
+- replay-window enforcement for the timestamped schemes (native Calendly and the ClickTrail relay). HubSpot's v1
+  `X-HubSpot-Signature` carries no timestamp, so HubSpot requests are not replay-checked; only event-ID
+  deduplication within `clicutcl_v2_dedup_ttl` applies. v3 (`X-HubSpot-Signature-v3` plus
+  `X-HubSpot-Request-Timestamp`) is tracked in [#128](https://github.com/vizuh/click-trail-handler/issues/128)
 - provider enablement and secret checks
 
 HubSpot webhook arrays are processed item by item. Consent-blocked webhook and lifecycle requests still return HTTP success to prevent retries, but their JSON body reports `success: false`, `skipped: true`, and the skip reason.

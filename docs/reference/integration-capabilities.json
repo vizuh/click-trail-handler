@@ -673,7 +673,10 @@
       "test_ids": [],
       "runtime_tests": [],
       "known_limits": [
-        "Provider timestamp freshness, raw identity minimization, consent provenance, and retry semantics require runtime/provider verification."
+        "Provider timestamp freshness, raw identity minimization, consent provenance, and retry semantics require runtime/provider verification.",
+        "Signature verification is HubSpot v1 only (sha256 of secret + body, no timestamp); the replay window does not apply, only event-ID dedup. v3 support is tracked in #128.",
+        "Every non-property-change subscription type records a lead (contact.deletion included); an event-type allowlist is tracked in #128.",
+        "Embedded HubSpot forms (updated-editor iframe or legacy hbspt.forms.create) are not captured in the browser; see specs/003-hubspot-form-capture and #126."
       ]
     },
     {
