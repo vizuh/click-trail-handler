@@ -461,11 +461,19 @@ Security:
 
 - provider signature verification
 - provider enablement
-- replay-window checks
+- replay-window checks on signed provider timestamps (HubSpot v3, native Calendly, ClickTrail relay); HubSpot v1 and
+  Typeform carry no timestamp and rely on the signature replay cache and event-ID dedup. See `REST-API.md`
 
 ### HubSpot mapping
 
-- `contact.creation` and other non-property events record a `lead`.
+- Supported source: a HubSpot developer or private app with webhook subscriptions, signed with
+  `X-HubSpot-Signature-v3` (v1 accepted only when no v3 header is sent). The provider secret is the app's client
+  secret.
+- Allowlist (`clicutcl_hubspot_webhook_event_types`, default `contact.creation`, `contact.propertyChange`):
+  `contact.creation` records a `lead`; any type added through the filter also records a `lead`. Every other type
+  (`contact.deletion`, `contact.merge`, `contact.restore`, `contact.associationChange`, `contact.privacyDeletion`,
+  unknown types, payloads without a subscription type) is acknowledged (2xx, `ignored`) without recording an event,
+  so HubSpot does not retry it. Before #128 every one of these was recorded as a `lead`.
 - `contact.propertyChange` records a `qualified_lead` only when the changed property is `lifecyclestage` and the new
   value is `marketingqualifiedlead` or `salesqualifiedlead`. The event ID includes the stage and HubSpot's `eventId`:
   an MQL and a later SQL, or a later re-entry into a stage, are separate events, while a retry of the same delivery
@@ -476,6 +484,14 @@ Security:
   `lead`; sites subscribed to property changes now record fewer, qualified events.
 - Batched HubSpot payloads are evaluated item by item. Non-qualified events keep their earlier event IDs, so
   deduplication of retries is unaffected.
+- Workflow "Send a webhook" actions are not supported. They sign with v2 (`secret + method + URI + body`), which
+  ClickTrail does not verify, so they fail with `401`; their body is the contact record without `subscriptionType`.
+  Use an app webhook subscription instead.
+- A HubSpot `lead` captured in the browser (form submission on the site) and a webhook `lead` for the same contact
+  never deduplicate against each other: `Dedup_Store` is keyed per route (`ingest` for browser intake,
+  `webhook_hubspot` for the webhook) and per destination, and the two paths produce different event IDs. Pick one
+  source of truth per event, for example the browser form for `lead` and the webhook for `qualified_lead` (remove
+  `contact.creation` from the allowlist), or the webhook for both.
 
 ### Calendly booking handoff
 

@@ -198,13 +198,21 @@ Controls include:
 
 - provider enablement
 - provider secret resolution
-- replay-window enforcement
+- replay-window enforcement on provider timestamps where the scheme carries one: HubSpot v3, native Calendly and the
+  ClickTrail relay. HubSpot v1 and Typeform carry no timestamp; for them only the signature replay cache and event-ID
+  dedup (`clicutcl_v2_dedup_ttl`) apply
 - optional replay protection filter control
 
 Verification hardening:
 
 - Typeform uses its native base64 HMAC `Typeform-Signature`
-- HubSpot uses its native SHA-256 `X-HubSpot-Signature`
+- HubSpot uses `X-HubSpot-Signature-v3` (base64 HMAC-SHA256 of method + `https://` + `Host` + raw request URI with
+  HubSpot's listed percent-encodings decoded + body + `X-HubSpot-Request-Timestamp`), rejecting timestamps outside
+  the replay window (default 300 s, HubSpot's recommended 5 minutes). A failing v3 never falls back to v1. The
+  legacy SHA-256 `X-HubSpot-Signature` (v1) is checked only when no v3 header is sent. A proxy that rewrites the
+  `Host` header or path breaks v3 verification. HubSpot subscription types off the
+  `clicutcl_hubspot_webhook_event_types` allowlist (deletion, merge, restore, association change, privacy deletion,
+  unknown) are acknowledged (2xx, `ignored`) without recording an event
 - Calendly subscriptions use the native `Calendly-Webhook-Signature` (`t=<unix>,v1=<hex HMAC-SHA256 of "t.body">`,
   timestamp checked against the replay window) with the subscription's signing key as the provider secret.
   Requests without that header keep ClickTrail's timestamped HMAC relay contract. The adapter's raw identity,

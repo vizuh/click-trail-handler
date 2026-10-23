@@ -91,13 +91,30 @@ Purpose:
 Auth model:
 
 - native Typeform `Typeform-Signature` verification
-- native HubSpot `X-HubSpot-Signature` verification
+- native HubSpot `X-HubSpot-Signature-v3` verification: base64 HMAC-SHA256 of method + request URL + raw body +
+  `X-HubSpot-Request-Timestamp` (milliseconds), with the timestamp checked against the replay window. The URL is
+  rebuilt as `https://` + `Host` header + raw `REQUEST_URI`, with HubSpot's listed percent-encodings (`%3A`, `%2F`,
+  `%3F`, `%40`, `%21`, `%24`, `%27`, `%28`, `%29`, `%2A`, `%2C`, `%3B`) decoded. When the v3 header is present it is
+  authoritative: a failing v3 is rejected and never falls back to v1
+- HubSpot v1 `X-HubSpot-Signature` (SHA-256 of secret + body) only when no v3 header is sent. v1 carries no
+  timestamp, so only the replay cache and event-ID dedup protect it
+- HubSpot v2 signatures (workflow "Send a webhook" actions) are not supported; see `INTEGRATIONS.md`
 - native Calendly `Calendly-Webhook-Signature` verification; ClickTrail `X-Clicutcl-Timestamp` / `X-Clicutcl-Signature` relay verification when that header is absent
-- provider events that are valid but not conversions (Calendly events other than `invitee.created`) return `{ "success": true, "ignored": true }` so the provider does not retry
-- replay-window enforcement
+- provider events that are valid but not conversions (Calendly events other than `invitee.created`; HubSpot
+  subscription types off the `clicutcl_hubspot_webhook_event_types` allowlist, such as `contact.deletion`,
+  `contact.merge` or `contact.privacyDeletion`, and property changes that fail the qualified-lead rule) return
+  `{ "success": true, "ignored": true }` so the provider does not retry
+- replay window (`clicutcl_webhook_replay_window`, default 300 s) enforced on provider timestamps for HubSpot v3,
+  native Calendly and the ClickTrail relay; HubSpot v1 and Typeform carry no timestamp
+- replay cache keyed on the signature for the length of the replay window (`409` on a repeat)
 - provider enablement and secret checks
 
 HubSpot webhook arrays are processed item by item. Consent-blocked webhook and lifecycle requests still return HTTP success to prevent retries, but their JSON body reports `success: false`, `skipped: true`, and the skip reason.
+
+Signature, timestamp and secret failures return `401`. HubSpot re-sends any `4xx`/`5xx` up to 10 times over 24
+hours, so a wrong or missing HubSpot secret, or a proxy that changes the `Host` header or path, produces 10 failed
+deliveries per event. ClickTrail keeps `401` because accepting unauthenticated requests is worse than retry noise;
+see `OPERATIONS-RUNBOOK.md` failure pattern 8.
 
 ## `POST /clicutcl/v2/lifecycle/update`
 

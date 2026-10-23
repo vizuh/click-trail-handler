@@ -664,16 +664,23 @@
       "role": "webhook_ingress",
       "status": "webhook_ingress",
       "provider_contract": "signed inbound webhook route",
-      "what_exists": "Provider-specific webhook route, enablement, signature/replay controls, and canonical event translation.",
+      "what_exists": "Provider-specific webhook route, enablement, X-HubSpot-Signature-v3 verification with timestamp replay window (v1 fallback only without a v3 header), filterable subscription-type allowlist with 2xx ignored acknowledgement for non-conversion types, and canonical event translation.",
       "evidence": [
         "includes/api/class-tracking-controller.php",
         "includes/tracking/webhooks/class-hubspotwebhookadapter.php",
-        "includes/tracking/class-webhook-auth.php"
+        "includes/tracking/class-webhook-auth.php",
+        "tests/unit/HubSpotWebhookTest.php",
+        "tests/unit/BoundarySecurityTest.php"
       ],
       "test_ids": [],
       "runtime_tests": [],
       "known_limits": [
-        "Provider timestamp freshness, raw identity minimization, consent provenance, and retry semantics require runtime/provider verification."
+        "v3 signature, allowlist and ignored acknowledgement are unit-covered only; no live HubSpot delivery has been captured.",
+        "v3 signs https:// + Host + raw request URI; a proxy that rewrites Host or the path fails verification with 401, and HubSpot retries 4xx/5xx up to 10 times over 24 hours.",
+        "v1 fallback carries no timestamp; only the signature replay cache and event-ID dedup apply.",
+        "Workflow 'Send a webhook' (v2 signature) is not supported.",
+        "Browser-origin and webhook HubSpot leads never deduplicate against each other.",
+        "Raw identity minimization, consent provenance, and retry semantics require runtime/provider verification."
       ]
     },
     {

@@ -228,6 +228,31 @@ Typical action:
 - confirm no new failures are being added
 - purge local diagnostics if you want a clean slate
 
+## 8. HubSpot webhooks fail with `401`
+
+Symptoms:
+
+- the HubSpot app's webhook log shows `401` (`webhook_signature_invalid`, `webhook_timestamp_invalid` or
+  `webhook_secret_missing`) and each event is retried
+
+Explanation:
+
+- HubSpot re-sends any `4xx`/`5xx` up to 10 times over 24 hours, so one misconfiguration produces 10 failed
+  deliveries per event. ClickTrail keeps `401` for authentication failures rather than acknowledging them
+- with `X-HubSpot-Signature-v3` present, ClickTrail signs `https://` + the `Host` header + the raw request path and
+  query. A proxy or CDN that rewrites the host, strips a path prefix or reorders query parameters breaks the
+  signature, and v3 never falls back to v1
+- `webhook_timestamp_invalid` means `X-HubSpot-Request-Timestamp` is outside the replay window (default 300 s)
+
+Typical fixes:
+
+- paste the HubSpot app's client secret (not an access token) as the HubSpot provider secret
+- configure the HubSpot target URL as the exact public HTTPS URL WordPress receives, and have the proxy forward the
+  original `Host` header and path unchanged
+- check the server clock (NTP) when timestamps are rejected
+- non-conversion HubSpot events (deletion, merge, privacy deletion, unlisted types) return `200` with `ignored`;
+  those are not failures
+
 ## Attribution Readiness
 
 Diagnostics attribution readiness calls:

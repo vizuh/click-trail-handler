@@ -592,8 +592,8 @@ class Tracking_Controller extends WP_REST_Controller {
 	 * @return array|WP_Error
 	 */
 	private function ingest_webhook_payload( string $provider, WebhookProviderAdapterInterface $adapter, array $payload ) {
-		// Valid provider events that are not conversions (e.g. a Calendly cancellation) are
-		// acknowledged with 2xx so the provider does not retry or disable the subscription.
+		// Valid provider events that are not conversions (e.g. a Calendly cancellation or a HubSpot
+		// contact deletion) are acknowledged with 2xx so the provider does not retry or disable the subscription.
 		if ( method_exists( $adapter, 'is_ignored_event' ) && $adapter->is_ignored_event( $payload ) ) {
 			return array(
 				'success' => true,

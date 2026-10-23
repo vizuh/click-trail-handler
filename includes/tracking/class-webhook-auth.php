@@ -43,7 +43,18 @@ class Webhook_Auth {
 			$signature = trim( (string) $request->get_header( 'typeform-signature' ) );
 			// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Typeform requires a base64-encoded HMAC.
 			$expected = 'sha256=' . base64_encode( hash_hmac( 'sha256', $body, $secret, true ) );
+		} elseif ( 'hubspot' === $provider && '' !== trim( (string) $request->get_header( 'x-hubspot-signature-v3' ) ) ) {
+			// HubSpot v3: base64 HMAC-SHA256 of method + decoded URI + body + millisecond timestamp.
+			// When the v3 header is present it is authoritative: a failing v3 never falls back to v1.
+			$timestamp = trim( (string) $request->get_header( 'x-hubspot-request-timestamp' ) );
+			$signature = trim( (string) $request->get_header( 'x-hubspot-signature-v3' ) );
+			if ( ! ctype_digit( $timestamp ) || abs( (int) floor( microtime( true ) * 1000 ) - (int) $timestamp ) > $max * 1000 ) {
+				return new WP_Error( 'webhook_timestamp_invalid', 'Invalid or expired webhook timestamp', array( 'status' => 401 ) );
+			}
+			$expected = self::hubspot_v3_signature( $secret, (string) $request->get_method(), self::hubspot_request_uri(), $body, $timestamp );
 		} elseif ( 'hubspot' === $provider ) {
+			// Legacy v1 (only when no v3 header): sha256(secret . body). It carries no timestamp,
+			// so only the replay cache below and event-ID dedup protect it.
 			$signature = trim( (string) $request->get_header( 'x-hubspot-signature' ) );
 			$expected  = hash( 'sha256', $secret . $body );
 		} elseif ( 'calendly' === $provider && '' !== trim( (string) $request->get_header( 'calendly-webhook-signature' ) ) ) {
@@ -95,5 +106,43 @@ class Webhook_Auth {
 		}
 
 		return true;
+	}
+
+	/**
+	 * HubSpot v3 signature: base64(HMAC-SHA256(secret, METHOD + URI + body + timestamp)).
+	 *
+	 * @param string $secret    App client secret.
+	 * @param string $method    HTTP method.
+	 * @param string $uri       Full request URL with HubSpot's listed characters decoded.
+	 * @param string $body      Raw request body.
+	 * @param string $timestamp X-HubSpot-Request-Timestamp (milliseconds).
+	 * @return string
+	 */
+	public static function hubspot_v3_signature( string $secret, string $method, string $uri, string $body, string $timestamp ): string {
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- HubSpot v3 requires a base64-encoded HMAC.
+		return base64_encode( hash_hmac( 'sha256', strtoupper( $method ) . $uri . $body . $timestamp, $secret, true ) );
+	}
+
+	/**
+	 * The URL HubSpot signed, rebuilt from the Host header and the raw request URI. HubSpot only
+	 * delivers to HTTPS target URLs, so the scheme is fixed rather than read from is_ssl(), which
+	 * is false behind a TLS-terminating proxy. A proxy that rewrites Host or the path breaks v3.
+	 *
+	 * @return string
+	 */
+	private static function hubspot_request_uri(): string {
+		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- HMAC input only; sanitizing would alter the signed bytes.
+		$host = isset( $_SERVER['HTTP_HOST'] ) ? (string) wp_unslash( $_SERVER['HTTP_HOST'] ) : '';
+		$path = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
+		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		if ( '' === $host || '' === $path ) {
+			return '';
+		}
+
+		return str_ireplace(
+			array( '%3A', '%2F', '%3F', '%40', '%21', '%24', '%27', '%28', '%29', '%2A', '%2C', '%3B' ),
+			array( ':', '/', '?', '@', '!', '$', "'", '(', ')', '*', ',', ';' ),
+			'https://' . $host . $path
+		);
 	}
 }

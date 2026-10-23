@@ -175,6 +175,24 @@ Arguments:
 
 - `array $rule` with `property` (default `lifecyclestage`) and `values` (default `marketingqualifiedlead`, `salesqualifiedlead`), compared case-insensitively
 
+### `clicutcl_hubspot_webhook_event_types`
+
+Type:
+
+- filter
+
+Purpose:
+
+- choose which HubSpot subscription types the webhook route records. `contact.propertyChange` stays gated by
+  `clicutcl_hubspot_qualified_lead_rule` and records `qualified_lead`; every other listed type records `lead`.
+  Unlisted types (deletion, merge, restore, association change, privacy deletion, unknown) are acknowledged with 2xx
+  `ignored` and no event
+
+Arguments:
+
+- `string[] $types` (default `contact.creation`, `contact.propertyChange`), compared case-insensitively; `_` and `.`
+  are treated alike
+
 ## Lifecycle and Settings Security
 
 ### `clicutcl_lifecycle_token`
