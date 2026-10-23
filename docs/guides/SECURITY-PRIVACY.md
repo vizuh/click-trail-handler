@@ -152,6 +152,16 @@ Identity exposure is additionally filterable through:
 
 - `clicutcl_identity_fields_allowed`
 
+HubSpot embedded form capture (`assets/js/clicutcl-events.js`) reads only identifiers: `formId` and `instanceId`
+from HubSpot's v4 event, the conversion ID from `getConversionId()`, and the form `id` from a legacy
+`hsFormCallback` message. It never calls `getFieldValue()` / `getFormFieldValues()` and never reads the legacy
+message's `data` (which carries `submissionValues`), so no submitted field value or PII reaches `dataLayer` or the
+events route. It writes no browser storage (the dedupe markers are in memory) and pushes only through the
+`pushEvent()` consent gate; listeners registered before consent drop everything until the tracker starts.
+Legacy messages pass the external-message origin rule (same host or `clicutcl_iframe_origin_allowlist`, which
+now includes HubSpot's form host `hsforms.net` by default); the exact origin of iframe-rendered legacy embeds is
+not verified.
+
 The personal-data eraser currently targets matching rows from the events table, the structured touch
 events table (`clicutcl_touch_events`, matched on the exact hashed-email `visitor_id`), and the server-side
 delivery queue (`clicutcl_queue`, matched on raw and SHA-256-hashed email). This is not complete erasure proof:

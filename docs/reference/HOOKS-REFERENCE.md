@@ -56,6 +56,10 @@ Arguments:
 
 - `array $origins`
 
+Default:
+
+- `calendly.com`, `typeform.com`, `hubspot.com`, `hsforms.net`; each entry also matches its subdomains
+
 ## Consent
 
 ### `clicutcl_consent_defaults`

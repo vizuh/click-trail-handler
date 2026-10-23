@@ -30,7 +30,9 @@ namespace {
 
 		public function test_browser_route_rejects_server_only_events(): void {
 			$this->assertTrue( EventV2::is_browser_event_allowed( 'lead' ) );
+			$this->assertTrue( EventV2::is_browser_event_allowed( 'form_submit_failed' ) );
 			$this->assertFalse( EventV2::is_browser_event_allowed( 'purchase' ) );
+			$this->assertFalse( EventV2::is_browser_event_allowed( 'qualified_lead' ) );
 			$this->assertFalse( EventV2::is_browser_event_allowed( 'client_won' ) );
 		}
 
