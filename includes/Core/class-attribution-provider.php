@@ -413,7 +413,7 @@ class Attribution_Provider {
 		 * treated like a same-site referrer. Add issuer 3-D Secure or other
 		 * hosted-checkout hostnames your store redirects through.
 		 *
-		 * @since 1.10.6
+		 * @since 1.11.0
 		 *
 		 * @param string[] $hosts Hostnames, for example `paypal.com`.
 		 */

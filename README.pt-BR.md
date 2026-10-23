@@ -75,7 +75,7 @@ Ter código para uma integração não prova que ela funciona em produção. O s
 - **Campos extras capturados**: `utm_id`, `utm_source_platform`, `utm_creative_format`, `utm_marketing_tactic`, `fbc`, `fbp`, `_ttp`, `li_gc`, `ga_client_id`, `ga_session_id`
 - **Cache e minificação**: as tags de script do ClickTrail têm atributos de exclusão para Autoptimize, Cloudflare Rocket Loader, WP Rocket e LiteSpeed Cache.
 
-A versão atual é a 1.10.5. O histórico está no [changelog](changelog.txt).
+A versão atual no GitHub é a 1.11.0; a versão estável no WordPress.org é a 1.10.5. O histórico está no [changelog](changelog.txt).
 
 ## Instalacao
 

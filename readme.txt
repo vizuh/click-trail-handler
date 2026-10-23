@@ -193,6 +193,12 @@ behavior that still requires current runtime verification. In particular, older 
 server paths “first-class native delivery adapters” predates the current evidence classification: those paths are
 configured-endpoint relays whose provider authentication, acceptance, and runtime delivery remain unverified.
 
+= 1.11.0 =
+* WooCommerce: a buyer who pays on PayPal, Stripe Checkout, Mollie, Klarna or another payment page and comes back to your thank-you page keeps the ad or campaign they arrived from. Before, the return could replace the last-touch source with the payment site.
+* WooCommerce: Checkout Block orders now store their attribution before the buyer leaves for the payment page, so the order keeps its source even if the buyer never returns.
+* HubSpot: submissions of HubSpot forms embedded on your pages now produce a `lead` event (with consent). Failed submissions produce `form_submit_failed`.
+* HubSpot webhooks: newer HubSpot signatures (v3) are verified with a 5-minute replay window, and HubSpot events that are not leads (deletions, merges, privacy deletions) are acknowledged without recording a lead.
+
 = 1.10.5 =
 * Attribution: when a visitor comes back through a new ad, ClickTrail now sends the new click ID (for example `gclid`) in decorated links, Calendly bookings, form fields, WooCommerce orders and server-side events. Before, the click ID from the first visit was sent alongside current UTMs, so a CRM could credit the wrong ad click. First-touch fields are unchanged.
 * Attribution: when a visitor clicks ads on different platforms, ClickTrail records which click is the newest (`attribution_selected_click_id`) and uses it for Calendly bookings.
