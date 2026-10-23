@@ -105,6 +105,27 @@ class Attribution_Provider {
 	);
 
 	/**
+	 * Payment and hosted-checkout hosts whose referrals are not a traffic source.
+	 *
+	 * Matched as the host itself or any subdomain of it, like same-site referrers.
+	 *
+	 * @var string[]
+	 */
+	private const IGNORED_REFERRER_HOSTS = array(
+		'paypal.com',
+		'stripe.com',
+		'mollie.com',
+		'squareup.com',
+		'square.link',
+		'klarna.com',
+		'adyen.com',
+		'checkout.com',
+		'mercadopago.com',
+		'mercadopago.com.br',
+		'pagseguro.uol.com.br',
+	);
+
+	/**
 	 * Retrieve the current attribution payload (flattened).
 	 *
 	 * @return array The attribution data array, empty if none or no consent.
@@ -377,6 +398,45 @@ class Attribution_Provider {
 	 */
 	public static function get_field_alias_mapping() {
 		return self::FIELD_ALIASES;
+	}
+
+	/**
+	 * Get referrer hosts the attribution script must not treat as a touch.
+	 *
+	 * @return string[] Normalized hostnames (lowercase, no scheme, path, port or leading `www.`).
+	 */
+	public static function get_ignored_referrer_hosts() {
+		/**
+		 * Filter the referrer hosts that never update first- or last-touch attribution.
+		 *
+		 * A referrer on one of these hosts, or on any of their subdomains, is
+		 * treated like a same-site referrer. Add issuer 3-D Secure or other
+		 * hosted-checkout hostnames your store redirects through.
+		 *
+		 * @since 1.10.6
+		 *
+		 * @param string[] $hosts Hostnames, for example `paypal.com`.
+		 */
+		$hosts = apply_filters( 'clicutcl_ignored_referrer_hosts', self::IGNORED_REFERRER_HOSTS );
+
+		$normalized = array();
+		foreach ( (array) $hosts as $host ) {
+			if ( ! is_string( $host ) ) {
+				continue;
+			}
+
+			$host = strtolower( trim( $host ) );
+			if ( false !== strpos( $host, '/' ) ) {
+				$host = (string) wp_parse_url( false === strpos( $host, '://' ) ? 'https://' . $host : $host, PHP_URL_HOST );
+			}
+
+			$host = preg_replace( '/^www\./', '', rtrim( $host, '.' ) );
+			if ( preg_match( '/^[a-z0-9-]+(\.[a-z0-9-]+)+$/', $host ) ) {
+				$normalized[ $host ] = $host;
+			}
+		}
+
+		return array_values( $normalized );
 	}
 
 	/**

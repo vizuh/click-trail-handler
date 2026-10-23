@@ -325,6 +325,13 @@ At checkout, ClickTrail writes attribution order metadata only when
 2. If no cookie payload is available, accept only nonce-verified `ct_*` POST fields.
 3. With required consent denied or unresolved, or with an invalid or missing checkout nonce, write no attribution fields.
 
+The metadata is in the database before any gateway redirect:
+
+- Classic checkout: `woocommerce_checkout_create_order`; WooCommerce saves the order right after the hook and before payment processing.
+- Checkout Block / Store API: `woocommerce_store_api_checkout_order_processed`; WooCommerce has already saved the order at that point, so ClickTrail saves it again (`WC_Order` CRUD, HPOS-compatible) before the gateway runs.
+
+Orders that some express or smart-button flows create outside these two hooks get no ClickTrail metadata.
+
 The buyer's consent snapshot is stored separately in `_clicutcl_consent` even
 when attribution is denied. This snapshot records the checkout-time policy
 state; it is not proof of consent for a later request.
@@ -573,7 +580,7 @@ Best fit:
 
 ### Payment provider limitations
 
-Cross-domain decoration cannot reach external hosted-payment pages. These providers process payments on their own domain and strip any injected query parameters before the user reaches them:
+Cross-domain decoration cannot reach external hosted-payment pages. These providers process payments on their own domain, and ClickTrail cannot add parameters to their pages:
 
 | Provider | Domain |
 |----------|--------|
@@ -581,10 +588,18 @@ Cross-domain decoration cannot reach external hosted-payment pages. These provid
 | PayPal | `paypal.com` |
 | Mollie | `checkout.mollie.com` |
 | Square | `squareup.com` |
+| Klarna | `klarna.com` |
 
-Attribution survives these redirects only via the attribution cookie written before checkout. On return to your confirmation page, ClickTrail reads the cookie and tags the order as normal.
+Two things keep the pre-checkout attribution through the payment hop:
 
-If the user had no prior cookie when entering the payment flow, the order will be unattributed. This is a documented limitation of cookie-based cross-domain attribution — not a bug.
+1. **Order metadata at order creation.** WooCommerce orders get their `_clicutcl_*` attribution when the order is created, before the gateway redirect (see [WooCommerce attribution handoff](#woocommerce-attribution-handoff)). The thank-you page reads that metadata. It does not tag the order from the cookie or from the return referrer.
+2. **Ignored payment referrers.** On the return page the browser referrer is the payment host. A referrer on a host listed by `clicutcl_ignored_referrer_hosts`, or on a subdomain of one, counts like a same-site referrer: it creates no first touch and leaves the last touch unchanged (`lt_source`, `lt_medium`, `lt_referrer`, `lt_channel`, `lt_landing_page`, `lt_touch_timestamp`, click IDs). UTMs and click IDs on the return URL still count. Referrers on other external hosts still update the last touch.
+
+Default ignored hosts: `paypal.com`, `stripe.com`, `mollie.com`, `squareup.com`, `square.link`, `klarna.com`, `adyen.com`, `checkout.com`, `mercadopago.com`, `mercadopago.com.br`, `pagseguro.uol.com.br`. Card-issuer 3-D Secure pages run on bank-specific hosts that no default list can cover; add the ones you see in your referral reports through the filter ([`clicutcl_ignored_referrer_hosts`](HOOKS-REFERENCE.md#clicutcl_ignored_referrer_hosts)).
+
+A buyer who reached checkout with no prior attribution (no UTMs, click ID, or external referrer earlier in the visit) still produces an unattributed order.
+
+GA4 is separate. GA4 reads the referrer itself, so the return page starts a GA4 session sourced to the payment host and the `purchase` event lands in that session. Add the same domains in GA4 under **Admin → Data streams → (web stream) → Configure tag settings → Show all → List unwanted referrals** ([Google help](https://support.google.com/analytics/answer/10327750)). ClickTrail's `purchase` `dataLayer` push carries the stored `ft_*` / `lt_*` fields and click IDs, and a GTM tag can send them as event parameters, but event parameters do not change GA4's session source.
 
 See also: [Cross-Domain Limitations](../guides/IMPLEMENTATION-PLAYBOOK.md#cross-domain-limitations) in the Implementation Playbook.
 

@@ -56,6 +56,37 @@ Arguments:
 
 - `array $origins`
 
+### `clicutcl_ignored_referrer_hosts`
+
+Type:
+
+- filter
+
+Purpose:
+
+- list payment and hosted-checkout hosts whose referrals never update first- or last-touch attribution
+
+Notes:
+
+- passed to `assets/js/clicutcl-attribution.js` as `clicutcl_config.ignoredReferrerHosts`
+- a referrer on a listed host or any subdomain of it counts like a same-site referrer: no first touch is created and the stored last touch (source, medium, referrer, channel, landing page, timestamp, click IDs) is left unchanged; UTMs and click IDs on the URL still form a touch
+- defaults: `paypal.com`, `stripe.com`, `mollie.com`, `squareup.com`, `square.link`, `klarna.com`, `adyen.com`, `checkout.com`, `mercadopago.com`, `mercadopago.com.br`, `pagseguro.uol.com.br`
+- add card-issuer 3-D Secure hosts or other hosted checkouts your store redirects through; values are lowercased, a URL is reduced to its host, a leading `www.` is dropped, and anything that is not a dotted hostname is discarded
+- this does not change GA4; add the same domains to GA4's unwanted referrals (see [Payment provider limitations](INTEGRATIONS.md#payment-provider-limitations))
+
+Arguments:
+
+- `string[] $hosts`
+
+Example:
+
+```php
+add_filter( 'clicutcl_ignored_referrer_hosts', function ( $hosts ) {
+	$hosts[] = 'acs.examplebank.com';
+	return $hosts;
+} );
+```
+
 ## Consent
 
 ### `clicutcl_consent_defaults`

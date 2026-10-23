@@ -291,15 +291,22 @@ The following providers process payments on their own domain. ClickTrail has no 
 
 ### What actually happens
 
-Attribution survives these redirects only if the attribution cookie was already written **before** the user reached the payment provider. On return to your confirmation page, ClickTrail reads the cookie and attaches attribution to the order as normal.
+Attribution survives these redirects because of two things, both of which depend on attribution already captured **before** the buyer reached the payment provider:
+
+- **Order metadata is written when the order is created.** WooCommerce saves the `_clicutcl_*` UTMs and click IDs on the order before the gateway redirect, on both the classic checkout and the Checkout Block. The confirmation page reads that metadata; it does not tag the order from the cookie or the return referrer.
+- **Payment referrers are ignored.** When the buyer comes back, the browser referrer is the payment host. ClickTrail treats referrers on known payment hosts (PayPal, Stripe, Mollie, Square, Klarna, Adyen, Checkout.com, Mercado Pago, PagSeguro) like same-site referrers, so the stored first and last touch stay on the paid click. Add other hosts, such as your card issuers' 3-D Secure pages, with the `clicutcl_ignored_referrer_hosts` filter ([Hooks Reference](../reference/HOOKS-REFERENCE.md#clicutcl_ignored_referrer_hosts)).
 
 The risk window is narrow: a user who arrives at your checkout page **without** UTMs and with no prior cookie will produce an unattributed order. This is a known limitation of cookie-based attribution on cross-domain flows, not a ClickTrail bug.
+
+### GA4 still needs unwanted referrals
+
+GA4 reads the referrer on its own. Without configuration it starts a new session sourced to the payment host on the return page, and the purchase is credited to that host. Add the same payment domains in GA4 under **Admin → Data streams → (web stream) → Configure tag settings → Show all → List unwanted referrals** ([Google help](https://support.google.com/analytics/answer/10327750)). Sending ClickTrail's `lt_*` fields or click IDs as GA4 event parameters does not change GA4's session source.
 
 ### How to reduce the gap
 
 1. Ensure attribution capture is enabled and fires early (before the checkout page load).
 2. Do not rely on link decoration to carry attribution through the payment provider. It will be stripped.
-3. If your funnel is `marketing site → hosted checkout → return URL`, test that the return URL correctly receives `order_id` or `session_id` from the provider and that ClickTrail picks up the cookie on the confirmation page.
+3. If your funnel is `marketing site → hosted checkout → return URL`, place a test order and check the order screen: the `_clicutcl_*` source and click IDs should match the pre-checkout visit, not the payment domain.
 4. For Stripe, consider using Stripe's own `client_reference_id` field to correlate the provider session to your ClickTrail visitor ID — this is a manual integration, not built into ClickTrail.
 
 ### The checklist warning

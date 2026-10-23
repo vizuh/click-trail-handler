@@ -135,6 +135,7 @@ This map is organized around the active code paths first, then compatibility and
 - `tools/qa/smoke.js`: structural smoke harness for registry-backed capabilities
 - `tools/qa/check-typing-policy.php`: repository typing policy check
 - `tools/qa/consent-bridge.test.js`, `tools/qa/cmp-transition.test.js`: consent bridge and CMP transition checks (`npm run test:consent`)
+- `tools/qa/payment-referrer.test.js`: payment-return referrer checks for the attribution script (`npm run test:attribution`)
 - `tools/admin-css/`: Tailwind source, config, and `check-scope.js` for `assets/css/admin-refresh.css` (`npm run build:admin-css`)
 - `tools/release/`: packaging (`make-zip.js`, `make-zip.ps1`) and WordPress.org asset validation
 

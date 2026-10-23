@@ -28,13 +28,18 @@ if ( ! defined( 'DAY_IN_SECONDS' ) ) {
 
 if ( ! function_exists( 'apply_filters' ) ) {
 	/**
-	 * Pass-through stub for tests; first arg is returned unchanged.
+	 * Filter stub for tests: runs `$GLOBALS['clicktrail_test_filters'][ $tag ]`
+	 * when a test registered one, otherwise returns the value unchanged.
 	 *
-	 * @param string $tag   Filter tag (unused).
-	 * @param mixed  $value Value to return.
+	 * @param string $tag     Filter tag.
+	 * @param mixed  $value   Value to filter.
+	 * @param mixed  ...$args Extra filter arguments.
 	 * @return mixed
 	 */
-	function apply_filters( $tag, $value ) {
+	function apply_filters( $tag, $value, ...$args ) {
+		if ( isset( $GLOBALS['clicktrail_test_filters'][ $tag ] ) ) {
+			return call_user_func( $GLOBALS['clicktrail_test_filters'][ $tag ], $value, ...$args );
+		}
 		return $value;
 	}
 }
