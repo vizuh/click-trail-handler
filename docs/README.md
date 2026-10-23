@@ -3,7 +3,7 @@
 - **Audience**: implementers, contributors, maintainers, support teams, reviewers, and AI agents
 - **Canonical for**: engineering navigation, adoption guidance, and source-of-truth lookup
 - **Update when**: docs move, ownership changes, or a new subsystem or rollout pattern needs a canonical reference
-- **Current release baseline**: plugin code `1.10.5` on GitHub and WordPress.org, including last-touch click IDs with the D3 newest-click selection, consent-safe link and form handoffs, CMP decision-transition handling (Cookiebot in-page withdrawal, Complianz categories), the Calendly booking handoff, and the refreshed admin screens and setup wizard recorded in the changelog
+- **Current release baseline**: plugin code `1.11.0` on GitHub and WordPress.org, adding payment-return referrer exclusion and pre-redirect Checkout Block order meta, HubSpot embedded form lead capture, and HubSpot v3 webhook signatures with an event-type allowlist, on top of the 1.10.5 last-touch click IDs with the D3 newest-click selection, consent-safe link and form handoffs, CMP decision-transition handling, the Calendly booking handoff, and the refreshed admin screens recorded in the changelog
 - **Automated verification**: PHP 8.1–8.3, PHPCS, PHP compatibility, Node contract checks, and smoke checks pass for the release PRs
 - **Live verification boundary**: WordPress, browser/CMP, WooCommerce classic/HPOS staging, and provider E2E remain separate release gates
 

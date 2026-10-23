@@ -48,7 +48,7 @@ class WooCommerce {
 		}
 
 		add_action( 'woocommerce_checkout_create_order', array( $this, 'save_order_attribution' ), 10, 2 );
-		add_action( 'woocommerce_store_api_checkout_order_processed', array( $this, 'save_order_attribution' ), 10, 1 );
+		add_action( 'woocommerce_store_api_checkout_order_processed', array( $this, 'save_store_api_order_attribution' ), 10, 1 );
 		add_action( 'woocommerce_thankyou', array( $this, 'push_purchase_event' ), 20, 1 );
 		add_action( 'woocommerce_payment_complete', array( $this, 'track_paid_milestone' ), 20, 1 );
 		add_action( 'woocommerce_order_status_changed', array( $this, 'track_paid_milestone_from_status_change' ), 20, 4 );
@@ -148,6 +148,24 @@ class WooCommerce {
 		 * Used internally to trigger the GTM lead magnet after the first tracked order.
 		 */
 		do_action( 'clicutcl_order_attribution_saved', $order );
+	}
+
+	/**
+	 * Save attribution on a Checkout Block / Store API order and persist it.
+	 *
+	 * The Store API saves the order before firing
+	 * `woocommerce_store_api_checkout_order_processed`, and redirect gateways
+	 * reload the order from the database. Meta left only on this instance would
+	 * be lost, so save it before the gateway takes over.
+	 *
+	 * @param \WC_Order $order Order.
+	 */
+	public function save_store_api_order_attribution( $order ) {
+		$this->save_order_attribution( $order );
+
+		if ( $order->get_id() ) {
+			$order->save();
+		}
 	}
 
 	/**

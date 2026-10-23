@@ -3,7 +3,7 @@
 - **Audience**: contributors, integrators, and maintainers
 - **Canonical for**: public filters and actions exposed by the plugin
 - **Update when**: a public hook is added, removed, renamed, or changes contract
-- **Last verified against version**: `1.10.5` (every `apply_filters` / `do_action` name in `includes/`, `clicutcl.php`, and `uninstall.php` is listed)
+- **Last verified against version**: `1.11.0` (every `apply_filters` / `do_action` name in `includes/`, `clicutcl.php`, and `uninstall.php` is listed)
 
 This document lists the public custom hooks currently exposed by the active codebase.
 
@@ -55,6 +55,41 @@ Purpose:
 Arguments:
 
 - `array $origins`
+
+Default:
+
+- `calendly.com`, `typeform.com`, `hubspot.com`, `hsforms.net`; each entry also matches its subdomains
+
+### `clicutcl_ignored_referrer_hosts`
+
+Type:
+
+- filter
+
+Purpose:
+
+- list payment and hosted-checkout hosts whose referrals never update first- or last-touch attribution
+
+Notes:
+
+- passed to `assets/js/clicutcl-attribution.js` as `clicutcl_config.ignoredReferrerHosts`
+- a referrer on a listed host or any subdomain of it counts like a same-site referrer: no first touch is created and the stored last touch (source, medium, referrer, channel, landing page, timestamp, click IDs) is left unchanged; UTMs and click IDs on the URL still form a touch
+- defaults: `paypal.com`, `stripe.com`, `mollie.com`, `squareup.com`, `square.link`, `klarna.com`, `adyen.com`, `checkout.com`, `mercadopago.com`, `mercadopago.com.br`, `pagseguro.uol.com.br`
+- add card-issuer 3-D Secure hosts or other hosted checkouts your store redirects through; values are lowercased, a URL is reduced to its host, a leading `www.` is dropped, and anything that is not a dotted hostname is discarded
+- this does not change GA4; add the same domains to GA4's unwanted referrals (see [Payment provider limitations](INTEGRATIONS.md#payment-provider-limitations))
+
+Arguments:
+
+- `string[] $hosts`
+
+Example:
+
+```php
+add_filter( 'clicutcl_ignored_referrer_hosts', function ( $hosts ) {
+	$hosts[] = 'acs.examplebank.com';
+	return $hosts;
+} );
+```
 
 ## Consent
 
@@ -159,6 +194,24 @@ Purpose:
 
 - control webhook replay behavior, provider enablement, and provider secret resolution
 
+### `clicutcl_hubspot_v3_request_uris`
+
+Type:
+
+- filter
+
+Purpose:
+
+- add the public HubSpot target URL when a proxy rewrites the request path, so `X-HubSpot-Signature-v3` can be
+  verified. Each candidate is tried with `hash_equals`; it still needs the secret, and the timestamp window and replay
+  cache apply unchanged. HubSpot's listed percent-encodings are decoded in every entry
+
+Arguments:
+
+- `string[] $uris`: default `https://` + `Host` header + raw request URI, and `https://` + `home_url()` host (and
+  port) + raw request URI when it differs
+- `WP_REST_Request $request`
+
 ## Webhook Mapping
 
 ### `clicutcl_hubspot_qualified_lead_rule`
@@ -174,6 +227,24 @@ Purpose:
 Arguments:
 
 - `array $rule` with `property` (default `lifecyclestage`) and `values` (default `marketingqualifiedlead`, `salesqualifiedlead`), compared case-insensitively
+
+### `clicutcl_hubspot_webhook_event_types`
+
+Type:
+
+- filter
+
+Purpose:
+
+- choose which HubSpot subscription types the webhook route records. `contact.propertyChange` stays gated by
+  `clicutcl_hubspot_qualified_lead_rule` and records `qualified_lead`; every other listed type records `lead`.
+  Unlisted types (deletion, merge, restore, association change, privacy deletion, unknown) are acknowledged with 2xx
+  `ignored` and no event
+
+Arguments:
+
+- `string[] $types` (default `contact.creation`, `contact.propertyChange`), compared case-insensitively; `_` and `.`
+  are treated alike
 
 ## Lifecycle and Settings Security
 

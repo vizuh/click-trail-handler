@@ -5,7 +5,7 @@ Author URI: https://vizuh.com
 Tags: attribution, utm, consent mode, woocommerce, server-side tracking
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 1.10.5
+Stable tag: 1.11.0
 Requires PHP: 8.1
 WC requires at least: 10.4.2
 License: GPLv2 or later
@@ -36,7 +36,7 @@ Then place one test order or send one test form, and look at what was stored. Th
 ClickTrail only acts on the paths you turn on and set up in its settings. That is what "configured" means everywhere in this readme.
 
 * Capture: first-touch and last-touch UTMs, ad click IDs, and the referrer, with organic, social, and referral fallback when there are no UTMs. When a visitor comes back through a new ad, the newest click is the one that travels. Context lives in first-party storage, falls back to `sessionStorage` when cookies are blocked, and your own admin browsing stays out of it.
-* WooCommerce: attribution saved on the order, an enriched purchase event on the thank-you page, optional storefront events (`view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, `begin_checkout`), and optional order-status milestones. Order metadata has export, erase, retention, and uninstall handling.
+* WooCommerce: attribution saved on the order before an off-site payment redirect (classic and block checkout), with returns from payment hosts such as PayPal or Stripe never overwriting the stored touch, an enriched purchase event on the thank-you page, optional storefront events (`view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, `begin_checkout`), and optional order-status milestones. Order metadata has export, erase, retention, and uninstall handling.
 * Forms: Contact Form 7 and Fluent Forms get hidden fields automatically. Gravity Forms and WPForms fill the `ct_*` fields you add; Gravity Forms also gets a channel label, nine `{clicutcl_*}` merge tags, and a per-form switch. Elementor Forms (Pro) and Ninja Forms keep attribution with the submission record. A client-side fallback covers cached pages and forms that load late, and WhatsApp links can carry the context too.
 * Bookings and your other domains: links to domains you approve carry the campaign, with a signed token between your own sites. Calendly booking links hold the newest click and the visitor's consent decision, and the signed Calendly webhook records the booking as `book_appointment` with its UTMs.
 * Events and delivery: browser events to the `dataLayer`, a REST intake, webhooks from Calendly, HubSpot, and Typeform, lifecycle updates, and one-time WordPress events such as `login`, `sign_up`, and `comment_submit`. Optional server-side delivery adds a retry queue and diagnostics.
@@ -192,6 +192,12 @@ The entries below are historical release notes. They do not replace the current 
 behavior that still requires current runtime verification. In particular, older wording that calls platform-named
 server paths “first-class native delivery adapters” predates the current evidence classification: those paths are
 configured-endpoint relays whose provider authentication, acceptance, and runtime delivery remain unverified.
+
+= 1.11.0 =
+* WooCommerce: a buyer who pays on PayPal, Stripe Checkout, Mollie, Klarna or another payment page and comes back to your thank-you page keeps the ad or campaign they arrived from. Before, the return could replace the last-touch source with the payment site.
+* WooCommerce: Checkout Block orders now store their attribution before the buyer leaves for the payment page, so the order keeps its source even if the buyer never returns.
+* HubSpot: submissions of HubSpot forms embedded on your pages now produce a `lead` event (with consent). Failed submissions produce `form_submit_failed`.
+* HubSpot webhooks: newer HubSpot signatures (v3) are verified with a 5-minute replay window, and HubSpot events that are not leads (deletions, merges, privacy deletions) are acknowledged without recording a lead.
 
 = 1.10.5 =
 * Attribution: when a visitor comes back through a new ad, ClickTrail now sends the new click ID (for example `gclid`) in decorated links, Calendly bookings, form fields, WooCommerce orders and server-side events. Before, the click ID from the first visit was sent alongside current UTMs, so a CRM could credit the wrong ad click. First-touch fields are unchanged.

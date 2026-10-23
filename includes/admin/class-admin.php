@@ -868,7 +868,7 @@ class Admin {
 				'label'          => __( 'Cross-domain', 'click-trail-handler' ),
 				'status'         => $link_decor_on ? 'ready' : ( '' !== $wc_checkout_host ? 'attention' : 'neutral' ),
 				'detail'         => $link_decor_on
-					? __( 'Link decoration is active. Attribution carries across subdomains automatically. Add destination domains in the allowed list only if your checkout is on a fully separate domain. Note: external payment providers (Stripe, PayPal, Mollie) cannot be decorated — attribution survives those redirects via the last-touch cookie.', 'click-trail-handler' )
+					? __( 'Link decoration is active. Attribution carries across subdomains automatically. Add destination domains in the allowed list only if your checkout is on a fully separate domain. Note: external payment providers (Stripe, PayPal, Mollie) cannot be decorated. WooCommerce orders keep their attribution because it is saved on the order before the payment redirect, and returns from payment domains do not overwrite the last touch. Add the same payment domains to unwanted referrals in GA4.', 'click-trail-handler' )
 					: ( '' !== $wc_checkout_host
 						/* translators: %s: WooCommerce checkout hostname detected on a different subdomain. */
 						? sprintf( __( 'Your WooCommerce checkout is on %s. Enable cross-domain link decoration under Capture → Link Decoration to carry attribution through the subdomain hop.', 'click-trail-handler' ), esc_html( $wc_checkout_host ) )

@@ -27,7 +27,7 @@ Depois, faça um pedido de teste ou envie um formulário de teste e veja o que f
 O ClickTrail só age nos caminhos que você ativa e ajusta nas configurações dele. É isso que "configurado" significa em toda esta documentação.
 
 - Captura: UTMs de primeiro e último toque, IDs de clique de anúncios e o referenciador, com fallback para orgânico, social e referência quando não há UTMs. Quando um visitante volta por um novo anúncio, é o clique mais recente que segue adiante. O contexto fica em armazenamento first-party, usa o `sessionStorage` quando os cookies estão bloqueados, e a sua própria navegação como administrador fica de fora.
-- WooCommerce: atribuição salva no pedido, um evento de compra enriquecido na página de agradecimento, eventos de vitrine opcionais (`view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, `begin_checkout`) e marcos opcionais de status do pedido. Os metadados do pedido têm exportação, exclusão, retenção e tratamento na desinstalação.
+- WooCommerce: atribuição salva no pedido antes do redirecionamento para um pagamento externo (checkout clássico e em blocos), sem que a volta de hosts de pagamento como PayPal ou Stripe sobrescreva o toque guardado, um evento de compra enriquecido na página de agradecimento, eventos de vitrine opcionais (`view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, `begin_checkout`) e marcos opcionais de status do pedido. Os metadados do pedido têm exportação, exclusão, retenção e tratamento na desinstalação.
 - Formulários: Contact Form 7 e Fluent Forms recebem campos ocultos automaticamente. Gravity Forms e WPForms preenchem os campos `ct_*` que você adicionar; o Gravity Forms também ganha um rótulo de canal, nove merge tags `{clicutcl_*}` e uma chave por formulário. Elementor Forms (Pro) e Ninja Forms guardam a atribuição junto com o registro do envio. Um fallback client-side cobre páginas em cache e formulários que carregam depois, e links do WhatsApp também podem levar o contexto.
 - Agendamentos e seus outros domínios: links para domínios que você aprova levam a campanha, com um token assinado entre os seus próprios sites. Os links de agendamento do Calendly levam o clique mais recente e a decisão de consentimento do visitante, e o webhook assinado do Calendly registra o agendamento como `book_appointment` com as UTMs.
 - Eventos e entrega: eventos do navegador para o `dataLayer`, uma entrada REST, webhooks de Calendly, HubSpot e Typeform, atualizações de ciclo de vida e eventos únicos do WordPress como `login`, `sign_up` e `comment_submit`. A entrega server-side opcional adiciona fila de novas tentativas e diagnósticos.
@@ -75,7 +75,7 @@ Ter código para uma integração não prova que ela funciona em produção. O s
 - **Campos extras capturados**: `utm_id`, `utm_source_platform`, `utm_creative_format`, `utm_marketing_tactic`, `fbc`, `fbp`, `_ttp`, `li_gc`, `ga_client_id`, `ga_session_id`
 - **Cache e minificação**: as tags de script do ClickTrail têm atributos de exclusão para Autoptimize, Cloudflare Rocket Loader, WP Rocket e LiteSpeed Cache.
 
-A versão atual é a 1.10.5. O histórico está no [changelog](changelog.txt).
+A versão atual é a 1.11.0, no GitHub e no WordPress.org. O histórico está no [changelog](changelog.txt).
 
 ## Instalacao
 

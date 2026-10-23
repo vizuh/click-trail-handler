@@ -26,11 +26,36 @@ namespace {
 		protected function tearDown(): void {
 			$_COOKIE = array();
 			$GLOBALS['clicktrail_test_transients'] = array();
+			unset( $_SERVER['HTTP_HOST'], $_SERVER['REQUEST_URI'], $GLOBALS['clicktrail_test_filters'], $GLOBALS['clicktrail_test_home_url'] );
+		}
+
+		private const HUBSPOT_URI = '/wp-json/clicutcl/v2/webhooks/hubspot?src=a%3Ab%2Cc';
+
+		private function hubspot_v3_request( string $body, string $secret, string $timestamp, array $headers = array() ): \WP_REST_Request {
+			$_SERVER['HTTP_HOST']   = 'shop.example.test';
+			$_SERVER['REQUEST_URI'] = self::HUBSPOT_URI;
+			// HubSpot signs the URL with %3A and %2C decoded.
+			$signature = Webhook_Auth::hubspot_v3_signature( $secret, 'POST', 'https://shop.example.test/wp-json/clicutcl/v2/webhooks/hubspot?src=a:b,c', $body, $timestamp );
+
+			return new \WP_REST_Request(
+				$headers + array(
+					'X-HubSpot-Signature-v3'      => $signature,
+					'X-HubSpot-Request-Timestamp' => $timestamp,
+				),
+				$body,
+				'/clicutcl/v2/webhooks/hubspot'
+			);
+		}
+
+		private function now_ms(): string {
+			return (string) (int) floor( microtime( true ) * 1000 );
 		}
 
 		public function test_browser_route_rejects_server_only_events(): void {
 			$this->assertTrue( EventV2::is_browser_event_allowed( 'lead' ) );
+			$this->assertTrue( EventV2::is_browser_event_allowed( 'form_submit_failed' ) );
 			$this->assertFalse( EventV2::is_browser_event_allowed( 'purchase' ) );
+			$this->assertFalse( EventV2::is_browser_event_allowed( 'qualified_lead' ) );
 			$this->assertFalse( EventV2::is_browser_event_allowed( 'client_won' ) );
 		}
 
@@ -69,13 +94,132 @@ namespace {
 			$this->assertTrue( Webhook_Auth::verify_request( $request, $secret, 'typeform' ) );
 		}
 
-		public function test_hubspot_native_signature_is_accepted(): void {
+		public function test_hubspot_v1_signature_is_accepted_without_v3_header(): void {
 			$body      = '[{"eventId":1}]';
 			$secret    = 'hubspot-secret';
 			$signature = hash( 'sha256', $secret . $body );
 			$request   = new \WP_REST_Request( array( 'X-HubSpot-Signature' => $signature ), $body, '/hubspot' );
 
 			$this->assertTrue( Webhook_Auth::verify_request( $request, $secret, 'hubspot' ) );
+		}
+
+		public function test_hubspot_v3_signature_matches_published_vector(): void {
+			// Example from HubSpot's "Validate the v3 request signature" guide.
+			$body = '[{"eventId":531833541,"subscriptionId":3923621,"portalId":48807704,"appId":16111050,"occurredAt":1752613920733,"subscriptionType":"contact.creation","attemptNumber":0,"objectId":138017612137,"changeFlag":"CREATED","changeSource":"CRM_UI","sourceId":"userId:76023669"}]';
+
+			$this->assertSame(
+				'gbj1XPRvUt0noT7i7fXfTzOD4sLzQmf0VT28ZYq0EYg=',
+				Webhook_Auth::hubspot_v3_signature( 'cfc68c0b-4b4e-4ef8-b764-95350e4ea479', 'POST', 'https://webhook.site/335453f5-94b3-49d9-b684-a55354d4b8df', $body, '1752613922216' )
+			);
+		}
+
+		public function test_hubspot_v3_signature_is_accepted(): void {
+			$request = $this->hubspot_v3_request( '[{"eventId":2}]', 'hubspot-secret', $this->now_ms() );
+
+			$this->assertTrue( Webhook_Auth::verify_request( $request, 'hubspot-secret', 'hubspot' ) );
+		}
+
+		public function test_hubspot_v3_tampered_body_is_rejected(): void {
+			$signed   = $this->hubspot_v3_request( '[{"eventId":3}]', 'hubspot-secret', $this->now_ms() );
+			$tampered = new \WP_REST_Request(
+				array(
+					'X-HubSpot-Signature-v3'      => $signed->get_header( 'x-hubspot-signature-v3' ),
+					'X-HubSpot-Request-Timestamp' => $signed->get_header( 'x-hubspot-request-timestamp' ),
+				),
+				'[{"eventId":4}]',
+				'/clicutcl/v2/webhooks/hubspot'
+			);
+
+			$result = Webhook_Auth::verify_request( $tampered, 'hubspot-secret', 'hubspot' );
+			$this->assertTrue( is_wp_error( $result ) );
+			$this->assertSame( 'webhook_signature_invalid', $result->get_error_code() );
+		}
+
+		public function test_hubspot_v3_stale_timestamp_is_rejected(): void {
+			$stale   = (string) ( (int) $this->now_ms() - 301000 );
+			$request = $this->hubspot_v3_request( '[{"eventId":5}]', 'hubspot-secret', $stale );
+
+			$result = Webhook_Auth::verify_request( $request, 'hubspot-secret', 'hubspot' );
+			$this->assertTrue( is_wp_error( $result ) );
+			$this->assertSame( 'webhook_timestamp_invalid', $result->get_error_code() );
+		}
+
+		public function test_hubspot_invalid_v3_does_not_fall_back_to_v1(): void {
+			$body    = '[{"eventId":6}]';
+			$request = $this->hubspot_v3_request(
+				$body,
+				'hubspot-secret',
+				$this->now_ms(),
+				array(
+					'X-HubSpot-Signature-v3' => 'not-the-v3-signature',
+					'X-HubSpot-Signature'    => hash( 'sha256', 'hubspot-secret' . $body ),
+				)
+			);
+
+			$result = Webhook_Auth::verify_request( $request, 'hubspot-secret', 'hubspot' );
+			$this->assertTrue( is_wp_error( $result ) );
+			$this->assertSame( 'webhook_signature_invalid', $result->get_error_code() );
+		}
+
+		/**
+		 * A request reaching WordPress with an internal Host, signed by HubSpot for $signed_url.
+		 */
+		private function proxied_v3_request( string $signed_url, string $body ): \WP_REST_Request {
+			$timestamp              = $this->now_ms();
+			$_SERVER['HTTP_HOST']   = 'wp-backend.internal:8080';
+			$_SERVER['REQUEST_URI'] = '/wp-json/clicutcl/v2/webhooks/hubspot';
+
+			return new \WP_REST_Request(
+				array(
+					'X-HubSpot-Signature-v3'      => Webhook_Auth::hubspot_v3_signature( 'hubspot-secret', 'POST', $signed_url, $body, $timestamp ),
+					'X-HubSpot-Request-Timestamp' => $timestamp,
+				),
+				$body,
+				'/clicutcl/v2/webhooks/hubspot'
+			);
+		}
+
+		public function test_hubspot_v3_accepts_home_url_host_when_proxy_rewrote_host(): void {
+			$GLOBALS['clicktrail_test_home_url'] = 'https://shop.example.test';
+			$request = $this->proxied_v3_request( 'https://shop.example.test/wp-json/clicutcl/v2/webhooks/hubspot', '[{"eventId":7}]' );
+
+			$this->assertTrue( Webhook_Auth::verify_request( $request, 'hubspot-secret', 'hubspot' ) );
+		}
+
+		public function test_hubspot_v3_accepts_filter_supplied_uri(): void {
+			$public = 'https://www.example.test/hooks/hubspot?site=main';
+			$GLOBALS['clicktrail_test_filters']['clicutcl_hubspot_v3_request_uris'] = static fn( array $uris, $request ): array => array_merge( $uris, array( $public ) );
+			$request = $this->proxied_v3_request( $public, '[{"eventId":8}]' );
+
+			$this->assertTrue( Webhook_Auth::verify_request( $request, 'hubspot-secret', 'hubspot' ) );
+		}
+
+		public function test_hubspot_v3_candidates_still_reject_tampered_body(): void {
+			$public = 'https://www.example.test/hooks/hubspot';
+			$GLOBALS['clicktrail_test_home_url']                                    = 'https://shop.example.test';
+			$GLOBALS['clicktrail_test_filters']['clicutcl_hubspot_v3_request_uris'] = static fn( array $uris ): array => array_merge( $uris, array( $public ) );
+			$signed   = $this->proxied_v3_request( $public, '[{"eventId":9}]' );
+			$tampered = new \WP_REST_Request(
+				array(
+					'X-HubSpot-Signature-v3'      => $signed->get_header( 'x-hubspot-signature-v3' ),
+					'X-HubSpot-Request-Timestamp' => $signed->get_header( 'x-hubspot-request-timestamp' ),
+				),
+				'[{"eventId":10}]',
+				'/clicutcl/v2/webhooks/hubspot'
+			);
+
+			$result = Webhook_Auth::verify_request( $tampered, 'hubspot-secret', 'hubspot' );
+			$this->assertTrue( is_wp_error( $result ) );
+			$this->assertSame( 'webhook_signature_invalid', $result->get_error_code() );
+		}
+
+		public function test_hubspot_v3_rejects_url_off_the_candidate_set(): void {
+			$GLOBALS['clicktrail_test_home_url'] = 'https://shop.example.test';
+			$request = $this->proxied_v3_request( 'https://attacker.example.test/wp-json/clicutcl/v2/webhooks/hubspot', '[{"eventId":11}]' );
+
+			$result = Webhook_Auth::verify_request( $request, 'hubspot-secret', 'hubspot' );
+			$this->assertTrue( is_wp_error( $result ) );
+			$this->assertSame( 'webhook_signature_invalid', $result->get_error_code() );
 		}
 
 		public function test_calendly_custom_signature_remains_supported(): void {

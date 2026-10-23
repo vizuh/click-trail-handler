@@ -57,6 +57,7 @@ Browser events currently include:
 - WooCommerce storefront signals including `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` when the storefront-events flag is enabled
 - thank-you page lead detection
 - external message bridge events for supported embedded providers
+- HubSpot embedded form outcomes (`lead`, `form_submit_failed`), see below
 
 Flow:
 
@@ -72,6 +73,16 @@ Woo list-view specifics:
 - downstream add-to-cart events can inherit `item_list_name` and `item_list_index` when the click came from a tracked list
 - when the richer Woo `dataLayer` contract is enabled, Woo browser events can also carry consent-aware `user_data` identifiers for GTM-first setups
 - `view_cart` can come from the cart page itself, visible mini-cart surfaces, or supported drawer flows when the browser runtime can resolve the current cart payload from Woo blocks, fragments, or DOM cart rows
+
+HubSpot embedded forms (source-present / runtime-unverified):
+
+- listeners for HubSpot's documented `hs-form-event:on-submission:success` and `hs-form-event:on-submission:failed` window events are registered when the script loads, before consent resolves; they do nothing until the tracker exists, and every push still goes through the `pushEvent()` consent gate
+- success pushes one `lead` with `form_provider: hubspot`, `form_id` from `event.detail.formId`, and `lead_context.provider: hubspot`; `event_id` is `hsform_<conversionId>` when `HubSpotFormsV4.getFormFromEvent(event).getConversionId()` returns one, otherwise `hsform_<formId>|<instanceId>|<page nonce>` (the nonce keeps the server dedup key unique across visitors, because instance IDs may repeat)
+- failure pushes `form_submit_failed` (`submit_status: failed`), never `lead`
+- a legacy `message` with `type: hsFormCallback` and `eventName: onFormSubmitted` pushes the same `lead` with `form_id` from the message `id`; it passes the same origin rule as the other external messages (same host or `clicutcl_iframe_origin_allowlist`), and other `hsFormCallback` event names are ignored
+- a v4 event and a legacy message for the same form within 10 seconds, or a repeated dispatch of the same submission, produce one `lead`
+- the browser never pushes `qualified_lead`; that stage stays on the HubSpot webhook and lifecycle routes
+- writing attribution into HubSpot hidden fields is not implemented (blocked on live proof, `specs/003-hubspot-form-capture/tasks.md`)
 
 ## 3. Canonical Intake and Normalization
 
@@ -118,9 +129,11 @@ Providers:
 Flow:
 
 1. provider webhook hits `/clicutcl/v2/webhooks/{provider}`
-2. provider signature is validated
-3. replay-window checks run
-4. provider payload is mapped into canonical lead or booking events
+2. provider signature is validated; for HubSpot v3, native Calendly and the ClickTrail relay the signed provider
+   timestamp must fall inside the replay window (HubSpot v1 and Typeform carry no timestamp)
+3. the signature replay cache rejects a repeat within the replay window
+4. valid non-conversion events (Calendly cancellations, HubSpot types off the allowlist, unqualified HubSpot
+   property changes) are acknowledged as `ignored`; the rest are mapped into canonical lead or booking events
 5. event enters the same dispatcher path as browser-originated events
 
 ## 6. Lifecycle Update Intake

@@ -325,6 +325,7 @@ class Plugin {
 								'calendly.com',
 								'typeform.com',
 								'hubspot.com',
+								'hsforms.net',
 							)
 						)
 					),
@@ -421,6 +422,7 @@ class Plugin {
 			'tokenSignUrl'              => esc_url_raw( rest_url( 'clicutcl/v2/attribution-token/sign' ) ),
 			'tokenVerifyUrl'            => esc_url_raw( rest_url( 'clicutcl/v2/attribution-token/verify' ) ),
 			'linkAppendBlob'            => false,
+			'ignoredReferrerHosts'      => Core\Attribution_Provider::get_ignored_referrer_hosts(),
 		);
 	}
 

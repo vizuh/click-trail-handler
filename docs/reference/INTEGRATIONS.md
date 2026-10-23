@@ -4,7 +4,7 @@
 - **Canonical for**: integration roles, source evidence, status boundaries, providers, forms, webhooks, GTM, and delivery adapter keys
 - **Update when**: integration support level, adapter list, provider contract, evidence status, or capability messaging changes
 - **Provider-wide audit baseline**: plugin code `1.9.0`, commit `a45aa9e`, reviewed 2026-08-19
-- **Current release**: plugin code `1.10.5`, with automated consent, queue, WooCommerce privacy, CF7 outcome, touch-event deduplication, CMP decision-transition, Calendly webhook, and attribution round-trip E2E (`tools/qa/e2e/`, CI) coverage; the live Calendly booking round trip remains unverified
+- **Current release**: plugin code `1.11.0` on GitHub and WordPress.org, with automated consent, queue, WooCommerce privacy, CF7 outcome, touch-event deduplication, CMP decision-transition, Calendly webhook, and attribution round-trip E2E (`tools/qa/e2e/`, CI) coverage; the live Calendly booking round trip remains unverified. HubSpot embedded form capture (new in 1.11.0) has a Node VM contract test only
 - **Runtime verification**: provider-wide E2E remains incomplete; bounded WooCommerce and Fluent Forms evidence is recorded below, while six form manifests remain explicitly runtime-unverified
 - **Machine-readable ledger**: [`integration-capabilities.json`](integration-capabilities.json)
 
@@ -60,6 +60,7 @@ live hook, consent, identity, and retention behavior still require testing.
 | Forms | Source connector / runtime-unverified overall | CF7, Elementor Pro, Fluent, Gravity, Ninja, and WPForms paths; bounded Fluent Forms submission-storage evidence; six-case evidence manifests | Live plugin-hook, posted-field, submission-storage, consent, and erasure proof for the remaining adapters |
 | WooCommerce | Source connector / runtime-unverified | Order attribution, storefront events, purchase/milestones, traces, and allowlisted order-meta privacy lifecycle contracts | Live checkout/CMP behavior, purchase dataLayer, dedup concurrency, queue/retry, and classic/HPOS staging proof |
 | Calendly, HubSpot, Typeform | Webhook ingress / runtime-unverified | Signed inbound routes and canonical translation | Provider timestamp, identity minimization, replay, consent, and E2E proof |
+| HubSpot embedded forms (updated editor v4 and legacy embeds) | Source-present / runtime-unverified | Browser `lead` on HubSpot's documented v4 submission-success event and legacy `hsFormCallback` `onFormSubmitted` message; `form_submit_failed` on v4 failure; consent-gated, deduplicated; Node VM contract test | A live HubSpot form submission; iframe origin of legacy iframe embeds; attribution written into HubSpot hidden fields (not implemented) |
 
 ### Important platform boundary
 
@@ -325,6 +326,13 @@ At checkout, ClickTrail writes attribution order metadata only when
 2. If no cookie payload is available, accept only nonce-verified `ct_*` POST fields.
 3. With required consent denied or unresolved, or with an invalid or missing checkout nonce, write no attribution fields.
 
+The metadata is in the database before any gateway redirect:
+
+- Classic checkout: `woocommerce_checkout_create_order`; WooCommerce saves the order right after the hook and before payment processing.
+- Checkout Block / Store API: `woocommerce_store_api_checkout_order_processed`; WooCommerce has already saved the order at that point, so ClickTrail saves it again (`WC_Order` CRUD, HPOS-compatible) before the gateway runs.
+
+Orders that some express or smart-button flows create outside these two hooks get no ClickTrail metadata.
+
 The buyer's consent snapshot is stored separately in `_clicutcl_consent` even
 when attribution is denied. This snapshot records the checkout-time policy
 state; it is not proof of consent for a later request.
@@ -445,6 +453,37 @@ Starter-kit contract:
 - Google tags retain their native GTM consent behavior; the site's CMP or selected ClickTrail consent source must still publish the required Consent Mode state before publishing the container
 - These mappings prove container wiring only. They do not prove Meta/Google acceptance, provider credentials, consent-law compliance, or destination delivery
 
+## HubSpot Embedded Forms
+
+Status: **source-present / runtime-unverified**. It stays that way until a live submission on a real HubSpot form
+(updated editor and legacy) shows exactly one `lead` per submission (`specs/003-hubspot-form-capture/`, SC-004).
+
+What ClickTrail does (`assets/js/clicutcl-events.js`, flow details in
+[EVENT-PIPELINE.md](../architecture/EVENT-PIPELINE.md#2-browser-event-flow)):
+
+- listens on `window` for HubSpot's documented
+  [global form events](https://developers.hubspot.com/docs/api-reference/latest/marketing/forms/global-form-events)
+  `hs-form-event:on-submission:success` (one `lead`, `event_id` `hsform_<conversionId>` when
+  `HubSpotFormsV4.getFormFromEvent(event).getConversionId()` returns one) and `hs-form-event:on-submission:failed`
+  (`form_submit_failed`, never `lead`)
+- turns the documented [legacy](https://developers.hubspot.com/docs/cms/start-building/features/forms/legacy-forms)
+  `hsFormCallback` / `onFormSubmitted` message into the same `lead`; other legacy callback names are ignored
+- pushes through the existing consent gate, reads identifiers only (no field values), and never pushes
+  `qualified_lead` from the browser
+
+Boundaries:
+
+- the capture-phase `submit` listener cannot see a `<form>` inside HubSpot's cross-origin iframe, and the
+  hidden-field injector cannot reach its fields; the events above are the only capture path for those forms
+- legacy messages pass the external-message origin rule: same host, or `clicutcl_iframe_origin_allowlist`, whose
+  default now adds `hsforms.net` (the host of HubSpot's form embed scripts) next to `hubspot.com`. HubSpot does not
+  document the `event.origin` of iframe-rendered legacy embeds; that is unverified
+- writing ClickTrail attribution into HubSpot hidden fields (`setFieldValue`) is not implemented. It waits on live
+  proof that the value reaches the contact record, the meaning of the `0-1/` field prefix, and `getForms()`
+  readiness (Phase 0 in the spec's tasks)
+- this browser `lead` and a HubSpot webhook `lead` for the same submission are separate events; see
+  [HubSpot mapping](#hubspot-mapping) before enabling both
+
 ## External Form Source Webhooks
 
 Webhook ingress providers (runtime-unverified in this audit):
@@ -461,11 +500,19 @@ Security:
 
 - provider signature verification
 - provider enablement
-- replay-window checks
+- replay-window checks on signed provider timestamps (HubSpot v3, native Calendly, ClickTrail relay); HubSpot v1 and
+  Typeform carry no timestamp and rely on the signature replay cache and event-ID dedup. See `REST-API.md`
 
 ### HubSpot mapping
 
-- `contact.creation` and other non-property events record a `lead`.
+- Supported source: a HubSpot developer or private app with webhook subscriptions, signed with
+  `X-HubSpot-Signature-v3` (v1 accepted only when no v3 header is sent). The provider secret is the app's client
+  secret.
+- Allowlist (`clicutcl_hubspot_webhook_event_types`, default `contact.creation`, `contact.propertyChange`):
+  `contact.creation` records a `lead`; any type added through the filter also records a `lead`. Every other type
+  (`contact.deletion`, `contact.merge`, `contact.restore`, `contact.associationChange`, `contact.privacyDeletion`,
+  unknown types, payloads without a subscription type) is acknowledged (2xx, `ignored`) without recording an event,
+  so HubSpot does not retry it. Before #128 every one of these was recorded as a `lead`.
 - `contact.propertyChange` records a `qualified_lead` only when the changed property is `lifecyclestage` and the new
   value is `marketingqualifiedlead` or `salesqualifiedlead`. The event ID includes the stage and HubSpot's `eventId`:
   an MQL and a later SQL, or a later re-entry into a stage, are separate events, while a retry of the same delivery
@@ -476,6 +523,14 @@ Security:
   `lead`; sites subscribed to property changes now record fewer, qualified events.
 - Batched HubSpot payloads are evaluated item by item. Non-qualified events keep their earlier event IDs, so
   deduplication of retries is unaffected.
+- Workflow "Send a webhook" actions are not supported. They sign with v2 (`secret + method + URI + body`), which
+  ClickTrail does not verify, so they fail with `401`; their body is the contact record without `subscriptionType`.
+  Use an app webhook subscription instead.
+- A HubSpot `lead` captured in the browser (form submission on the site) and a webhook `lead` for the same contact
+  never deduplicate against each other: `Dedup_Store` is keyed per route (`ingest` for browser intake,
+  `webhook_hubspot` for the webhook) and per destination, and the two paths produce different event IDs. Pick one
+  source of truth per event, for example the browser form for `lead` and the webhook for `qualified_lead` (remove
+  `contact.creation` from the allowlist), or the webhook for both.
 
 ### Calendly booking handoff
 
@@ -573,7 +628,7 @@ Best fit:
 
 ### Payment provider limitations
 
-Cross-domain decoration cannot reach external hosted-payment pages. These providers process payments on their own domain and strip any injected query parameters before the user reaches them:
+Cross-domain decoration cannot reach external hosted-payment pages. These providers process payments on their own domain, and ClickTrail cannot add parameters to their pages:
 
 | Provider | Domain |
 |----------|--------|
@@ -581,10 +636,18 @@ Cross-domain decoration cannot reach external hosted-payment pages. These provid
 | PayPal | `paypal.com` |
 | Mollie | `checkout.mollie.com` |
 | Square | `squareup.com` |
+| Klarna | `klarna.com` |
 
-Attribution survives these redirects only via the attribution cookie written before checkout. On return to your confirmation page, ClickTrail reads the cookie and tags the order as normal.
+Two things keep the pre-checkout attribution through the payment hop:
 
-If the user had no prior cookie when entering the payment flow, the order will be unattributed. This is a documented limitation of cookie-based cross-domain attribution — not a bug.
+1. **Order metadata at order creation.** WooCommerce orders get their `_clicutcl_*` attribution when the order is created, before the gateway redirect (see [WooCommerce attribution handoff](#woocommerce-attribution-handoff)). The thank-you page reads that metadata. It does not tag the order from the cookie or from the return referrer.
+2. **Ignored payment referrers.** On the return page the browser referrer is the payment host. A referrer on a host listed by `clicutcl_ignored_referrer_hosts`, or on a subdomain of one, counts like a same-site referrer: it creates no first touch and leaves the last touch unchanged (`lt_source`, `lt_medium`, `lt_referrer`, `lt_channel`, `lt_landing_page`, `lt_touch_timestamp`, click IDs). UTMs and click IDs on the return URL still count. Referrers on other external hosts still update the last touch.
+
+Default ignored hosts: `paypal.com`, `stripe.com`, `mollie.com`, `squareup.com`, `square.link`, `klarna.com`, `adyen.com`, `checkout.com`, `mercadopago.com`, `mercadopago.com.br`, `pagseguro.uol.com.br`. Card-issuer 3-D Secure pages run on bank-specific hosts that no default list can cover; add the ones you see in your referral reports through the filter ([`clicutcl_ignored_referrer_hosts`](HOOKS-REFERENCE.md#clicutcl_ignored_referrer_hosts)).
+
+A buyer who reached checkout with no prior attribution (no UTMs, click ID, or external referrer earlier in the visit) still produces an unattributed order.
+
+GA4 is separate. GA4 reads the referrer itself, so the return page starts a GA4 session sourced to the payment host and the `purchase` event lands in that session. Add the same domains in GA4 under **Admin → Data streams → (web stream) → Configure tag settings → Show all → List unwanted referrals** ([Google help](https://support.google.com/analytics/answer/10327750)). ClickTrail's `purchase` `dataLayer` push carries the stored `ft_*` / `lt_*` fields and click IDs, and a GTM tag can send them as event parameters, but event parameters do not change GA4's session source.
 
 See also: [Cross-Domain Limitations](../guides/IMPLEMENTATION-PLAYBOOK.md#cross-domain-limitations) in the Implementation Playbook.
 

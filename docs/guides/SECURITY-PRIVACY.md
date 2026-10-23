@@ -4,7 +4,7 @@
 - **Canonical for**: consent behavior, token handling, replay protection, and secret treatment
 - **Update when**: consent flow, auth, signing, secret storage, or privacy behavior changes
 - **Historical audit baseline**: plugin code `1.9.0`, commit `a45aa9e`, reviewed 2026-08-19
-- **Current release**: plugin code `1.10.5`, with automated consent, queue, WooCommerce privacy, CF7 outcome, touch-event deduplication, CMP decision-transition, Calendly webhook, and attribution round-trip E2E (`tools/qa/e2e/`, CI) coverage; the browser storage inventory is below
+- **Current release**: plugin code `1.11.0` on GitHub and WordPress.org, with automated consent, queue, WooCommerce privacy, CF7 outcome, touch-event deduplication, CMP decision-transition, Calendly webhook, HubSpot webhook signature, and attribution round-trip E2E (`tools/qa/e2e/`, CI) coverage; the browser storage inventory is below
 - **Runtime verification**: PHP/WordPress/browser/CMP/provider E2E remains incomplete; live behavior is not implied by automated fixtures
 
 ClickTrail is designed to capture attribution and events without treating privacy and delivery as separate concerns.
@@ -152,6 +152,16 @@ Identity exposure is additionally filterable through:
 
 - `clicutcl_identity_fields_allowed`
 
+HubSpot embedded form capture (`assets/js/clicutcl-events.js`) reads only identifiers: `formId` and `instanceId`
+from HubSpot's v4 event, the conversion ID from `getConversionId()`, and the form `id` from a legacy
+`hsFormCallback` message. It never calls `getFieldValue()` / `getFormFieldValues()` and never reads the legacy
+message's `data` (which carries `submissionValues`), so no submitted field value or PII reaches `dataLayer` or the
+events route. It writes no browser storage (the dedupe markers are in memory) and pushes only through the
+`pushEvent()` consent gate; listeners registered before consent drop everything until the tracker starts.
+Legacy messages pass the external-message origin rule (same host or `clicutcl_iframe_origin_allowlist`, which
+now includes HubSpot's form host `hsforms.net` by default); the exact origin of iframe-rendered legacy embeds is
+not verified.
+
 The personal-data eraser currently targets matching rows from the events table, the structured touch
 events table (`clicutcl_touch_events`, matched on the exact hashed-email `visitor_id`), and the server-side
 delivery queue (`clicutcl_queue`, matched on raw and SHA-256-hashed email). This is not complete erasure proof:
@@ -198,13 +208,22 @@ Controls include:
 
 - provider enablement
 - provider secret resolution
-- replay-window enforcement
+- replay-window enforcement on provider timestamps where the scheme carries one: HubSpot v3, native Calendly and the
+  ClickTrail relay. HubSpot v1 and Typeform carry no timestamp; for them only the signature replay cache and event-ID
+  dedup (`clicutcl_v2_dedup_ttl`) apply
 - optional replay protection filter control
 
 Verification hardening:
 
 - Typeform uses its native base64 HMAC `Typeform-Signature`
-- HubSpot uses its native SHA-256 `X-HubSpot-Signature`
+- HubSpot uses `X-HubSpot-Signature-v3` (base64 HMAC-SHA256 of method + `https://` + `Host` + raw request URI with
+  HubSpot's listed percent-encodings decoded + body + `X-HubSpot-Request-Timestamp`), rejecting timestamps outside
+  the replay window (default 300 s, HubSpot's recommended 5 minutes). A failing v3 never falls back to v1. The
+  legacy SHA-256 `X-HubSpot-Signature` (v1) is checked only when no v3 header is sent. The v3 URL is tried as
+  `Host` + request URI and `home_url()` host + request URI, plus any `clicutcl_hubspot_v3_request_uris` entries;
+  each candidate still needs the secret, and `X-Forwarded-*` headers are not read. HubSpot subscription types off the
+  `clicutcl_hubspot_webhook_event_types` allowlist (deletion, merge, restore, association change, privacy deletion,
+  unknown) are acknowledged (2xx, `ignored`) without recording an event
 - Calendly subscriptions use the native `Calendly-Webhook-Signature` (`t=<unix>,v1=<hex HMAC-SHA256 of "t.body">`,
   timestamp checked against the replay window) with the subscription's signing key as the provider secret.
   Requests without that header keep ClickTrail's timestamped HMAC relay contract. The adapter's raw identity,
