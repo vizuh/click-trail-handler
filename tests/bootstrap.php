@@ -37,10 +37,8 @@ if ( ! function_exists( 'apply_filters' ) ) {
 	 * @return mixed
 	 */
 	function apply_filters( $tag, $value, ...$args ) {
-		if ( isset( $GLOBALS['clicktrail_test_filters'][ $tag ] ) ) {
-			return call_user_func( $GLOBALS['clicktrail_test_filters'][ $tag ], $value, ...$args );
-		}
-		return $value;
+		$callback = $GLOBALS['clicktrail_test_filters'][ $tag ] ?? null;
+		return is_callable( $callback ) ? $callback( $value, ...$args ) : $value;
 	}
 }
 
@@ -243,6 +241,10 @@ if ( ! class_exists( 'WP_REST_Request' ) ) {
 
 		public function get_route(): string {
 			return $this->route;
+		}
+
+		public function get_method(): string {
+			return 'POST';
 		}
 
 		public function get_json_params() {

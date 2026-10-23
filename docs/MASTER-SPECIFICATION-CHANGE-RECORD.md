@@ -75,6 +75,7 @@
 | Version | Date | Change | Reason | Impact | Owner | State |
 |---|---|---|---|---|---|---|
 | Spec 0.1.0 | 2026-08-22 | Created complete master specification, compressed specification, and source-preserving change record; added explicit state vocabulary and 12-month roadmap | Make product, semantic, safety, business, and roadmap truth locally visible rather than dependent on chat history | Documentation navigation, requirements register, roadmap governance, release/change traceability | Product owner — Decision needed | Confirmed |
+| Spec 0.1.0 (row edit) | 2026-10-23 | `MASTER-SPECIFICATION.md` webhook route row, SR-06 and CT-022: HubSpot now verifies `X-HubSpot-Signature-v3` with a millisecond timestamp checked against the replay window (authoritative when present; v1 only without a v3 header); "replay window" qualified as applying to signed provider timestamps only (HubSpot v3, Calendly, relay), with HubSpot v1 and Typeform relying on the replay cache and event-ID dedup; HubSpot subscription-type allowlist (`clicutcl_hubspot_webhook_event_types`) acknowledges other types 2xx `ignored` | #128: the rows said "replay-window enforcement" for HubSpot, which only checked the timestamp-less v1 signature, and every HubSpot subscription type was recorded as `lead` | Webhook security claims, HubSpot event recording, CT-022 acceptance criteria | Integrations owner — Decision needed | Confirmed |
 
 ## Chronological release history
 

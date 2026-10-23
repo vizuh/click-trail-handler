@@ -190,6 +190,24 @@ Purpose:
 
 - control webhook replay behavior, provider enablement, and provider secret resolution
 
+### `clicutcl_hubspot_v3_request_uris`
+
+Type:
+
+- filter
+
+Purpose:
+
+- add the public HubSpot target URL when a proxy rewrites the request path, so `X-HubSpot-Signature-v3` can be
+  verified. Each candidate is tried with `hash_equals`; it still needs the secret, and the timestamp window and replay
+  cache apply unchanged. HubSpot's listed percent-encodings are decoded in every entry
+
+Arguments:
+
+- `string[] $uris`: default `https://` + `Host` header + raw request URI, and `https://` + `home_url()` host (and
+  port) + raw request URI when it differs
+- `WP_REST_Request $request`
+
 ## Webhook Mapping
 
 ### `clicutcl_hubspot_qualified_lead_rule`
@@ -205,6 +223,24 @@ Purpose:
 Arguments:
 
 - `array $rule` with `property` (default `lifecyclestage`) and `values` (default `marketingqualifiedlead`, `salesqualifiedlead`), compared case-insensitively
+
+### `clicutcl_hubspot_webhook_event_types`
+
+Type:
+
+- filter
+
+Purpose:
+
+- choose which HubSpot subscription types the webhook route records. `contact.propertyChange` stays gated by
+  `clicutcl_hubspot_qualified_lead_rule` and records `qualified_lead`; every other listed type records `lead`.
+  Unlisted types (deletion, merge, restore, association change, privacy deletion, unknown) are acknowledged with 2xx
+  `ignored` and no event
+
+Arguments:
+
+- `string[] $types` (default `contact.creation`, `contact.propertyChange`), compared case-insensitively; `_` and `.`
+  are treated alike
 
 ## Lifecycle and Settings Security
 

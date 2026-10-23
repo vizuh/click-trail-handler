@@ -228,6 +228,34 @@ Typical action:
 - confirm no new failures are being added
 - purge local diagnostics if you want a clean slate
 
+## 8. HubSpot webhooks fail with `401`
+
+Symptoms:
+
+- the HubSpot app's webhook log shows `401` (`webhook_signature_invalid`, `webhook_timestamp_invalid` or
+  `webhook_secret_missing`) and each event is retried
+
+Explanation:
+
+- HubSpot re-sends any `4xx`/`5xx` up to 10 times over 24 hours, so one misconfiguration produces 10 failed
+  deliveries per event. ClickTrail keeps `401` for authentication failures rather than acknowledging them
+- with `X-HubSpot-Signature-v3` present, ClickTrail checks the signature against `https://` + the `Host` header +
+  the raw request path and query, and against the same path on the `home_url()` host, so a proxy that only rewrites
+  `Host` still verifies. A proxy or CDN that strips a path prefix, rewrites the path or reorders query parameters
+  breaks the signature, and v3 never falls back to v1. `X-Forwarded-*` headers are not read
+- `webhook_timestamp_invalid` means `X-HubSpot-Request-Timestamp` is outside the replay window (default 300 s)
+
+Typical fixes:
+
+- paste the HubSpot app's client secret (not an access token) as the HubSpot provider secret
+- configure the HubSpot target URL as the exact public HTTPS URL on the `home_url()` host, and have the proxy forward
+  the path and query unchanged
+- if the proxy must rewrite the path, add the public target URL configured in HubSpot through the
+  `clicutcl_hubspot_v3_request_uris` filter (see `HOOKS-REFERENCE.md`)
+- check the server clock (NTP) when timestamps are rejected
+- non-conversion HubSpot events (deletion, merge, privacy deletion, unlisted types) return `200` with `ignored`;
+  those are not failures
+
 ## Attribution Readiness
 
 Diagnostics attribution readiness calls:

@@ -118,9 +118,11 @@ Providers:
 Flow:
 
 1. provider webhook hits `/clicutcl/v2/webhooks/{provider}`
-2. provider signature is validated
-3. replay-window checks run
-4. provider payload is mapped into canonical lead or booking events
+2. provider signature is validated; for HubSpot v3, native Calendly and the ClickTrail relay the signed provider
+   timestamp must fall inside the replay window (HubSpot v1 and Typeform carry no timestamp)
+3. the signature replay cache rejects a repeat within the replay window
+4. valid non-conversion events (Calendly cancellations, HubSpot types off the allowlist, unqualified HubSpot
+   property changes) are acknowledged as `ignored`; the rest are mapped into canonical lead or booking events
 5. event enters the same dispatcher path as browser-originated events
 
 ## 6. Lifecycle Update Intake

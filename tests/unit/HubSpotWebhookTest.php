@@ -1,6 +1,7 @@
 <?php
 /**
- * HubSpot webhook mapping: dotted subscription types and the qualified-lead rule (#107).
+ * HubSpot webhook mapping: dotted subscription types, the qualified-lead rule (#107) and
+ * the subscription-type allowlist (#128).
  *
  * @package ClickTrail
  */
@@ -8,16 +9,31 @@
 // phpcs:disable WordPress.Files.FileName, Squiz.Commenting
 
 namespace {
+	if ( ! defined( 'CLICUTCL_DIR' ) ) {
+		define( 'CLICUTCL_DIR', dirname( __DIR__, 2 ) . '/' );
+	}
+
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-canonicaleventinterfacev2.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-eventv2.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-webhookprovideradapterinterface.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-event-translator-v1-to-v2.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/webhooks/class-hubspotwebhookadapter.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/Core/Storage/class-option-cache.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/support/class-feature-registry.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-settings.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-auth.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-webhook-auth.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/api/class-tracking-controller.php';
 
+	use CLICUTCL\Api\Tracking_Controller;
 	use CLICUTCL\Tracking\Webhooks\HubSpotWebhookAdapter;
 	use PHPUnit\Framework\TestCase;
 
 	final class HubSpotWebhookTest extends TestCase {
+		protected function tearDown(): void {
+			unset( $GLOBALS['clicktrail_test_filters'] );
+		}
+
 		private function change( string $property, string $value ): array {
 			return array(
 				'subscriptionType' => 'contact.propertyChange',
@@ -90,6 +106,64 @@ namespace {
 			$event = $adapter->map_to_canonical( $creation );
 			$this->assertSame( 'lead', $event['event_name'] );
 			$this->assertSame( 'contact.creation', $event['meta']['provider_event'] );
+		}
+
+		public function test_non_conversion_subscription_types_are_ignored(): void {
+			$adapter = new HubSpotWebhookAdapter();
+
+			foreach ( array( 'contact.deletion', 'contact.merge', 'contact.restore', 'contact.associationChange', 'contact.privacyDeletion', 'deal.creation', 'unknown.type', '' ) as $type ) {
+				$payload = array(
+					'subscriptionType' => $type,
+					'objectId'         => 601,
+				);
+				$this->assertFalse( $adapter->supports( $payload ), $type );
+				$this->assertTrue( $adapter->is_ignored_event( $payload ), $type );
+			}
+			$this->assertTrue( $adapter->is_ignored_event( array() ), 'a payload without a subscription type is ignored' );
+		}
+
+		public function test_ignored_batch_is_acknowledged_without_recording_an_event(): void {
+			$body    = (string) json_encode(
+				array(
+					array( 'subscriptionType' => 'contact.deletion', 'objectId' => 701, 'eventId' => 1 ),
+					array( 'subscriptionType' => 'contact.merge', 'objectId' => 702, 'eventId' => 2 ),
+					array( 'subscriptionType' => 'contact.privacyDeletion', 'objectId' => 703, 'eventId' => 3 ),
+				)
+			);
+			$request = new \WP_REST_Request( array(), $body, '/clicutcl/v2/webhooks/hubspot', array( 'provider' => 'hubspot' ) );
+
+			// Ignored payloads return before dedup and dispatch, so no event is recorded.
+			$result = ( new Tracking_Controller() )->ingest_webhook( $request );
+
+			$this->assertIsArray( $result, 'acknowledged with 2xx, not a WP_Error' );
+			$this->assertTrue( $result['success'] );
+			$this->assertCount( 3, $result['events'] );
+			foreach ( $result['events'] as $event ) {
+				$this->assertSame( array( 'success' => true, 'ignored' => true ), $event );
+			}
+		}
+
+		public function test_single_ignored_payload_is_acknowledged(): void {
+			$request = new \WP_REST_Request( array(), '{"subscriptionType":"contact.deletion","objectId":704}', '/clicutcl/v2/webhooks/hubspot', array( 'provider' => 'hubspot' ) );
+
+			$this->assertSame( array( 'success' => true, 'ignored' => true ), ( new Tracking_Controller() )->ingest_webhook( $request ) );
+		}
+
+		public function test_filter_extends_the_allowlist(): void {
+			$adapter = new HubSpotWebhookAdapter();
+			$deal    = array(
+				'subscriptionType' => 'deal.creation',
+				'objectId'         => 801,
+			);
+
+			$GLOBALS['clicktrail_test_filters']['clicutcl_hubspot_webhook_event_types'] = static fn( array $types ): array => array_merge( $types, array( 'deal.creation' ) );
+
+			$this->assertTrue( $adapter->supports( $deal ) );
+			$this->assertFalse( $adapter->is_ignored_event( $deal ) );
+			$this->assertSame( 'lead', $adapter->map_to_canonical( $deal )['event_name'] );
+			$this->assertTrue( $adapter->is_ignored_event( $this->change( 'email', 'lead@example.com' ) ), 'property changes stay gated by the qualified rule' );
+			$this->assertFalse( $adapter->is_ignored_event( $this->change( 'lifecyclestage', 'salesqualifiedlead' ) ) );
+			$this->assertTrue( $adapter->is_ignored_event( array( 'subscriptionType' => 'contact.deletion', 'objectId' => 802 ) ) );
 		}
 	}
 }
