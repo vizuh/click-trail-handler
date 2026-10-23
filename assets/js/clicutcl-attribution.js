@@ -337,6 +337,22 @@
         return normalizedHost === normalizedDomain || normalizedHost.endsWith('.' + normalizedDomain);
     }
 
+    // Payment and hosted-checkout hosts (filter `clicutcl_ignored_referrer_hosts`).
+    // A buyer returning from one of them is finishing a checkout, not arriving
+    // from a new traffic source.
+    const IGNORED_REFERRER_HOSTS = (Array.isArray(CONFIG.ignoredReferrerHosts) ? CONFIG.ignoredReferrerHosts : [])
+        .map(normalizeHostname)
+        .filter(Boolean);
+
+    function isIgnoredReferrer(rawReferrer) {
+        if (!rawReferrer || IGNORED_REFERRER_HOSTS.length === 0) return false;
+
+        const referrerUrl = parseUrlSafely(rawReferrer, window.location.href);
+        const referrerHost = referrerUrl ? normalizeHostname(referrerUrl.hostname) : '';
+
+        return !!referrerHost && IGNORED_REFERRER_HOSTS.some((domain) => hostMatchesDomain(referrerHost, domain));
+    }
+
     function hostMatchesLabel(host, label) {
         const normalizedHost = normalizeHostname(host);
         const normalizedLabel = sanitizeValue(label, 64).toLowerCase();
@@ -2031,6 +2047,12 @@
         }
 
         resolveTouch(params, referrer) {
+            // An ignored payment/checkout referrer counts like a same-site one: it
+            // never forms a touch or a channel. URL UTMs and click IDs still do.
+            if (isIgnoredReferrer(referrer)) {
+                referrer = '';
+            }
+
             if (this.hasTouchQuerySignal(params)) {
                 const fields = this.mapQueryFields(params);
                 if (Object.keys(fields).length > 0) {

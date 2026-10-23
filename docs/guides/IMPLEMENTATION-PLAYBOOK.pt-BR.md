@@ -421,15 +421,22 @@ Os seguintes provedores processam pagamentos no domínio deles. O ClickTrail nã
 
 ### O que acontece na prática
 
-A atribuição sobrevive a esses redirecionamentos **apenas se** o cookie de atribuição já tiver sido gravado antes de o usuário chegar ao provedor de pagamento. Na volta para sua página de confirmação, o ClickTrail lê o cookie e anexa a atribuição ao pedido normalmente.
+A atribuição sobrevive a esses redirecionamentos por dois motivos, e ambos dependem de a atribuição já ter sido capturada **antes** de o comprador chegar ao provedor de pagamento:
+
+- **Os metadados são gravados quando o pedido é criado.** O WooCommerce salva os UTMs e click IDs `_clicutcl_*` no pedido antes do redirecionamento para o gateway, tanto no checkout clássico quanto no Checkout em blocos. A página de confirmação lê esses metadados; ela não marca o pedido a partir do cookie nem do referrer de retorno.
+- **Referrers de pagamento são ignorados.** Quando o comprador volta, o referrer do navegador é o host de pagamento. O ClickTrail trata referrers de hosts de pagamento conhecidos (PayPal, Stripe, Mollie, Square, Klarna, Adyen, Checkout.com, Mercado Pago, PagSeguro) como referrers do próprio site, então o primeiro e o último toque continuam no clique pago. Adicione outros hosts, como as páginas 3-D Secure dos bancos emissores, com o filtro `clicutcl_ignored_referrer_hosts` ([Hooks Reference](../reference/HOOKS-REFERENCE.md#clicutcl_ignored_referrer_hosts)).
 
 O risco é estreito: um usuário que chega à sua página de checkout **sem** UTMs e sem cookie anterior gera um pedido sem atribuição. Isso é uma limitação conhecida de atribuição baseada em cookie em fluxos entre domínios — não é um bug do ClickTrail.
+
+### O GA4 ainda precisa de indicações indesejadas
+
+O GA4 lê o referrer por conta própria. Sem configuração, ele abre uma nova sessão com origem no host de pagamento na página de retorno, e a compra é creditada a esse host. Adicione os mesmos domínios de pagamento no GA4 em **Administrador → Fluxos de dados → (fluxo da Web) → Definir as configurações da tag → Mostrar tudo → Listar indicações indesejadas** ([ajuda do Google](https://support.google.com/analytics/answer/10327750?hl=pt-BR)). Enviar os campos `lt_*` ou os click IDs do ClickTrail como parâmetros de evento no GA4 não muda a origem da sessão.
 
 ### Como reduzir a lacuna
 
 1. Certifique-se de que a captura de atribuição está ativa e dispara cedo (antes do carregamento da página de checkout).
 2. Não dependa de decoração de link para carregar atribuição pelo provedor de pagamento — ela será removida.
-3. Se o seu funil é `site de marketing → checkout hospedado → URL de retorno`, teste que a URL de retorno recebe o cookie corretamente.
+3. Se o seu funil é `site de marketing → checkout hospedado → URL de retorno`, faça um pedido de teste e confira a tela do pedido: a origem e os click IDs `_clicutcl_*` devem ser os da visita antes do checkout, não o domínio de pagamento.
 4. Para o Stripe, considere usar o campo `client_reference_id` do próprio Stripe para correlacionar a sessão do provedor ao visitor ID do ClickTrail — isso é uma integração manual, não nativa do ClickTrail.
 
 ### O aviso no checklist

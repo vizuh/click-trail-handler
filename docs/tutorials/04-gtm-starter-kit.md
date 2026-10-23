@@ -81,3 +81,8 @@ keeps the generated artifact but not that reference source.
   active outside this starter kit.
 - **JavaScript page view missing:** the integration emitted only
   `ct_page_view`; use the matching trigger for the event actually published.
+- **GA4 credits purchases to `paypal.com` or another payment host:** GA4 starts
+  a new session from the payment-host referrer on the return page. Add the
+  payment domains to GA4 unwanted referrals; the starter kit's GA4 purchase tag
+  does not change session source. See
+  [Payment provider limitations](../reference/INTEGRATIONS.md#payment-provider-limitations).

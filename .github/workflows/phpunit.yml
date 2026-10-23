@@ -47,6 +47,10 @@ jobs:
         if: matrix.php == '8.3'
         run: npm run test:consent
 
+      - name: Run payment-return attribution checks
+        if: matrix.php == '8.3'
+        run: npm run test:attribution
+
       - name: Check admin CSS stays scoped to the dashboard
         if: matrix.php == '8.3'
         run: node tools/admin-css/check-scope.js

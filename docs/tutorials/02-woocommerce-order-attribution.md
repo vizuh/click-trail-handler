@@ -41,6 +41,13 @@ A local connector may listen to `clicutcl_order_attribution_saved` and read the
 order metadata. It must not rewrite the keys or treat the action as proof of
 provider delivery, payment, or reconciliation.
 
+For an off-site payment (PayPal, Klarna, Stripe Checkout, Mollie, a 3-D Secure
+page), place one order through the classic checkout and one through the
+Checkout Block with the gateway in sandbox mode. After the return, the order's
+`_clicutcl_lt_*` fields and click IDs should still show the tagged URL, not the
+payment host: ClickTrail writes the order metadata before the redirect and
+ignores returns from the hosts listed by `clicutcl_ignored_referrer_hosts`.
+
 ## 4. Record the boundary
 
 Record the WordPress version, WooCommerce version, order storage mode, consent
