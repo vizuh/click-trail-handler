@@ -42,7 +42,7 @@ Allowed canonical browser events:
 
 - behavior: `search`, `view_content`, `scroll_depth`, `key_page_view`, `cta_click`, `contact_call_click`, `contact_chat_start`
 - storefront: `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, `begin_checkout`
-- forms and milestones confirmed in the browser: `form_start`, `form_submit_attempt`, `lead`, `book_appointment`, `login`, `sign_up`, `comment_submit`
+- forms and milestones confirmed in the browser: `form_start`, `form_submit_attempt`, `form_submit_failed`, `lead`, `book_appointment`, `login`, `sign_up`, `comment_submit`
 
 `purchase`, `qualified_lead`, and `client_won` are rejected by this route and must come from WooCommerce or lifecycle ingestion.
 

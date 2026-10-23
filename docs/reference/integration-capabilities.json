@@ -106,6 +106,17 @@
       "next_proof": "Assert event names, event_id, order/value/currency/items, attribution, consent, ordering, deduplication, and absence of secrets in browser and GTM Preview."
     },
     {
+      "surface": "HubSpot embedded forms",
+      "entry_ids": ["source.embed.hubspot_forms"],
+      "business_value": "Count HubSpot iframe and legacy form submissions as one consented lead each, which the submit listener and hidden-field injector cannot see.",
+      "evidence_level": "synthetic_contract",
+      "proof_artifact": "assets/js/clicutcl-events.js; tools/qa/hubspot-form-capture.test.js; specs/003-hubspot-form-capture/",
+      "environment": "Node VM with stubbed consent bridge and HubSpotFormsV4; no WordPress, browser, or HubSpot form.",
+      "owner": "ClickTrail browser runtime",
+      "blocker": false,
+      "next_proof": "Submit a real updated-editor and a legacy HubSpot form on a disposable site; assert one lead per submission with the conversion ID, a failed submission, consent denial, and the legacy message origin (spec SC-004 and Phase 0)."
+    },
+    {
       "surface": "Server delivery adapters",
       "entry_ids": ["delivery.generic", "delivery.sgtm", "delivery.meta", "delivery.google", "delivery.linkedin", "delivery.pinterest", "delivery.tiktok"],
       "business_value": "Send canonical events to configured collectors while keeping provider acceptance claims honest.",
@@ -699,6 +710,25 @@
       "runtime_tests": [],
       "known_limits": [
         "Provider timestamp freshness, raw identity minimization, consent provenance, and retry semantics require runtime/provider verification."
+      ]
+    },
+    {
+      "id": "source.embed.hubspot_forms",
+      "label": "HubSpot embedded forms",
+      "role": "browser_source",
+      "status": "source_present_runtime_unverified",
+      "provider_contract": "HubSpot documented v4 global form events (window) and legacy hsFormCallback postMessage",
+      "what_exists": "Browser lead on hs-form-event:on-submission:success (event_id from getConversionId) and legacy onFormSubmitted, form_submit_failed on on-submission:failed, through the existing consent gate with in-memory dedupe; identifiers only, no field values.",
+      "what_does_not_exist": "No hidden-field attribution write into HubSpot forms (setFieldValue) and no browser qualified_lead.",
+      "evidence": [
+        "assets/js/clicutcl-events.js",
+        "tools/qa/hubspot-form-capture.test.js",
+        "specs/003-hubspot-form-capture/spec.md"
+      ],
+      "test_ids": [],
+      "runtime_tests": [],
+      "known_limits": [
+        "No live HubSpot submission observed; conversion ID availability at on-submission:success, instanceId uniqueness, and the event.origin of iframe-rendered legacy embeds are unverified."
       ]
     },
     {

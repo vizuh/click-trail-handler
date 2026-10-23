@@ -325,6 +325,7 @@ class Plugin {
 								'calendly.com',
 								'typeform.com',
 								'hubspot.com',
+								'hsforms.net',
 							)
 						)
 					),
