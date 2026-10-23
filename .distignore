@@ -1,7 +1,7 @@
 # Development and tooling – excluded from SVN trunk
 .git
 .github
-.claude
+.claude*
 .specify
 .understand-anything
 .tools
@@ -69,4 +69,5 @@ assets/GTM-*.json
 assets/gtm-starter-kit.json
 assets/shopify-gtm-container-templates-master/
 assets/build-starter-kit.py
+__pycache__/
 includes/admin/class-gtm-lead-magnet.php
