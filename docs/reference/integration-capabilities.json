@@ -676,7 +676,7 @@
       "runtime_tests": [],
       "known_limits": [
         "v3 signature, allowlist and ignored acknowledgement are unit-covered only; no live HubSpot delivery has been captured.",
-        "v3 signs https:// + Host + raw request URI; a proxy that rewrites Host or the path fails verification with 401, and HubSpot retries 4xx/5xx up to 10 times over 24 hours.",
+        "v3 is checked against https:// + Host and https:// + home_url() host (+ raw request URI) plus clicutcl_hubspot_v3_request_uris entries; a proxy that rewrites the path without a filter entry fails with 401, and HubSpot retries 4xx/5xx up to 10 times over 24 hours.",
         "v1 fallback carries no timestamp; only the signature replay cache and event-ID dedup apply.",
         "Workflow 'Send a webhook' (v2 signature) is not supported.",
         "Browser-origin and webhook HubSpot leads never deduplicate against each other.",

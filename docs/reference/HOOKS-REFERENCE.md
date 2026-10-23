@@ -159,6 +159,24 @@ Purpose:
 
 - control webhook replay behavior, provider enablement, and provider secret resolution
 
+### `clicutcl_hubspot_v3_request_uris`
+
+Type:
+
+- filter
+
+Purpose:
+
+- add the public HubSpot target URL when a proxy rewrites the request path, so `X-HubSpot-Signature-v3` can be
+  verified. Each candidate is tried with `hash_equals`; it still needs the secret, and the timestamp window and replay
+  cache apply unchanged. HubSpot's listed percent-encodings are decoded in every entry
+
+Arguments:
+
+- `string[] $uris`: default `https://` + `Host` header + raw request URI, and `https://` + `home_url()` host (and
+  port) + raw request URI when it differs
+- `WP_REST_Request $request`
+
 ## Webhook Mapping
 
 ### `clicutcl_hubspot_qualified_lead_rule`

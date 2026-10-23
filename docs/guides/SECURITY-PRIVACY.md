@@ -209,8 +209,9 @@ Verification hardening:
 - HubSpot uses `X-HubSpot-Signature-v3` (base64 HMAC-SHA256 of method + `https://` + `Host` + raw request URI with
   HubSpot's listed percent-encodings decoded + body + `X-HubSpot-Request-Timestamp`), rejecting timestamps outside
   the replay window (default 300 s, HubSpot's recommended 5 minutes). A failing v3 never falls back to v1. The
-  legacy SHA-256 `X-HubSpot-Signature` (v1) is checked only when no v3 header is sent. A proxy that rewrites the
-  `Host` header or path breaks v3 verification. HubSpot subscription types off the
+  legacy SHA-256 `X-HubSpot-Signature` (v1) is checked only when no v3 header is sent. The v3 URL is tried as
+  `Host` + request URI and `home_url()` host + request URI, plus any `clicutcl_hubspot_v3_request_uris` entries;
+  each candidate still needs the secret, and `X-Forwarded-*` headers are not read. HubSpot subscription types off the
   `clicutcl_hubspot_webhook_event_types` allowlist (deletion, merge, restore, association change, privacy deletion,
   unknown) are acknowledged (2xx, `ignored`) without recording an event
 - Calendly subscriptions use the native `Calendly-Webhook-Signature` (`t=<unix>,v1=<hex HMAC-SHA256 of "t.body">`,

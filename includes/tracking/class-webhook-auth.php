@@ -51,7 +51,16 @@ class Webhook_Auth {
 			if ( ! ctype_digit( $timestamp ) || abs( (int) floor( microtime( true ) * 1000 ) - (int) $timestamp ) > $max * 1000 ) {
 				return new WP_Error( 'webhook_timestamp_invalid', 'Invalid or expired webhook timestamp', array( 'status' => 401 ) );
 			}
-			$expected = self::hubspot_v3_signature( $secret, (string) $request->get_method(), self::hubspot_request_uri(), $body, $timestamp );
+			// Accept the first candidate URI whose HMAC matches; each still requires the secret, and
+			// the timestamp window and replay cache apply as for a single URI.
+			$expected = '';
+			foreach ( self::hubspot_request_uris( $request ) as $uri ) {
+				$candidate = self::hubspot_v3_signature( $secret, (string) $request->get_method(), $uri, $body, $timestamp );
+				if ( hash_equals( $candidate, $signature ) ) {
+					$expected = $candidate;
+					break;
+				}
+			}
 		} elseif ( 'hubspot' === $provider ) {
 			// Legacy v1 (only when no v3 header): sha256(secret . body). It carries no timestamp,
 			// so only the replay cache below and event-ID dedup protect it.
@@ -124,25 +133,53 @@ class Webhook_Auth {
 	}
 
 	/**
-	 * The URL HubSpot signed, rebuilt from the Host header and the raw request URI. HubSpot only
+	 * Candidate URLs HubSpot may have signed: https:// + Host header + raw request URI, and
+	 * https:// + the home_url() host + raw request URI when a proxy rewrote Host. HubSpot only
 	 * delivers to HTTPS target URLs, so the scheme is fixed rather than read from is_ssl(), which
-	 * is false behind a TLS-terminating proxy. A proxy that rewrites Host or the path breaks v3.
+	 * is false behind a TLS-terminating proxy. X-Forwarded-* headers are not read. A proxy that
+	 * rewrites the path needs the clicutcl_hubspot_v3_request_uris filter.
 	 *
-	 * @return string
+	 * @param WP_REST_Request $request Request.
+	 * @return string[]
 	 */
-	private static function hubspot_request_uri(): string {
+	private static function hubspot_request_uris( WP_REST_Request $request ): array {
 		// phpcs:disable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- HMAC input only; sanitizing would alter the signed bytes.
 		$host = isset( $_SERVER['HTTP_HOST'] ) ? (string) wp_unslash( $_SERVER['HTTP_HOST'] ) : '';
 		$path = isset( $_SERVER['REQUEST_URI'] ) ? (string) wp_unslash( $_SERVER['REQUEST_URI'] ) : '';
 		// phpcs:enable WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		if ( '' === $host || '' === $path ) {
-			return '';
+		$home      = wp_parse_url( home_url() );
+		$home_host = is_array( $home ) && ! empty( $home['host'] ) ? $home['host'] . ( ! empty( $home['port'] ) ? ':' . $home['port'] : '' ) : '';
+
+		$uris = array();
+		if ( '' !== $path ) {
+			foreach ( array( $host, $home_host ) as $candidate_host ) {
+				if ( '' !== $candidate_host ) {
+					$uris[] = 'https://' . $candidate_host . $path;
+				}
+			}
 		}
 
-		return str_ireplace(
-			array( '%3A', '%2F', '%3F', '%40', '%21', '%24', '%27', '%28', '%29', '%2A', '%2C', '%3B' ),
-			array( ':', '/', '?', '@', '!', '$', "'", '(', ')', '*', ',', ';' ),
-			'https://' . $host . $path
+		/**
+		 * Filter the URLs tried for HubSpot v3 verification, for proxies that rewrite the path.
+		 * Supply the public target URL configured in HubSpot. Each still has to match the HMAC.
+		 *
+		 * @param string[]        $uris    Candidate URLs.
+		 * @param WP_REST_Request $request Request.
+		 */
+		$uris = apply_filters( 'clicutcl_hubspot_v3_request_uris', $uris, $request );
+		$uris = is_array( $uris ) ? array_filter( $uris, static fn( $uri ) => is_string( $uri ) && '' !== $uri ) : array();
+
+		return array_values(
+			array_unique(
+				array_map(
+					static fn( string $uri ): string => str_ireplace(
+						array( '%3A', '%2F', '%3F', '%40', '%21', '%24', '%27', '%28', '%29', '%2A', '%2C', '%3B' ),
+						array( ':', '/', '?', '@', '!', '$', "'", '(', ')', '*', ',', ';' ),
+						$uri
+					),
+					$uris
+				)
+			)
 		);
 	}
 }
