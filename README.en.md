@@ -83,7 +83,7 @@ Having code for an integration is not proof that it works in production. Current
 - **Extra fields captured**: `utm_id`, `utm_source_platform`, `utm_creative_format`, `utm_marketing_tactic`, `fbc`, `fbp`, `_ttp`, `li_gc`, `ga_client_id`, `ga_session_id`
 - **Caching and minification**: ClickTrail script tags carry exclusion attributes for Autoptimize, Cloudflare Rocket Loader, WP Rocket, and LiteSpeed Cache.
 
-The current release is 1.11.0 on GitHub; the WordPress.org stable release is 1.10.5. See the [changelog](changelog.txt) for history.
+The current release is 1.11.0 on GitHub and WordPress.org. See the [changelog](changelog.txt) for history.
 
 ## Installation
 

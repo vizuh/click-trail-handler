@@ -62,7 +62,7 @@ When consent is required, nothing is stored until the visitor agrees. ClickTrail
 
 Having code for an integration is not proof that it works in production. Current status lives in the [integration reference](docs/reference/INTEGRATIONS.md) and the [machine-readable ledger](docs/reference/integration-capabilities.json). The [release-phasing plan](docs/guides/RELEASE-PHASING-AND-INTEGRATION-DOCS.md) shows what gets checked next.
 
-The current release is 1.11.0 on GitHub; the WordPress.org stable release is 1.10.5. The full reference (click IDs, integrations, installation) lives in [README.en.md](README.en.md); history is in the [changelog](changelog.txt).
+The current release is 1.11.0 on GitHub and WordPress.org. The full reference (click IDs, integrations, installation) lives in [README.en.md](README.en.md); history is in the [changelog](changelog.txt).
 
 ## Documentation By Audience
 
