@@ -94,6 +94,7 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 	public function register_hooks() {
 		add_filter( 'gform_entry_meta', array( $this, 'register_entry_meta' ), 10, 2 );
 		add_filter( 'gform_field_value', array( $this, 'populate_fields_dynamic' ), 10, 3 );
+		add_action( 'gform_pre_submission', array( $this, 'refresh_submitted_fields' ), 10, 1 );
 		add_action( 'gform_after_submission', array( $this, 'on_submission' ), 10, 2 );
 		add_action( 'gform_after_update_entry', array( $this, 'restore_tracking_meta_after_edit' ), 10, 3 );
 
@@ -150,6 +151,63 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 		$key     = substr( $name, strlen( $this->field_prefix ) );
 
 		return isset( $payload[ $key ] ) ? $payload[ $key ] : $value;
+	}
+
+	/**
+	 * Refresh ct_* dynamic-population inputs from the attribution cookie at submit time.
+	 *
+	 * The hidden values are rendered from the cookie the page request carried. On the
+	 * landing page that request runs before the browser writes the cookie, so the form
+	 * posts empty (or previous-touch) values. The cookie sent with the submission is current.
+	 *
+	 * @param array $form Form object.
+	 */
+	public function refresh_submitted_fields( $form ) {
+		if ( ! is_array( $form ) || empty( $form['fields'] ) || ! is_array( $form['fields'] ) ) {
+			return;
+		}
+		if ( ! $this->should_populate() || ( Consent::is_required() && ! Consent::marketing_allowed() ) ) {
+			return;
+		}
+		$form_id = isset( $form['id'] ) ? absint( $form['id'] ) : 0;
+		if ( 0 !== $form_id && null !== $this->settings_tab && ! $this->settings_tab->is_enabled( $form_id, $form ) ) {
+			return;
+		}
+
+		$payload = $this->get_attribution_payload();
+		if ( empty( $payload ) ) {
+			return;
+		}
+
+		foreach ( $form['fields'] as $field ) {
+			// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- GF core property.
+			if ( ! is_object( $field ) || empty( $field->allowsPrepopulate ) ) {
+				continue;
+			}
+
+			$inputs = array();
+			if ( ! empty( $field->inputs ) && is_array( $field->inputs ) ) {
+				foreach ( $field->inputs as $input ) {
+					if ( is_array( $input ) && isset( $input['id'], $input['name'] ) ) {
+						$inputs[ (string) $input['id'] ] = (string) $input['name'];
+					}
+				}
+			} elseif ( isset( $field->id ) && isset( $field->inputName ) ) { // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- GF core property.
+				$inputs[ (string) $field->id ] = (string) $field->inputName; // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- GF core property.
+			}
+
+			foreach ( $inputs as $input_id => $name ) {
+				if ( 0 !== strpos( $name, $this->field_prefix ) ) {
+					continue;
+				}
+				$key = substr( $name, strlen( $this->field_prefix ) );
+				if ( ! isset( $payload[ $key ] ) || '' === (string) $payload[ $key ] ) {
+					continue;
+				}
+				// GF reads submitted values from $_POST, which WordPress keeps slashed.
+				$_POST[ 'input_' . str_replace( '.', '_', $input_id ) ] = wp_slash( (string) $payload[ $key ] );
+			}
+		}
 	}
 
 	/**
