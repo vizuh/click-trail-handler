@@ -110,7 +110,7 @@ package.json                                 # phase 1: "test:rules"
 3. **Conformance test** with the scenarios written once and a data provider over the registry. Write it against **current** adapters first and record which scenarios fail for which adapter. That list is the D1 behavior delta and goes into the changelog draft.
 4. **Move adapters onto the resolver**, one commit per adapter, each making its rows green. Host-specific work from R3:
    - **Fluent Forms**: add a `fluentform/white_listed_fields` filter for ClickTrail's `ct_*` names, or the injected inputs never reach the hook.
-   - **WPForms**: recognize `ct_*` Hidden fields by label (R3 consequence 2, default pending decision). Remove the `wpforms_field_value_*` registration, which hooks a filter that does not exist in Lite. Correct the `INTEGRATIONS.md` population claim.
+   - **WPForms**: recognize `ct_*` Hidden fields by label (R3 consequence 2, decided 2026-10-30). Remove the `wpforms_field_value_*` registration, which hooks a filter that does not exist in Lite. Correct the `INTEGRATIONS.md` population claim.
    - **CF7**: correct the docblock to the one-argument hook.
 5. Prove SC-001 and SC-002 by reverting #137 and the 1.10.5 CF7 change locally and recording which assertions fail (quickstart step 4).
 6. Docs: `INTEGRATIONS.md` D1 contract and per-adapter stub result (FR-017); `SECURITY-PRIVACY.md` one line; changelog per-adapter behavior changes (spec Compatibility).

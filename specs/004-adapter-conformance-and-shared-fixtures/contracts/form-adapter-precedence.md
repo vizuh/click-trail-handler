@@ -45,7 +45,7 @@ Sources are never merged key by key.
 | Fluent Forms | `$formData['ct_*']` at `fluentform/submission_inserted` | Add posted fallback, and add ClickTrail's `ct_*` names via `fluentform/white_listed_fields`, without which Fluent drops them before the hook. |
 | Gravity Forms | entry values for fields whose `inputName` (or `inputs[].name`) starts with `ct_` | Add posted fallback in `on_submission`. `refresh_submitted_fields()` writes the whole cookie record: inputs whose key the cookie lacks are set to `''` instead of keeping the posted value, and nothing is written when the cookie is not usable. |
 | Ninja Forms | `$data['fields_by_key']['ct_*']['value']` at `ninja_forms_after_submission` | Add posted fallback. |
-| WPForms | `$fields[<id>]['value']` for Hidden fields whose label (`$fields[<id>]['name']`) is a `ct_*` name (R3, pending decision) | Add posted fallback. Persistence in Lite is `log_submission()` only (`$entry_id` is 0). |
+| WPForms | `$fields[<id>]['value']` for Hidden fields whose label (`$fields[<id>]['name']`) is a `ct_*` name (R3, decided 2026-10-30) | Add posted fallback. Persistence in Lite is `log_submission()` only (`$entry_id` is 0). |
 
 Exact host data shapes per adapter: research R3.
 

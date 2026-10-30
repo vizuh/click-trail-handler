@@ -1,6 +1,6 @@
 # Research: Adapter Conformance and Shared Attribution Fixtures
 
-Phase 0 for [plan.md](plan.md). Each item: decision, rationale, alternatives. Items marked **NEEDS DECISION** have a recommended default the plan proceeds on; the maintainer may overrule before `/speckit-tasks`.
+Phase 0 for [plan.md](plan.md). Each item: decision, rationale, alternatives. Items marked **DECIDED (2026-10-30)** were open questions; the maintainer accepted the recommended defaults.
 
 ## R1. Form of the JS rule module (D3)
 
@@ -39,7 +39,7 @@ Read from WordPress.org source of the free editions (grep only, nothing executed
 
 **Consequences for the plan**
 1. **Fluent Forms**: phase 2 adds a `fluentform/white_listed_fields` filter for the `ct_*` names ClickTrail injects. The driver must model the whitelist intersection, or it would test a path that never happens live.
-2. **WPForms**: D1 posted fallback needs a way to recognize a `ct_*` field. **NEEDS DECISION.** Default: a Hidden field whose **label** is exactly a `ct_*` name (`ct_lt_source`), because the label is the only text identifier WPForms passes. Alternatives: a CSS class on the field (`$form_data['fields'][id]['css']`, not verified), or no posted fallback for WPForms as a documented exception (contradicts the "all six" decision).
+2. **WPForms**: D1 posted fallback needs a way to recognize a `ct_*` field. **DECIDED (2026-10-30):** a Hidden field whose **label** is exactly a `ct_*` name (`ct_lt_source`), because the label is the only text identifier WPForms passes. Alternatives: a CSS class on the field (`$form_data['fields'][id]['css']`, not verified), or no posted fallback for WPForms as a documented exception (contradicts the "all six" decision).
 3. **WPForms docs**: phase 2 corrects `INTEGRATIONS.md`, which claims ClickTrail "populate[s] matching hidden fields already present in ... WPForms". Phase 2 also decides whether to delete the dead filter registration or keep it pending a WPForms Pro check (default: delete; Pro was not verified either way).
 4. **Ninja Forms driver** fires `ninja_forms_submit_data` then `ninja_forms_after_submission` with the shapes above. A resumed-submission case (filter skipped) is added as scenario-level coverage for Ninja only.
 5. **CF7 docblock** is corrected to the one-argument hook.
@@ -54,9 +54,9 @@ Found by reading the five implementations. Each must end as a code fix or an `ex
 | 2 | Paid medium, no click ID | `paidLabelFromSource()` → `Google Ads`, `Facebook Ads`, ... `Paid Search` | Branch missing; falls through to the referrer, then `Unknown` | **Fix PHP**: port `paidLabelFromSource()`. Changes the GF server-side channel fallback label. |
 | 3 | Channel fallback for last touch | n/a (JS resolves per touch) | `resolve()` reads `utm_medium`/`ft_medium` and `utm_source`/`ft_source`; the GF adapter calls it for both `ft_channel` and `lt_channel` | **Fix PHP**: take a touch prefix so `lt_channel` resolves from `lt_*`. Today a missing `lt_channel` is filled from the first touch. |
 | 4 | Same-site referrer | Excluded before classification (`getExternalReferrerDetails`) | Excluded inside `resolve()` via `$current_host` | **Representation difference**, documented in `notes`. Both shapes carry `page_url`. |
-| 5 | Click IDs normalized | `withCanonicalClickIds` and `Attribution_Provider`: all 16 | `EventV2` and the token normalizer: 10 (no `rdt_cid`, `pin_cid`, `snap_cid`, `mc_cid`, `mc_eid`, `dclid`) | **NEEDS DECISION.** The JS token builder's allowlist includes all 16, so the PHP token normalizer looks like drift: default **fix** to 16. For `EventV2`, the 10-key list matches the D3 selection set, which may be intended for server events: default **exception** with reason "server events carry the D3 selection set only" **if the maintainer confirms**, otherwise fix. |
+| 5 | Click IDs normalized | `withCanonicalClickIds` and `Attribution_Provider`: all 16 | `EventV2` and the token normalizer: 10 (no `rdt_cid`, `pin_cid`, `snap_cid`, `mc_cid`, `mc_eid`, `dclid`) | **DECIDED (2026-10-30): fix both to 16.** The JS token builder's allowlist already has all 16. The `EventV2` 10-key list is not the D3 selection set: it is present at `c9dedab` (2026-08-22), before the D3 ruling shipped in 1.10.5 (`078ec7b`, 2026-10-13), so it is an older list that missed the later additions. Server events gain the six IDs; changelog line required. |
 | 6 | Snapchat aliases | `sccid` ← `sc_click_id` | Token: also `ScCid`, `lt_ScCid`, `ft_ScCid`; EventV2: `sc_click_id` only | **Exception** for the token's `ScCid` aliases (reason: legacy token payloads). Align EventV2 only if #5 is fixed. |
-| 7 | Value length cap | Query capture 128 (`mapQueryFields`), storage 256 (`sanitizeAttributionData`) | 255 (`Attribution_Provider::sanitize`) | **NEEDS DECISION.** Default: **fix JS storage to 255** so a 256-character stored value is not cut by one on the server. Keep the 128 capture cap as part of `touch-mapping.json`. |
+| 7 | Value length cap | Query capture 128 (`mapQueryFields`), storage 256 (`sanitizeAttributionData`) | 255 (`Attribution_Provider::sanitize`) | **DECIDED (2026-10-30): fix JS storage to 255** so a 256-character stored value is not cut by one on the server. Keep the 128 capture cap as part of `touch-mapping.json`. |
 | 8 | Whitespace in values | Control characters → space, then trim | Stub: strip control characters, trim. Real WordPress `sanitize_text_field`: also strips tags, collapses whitespace, **removes percent-encoded octets** | See R6. Fixture covers ClickTrail-owned behavior only. |
 
 ## R5. Live suite plugin selection

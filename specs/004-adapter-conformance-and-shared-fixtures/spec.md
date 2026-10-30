@@ -127,7 +127,7 @@ The existing `tools/qa/e2e/ci.sh` round trip runs a throwaway WordPress with CF7
 
 - Gravity Forms persists configured fields plus entry meta. Drivers must assert on what the adapter writes (`gform_add_meta` calls), not on form fields the stub happens to declare. WPForms Lite has no entries (`$entry_id` is 0), so for WPForms only the `log_submission()` row is asserted (research R3).
 - Fluent Forms drops submitted keys that are not form inputs or whitelisted, before the submit hook runs. The Fluent driver must model that, or US2-3 would pass on a path that never happens live (research R3).
-- WPForms exposes no field name at the hook, only the label. How a `ct_*` field is recognized there is a research R3 decision.
+- WPForms exposes no field name at the hook, only the label. A `ct_*` field is recognized there by its label (research R3, decided 2026-10-30).
 - Each adapter receives posted `ct_*` values through a different channel: CF7 `get_posted_data()`, Elementor record fields, Fluent Forms submission data, Gravity Forms `input_<id>` mapped through the field's `inputName`, Ninja Forms submit data and its `extra`, WPForms `fields`. The D1 posted-values read must be implemented per adapter. The plan records each channel (research R3).
 - Ninja Forms injects attribution on `ninja_forms_submit_data` before `ninja_forms_after_submission` runs. The driver runs both hooks in order.
 - Fluent Forms registers both the slash and underscore hook names. The driver fires one, or the dedupe guard is what gets tested.
