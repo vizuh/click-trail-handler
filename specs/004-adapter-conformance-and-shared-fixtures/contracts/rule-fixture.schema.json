@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/vizuh/click-trail-handler/specs/004/rule-fixture.schema.json",
+  "title": "ClickTrail attribution rule fixture",
+  "description": "One attribution rule, read by both the PHPUnit and the Node fixture suites. See data-model.md section 1.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["rule", "version", "notes", "implementations", "cases", "exceptions"],
+  "properties": {
+    "rule": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+    "version": { "type": "integer", "minimum": 1 },
+    "notes": { "type": "string" },
+    "implementations": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^(js|php)\\.[a-z0-9_.]+$" }
+    },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "expected"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+          "input": { "type": "object" },
+          "raw": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "params": { "type": "object", "additionalProperties": { "type": "string" } },
+              "referrer": { "type": "string" },
+              "page_url": { "type": "string" }
+            }
+          },
+          "flattened": { "type": "object" },
+          "nested": { "type": "object" },
+          "expected": {}
+        },
+        "oneOf": [
+          { "required": ["input"], "not": { "anyOf": [ { "required": ["raw"] }, { "required": ["flattened"] }, { "required": ["nested"] } ] } },
+          { "not": { "required": ["input"] }, "anyOf": [ { "required": ["raw"] }, { "required": ["flattened"] }, { "required": ["nested"] } ] }
+        ]
+      }
+    },
+    "exceptions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["case", "implementation", "expected", "reason", "regression_test"],
+        "properties": {
+          "case": { "type": "string" },
+          "implementation": { "type": "string", "pattern": "^(js|php)\\.[a-z0-9_.]+$" },
+          "expected": {},
+          "reason": { "type": "string", "minLength": 1 },
+          "regression_test": { "type": "string", "pattern": "^(tests|tools)/.+::.+$" }
+        }
+      }
+    }
+  }
+}

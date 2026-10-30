@@ -32,5 +32,6 @@ Keep this file limited to Claude Flow or Claude-specific operating notes.
 
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan
+shell commands, and other important information, read the current plan:
+`specs/004-adapter-conformance-and-shared-fixtures/plan.md`
 <!-- SPECKIT END -->
