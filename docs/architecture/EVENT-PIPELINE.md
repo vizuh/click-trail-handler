@@ -162,8 +162,8 @@ Integration:
 Flow:
 
 1. attribution is saved on checkout
-2. thank-you page pushes purchase event into `dataLayer`
-3. the optional richer Woo `dataLayer` contract can add `event_id` and consent-aware `user_data`
+2. thank-you page pushes purchase event into `dataLayer`, always carrying `event_id` equal to the server purchase event ID (`purchase_<order_id>`) so browser and server copies dedupe (#139)
+3. the optional richer Woo `dataLayer` contract can add consent-aware `user_data`
 4. purchase identity is resolved from WooCommerce order data plus request context
 5. purchase payload is sent into dispatcher as a server-side event
 6. purchase trace snapshots are stored on the order for Diagnostics lookup

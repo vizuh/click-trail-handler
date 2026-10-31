@@ -19,6 +19,7 @@ use CLICUTCL\Admin\Admin;
 use CLICUTCL\Api\Tracking_Controller;
 use CLICUTCL\Integrations\WooCommerce;
 use CLICUTCL\Integrations\NitroPack_Compat;
+use CLICUTCL\Integrations\Optimizer_Compat;
 use CLICUTCL\Modules\GTM\GTM_Settings;
 use CLICUTCL\Privacy\Privacy_Handler;
 use CLICUTCL\Settings\Attribution_Settings;
@@ -176,6 +177,7 @@ class Plugin {
 
 		Queue::register();
 		NitroPack_Compat::register();
+		Optimizer_Compat::register();
 
 		add_action(
 			'rest_api_init',

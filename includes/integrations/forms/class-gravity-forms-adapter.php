@@ -5,7 +5,7 @@
  * Thin coordinator: registers GF hooks that need adapter-level context
  * (entry meta, dynamic populate, submission persistence, entry-edit safety)
  * and delegates the rest to extracted helpers (`Gf_Channel_Resolver`,
- * `Gf_Form_Settings_Tab`, `Gf_Merge_Tags`, `Gf_Minification_Protector`).
+ * `Gf_Form_Settings_Tab`, `Gf_Merge_Tags`).
  *
  * @package ClickTrail
  */
@@ -101,7 +101,6 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 		// Extracted helpers — each self-registers in its constructor.
 		$this->settings_tab = new Gf_Form_Settings_Tab( $this->get_settings() );
 		new Gf_Merge_Tags( $this->settings_tab );
-		new Gf_Minification_Protector();
 	}
 
 	/**

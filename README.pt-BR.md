@@ -73,7 +73,7 @@ Ter código para uma integração não prova que ela funciona em produção. O s
 - **Webhooks**: Calendly, HubSpot, Typeform
 - **Chaves de adaptadores server-side**: coletor genérico, sGTM, Meta CAPI, Google Ads / GA4, LinkedIn CAPI, Pinterest Conversions API, TikTok Events API (status acima)
 - **Campos extras capturados**: `utm_id`, `utm_source_platform`, `utm_creative_format`, `utm_marketing_tactic`, `fbc`, `fbp`, `_ttp`, `li_gc`, `ga_client_id`, `ga_session_id`
-- **Cache e minificação**: as tags de script do ClickTrail têm atributos de exclusão para Autoptimize, Cloudflare Rocket Loader, WP Rocket e LiteSpeed Cache.
+- **Cache e minificação**: em todos os sites, as quatro tags de script do ClickTrail (`clicutcl-consent-bridge-js`, `clicutcl-attribution-js`, `clicutcl-consent-js`, `clicutcl-events-js`) têm `nowprocket data-no-optimize="1" data-no-defer="1" data-noptimize="1" data-cfasync="false"`: `nowprocket` (WP Rocket Delay JS), `data-no-optimize="1"` e `data-no-defer="1"` (LiteSpeed Cache), `data-noptimize="1"` (Autoptimize), `data-cfasync="false"` (Cloudflare Rocket Loader). Os mesmos scripts entram nos filtros de exclusão de WP Rocket, LiteSpeed Cache, Autoptimize, Perfmatters e SiteGround Speed Optimizer; o NitroPack recebe `data-nitropack-exclude="true"` quando ativo. Para conferir: veja o código-fonte da página, confirme os atributos em cada tag `clicutcl-*.js` e confirme que `window.ClickTrail` existe antes de enviar um formulário. O FlyingPress não expõe atributo nem filtro: adicione `clicutcl` e `clicktrail-consent-mode` ao campo de exclusão dele. Presente no código / não verificado em runtime.
 
 A versão atual é a 1.11.1, no GitHub e no WordPress.org. O histórico está no [changelog](changelog.txt).
 
