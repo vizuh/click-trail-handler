@@ -33,6 +33,8 @@ storage and WPForms Lite has no entries table). `adapters.py` drives Chromium th
 `adapters.json`; `verify_adapters.py` judges it (`PASS`, `FAIL` exits 1, `FINDING` is a recorded known defect such as
 the cache leak of #152 or the double submit of #140). Run a subset with
 `python3 tools/qa/e2e/adapters.py <out-dir> landing returning` against a pod from `adapters-setup.sh`.
+`mu/ct-e2e-render-toggle.php` (option `ct_e2e_render_values`) forces the #152 render filter on so the cache scenario can build
+the stale-snapshot vector and prove the submit layer blanks it.
 Results of a run: `EVIDENCE-<date>.md`.
 
 Notes:

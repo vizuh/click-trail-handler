@@ -58,26 +58,61 @@ for name, res in data.get('returning', {}).items():
     lead = res['leads'][0] if res['leads'] else {}
     record('INFO', 'S2 returning', name, 'lead gclid=%r fbclid=%r lt_medium=%r ft_medium=%r' % (lead.get('gclid'), lead.get('fbclid'), lead.get('lt_medium'), lead.get('ft_medium')))
 
+def has_a_value(d):
+    return {k: v for k, v in d.items() if any(a in str(v) for a in ('AAA', 'AFB', 'a_src'))}
+
+
+def all_blank(res):
+    """No attribution value anywhere in the provider record or the stored lead."""
+    stray = {}
+    for rec in res['records']:
+        stray.update({k: v for k, v in rec['entry'].items() if v})
+        stray.update({k: v for k, v in rec['meta'].items() if v and k.startswith('ct_')})
+    return stray
+
+
 for name, res in data.get('cache_leak', {}).items():
-    check(res['status'] == 'sent', 'S3 cache_leak', name, 'submit succeeded (%s)' % res['status'])
+    scenario = 'S3 cache_leak'
+    # (a) render layer: the cached snapshot is visitor-neutral.
+    render = res['render']
+    check(render['cookie_A'].get('gclid') == 'AAA', scenario, name + ' render', "setup: visitor A's cookie holds gclid=AAA")
+    check(not render['ct_inputs_non_empty'], scenario, name + ' render', "with A's cookie the rendered ct_* inputs are all empty (%s)" % (render['ct_inputs_non_empty'] or 'none'))
+    record('INFO', scenario, name + ' render', "A's values anywhere in the HTML (inline config included): %s" % (render['a_values_anywhere'] or 'none'))
+
+    # (b) submit layer: force the old vector (render filter on), serve A's snapshot to B.
+    sub = res['submit']
+    forced = res['forced_render']
     if name.startswith('wpforms'):
-        record('INFO', 'S3 cache_leak', name, "Lite fills no field at render (the hidden type is a Pro field, text fields are not filled), so the cached HTML carries A's gclid: %s" % res['cached_html_carries_A'])
+        record('INFO', scenario, name + ' submit', "Lite fills no field at render (hidden is a Pro field); A's values were planted in the posted inputs instead (rendered with filter on: %s)" % (forced['ct_inputs_non_empty'] or 'none'))
     else:
-        check(res['cached_html_carries_A'], 'S3 cache_leak', name, "setup: the cached HTML snapshot carries visitor A's gclid")
-    check(res['cookie_B_before'].get('gclid') in (None, '') and res['cookie_B_before'].get('fbclid') == 'BFB', 'S3 cache_leak', name, "setup: visitor B's cookie lacks gclid and holds fbclid=BFB (%s)" % res['cookie_B_before'])
-    rec = one_record(res)
-    lead = res['leads'][0] if res['leads'] else {}
+        check(forced['carries_A'] and bool(forced['ct_inputs_non_empty']), scenario, name + ' submit', "setup: with the render filter on, A's snapshot carries A's values (%s)" % list(forced['ct_inputs_non_empty'].items())[:3])
+        record('INFO', scenario, name + ' submit', "B's DOM held A's values for: %s" % (sorted(has_a_value(sub['dom_before'])) or 'none'))
+    check(sub['status'] == 'sent', scenario, name + ' submit', 'submit succeeded (%s)' % sub['status'])
+    check(sub['cookie_before'].get('gclid') in (None, '') and sub['cookie_before'].get('fbclid') == 'BFB', scenario, name + ' submit', "setup: B's cookie lacks gclid and holds fbclid=BFB (%s)" % sub['cookie_before'])
+    rec = one_record(sub)
+    lead = sub['leads'][0] if sub['leads'] else {}
     entry = rec['entry'] if rec else {}
-    check(entry.get('ct_fbclid') == 'BFB', 'S3 cache_leak', name, "provider entry holds B's own fbclid (%r)" % entry.get('ct_fbclid'))
-    entry_leak = {k: v for k, v in entry.items() if 'AAA' in str(v) or 'a_src' in str(v) or 'AFB' in str(v)}
-    lead_leak = {k: v for k, v in lead.items() if 'AAA' in str(v) or 'a_src' in str(v) or 'AFB' in str(v)}
-    record('FINDING' if entry_leak else 'PASS', 'S3 cache_leak', name, "provider entry %s A's values %s" % ('LEAKS' if entry_leak else 'holds none of', entry_leak or ''))
-    record('FINDING' if lead_leak else 'PASS', 'S3 cache_leak', name, "ClickTrail stored lead %s A's values %s" % ('LEAKS' if lead_leak else 'holds none of', lead_leak or ''))
+    check(entry.get('ct_fbclid') == 'BFB' and entry.get('ct_lt_source') == 'b_src', scenario, name + ' submit', "provider record holds B's own values (fbclid=%r lt_source=%r)" % (entry.get('ct_fbclid'), entry.get('ct_lt_source')))
+    check(lead.get('fbclid') == 'BFB' and lead.get('lt_source') == 'b_src', scenario, name + ' submit', "stored lead holds B's own values (fbclid=%r lt_source=%r)" % (lead.get('fbclid'), lead.get('lt_source')))
+    check(entry.get('ct_gclid', '') == '' and entry.get('ct_ft_gclid', '') == '' and entry.get('ct_lt_gclid', '') == '', scenario, name + ' submit', "provider record is empty for the keys B's cookie lacks (gclid=%r)" % entry.get('ct_gclid'))
+    check(lead.get('gclid', '') == '' and lead.get('ft_gclid', '') == '', scenario, name + ' submit', "stored lead is empty for the keys B's cookie lacks (gclid=%r)" % lead.get('gclid'))
+    leaked = dict(has_a_value(entry), **{'lead.' + k: v for k, v in has_a_value(lead).items()})
+    if name == 'fluent' and rec:
+        leaked.update({'meta.' + k: v for k, v in has_a_value(rec['meta']).items()})
+    check(not leaked, scenario, name + ' submit', "no value of visitor A anywhere in the stored lead or provider record (%s)" % (leaked or 'none'))
+
+    # (c) consent required, not granted, stale snapshot posted.
+    for variant, cres in res['consent'].items():
+        subject = '%s consent %s' % (name, variant)
+        check(cres['status'] == 'sent', scenario, subject, 'submit succeeded (%s)' % cres['status'])
+        check(cres['leads'] == [] and cres['dispatched'] == 0, scenario, subject, 'no ClickTrail row and no dispatch (%d rows, %d dispatched)' % (len(cres['leads']), cres['dispatched']))
+        stray = all_blank(cres)
+        check(not stray, scenario, subject, 'every ct_* value in the provider record is blank (%s)' % (stray or 'none'))
 
 dbl = data.get('double_submit', {})
 for variant, res in dbl.items():
     n = res['leads']
-    record('FINDING' if n > 1 else 'PASS', 'S6 double_submit', variant, '%d form_submission row(s), %d dispatched, %d CF7 mail sent (#140: no de-duplication, 2 each means a duplicate lead)' % (n, res['dispatched'], res['mail_sent']))
+    record('FINDING' if n > 1 else 'PASS', 'S6 double_submit', variant, '%d form_submission row(s), %d dispatched, %d CF7 mail sent (#140/#178: more than 1 lead or dispatch means a duplicate; CF7 mails are not de-duplicated)' % (n, res['dispatched'], res['mail_sent']))
 
 for key, res in data.get('consent', {}).items():
     name, decision = key.split(':')
