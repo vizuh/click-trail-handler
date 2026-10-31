@@ -55,6 +55,17 @@ namespace {
 			$GLOBALS['clicktrail_test_consent_required']     = false;
 			$GLOBALS['clicktrail_test_consent_mode_enabled'] = false;
 			$GLOBALS['ct_wpforms_filters']                   = array();
+			$GLOBALS['clicktrail_test_filters']              = array();
+		}
+
+		private function opt_in_to_server_render(): void {
+			$GLOBALS['clicktrail_test_filters']['clicutcl_render_server_attribution_values'] = static fn() => true;
+		}
+
+		public function test_render_leaves_the_field_empty_by_default(): void {
+			$field = array( 'id' => 3, 'type' => 'hidden', 'label' => 'Google click', 'css' => 'wpf-tracking ct_gclid' );
+
+			$this->assertSame( self::properties(), ( new WPForms_Adapter() )->render_field_default( self::properties(), $field, self::form_data() ), 'Cached HTML must not carry the requesting visitor\'s cookie (#152).' );
 		}
 
 		private static function properties( string $value = '' ): array {
@@ -92,6 +103,7 @@ namespace {
 		}
 
 		public function test_render_fills_a_hidden_field_marked_by_css_class(): void {
+			$this->opt_in_to_server_render();
 			$field = array( 'id' => 3, 'type' => 'hidden', 'label' => 'Google click', 'css' => 'wpf-tracking ct_gclid' );
 
 			$out = ( new WPForms_Adapter() )->render_field_default( self::properties(), $field, self::form_data() );
@@ -100,6 +112,7 @@ namespace {
 		}
 
 		public function test_render_fills_a_hidden_field_marked_by_label_only(): void {
+			$this->opt_in_to_server_render();
 			$field = array( 'id' => 5, 'type' => 'hidden', 'label' => 'ct_ft_source' );
 
 			$out = ( new WPForms_Adapter() )->render_field_default( self::properties(), $field, self::form_data() );
@@ -108,6 +121,7 @@ namespace {
 		}
 
 		public function test_render_leaves_unmarked_and_cookie_missing_fields_alone(): void {
+			$this->opt_in_to_server_render();
 			$adapter = new WPForms_Adapter();
 			$plain   = array( 'id' => 1, 'type' => 'hidden', 'label' => 'Token', 'css' => 'nothing' );
 			$missing = array( 'id' => 4, 'type' => 'hidden', 'label' => 'ct_lt_term', 'css' => '' );
@@ -129,13 +143,27 @@ namespace {
 			$this->assertSame( $fields, $adapter->refresh_fields( $fields, array(), array( 'id' => 9, 'fields' => array( 6 => $note ) ) ) );
 		}
 
-		public function test_submit_refreshes_marked_fields_from_the_cookie_per_key(): void {
+		public function test_submit_takes_cookie_keys_and_blanks_marked_fields_the_cookie_lacks(): void {
 			$out = ( new WPForms_Adapter() )->refresh_fields( self::fields(), array(), self::form_data() );
 
 			$this->assertSame( 'Jonas', $out[1]['value'] );
 			$this->assertSame( 'abc', $out[3]['value'], 'CSS-marked field: a non-empty cookie key replaces the posted value.' );
-			$this->assertSame( 'x', $out[4]['value'], 'Keys missing from the cookie keep the posted value.' );
+			$this->assertSame( '', $out[4]['value'], 'A key the cookie lacks is blank (#152).' );
 			$this->assertSame( 'google', $out[5]['value'], 'Label-marked field: an empty posted value is filled.' );
+		}
+
+		public function test_visitor_a_values_with_visitor_b_cookie_lacking_keys_are_blanked_and_no_cookie_blanks_all(): void {
+			$_COOKIE = array( 'attribution' => json_encode( array( 'gclid' => 'B1' ) ) );
+			$out     = ( new WPForms_Adapter() )->refresh_fields( self::fields(), array(), self::form_data() );
+			$this->assertSame( 'B1', $out[3]['value'] );
+			$this->assertSame( '', $out[4]['value'] );
+			$this->assertSame( '', $out[5]['value'] );
+
+			$_COOKIE = array();
+			$out     = ( new WPForms_Adapter() )->refresh_fields( self::fields(), array(), self::form_data() );
+			$this->assertSame( '', $out[3]['value'] );
+			$this->assertSame( '', $out[4]['value'] );
+			$this->assertSame( 'Jonas', $out[1]['value'] );
 		}
 
 		public function test_submit_falls_back_to_the_processed_field_name_when_form_data_lacks_the_field(): void {
@@ -145,7 +173,7 @@ namespace {
 			$this->assertSame( 'google', $out[5]['value'], 'The processed field name is the label.' );
 		}
 
-		public function test_denied_consent_returns_both_inputs_unchanged(): void {
+		public function test_denied_consent_leaves_render_alone_and_blanks_every_marked_field(): void {
 			$GLOBALS['clicktrail_test_consent_required']     = true;
 			$GLOBALS['clicktrail_test_consent_mode_enabled'] = true;
 			$_COOKIE['production_consent']                   = 'denied';
@@ -153,7 +181,11 @@ namespace {
 			$field                                           = array( 'id' => 3, 'type' => 'hidden', 'label' => 'Google click', 'css' => 'ct_gclid' );
 
 			$this->assertSame( self::properties(), $adapter->render_field_default( self::properties(), $field, self::form_data() ) );
-			$this->assertSame( self::fields(), $adapter->refresh_fields( self::fields(), array(), self::form_data() ) );
+			$out = $adapter->refresh_fields( self::fields(), array(), self::form_data() );
+			$this->assertSame( 'Jonas', $out[1]['value'] );
+			foreach ( array( 3, 4, 5 ) as $id ) {
+				$this->assertSame( '', $out[ $id ]['value'], "field $id is blanked before WPForms stores or mails it." );
+			}
 		}
 
 		public function test_no_wpforms_field_value_filter_is_registered(): void {
@@ -162,6 +194,41 @@ namespace {
 			$this->assertSame( array(), preg_grep( '/^wpforms_field_value_/', $GLOBALS['ct_wpforms_filters'] ) );
 			$this->assertContains( 'wpforms_field_properties', $GLOBALS['ct_wpforms_filters'] );
 			$this->assertContains( 'wpforms_process_filter', $GLOBALS['ct_wpforms_filters'] );
+		}
+
+		public function test_an_unmapped_ct_field_is_never_touched(): void {
+			$this->in_each_state(
+				function ( string $state ): void {
+					$form_data = array(
+						'id'     => 9,
+						'fields' => array(
+							8 => array( 'id' => 8, 'type' => 'text', 'label' => 'Company', 'css' => 'ct_company' ),
+							9 => array( 'id' => 9, 'type' => 'text', 'label' => 'ct_company', 'css' => '' ),
+						),
+					);
+					$fields    = array(
+						8 => array( 'name' => 'Company', 'value' => 'Acme', 'id' => 8, 'type' => 'text' ),
+						9 => array( 'name' => 'ct_company', 'value' => 'Acme2', 'id' => 9, 'type' => 'text' ),
+					);
+
+					$this->assertSame( $fields, ( new WPForms_Adapter() )->refresh_fields( $fields, array(), $form_data ), "Unmapped class and label markers are left alone ($state)." );
+				}
+			);
+		}
+
+		/**
+		 * Run $check in each state: valid cookie, consent blocked, no cookie.
+		 */
+		private function in_each_state( callable $check ): void {
+			$check( 'valid cookie' );
+
+			$_COOKIE = array();
+			$check( 'no cookie' );
+
+			$GLOBALS['clicktrail_test_consent_required']     = true;
+			$GLOBALS['clicktrail_test_consent_mode_enabled'] = true;
+			$_COOKIE['production_consent']                   = 'denied';
+			$check( 'consent blocked' );
 		}
 	}
 }

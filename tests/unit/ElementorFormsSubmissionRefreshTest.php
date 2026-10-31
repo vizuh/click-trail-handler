@@ -89,6 +89,11 @@ namespace {
 			);
 			$GLOBALS['clicktrail_test_consent_required']     = false;
 			$GLOBALS['clicktrail_test_consent_mode_enabled'] = false;
+			$GLOBALS['clicktrail_test_filters']              = array();
+		}
+
+		private function opt_in_to_server_render(): void {
+			$GLOBALS['clicktrail_test_filters']['clicutcl_render_server_attribution_values'] = static fn() => true;
 		}
 
 		private static function field( string $id, string $value, string $type = 'hidden' ): array {
@@ -107,13 +112,22 @@ namespace {
 				array(
 					'name'         => self::field( 'name', 'Jonas', 'text' ),
 					'ct_gclid'     => self::field( 'ct_gclid', 'old' ),
-					'ct_utm_term'  => self::field( 'ct_utm_term', 'x' ),
+					'ct_ft_term'  => self::field( 'ct_ft_term', 'x' ),
 					'ct_ft_source' => self::field( 'ct_ft_source', '' ),
 				)
 			);
 		}
 
+		public function test_render_leaves_the_item_untouched_by_default(): void {
+			$form = new ClickTrailElementorFormDouble();
+			$item = array( 'custom_id' => 'ct_gclid', 'field_type' => 'hidden', 'field_value' => '' );
+
+			$this->assertSame( $item, ( new Elementor_Forms_Adapter() )->render_hidden_field( $item, 3, $form ), 'Cached HTML must not carry the requesting visitor\'s cookie (#152).' );
+			$this->assertSame( array(), $form->attributes );
+		}
+
 		public function test_render_fill_sets_the_item_value_and_replaces_the_value_attribute(): void {
+			$this->opt_in_to_server_render();
 			$form = new ClickTrailElementorFormDouble();
 			$form->set_render_attribute( 'input3', 'value', 'rendered-earlier' );
 			$item = array(
@@ -129,9 +143,10 @@ namespace {
 		}
 
 		public function test_render_fill_leaves_items_the_cookie_lacks_and_non_ct_items_alone(): void {
+			$this->opt_in_to_server_render();
 			$form    = new ClickTrailElementorFormDouble();
 			$adapter = new Elementor_Forms_Adapter();
-			$missing = array( 'custom_id' => 'ct_utm_term', 'field_type' => 'hidden', 'field_value' => 'x' );
+			$missing = array( 'custom_id' => 'ct_ft_term', 'field_type' => 'hidden', 'field_value' => 'x' );
 			$other   = array( 'custom_id' => 'token', 'field_type' => 'hidden', 'field_value' => 't' );
 
 			$this->assertSame( $missing, $adapter->render_hidden_field( $missing, 0, $form ) );
@@ -139,7 +154,7 @@ namespace {
 			$this->assertSame( array(), $form->attributes );
 		}
 
-		public function test_process_updates_only_fields_the_cookie_has(): void {
+		public function test_process_takes_cookie_keys_and_blanks_the_ones_the_cookie_lacks(): void {
 			$record = $this->record();
 
 			( new Elementor_Forms_Adapter() )->refresh_record( $record, null );
@@ -147,11 +162,12 @@ namespace {
 			$this->assertSame(
 				array(
 					array( 'ct_gclid', 'value', 'new' ),
+					array( 'ct_ft_term', 'value', '' ),
 					array( 'ct_ft_source', 'value', 'google' ),
 				),
 				$record->updates
 			);
-			$this->assertSame( 'x', $record->fields['ct_utm_term']['value'], 'Keys missing from the cookie keep the posted value.' );
+			$this->assertSame( '', $record->fields['ct_ft_term']['value'], 'A key the cookie lacks may be another visitor\'s value (#152).' );
 			$this->assertSame( 'Jonas', $record->fields['name']['value'] );
 		}
 
@@ -165,7 +181,7 @@ namespace {
 			$adapter = new ClickTrailElementorLogSpy();
 
 			$adapter->refresh_record( $record, null );
-			$this->assertSame( array( array( 'ct_gclid', 'value', 'new' ) ), $record->updates );
+			$this->assertSame( array( array( 'ct_gclid', 'value', 'new' ), array( 'ct_fbclid', 'value', '' ) ), $record->updates );
 
 			$adapter->on_submission( $record, null );
 			$this->assertSame( array( array( 'elementor_form', array( 'gclid' => 'new' ) ) ), $adapter->logged, 'The log holds the per-key result, not the whole cookie.' );
@@ -182,7 +198,7 @@ namespace {
 			$this->assertSame( array( array( 'elementor_form', array( 'gclid' => 'new', 'ft_source' => 'google' ) ) ), $adapter->logged );
 		}
 
-		public function test_denied_consent_writes_nothing_at_render_or_process(): void {
+		public function test_denied_consent_blanks_ct_fields_at_process_and_leaves_render_alone(): void {
 			$GLOBALS['clicktrail_test_consent_required']     = true;
 			$GLOBALS['clicktrail_test_consent_mode_enabled'] = true;
 			$_COOKIE['production_consent']                   = 'denied';
@@ -195,8 +211,40 @@ namespace {
 			$this->assertSame( array(), $form->attributes );
 
 			$adapter->refresh_record( $record, null );
-			$this->assertSame( array(), $record->updates );
-			$this->assertSame( 'old', $record->fields['ct_gclid']['value'] );
+			foreach ( array( 'ct_gclid', 'ct_ft_term', 'ct_ft_source' ) as $id ) {
+				$this->assertSame( '', $record->fields[ $id ]['value'], "$id is blanked before the form actions run." );
+			}
+			$this->assertSame( 'Jonas', $record->fields['name']['value'] );
+		}
+
+		public function test_an_unmapped_ct_field_is_never_touched(): void {
+			$this->in_each_state(
+				function ( string $state ): void {
+					$record = new ClickTrailElementorRecordDouble(
+						array(
+							'ct_company' => self::field( 'ct_company', 'Acme', 'text' ),
+							'ct_gclid'   => self::field( 'ct_gclid', 'A1' ),
+						)
+					);
+					( new Elementor_Forms_Adapter() )->refresh_record( $record, null );
+					$this->assertSame( 'Acme', $record->fields['ct_company']['value'], "ct_company is the visitor's own field ($state)." );
+				}
+			);
+		}
+
+		/**
+		 * Run $check in each state: valid cookie, consent blocked, no cookie.
+		 */
+		private function in_each_state( callable $check ): void {
+			$check( 'valid cookie' );
+
+			$_COOKIE = array();
+			$check( 'no cookie' );
+
+			$GLOBALS['clicktrail_test_consent_required']     = true;
+			$GLOBALS['clicktrail_test_consent_mode_enabled'] = true;
+			$_COOKIE['production_consent']                   = 'denied';
+			$check( 'consent blocked' );
 		}
 	}
 }

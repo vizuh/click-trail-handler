@@ -64,15 +64,6 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 	 * @param object $form Form object.
 	 */
 	public function add_hidden_fields( $form ) {
-		if ( ! $this->should_populate() ) {
-			return;
-		}
-
-		$payload = $this->get_attribution_payload();
-		if ( empty( $payload ) ) {
-			return;
-		}
-
 		// Fluent Forms fires its legacy and slash-style render hooks for the same form.
 		static $last_form = null;
 		if ( is_object( $form ) ) {
@@ -82,7 +73,8 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 			$last_form = $form;
 		}
 
-		foreach ( $payload as $key => $value ) {
+		// Values are empty unless the render filter opts in (#152); names are always emitted.
+		foreach ( $this->get_render_payload() as $key => $value ) {
 			echo '<input type="hidden" name="' . esc_attr( $this->get_field_name( $key ) ) . '" value="' . esc_attr( $value ) . '">';
 		}
 	}
@@ -98,12 +90,50 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 	}
 
 	/**
-	 * Refresh each ct_* key of the response data from the cookie sent with the submit.
+	 * Marker decision per form ID for the current request, recorded by refresh_response_data().
+	 *
+	 * @var array<int,bool>
+	 */
+	private static $fill_markers = array();
+
+	/**
+	 * Whether this submit carries the Injector's `ct_fill_source=js` marker.
+	 *
+	 * Fluent Forms intersects the posted data with the form's declared fields before
+	 * `fluentform/insert_response_data`, which drops the undeclared marker, so the raw AJAX
+	 * request (`data` is a urlencoded string, `SubmissionHandlerController`) is read as well.
+	 *
+	 * @param array $form_data Response data.
+	 * @return bool
+	 */
+	private function request_has_fill_marker( $form_data ) {
+		if ( isset( $form_data[ self::FILL_MARKER_FIELD ] ) && $this->has_fill_marker( $form_data[ self::FILL_MARKER_FIELD ] ) ) {
+			return true;
+		}
+
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Fluent Forms verifies its own request; the value is compared to a constant and never stored.
+		$raw = isset( $_POST['data'] ) ? wp_unslash( $_POST['data'] ) : array();
+		if ( is_string( $raw ) ) {
+			$parsed = array();
+			parse_str( $raw, $parsed );
+			$raw = $parsed;
+		}
+		if ( is_array( $raw ) && isset( $raw[ self::FILL_MARKER_FIELD ] ) && $this->has_fill_marker( $raw[ self::FILL_MARKER_FIELD ] ) ) {
+			return true;
+		}
+
+		return isset( $_POST[ self::FILL_MARKER_FIELD ] ) && $this->has_fill_marker( wp_unslash( $_POST[ self::FILL_MARKER_FIELD ] ) );
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+	}
+
+	/**
+	 * Resolve the ct_* keys of the response data at submit time (#152).
 	 *
 	 * Runs on `fluentform/insert_response_data` before Fluent Forms stores the entry, so the
-	 * native entry, `fluentform_submission_meta` and ClickTrail's log hold the same submit-time
-	 * value. Per key: a non-empty cookie key wins, keys the cookie lacks keep the posted value.
-	 * Pure in (posted, cookie), so the legacy alias firing a second time is a no-op.
+	 * native entry, `fluentform_submission_meta` and ClickTrail's log hold the same value. Readable
+	 * cookie: authoritative, keys it lacks are blanked. No cookie: posted values survive only with
+	 * the `ct_fill_source=js` marker. Consent blocked: every `ct_*` blanked. The marker is stripped.
+	 * Only `ct_*` names the form posted are rewritten.
 	 *
 	 * @param array $form_data     Response data about to be inserted.
 	 * @param int   $form_id       Form ID (unused).
@@ -111,20 +141,31 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 	 * @return array
 	 */
 	public function refresh_response_data( $form_data, $form_id = 0, $input_configs = array() ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
-		if ( ! is_array( $form_data ) || ! $this->refresh_allowed() ) {
+		if ( ! is_array( $form_data ) ) {
 			return $form_data;
 		}
 
-		$payload = $this->get_attribution_payload();
-		if ( empty( $payload ) ) {
-			return $form_data;
-		}
+		$marker = $this->request_has_fill_marker( $form_data );
+		unset( $form_data[ self::FILL_MARKER_FIELD ] );
+		// `fluentform_submission_inserted` receives this refreshed copy, not the raw request, so
+		// carry the keep/blank decision to on_submission(). The raw request still holds the marker
+		// when the legacy alias runs this a second time.
+		self::$fill_markers[ (int) $form_id ] = $marker;
 
-		foreach ( $form_data as $name => $posted ) {
-			$value = $this->cookie_value_for( $name, $payload );
-			if ( null !== $value ) {
-				$form_data[ $name ] = sanitize_text_field( $value );
+		$posted = array();
+		foreach ( $form_data as $name => $value ) {
+			$key = $this->mapped_key( $name );
+			if ( null !== $key ) {
+				$posted[ $key ] = $value;
 			}
+		}
+		if ( empty( $posted ) ) {
+			return $form_data;
+		}
+
+		$resolved = $this->resolve_submitted_attribution( $posted, $marker );
+		foreach ( array_keys( $posted ) as $key ) {
+			$form_data[ $this->get_field_name( $key ) ] = $resolved[ $key ];
 		}
 
 		return $form_data;
@@ -154,25 +195,27 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 		$form      = $arg3;
 		$payload   = $this->get_attribution_payload();
 
-		// Per key, the same rule refresh_response_data() applied before insert: a non-empty cookie
-		// key wins, keys the cookie lacks keep the posted value. Re-applying it here is idempotent.
+		// Re-apply the rule refresh_response_data() applied before insert. Fluent Forms passes the
+		// refreshed copy here (SubmissionHandlerService::processSubmissionData() reads
+		// `$this->formData`), whose marker was stripped, so use the decision recorded at refresh.
+		$form_id = isset( $arg3->id ) ? (int) $arg3->id : 0;
+		$marker  = $this->request_has_fill_marker( $form_data ) || ! empty( self::$fill_markers[ $form_id ] );
+		unset( $form_data[ self::FILL_MARKER_FIELD ] );
+		$posted = array();
+		foreach ( $form_data as $name => $value ) {
+			$key = $this->mapped_key( $name );
+			if ( null !== $key ) {
+				$posted[ $key ] = $value;
+			}
+		}
+		$carries_ct_field = ! empty( $posted );
 		$attribution      = array();
-		$carries_ct_field = false;
 
-		foreach ( Attribution_Provider::get_field_mapping() as $key ) {
-			$prefixed = $this->get_field_name( $key );
-			if ( ! isset( $form_data[ $prefixed ] ) ) {
-				continue;
-			}
-			$carries_ct_field = true;
-
-			$value = $this->cookie_value_for( $prefixed, $payload );
-			if ( null === $value ) {
-				$value = is_scalar( $form_data[ $prefixed ] ) ? (string) $form_data[ $prefixed ] : '';
-			}
-			$value = sanitize_text_field( $value );
-			if ( '' !== $value ) {
-				$attribution[ $key ] = $value;
+		if ( $carries_ct_field ) {
+			foreach ( $this->resolve_submitted_attribution( $posted, $marker ) as $key => $value ) {
+				if ( '' !== $value && array_key_exists( $key, $posted ) ) {
+					$attribution[ $key ] = $value;
+				}
 			}
 		}
 

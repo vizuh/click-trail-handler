@@ -78,9 +78,9 @@ class Ninja_Forms_Adapter extends Abstract_Form_Adapter {
 			return $form_data;
 		}
 
-		if ( ! $this->should_populate() ) {
+		if ( ! $this->refresh_allowed() ) {
 			// Remove a stale ClickTrail extra that may have been added before
-			// consent was withdrawn; leave unrelated Ninja Forms extras intact.
+			// consent was withdrawn (submit-time consent is authoritative, #152); leave unrelated Ninja Forms extras intact.
 			if ( isset( $form_data['extra'] ) && is_array( $form_data['extra'] ) ) {
 				unset( $form_data['extra'][ Ninja_Forms_Submission_Extra_Handler::EXTRA_VALUE_KEY ] );
 				if ( empty( $form_data['extra'] ) ) {

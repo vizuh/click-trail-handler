@@ -160,6 +160,28 @@ Arguments:
 - `array $allowed`
 - `array $context`
 
+### `clicutcl_render_server_attribution_values`
+
+Type:
+
+- filter
+
+Purpose:
+
+- let form adapters write the requesting visitor's attribution cookie into rendered form HTML (CF7 hidden
+  fields, Gravity Forms `gform_field_value`, Fluent Forms hidden inputs, Elementor and WPForms hidden fields);
+  default `false` keeps every `ct_*` value empty so a page cache cannot serve one visitor's values to another
+  (#152); return `true` only on sites without a full-page cache
+
+Arguments:
+
+- `bool $render` default `false`
+- `string $platform` adapter platform name, for example `Contact Form 7`
+
+Return:
+
+- `bool`
+
 ### `clicutcl_identity_default_country`
 
 Type:

@@ -82,6 +82,24 @@ final class FluentFormsAdapterTest extends TestCase {
 		$this->assertSame( 2, substr_count( $output, 'name="ct_lt_source"' ) );
 	}
 
+	public function test_hidden_fields_render_empty_values_by_default_and_the_cookie_with_the_filter(): void {
+		$adapter = new ClickTrailHiddenFieldTestAdapter();
+		ob_start();
+		$adapter->add_hidden_fields( (object) array( 'id' => 21 ) );
+		$default = (string) ob_get_clean();
+
+		$this->assertStringContainsString( '<input type="hidden" name="ct_ft_source" value="">', $default );
+		$this->assertStringNotContainsString( 'release-smoke', $default );
+
+		$GLOBALS['clicktrail_test_filters']['clicutcl_render_server_attribution_values'] = static fn() => true;
+		ob_start();
+		$adapter->add_hidden_fields( (object) array( 'id' => 22 ) );
+		$opted_in = (string) ob_get_clean();
+		unset( $GLOBALS['clicktrail_test_filters']['clicutcl_render_server_attribution_values'] );
+
+		$this->assertStringContainsString( 'name="ct_ft_source" value="release-smoke"', $opted_in );
+	}
+
 	public function test_submission_meta_uses_fluent_forms_response_id_column(): void {
 		$db = new ClickTrailFluentDbStub();
 		$GLOBALS['clicktrail_test_fluent_db'] = $db;
@@ -90,8 +108,9 @@ final class FluentFormsAdapterTest extends TestCase {
 		$adapter->on_submission(
 			42,
 			array(
-				'ct_ft_source' => 'release-smoke',
-				'ct_lt_source' => 'release-smoke',
+				'ct_ft_source'   => 'release-smoke',
+				'ct_lt_source'   => 'release-smoke',
+				'ct_fill_source' => 'js',
 			),
 			(object) array( 'id' => 7 )
 		);

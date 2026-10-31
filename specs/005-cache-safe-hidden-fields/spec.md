@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-31
 
-**Status**: Draft, not started. Every claim below is source-present / runtime-unverified: the leak is derived from reading `main` @ `ef6a20b`, not from a live cached site. Depends on [`specs/004-submit-time-refresh-parity`](../004-submit-time-refresh-parity/spec.md): that spec gives CF7, Fluent Forms, Elementor and WPForms a submit-time refresh hook; this spec changes the merge rule inside every refresh hook, including the Gravity Forms one that already exists.
+**Status**: Implemented (PHPUnit and Node VM only; no live page cache run). Originally: Draft, not started. Every claim below is source-present / runtime-unverified: the leak is derived from reading `main` @ `ef6a20b`, not from a live cached site. Depends on [`specs/004-submit-time-refresh-parity`](../004-submit-time-refresh-parity/spec.md): that spec gives CF7, Fluent Forms, Elementor and WPForms a submit-time refresh hook; this spec changes the merge rule inside every refresh hook, including the Gravity Forms one that already exists.
 
 **Input**: GitHub issue [#152](https://github.com/vizuh/click-trail-handler/issues/152). Server render writes the requesting visitor's attribution cookie into form HTML. A full-page cache that does not vary on the `attribution` cookie stores that HTML and serves visitor A's `ct_*` values to visitor B. Related: [#142](https://github.com/vizuh/click-trail-handler/issues/142) (refresh parity), [#154](https://github.com/vizuh/click-trail-handler/issues/154) (cookie scope).
 
