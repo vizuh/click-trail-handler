@@ -196,6 +196,8 @@ Source-present form adapters (runtime-unverified in this audit):
 - Ninja Forms
 - WPForms
 
+Fluent Forms hooks: `fluentform/form_element_start`, `fluentform/insert_response_data` and `fluentform/submission_inserted` on Fluent Forms 5.0.0 or later (or when `FLUENTFORM_VERSION` is undefined); the underscore names (`fluentform_*`) only on 4.x, never both, because current Fluent Forms raises a deprecation notice for a callback on `fluentform_insert_response_data`.
+
 Runtime evidence for `1.9.1`: a consent-not-required browser submission on WordPress 6.9, PHP 8.1, and Fluent Forms 6.2.13 stored `ct_ft_source`, `ct_lt_source`, and campaign metadata in `fluentform_submission_meta`. This does not establish the other adapters, consent-required paths, or erasure behavior.
 
 Visibility evidence for `1.10.1` (2026-09-12): on WordPress 7.1, PHP 8.3 and

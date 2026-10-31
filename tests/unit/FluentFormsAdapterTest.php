@@ -122,4 +122,68 @@ final class FluentFormsAdapterTest extends TestCase {
 			$this->assertArrayNotHasKey( 'submission_id', $insert['row'] );
 		}
 	}
+
+	private function registered_hooks_with_fluent_version( ?string $version ): array {
+		require_once dirname( __DIR__ ) . '/helpers/hook-recorder-forms-namespace.php';
+		if ( null !== $version ) {
+			define( 'FLUENTFORM_VERSION', $version );
+		}
+		$GLOBALS['ct_forms_registered_hooks'] = array();
+		( new Fluent_Forms_Adapter() )->register_hooks();
+		$hooks = $GLOBALS['ct_forms_registered_hooks'];
+		sort( $hooks );
+		return $hooks;
+	}
+
+	private const SLASH_HOOKS = array(
+		'fluentform/form_element_start',
+		'fluentform/insert_response_data',
+		'fluentform/submission_inserted',
+	);
+
+	private const LEGACY_HOOKS = array(
+		'fluentform_form_element_start',
+		'fluentform_insert_response_data',
+		'fluentform_submission_inserted',
+	);
+
+	/**
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_fluent_5_and_later_registers_only_the_slash_hooks(): void {
+		$expected = self::SLASH_HOOKS;
+		sort( $expected );
+		$this->assertSame( $expected, $this->registered_hooks_with_fluent_version( '6.2.16' ) );
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_fluent_5_0_0_is_the_first_slash_hook_version(): void {
+		$expected = self::SLASH_HOOKS;
+		sort( $expected );
+		$this->assertSame( $expected, $this->registered_hooks_with_fluent_version( '5.0.0' ) );
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_fluent_before_5_registers_only_the_legacy_hooks(): void {
+		$expected = self::LEGACY_HOOKS;
+		sort( $expected );
+		$this->assertSame( $expected, $this->registered_hooks_with_fluent_version( '4.3.25' ) );
+	}
+
+	/**
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_unknown_fluent_version_registers_only_the_slash_hooks(): void {
+		$expected = self::SLASH_HOOKS;
+		sort( $expected );
+		$this->assertSame( $expected, $this->registered_hooks_with_fluent_version( null ) );
+	}
 }
