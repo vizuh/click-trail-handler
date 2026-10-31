@@ -39,6 +39,16 @@ class WooCommerce {
 	public const CONSENT_META_KEY = '_clicutcl_consent';
 
 	/**
+	 * Prefix for the per-order thank-you dispatch lock (object cache key or option name).
+	 */
+	public const PURCHASE_LOCK_PREFIX = 'clicutcl_purchase_lock_';
+
+	/**
+	 * Seconds a thank-you dispatch lock may be held before it is considered stale.
+	 */
+	private const PURCHASE_LOCK_TTL = 30;
+
+	/**
 	 * Initialize hooks.
 	 */
 	public function init() {
@@ -235,35 +245,150 @@ class WooCommerce {
 			return;
 		}
 
-		$attribution = $this->collect_order_attribution( $order );
-		$flat_attr   = $this->flatten_attribution_for_event( $attribution );
-		$identity    = $this->resolve_purchase_identity( $order );
-		$payload     = $this->build_purchase_payload( $order, $attribution, $identity );
-		$defaults    = $payload;
-
-		/**
-		 * Filter the final WooCommerce purchase payload before ClickTrail pushes
-		 * it into `dataLayer` and the server-side dispatcher.
-		 *
-		 * @param array     $payload Purchase payload.
-		 * @param \WC_Order $order   Order instance.
-		 */
-		$payload   = apply_filters( 'clicutcl_woocommerce_purchase_payload', $payload, $order );
-		$payload   = is_array( $payload ) ? wp_parse_args( $payload, $defaults ) : $defaults;
-		$datalayer = $this->build_purchase_datalayer_payload( $payload, $flat_attr );
-
-		$result = $this->dispatch_order_payload( $order, $payload, 'purchase', 'woocommerce_thankyou' );
-		?>
-		<script>
-			window.dataLayer = window.dataLayer || [];
-			window.dataLayer.push(<?php echo wp_json_encode( $datalayer ); ?>);
-		</script>
-		<?php
-
-		if ( $this->should_mark_milestone_sent( $result ) ) {
-			$order->update_meta_data( '_clicutcl_tracking_sent', 'yes' );
+		// The marker above is a read-then-write: two concurrent thank-you loads
+		// (double tab, prefetch, reload mid-request) both pass it. Claim the
+		// order atomically before building or emitting anything so only one
+		// request pushes the dataLayer purchase and dispatches the server copy.
+		$lock = $this->acquire_purchase_lock( (int) $order_id );
+		if ( '' === $lock ) {
+			return;
 		}
-		$order->save();
+
+		try {
+			$attribution = $this->collect_order_attribution( $order );
+			$flat_attr   = $this->flatten_attribution_for_event( $attribution );
+			$identity    = $this->resolve_purchase_identity( $order );
+			$payload     = $this->build_purchase_payload( $order, $attribution, $identity );
+			$defaults    = $payload;
+
+			/**
+			 * Filter the final WooCommerce purchase payload before ClickTrail pushes
+			 * it into `dataLayer` and the server-side dispatcher.
+			 *
+			 * @param array     $payload Purchase payload.
+			 * @param \WC_Order $order   Order instance.
+			 */
+			$payload   = apply_filters( 'clicutcl_woocommerce_purchase_payload', $payload, $order );
+			$payload   = is_array( $payload ) ? wp_parse_args( $payload, $defaults ) : $defaults;
+			$datalayer = $this->build_purchase_datalayer_payload( $payload, $flat_attr );
+
+			$result = $this->dispatch_order_payload( $order, $payload, 'purchase', 'woocommerce_thankyou' );
+			?>
+			<script>
+				window.dataLayer = window.dataLayer || [];
+				window.dataLayer.push(<?php echo wp_json_encode( $datalayer ); ?>);
+			</script>
+			<?php
+
+			if ( $this->should_mark_milestone_sent( $result ) ) {
+				$order->update_meta_data( '_clicutcl_tracking_sent', 'yes' );
+			}
+			$order->save();
+		} finally {
+			$this->release_purchase_lock( (int) $order_id, $lock );
+		}
+	}
+
+	/**
+	 * Atomically claim the thank-you dispatch for one order.
+	 *
+	 * With a persistent object cache, `wp_cache_add()` is an atomic claim that
+	 * fails when the key already exists. Without one, the in-memory cache is
+	 * per request and cannot see a concurrent PHP worker, so fall back to
+	 * `add_option()` uniqueness on the options table (the same pattern core
+	 * uses for upgrader locks). An option lock older than PURCHASE_LOCK_TTL is
+	 * treated as abandoned by a request that died before releasing it and is
+	 * taken over through a row-conditional delete of the exact stale value, so
+	 * two late arrivals cannot both take it.
+	 *
+	 * Every claim stores a value unique to this request and returns it; the
+	 * release only removes the lock while that exact value is still stored. A
+	 * dispatch that outlives the TTL (cache expiry, or option takeover) can
+	 * therefore overlap with a successor by design, bounded by PHP's
+	 * max_execution_time, but it can never release the successor's lock.
+	 *
+	 * Keyed by order ID only, so posts storage and HPOS behave identically.
+	 *
+	 * @param int $order_id Order ID.
+	 * @return string The stored lock value this request owns, or '' when another request holds the lock.
+	 */
+	private function acquire_purchase_lock( int $order_id ): string {
+		$key   = self::PURCHASE_LOCK_PREFIX . $order_id;
+		$token = wp_generate_uuid4();
+
+		if ( wp_using_ext_object_cache() ) {
+			return wp_cache_add( $key, $token, 'clicutcl', self::PURCHASE_LOCK_TTL ) ? $token : '';
+		}
+
+		$value = $token . '|' . time();
+		if ( add_option( $key, $value, '', 'no' ) ) {
+			return $value;
+		}
+
+		$stored     = (string) get_option( $key, '' );
+		$held_since = (int) substr( (string) strrchr( $stored, '|' ), 1 );
+		if ( $held_since <= 0 || ( time() - $held_since ) <= self::PURCHASE_LOCK_TTL ) {
+			return '';
+		}
+
+		// Only the request that deletes the exact stale row may re-claim; a
+		// concurrent late arrival that changed the row first wins instead.
+		if ( 1 !== $this->delete_purchase_lock_row( $key, $stored ) ) {
+			return '';
+		}
+
+		return add_option( $key, $value, '', 'no' ) ? $value : '';
+	}
+
+	/**
+	 * Release the thank-you dispatch lock once the marker has been saved.
+	 *
+	 * Owner-checked: the lock is removed only while it still holds the value
+	 * this request stored, so an expired owner never deletes a successor's lock.
+	 *
+	 * @param int    $order_id Order ID.
+	 * @param string $lock     Value returned by acquire_purchase_lock().
+	 * @return void
+	 */
+	private function release_purchase_lock( int $order_id, string $lock ): void {
+		$key = self::PURCHASE_LOCK_PREFIX . $order_id;
+
+		if ( wp_using_ext_object_cache() ) {
+			if ( wp_cache_get( $key, 'clicutcl' ) === $lock ) {
+				wp_cache_delete( $key, 'clicutcl' );
+			}
+			return;
+		}
+
+		$this->delete_purchase_lock_row( $key, $lock );
+	}
+
+	/**
+	 * Delete the option lock row only while it still stores the given value.
+	 *
+	 * `delete_option()` is unconditional, so this goes to the options table
+	 * directly and uses the row's current value as part of the WHERE clause;
+	 * the affected-rows count tells the caller whether it won. The per-request
+	 * options cache entry is dropped the same way core's `delete_option()`
+	 * does so a following `add_option()` pre-check sees the row is gone.
+	 *
+	 * @param string $key   Option name.
+	 * @param string $value Exact stored value that must still be present.
+	 * @return int Rows deleted (0 or 1).
+	 */
+	private function delete_purchase_lock_row( string $key, string $value ): int {
+		global $wpdb;
+
+		$deleted = $wpdb->delete(
+			$wpdb->options,
+			array(
+				'option_name'  => $key,
+				'option_value' => $value,
+			)
+		);
+		wp_cache_delete( $key, 'options' );
+
+		return false === $deleted ? 0 : (int) $deleted;
 	}
 
 	/**

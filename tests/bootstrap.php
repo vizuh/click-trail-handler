@@ -148,19 +148,74 @@ if ( ! function_exists( 'do_action' ) ) {
 
 if ( ! function_exists( 'get_option' ) ) {
 	function get_option( $option, $default = false ) { // phpcs:ignore Universal.NamingConventions.NoReservedKeywordParameterNames.defaultFound -- Mirrors WordPress core get_option() signature.
-		return $default;
+		return $GLOBALS['clicktrail_test_options'][ $option ] ?? $default;
+	}
+}
+
+if ( ! function_exists( 'add_option' ) ) {
+	/**
+	 * Option stub honoring core's uniqueness contract: false when the row exists.
+	 */
+	function add_option( $option, $value = '', $deprecated = '', $autoload = 'yes' ) {
+		if ( isset( $GLOBALS['clicktrail_test_options'][ $option ] ) ) {
+			return false;
+		}
+		$GLOBALS['clicktrail_test_options'][ $option ] = $value;
+		return true;
+	}
+}
+
+if ( ! function_exists( 'delete_option' ) ) {
+	function delete_option( $option ) {
+		if ( ! isset( $GLOBALS['clicktrail_test_options'][ $option ] ) ) {
+			return false;
+		}
+		unset( $GLOBALS['clicktrail_test_options'][ $option ] );
+		return true;
 	}
 }
 
 if ( ! function_exists( 'wp_cache_get' ) ) {
+	/**
+	 * Reads only values claimed through the `wp_cache_add` stub; `wp_cache_set` stays inert.
+	 */
 	function wp_cache_get( $key, $group = '', $force = false, &$found = null ) {
-		$found = false;
-		return false;
+		$found = isset( $GLOBALS['clicktrail_test_cache'][ $group ][ $key ] );
+		return $found ? $GLOBALS['clicktrail_test_cache'][ $group ][ $key ] : false;
+	}
+}
+
+if ( ! function_exists( 'wp_generate_uuid4' ) ) {
+	function wp_generate_uuid4() {
+		return uniqid( 'uuid-', true );
 	}
 }
 
 if ( ! function_exists( 'wp_cache_set' ) ) {
 	function wp_cache_set( $key, $value, $group = '', $expire = 0 ) {
+		return true;
+	}
+}
+
+if ( ! function_exists( 'wp_cache_add' ) ) {
+	/**
+	 * Atomic-claim stub: false when the key is already held in the group.
+	 */
+	function wp_cache_add( $key, $data, $group = '', $expire = 0 ) {
+		if ( isset( $GLOBALS['clicktrail_test_cache'][ $group ][ $key ] ) ) {
+			return false;
+		}
+		$GLOBALS['clicktrail_test_cache'][ $group ][ $key ] = $data;
+		return true;
+	}
+}
+
+if ( ! function_exists( 'wp_cache_delete' ) ) {
+	function wp_cache_delete( $key, $group = '' ) {
+		if ( ! isset( $GLOBALS['clicktrail_test_cache'][ $group ][ $key ] ) ) {
+			return false;
+		}
+		unset( $GLOBALS['clicktrail_test_cache'][ $group ][ $key ] );
 		return true;
 	}
 }
@@ -290,7 +345,7 @@ if ( ! class_exists( 'WP_REST_Request' ) ) {
 
 if ( ! function_exists( 'wp_using_ext_object_cache' ) ) {
 	function wp_using_ext_object_cache() {
-		return false;
+		return (bool) ( $GLOBALS['clicktrail_test_ext_object_cache'] ?? false );
 	}
 }
 

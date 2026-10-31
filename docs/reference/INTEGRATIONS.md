@@ -58,7 +58,7 @@ live hook, consent, identity, and retention behavior still require testing.
 | TikTok Pixel, LinkedIn Insight, Pinterest Tag, Reddit Pixel | GTM-mediated only; direct SDKs not observed | Possible through a site-owned GTM container | No direct pixel/SDK injection or provider setup in ClickTrail |
 | Reddit destination | Relay-only | Destination toggle and `rdt_cid`/Reddit source classification | No native Reddit delivery adapter; no Reddit conversion-delivery claim |
 | Forms | Source connector / runtime-unverified overall | CF7, Elementor Pro, Fluent, Gravity, Ninja, and WPForms paths; bounded Fluent Forms submission-storage evidence; six-case evidence manifests | Live plugin-hook, posted-field, submission-storage, consent, and erasure proof for the remaining adapters |
-| WooCommerce | Source connector / runtime-unverified | Order attribution, storefront events, purchase/milestones, traces, and allowlisted order-meta privacy lifecycle contracts | Live checkout/CMP behavior, purchase dataLayer, dedup concurrency, queue/retry, and classic/HPOS staging proof |
+| WooCommerce | Source connector / runtime-unverified | Order attribution, storefront events, purchase/milestones, traces, allowlisted order-meta privacy lifecycle contracts, and a per-order thank-you dispatch lock (PHPUnit `WooCommercePurchaseDispatchLockTest`, #148) | Live checkout/CMP behavior, purchase dataLayer, dedup concurrency under real concurrent requests, queue/retry, and classic/HPOS staging proof |
 | Calendly, HubSpot, Typeform | Webhook ingress / runtime-unverified | Signed inbound routes and canonical translation | Provider timestamp, identity minimization, replay, consent, and E2E proof |
 | HubSpot embedded forms (updated editor v4 and legacy embeds) | Source-present / runtime-unverified | Browser `lead` on HubSpot's documented v4 submission-success event and legacy `hsFormCallback` `onFormSubmitted` message; `form_submit_failed` on v4 failure; consent-gated, deduplicated; Node VM contract test | A live HubSpot form submission; iframe origin of legacy iframe embeds; attribution written into HubSpot hidden fields (not implemented) |
 
@@ -298,7 +298,7 @@ What the current source paths implement:
 
 - save attribution on checkout
 - render attribution in WooCommerce admin
-- push purchase event to `dataLayer` only when current visitor consent permits processing
+- push purchase event to `dataLayer` only when current visitor consent permits processing, and at most once per order: the thank-you path claims `clicutcl_purchase_lock_<order_id>` with a request-unique token (`wp_cache_add()` with a persistent object cache, else an `add_option()` row `<token>|<time>`; a row older than 30 s is taken over only through a row-conditional delete of the exact stale value) before building or emitting anything, so concurrent thank-you loads emit one `dataLayer` push and one server dispatch; the release after `_clicutcl_tracking_sent` is saved is owner-checked, so a dispatch that outlives the 30 s TTL may overlap with a successor but cannot release the successor's lock (#148, source-present / runtime-unverified)
 - optionally emit storefront `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` browser events
 - preserve `item_list_name` and `item_list_index` when list context is available
 - push `event_id` (`purchase_<order_id>`, same as the server purchase event) on every thank-you `purchase` push regardless of `woo_enhanced_datalayer` (#139)
@@ -381,7 +381,7 @@ do not replace browser/CMP and provider validation. Remaining boundaries include
 
 - purchase identity still reads live-cookie consent in server-context milestone paths
 - purchase-path skipped dispatch can set the sent marker after the browser consent gate passes
-- dedup check/send/mark is non-atomic
+- Dispatcher `Dedup_Store` check/send/mark is non-atomic; the thank-you purchase path is covered by the per-order lock above, server-context milestone paths are not
 - queue uniqueness omits destination; strict/geo retries require a durable subject-consent resolver
 - classic and HPOS core order paths, refund trace persistence, and HPOS admin hooks are runtime-tested only in isolated synthetic stacks
 
