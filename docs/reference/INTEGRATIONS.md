@@ -297,7 +297,8 @@ What the current source paths implement:
 - push purchase event to `dataLayer` only when current visitor consent permits processing
 - optionally emit storefront `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` browser events
 - preserve `item_list_name` and `item_list_index` when list context is available
-- optionally widen Woo `dataLayer` pushes with `event_id` and consent-aware `user_data` for GTM-first setups
+- push `event_id` (`purchase_<order_id>`, same as the server purchase event) on every thank-you `purchase` push regardless of `woo_enhanced_datalayer` (#139)
+- optionally widen Woo `dataLayer` pushes with consent-aware `user_data` for GTM-first setups
 - store purchase and milestone trace snapshots on the order for Diagnostics lookup
 - optionally dispatch purchase and order-status milestone events into the server-side delivery pipeline
 
