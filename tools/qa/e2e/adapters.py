@@ -91,44 +91,115 @@ def returning(browser):
     return {p: run_visit(browser, p, [first, second], 'return-' + p) for p in PROVIDERS}
 
 
+A_VALUES = ('AAA', 'AFB', 'a_src')
+
+
+def render_ct_values(html):
+    """Non-empty values of the ClickTrail-marked inputs in rendered HTML (`ct_*` name or `ct_*` class), by regex."""
+    found = {}
+    for tag in re.findall(r'<input\b[^>]*>', html):
+        name = re.search(r'\bname=["\']([^"\']*)["\']', tag)
+        value = re.search(r'\bvalue=["\']([^"\']*)["\']', tag)
+        klass = re.search(r'\bclass=["\']([^"\']*)["\']', tag)
+        label = name.group(1) if name and name.group(1).startswith('ct_') else None
+        if not label and klass:
+            label = next((c for c in klass.group(1).split() if c.startswith('ct_')), None)
+        if label and label != 'ct_fill_source' and value and value.group(1):
+            found[label] = value.group(1)
+    return found
+
+
+def set_render_values(enabled):
+    wp('option', 'update', 'ct_e2e_render_values', '1' if enabled else '0')
+
+
+def visitor_a_html(browser, path):
+    """The HTML a page cache would store for visitor A: A's second request, which carries A's cookie."""
+    ctx = new_context(browser)
+    page = ctx.new_page()
+    page.goto(BASE + path + '?gclid=AAA&fbclid=AFB&utm_source=a_src&utm_medium=cpc')
+    page.wait_for_load_state('networkidle')
+    html = ctx.request.get(BASE + path).text()
+    cookie = attribution_cookie(ctx)
+    ctx.close()
+    return html, cookie
+
+
+def stale_submit(browser, provider, html, tag, cookies=None, prime_b=True, plant_a_values=False):
+    """Serve `html` (rendered for another visitor) as the form page and submit as a visitor with their own cookies."""
+    path = PROVIDERS[provider]['path']
+    ctx = new_context(browser)
+    page = ctx.new_page()
+    if cookies:
+        ctx.add_cookies(cookies)
+    cookie_before = {}
+    if prime_b:
+        page.goto(BASE + '/?fbclid=BFB&utm_source=b_src&utm_medium=social')
+        page.wait_for_load_state('networkidle')
+        cookie_before = {k: v for k, v in attribution_cookie(ctx).items() if k in CT_FIELDS}
+
+    def serve(route, request=None):
+        if route.request.resource_type == 'document':
+            route.fulfill(status=200, content_type='text/html; charset=utf-8', body=html)
+        else:
+            route.continue_()
+
+    ctx.route(BASE + path, serve)
+    snap = snapshot()
+    page.goto(BASE + path)
+    if plant_a_values:
+        # Put visitor A's values into the posted inputs where the snapshot did not: Lite renders no server value
+        # (hidden is a Pro field) and Fluent's builder fields are filled only by the browser. This is what a Pro hidden
+        # field or an opted-in render would have posted from a stale cache.
+        planted = {'gclid': 'AAA', 'fbclid': 'AFB', 'ft_source': 'a_src', 'lt_source': 'a_src', 'lt_medium': 'cpc'}
+        ids = {'gclid': '3', 'fbclid': '4', 'ft_source': '5', 'lt_source': '6', 'lt_medium': '7'}
+        for key, value in planted.items():
+            selector = '[name="wpforms[fields][%s]"]' % ids[key] if provider.startswith('wpforms') else 'form input[name="ct_%s"]' % key
+            page.evaluate("([sel, v]) => { const el = document.querySelector(sel); if (el) el.value = v; }", [selector, value])
+    dom = ct_inputs(page)
+    status = submit(page, provider, tag)
+    settle()
+    result = observe(provider, page, ctx, snap, status, dom)
+    result['cookie_before'] = cookie_before
+    ctx.close()
+    return result
+
+
 def cache_leak(browser):
-    """Visitor A's server-rendered page served to visitor B, who submits with B's own cookie."""
+    """Cache-safe hidden fields (#152, #177), three layers per provider.
+
+    render:   with A's cookie, the rendered HTML holds no attribution value in a ct_* input.
+    submit:   with the render filter forced on, A's snapshot carries A's values; B (cookie lacks gclid) submits it and the
+              stored record holds B's values and nothing for the keys B lacks.
+    consent:  consent required and not granted (no cookie, denied cookie), stale snapshot posted: everything blank.
+    """
     out = {}
     for provider in ('cf7', 'fluent', 'wpforms_text'):
         path = PROVIDERS[provider]['path']
-        ctx_a = new_context(browser)
-        page_a = ctx_a.new_page()
-        page_a.goto(BASE + path + '?gclid=AAA&fbclid=AFB&utm_source=a_src&utm_medium=cpc')
-        page_a.wait_for_load_state('networkidle')
-        # A's second request carries A's cookie: the HTML a page cache would store.
-        html_a = ctx_a.request.get(BASE + path).text()
-        cookie_a = attribution_cookie(ctx_a)
-        ctx_a.close()
-
-        ctx_b = new_context(browser)
-        page_b = ctx_b.new_page()
-        page_b.goto(BASE + '/?fbclid=BFB&utm_source=b_src&utm_medium=social')
-        page_b.wait_for_load_state('networkidle')
-        cookie_b = attribution_cookie(ctx_b)
-
-        def serve_cached(route, request=None, html=html_a):
-            if route.request.resource_type == 'document':
-                route.fulfill(status=200, content_type='text/html; charset=utf-8', body=html)
-            else:
-                route.continue_()
-
-        ctx_b.route(BASE + path, serve_cached)
-        snap = snapshot()
-        page_b.goto(BASE + path)
-        dom = ct_inputs(page_b)
-        status = submit(page_b, provider, 'cache-' + provider)
-        settle()
-        result = observe(provider, page_b, ctx_b, snap, status, dom)
-        result['cached_html_carries_A'] = 'AAA' in html_a
-        result['cookie_A'] = {k: v for k, v in cookie_a.items() if k in CT_FIELDS}
-        result['cookie_B_before'] = {k: v for k, v in cookie_b.items() if k in CT_FIELDS}
+        result = {}
+        set_render_values(False)
+        html_default, cookie_a = visitor_a_html(browser, path)
+        result['render'] = {
+            'cookie_A': {k: v for k, v in cookie_a.items() if k in CT_FIELDS},
+            'ct_inputs_non_empty': render_ct_values(html_default),
+            'a_values_anywhere': [v for v in A_VALUES if v in html_default],
+        }
+        set_render_values(True)
+        try:
+            html_forced, _ = visitor_a_html(browser, path)
+            result['forced_render'] = {'ct_inputs_non_empty': render_ct_values(html_forced), 'carries_A': 'AAA' in html_forced}
+            planted = provider != 'cf7'
+            result['submit'] = stale_submit(browser, provider, html_forced, 'cache-' + provider, plant_a_values=planted)
+            set_consent_mode(True)
+            consent = {}
+            denied = [{'name': 'ct_consent', 'value': urllib.parse.quote(json.dumps({'marketing': False, 'analytics': False})), 'url': BASE + '/'}]
+            consent['no_consent'] = stale_submit(browser, provider, html_forced, 'nocons-' + provider, prime_b=False, plant_a_values=True)
+            consent['denied'] = stale_submit(browser, provider, html_forced, 'denied-' + provider, cookies=denied, prime_b=False, plant_a_values=True)
+            result['consent'] = consent
+        finally:
+            set_consent_mode(False)
+            set_render_values(False)
         out[provider] = result
-        ctx_b.close()
     return out
 
 
