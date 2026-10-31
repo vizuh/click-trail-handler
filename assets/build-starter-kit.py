@@ -66,8 +66,32 @@ def make_ce_trigger(tid, name, event_name, folder_id):
         "fingerprint": fp(), "parentFolderId": str(folder_id)
     }
 
+# Stored attribution forwarded on every GA4 event tag. The ct_ prefix keeps the
+# names clear of GA4 reserved parameters; none of these are session campaign fields.
+CT_ATTRIBUTION_PARAMS = {
+    "ct_ft_source": "{{DLV - ft_source}}",
+    "ct_ft_medium": "{{DLV - ft_medium}}",
+    "ct_ft_campaign": "{{DLV - ft_campaign}}",
+    "ct_ft_channel": "{{DLV - ft_channel}}",
+    "ct_lt_source": "{{DLV - lt_source}}",
+    "ct_lt_medium": "{{DLV - lt_medium}}",
+    "ct_lt_campaign": "{{DLV - lt_campaign}}",
+    "ct_lt_channel": "{{DLV - lt_channel}}",
+    "ct_click_id": "{{JS - selected click id}}",
+}
+
+# Meta consent gating: GTM blocks the tag until these Consent Mode types are granted.
+META_CONSENT_SETTINGS = {
+    "consentStatus": "NEEDED",
+    "consentType": {"type": "LIST", "list": [
+        {"type": "TEMPLATE", "value": "ad_storage"},
+        {"type": "TEMPLATE", "value": "ad_user_data"},
+    ]},
+}
+
 def make_ga4_event(tag_id, name, event_name, trigger_id, folder_id, extra_params=None):
     """Create a GA4 Event tag (gaawe)."""
+    extra_params = {**(extra_params or {}), **CT_ATTRIBUTION_PARAMS}
     params = [
         {"type": "BOOLEAN", "key": "sendEcommerceData", "value": "false"},
         {"type": "BOOLEAN", "key": "enhancedUserId", "value": "false"},
@@ -125,7 +149,7 @@ def make_fb_tag(tag_id, name, std_event, trigger_id, folder_id, extra_params=Non
         "parentFolderId": str(folder_id),
         "tagFiringOption": "ONCE_PER_EVENT",
         "monitoringMetadata": {"type": "MAP"},
-        "consentSettings": {"consentStatus": "NOT_SET"}
+        "consentSettings": META_CONSENT_SETTINGS
     }
 
 
@@ -233,12 +257,35 @@ attr_vars = [
     ("lt_channel", "DLV - lt_channel"),
     ("gclid", "DLV - gclid"),
     ("fbclid", "DLV - fbclid"),
+    ("wbraid", "DLV - wbraid"),
+    ("gbraid", "DLV - gbraid"),
+    ("msclkid", "DLV - msclkid"),
+    ("ttclid", "DLV - ttclid"),
     ("ga_client_id", "DLV - ga_client_id"),
     ("event_id", "DLV - event_id"),
     ("marketing_trail.consent.advertising", "DLV - marketing_trail.consent.advertising"),
 ]
 for dl_path, name in attr_vars:
     variables.append(make_dlv(vid := vid + 1, name, dl_path, FOLDER_ATTR))
+
+# The plugin does not push attribution_selected_click_id to the dataLayer, so the
+# selected click id is derived from the per-platform click id variables.
+variables.append({
+    "accountId": AID, "containerId": CID,
+    "variableId": str(vid := vid + 1), "name": "JS - selected click id", "type": "jsm",
+    "parameter": [{"type": "TEMPLATE", "key": "javascript", "value": (
+        "function() {\n"
+        "  var ids = [{{DLV - gclid}}, {{DLV - wbraid}}, {{DLV - gbraid}}, "
+        "{{DLV - fbclid}}, {{DLV - msclkid}}, {{DLV - ttclid}}];\n"
+        "  for (var i = 0; i < ids.length; i++) {\n"
+        "    if (ids[i]) { return String(ids[i]); }\n"
+        "  }\n"
+        "  return undefined;\n"
+        "}"
+    )}],
+    "fingerprint": fp(), "parentFolderId": str(FOLDER_ATTR),
+    "notes": "First non-empty click id (Google, Meta, Microsoft, TikTok order). Exposed as ct_click_id on GA4 event tags."
+})
 
 # ---------------------------------------------------------------------------
 # Triggers
@@ -549,6 +596,9 @@ assert all(
     for tag in meta_tags
 )
 page_view_tag = next(tag for tag in meta_tags if tag["name"] == "Meta Pixel - PageView")
+assert all(
+    tag["consentSettings"]["consentStatus"] == "NEEDED" for tag in meta_tags
+)
 assert {str(TRIG_PAGE_VIEW), str(TRIG_JS_PAGE_VIEW)} <= set(page_view_tag["firingTriggerId"])
 print(f"Written: {OUTPUT_FILE}")
 print(f"  Tags:       {len(cv['tag'])}")

@@ -35,19 +35,28 @@ The Meta PageView tag accepts both `ct_page_view` from WordPress and
 `page_view` from JavaScript. Google tags retain their native GTM consent
 behavior.
 
-Two limits of the kit as shipped:
+## Attribution parameters and consent
 
-- **Meta tags have no GTM-level consent requirement.** Every Meta tag in the
-  export has `consentSettings: NOT_SET` (no built-in or additional consent
-  checks configured in GTM). Their consent rests on the Facebook Pixel
-  template's own `consent` field, which reads
-  `marketing_trail.consent.advertising`, and on the Consent Mode defaults you
-  publish. Review each Meta tag's **Consent Settings** before going live.
-- **The GA4 purchase tag is not attribution-aware.** The export defines
-  `DLV - ft_*`, `DLV - lt_*`, `DLV - gclid` and `DLV - fbclid` variables, but
-  the GA4 `purchase` tag forwards only `currency`, `value`, `transaction_id`,
-  `coupon`, `shipping`, `tax` and `items`. First/last-touch fields and click IDs reach GA4
-  only if you add them as event parameters yourself.
+Every GA4 event tag forwards the stored attribution as event parameters:
+`ct_ft_source`, `ct_ft_medium`, `ct_ft_campaign`, `ct_ft_channel`,
+`ct_lt_source`, `ct_lt_medium`, `ct_lt_campaign`, `ct_lt_channel`, and
+`ct_click_id`. The `ct_` prefix keeps them clear of GA4 reserved names. They
+read the `DLV - ft_*` / `DLV - lt_*` variables; `ct_click_id` comes from
+`JS - selected click id`, which returns the first non-empty of `gclid`,
+`wbraid`, `gbraid`, `fbclid`, `msclkid`, `ttclid` (the plugin does not push
+`attribution_selected_click_id` to the `dataLayer`). The GA4 `purchase` tag
+still sets no session campaign fields.
+
+GA4 only reports custom parameters once registered: in GA4 go to **Admin →
+Custom definitions → Create custom dimension**, scope **Event**, and register
+each `ct_*` parameter you want in reports.
+
+Meta Pixel tags are imported with consent settings `NEEDED` for `ad_storage`
+and `ad_user_data`. GTM therefore blocks them until those Consent Mode signals
+are granted, so Meta gating now depends on Consent Mode signals reaching GTM
+(through a CMP or the ClickTrail consent bridge). Without them the Meta tags do
+not fire. Evidence: source-present / runtime-unverified; the import was not
+run against a real GTM container.
 
 ## Run the local contract check
 
