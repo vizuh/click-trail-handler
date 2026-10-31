@@ -1,6 +1,9 @@
 Changelog
 ========
 
+= Unreleased =
+* Consent Mode: the `gtag('consent','default', …)` snippet now prints strictly before the GTM bootstrap in `wp_head` (#147). Both callbacks were registered at priority 1, so which came first depended on module registration order and GTM could load with consent `NOT_SET`. `Consent_Mode::HEAD_PRIORITY` (0) and `Web_Tag::HEAD_PRIORITY` (`Consent_Mode::HEAD_PRIORITY + 1`) now pin the order; a PHPUnit test checks the constants, the registered priorities and the rendered order. No snippet when consent mode is disabled; one default per `wp_head` run (unchanged).
+
 = 1.11.1 =
 * Gravity Forms: a visitor who submits a form on the page they landed on now stores ClickTrail attribution in the form's `ct_*` dynamic-population fields. Gravity Forms renders those fields server-side from the attribution cookie, and on the landing page that request runs before the browser writes the cookie, so they posted empty (on a later page they were filled, which is why navigating first worked). `Gravity_Forms_Adapter::refresh_submitted_fields()` on `gform_pre_submission` now sets each such input from the cookie sent with the submit, so a stale value from a previous touch is replaced too; keys the cookie lacks keep the posted value, and consent and the per-form toggle apply. Reported on WordPress.org ("Gravity Forms Issue on First Page Load Form Submission"). Unit-tested (`tests/unit/GravityFormsSubmissionRefreshTest.php`); not yet verified against a live Gravity Forms install.
 

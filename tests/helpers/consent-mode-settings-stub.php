@@ -40,5 +40,28 @@ if ( ! class_exists( Consent_Mode_Settings::class, false ) ) {
 		public function is_consent_required_for_request(): bool {
 			return (bool) ( $GLOBALS['clicktrail_test_consent_required'] ?? false );
 		}
+
+		/**
+		 * No-op registration for hook-ordering tests.
+		 */
+		public function register(): void {}
+
+		/**
+		 * Behavior mode, controllable per test.
+		 *
+		 * @return string
+		 */
+		public function get_mode(): string {
+			return (string) ( $GLOBALS['clicktrail_test_consent_mode'] ?? 'strict' );
+		}
+
+		/**
+		 * Geo regions, controllable per test.
+		 *
+		 * @return array
+		 */
+		public function get_regions(): array {
+			return (array) ( $GLOBALS['clicktrail_test_consent_regions'] ?? array() );
+		}
 	}
 }
