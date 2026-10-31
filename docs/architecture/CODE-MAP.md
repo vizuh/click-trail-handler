@@ -91,6 +91,8 @@ This map is organized around the active code paths first, then compatibility and
 
 - `includes/integrations/class-form-integration-manager.php`
 - `includes/integrations/class-woocommerce.php`
+- `includes/integrations/class-nitropack-compat.php`
+- `includes/integrations/class-optimizer-compat.php`
 - `includes/integrations/forms/`
 
 ### Modules

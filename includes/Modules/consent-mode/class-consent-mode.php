@@ -92,7 +92,8 @@ class Consent_Mode {
 
 		printf( "<!-- %s -->\n", esc_html__( 'Google tag (gtag.js) consent mode dataLayer added by ClickTrail', 'click-trail-handler' ) );
 
-		echo '<script id="clicktrail-consent-mode">';
+		// nowprocket: WP Rocket Delay JS; data-no-defer: LiteSpeed. Keeps the consent default before the first interaction.
+		echo '<script id="clicktrail-consent-mode" nowprocket data-no-defer="1">';
 		echo 'window.dataLayer = window.dataLayer || [];function gtag(){dataLayer.push(arguments);}';
 		if ( ! empty( $region_defaults ) ) {
 			printf( "gtag('consent', 'default', %s);", wp_json_encode( $region_defaults ) );
