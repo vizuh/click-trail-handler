@@ -46,6 +46,7 @@ Current source behavior (audit status):
 
 - server snapshot capture and `Dispatcher` share one policy requirement helper; when consent mode is disabled, both treat consent as not required rather than reading the legacy hidden gate
 - when consent mode is enabled, the runtime asks `Consent_Mode_Settings` whether the current request requires consent
+- when consent mode is enabled, the `gtag('consent','default', …)` snippet prints on `wp_head` at `Consent_Mode::HEAD_PRIORITY` (0) and the GTM bootstrap at `Web_Tag::HEAD_PRIORITY` (derived as consent + 1), so the default is set before `gtm.js` loads regardless of module registration order (#147; structural + rendered-order PHPUnit test, source-present / runtime-unverified in a real WordPress)
 - new Woo orders store a v1 decision snapshot; historical boolean order snapshots remain readable and are explicitly labeled `legacy_unversioned`
 - frontend attribution consumes the consent bridge as its primary runtime contract, but stale-cookie/CMP precedence
   and cross-tab synchronization remain runtime test requirements
