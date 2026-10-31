@@ -5,7 +5,7 @@ Author URI: https://vizuh.com
 Tags: attribution, utm, consent mode, woocommerce, server-side tracking
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 1.11.1
+Stable tag: 1.11.2
 Requires PHP: 8.1
 WC requires at least: 10.4.2
 License: GPLv2 or later
@@ -192,6 +192,15 @@ The entries below are historical release notes. They do not replace the current 
 behavior that still requires current runtime verification. In particular, older wording that calls platform-named
 server paths “first-class native delivery adapters” predates the current evidence classification: those paths are
 configured-endpoint relays whose provider authentication, acceptance, and runtime delivery remain unverified.
+
+= 1.11.2 =
+* Contact Form 7, Fluent Forms, Elementor Forms (Pro) and WPForms: a form submitted on the page the visitor landed on now stores that visit's ad click and campaign. Before, those forms could store empty or previous-visit values (Gravity Forms got the same fix in 1.11.1).
+* WPForms: hidden fields now actually receive the attribution values. Mark a field with the CSS class (or exact label) `ct_<key>`, for example `ct_gclid`. The earlier method never worked.
+* WooCommerce: opening the thank-you page in two tabs, or reloading it quickly, no longer counts the purchase twice.
+* WooCommerce: the purchase event sent to Google Tag Manager now always carries an `event_id`, so Meta can match the browser and server copies of the same order.
+* Phone numbers sent for ad matching are now converted to international format (+351...) before hashing, so they match on Google and Meta.
+* Consent: the consent default is now set before Google Tag Manager loads.
+* Caching: ClickTrail's scripts are now excluded from WP Rocket, LiteSpeed Cache, Autoptimize, Cloudflare Rocket Loader, Perfmatters and SiteGround optimizations on every site, not only with Gravity Forms.
 
 = 1.11.1 =
 * Gravity Forms: a visitor who submits a form on the first page they land on now stores ClickTrail attribution in the form's `ct_*` fields. Before, those fields stayed empty unless the visitor opened another page first.
