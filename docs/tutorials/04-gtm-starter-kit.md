@@ -10,6 +10,9 @@ consent-law compliance, or destination delivery.
 - Confirm you own or administer the destination GTM container.
 - Decide which consent source is authoritative before publishing.
 - Do not configure GTM injection in ClickTrail if the site already injects GTM.
+- When ClickTrail injects GTM with consent mode enabled, the consent default
+  snippet prints before the GTM bootstrap in `wp_head` (fixed hook priorities,
+  #147), so Google tags start from the configured default, not `NOT_SET`.
 - Keep this first import in a new GTM workspace or a reviewed merge.
 
 ## Import and configure
