@@ -26,6 +26,7 @@ It defines:
 - `docs/reference/`: routes, hooks, integrations
 - `docs/guides/`: admin IA, security, operations, quality
 - `.github/PULL_REQUEST_TEMPLATE.md`: PR checklist
+- `tools/qa/e2e/`: throwaway-WordPress E2E harness (`README.md`) and dated runtime evidence (`EVIDENCE-*.md`)
 
 ## Documentation Ownership
 
@@ -50,6 +51,8 @@ It defines:
   - `docs/reference/HOOKS-REFERENCE.md`
 - Operations, diagnostics, and failure handling:
   - `docs/guides/OPERATIONS-RUNBOOK.md`
+- Runtime evidence for adapter, consent and optimizer behaviour (what ran, versions, what did not):
+  - `tools/qa/e2e/EVIDENCE-*.md` (newest date wins)
 - Current maintenance posture and cleanup hotspots:
   - `docs/guides/CODE-QUALITY.md`
 

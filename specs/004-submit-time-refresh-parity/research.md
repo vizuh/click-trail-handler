@@ -79,8 +79,11 @@ Shared with specs 005, 006 and 007. Verdicts are source-read against `ef6a20b`.
 9. Safari: land, return after 8 days, submit.
 10. `WP_DEBUG_LOG` scan for notices from the four adapters after every run.
 
+### Run record, 2026-10-31 (throwaway WordPress, not tallk.me)
+
+Items 1, 2, 4, 5 and 10 ran for CF7, Fluent Forms and WPForms Lite on plugin 1.11.2 in the `tools/qa/e2e` pod; results, versions and commands are in `tools/qa/e2e/EVIDENCE-2026-10-31.md`. Not run: Elementor Pro, Gravity Forms and Ninja (commercial or out of the pod), item 3 (WP Rocket / LiteSpeed), items 6 to 9. Item 4 reproduced the leak for CF7 (#152); item 10 found one plugin warning (`Events_Logger::clear_event_cookie()`).
+
 ## Open questions
 
 - `Form_Record::update_field()` availability and the exact array shape of `$record->get( 'fields' )` in the current Elementor Pro release.
-- Whether WPForms Lite applies `wpforms_field_properties` to the hidden field type (the doc says every field type; `class-base.php` not read in full).
-- Whether `fluentform/insert_response_data` sees the `ct_*` keys as top-level `$formData` entries (expected for hidden inputs echoed by `form_element_start`).
+- Answered 2026-10-31 (`tools/qa/e2e/EVIDENCE-2026-10-31.md`): WPForms Lite 2.0.3.1 declares the `hidden` field type as a Pro field (`src/Forms/Fields/Hidden/Field.php`, `field_display()` empty) so `wpforms_field_properties` has no hidden field to fill and the browser gets no input; the server-side `wpforms_process_filter` refresh still fills a `ct_<key>` field of any type, including a Single Line Text field with the CSS class. `fluentform/insert_response_data` does see builder-defined `ct_*` hidden fields as top-level `$formData` keys.
