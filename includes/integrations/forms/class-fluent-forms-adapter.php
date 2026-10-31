@@ -8,7 +8,6 @@
 namespace CLICUTCL\Integrations\Forms;
 
 use CLICUTCL\Core\Attribution_Provider;
-use CLICUTCL\Server_Side\Consent;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -49,10 +48,12 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 	public function register_hooks() {
 		// Slash-style (Fluent Forms v5+, current docs).
 		add_action( 'fluentform/form_element_start', array( $this, 'add_hidden_fields' ), 10, 1 );
+		add_filter( 'fluentform/insert_response_data', array( $this, 'refresh_response_data' ), 10, 3 );
 		add_action( 'fluentform/submission_inserted', array( $this, 'on_submission' ), 10, 3 );
 
 		// Underscore-style (legacy aliases, v4 and below).
 		add_action( 'fluentform_form_element_start', array( $this, 'add_hidden_fields' ), 10, 1 );
+		add_filter( 'fluentform_insert_response_data', array( $this, 'refresh_response_data' ), 10, 3 );
 		add_action( 'fluentform_submission_inserted', array( $this, 'on_submission' ), 10, 3 );
 	}
 
@@ -96,6 +97,39 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 	}
 
 	/**
+	 * Refresh each ct_* key of the response data from the cookie sent with the submit.
+	 *
+	 * Runs on `fluentform/insert_response_data` before Fluent Forms stores the entry, so the
+	 * native entry, `fluentform_submission_meta` and ClickTrail's log hold the same submit-time
+	 * value. Per key: a non-empty cookie key wins, keys the cookie lacks keep the posted value.
+	 * Pure in (posted, cookie), so the legacy alias firing a second time is a no-op.
+	 *
+	 * @param array $form_data     Response data about to be inserted.
+	 * @param int   $form_id       Form ID (unused).
+	 * @param array $input_configs Entry input configs (unused).
+	 * @return array
+	 */
+	public function refresh_response_data( $form_data, $form_id = 0, $input_configs = array() ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+		if ( ! is_array( $form_data ) || ! $this->refresh_allowed() ) {
+			return $form_data;
+		}
+
+		$payload = $this->get_attribution_payload();
+		if ( empty( $payload ) ) {
+			return $form_data;
+		}
+
+		foreach ( $form_data as $name => $posted ) {
+			$value = $this->cookie_value_for( $name, $payload );
+			if ( null !== $value ) {
+				$form_data[ $name ] = sanitize_text_field( $value );
+			}
+		}
+
+		return $form_data;
+	}
+
+	/**
 	 * Handle submission (log to DB and Fluent Meta).
 	 *
 	 * @param int   $entry_id Submission ID.
@@ -110,7 +144,7 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 	 * @param object $arg3 Form object (optional).
 	 */
 	public function on_submission( $arg1, $arg2, $arg3 = null ) {
-		if ( ! $this->should_populate() || ( Consent::is_required() && ! Consent::marketing_allowed() ) ) {
+		if ( ! $this->refresh_allowed() ) {
 			return;
 		}
 
@@ -121,24 +155,35 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 		}
 		$logged[ $entry_id ] = true;
 
-		$form_data = $arg2;
+		$form_data = is_array( $arg2 ) ? $arg2 : array();
 		$form      = $arg3;
-		// Use payload from cookie or form_data?
-		// form_data should contain our hidden fields if they were submitted.
+		$payload   = $this->get_attribution_payload();
 
-		$keys        = Attribution_Provider::get_field_mapping();
-		$attribution = array();
+		// Per key, the same rule refresh_response_data() applied before insert: a non-empty cookie
+		// key wins, keys the cookie lacks keep the posted value. Re-applying it here is idempotent.
+		$attribution      = array();
+		$carries_ct_field = false;
 
-		foreach ( $keys as $key ) {
+		foreach ( Attribution_Provider::get_field_mapping() as $key ) {
 			$prefixed = $this->get_field_name( $key );
-			if ( isset( $form_data[ $prefixed ] ) ) {
-				$attribution[ $key ] = sanitize_text_field( $form_data[ $prefixed ] );
+			if ( ! isset( $form_data[ $prefixed ] ) ) {
+				continue;
+			}
+			$carries_ct_field = true;
+
+			$value = $this->cookie_value_for( $prefixed, $payload );
+			if ( null === $value ) {
+				$value = is_scalar( $form_data[ $prefixed ] ) ? (string) $form_data[ $prefixed ] : '';
+			}
+			$value = sanitize_text_field( $value );
+			if ( '' !== $value ) {
+				$attribution[ $key ] = $value;
 			}
 		}
 
-		// Fallback.
-		if ( empty( $attribution ) ) {
-			$attribution = $this->get_attribution_payload();
+		// A form with no ct_* field keeps today's record: ClickTrail's own log holds the cookie.
+		if ( ! $carries_ct_field ) {
+			$attribution = $payload;
 		}
 
 		if ( empty( $attribution ) ) {
@@ -172,6 +217,6 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 
 		// 2. Log to ClickTrail
 		$form_id_val = isset( $form->id ) ? $form->id : 0;
-		$this->log_submission( 'fluentform', $form_id_val, $attribution, is_array( $form_data ) ? $form_data : array() );
+		$this->log_submission( 'fluentform', $form_id_val, $attribution, $form_data );
 	}
 }

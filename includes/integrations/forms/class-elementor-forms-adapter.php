@@ -7,8 +7,6 @@
 
 namespace CLICUTCL\Integrations\Forms;
 
-use CLICUTCL\Core\Attribution_Provider;
-
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -39,11 +37,81 @@ class Elementor_Forms_Adapter extends Abstract_Form_Adapter {
 	/**
 	 * Register hooks.
 	 *
-	 * Elementor Pro exposes the submission record through
-	 * `elementor_pro/forms/new_record`.
+	 * Render: `elementor_pro/forms/render/item/hidden` runs after Form_Base set the input's
+	 * render attributes. Submit: `elementor_pro/forms/process` runs after validation and before
+	 * the form actions (email, webhook, Submissions), so a refresh there reaches all of them;
+	 * `elementor_pro/forms/new_record` runs after the actions and only logs.
 	 */
 	public function register_hooks() {
+		add_filter( 'elementor_pro/forms/render/item/hidden', array( $this, 'render_hidden_field' ), 10, 3 );
+		add_action( 'elementor_pro/forms/process', array( $this, 'refresh_record' ), 10, 2 );
 		add_action( 'elementor_pro/forms/new_record', array( $this, 'on_submission' ), 10, 2 );
+	}
+
+	/**
+	 * Fill a hidden field whose custom ID is `ct_<key>` from the attribution cookie at render.
+	 *
+	 * Elementor names the input `form_fields[<custom_id>]`, so the browser runtime's exact
+	 * `name="ct_*"` match cannot fill it; the server does. Form_Base already added the `value`
+	 * attribute from `field_value`, so it is replaced, not appended.
+	 *
+	 * @param array  $item       Field item.
+	 * @param int    $item_index Field index.
+	 * @param object $form       Form widget instance.
+	 * @return array
+	 */
+	public function render_hidden_field( $item, $item_index, $form = null ) {
+		if ( ! is_array( $item ) || empty( $item['custom_id'] ) || ! $this->refresh_allowed() ) {
+			return $item;
+		}
+
+		$value = $this->cookie_value_for( (string) $item['custom_id'], $this->get_attribution_payload() );
+		if ( null === $value ) {
+			return $item;
+		}
+
+		$item['field_value'] = $value;
+		if ( is_object( $form ) && method_exists( $form, 'set_render_attribute' ) ) {
+			$form->set_render_attribute( 'input' . $item_index, 'value', $value );
+		}
+
+		return $item;
+	}
+
+	/**
+	 * Refresh each `ct_<key>` record field from the cookie sent with the submit.
+	 *
+	 * Per key: a non-empty cookie key wins, keys the cookie lacks keep the posted value. Fields
+	 * the form does not carry are never added.
+	 *
+	 * @param object $record       Form_Record instance.
+	 * @param object $ajax_handler Ajax handler (unused).
+	 * @return void
+	 */
+	public function refresh_record( $record, $ajax_handler = null ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+		if ( ! is_object( $record ) || ! method_exists( $record, 'get' ) || ! method_exists( $record, 'update_field' ) ) {
+			return;
+		}
+		if ( ! $this->refresh_allowed() ) {
+			return;
+		}
+
+		$fields = $record->get( 'fields' );
+		if ( ! is_array( $fields ) ) {
+			return;
+		}
+
+		$payload = $this->get_attribution_payload();
+		if ( empty( $payload ) ) {
+			return;
+		}
+
+		foreach ( array_keys( $fields ) as $field_id ) {
+			$value = $this->cookie_value_for( (string) $field_id, $payload );
+			if ( null !== $value ) {
+				$record->update_field( $field_id, 'value', sanitize_text_field( $value ) );
+			}
+		}
 	}
 
 	/**
@@ -73,18 +141,36 @@ class Elementor_Forms_Adapter extends Abstract_Form_Adapter {
 			return;
 		}
 
+		$raw_fields  = $record->get( 'fields' );
 		$fields      = $this->extract_record_fields( $record );
+		$payload     = $this->get_attribution_payload();
 		$attribution = array();
 
-		foreach ( Attribution_Provider::get_field_mapping() as $key ) {
-			$prefixed = $this->get_field_name( $key );
-			if ( isset( $fields[ $prefixed ] ) ) {
-				$attribution[ $key ] = sanitize_text_field( (string) $fields[ $prefixed ] );
+		// Per key, the same rule refresh_record() applied before the actions ran: a non-empty
+		// cookie key wins, keys the cookie lacks keep the posted value. Idempotent here.
+		$carries_ct_field = false;
+		if ( is_array( $raw_fields ) ) {
+			foreach ( array_keys( $raw_fields ) as $field_id ) {
+				$prefixed = (string) $field_id;
+				if ( 0 !== strpos( $prefixed, $this->field_prefix ) ) {
+					continue;
+				}
+				$carries_ct_field = true;
+
+				$value = $this->cookie_value_for( $prefixed, $payload );
+				if ( null === $value ) {
+					$value = $fields[ sanitize_key( $prefixed ) ] ?? '';
+				}
+				$value = sanitize_text_field( $value );
+				if ( '' !== $value ) {
+					$attribution[ substr( $prefixed, strlen( $this->field_prefix ) ) ] = $value;
+				}
 			}
 		}
 
-		if ( empty( $attribution ) ) {
-			$attribution = $this->get_attribution_payload();
+		// A form with no ct_* field keeps today's record: ClickTrail's own log holds the cookie.
+		if ( ! $carries_ct_field ) {
+			$attribution = $payload;
 		}
 
 		if ( empty( $attribution ) ) {

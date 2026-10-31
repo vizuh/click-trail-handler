@@ -101,9 +101,10 @@ Usually leave off at first:
 Recommended form pattern:
 
 - Contact Form 7 and Fluent Forms: let ClickTrail add hidden fields automatically
-- Gravity Forms and WPForms: add the `ct_*` hidden fields you want stored or exported
-- Elementor Forms (Pro): rely on submission hooks and fallback attribution
+- Gravity Forms and WPForms: add the `ct_*` hidden fields you want stored or exported (Gravity Forms: parameter name; WPForms: CSS class `ct_<key>`, or a label of exactly `ct_<key>`)
+- Elementor Forms (Pro): add hidden fields whose ID is `ct_<key>`; ClickTrail fills them at render and refreshes them at submit, and also logs the submission record
 - Ninja Forms: rely on submission storage, not automatic hidden-field injection
+- all adapters refresh `ct_*` fields from the attribution cookie sent with the submit, so landing-page submissions store that visit's click (unit-tested; no live form-plugin run yet)
 
 Validation:
 
@@ -319,7 +320,7 @@ When link decoration is on and no allowed domains are listed, ClickTrail surface
 
 - enabling GTM injection when GTM already loads elsewhere
 - turning on server-side delivery before the endpoint is ready
-- expecting Gravity Forms or WPForms to store attribution without adding the hidden fields you actually want
+- expecting Gravity Forms, WPForms or Elementor Forms to store attribution without adding the hidden fields you actually want
 - treating browser events and server-side delivery as the same toggle
 - enabling consent mode without validating the real CMP integration path
 
