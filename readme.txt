@@ -5,7 +5,7 @@ Author URI: https://vizuh.com
 Tags: attribution, utm, consent mode, woocommerce, server-side tracking
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 1.11.2
+Stable tag: 1.11.3
 Requires PHP: 8.1
 WC requires at least: 10.4.2
 License: GPLv2 or later
@@ -192,6 +192,14 @@ The entries below are historical release notes. They do not replace the current 
 behavior that still requires current runtime verification. In particular, older wording that calls platform-named
 server paths “first-class native delivery adapters” predates the current evidence classification: those paths are
 configured-endpoint relays whose provider authentication, acceptance, and runtime delivery remain unverified.
+
+= 1.11.3 =
+* Forms and page caches: a form served from a page cache can no longer show or submit another visitor's ad click or campaign. The attribution fields now start empty and are filled in the visitor's own browser; if a visitor has no consent or no attribution, the stored lead holds no attribution values.
+* Forms: a double click or a retried submit no longer records the same lead twice, and Gravity Forms, WPForms and Fluent Forms entries now carry `ct_event_id` and `ct_lead_id` so a CRM record can be matched back.
+* Google Tag Manager starter kit: the GA4 tags now send the stored campaign and click ID as `ct_*` event parameters, and the Meta tags wait for ad consent.
+* Fix: the WordPress debug log no longer fills with "headers already sent" warnings on pages shown before consent is given.
+* Fix: Fluent Forms no longer logs a deprecation notice on every submission.
+* WPForms Lite has no Hidden field: use a Single Line Text field with the CSS class `ct_<key>`; the documentation now says so.
 
 = 1.11.2 =
 * Contact Form 7, Fluent Forms, Elementor Forms (Pro) and WPForms: a form submitted on the page the visitor landed on now stores that visit's ad click and campaign. Before, those forms could store empty or previous-visit values (Gravity Forms got the same fix in 1.11.1).

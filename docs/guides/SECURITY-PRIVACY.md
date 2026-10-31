@@ -4,7 +4,7 @@
 - **Canonical for**: consent behavior, token handling, replay protection, and secret treatment
 - **Update when**: consent flow, auth, signing, secret storage, or privacy behavior changes
 - **Historical audit baseline**: plugin code `1.9.0`, commit `a45aa9e`, reviewed 2026-08-19
-- **Current release**: plugin code `1.11.2` on GitHub and WordPress.org, with automated consent, queue, WooCommerce privacy, CF7 outcome, touch-event deduplication, CMP decision-transition, Calendly webhook, HubSpot webhook signature, and attribution round-trip E2E (`tools/qa/e2e/`, CI) coverage; the browser storage inventory is below
+- **Current release**: plugin code `1.11.3` on GitHub and WordPress.org, with automated consent, queue, WooCommerce privacy, CF7 outcome, touch-event deduplication, CMP decision-transition, Calendly webhook, HubSpot webhook signature, and attribution round-trip E2E (`tools/qa/e2e/`, CI) coverage, plus a throwaway-WordPress run of CF7, Fluent Forms and WPForms Lite (`tools/qa/e2e/EVIDENCE-2026-10-31.md`); the browser storage inventory is below
 - **Runtime verification**: PHP/WordPress/browser/CMP/provider E2E remains incomplete; live behavior is not implied by automated fixtures
 
 ClickTrail is designed to capture attribution and events without treating privacy and delivery as separate concerns.
