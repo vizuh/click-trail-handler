@@ -993,11 +993,13 @@ trait Admin_Diagnostics_Ajax_Trait {
 						$form_data  = is_array( $form_data ) ? $form_data : array();
 						$fields     = isset( $form_data['fields'] ) && is_array( $form_data['fields'] ) ? $form_data['fields'] : array();
 
+						// Same rule as WPForms_Adapter::field_name(): a `ct_<key>` CSS class token or a `ct_<key>` label.
 						$has_ct = false;
 						foreach ( $fields as $field ) {
 							$label = isset( $field['label'] ) ? strtolower( (string) $field['label'] ) : '';
 							$name  = isset( $field['name'] ) ? strtolower( (string) $field['name'] ) : '';
-							if ( str_starts_with( $label, 'ct_' ) || str_starts_with( $name, 'ct_' ) ) {
+							$css   = isset( $field['css'] ) ? strtolower( (string) $field['css'] ) : '';
+							if ( str_starts_with( $label, 'ct_' ) || str_starts_with( $name, 'ct_' ) || preg_match( '/(^|\s)ct_/', $css ) ) {
 								$has_ct = true;
 								break;
 							}

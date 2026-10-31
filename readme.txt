@@ -103,7 +103,7 @@ ClickTrail can be rolled out in layers. A basic attribution setup for forms or W
 5. In **Forms**:
    * enable only the integrations you actually use
    * for Contact Form 7 and Fluent Forms, ClickTrail can add attribution hidden fields automatically
-   * for Gravity Forms and WPForms, add the matching `ct_*` hidden fields you want to preserve, such as `ct_ft_source`, `ct_lt_source`, or `ct_gclid` (latest click; use `ct_ft_gclid` or `ct_lt_gclid` to pin a touch)
+   * for Gravity Forms, WPForms and Elementor Forms (Pro), add the matching `ct_*` hidden fields you want to preserve, such as `ct_ft_source`, `ct_lt_source`, or `ct_gclid` (latest click; use `ct_ft_gclid` or `ct_lt_gclid` to pin a touch). Gravity Forms reads the parameter name, WPForms a CSS class (or a label) of `ct_<key>`, Elementor the field ID
 6. In **Events**:
    * leave browser events enabled only if you want `dataLayer` pushes and on-site event capture
    * enable **WooCommerce storefront events** only if you want `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` in the browser event layer
@@ -163,7 +163,7 @@ ClickTrail includes a client-side fallback and dynamic-content support so attrib
 
 = Do I need to add hidden fields to every form? =
 
-No. Contact Form 7 and Fluent Forms can receive attribution hidden fields automatically. Gravity Forms and WPForms work best when you add the matching `ct_*` hidden fields you want stored or exported. Elementor Forms (Pro) and Ninja Forms use their submission hooks and stored attribution paths rather than automatic hidden-field injection.
+No. Contact Form 7 and Fluent Forms can receive attribution hidden fields automatically. Gravity Forms, WPForms and Elementor Forms (Pro) work best when you add the matching `ct_*` hidden fields you want stored or exported: Gravity Forms matches the parameter name, WPForms a CSS class `ct_<key>` (a label of exactly `ct_<key>` also works), Elementor the hidden field's ID. Every adapter refreshes those fields from the cookie sent with the submit, so a form submitted on the landing page stores that visit's click. Elementor Forms (Pro) and Ninja Forms also keep attribution with the submission record.
 
 = Can I use it without server-side delivery? =
 

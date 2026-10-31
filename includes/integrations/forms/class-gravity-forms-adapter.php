@@ -166,7 +166,7 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 		if ( ! is_array( $form ) || empty( $form['fields'] ) || ! is_array( $form['fields'] ) ) {
 			return;
 		}
-		if ( ! $this->should_populate() || ( Consent::is_required() && ! Consent::marketing_allowed() ) ) {
+		if ( ! $this->refresh_allowed() ) {
 			return;
 		}
 		$form_id = isset( $form['id'] ) ? absint( $form['id'] ) : 0;
@@ -197,15 +197,12 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 			}
 
 			foreach ( $inputs as $input_id => $name ) {
-				if ( 0 !== strpos( $name, $this->field_prefix ) ) {
-					continue;
-				}
-				$key = substr( $name, strlen( $this->field_prefix ) );
-				if ( ! isset( $payload[ $key ] ) || '' === (string) $payload[ $key ] ) {
+				$value = $this->cookie_value_for( $name, $payload );
+				if ( null === $value ) {
 					continue;
 				}
 				// GF reads submitted values from $_POST, which WordPress keeps slashed.
-				$_POST[ 'input_' . str_replace( '.', '_', $input_id ) ] = wp_slash( (string) $payload[ $key ] );
+				$_POST[ 'input_' . str_replace( '.', '_', $input_id ) ] = wp_slash( $value );
 			}
 		}
 	}

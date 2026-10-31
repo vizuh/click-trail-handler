@@ -48,6 +48,17 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 	}
 
 	/**
+	 * Whether a submit-time refresh or render fill may touch provider data.
+	 *
+	 * Submission-time consent is authoritative: the same gate `log_submission()` applies.
+	 *
+	 * @return bool
+	 */
+	protected function refresh_allowed() {
+		return $this->should_populate() && ! ( Consent::is_required() && ! Consent::marketing_allowed() );
+	}
+
+	/**
 	 * Log submission to ClickTrail events table.
 	 *
 	 * @param string $platform       Platform name.
@@ -263,5 +274,24 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 	 */
 	protected function get_field_name( $key ) {
 		return $this->field_prefix . $key;
+	}
+
+	/**
+	 * Submit-time value for a ct_* field: a cookie key that is present and non-empty wins.
+	 *
+	 * @param string $field_name Provider field name, e.g. `ct_gclid`.
+	 * @param array  $payload    Attribution payload from the cookie sent with the submit.
+	 * @return string|null Cookie value, or null when the field is not a ct_* field or the cookie lacks the key.
+	 */
+	protected function cookie_value_for( $field_name, $payload ) {
+		$field_name = (string) $field_name;
+		if ( 0 !== strpos( $field_name, $this->field_prefix ) ) {
+			return null;
+		}
+		$key = substr( $field_name, strlen( $this->field_prefix ) );
+		if ( ! isset( $payload[ $key ] ) || '' === (string) $payload[ $key ] ) {
+			return null;
+		}
+		return (string) $payload[ $key ];
 	}
 }
