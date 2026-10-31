@@ -75,8 +75,8 @@ Notes:
 - passed to `assets/js/clicutcl-attribution.js` as `clicutcl_config.ignoredReferrerHosts`
 - a referrer on a listed host or any subdomain of it counts like a same-site referrer: no first touch is created and the stored last touch (source, medium, referrer, channel, landing page, timestamp, click IDs) is left unchanged; UTMs and click IDs on the URL still form a touch
 - defaults: `paypal.com`, `stripe.com`, `mollie.com`, `squareup.com`, `square.link`, `klarna.com`, `adyen.com`, `checkout.com`, `mercadopago.com`, `mercadopago.com.br`, `pagseguro.uol.com.br`
-- add card-issuer 3-D Secure hosts or other hosted checkouts your store redirects through; values are lowercased, a URL is reduced to its host, a leading `www.` is dropped, and anything that is not a dotted hostname is discarded
-- this does not change GA4; add the same domains to GA4's unwanted referrals (see [Payment provider limitations](INTEGRATIONS.md#payment-provider-limitations))
+- card-issuer 3-D Secure / ACS hosts are not in the default list; add the ones you see in your referral reports, and any other hosted checkout your store redirects through; values are lowercased, a URL is reduced to its host, a leading `www.` is dropped, and anything that is not a dotted hostname is discarded
+- this does not change GA4; add the same domains (including any card-issuer hosts you add here) to GA4's unwanted referrals (see [Payment provider limitations](INTEGRATIONS.md#payment-provider-limitations))
 
 Arguments:
 
