@@ -254,7 +254,7 @@ function ct(key) {
 | `lt_medium` | Mídia da visita que converteu |
 | `lt_campaign` | Campanha que converteu |
 | `lt_channel` | Canal que converteu |
-| `gclid` | Google Click ID do clique mais recente (último toque), necessário para importar conversões no Google Ads |
+| `gclid` | Google Click ID do clique mais recente (último toque). O ClickTrail captura e armazena o valor; não há cliente de upload para o Google Ads no plugin (o adaptador `google_ads` apenas envia JSON a um endpoint configurado), então a importação de conversões depende do que o seu CRM ou fluxo de importação fizer com esse valor |
 | `wbraid` | Click ID Google (iOS / consent mode) |
 | `gbraid` | Click ID Google (apps / consent mode) |
 | `fbclid` | Facebook Click ID |
@@ -424,7 +424,7 @@ Os seguintes provedores processam pagamentos no domínio deles. O ClickTrail nã
 A atribuição sobrevive a esses redirecionamentos por dois motivos, e ambos dependem de a atribuição já ter sido capturada **antes** de o comprador chegar ao provedor de pagamento:
 
 - **Os metadados são gravados quando o pedido é criado.** O WooCommerce salva os UTMs e click IDs `_clicutcl_*` no pedido antes do redirecionamento para o gateway, tanto no checkout clássico quanto no Checkout em blocos. A página de confirmação lê esses metadados; ela não marca o pedido a partir do cookie nem do referrer de retorno.
-- **Referrers de pagamento são ignorados.** Quando o comprador volta, o referrer do navegador é o host de pagamento. O ClickTrail trata referrers de hosts de pagamento conhecidos (PayPal, Stripe, Mollie, Square, Klarna, Adyen, Checkout.com, Mercado Pago, PagSeguro) como referrers do próprio site, então o primeiro e o último toque continuam no clique pago. Adicione outros hosts, como as páginas 3-D Secure dos bancos emissores, com o filtro `clicutcl_ignored_referrer_hosts` ([Hooks Reference](../reference/HOOKS-REFERENCE.md#clicutcl_ignored_referrer_hosts)).
+- **Referrers de pagamento são ignorados.** Quando o comprador volta, o referrer do navegador é o host de pagamento. O ClickTrail trata referrers de hosts de pagamento conhecidos (PayPal, Stripe, Mollie, Square, Klarna, Adyen, Checkout.com, Mercado Pago, PagSeguro) como referrers do próprio site, então o primeiro e o último toque continuam no clique pago. As páginas 3-D Secure / ACS dos bancos emissores rodam em hosts específicos de cada banco que não estão na lista padrão: adicione os que aparecem nos seus relatórios de referência com o filtro `clicutcl_ignored_referrer_hosts` ([Hooks Reference](../reference/HOOKS-REFERENCE.md#clicutcl_ignored_referrer_hosts)) e nas indicações indesejadas do GA4 (próxima seção).
 
 O risco é estreito: um usuário que chega à sua página de checkout **sem** UTMs e sem cookie anterior gera um pedido sem atribuição. Isso é uma limitação conhecida de atribuição baseada em cookie em fluxos entre domínios — não é um bug do ClickTrail.
 

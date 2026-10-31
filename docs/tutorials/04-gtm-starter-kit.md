@@ -35,6 +35,20 @@ The Meta PageView tag accepts both `ct_page_view` from WordPress and
 `page_view` from JavaScript. Google tags retain their native GTM consent
 behavior.
 
+Two limits of the kit as shipped:
+
+- **Meta tags have no GTM-level consent requirement.** Every Meta tag in the
+  export has `consentSettings: NOT_SET` (no built-in or additional consent
+  checks configured in GTM). Their consent rests on the Facebook Pixel
+  template's own `consent` field, which reads
+  `marketing_trail.consent.advertising`, and on the Consent Mode defaults you
+  publish. Review each Meta tag's **Consent Settings** before going live.
+- **The GA4 purchase tag is not attribution-aware.** The export defines
+  `DLV - ft_*`, `DLV - lt_*`, `DLV - gclid` and `DLV - fbclid` variables, but
+  the GA4 `purchase` tag forwards only `currency`, `value`, `transaction_id`,
+  `coupon`, `shipping`, `tax` and `items`. First/last-touch fields and click IDs reach GA4
+  only if you add them as event parameters yourself.
+
 ## Run the local contract check
 
 From the repository root:
