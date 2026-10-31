@@ -5,7 +5,7 @@ Author URI: https://vizuh.com
 Tags: attribution, utm, consent mode, woocommerce, server-side tracking
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 1.11.0
+Stable tag: 1.11.1
 Requires PHP: 8.1
 WC requires at least: 10.4.2
 License: GPLv2 or later
@@ -192,6 +192,9 @@ The entries below are historical release notes. They do not replace the current 
 behavior that still requires current runtime verification. In particular, older wording that calls platform-named
 server paths “first-class native delivery adapters” predates the current evidence classification: those paths are
 configured-endpoint relays whose provider authentication, acceptance, and runtime delivery remain unverified.
+
+= 1.11.1 =
+* Gravity Forms: a visitor who submits a form on the first page they land on now stores ClickTrail attribution in the form's `ct_*` fields. Before, those fields stayed empty unless the visitor opened another page first.
 
 = 1.11.0 =
 * WooCommerce: a buyer who pays on PayPal, Stripe Checkout, Mollie, Klarna or another payment page and comes back to your thank-you page keeps the ad or campaign they arrived from. Before, the return could replace the last-touch source with the payment site.

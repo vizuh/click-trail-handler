@@ -12,6 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 use CLICUTCL\Core\Context;
+use CLICUTCL\Modules\Consent_Mode\Consent_Mode;
 
 /**
  * Class ClickTrail\Modules\GTM\Web_Tag
@@ -23,6 +24,16 @@ use CLICUTCL\Core\Context;
  * Class for Web tag.
  */
 class Web_Tag {
+
+	/**
+	 * `wp_head` priority of the GTM bootstrap.
+	 *
+	 * Strictly after the consent default snippet so tags never see an unset
+	 * consent state (#147). Keep this derived, never a literal.
+	 *
+	 * @var int
+	 */
+	const HEAD_PRIORITY = Consent_Mode::HEAD_PRIORITY + 1;
 
 	/**
 	 * Context instance.
@@ -57,8 +68,8 @@ class Web_Tag {
 		$container_id = $this->gtm_settings->get_container_id();
 
 		if ( ! empty( $container_id ) ) {
-			// GTM snippet must stay outside any consent gate and load as early as possible.
-			add_action( 'wp_head', array( $this, 'render' ), 1 );
+			// GTM snippet must stay outside any consent gate and load as early as possible, after the consent default.
+			add_action( 'wp_head', array( $this, 'render' ), self::HEAD_PRIORITY );
 			add_action( 'wp_body_open', array( $this, 'render_no_js' ), 1 );
 			add_action( 'wp_footer', array( $this, 'render_no_js' ), 1 ); // Fallback.
 		}

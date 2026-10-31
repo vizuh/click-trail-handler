@@ -783,12 +783,14 @@ class WooCommerce {
 			$flat_attr
 		);
 
-		if ( $this->should_use_enhanced_woo_datalayer() ) {
-			$event_id = isset( $payload['event_id'] ) ? sanitize_text_field( (string) $payload['event_id'] ) : '';
-			if ( '' !== $event_id ) {
-				$datalayer['event_id'] = $event_id;
-			}
+		// Always ship the server event ID so a browser-side Meta Purchase can
+		// dedupe against the CAPI copy; the enhanced flag only gates user_data.
+		$event_id = isset( $payload['event_id'] ) ? sanitize_text_field( (string) $payload['event_id'] ) : '';
+		if ( '' !== $event_id ) {
+			$datalayer['event_id'] = $event_id;
+		}
 
+		if ( $this->should_use_enhanced_woo_datalayer() ) {
 			$user_data = $this->build_purchase_datalayer_user_data( $payload, $flat_attr );
 			if ( ! empty( $user_data ) ) {
 				$datalayer['user_data'] = $user_data;

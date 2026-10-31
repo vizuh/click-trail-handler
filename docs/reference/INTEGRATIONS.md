@@ -4,7 +4,7 @@
 - **Canonical for**: integration roles, source evidence, status boundaries, providers, forms, webhooks, GTM, and delivery adapter keys
 - **Update when**: integration support level, adapter list, provider contract, evidence status, or capability messaging changes
 - **Provider-wide audit baseline**: plugin code `1.9.0`, commit `a45aa9e`, reviewed 2026-08-19
-- **Current release**: plugin code `1.11.0` on GitHub and WordPress.org, with automated consent, queue, WooCommerce privacy, CF7 outcome, touch-event deduplication, CMP decision-transition, Calendly webhook, and attribution round-trip E2E (`tools/qa/e2e/`, CI) coverage; the live Calendly booking round trip remains unverified. HubSpot embedded form capture (new in 1.11.0) has a Node VM contract test only
+- **Current release**: plugin code `1.11.1` on GitHub and WordPress.org, with automated consent, queue, WooCommerce privacy, CF7 outcome, touch-event deduplication, CMP decision-transition, Calendly webhook, and attribution round-trip E2E (`tools/qa/e2e/`, CI) coverage; the live Calendly booking round trip remains unverified. HubSpot embedded form capture (new in 1.11.0) has a Node VM contract test only. The 1.11.1 Gravity Forms first-page fix has a PHPUnit test only
 - **Runtime verification**: provider-wide E2E remains incomplete; bounded WooCommerce and Fluent Forms evidence is recorded below, while six form manifests remain explicitly runtime-unverified
 - **Machine-readable ledger**: [`integration-capabilities.json`](integration-capabilities.json)
 
@@ -301,7 +301,8 @@ What the current source paths implement:
 - push purchase event to `dataLayer` only when current visitor consent permits processing
 - optionally emit storefront `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` browser events
 - preserve `item_list_name` and `item_list_index` when list context is available
-- optionally widen Woo `dataLayer` pushes with `event_id` and consent-aware `user_data` for GTM-first setups
+- push `event_id` (`purchase_<order_id>`, same as the server purchase event) on every thank-you `purchase` push regardless of `woo_enhanced_datalayer` (#139)
+- optionally widen Woo `dataLayer` pushes with consent-aware `user_data` for GTM-first setups
 - store purchase and milestone trace snapshots on the order for Diagnostics lookup
 - optionally dispatch purchase and order-status milestone events into the server-side delivery pipeline
 

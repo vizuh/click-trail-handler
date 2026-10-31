@@ -4,7 +4,7 @@
 - **Canonical for**: consent behavior, token handling, replay protection, and secret treatment
 - **Update when**: consent flow, auth, signing, secret storage, or privacy behavior changes
 - **Historical audit baseline**: plugin code `1.9.0`, commit `a45aa9e`, reviewed 2026-08-19
-- **Current release**: plugin code `1.11.0` on GitHub and WordPress.org, with automated consent, queue, WooCommerce privacy, CF7 outcome, touch-event deduplication, CMP decision-transition, Calendly webhook, HubSpot webhook signature, and attribution round-trip E2E (`tools/qa/e2e/`, CI) coverage; the browser storage inventory is below
+- **Current release**: plugin code `1.11.1` on GitHub and WordPress.org, with automated consent, queue, WooCommerce privacy, CF7 outcome, touch-event deduplication, CMP decision-transition, Calendly webhook, HubSpot webhook signature, and attribution round-trip E2E (`tools/qa/e2e/`, CI) coverage; the browser storage inventory is below
 - **Runtime verification**: PHP/WordPress/browser/CMP/provider E2E remains incomplete; live behavior is not implied by automated fixtures
 
 ClickTrail is designed to capture attribution and events without treating privacy and delivery as separate concerns.
@@ -46,6 +46,7 @@ Current source behavior (audit status):
 
 - server snapshot capture and `Dispatcher` share one policy requirement helper; when consent mode is disabled, both treat consent as not required rather than reading the legacy hidden gate
 - when consent mode is enabled, the runtime asks `Consent_Mode_Settings` whether the current request requires consent
+- when consent mode is enabled, the `gtag('consent','default', …)` snippet prints on `wp_head` at `Consent_Mode::HEAD_PRIORITY` (0) and the GTM bootstrap at `Web_Tag::HEAD_PRIORITY` (derived as consent + 1), so the default is set before `gtm.js` loads regardless of module registration order (#147; structural + rendered-order PHPUnit test, source-present / runtime-unverified in a real WordPress)
 - new Woo orders store a v1 decision snapshot; historical boolean order snapshots remain readable and are explicitly labeled `legacy_unversioned`
 - frontend attribution consumes the consent bridge as its primary runtime contract, but stale-cookie/CMP precedence
   and cross-tab synchronization remain runtime test requirements

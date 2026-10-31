@@ -25,6 +25,16 @@ use CLICUTCL\Core\Context;
 class Consent_Mode {
 
 	/**
+	 * `wp_head` priority of the consent default snippet.
+	 *
+	 * `Web_Tag::HEAD_PRIORITY` is derived from this so `gtag('consent','default')`
+	 * always prints before the GTM bootstrap (#147).
+	 *
+	 * @var int
+	 */
+	const HEAD_PRIORITY = 0;
+
+	/**
 	 * Context instance.
 	 *
 	 * @var Context
@@ -59,7 +69,7 @@ class Consent_Mode {
 		add_filter( "wp_consent_api_registered_{$plugin}", '__return_true' );
 
 		if ( $this->consent_mode_settings->is_consent_mode_enabled() ) {
-			add_action( 'wp_head', array( $this, 'render_gtag_consent_data_layer_snippet' ), 1 );
+			add_action( 'wp_head', array( $this, 'render_gtag_consent_data_layer_snippet' ), self::HEAD_PRIORITY );
 		}
 	}
 
