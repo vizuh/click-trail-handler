@@ -1001,8 +1001,9 @@ class WooCommerce {
 	 */
 	private function resolve_purchase_identity( $order ) {
 		$input = array(
-			'email' => sanitize_email( (string) $order->get_billing_email() ),
-			'phone' => sanitize_text_field( (string) $order->get_billing_phone() ),
+			'email'   => sanitize_email( (string) $order->get_billing_email() ),
+			'phone'   => sanitize_text_field( (string) $order->get_billing_phone() ),
+			'country' => sanitize_text_field( (string) $order->get_billing_country() ),
 		);
 
 		$ip = '';

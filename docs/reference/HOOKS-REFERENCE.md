@@ -160,6 +160,24 @@ Arguments:
 - `array $allowed`
 - `array $context`
 
+### `clicutcl_identity_default_country`
+
+Type:
+
+- filter
+
+Purpose:
+
+- supply the ISO 3166-1 alpha-2 country used to complete a phone number posted without a country code
+  before `Identity_Resolver` normalises it to E.164 and hashes it (#144); a non-empty return wins over the
+  WooCommerce base country and the billing/order country on the event; return `''` to defer to those
+
+Arguments:
+
+- `string $country` (default `''`)
+- `array $input` (identity input being resolved)
+- `array $context`
+
 ## Event and Token Security
 
 ### `clicutcl_v2_token_ttl`
