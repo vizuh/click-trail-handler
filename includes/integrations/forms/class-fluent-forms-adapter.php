@@ -37,25 +37,43 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 	}
 
 	/**
+	 * First Fluent Forms version that fires the slash-style hook names.
+	 */
+	const SLASH_HOOKS_SINCE = '5.0.0';
+
+	/**
+	 * Whether the installed Fluent Forms predates the slash-style hook names.
+	 *
+	 * An unknown version counts as current: only an explicit older FLUENTFORM_VERSION selects the legacy names.
+	 *
+	 * @return bool
+	 */
+	private function uses_legacy_hooks() {
+		return defined( 'FLUENTFORM_VERSION' ) && version_compare( (string) FLUENTFORM_VERSION, self::SLASH_HOOKS_SINCE, '<' );
+	}
+
+	/**
 	 * Register hooks.
 	 *
-	 * Fluent Forms v5+ uses slash-style hooks (fluentform/form_element_start).
-	 * v4 and earlier used underscore-style (fluentform_form_element_start).
-	 * Both sets are registered so the adapter works regardless of installed version.
-	 * on_submission relies on the shared (provider, form, entry) dedupe in log_submission() so
-	 * it never logs or writes meta for the same entry twice even when both aliases fire on an
-	 * installation that preserves both.
+	 * Fluent Forms 5.0.0+ fires slash-style hooks (fluentform/form_element_start); 4.x fired
+	 * underscore-style ones (fluentform_form_element_start). Only the set matching the installed
+	 * version is registered: current Fluent Forms still fires the legacy names, and applies
+	 * fluentform/insert_response_data through apply_filters_deprecated(), so a callback on
+	 * fluentform_insert_response_data raises a deprecation notice on every submission.
+	 * The shared (provider, form, entry) dedupe in log_submission() still guards on_submission
+	 * should a site fire both names.
 	 */
 	public function register_hooks() {
-		// Slash-style (Fluent Forms v5+, current docs).
+		if ( $this->uses_legacy_hooks() ) {
+			add_action( 'fluentform_form_element_start', array( $this, 'add_hidden_fields' ), 10, 1 );
+			add_filter( 'fluentform_insert_response_data', array( $this, 'refresh_response_data' ), 10, 3 );
+			add_action( 'fluentform_submission_inserted', array( $this, 'on_submission' ), 10, 3 );
+			return;
+		}
+
 		add_action( 'fluentform/form_element_start', array( $this, 'add_hidden_fields' ), 10, 1 );
 		add_filter( 'fluentform/insert_response_data', array( $this, 'refresh_response_data' ), 10, 3 );
 		add_action( 'fluentform/submission_inserted', array( $this, 'on_submission' ), 10, 3 );
-
-		// Underscore-style (legacy aliases, v4 and below).
-		add_action( 'fluentform_form_element_start', array( $this, 'add_hidden_fields' ), 10, 1 );
-		add_filter( 'fluentform_insert_response_data', array( $this, 'refresh_response_data' ), 10, 3 );
-		add_action( 'fluentform_submission_inserted', array( $this, 'on_submission' ), 10, 3 );
 	}
 
 	/**

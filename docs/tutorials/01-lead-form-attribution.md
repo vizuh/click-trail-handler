@@ -20,13 +20,19 @@ Every adapter refreshes the `ct_*` fields from the attribution cookie sent with 
 
 ### WPForms: mark the hidden fields
 
-Add a **Hidden Field** per value you want. WPForms fields have no name attribute, so
+Add a **Hidden Field** per value you want (the Hidden field type needs WPForms Pro).
+On WPForms Lite, which has no Hidden field, add a **Single Line Text** field instead
+and hide it with your own CSS (for example `.ct_gclid { display: none; }`); the value
+is filled when the form is submitted. WPForms fields have no name attribute, so
 mark each one in the field's **Advanced** tab with the CSS class `ct_<key>`, for
 example `ct_ft_source`, `ct_lt_source` or `ct_gclid`. Setting the field **label**
 to exactly `ct_<key>` also works and is what earlier guides implied. The field is
 filled when the page renders and refreshed from the cookie sent with the submit,
 so notifications, webhook add-ons and (WPForms Pro) entries carry the submit-time
-value. Entry meta is written separately for WPForms Pro.
+value. Entry meta is written separately for WPForms Pro. E2E on WordPress 7.1 with
+WPForms Lite 2.0.3.1 verified the submit-time fill on a Single Line Text field with
+the CSS class; entry meta cannot be tested in Lite. The render-time fill only touches
+`hidden` fields, so on Lite the value appears at submit, not on page load.
 
 ### Elementor Forms Pro: set the field ID
 

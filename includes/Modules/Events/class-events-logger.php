@@ -35,6 +35,13 @@ class Events_Logger {
 	protected $context;
 
 	/**
+	 * Events read from the follow-up cookies on `send_headers`, printed on `wp_head`.
+	 *
+	 * @var array<int,array<string,mixed>>
+	 */
+	private $queued_events = array();
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Context $context Plugin context.
@@ -50,6 +57,7 @@ class Events_Logger {
 		add_action( 'wp_login', array( $this, 'log_login_event' ), 10, 2 );
 		add_action( 'user_register', array( $this, 'log_signup_event' ), 10, 1 );
 		add_action( 'comment_post', array( $this, 'log_comment_event' ), 10, 2 );
+		add_action( 'send_headers', array( $this, 'process_event_cookies' ) );
 		add_action( 'wp_head', array( $this, 'render_server_events' ), 5 );
 	}
 
@@ -164,10 +172,16 @@ class Events_Logger {
 	}
 
 	/**
-	 * Render server-side events into dataLayer.
+	 * Read and expire the follow-up event cookies before any output is sent.
+	 *
+	 * `setcookie()` must run before output starts, so this runs on `send_headers`;
+	 * `render_server_events()` only prints what was read here.
+	 *
+	 * @return void
 	 */
-	public function render_server_events() {
-		$events = array( 'ct_event_login', 'ct_event_signup', 'ct_event_comment' );
+	public function process_event_cookies() {
+		$this->queued_events = array();
+		$events              = array( 'ct_event_login', 'ct_event_signup', 'ct_event_comment' );
 		if ( Consent::is_required() && ! Consent::marketing_allowed() ) {
 			foreach ( $events as $cookie_name ) {
 				$this->clear_event_cookie( $cookie_name );
@@ -175,21 +189,25 @@ class Events_Logger {
 			return;
 		}
 
-		$queued_events = array();
-
 		foreach ( $events as $cookie_name ) {
 			if ( isset( $_COOKIE[ $cookie_name ] ) ) {
 				$event_data = json_decode( sanitize_text_field( wp_unslash( $_COOKIE[ $cookie_name ] ) ), true );
 
 				if ( $event_data ) {
-					$queued_events[] = $this->normalize_event_cookie_payload( $event_data );
+					$this->queued_events[] = $this->normalize_event_cookie_payload( $event_data );
 					// Clear the cookie after reading.
 					$this->clear_event_cookie( $cookie_name );
 				}
 			}
 		}
+	}
 
-		$queued_events = array_values( array_filter( $queued_events ) );
+	/**
+	 * Render server-side events into dataLayer.
+	 */
+	public function render_server_events() {
+		$queued_events       = array_values( array_filter( $this->queued_events ) );
+		$this->queued_events = array();
 		if ( empty( $queued_events ) ) {
 			return;
 		}
