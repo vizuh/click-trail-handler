@@ -7,8 +7,6 @@
 
 namespace CLICUTCL\Tracking;
 
-use CLICUTCL\Server_Side\Dispatcher;
-
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -17,6 +15,34 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Class Identity_Resolver
  */
 class Identity_Resolver implements IdentityResolverInterface {
+	/**
+	 * Per-request count of identity values dropped during normalisation (#144),
+	 * keyed `phone_no_country` / `phone_invalid`. Not a delivery failure, so it
+	 * stays out of Dispatcher failure telemetry; surfaced per event in the v2
+	 * intake debug buffer.
+	 *
+	 * @var array<string, int>
+	 */
+	private static $drop_counts = array();
+
+	/**
+	 * Return per-request identity drop counts.
+	 *
+	 * @return array<string, int>
+	 */
+	public static function get_drop_counts(): array {
+		return self::$drop_counts;
+	}
+
+	/**
+	 * Reset per-request identity drop counts.
+	 *
+	 * @return void
+	 */
+	public static function reset_drop_counts(): void {
+		self::$drop_counts = array();
+	}
+
 	/**
 	 * Resolve sanitized identity payload for destinations.
 	 *
@@ -45,8 +71,6 @@ class Identity_Resolver implements IdentityResolverInterface {
 			$phone = $this->normalize_phone( (string) $input['phone'], $input, $context );
 			if ( '' !== $phone ) {
 				$out['hashed_phone'] = hash( 'sha256', $phone );
-			} else {
-				Dispatcher::record_failure( 'identity_phone_dropped' );
 			}
 		}
 
@@ -93,14 +117,29 @@ class Identity_Resolver implements IdentityResolverInterface {
 		if ( ! $plus ) {
 			$calling_code = Phone_Calling_Codes::for_country( $this->default_country( $input, $context ) );
 			if ( '' === $calling_code ) {
+				self::record_drop( 'phone_no_country' );
 				return '';
 			}
 			$phone = $calling_code . $phone;
 		}
 
 		$phone = '+' . $phone;
+		if ( ! preg_match( '/^\+[1-9][0-9]{6,14}$/', $phone ) ) {
+			self::record_drop( 'phone_invalid' );
+			return '';
+		}
 
-		return preg_match( '/^\+[1-9][0-9]{6,14}$/', $phone ) ? $phone : '';
+		return $phone;
+	}
+
+	/**
+	 * Count a dropped identity value for this request.
+	 *
+	 * @param string $reason Drop reason key.
+	 * @return void
+	 */
+	private static function record_drop( string $reason ): void {
+		self::$drop_counts[ $reason ] = ( self::$drop_counts[ $reason ] ?? 0 ) + 1;
 	}
 
 	/**

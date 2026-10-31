@@ -16,21 +16,24 @@ namespace {
 	require_once dirname( __DIR__, 2 ) . '/includes/support/class-feature-registry.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-settings.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/server-side/class-consent.php';
-	require_once dirname( __DIR__, 2 ) . '/includes/server-side/class-dispatcher.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-consentdecisioninterface.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-consent-decision.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-identityresolverinterface.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-phone-calling-codes.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-identity-resolver.php';
 
-	use CLICUTCL\Server_Side\Dispatcher;
 	use CLICUTCL\Tracking\Identity_Resolver;
 	use CLICUTCL\Tracking\Phone_Calling_Codes;
 	use PHPUnit\Framework\TestCase;
 
 	final class IdentityResolverPhoneTest extends TestCase {
+		protected function setUp(): void {
+			Identity_Resolver::reset_drop_counts();
+		}
+
 		protected function tearDown(): void {
 			unset( $GLOBALS['clicktrail_test_filters'] );
+			Identity_Resolver::reset_drop_counts();
 		}
 
 		private function resolve_phone( string $phone, array $extra_input = array() ): array {
@@ -46,18 +49,6 @@ namespace {
 			$GLOBALS['clicktrail_test_filters']['clicutcl_identity_default_country'] = static function () use ( $country ) {
 				return $country;
 			};
-		}
-
-		/**
-		 * Read the in-request `identity_phone_dropped` delta that Dispatcher flushes
-		 * into the failure-telemetry diagnostics on shutdown.
-		 */
-		private function phone_drop_count(): int {
-			$property = new \ReflectionProperty( Dispatcher::class, 'failure_deltas' );
-			$property->setAccessible( true );
-			$deltas = $property->getValue();
-
-			return (int) ( $deltas['identity_phone_dropped'] ?? 0 );
 		}
 
 		public function test_international_format_with_spaces_hashes_e164(): void {
@@ -86,19 +77,17 @@ namespace {
 
 		public function test_national_number_without_default_country_is_dropped_and_counted(): void {
 			$this->with_default_country( null );
-			$before = $this->phone_drop_count();
-			$out    = $this->resolve_phone( '912345678' );
+			$out = $this->resolve_phone( '912345678' );
 			$this->assertArrayNotHasKey( 'hashed_phone', $out );
-			$this->assertSame( $before + 1, $this->phone_drop_count() );
+			$this->assertSame( array( 'phone_no_country' => 1 ), Identity_Resolver::get_drop_counts() );
 		}
 
 		public function test_invalid_after_normalisation_is_dropped_and_counted(): void {
 			$this->with_default_country( null );
-			$before = $this->phone_drop_count();
 			$this->assertArrayNotHasKey( 'hashed_phone', $this->resolve_phone( '+0351912345678' ) );
 			$this->assertArrayNotHasKey( 'hashed_phone', $this->resolve_phone( '+35191' ) );
 			$this->assertArrayNotHasKey( 'hashed_phone', $this->resolve_phone( '+3519123456789012345' ) );
-			$this->assertSame( $before + 3, $this->phone_drop_count() );
+			$this->assertSame( array( 'phone_invalid' => 3 ), Identity_Resolver::get_drop_counts() );
 		}
 
 		public function test_unknown_default_country_is_dropped(): void {
@@ -108,9 +97,8 @@ namespace {
 
 		public function test_empty_phone_is_not_counted_as_drop(): void {
 			$this->with_default_country( null );
-			$before = $this->phone_drop_count();
 			$this->assertArrayNotHasKey( 'hashed_phone', $this->resolve_phone( '' ) );
-			$this->assertSame( $before, $this->phone_drop_count() );
+			$this->assertSame( array(), Identity_Resolver::get_drop_counts() );
 		}
 
 		public function test_email_path_unchanged(): void {

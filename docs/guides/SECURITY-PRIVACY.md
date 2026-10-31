@@ -158,8 +158,10 @@ trimmed and lowercased. Phone is normalised to E.164 before SHA-256 (#144): ever
 `+` is stripped, a `00` prefix becomes `+`, and a number with no country code is prefixed with the default
 country's calling code (`clicutcl_identity_default_country` filter, else the WooCommerce base country, else the
 billing country on the order). A number that cannot be resolved to `^\+[1-9][0-9]{6,14}$` is dropped from the
-identity payload (never hashed as-is) and counted as `identity_phone_dropped` in the aggregated failure
-telemetry on the Diagnostics page. The calling-code table is the ISO 3166-1 alpha-2 list in
+identity payload (never hashed as-is) and counted per request in `Identity_Resolver::get_drop_counts()`
+(`phone_no_country`, `phone_invalid`); the v2 intake debug buffer records those reasons as `identity_dropped`
+and the Diagnostics "Identity Keys" column shows them as `dropped: …`. Drops are not delivery failures and do
+not touch the Dispatcher failure telemetry. The calling-code table is the ISO 3166-1 alpha-2 list in
 `includes/tracking/class-phone-calling-codes.php`; national trunk prefixes (for example a leading `0` in UK or
 German numbers) are not stripped. Source-present / runtime-unverified in a live WordPress.
 
