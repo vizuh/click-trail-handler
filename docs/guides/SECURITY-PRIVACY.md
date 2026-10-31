@@ -151,6 +151,17 @@ Current design goals:
 Identity exposure is additionally filterable through:
 
 - `clicutcl_identity_fields_allowed`
+- `clicutcl_identity_default_country`
+
+`Identity_Resolver` (`includes/tracking/class-identity-resolver.php`) hashes only normalised values. Email is
+trimmed and lowercased. Phone is normalised to E.164 before SHA-256 (#144): everything but digits and a leading
+`+` is stripped, a `00` prefix becomes `+`, and a number with no country code is prefixed with the default
+country's calling code (`clicutcl_identity_default_country` filter, else the WooCommerce base country, else the
+billing country on the order). A number that cannot be resolved to `^\+[1-9][0-9]{6,14}$` is dropped from the
+identity payload (never hashed as-is) and counted as `identity_phone_dropped` in the aggregated failure
+telemetry on the Diagnostics page. The calling-code table is the ISO 3166-1 alpha-2 list in
+`includes/tracking/class-phone-calling-codes.php`; national trunk prefixes (for example a leading `0` in UK or
+German numbers) are not stripped. Source-present / runtime-unverified in a live WordPress.
 
 HubSpot embedded form capture (`assets/js/clicutcl-events.js`) reads only identifiers: `formId` and `instanceId`
 from HubSpot's v4 event, the conversion ID from `getConversionId()`, and the form `id` from a legacy

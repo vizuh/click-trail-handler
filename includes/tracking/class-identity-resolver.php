@@ -7,6 +7,8 @@
 
 namespace CLICUTCL\Tracking;
 
+use CLICUTCL\Server_Side\Dispatcher;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -39,9 +41,13 @@ class Identity_Resolver implements IdentityResolverInterface {
 			$out['hashed_email'] = hash( 'sha256', $email );
 		}
 
-		$phone = isset( $input['phone'] ) ? preg_replace( '/[^0-9+]/', '', (string) $input['phone'] ) : '';
-		if ( in_array( 'hashed_phone', $allowed_fields, true ) && $phone && preg_match( '/^\+?[0-9]{7,20}$/', $phone ) ) {
-			$out['hashed_phone'] = hash( 'sha256', $phone );
+		if ( in_array( 'hashed_phone', $allowed_fields, true ) && isset( $input['phone'] ) && '' !== trim( (string) $input['phone'] ) ) {
+			$phone = $this->normalize_phone( (string) $input['phone'], $input, $context );
+			if ( '' !== $phone ) {
+				$out['hashed_phone'] = hash( 'sha256', $phone );
+			} else {
+				Dispatcher::record_failure( 'identity_phone_dropped' );
+			}
 		}
 
 		// Optional non-PII transport context, destination-specific and filterable.
@@ -58,5 +64,75 @@ class Identity_Resolver implements IdentityResolverInterface {
 		}
 
 		return $out;
+	}
+
+	/**
+	 * Normalise a phone number to E.164 (`+` + 7–15 digits) or return '' (#144).
+	 *
+	 * Google Enhanced Conversions and Meta CAPI hash E.164, so a national number
+	 * or a `00`-prefixed one hashed as-is matches nothing. Everything but digits
+	 * and a leading `+` is stripped, `00` becomes `+`, and a number without `+`
+	 * is prefixed with the default country's calling code; when no country can
+	 * be resolved the number is dropped rather than hashed in an unmatched shape.
+	 *
+	 * @param string $raw     Raw phone input.
+	 * @param array  $input   Full identity input (may carry `country`).
+	 * @param array  $context Resolver context.
+	 * @return string E.164 number or ''.
+	 */
+	private function normalize_phone( string $raw, array $input, array $context ): string {
+		$phone = preg_replace( '/[^0-9+]/', '', $raw );
+		$plus  = 0 === strpos( $phone, '+' );
+		$phone = str_replace( '+', '', $phone );
+
+		if ( ! $plus && 0 === strpos( $phone, '00' ) ) {
+			$phone = substr( $phone, 2 );
+			$plus  = true;
+		}
+
+		if ( ! $plus ) {
+			$calling_code = Phone_Calling_Codes::for_country( $this->default_country( $input, $context ) );
+			if ( '' === $calling_code ) {
+				return '';
+			}
+			$phone = $calling_code . $phone;
+		}
+
+		$phone = '+' . $phone;
+
+		return preg_match( '/^\+[1-9][0-9]{6,14}$/', $phone ) ? $phone : '';
+	}
+
+	/**
+	 * Resolve the ISO 3166-1 alpha-2 country used to complete national phone numbers.
+	 *
+	 * Order: `clicutcl_identity_default_country` filter, WooCommerce base country,
+	 * the billing/order country on the event (`$input['country']`), else ''.
+	 *
+	 * @param array $input   Identity input.
+	 * @param array $context Resolver context.
+	 * @return string Alpha-2 code or ''.
+	 */
+	private function default_country( array $input, array $context ): string {
+		/**
+		 * Filter the default country for phone numbers posted without a country code.
+		 *
+		 * @param string $country ISO 3166-1 alpha-2 code; '' lets WooCommerce / the event decide.
+		 * @param array  $input   Identity input being resolved.
+		 * @param array  $context Resolver context.
+		 */
+		$country = (string) apply_filters( 'clicutcl_identity_default_country', '', $input, $context );
+		if ( '' !== $country ) {
+			return $country;
+		}
+
+		if ( function_exists( 'WC' ) && isset( WC()->countries ) && method_exists( WC()->countries, 'get_base_country' ) ) {
+			$country = (string) WC()->countries->get_base_country();
+			if ( '' !== $country ) {
+				return $country;
+			}
+		}
+
+		return isset( $input['country'] ) && is_scalar( $input['country'] ) ? (string) $input['country'] : '';
 	}
 }
