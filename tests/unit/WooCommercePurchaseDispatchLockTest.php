@@ -134,6 +134,44 @@ namespace {
 	}
 
 	/**
+	 * Minimal `$wpdb` double for the row-conditional lock delete.
+	 *
+	 * `delete()` removes the option only when both the name and the exact stored
+	 * value match, returning the affected-row count like the real method.
+	 */
+	final class ClickTrail_Test_Wpdb {
+		public string $options = 'wp_options';
+
+		/**
+		 * Recorded where-clauses of every delete() call.
+		 *
+		 * @var array<int,array<string,string>>
+		 */
+		public array $deletes = array();
+
+		/**
+		 * Optional hook run before each delete(), to interleave a rival request.
+		 *
+		 * @var callable|null
+		 */
+		public $before_delete = null;
+
+		public function delete( $table, $where ) {
+			if ( is_callable( $this->before_delete ) ) {
+				( $this->before_delete )();
+			}
+			$this->deletes[] = $where;
+
+			$name = (string) $where['option_name'];
+			if ( ! isset( $GLOBALS['clicktrail_test_options'][ $name ] ) || (string) $GLOBALS['clicktrail_test_options'][ $name ] !== (string) $where['option_value'] ) {
+				return 0;
+			}
+			unset( $GLOBALS['clicktrail_test_options'][ $name ] );
+			return 1;
+		}
+	}
+
+	/**
 	 * Minimal WC_Order double backed by a shared per-ID "database" array.
 	 *
 	 * Meta reads come from the instance snapshot taken at load; `save()` writes
@@ -235,9 +273,11 @@ namespace {
 	 */
 	final class WooCommercePurchaseDispatchLockTest extends TestCase {
 		private const ORDER_ID = 4815;
+		public const LOCK_KEY  = 'clicutcl_purchase_lock_4815';
 
 		protected function setUp(): void {
 			$_COOKIE = array( 'ct_consent_state' => wp_json_encode( array( 'marketing' => true ) ) );
+			$GLOBALS['wpdb']                             = new ClickTrail_Test_Wpdb();
 			$GLOBALS['clicktrail_test_dispatches']       = array();
 			$GLOBALS['clicktrail_test_filters']          = array();
 			$GLOBALS['clicktrail_test_options']          = array();
@@ -253,6 +293,7 @@ namespace {
 		protected function tearDown(): void {
 			$_COOKIE = array();
 			unset(
+				$GLOBALS['wpdb'],
 				$GLOBALS['clicktrail_test_dispatches'],
 				$GLOBALS['clicktrail_test_filters'],
 				$GLOBALS['clicktrail_test_options'],
@@ -348,7 +389,9 @@ namespace {
 		}
 
 		public function test_lock_held_by_another_request_skips_dispatch_without_marking(): void {
-			$GLOBALS['clicktrail_test_options'][ 'clicutcl_purchase_lock_' . self::ORDER_ID ] = time();
+			$rival = 'other-request|' . time();
+
+			$GLOBALS['clicktrail_test_options'][ self::LOCK_KEY ] = $rival;
 
 			ob_start();
 			try {
@@ -360,11 +403,14 @@ namespace {
 
 			$this->assertSame( array(), $GLOBALS['clicktrail_test_dispatches'] );
 			$this->assertArrayNotHasKey( '_clicutcl_tracking_sent', $GLOBALS['clicktrail_test_woo_db'][ self::ORDER_ID ] );
-			$this->assertArrayHasKey( 'clicutcl_purchase_lock_' . self::ORDER_ID, $GLOBALS['clicktrail_test_options'], 'The loser must not release a lock it does not own.' );
+			$this->assertSame( $rival, $GLOBALS['clicktrail_test_options'][ self::LOCK_KEY ], 'The loser must not release a lock it does not own.' );
+			$this->assertSame( array(), $GLOBALS['wpdb']->deletes, 'A fresh lock is never deleted by a loser.' );
 		}
 
 		public function test_stale_option_lock_is_taken_over(): void {
-			$GLOBALS['clicktrail_test_options'][ 'clicutcl_purchase_lock_' . self::ORDER_ID ] = time() - 31;
+			$stale = 'dead-request|' . ( time() - 31 );
+
+			$GLOBALS['clicktrail_test_options'][ self::LOCK_KEY ] = $stale;
 
 			ob_start();
 			try {
@@ -376,7 +422,81 @@ namespace {
 
 			$this->assertCount( 1, $GLOBALS['clicktrail_test_dispatches'] );
 			$this->assertSame( 'yes', $GLOBALS['clicktrail_test_woo_db'][ self::ORDER_ID ]['_clicutcl_tracking_sent'] );
-			$this->assertArrayNotHasKey( 'clicutcl_purchase_lock_' . self::ORDER_ID, $GLOBALS['clicktrail_test_options'] );
+			$this->assertArrayNotHasKey( self::LOCK_KEY, $GLOBALS['clicktrail_test_options'] );
+
+			$deleted_values = array_column( $GLOBALS['wpdb']->deletes, 'option_value' );
+			$this->assertCount( 2, $deleted_values, 'One conditional delete for the takeover, one for the owner release.' );
+			$this->assertSame( $stale, $deleted_values[0], 'Takeover deletes exactly the stale value it read.' );
+			$this->assertMatchesRegularExpression( '/^uuid-[^|]+\|\d+$/', $deleted_values[1], 'Release deletes the value this request stored.' );
+		}
+
+		public function test_stale_takeover_loses_when_the_row_changed_first(): void {
+			$rival = 'rival-request|' . time();
+
+			$GLOBALS['clicktrail_test_options'][ self::LOCK_KEY ] = 'dead-request|' . ( time() - 31 );
+			// Another late arrival re-claims between our read and our conditional delete.
+			$GLOBALS['wpdb']->before_delete = static function () use ( $rival ): void {
+				$GLOBALS['clicktrail_test_options'][ WooCommercePurchaseDispatchLockTest::LOCK_KEY ] = $rival;
+			};
+
+			ob_start();
+			try {
+				( new WooCommerce() )->push_purchase_event( self::ORDER_ID );
+				$this->assertSame( '', ob_get_contents() );
+			} finally {
+				ob_end_clean();
+			}
+
+			$this->assertSame( array(), $GLOBALS['clicktrail_test_dispatches'] );
+			$this->assertArrayNotHasKey( '_clicutcl_tracking_sent', $GLOBALS['clicktrail_test_woo_db'][ self::ORDER_ID ] );
+			$this->assertSame( $rival, $GLOBALS['clicktrail_test_options'][ self::LOCK_KEY ], 'The rival keeps its lock.' );
+			$this->assertCount( 1, $GLOBALS['wpdb']->deletes, 'The loser does not attempt an owner release.' );
+		}
+
+		public function test_expired_option_owner_does_not_release_the_successor_lock(): void {
+			$successor = 'successor|' . time();
+
+			$GLOBALS['clicktrail_test_options'][ self::LOCK_KEY ] = $successor;
+
+			$release = new ReflectionMethod( WooCommerce::class, 'release_purchase_lock' );
+			$release->setAccessible( true );
+			$release->invoke( new WooCommerce(), self::ORDER_ID, 'expired-owner|' . ( time() - 40 ) );
+
+			$this->assertSame( $successor, $GLOBALS['clicktrail_test_options'][ self::LOCK_KEY ] );
+
+			$release->invoke( new WooCommerce(), self::ORDER_ID, $successor );
+			$this->assertArrayNotHasKey( self::LOCK_KEY, $GLOBALS['clicktrail_test_options'], 'The owner itself still releases.' );
+		}
+
+		public function test_expired_cache_owner_does_not_release_the_successor_lock(): void {
+			$GLOBALS['clicktrail_test_ext_object_cache']               = true;
+			$GLOBALS['clicktrail_test_cache']['clicutcl'][ self::LOCK_KEY ] = 'successor-token';
+
+			$release = new ReflectionMethod( WooCommerce::class, 'release_purchase_lock' );
+			$release->setAccessible( true );
+			$release->invoke( new WooCommerce(), self::ORDER_ID, 'expired-token' );
+
+			$this->assertSame( 'successor-token', $GLOBALS['clicktrail_test_cache']['clicutcl'][ self::LOCK_KEY ] );
+			$this->assertSame( array(), $GLOBALS['clicktrail_test_options'], 'Cache path never touches the options table.' );
+
+			$release->invoke( new WooCommerce(), self::ORDER_ID, 'successor-token' );
+			$this->assertArrayNotHasKey( self::LOCK_KEY, $GLOBALS['clicktrail_test_cache']['clicutcl'] );
+		}
+
+		public function test_acquire_returns_a_request_unique_value(): void {
+			$acquire = new ReflectionMethod( WooCommerce::class, 'acquire_purchase_lock' );
+			$acquire->setAccessible( true );
+
+			$first = $acquire->invoke( new WooCommerce(), self::ORDER_ID );
+			$this->assertNotSame( '', $first );
+			$this->assertSame( $first, $GLOBALS['clicktrail_test_options'][ self::LOCK_KEY ] );
+			$this->assertSame( '', $acquire->invoke( new WooCommerce(), self::ORDER_ID ), 'A fresh lock is not re-claimable.' );
+
+			$GLOBALS['clicktrail_test_ext_object_cache'] = true;
+			$cached                                       = $acquire->invoke( new WooCommerce(), self::ORDER_ID );
+			$this->assertNotSame( '', $cached );
+			$this->assertNotSame( $first, $cached );
+			$this->assertSame( $cached, $GLOBALS['clicktrail_test_cache']['clicutcl'][ self::LOCK_KEY ] );
 		}
 	}
 }

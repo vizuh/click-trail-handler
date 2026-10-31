@@ -170,9 +170,18 @@ if ( ! function_exists( 'delete_option' ) ) {
 }
 
 if ( ! function_exists( 'wp_cache_get' ) ) {
+	/**
+	 * Reads only values claimed through the `wp_cache_add` stub; `wp_cache_set` stays inert.
+	 */
 	function wp_cache_get( $key, $group = '', $force = false, &$found = null ) {
-		$found = false;
-		return false;
+		$found = isset( $GLOBALS['clicktrail_test_cache'][ $group ][ $key ] );
+		return $found ? $GLOBALS['clicktrail_test_cache'][ $group ][ $key ] : false;
+	}
+}
+
+if ( ! function_exists( 'wp_generate_uuid4' ) ) {
+	function wp_generate_uuid4() {
+		return uniqid( 'uuid-', true );
 	}
 }
 
