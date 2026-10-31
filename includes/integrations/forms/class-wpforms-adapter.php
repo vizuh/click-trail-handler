@@ -190,6 +190,13 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 		$form_id  = isset( $form_data['id'] ) ? absint( $form_data['id'] ) : 0;
 		$entry_id = absint( $entry_id );
 
+		// Log first: the entry meta carries the IDs it returns, and a repeat of the same entry
+		// (its meta was written by the first call) writes nothing.
+		$logged = $this->log_submission( 'wpforms', $form_id, $payload, $this->extract_identity_from_fields( $fields ), $entry_id );
+		if ( ! empty( $logged['duplicate'] ) ) {
+			return;
+		}
+
 		// Save to WPForms entry meta only when a real entry exists.
 		// Lite installs and some processing paths may not provide one.
 		if (
@@ -200,7 +207,7 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 			is_object( wpforms()->entry_meta ) &&
 			method_exists( wpforms()->entry_meta, 'add' )
 		) {
-			foreach ( $payload as $key => $value ) {
+			foreach ( array_merge( $payload, $this->entry_id_meta( $logged ) ) as $key => $value ) {
 				$meta_key = $this->get_field_name( $key );
 				wpforms()->entry_meta->add(
 					array(
@@ -213,9 +220,6 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 				);
 			}
 		}
-
-		// Log to ClickTrail.
-		$this->log_submission( 'wpforms', $form_id, $payload, $this->extract_identity_from_fields( $fields ), $entry_id );
 	}
 
 	/**

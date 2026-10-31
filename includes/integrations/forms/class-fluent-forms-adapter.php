@@ -199,7 +199,7 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 		// plugin is active. The table is created by Fluent on activation.
 		if ( function_exists( 'wpFluent' ) ) {
 			$now = current_time( 'mysql' );
-			foreach ( $attribution as $key => $value ) {
+			foreach ( array_merge( $attribution, $this->entry_id_meta( $logged ) ) as $key => $value ) {
 				try {
 					wpFluent()
 						->table( 'fluentform_submission_meta' )

@@ -140,6 +140,7 @@ Purpose:
 
 - store event log rows for the admin Logs screen
 - store form submission event payloads including resolved attribution and, when available, consent-aware identity fields
+- a `form_submission` row's `event_data` carries `event_id`, `lead_id` (`lead_` + the event ID without `evt_`, the browser's derivation), `platform`, `form_id`, `entry_id` (only when the provider has one), `attribution` and the IP-anonymized `identity`; there is one row per `(provider, form_id, entry_id)` (#140, #143)
 
 Columns:
 
@@ -147,6 +148,21 @@ Columns:
 - `event_type`
 - `event_data`
 - `created_at`
+
+## Form Entry Meta
+
+Written by the form adapters at submission time, after `log_submission()`, when consent allows and only for the first call of an entry. `ct_event_id` / `ct_lead_id` are the values `log_submission()` returned, so a CRM sync that copies entry fields can carry an ID that matches the server event and the `clicutcl_events` row (#143).
+
+| Provider | Store | Keys written | Source of IDs |
+| --- | --- | --- | --- |
+| Gravity Forms | entry meta (`gform_add_meta`), declared via `gform_entry_meta` and restored after an entry edit | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
+| WPForms | `wpforms()->entry_meta` (only when the entry ID is a real, positive ID) | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
+| Fluent Forms | `fluentform_submission_meta` (`response_id` = entry ID) | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
+| Ninja Forms | none | none | `clicutcl_events` row and action `clicutcl_form_submission_logged` |
+| Elementor Forms (Pro) | none | none | `clicutcl_events` row and action `clicutcl_form_submission_logged` |
+| Contact Form 7 | none | none | `clicutcl_events` row and action `clicutcl_form_submission_logged` |
+
+No ID is written when `log_submission()` returned early (consent denied or empty attribution), and a deduplicated repeat of the same entry writes no meta again.
 
 ## `wp_clicutcl_queue`
 

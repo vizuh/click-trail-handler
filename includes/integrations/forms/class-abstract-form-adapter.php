@@ -81,7 +81,9 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 	 * @param array           $identity_input Optional raw identity input candidates.
 	 * @param int|string|null $entry_id       Provider entry ID, when the provider has one.
 	 * @return array Empty when consent or empty attribution stopped the log; otherwise
-	 *               `event_id` (string) and `duplicate` (bool).
+	 *               `event_id` (string), `lead_id` (string, `lead_` + the event ID without a
+	 *               leading `evt_`, the browser's derivation) and `duplicate` (bool).
+	 *               A repeat returns the same IDs.
 	 */
 	protected function log_submission( $platform, $form_id, $attribution, $identity_input = array(), $entry_id = null ) {
 		global $wpdb;
@@ -96,14 +98,17 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 			return array(); // Don't log empty attribution events? Maybe log them anyway but data is empty.
 		}
 
+		$entry_id    = $this->normalize_entry_id( $entry_id );
 		$fingerprint = $this->submission_fingerprint( $platform, $form_id, $attribution, $identity_input, $entry_id );
 		$event_id    = 'form_' . substr( $fingerprint, 0, 32 );
+		$lead_id     = $this->derive_lead_id( $event_id );
 
 		// Dedup_Store::check_and_mark() is a transient read-then-write, so two truly simultaneous
 		// requests can both pass; sequential repeats (double click, retried AJAX) cannot.
 		if ( Dedup_Store::check_and_mark( 'form_submission', (string) $platform, $fingerprint, DAY_IN_SECONDS ) ) {
 			return array(
 				'event_id'  => $event_id,
+				'lead_id'   => $lead_id,
 				'duplicate' => true,
 			);
 		}
@@ -114,10 +119,15 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 
 		$event_data = array(
 			'event_id'    => $event_id,
+			'lead_id'     => $lead_id,
 			'platform'    => $platform,
 			'form_id'     => $form_id,
 			'attribution' => $attribution,
 		);
+
+		if ( null !== $entry_id ) {
+			$event_data['entry_id'] = $entry_id;
+		}
 
 		if ( ! empty( $identity ) ) {
 			// Persist an IP-anonymized copy in the diagnostic log; the full identity below
@@ -150,10 +160,77 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 			$context
 		);
 
+		/**
+		 * Fires after a form submission was logged and dispatched, once per entry (not on a
+		 * deduplicated repeat). Lets add-ons copy the IDs into a CRM record or another
+		 * entry store: `$event_id` matches the `clicutcl_events` row and the server event,
+		 * `$lead_id` the browser `lead`.
+		 *
+		 * @param string          $provider Provider key, e.g. `gravityforms`.
+		 * @param mixed           $form_id  Provider form ID.
+		 * @param int|string|null $entry_id Provider entry ID, null when the provider has none.
+		 * @param string          $event_id ClickTrail event ID.
+		 * @param string          $lead_id  ClickTrail lead ID.
+		 * @param array           $payload  Attribution payload that was logged.
+		 */
+		do_action( 'clicutcl_form_submission_logged', $platform, $form_id, $entry_id, $event_id, $lead_id, $attribution );
+
 		return array(
 			'event_id'  => $event_id,
+			'lead_id'   => $lead_id,
 			'duplicate' => false,
 		);
+	}
+
+	/**
+	 * Derive the lead ID from an event ID: `lead_` + the ID without a leading `evt_`.
+	 *
+	 * Mirrors `buildMarketingTrailEnvelope()` in `clicutcl-events.js`, so the server event and
+	 * the browser `lead` of one submission share the same lead ID.
+	 *
+	 * @param string $event_id Event ID.
+	 * @return string
+	 */
+	protected function derive_lead_id( $event_id ) {
+		$id = preg_replace( '/^evt_/', '', (string) $event_id );
+		return 0 === strpos( $id, 'lead_' ) ? $id : 'lead_' . $id;
+	}
+
+	/**
+	 * Attribution-style meta pairs carrying the IDs `log_submission()` returned.
+	 *
+	 * Keys are unprefixed like attribution keys (`event_id`, `lead_id`); writers run them
+	 * through `get_field_name()` to get `ct_event_id` / `ct_lead_id`. Empty when the log was
+	 * gated (consent, empty attribution), so a gated submission never gets IDs.
+	 *
+	 * @param mixed $logged `log_submission()` result.
+	 * @return array<string, string>
+	 */
+	protected function entry_id_meta( $logged ) {
+		if ( ! is_array( $logged ) || empty( $logged['event_id'] ) || empty( $logged['lead_id'] ) ) {
+			return array();
+		}
+
+		return array(
+			'event_id' => (string) $logged['event_id'],
+			'lead_id'  => (string) $logged['lead_id'],
+		);
+	}
+
+	/**
+	 * Provider entry ID as an int/string, or null when absent or zero.
+	 *
+	 * @param mixed $entry_id Raw entry ID.
+	 * @return int|string|null
+	 */
+	private function normalize_entry_id( $entry_id ) {
+		if ( ! is_scalar( $entry_id ) ) {
+			return null;
+		}
+
+		$entry_id = is_string( $entry_id ) ? trim( $entry_id ) : $entry_id;
+
+		return '' === $entry_id || 0 === $entry_id || '0' === $entry_id || false === $entry_id ? null : $entry_id;
 	}
 
 	/**
@@ -172,14 +249,13 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 	 * @param mixed           $form_id        Form ID.
 	 * @param array           $attribution    Attribution data.
 	 * @param array           $identity_input Raw identity input candidates.
-	 * @param int|string|null $entry_id       Provider entry ID, when the provider has one.
+	 * @param int|string|null $entry_id       Normalized provider entry ID, null when none.
 	 * @return string 40-character sha1.
 	 */
 	private function submission_fingerprint( $platform, $form_id, $attribution, $identity_input, $entry_id ) {
-		$entry_id = is_scalar( $entry_id ) ? trim( (string) $entry_id ) : '';
-		$scope    = (int) get_current_blog_id() . '|' . $platform . '|' . ( is_scalar( $form_id ) ? (string) $form_id : '' );
+		$scope = (int) get_current_blog_id() . '|' . $platform . '|' . ( is_scalar( $form_id ) ? (string) $form_id : '' );
 
-		if ( '' !== $entry_id && '0' !== $entry_id ) {
+		if ( null !== $entry_id ) {
 			return sha1( $scope . '|entry|' . $entry_id );
 		}
 

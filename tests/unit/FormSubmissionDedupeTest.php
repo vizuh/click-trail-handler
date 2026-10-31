@@ -257,7 +257,7 @@ namespace {
 
 			$this->assertCount( 1, $this->db->rows );
 			$this->assertCount( 1, $GLOBALS['clicktrail_test_dispatches'] );
-			$this->assertCount( 1, $fluent_db->rows, 'Attribution meta is written once per entry.' );
+			$this->assertCount( 3, $fluent_db->rows, 'One attribution key plus the two ID keys, written once per entry.' );
 
 			$adapter->on_submission( 43, $posted, $form );
 			$this->assertCount( 2, $this->db->rows, 'A new Fluent entry is a new submission.' );
