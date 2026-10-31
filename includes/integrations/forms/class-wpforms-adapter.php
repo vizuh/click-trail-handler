@@ -190,6 +190,10 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 		$form_id  = isset( $form_data['id'] ) ? absint( $form_data['id'] ) : 0;
 		$entry_id = absint( $entry_id );
 
+		// Log first: the entry meta carries the IDs it returns. A repeat of the same entry writes
+		// only the IDs the entry lacks (the first call wrote the rest, or died before it could).
+		$logged = $this->log_submission( 'wpforms', $form_id, $payload, $this->extract_identity_from_fields( $fields ), $entry_id );
+
 		// Save to WPForms entry meta only when a real entry exists.
 		// Lite installs and some processing paths may not provide one.
 		if (
@@ -200,7 +204,15 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 			is_object( wpforms()->entry_meta ) &&
 			method_exists( wpforms()->entry_meta, 'add' )
 		) {
-			foreach ( $payload as $key => $value ) {
+			$meta = $this->entry_meta_to_write(
+				$logged,
+				$payload,
+				function ( $meta_key ) use ( $entry_id ) {
+					return $this->wpforms_entry_has_meta( $entry_id, $meta_key );
+				}
+			);
+
+			foreach ( $meta as $key => $value ) {
 				$meta_key = $this->get_field_name( $key );
 				wpforms()->entry_meta->add(
 					array(
@@ -213,9 +225,32 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 				);
 			}
 		}
+	}
 
-		// Log to ClickTrail.
-		$this->log_submission( 'wpforms', $form_id, $payload, $this->extract_identity_from_fields( $fields ) );
+	/**
+	 * Whether a WPForms entry already has a meta row of this type.
+	 *
+	 * Uses `entry_meta->get_meta()`; without it the answer is "yes", so a repeat never writes
+	 * a second row it cannot rule out.
+	 *
+	 * @param int    $entry_id Entry ID.
+	 * @param string $type     Meta type (key).
+	 * @return bool
+	 */
+	private function wpforms_entry_has_meta( $entry_id, $type ) {
+		$entry_meta = wpforms()->entry_meta;
+		if ( ! method_exists( $entry_meta, 'get_meta' ) ) {
+			return true;
+		}
+
+		$rows = $entry_meta->get_meta(
+			array(
+				'entry_id' => $entry_id,
+				'type'     => $type,
+			)
+		);
+
+		return ! empty( $rows );
 	}
 
 	/**

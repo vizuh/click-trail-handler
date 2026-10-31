@@ -10,7 +10,7 @@ namespace CLICUTCL\Integrations\Forms;
 use CLICUTCL\Core\Attribution_Provider;
 use CLICUTCL\Server_Side\Consent;
 use CLICUTCL\Server_Side\Dispatcher;
-use CLICUTCL\Server_Side\Event;
+use CLICUTCL\Tracking\Dedup_Store;
 use CLICUTCL\Tracking\Identity_Resolver;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -21,6 +21,12 @@ if ( ! defined( 'ABSPATH' ) ) {
  * Class Abstract_Form_Adapter
  */
 abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
+
+	/**
+	 * Width in seconds of the time bucket in the best-effort dedupe key used when a
+	 * provider supplies no entry ID.
+	 */
+	const DEDUPE_BUCKET_SECONDS = 10;
 
 	/**
 	 * Field prefix for ClickTrail fields.
@@ -59,38 +65,69 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 	}
 
 	/**
-	 * Log submission to ClickTrail events table.
+	 * Log submission to ClickTrail events table, once per entry.
 	 *
-	 * @param string $platform       Platform name.
-	 * @param mixed  $form_id        Form ID.
-	 * @param array  $attribution    Attribution data associated with submission.
-	 * @param array  $identity_input Optional raw identity input candidates.
-	 * @return void
+	 * Dedupe: a repeat call for the same `(provider, form_id, entry_id)` writes no second
+	 * `form_submission` row and dispatches no second event; it returns the first call's
+	 * `event_id` with `duplicate` set. The `event_id` is derived from the dedupe key, so it is
+	 * the same on every call for an entry. When the provider supplies no entry ID (CF7,
+	 * Elementor), the key is `(provider, form_id, HMAC of the ct_* values and the submitter's
+	 * email/phone, 10 s time bucket)`. The fingerprint is `hash_hmac( 'sha256', ..., wp_salt( 'auth' ) )`,
+	 * so neither the dedupe store key nor the event ID exposes a guessable hash of an email or phone. That is best-effort: a repeat that crosses a bucket
+	 * boundary, or arrives with different posted ct_* values, counts as a new submission.
+	 *
+	 * @param string          $platform       Platform name.
+	 * @param mixed           $form_id        Form ID.
+	 * @param array           $attribution    Attribution data associated with submission.
+	 * @param array           $identity_input Optional raw identity input candidates.
+	 * @param int|string|null $entry_id       Provider entry ID, when the provider has one.
+	 * @return array Empty when consent or empty attribution stopped the log; otherwise
+	 *               `event_id` (string), `lead_id` (string, `lead_` + the event ID without a
+	 *               leading `evt_`) and `duplicate` (bool). A repeat returns the same IDs.
 	 */
-	protected function log_submission( $platform, $form_id, $attribution, $identity_input = array() ) {
+	protected function log_submission( $platform, $form_id, $attribution, $identity_input = array(), $entry_id = null ) {
 		global $wpdb;
 
 		// Submission-time consent is authoritative. Do not persist or dispatch
 		// stale/client-posted attribution after marketing consent is withdrawn.
 		if ( ! $this->should_populate() || ( Consent::is_required() && ! Consent::marketing_allowed() ) ) {
-			return;
+			return array();
 		}
 
 		if ( empty( $attribution ) ) {
-			return; // Don't log empty attribution events? Maybe log them anyway but data is empty.
+			return array(); // Don't log empty attribution events? Maybe log them anyway but data is empty.
+		}
+
+		$entry_id    = $this->normalize_entry_id( $entry_id );
+		$fingerprint = $this->submission_fingerprint( $platform, $form_id, $attribution, $identity_input, $entry_id );
+		$event_id    = 'form_' . substr( $fingerprint, 0, 32 );
+		$lead_id     = $this->derive_lead_id( $event_id );
+
+		// Dedup_Store::check_and_mark() is a transient read-then-write, so two truly simultaneous
+		// requests can both pass; sequential repeats (double click, retried AJAX) cannot.
+		if ( Dedup_Store::check_and_mark( 'form_submission', (string) $platform, $fingerprint, DAY_IN_SECONDS, false ) ) {
+			return array(
+				'event_id'  => $event_id,
+				'lead_id'   => $lead_id,
+				'duplicate' => true,
+			);
 		}
 
 		$table_name = $wpdb->prefix . 'clicutcl_events';
 
-		$event_id = Event::generate_id( 'form' );
 		$identity = $this->resolve_identity_payload( $identity_input );
 
 		$event_data = array(
 			'event_id'    => $event_id,
+			'lead_id'     => $lead_id,
 			'platform'    => $platform,
 			'form_id'     => $form_id,
 			'attribution' => $attribution,
 		);
+
+		if ( null !== $entry_id ) {
+			$event_data['entry_id'] = $entry_id;
+		}
 
 		if ( ! empty( $identity ) ) {
 			// Persist an IP-anonymized copy in the diagnostic log; the full identity below
@@ -122,6 +159,141 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 			$attribution,
 			$context
 		);
+
+		/**
+		 * Fires after a form submission was logged and dispatched, once per entry (not on a
+		 * deduplicated repeat). Lets add-ons copy the IDs into a CRM record or another
+		 * entry store: `$event_id` matches the `clicutcl_events` row and the server-side event;
+		 * `$lead_id` is derived from it and is what the entry meta carries. Neither is the ID of
+		 * the browser `lead` push.
+		 *
+		 * @param string          $provider Provider key, e.g. `gravityforms`.
+		 * @param mixed           $form_id  Provider form ID.
+		 * @param int|string|null $entry_id Provider entry ID, null when the provider has none.
+		 * @param string          $event_id ClickTrail event ID.
+		 * @param string          $lead_id  ClickTrail lead ID.
+		 * @param array           $payload  Attribution payload that was logged.
+		 */
+		do_action( 'clicutcl_form_submission_logged', $platform, $form_id, $entry_id, $event_id, $lead_id, $attribution );
+
+		return array(
+			'event_id'  => $event_id,
+			'lead_id'   => $lead_id,
+			'duplicate' => false,
+		);
+	}
+
+	/**
+	 * Derive the lead ID from an event ID: `lead_` + the ID without a leading `evt_`.
+	 *
+	 * Uses the same prefix rule as `buildMarketingTrailEnvelope()` in `clicutcl-events.js`, but
+	 * from the server event ID: it is not the ID of the browser `lead` (that one is random).
+	 *
+	 * @param string $event_id Event ID.
+	 * @return string
+	 */
+	protected function derive_lead_id( $event_id ) {
+		$id = preg_replace( '/^evt_/', '', (string) $event_id );
+		return 0 === strpos( $id, 'lead_' ) ? $id : 'lead_' . $id;
+	}
+
+	/**
+	 * Attribution-style meta pairs carrying the IDs `log_submission()` returned.
+	 *
+	 * Keys are unprefixed like attribution keys (`event_id`, `lead_id`); writers run them
+	 * through `get_field_name()` to get `ct_event_id` / `ct_lead_id`. Empty when the log was
+	 * gated (consent, empty attribution), so a gated submission never gets IDs.
+	 *
+	 * @param mixed $logged `log_submission()` result.
+	 * @return array<string, string>
+	 */
+	protected function entry_id_meta( $logged ) {
+		if ( ! is_array( $logged ) || empty( $logged['event_id'] ) || empty( $logged['lead_id'] ) ) {
+			return array();
+		}
+
+		return array(
+			'event_id' => (string) $logged['event_id'],
+			'lead_id'  => (string) $logged['lead_id'],
+		);
+	}
+
+	/**
+	 * Meta pairs a provider adapter should write to the entry after `log_submission()`.
+	 *
+	 * First call of an entry: the attribution plus the IDs. Repeat of an entry: the first call
+	 * wrote everything, except when it died after marking the dedupe key and before the meta
+	 * write, so only IDs the provider reports as absent are written (write-if-missing).
+	 *
+	 * @param mixed    $logged      `log_submission()` result.
+	 * @param array    $attribution Unprefixed attribution pairs.
+	 * @param callable $has_meta    Receives the prefixed meta key, returns whether the entry already has it.
+	 * @return array<string, string> Unprefixed key to value.
+	 */
+	protected function entry_meta_to_write( $logged, array $attribution, callable $has_meta ) {
+		$ids = $this->entry_id_meta( $logged );
+
+		if ( empty( $logged['duplicate'] ) ) {
+			return array_merge( $attribution, $ids );
+		}
+
+		foreach ( array_keys( $ids ) as $key ) {
+			if ( $has_meta( $this->get_field_name( $key ) ) ) {
+				unset( $ids[ $key ] );
+			}
+		}
+
+		return $ids;
+	}
+
+	/**
+	 * Provider entry ID as an int/string, or null when absent or zero.
+	 *
+	 * @param mixed $entry_id Raw entry ID.
+	 * @return int|string|null
+	 */
+	private function normalize_entry_id( $entry_id ) {
+		if ( ! is_scalar( $entry_id ) ) {
+			return null;
+		}
+
+		$entry_id = is_string( $entry_id ) ? trim( $entry_id ) : $entry_id;
+
+		return '' === $entry_id || 0 === $entry_id || '0' === $entry_id || false === $entry_id ? null : $entry_id;
+	}
+
+	/**
+	 * Current Unix time for the best-effort dedupe bucket. Overridable for tests.
+	 *
+	 * @return int
+	 */
+	protected function submission_time() {
+		return time();
+	}
+
+	/**
+	 * Dedupe fingerprint for one form submission.
+	 *
+	 * @param string          $platform       Platform name.
+	 * @param mixed           $form_id        Form ID.
+	 * @param array           $attribution    Attribution data.
+	 * @param array           $identity_input Raw identity input candidates.
+	 * @param int|string|null $entry_id       Normalized provider entry ID, null when none.
+	 * @return string 64-character HMAC-SHA256 hex.
+	 */
+	private function submission_fingerprint( $platform, $form_id, $attribution, $identity_input, $entry_id ) {
+		$scope = (int) get_current_blog_id() . '|' . $platform . '|' . ( is_scalar( $form_id ) ? (string) $form_id : '' );
+
+		if ( null !== $entry_id ) {
+			return hash_hmac( 'sha256', $scope . '|entry|' . $entry_id, wp_salt( 'auth' ) );
+		}
+
+		$candidates = $this->extract_identity_candidates( is_array( $identity_input ) ? $identity_input : array() );
+		$values     = array_merge( (array) $attribution, array_intersect_key( $candidates, array_flip( array( 'email', 'phone' ) ) ) );
+		ksort( $values );
+		$bucket = (int) floor( $this->submission_time() / self::DEDUPE_BUCKET_SECONDS );
+
+		return hash_hmac( 'sha256', $scope . '|best_effort|' . $bucket . '|' . wp_json_encode( $values ), wp_salt( 'auth' ) );
 	}
 
 	/**

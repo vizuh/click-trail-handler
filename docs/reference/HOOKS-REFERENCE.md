@@ -377,6 +377,33 @@ Purpose:
 
 - receive aggregated delivery failure telemetry when remote telemetry is enabled
 
+## Form Submissions
+
+### `clicutcl_form_submission_logged`
+
+Type:
+
+- action
+
+Purpose:
+
+- fires after `Abstract_Form_Adapter::log_submission()` wrote the `form_submission` row and dispatched the server-side event, so an add-on can copy the IDs into a CRM record or another entry store and match a closed deal back to the ClickTrail event (#143)
+- fires once per entry: a deduplicated repeat of the same `(provider, form_id, entry_id)` (#140) does not fire it again, and it does not fire when consent or empty attribution stopped the log
+
+Arguments:
+
+- `$provider` (`string`): `gravityforms`, `wpforms`, `fluentform`, `ninjaforms`, `elementor_forms`, `contact-form-7`
+- `$form_id` (`int|string`): provider form ID
+- `$entry_id` (`int|string|null`): provider entry ID; `null` for Contact Form 7 and Elementor Forms (Pro), and for a Ninja Forms form without a Save action
+- `$event_id` (`string`): ClickTrail event ID (`form_<32 hex>`, an HMAC of the dedupe key, stable for an entry), also stored in `clicutcl_events.event_data.event_id` and sent as the server event's ID
+- `$lead_id` (`string`): `lead_` + `$event_id` without a leading `evt_`. Derived from the server event ID, so it matches the `clicutcl_events` row and the server-side event; it is **not** the ID of the browser `lead` push, which is generated separately in the browser
+- `$payload` (`array`): the attribution payload that was logged (no resolved identity)
+
+Notes:
+
+- Gravity Forms, WPForms and Fluent Forms already write `ct_event_id` and `ct_lead_id` into their entry meta; use this action for Ninja Forms, Elementor Forms (Pro), Contact Form 7 and any other store
+- source-present / runtime-unverified
+
 ## WooCommerce
 
 ### `clicutcl_woocommerce_purchase_payload`

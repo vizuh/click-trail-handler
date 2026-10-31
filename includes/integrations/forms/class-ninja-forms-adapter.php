@@ -145,7 +145,8 @@ class Ninja_Forms_Adapter extends Abstract_Form_Adapter {
 			'ninjaforms',
 			$this->resolve_form_identifier( $form_data ),
 			$attribution,
-			$form_data
+			$form_data,
+			$this->resolve_entry_identifier( $form_data )
 		);
 	}
 
@@ -281,5 +282,20 @@ class Ninja_Forms_Adapter extends Abstract_Form_Adapter {
 		}
 
 		return 0;
+	}
+
+	/**
+	 * Resolve the Ninja Forms submission ID, when the Save action stored one.
+	 *
+	 * @param array $form_data Submission payload.
+	 * @return int|null
+	 */
+	private function resolve_entry_identifier( $form_data ) {
+		$sub_id = $form_data['actions']['save']['sub_id'] ?? null;
+		if ( ! is_scalar( $sub_id ) || ! ctype_digit( trim( (string) $sub_id ) ) ) {
+			return null;
+		}
+
+		return (int) $sub_id;
 	}
 }
