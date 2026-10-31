@@ -258,6 +258,27 @@ Supported providers:
 - HubSpot
 - Typeform
 
+## Cached Server-Rendered Attribution (#152)
+
+Leak class: a form adapter that writes the requesting visitor's attribution cookie into form HTML makes that
+HTML visitor-specific. A full-page cache that does not vary on the `attribution` cookie stores it and serves
+visitor A's click IDs and UTM values to visitor B, whose lead then carries A's attribution.
+
+Controls:
+
+- server render is empty by default (CF7, Gravity Forms, Fluent Forms, Elementor, WPForms); the filter
+  `clicutcl_render_server_attribution_values` (default `false`) restores the old render for sites without a
+  page cache
+- the browser Injector fills the visitor's own values after load and writes a hidden `ct_fill_source=js` into
+  each form it fills; `Injector.clear()` removes it on consent denial
+- submit rule per adapter: a readable cookie is authoritative and keys it lacks are blanked; with no cookie,
+  posted values are kept only with the marker (CF7, Fluent Forms), otherwise blanked; consent blocked blanks
+  every posted `ct_*` before the provider stores or mails it; ClickTrail's own log receives the post-rule set
+- `ct_fill_source` is stripped by the adapters and is never stored, logged or forwarded; a forged marker without
+  a cookie keeps only values the submitter already controlled
+
+Evidence: source-present / runtime-unverified (PHPUnit and a Node VM test; no live page cache run).
+
 ## Queue, Revocation, and Retention Boundary
 
 The initial dispatcher consent decision is not the same as a complete lifecycle privacy guarantee. Version 1.10.0

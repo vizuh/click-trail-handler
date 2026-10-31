@@ -53,20 +53,15 @@ class CF7_Adapter extends Abstract_Form_Adapter {
 	 * Add hidden fields to CF7 form.
 	 *
 	 * Every key from `Attribution_Provider::get_field_mapping()` is emitted as `ct_<key>` on every
-	 * render, empty when the cookie lacks the key or `should_populate()` is false, so the form
-	 * always carries the fields and the submit-time refresh can fill them (a landing-page render
-	 * runs before the browser writes the cookie).
+	 * render. Values are empty unless the `clicutcl_render_server_attribution_values` filter opts
+	 * in, so a cached page never carries one visitor's attribution to another (#152); the browser
+	 * Injector fills the fields and the submit-time refresh corrects them.
 	 *
 	 * @param array $fields Hidden fields.
 	 * @return array
 	 */
 	public function add_hidden_fields( $fields ) {
-		$payload = $this->should_populate() ? $this->get_attribution_payload() : array();
-
-		foreach ( Attribution_Provider::get_field_mapping() as $key ) {
-			$fields[ $this->get_field_name( $key ) ] = isset( $payload[ $key ] ) ? $payload[ $key ] : '';
-		}
-		foreach ( $payload as $key => $value ) {
+		foreach ( $this->get_render_payload() as $key => $value ) {
 			$fields[ $this->get_field_name( $key ) ] = $value;
 		}
 
@@ -74,32 +69,39 @@ class CF7_Adapter extends Abstract_Form_Adapter {
 	}
 
 	/**
-	 * Refresh the posted ct_* data from the attribution cookie sent with the submit.
+	 * Resolve the posted ct_* data at submit time (#152).
 	 *
-	 * The hidden inputs were rendered from the cookie the page request carried, which on a
-	 * landing visit is empty and otherwise one touch behind. For each `ct_<key>` the form posted,
-	 * a non-empty cookie key wins; keys the cookie lacks keep the posted value; no key is added.
-	 * Runs inside WPCF7_Submission setup, so mail tags, Flamingo and `wpcf7_mail_sent` all see
-	 * these values.
+	 * The hidden inputs were rendered by a request that may belong to another visitor (page
+	 * cache). A readable cookie is authoritative: its keys replace the posted values and keys it
+	 * lacks are blanked. Without a cookie, posted values survive only when the Injector marked the
+	 * form (`ct_fill_source=js`). Consent blocked blanks every `ct_*`. The marker is stripped. No
+	 * key is added: only `ct_*` names the form posted are rewritten. Runs inside WPCF7_Submission
+	 * setup, so mail tags, Flamingo and `wpcf7_mail_sent` all see these values.
 	 *
 	 * @param array $posted_data Posted data (already unslashed by CF7).
 	 * @return array
 	 */
 	public function refresh_posted_data( $posted_data ) {
-		if ( ! is_array( $posted_data ) || ! $this->refresh_allowed() ) {
+		if ( ! is_array( $posted_data ) ) {
 			return $posted_data;
 		}
 
-		$payload = $this->get_attribution_payload();
-		if ( empty( $payload ) ) {
-			return $posted_data;
-		}
+		$marker = isset( $posted_data[ self::FILL_MARKER_FIELD ] ) && $this->has_fill_marker( $posted_data[ self::FILL_MARKER_FIELD ] );
+		unset( $posted_data[ self::FILL_MARKER_FIELD ] );
 
-		foreach ( $posted_data as $name => $posted ) {
-			$value = $this->cookie_value_for( $name, $payload );
-			if ( null !== $value ) {
-				$posted_data[ $name ] = sanitize_text_field( $value );
+		$posted = array();
+		foreach ( $posted_data as $name => $value ) {
+			if ( 0 === strpos( (string) $name, $this->field_prefix ) ) {
+				$posted[ substr( (string) $name, strlen( $this->field_prefix ) ) ] = $value;
 			}
+		}
+		if ( empty( $posted ) ) {
+			return $posted_data;
+		}
+
+		$resolved = $this->resolve_submitted_attribution( $posted, $marker );
+		foreach ( array_keys( $posted ) as $key ) {
+			$posted_data[ $this->get_field_name( $key ) ] = $resolved[ $key ];
 		}
 
 		return $posted_data;

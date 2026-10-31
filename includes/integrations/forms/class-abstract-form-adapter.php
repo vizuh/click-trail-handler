@@ -294,4 +294,84 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 		}
 		return (string) $payload[ $key ];
 	}
+
+	/**
+	 * Hidden input the browser Injector writes into a form it filled.
+	 *
+	 * @var string
+	 */
+	const FILL_MARKER_FIELD = 'ct_fill_source';
+
+	/**
+	 * Whether the server may write the requesting visitor's attribution into rendered form HTML.
+	 *
+	 * Off by default: a page cache that does not vary on the attribution cookie would serve
+	 * visitor A's values to visitor B (#152).
+	 *
+	 * @return bool
+	 */
+	protected function render_server_values_enabled() {
+		return (bool) apply_filters( 'clicutcl_render_server_attribution_values', false, $this->get_platform_name() );
+	}
+
+	/**
+	 * Attribution values to write into rendered form HTML.
+	 *
+	 * @return array Cookie payload when the filter opts in and population is allowed, otherwise every mapped key empty.
+	 */
+	protected function get_render_payload() {
+		if ( $this->render_server_values_enabled() && $this->should_populate() ) {
+			$payload = $this->get_attribution_payload();
+			if ( is_array( $payload ) ) {
+				return array_merge( array_fill_keys( Attribution_Provider::get_field_mapping(), '' ), $payload );
+			}
+		}
+		return array_fill_keys( Attribution_Provider::get_field_mapping(), '' );
+	}
+
+	/**
+	 * Whether a posted value set carries the Injector's JS fill marker.
+	 *
+	 * @param mixed $marker Posted `ct_fill_source` value.
+	 * @return bool
+	 */
+	protected function has_fill_marker( $marker ) {
+		return is_scalar( $marker ) && 'js' === (string) $marker;
+	}
+
+	/**
+	 * Resolve the submit-time attribution set for posted ct_* values.
+	 *
+	 * Consent blocked: every key blank. Readable cookie present: the cookie is authoritative and
+	 * keys it lacks are blank. Cookie absent: posted values survive only with the JS fill marker.
+	 *
+	 * @param array $posted Posted values keyed by attribution key (without the `ct_` prefix).
+	 * @param bool  $marker Whether the form posted `ct_fill_source=js`.
+	 * @return array Value per mapped key and per posted key; '' for blanked keys.
+	 */
+	protected function resolve_submitted_attribution( array $posted, $marker ) {
+		$keys = array_unique( array_merge( Attribution_Provider::get_field_mapping(), array_keys( $posted ) ) );
+		$out  = array_fill_keys( $keys, '' );
+
+		if ( ! $this->refresh_allowed() ) {
+			return $out;
+		}
+
+		$payload = $this->get_attribution_payload();
+		if ( ! empty( $payload ) && is_array( $payload ) ) {
+			foreach ( $keys as $key ) {
+				$value       = $this->cookie_value_for( $this->get_field_name( $key ), $payload );
+				$out[ $key ] = null === $value ? '' : sanitize_text_field( $value );
+			}
+			return $out;
+		}
+
+		if ( $marker ) {
+			foreach ( $posted as $key => $value ) {
+				$out[ $key ] = is_scalar( $value ) ? sanitize_text_field( (string) $value ) : '';
+			}
+		}
+
+		return $out;
+	}
 }

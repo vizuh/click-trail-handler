@@ -125,10 +125,10 @@ namespace {
 				17,
 				array(
 					'lt_campaign'                   => 'meta_this_visit',
-					'gclid'                         => 'GA',
 					'attribution_selected_click_id' => 'FB',
 					'fbclid'                        => 'FB',
-				)
+				),
+				$this->anything()
 			);
 			$adapter->register_hooks();
 			$submission->posted = $this->filter( 'wpcf7_posted_data', $submission->posted );

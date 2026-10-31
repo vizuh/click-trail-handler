@@ -45,6 +45,9 @@ It defines:
   - `docs/architecture/DATA-MODEL.md`
 - Integrations, providers, adapters, and supported surfaces:
   - `docs/reference/INTEGRATIONS.md`
+- Cached-HTML privacy (form-field render and submit rules) and its opt-in filter:
+  - `docs/guides/SECURITY-PRIVACY.md`
+  - `docs/reference/HOOKS-REFERENCE.md`
 - Operations, diagnostics, and failure handling:
   - `docs/guides/OPERATIONS-RUNBOOK.md`
 - Current maintenance posture and cleanup hotspots:

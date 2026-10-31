@@ -1086,6 +1086,7 @@
     };
 
     // --- 3. FORM INJECTOR ---
+    const FILL_MARKER_NAME = 'ct_fill_source';
     const Injector = {
         findInputs: function (names) {
             const selectors = names.map(function (n) { var e = CSS.escape(n); return 'input[name="' + e + '"], textarea[name="' + e + '"], select[name="' + e + '"]'; });
@@ -1143,8 +1144,27 @@
             return mappings;
         },
 
+        // Write the hidden `ct_fill_source=js` input into the form of a filled field so the server
+        // can tell browser-filled values from stale cached HTML (#152). Created once per form.
+        markForm: function (input) {
+            const form = input && input.closest ? input.closest('form') : null;
+            if (!form) return;
+            let marker = null;
+            Array.from(form.elements || []).forEach(function (el) {
+                if (!marker && el.name === FILL_MARKER_NAME) marker = el;
+            });
+            if (!marker) {
+                marker = document.createElement('input');
+                marker.type = 'hidden';
+                marker.name = FILL_MARKER_NAME;
+                form.appendChild(marker);
+            }
+            marker.value = 'js';
+        },
+
+        // Returns true when the input is ClickTrail's to fill (even if it already held the value).
         setIfEmpty: function (input, value) {
-            if (!input) return;
+            if (!input) return false;
             // Config: Overwrite?
             const overwrite = CONFIG.injectOverwrite === true || CONFIG.injectOverwrite === '1';
             // ct_* fields are ClickTrail's own (some are server-rendered from the cookie one touch
@@ -1152,14 +1172,15 @@
             const ours = String(input.name || '').startsWith('ct_') ||
                 input.value === input.getAttribute('data-clicutcl-value');
 
-            if (!overwrite && input.value && !ours) return; // Skip if has value and no overwrite
+            if (!overwrite && input.value && !ours) return false; // Skip if has value and no overwrite
             input.setAttribute('data-clicutcl-value', value);
-            if (input.value === value) return;
+            if (input.value === value) return true;
 
             input.value = value;
             // Trigger events for frameworks (React, Vue, jQuery listeners)
             input.dispatchEvent(new Event("input", { bubbles: true }));
             input.dispatchEvent(new Event("change", { bubbles: true }));
+            return true;
         },
 
         run: function () {
@@ -1181,11 +1202,16 @@
                 const val = data[key];
                 if (val == null || val === "") return;
                 const inputs = this.findInputs(fieldNames);
-                inputs.forEach(inp => this.setIfEmpty(inp, String(val)));
+                inputs.forEach((inp) => {
+                    if (this.setIfEmpty(inp, String(val))) this.markForm(inp);
+                });
             });
         },
 
         clear: function () {
+            this.findInputs([FILL_MARKER_NAME]).forEach(function (marker) {
+                if (marker.parentNode) marker.parentNode.removeChild(marker);
+            });
             this.map().forEach(([, fieldNames]) => {
                 const inputs = this.findInputs(fieldNames);
                 inputs.forEach((input) => {
