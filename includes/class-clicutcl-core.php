@@ -417,6 +417,7 @@ class Plugin {
 			'injectFullBlob'            => false,
 			'linkDecorateEnabled'       => isset( $options['enable_link_decoration'] ) ? (bool) $options['enable_link_decoration'] : false,
 			'linkAllowedDomains'        => isset( $options['link_allowed_domains'] ) ? array_map( 'trim', explode( ',', $options['link_allowed_domains'] ) ) : array(),
+			'embedAllowedDomains'       => $this->embed_allowed_domains( $options ),
 			'linkSkipSigned'            => isset( $options['link_skip_signed'] ) ? (bool) $options['link_skip_signed'] : true,
 			'linkAppendToken'           => $enable_cross_domain_token,
 			'tokenParam'                => 'ct_token',
@@ -426,6 +427,36 @@ class Plugin {
 			'linkAppendBlob'            => false,
 			'ignoredReferrerHosts'      => Core\Attribution_Provider::get_ignored_referrer_hosts(),
 		);
+	}
+
+	/**
+	 * Hosts whose iframe URLs window.ClickTrail.decorateEmbedUrl() may decorate.
+	 *
+	 * @param array $options Attribution settings.
+	 * @return string[]
+	 */
+	private function embed_allowed_domains( array $options ): array {
+		$domains = isset( $options['embed_allowed_domains'] ) ? explode( ',', (string) $options['embed_allowed_domains'] ) : array();
+
+		/**
+		 * Filter the hosts that may receive attribution through decorated embed (iframe) URLs.
+		 *
+		 * @param string[] $domains Bare host names, exact match. Empty by default.
+		 */
+		$domains = (array) apply_filters( 'clicutcl_embed_allowed_domains', $domains );
+
+		$hosts = array();
+		foreach ( array_filter( $domains, 'is_scalar' ) as $domain ) {
+			// Same shape as the admin setting: bare lowercase host, no scheme, path or port.
+			$host = strtolower( trim( (string) $domain ) );
+			$host = preg_replace( '#^https?://#', '', $host );
+			$host = preg_replace( '#[/:].*$#', '', $host );
+			if ( preg_match( '/^[a-z0-9.-]+\.[a-z]{2,}$/', $host ) ) {
+				$hosts[] = $host;
+			}
+		}
+
+		return array_values( array_unique( $hosts ) );
 	}
 
 	/**

@@ -640,6 +640,39 @@ Best fit:
 - marketing site -> scheduler
 - marketing site -> checkout
 
+### Booking and form iframes (embed handoff)
+
+Some booking or form widgets load in an iframe that the site's own script creates (for example a booking popup
+that runs `iframe.src = url`). Link decoration never sees that URL, and rewriting `src` after the iframe is in the
+page would load it twice. The site's script asks ClickTrail for the URL instead:
+
+```js
+var src = window.ClickTrail && window.ClickTrail.decorateEmbedUrl
+  ? window.ClickTrail.decorateEmbedUrl(url)
+  : url;
+iframe.src = src;
+```
+
+`decorateEmbedUrl(url)` returns the URL to load:
+
+- with last-touch `utm_*` and one click ID added when the host is listed in **Embedded widget hosts**
+  (`embed_allowed_domains`, filter `clicutcl_embed_allowed_domains`) and marketing consent allows it
+- the click ID is the D3 selection under its own key (`gclid`, `wbraid`, `gbraid`, `fbclid`, `ScCid`, ...), or none; payloads
+  saved before the selection existed use the Calendly order (Google first). One click ID only, so the widget never
+  receives an older click from another platform
+- parameters already in the URL are never overwritten; if the URL already has any `utm_*`, no stored UTMs are added
+  (the click ID still is), so one URL never mixes two campaigns
+- unchanged for any other host (exact match: neither a sibling subdomain nor the `www.` variant is allowed
+  implicitly), non-https URLs, signed URLs while **Do not modify signed URLs** is on (default), non-string input, or
+  when there is no stored attribution
+- no visitor ID, session, click history or cross-domain token is added
+
+The widget must read these parameters from its own URL; ClickTrail does not post messages into the iframe.
+`window.ClickTrail` exists once ClickTrail has run (DOMContentLoaded, `ct_ready` event, and only after consent when
+consent is required); an earlier call falls back to the plain URL. Page-speed plugins that delay JavaScript until the
+first interaction (NitroPack, WP Rocket "Delay JS") must exclude ClickTrail's scripts, or a fast click loads ClickTrail
+too late.
+
 ### Payment provider limitations
 
 Cross-domain decoration cannot reach external hosted-payment pages. These providers process payments on their own domain, and ClickTrail cannot add parameters to their pages:

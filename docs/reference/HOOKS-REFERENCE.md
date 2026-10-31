@@ -42,6 +42,22 @@ Arguments:
 
 - `array $matchers`
 
+### `clicutcl_embed_allowed_domains`
+
+Type:
+
+- filter
+
+Purpose:
+
+- set the hosts whose iframe URLs `window.ClickTrail.decorateEmbedUrl()` may decorate with last-touch UTMs and one
+  click ID
+
+Arguments:
+
+- `string[] $domains` bare host names from the **Embedded widget hosts** setting; exact match, https only; empty by
+  default
+
 ### `clicutcl_iframe_origin_allowlist`
 
 Type:
@@ -50,7 +66,8 @@ Type:
 
 Purpose:
 
-- extend the allowlist used for external embedded form message handling
+- extend the allowlist used for external embedded form message handling (inbound messages from iframes; it does
+  not send attribution into iframes, see `clicutcl_embed_allowed_domains`)
 
 Arguments:
 

@@ -356,6 +356,59 @@ function validateReturningVisitorClickId(failures) {
   assert(legacyGclid === 'TEST_PERSIST_456', `Legacy cookie must decorate with last-touch gclid, got ${legacyGclid}`, failures);
 }
 
+// Embed handoff: window.ClickTrail.decorateEmbedUrl() decorates only exact allowlisted https hosts,
+// carries last-touch UTMs plus the one selected click ID, and returns the input otherwise.
+function validateEmbedUrlDecoration(failures) {
+  const browser = makeBrowser('attribution');
+  browser.window.clicutcl_config.embedAllowedDomains = ['widget.example.test'];
+  browser.window.clicutcl_config.linkSkipSigned = true;
+  browser.visit('?gclid=GA&utm_source=google&utm_campaign=first');
+  browser.visit('?fbclid=FB&utm_source=facebook&utm_medium=paid&utm_campaign=meta');
+  const api = browser.window.ClickTrail;
+
+  const out = new URL(api.decorateEmbedUrl('https://widget.example.test/booking/new?location=2'));
+  const p = out.searchParams;
+  assert(p.get('fbclid') === 'FB' && !p.has('gclid'), `Embed URL must carry only the selected click, got ${out.search}`, failures);
+  assert(p.get('utm_source') === 'facebook' && p.get('utm_campaign') === 'meta', 'Embed URL must carry last-touch UTMs', failures);
+  assert(p.get('location') === '2', 'Embed URL keeps the site params', failures);
+
+  const kept = new URL(api.decorateEmbedUrl('https://widget.example.test/b?utm_source=site')).searchParams;
+  assert(kept.get('utm_source') === 'site' && !kept.has('utm_campaign'), 'Site utm_* is kept and never mixed with stored UTMs', failures);
+  assert(kept.get('fbclid') === 'FB', 'Click ID is still added next to site UTMs', failures);
+
+  ['https://other.widget.example.test/b', 'https://example.test/b', 'http://widget.example.test/b',
+    'https://www.widget.example.test/b',
+    'https://widget.example.test/b?signature=x', 'javascript:alert(1)'].forEach((url) => {
+    assert(api.decorateEmbedUrl(url) === url, `Embed URL must be returned unchanged for ${url}`, failures);
+  });
+  assert(api.decorateEmbedUrl(undefined) === undefined, 'Non-string input is returned as is', failures);
+
+  const wbraid = makeBrowser('attribution');
+  wbraid.window.clicutcl_config.embedAllowedDomains = ['widget.example.test'];
+  wbraid.visit('?wbraid=WB1&utm_source=google');
+  const wb = new URL(wbraid.window.ClickTrail.decorateEmbedUrl('https://widget.example.test/b')).searchParams;
+  assert(wb.get('wbraid') === 'WB1' && !wb.has('gclid'), 'wbraid travels under its own key', failures);
+
+  const snap = makeBrowser('attribution');
+  snap.window.clicutcl_config.embedAllowedDomains = ['widget.example.test'];
+  snap.visit('?ScCid=S1&utm_source=snapchat');
+  const sc = new URL(snap.window.ClickTrail.decorateEmbedUrl('https://widget.example.test/b')).searchParams;
+  assert(sc.get('ScCid') === 'S1' && !sc.has('sccid'), 'Snap click uses the ScCid param name, like link decoration', failures);
+
+  const denied = makeBrowser('attribution');
+  denied.window.clicutcl_config.embedAllowedDomains = ['widget.example.test'];
+  denied.visit('?gclid=GA&utm_source=google');
+  denied.window.clicutcl_config.requireConsent = true;
+  denied.setCookie('ct_consent', { marketing: false, analytics: true });
+  const deniedUrl = 'https://widget.example.test/b';
+  assert(denied.window.ClickTrail.decorateEmbedUrl(deniedUrl) === deniedUrl, 'No decoration without marketing consent', failures);
+
+  const none = makeBrowser('attribution');
+  none.visit('?gclid=GA&utm_source=google');
+  const noneUrl = 'https://widget.example.test/b';
+  assert(none.window.ClickTrail.decorateEmbedUrl(noneUrl) === noneUrl, 'Empty embed allowlist decorates nothing', failures);
+}
+
 // D3 (clicktrail-js ruling): Google A then Meta B selects B; history stays browser-side.
 // Cookie migration: canonical `attribution` wins, legacy `ct_attribution` is read but never refreshed.
 function validateClickIdSelectionAndCookieMigration(failures) {
@@ -448,6 +501,7 @@ function main() {
   validateCachedFormActionBoundary(failures);
   validateReturningVisitorClickId(failures);
   validateClickIdSelectionAndCookieMigration(failures);
+  validateEmbedUrlDecoration(failures);
   validateWooRuntimeRemediations(failures);
   validateWooConsentSnapshotV1(failures);
   failures.push(...formRuntimeEvidence.validate(root));

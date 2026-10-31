@@ -1075,7 +1075,8 @@
                     SessionManager.clear();
                     API.install({ withIdentity: false });
                 },
-                getSession: () => SessionManager.getPayload()
+                getSession: () => SessionManager.getPayload(),
+                decorateEmbedUrl: (url) => Decorator.decorateEmbedUrl(url)
             };
             window.ClickTrailIdentity = withIdentity ? Identity.get() : null;
             window.ClickTrailSession = withIdentity ? SessionManager.getPayload() : null;
@@ -1352,6 +1353,12 @@
             return h.startsWith("#") || h.startsWith("mailto:") || h.startsWith("tel:") || h.startsWith("javascript:");
         },
 
+        isSigned: function (url) {
+            const qs = url.searchParams;
+            const bad = ["x-amz-signature", "signature", "sig", "token"];
+            return bad.some(k => qs.has(k) || qs.has(k.toUpperCase()));
+        },
+
         matchesAllowedDomain: function (url) {
             // 1. Check configured allowed list
             const allowed = (CONFIG.linkAllowedDomains || []);
@@ -1417,11 +1424,7 @@
             if (!this.matchesAllowedDomain(url)) return null;
 
             // Signed URL skip
-            if (CONFIG.linkSkipSigned) {
-                const qs = url.searchParams;
-                const bad = ["x-amz-signature", "signature", "sig", "token"];
-                if (bad.some(k => qs.has(k) || qs.has(k.toUpperCase()))) return null;
-            }
+            if (CONFIG.linkSkipSigned && this.isSigned(url)) return null;
 
             const data = Store.getData();
             if (!data) return null;
@@ -1550,6 +1553,56 @@
             });
         },
 
+        // The one click ID handed to a third party, as [key, value], or null. With a D3 selection it
+        // is that click or none: falling back would credit an older click from another platform.
+        // The fixed Google-first order is only for payloads saved before the selection existed.
+        oneClickId: function (data) {
+            const selected = selectedClickIdKey(data);
+            const order = data.attribution_selected_click_id
+                ? (selected ? [selected] : [])
+                : ['gclid', 'gbraid', 'wbraid', 'fbclid', 'msclkid', 'ttclid', 'li_fat_id', 'twclid', 'dclid'];
+            for (const key of order) {
+                const value = String(data[key] || data['lt_' + key] || data['ft_' + key] || '');
+                if (/^[A-Za-z0-9._-]{1,200}$/.test(value)) return [key, value];
+            }
+            return null;
+        },
+
+        // Booking/form iframes the site's own script builds (window.ClickTrail.decorateEmbedUrl):
+        // returns the URL to load, with last-touch utm_* and one click ID added only for an https
+        // host in the embed allowlist. Exact host match on purpose: a sibling subdomain can be a
+        // third-party widget. UTMs are all-or-nothing so a site-set utm_* never mixes with stored
+        // ones. Any other case returns the input unchanged.
+        decorateEmbedUrl: function (rawUrl) {
+            if (typeof rawUrl !== 'string' || !liveConsentAllows()) return rawUrl;
+
+            let url;
+            try { url = new URL(rawUrl, window.location.href); } catch (e) { return rawUrl; }
+            if (url.protocol !== 'https:') return rawUrl;
+
+            const allowed = (CONFIG.embedAllowedDomains || []).map((d) => String(d).toLowerCase());
+            if (!allowed.includes(url.hostname.toLowerCase())) return rawUrl;
+            if (CONFIG.linkSkipSigned && this.isSigned(url)) return rawUrl;
+
+            const data = Store.getData();
+            if (!data) return rawUrl;
+
+            let changed = false;
+            const add = (key, value) => {
+                if (value && !url.searchParams.has(key)) {
+                    url.searchParams.set(key, String(value));
+                    changed = true;
+                }
+            };
+            if (!TOUCH_QUERY_KEYS.some((k) => url.searchParams.has(k))) {
+                TOUCH_QUERY_KEYS.forEach((k) => add(k, data[getTouchStorageKey(k, 'lt')] || data[k]));
+            }
+            const click = this.oneClickId(data);
+            if (click) add(click[0] === 'sccid' ? 'ScCid' : click[0], click[1]); // Snapchat's own param name, as link decoration sends it
+
+            return changed ? url.toString() : rawUrl;
+        },
+
         isCalendlyHost: function (hostname) {
             const host = String(hostname || '').toLowerCase();
             return host === 'calendly.com' || host.endsWith('.calendly.com');
@@ -1559,22 +1612,10 @@
         // decision. c is omitted when no decision exists (consent not required or unresolved),
         // so the webhook never infers a grant. Returns '' when there is nothing to carry.
         calendlyStamp: function (data) {
-            // With a D3 selection the stamp carries that click or none: falling back would credit
-            // the booking to an older click from another platform. The fixed Google-first order is
-            // only for payloads saved before the selection existed. Keys match
-            // CalendlyWebhookAdapter::parse_stamp.
-            const selected = selectedClickIdKey(data);
-            const order = data.attribution_selected_click_id
-                ? (selected ? [selected] : [])
-                : ['gclid', 'gbraid', 'wbraid', 'fbclid', 'msclkid', 'ttclid', 'li_fat_id', 'twclid', 'dclid'];
+            // Keys match CalendlyWebhookAdapter::parse_stamp.
             const parts = ['ct1'];
-            for (const key of order) {
-                const value = String(data[key] || data['lt_' + key] || data['ft_' + key] || '');
-                if (/^[A-Za-z0-9._-]{1,200}$/.test(value)) {
-                    parts.push(key + '=' + value);
-                    break;
-                }
-            }
+            const click = this.oneClickId(data);
+            if (click) parts.push(click[0] + '=' + click[1]);
             const consent = this.consentState();
             if (consent !== null) parts.push('c=' + (consent ? '1' : '0'));
             return parts.length > 1 ? parts.join(';') : '';
