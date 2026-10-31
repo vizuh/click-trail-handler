@@ -75,8 +75,8 @@ Notes:
 - passed to `assets/js/clicutcl-attribution.js` as `clicutcl_config.ignoredReferrerHosts`
 - a referrer on a listed host or any subdomain of it counts like a same-site referrer: no first touch is created and the stored last touch (source, medium, referrer, channel, landing page, timestamp, click IDs) is left unchanged; UTMs and click IDs on the URL still form a touch
 - defaults: `paypal.com`, `stripe.com`, `mollie.com`, `squareup.com`, `square.link`, `klarna.com`, `adyen.com`, `checkout.com`, `mercadopago.com`, `mercadopago.com.br`, `pagseguro.uol.com.br`
-- add card-issuer 3-D Secure hosts or other hosted checkouts your store redirects through; values are lowercased, a URL is reduced to its host, a leading `www.` is dropped, and anything that is not a dotted hostname is discarded
-- this does not change GA4; add the same domains to GA4's unwanted referrals (see [Payment provider limitations](INTEGRATIONS.md#payment-provider-limitations))
+- card-issuer 3-D Secure / ACS hosts are not in the default list; add the ones you see in your referral reports, and any other hosted checkout your store redirects through; values are lowercased, a URL is reduced to its host, a leading `www.` is dropped, and anything that is not a dotted hostname is discarded
+- this does not change GA4; add the same domains (including any card-issuer hosts you add here) to GA4's unwanted referrals (see [Payment provider limitations](INTEGRATIONS.md#payment-provider-limitations))
 
 Arguments:
 
@@ -398,6 +398,33 @@ Type:
 Purpose:
 
 - receive aggregated delivery failure telemetry when remote telemetry is enabled
+
+## Form Submissions
+
+### `clicutcl_form_submission_logged`
+
+Type:
+
+- action
+
+Purpose:
+
+- fires after `Abstract_Form_Adapter::log_submission()` wrote the `form_submission` row and dispatched the server-side event, so an add-on can copy the IDs into a CRM record or another entry store and match a closed deal back to the ClickTrail event (#143)
+- fires once per entry: a deduplicated repeat of the same `(provider, form_id, entry_id)` (#140) does not fire it again, and it does not fire when consent or empty attribution stopped the log
+
+Arguments:
+
+- `$provider` (`string`): `gravityforms`, `wpforms`, `fluentform`, `ninjaforms`, `elementor_forms`, `contact-form-7`
+- `$form_id` (`int|string`): provider form ID
+- `$entry_id` (`int|string|null`): provider entry ID; `null` for Contact Form 7 and Elementor Forms (Pro), and for a Ninja Forms form without a Save action
+- `$event_id` (`string`): ClickTrail event ID (`form_<32 hex>`, an HMAC of the dedupe key, stable for an entry), also stored in `clicutcl_events.event_data.event_id` and sent as the server event's ID
+- `$lead_id` (`string`): `lead_` + `$event_id` without a leading `evt_`. Derived from the server event ID, so it matches the `clicutcl_events` row and the server-side event; it is **not** the ID of the browser `lead` push, which is generated separately in the browser
+- `$payload` (`array`): the attribution payload that was logged (no resolved identity)
+
+Notes:
+
+- Gravity Forms, WPForms and Fluent Forms already write `ct_event_id` and `ct_lead_id` into their entry meta; use this action for Ninja Forms, Elementor Forms (Pro), Contact Form 7 and any other store
+- source-present / runtime-unverified
 
 ## WooCommerce
 

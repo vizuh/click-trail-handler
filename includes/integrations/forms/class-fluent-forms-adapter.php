@@ -42,8 +42,9 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 	 * Fluent Forms v5+ uses slash-style hooks (fluentform/form_element_start).
 	 * v4 and earlier used underscore-style (fluentform_form_element_start).
 	 * Both sets are registered so the adapter works regardless of installed version.
-	 * on_submission carries a static dedup guard so it never logs the same entry twice
-	 * even when both aliases fire on an installation that preserves both.
+	 * on_submission relies on the shared (provider, form, entry) dedupe in log_submission() so
+	 * it never logs or writes meta for the same entry twice even when both aliases fire on an
+	 * installation that preserves both.
 	 */
 	public function register_hooks() {
 		// Slash-style (Fluent Forms v5+, current docs).
@@ -189,13 +190,7 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 			return;
 		}
 
-		static $logged = array();
-		$entry_id      = (int) $arg1;
-		if ( isset( $logged[ $entry_id ] ) ) {
-			return;
-		}
-		$logged[ $entry_id ] = true;
-
+		$entry_id  = (int) $arg1;
 		$form_data = is_array( $arg2 ) ? $arg2 : array();
 		$form      = $arg3;
 		$payload   = $this->get_attribution_payload();
@@ -233,13 +228,25 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 			return;
 		}
 
-		// 1. Persist to Fluent Forms submission meta so attribution values are
+		// 1. Log to ClickTrail. A repeat of the same entry (both hook aliases firing) writes only
+		// the IDs the entry lacks: the first call wrote the rest, or died before it could.
+		$form_id_val = isset( $form->id ) ? $form->id : 0;
+		$logged      = $this->log_submission( 'fluentform', $form_id_val, $attribution, $form_data, $entry_id );
+		$meta        = $this->entry_meta_to_write(
+			$logged,
+			$attribution,
+			function ( $meta_key ) use ( $entry_id ) {
+				return $this->fluent_entry_has_meta( $entry_id, $meta_key );
+			}
+		);
+
+		// 2. Persist to Fluent Forms submission meta so attribution values are
 		// accessible in the Fluent Forms entry detail view and via its API.
 		// wpFluent() is Fluent's own DB wrapper and is always available when the
 		// plugin is active. The table is created by Fluent on activation.
 		if ( function_exists( 'wpFluent' ) ) {
 			$now = current_time( 'mysql' );
-			foreach ( $attribution as $key => $value ) {
+			foreach ( $meta as $key => $value ) {
 				try {
 					wpFluent()
 						->table( 'fluentform_submission_meta' )
@@ -253,13 +260,36 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 							)
 						);
 				} catch ( \Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
-					// Non-fatal: ClickTrail logging below still proceeds.
+					// Non-fatal: ClickTrail logging already ran above.
 				}
 			}
 		}
+	}
 
-		// 2. Log to ClickTrail
-		$form_id_val = isset( $form->id ) ? $form->id : 0;
-		$this->log_submission( 'fluentform', $form_id_val, $attribution, $form_data );
+	/**
+	 * Whether a Fluent Forms submission already has a meta row with this key.
+	 *
+	 * A failed lookup answers "yes", so a repeat never writes a second row it cannot rule out.
+	 *
+	 * @param int    $entry_id Submission ID.
+	 * @param string $meta_key Meta key.
+	 * @return bool
+	 */
+	private function fluent_entry_has_meta( $entry_id, $meta_key ) {
+		if ( ! function_exists( 'wpFluent' ) ) {
+			return true;
+		}
+
+		try {
+			$row = wpFluent()
+				->table( 'fluentform_submission_meta' )
+				->where( 'response_id', $entry_id )
+				->where( 'meta_key', $meta_key ) // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Fluent Forms schema requires meta_key column.
+				->first();
+		} catch ( \Exception $e ) {
+			return true;
+		}
+
+		return ! empty( $row );
 	}
 }

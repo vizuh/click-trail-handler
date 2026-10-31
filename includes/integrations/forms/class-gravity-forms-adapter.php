@@ -104,6 +104,16 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 	}
 
 	/**
+	 * Unprefixed keys ClickTrail stores as entry meta: the attribution key set plus the
+	 * `event_id` / `lead_id` pair `log_submission()` returns (#143).
+	 *
+	 * @return string[]
+	 */
+	private function tracking_meta_keys() {
+		return array_merge( Attribution_Provider::get_field_mapping(), array( 'event_id', 'lead_id' ) );
+	}
+
+	/**
 	 * Declare ClickTrail attribution keys as Gravity Forms entry meta.
 	 *
 	 * @param array $entry_meta Existing entry meta definitions.
@@ -111,8 +121,7 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 	 * @return array
 	 */
 	public function register_entry_meta( $entry_meta, $form_id ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
-		$keys = Attribution_Provider::get_field_mapping();
-		foreach ( $keys as $key ) {
+		foreach ( $this->tracking_meta_keys() as $key ) {
 			$meta_key                = $this->get_field_name( $key );
 			$entry_meta[ $meta_key ] = array(
 				'label'             => 'ClickTrail: ' . ucwords( str_replace( '_', ' ', $key ) ),
@@ -287,11 +296,20 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 			$payload['lt_channel'] = 'Unknown';
 		}
 
-		foreach ( $payload as $key => $value ) {
+		// Log first: the entry meta carries the IDs it returns. A repeat of the same entry writes
+		// only the IDs the entry lacks (the first call wrote the rest, or died before it could).
+		$logged = $this->log_submission( 'gravityforms', $form['id'], $payload, $this->extract_identity_from_entry( $entry, $form ), $entry['id'] ?? null );
+		$meta   = $this->entry_meta_to_write(
+			$logged,
+			$payload,
+			static function ( $meta_key ) use ( $entry ) {
+				return '' !== (string) \gform_get_meta( $entry['id'], $meta_key );
+			}
+		);
+
+		foreach ( $meta as $key => $value ) {
 			\gform_add_meta( $entry['id'], $this->get_field_name( $key ), $value );
 		}
-
-		$this->log_submission( 'gravityforms', $form['id'], $payload, $this->extract_identity_from_entry( $entry, $form ) );
 	}
 
 	/**
@@ -421,7 +439,7 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 			return;
 		}
 
-		foreach ( Attribution_Provider::get_field_mapping() as $key ) {
+		foreach ( $this->tracking_meta_keys() as $key ) {
 			$meta_key = $this->get_field_name( $key );
 
 			if ( ! isset( $original_entry[ $meta_key ] ) || '' === (string) $original_entry[ $meta_key ] ) {

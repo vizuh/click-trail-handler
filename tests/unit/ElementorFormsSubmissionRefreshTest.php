@@ -64,8 +64,9 @@ namespace {
 	final class ClickTrailElementorLogSpy extends Elementor_Forms_Adapter {
 		public $logged = array();
 
-		protected function log_submission( $platform, $form_id, $attribution, $identity_input = array() ) {
+		protected function log_submission( $platform, $form_id, $attribution, $identity_input = array(), $entry_id = null ) {
 			$this->logged[] = array( $form_id, $attribution );
+			return array();
 		}
 	}
 
