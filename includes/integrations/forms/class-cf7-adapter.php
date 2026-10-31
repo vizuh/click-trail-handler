@@ -42,6 +42,9 @@ class CF7_Adapter extends Abstract_Form_Adapter {
 	public function register_hooks() {
 		add_filter( 'wpcf7_form_hidden_fields', array( $this, 'add_hidden_fields' ) );
 
+		// Priority 5 so mail tags, Flamingo and CRM add-ons filtering wpcf7_posted_data read refreshed values.
+		add_filter( 'wpcf7_posted_data', array( $this, 'refresh_posted_data' ), 5 );
+
 		// Record only CF7's successful outcome; pre-send can still abort or fail.
 		add_action( 'wpcf7_mail_sent', array( $this, 'on_submission' ) );
 	}
@@ -49,21 +52,60 @@ class CF7_Adapter extends Abstract_Form_Adapter {
 	/**
 	 * Add hidden fields to CF7 form.
 	 *
+	 * Every key from `Attribution_Provider::get_field_mapping()` is emitted as `ct_<key>` on every
+	 * render. Values are empty unless the `clicutcl_render_server_attribution_values` filter opts
+	 * in, so a cached page never carries one visitor's attribution to another (#152); the browser
+	 * Injector fills the fields and the submit-time refresh corrects them.
+	 *
 	 * @param array $fields Hidden fields.
 	 * @return array
 	 */
 	public function add_hidden_fields( $fields ) {
-		if ( ! $this->should_populate() ) {
-			return $fields;
-		}
-
-		$payload = $this->get_attribution_payload();
-
-		foreach ( $payload as $key => $value ) {
+		foreach ( $this->get_render_payload() as $key => $value ) {
 			$fields[ $this->get_field_name( $key ) ] = $value;
 		}
 
 		return $fields;
+	}
+
+	/**
+	 * Resolve the posted ct_* data at submit time (#152).
+	 *
+	 * The hidden inputs were rendered by a request that may belong to another visitor (page
+	 * cache). A readable cookie is authoritative: its keys replace the posted values and keys it
+	 * lacks are blanked. Without a cookie, posted values survive only when the Injector marked the
+	 * form (`ct_fill_source=js`). Consent blocked blanks every `ct_*`. The marker is stripped. No
+	 * key is added: only `ct_*` names the form posted are rewritten. Runs inside WPCF7_Submission
+	 * setup, so mail tags, Flamingo and `wpcf7_mail_sent` all see these values.
+	 *
+	 * @param array $posted_data Posted data (already unslashed by CF7).
+	 * @return array
+	 */
+	public function refresh_posted_data( $posted_data ) {
+		if ( ! is_array( $posted_data ) ) {
+			return $posted_data;
+		}
+
+		$marker = isset( $posted_data[ self::FILL_MARKER_FIELD ] ) && $this->has_fill_marker( $posted_data[ self::FILL_MARKER_FIELD ] );
+		unset( $posted_data[ self::FILL_MARKER_FIELD ] );
+
+		$posted = array();
+		foreach ( $posted_data as $name => $value ) {
+			$key = $this->mapped_key( $name );
+			if ( null !== $key ) {
+				$posted[ $key ] = $value;
+			}
+		}
+		if ( empty( $posted ) ) {
+			return $posted_data;
+		}
+
+		$resolved = $this->resolve_submitted_attribution( $posted, $marker );
+		foreach ( array_keys( $posted ) as $key ) {
+			$posted_data[ $this->get_field_name( $key ) ] = $resolved[ $key ];
+		}
+
+		return $posted_data;
 	}
 
 	/**
@@ -117,17 +159,19 @@ class CF7_Adapter extends Abstract_Form_Adapter {
 			$keys = Attribution_Provider::get_field_mapping();
 			foreach ( $keys as $key ) {
 				$prefixed = $this->get_field_name( $key );
-				if ( isset( $posted_data[ $prefixed ] ) ) {
-					$attribution[ $key ] = sanitize_text_field( $posted_data[ $prefixed ] );
+				if ( ! isset( $posted_data[ $prefixed ] ) ) {
+					continue;
+				}
+				// Every mapped key is rendered; only the ones that hold a value are attribution.
+				$value = sanitize_text_field( $posted_data[ $prefixed ] );
+				if ( '' !== $value ) {
+					$attribution[ $key ] = $value;
 				}
 			}
 		}
 
-		// The cookie sent with the submit already holds this visit's touch. Hidden fields were
-		// rendered from the cookie at page load (one touch behind on a landing visit, and missing
-		// keys that touch added), so they only fill what the cookie lacks, e.g. cookies blocked.
-		$attribution = array_merge( $attribution, $this->get_attribution_payload() );
-
+		// Posted ct_* values were refreshed from the submit-time cookie in refresh_posted_data()
+		// (wpcf7_posted_data, priority 5), so CF7 mail, add-ons and this log share one source.
 		$form_id = $contact_form->id();
 		$this->log_submission( 'contact-form-7', $form_id, $attribution, is_array( $posted_data ) ? $posted_data : array() );
 	}

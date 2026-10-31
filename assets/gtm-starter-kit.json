@@ -6,7 +6,7 @@
     "accountId": "6004967354",
     "containerId": "187414573",
     "containerVersionId": "0",
-    "fingerprint": "1780135800639",
+    "fingerprint": "1793468820787",
     "container": {
       "path": "accounts/6004967354/containers/187414573",
       "accountId": "6004967354",
@@ -16,7 +16,7 @@
       "usageContext": [
         "WEB"
       ],
-      "fingerprint": "1780135800639",
+      "fingerprint": "1793468820787",
       "features": {
         "supportUserPermissions": true,
         "supportEnvironments": true,
@@ -161,49 +161,49 @@
         "accountId": "6004967354",
         "containerId": "187414573",
         "name": "ClickTrail - Setup (fill these in)",
-        "fingerprint": "1780135800638"
+        "fingerprint": "1793468820787"
       },
       {
         "folderId": "201",
         "accountId": "6004967354",
         "containerId": "187414573",
         "name": "ClickTrail - Attribution Variables",
-        "fingerprint": "1780135800638"
+        "fingerprint": "1793468820787"
       },
       {
         "folderId": "202",
         "accountId": "6004967354",
         "containerId": "187414573",
         "name": "ClickTrail - GA4",
-        "fingerprint": "1780135800638"
+        "fingerprint": "1793468820787"
       },
       {
         "folderId": "203",
         "accountId": "6004967354",
         "containerId": "187414573",
         "name": "ClickTrail - Meta",
-        "fingerprint": "1780135800638"
+        "fingerprint": "1793468820787"
       },
       {
         "folderId": "204",
         "accountId": "6004967354",
         "containerId": "187414573",
         "name": "ClickTrail - Google Ads",
-        "fingerprint": "1780135800638"
+        "fingerprint": "1793468820787"
       },
       {
         "folderId": "205",
         "accountId": "6004967354",
         "containerId": "187414573",
         "name": "ClickTrail - Triggers",
-        "fingerprint": "1780135800638"
+        "fingerprint": "1793468820787"
       },
       {
         "folderId": "206",
         "accountId": "6004967354",
         "containerId": "187414573",
         "name": "ClickTrail - Data Layer",
-        "fingerprint": "1780135800638"
+        "fingerprint": "1793468820787"
       }
     ],
     "variable": [
@@ -220,7 +220,7 @@
             "value": "G-XXXXXXXXXX"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "200",
         "notes": "Replace with your GA4 Measurement ID."
       },
@@ -237,7 +237,7 @@
             "value": "XXXXXXXXX"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "200",
         "notes": "NUMERIC conversion ID only — do NOT include the 'AW-' prefix. The Conversion Tracking tag (with a conversion label) only accepts the bare digits; the AW- form silently fails there. These are the digits in 'AW-XXXXXXXXX/<label>' before the slash. Used by the Google Ads conversion tags. Leave blank to disable."
       },
@@ -254,7 +254,7 @@
             "value": "AW-XXXXXXXXX"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "200",
         "notes": "Full 'AW-XXXXXXXXX' form. Used ONLY by 'Google Ads - Config' (the Google tag / gtag loader), which accepts the AW- prefix. Leave blank to disable the Google Ads global tag."
       },
@@ -271,7 +271,7 @@
             "value": "AbCdEfGhIjK"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "200",
         "notes": "Your Google Ads purchase conversion label. Found in Google Ads > Goals > Conversions."
       },
@@ -288,7 +288,7 @@
             "value": "AbCdEfGhIjK"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "200",
         "notes": "Your Google Ads lead conversion label (thank-you page). Found in Google Ads > Goals > Conversions. Leave the default to keep the tag inactive until you set it."
       },
@@ -305,7 +305,7 @@
             "value": "/thank-you"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "200",
         "notes": "Path (or partial path) of the thank-you / success page used by your forms or booking flow. The Thank You trigger fires when Page Path 'contains' this string. Examples: /thank-you, /obrigado, /success, /contact/success."
       },
@@ -322,7 +322,7 @@
             "value": "0000000000000"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "200",
         "notes": "Your Meta Pixel ID (numbers only). Leave blank to disable Meta tags."
       },
@@ -339,7 +339,7 @@
             "value": "https://gtm.yourdomain.com"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "200",
         "notes": "Your server-side GTM URL. Leave blank if not using sGTM."
       },
@@ -366,7 +366,7 @@
             "value": "ecommerce.transaction_id"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "206"
       },
       {
@@ -392,7 +392,7 @@
             "value": "ecommerce.value"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "206"
       },
       {
@@ -418,7 +418,7 @@
             "value": "ecommerce.currency"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "206"
       },
       {
@@ -444,7 +444,7 @@
             "value": "ecommerce.items"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "206"
       },
       {
@@ -470,7 +470,7 @@
             "value": "ecommerce.coupon"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "206"
       },
       {
@@ -496,7 +496,7 @@
             "value": "ecommerce.shipping"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "206"
       },
       {
@@ -522,7 +522,7 @@
             "value": "ecommerce.tax"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "206"
       },
       {
@@ -548,7 +548,7 @@
             "value": "ft_source"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "201"
       },
       {
@@ -574,7 +574,7 @@
             "value": "lt_source"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "201"
       },
       {
@@ -600,7 +600,7 @@
             "value": "ft_medium"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "201"
       },
       {
@@ -626,7 +626,7 @@
             "value": "lt_medium"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "201"
       },
       {
@@ -652,7 +652,7 @@
             "value": "ft_campaign"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "201"
       },
       {
@@ -678,7 +678,7 @@
             "value": "lt_campaign"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "201"
       },
       {
@@ -704,7 +704,7 @@
             "value": "ft_channel"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "201"
       },
       {
@@ -730,7 +730,7 @@
             "value": "lt_channel"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "201"
       },
       {
@@ -756,7 +756,7 @@
             "value": "gclid"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "201"
       },
       {
@@ -782,13 +782,117 @@
             "value": "fbclid"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "201"
       },
       {
         "accountId": "6004967354",
         "containerId": "187414573",
         "variableId": "226",
+        "name": "DLV - wbraid",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "wbraid"
+          }
+        ],
+        "fingerprint": "1793468820787",
+        "parentFolderId": "201"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "227",
+        "name": "DLV - gbraid",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "gbraid"
+          }
+        ],
+        "fingerprint": "1793468820787",
+        "parentFolderId": "201"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "228",
+        "name": "DLV - msclkid",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "msclkid"
+          }
+        ],
+        "fingerprint": "1793468820787",
+        "parentFolderId": "201"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "229",
+        "name": "DLV - ttclid",
+        "type": "v",
+        "parameter": [
+          {
+            "type": "INTEGER",
+            "key": "dataLayerVersion",
+            "value": "2"
+          },
+          {
+            "type": "BOOLEAN",
+            "key": "setDefaultValue",
+            "value": "false"
+          },
+          {
+            "type": "TEMPLATE",
+            "key": "name",
+            "value": "ttclid"
+          }
+        ],
+        "fingerprint": "1793468820787",
+        "parentFolderId": "201"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "230",
         "name": "DLV - ga_client_id",
         "type": "v",
         "parameter": [
@@ -808,13 +912,13 @@
             "value": "ga_client_id"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "201"
       },
       {
         "accountId": "6004967354",
         "containerId": "187414573",
-        "variableId": "227",
+        "variableId": "231",
         "name": "DLV - event_id",
         "type": "v",
         "parameter": [
@@ -834,13 +938,13 @@
             "value": "event_id"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "201"
       },
       {
         "accountId": "6004967354",
         "containerId": "187414573",
-        "variableId": "228",
+        "variableId": "232",
         "name": "DLV - marketing_trail.consent.advertising",
         "type": "v",
         "parameter": [
@@ -860,8 +964,25 @@
             "value": "marketing_trail.consent.advertising"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "201"
+      },
+      {
+        "accountId": "6004967354",
+        "containerId": "187414573",
+        "variableId": "233",
+        "name": "JS - selected click id",
+        "type": "jsm",
+        "parameter": [
+          {
+            "type": "TEMPLATE",
+            "key": "javascript",
+            "value": "function() {\n  var ids = [{{DLV - gclid}}, {{DLV - wbraid}}, {{DLV - gbraid}}, {{DLV - fbclid}}, {{DLV - msclkid}}, {{DLV - ttclid}}];\n  for (var i = 0; i < ids.length; i++) {\n    if (ids[i]) { return String(ids[i]); }\n  }\n  return undefined;\n}"
+          }
+        ],
+        "fingerprint": "1793468820787",
+        "parentFolderId": "201",
+        "notes": "First non-empty click id (Google, Meta, Microsoft, TikTok order). Exposed as ct_click_id on GA4 event tags."
       }
     ],
     "trigger": [
@@ -871,7 +992,7 @@
         "triggerId": "201",
         "name": "All Pages",
         "type": "PAGEVIEW",
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "205"
       },
       {
@@ -880,7 +1001,7 @@
         "triggerId": "202",
         "name": "DOM Ready",
         "type": "DOM_READY",
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "205"
       },
       {
@@ -906,7 +1027,7 @@
             ]
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "205"
       },
       {
@@ -932,7 +1053,7 @@
             ]
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "205"
       },
       {
@@ -958,7 +1079,7 @@
             ]
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "205"
       },
       {
@@ -984,7 +1105,7 @@
             ]
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "205"
       },
       {
@@ -1010,7 +1131,7 @@
             ]
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "205"
       },
       {
@@ -1036,7 +1157,7 @@
             ]
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "205"
       },
       {
@@ -1062,7 +1183,7 @@
             ]
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "205"
       },
       {
@@ -1088,7 +1209,7 @@
             ]
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "205"
       },
       {
@@ -1114,7 +1235,7 @@
             ]
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "205"
       },
       {
@@ -1140,7 +1261,7 @@
             ]
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "205"
       },
       {
@@ -1166,7 +1287,7 @@
             ]
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "205"
       },
       {
@@ -1192,7 +1313,7 @@
             ]
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "parentFolderId": "205"
       }
     ],
@@ -1231,7 +1352,7 @@
             ]
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "firingTriggerId": [
           "201"
         ],
@@ -1262,7 +1383,7 @@
             "value": "{{CONST - Ads Conversion ID (AW-)}}"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "firingTriggerId": [
           "201"
         ],
@@ -1292,7 +1413,7 @@
             "value": "false"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "firingTriggerId": [
           "201"
         ],
@@ -1369,7 +1490,7 @@
             "value": "false"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "firingTriggerId": [
           "204"
         ],
@@ -1431,7 +1552,7 @@
             "value": "false"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "firingTriggerId": [
           "203"
         ],
@@ -1586,11 +1707,146 @@
                     "value": "{{DLV - items}}"
                   }
                 ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_source"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_source}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_medium"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_medium}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_campaign"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_campaign}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_channel"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_channel}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_source"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_source}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_medium"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_medium}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_campaign"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_campaign}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_channel"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_channel}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_click_id"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{JS - selected click id}}"
+                  }
+                ]
               }
             ]
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "firingTriggerId": [
           "204"
         ],
@@ -1678,11 +1934,146 @@
                     "value": "{{DLV - items}}"
                   }
                 ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_source"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_source}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_medium"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_medium}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_campaign"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_campaign}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_channel"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_channel}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_source"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_source}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_medium"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_medium}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_campaign"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_campaign}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_channel"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_channel}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_click_id"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{JS - selected click id}}"
+                  }
+                ]
               }
             ]
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "firingTriggerId": [
           "205"
         ],
@@ -1770,11 +2161,146 @@
                     "value": "{{DLV - items}}"
                   }
                 ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_source"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_source}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_medium"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_medium}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_campaign"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_campaign}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_channel"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_channel}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_source"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_source}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_medium"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_medium}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_campaign"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_campaign}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_channel"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_channel}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_click_id"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{JS - selected click id}}"
+                  }
+                ]
               }
             ]
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "firingTriggerId": [
           "206"
         ],
@@ -1862,11 +2388,146 @@
                     "value": "{{DLV - items}}"
                   }
                 ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_source"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_source}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_medium"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_medium}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_campaign"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_campaign}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_channel"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_channel}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_source"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_source}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_medium"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_medium}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_campaign"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_campaign}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_channel"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_channel}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_click_id"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{JS - selected click id}}"
+                  }
+                ]
               }
             ]
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "firingTriggerId": [
           "207"
         ],
@@ -1924,11 +2585,146 @@
                     "value": "{{DLV - items}}"
                   }
                 ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_source"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_source}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_medium"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_medium}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_campaign"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_campaign}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_channel"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_channel}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_source"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_source}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_medium"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_medium}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_campaign"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_campaign}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_channel"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_channel}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_click_id"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{JS - selected click id}}"
+                  }
+                ]
               }
             ]
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "firingTriggerId": [
           "208"
         ],
@@ -1967,9 +2763,150 @@
             "type": "TEMPLATE",
             "key": "measurementIdOverride",
             "value": "{{CONST - GA4 Measurement ID}}"
+          },
+          {
+            "type": "LIST",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_source"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_source}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_medium"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_medium}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_campaign"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_campaign}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_channel"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_channel}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_source"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_source}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_medium"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_medium}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_campaign"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_campaign}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_channel"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_channel}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_click_id"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{JS - selected click id}}"
+                  }
+                ]
+              }
+            ]
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "firingTriggerId": [
           "209"
         ],
@@ -2008,9 +2945,150 @@
             "type": "TEMPLATE",
             "key": "measurementIdOverride",
             "value": "{{CONST - GA4 Measurement ID}}"
+          },
+          {
+            "type": "LIST",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_source"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_source}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_medium"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_medium}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_campaign"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_campaign}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_channel"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_channel}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_source"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_source}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_medium"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_medium}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_campaign"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_campaign}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_channel"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_channel}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_click_id"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{JS - selected click id}}"
+                  }
+                ]
+              }
+            ]
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "firingTriggerId": [
           "210"
         ],
@@ -2049,9 +3127,150 @@
             "type": "TEMPLATE",
             "key": "measurementIdOverride",
             "value": "{{CONST - GA4 Measurement ID}}"
+          },
+          {
+            "type": "LIST",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_source"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_source}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_medium"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_medium}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_campaign"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_campaign}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_channel"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_channel}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_source"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_source}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_medium"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_medium}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_campaign"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_campaign}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_channel"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_channel}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_click_id"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{JS - selected click id}}"
+                  }
+                ]
+              }
+            ]
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "firingTriggerId": [
           "211"
         ],
@@ -2090,9 +3309,150 @@
             "type": "TEMPLATE",
             "key": "measurementIdOverride",
             "value": "{{CONST - GA4 Measurement ID}}"
+          },
+          {
+            "type": "LIST",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_source"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_source}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_medium"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_medium}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_campaign"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_campaign}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_ft_channel"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - ft_channel}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_source"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_source}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_medium"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_medium}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_campaign"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_campaign}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_lt_channel"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{DLV - lt_channel}}"
+                  }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameter",
+                    "value": "ct_click_id"
+                  },
+                  {
+                    "type": "TEMPLATE",
+                    "key": "parameterValue",
+                    "value": "{{JS - selected click id}}"
+                  }
+                ]
+              }
+            ]
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "firingTriggerId": [
           "212"
         ],
@@ -2168,7 +3528,7 @@
             "value": "{{DLV - event_id}}"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "firingTriggerId": [
           "213",
           "214"
@@ -2179,7 +3539,20 @@
           "type": "MAP"
         },
         "consentSettings": {
-          "consentStatus": "NOT_SET"
+          "consentStatus": "NEEDED",
+          "consentType": {
+            "type": "LIST",
+            "list": [
+              {
+                "type": "TEMPLATE",
+                "value": "ad_storage"
+              },
+              {
+                "type": "TEMPLATE",
+                "value": "ad_user_data"
+              }
+            ]
+          }
         }
       },
       {
@@ -2245,7 +3618,7 @@
             "value": "{{DLV - event_id}}"
           }
         ],
-        "fingerprint": "1780135800638",
+        "fingerprint": "1793468820787",
         "firingTriggerId": [
           "204"
         ],
@@ -2255,7 +3628,20 @@
           "type": "MAP"
         },
         "consentSettings": {
-          "consentStatus": "NOT_SET"
+          "consentStatus": "NEEDED",
+          "consentType": {
+            "type": "LIST",
+            "list": [
+              {
+                "type": "TEMPLATE",
+                "value": "ad_storage"
+              },
+              {
+                "type": "TEMPLATE",
+                "value": "ad_user_data"
+              }
+            ]
+          }
         }
       },
       {
@@ -2321,7 +3707,7 @@
             "value": "{{DLV - event_id}}"
           }
         ],
-        "fingerprint": "1780135800639",
+        "fingerprint": "1793468820787",
         "firingTriggerId": [
           "209"
         ],
@@ -2331,7 +3717,20 @@
           "type": "MAP"
         },
         "consentSettings": {
-          "consentStatus": "NOT_SET"
+          "consentStatus": "NEEDED",
+          "consentType": {
+            "type": "LIST",
+            "list": [
+              {
+                "type": "TEMPLATE",
+                "value": "ad_storage"
+              },
+              {
+                "type": "TEMPLATE",
+                "value": "ad_user_data"
+              }
+            ]
+          }
         }
       },
       {
@@ -2397,7 +3796,7 @@
             "value": "{{DLV - event_id}}"
           }
         ],
-        "fingerprint": "1780135800639",
+        "fingerprint": "1793468820787",
         "firingTriggerId": [
           "205"
         ],
@@ -2407,7 +3806,20 @@
           "type": "MAP"
         },
         "consentSettings": {
-          "consentStatus": "NOT_SET"
+          "consentStatus": "NEEDED",
+          "consentType": {
+            "type": "LIST",
+            "list": [
+              {
+                "type": "TEMPLATE",
+                "value": "ad_storage"
+              },
+              {
+                "type": "TEMPLATE",
+                "value": "ad_user_data"
+              }
+            ]
+          }
         }
       },
       {
@@ -2473,7 +3885,7 @@
             "value": "{{DLV - event_id}}"
           }
         ],
-        "fingerprint": "1780135800639",
+        "fingerprint": "1793468820787",
         "firingTriggerId": [
           "206"
         ],
@@ -2483,7 +3895,20 @@
           "type": "MAP"
         },
         "consentSettings": {
-          "consentStatus": "NOT_SET"
+          "consentStatus": "NEEDED",
+          "consentType": {
+            "type": "LIST",
+            "list": [
+              {
+                "type": "TEMPLATE",
+                "value": "ad_storage"
+              },
+              {
+                "type": "TEMPLATE",
+                "value": "ad_user_data"
+              }
+            ]
+          }
         }
       },
       {
@@ -2549,7 +3974,7 @@
             "value": "{{DLV - event_id}}"
           }
         ],
-        "fingerprint": "1780135800639",
+        "fingerprint": "1793468820787",
         "firingTriggerId": [
           "207"
         ],
@@ -2559,7 +3984,20 @@
           "type": "MAP"
         },
         "consentSettings": {
-          "consentStatus": "NOT_SET"
+          "consentStatus": "NEEDED",
+          "consentType": {
+            "type": "LIST",
+            "list": [
+              {
+                "type": "TEMPLATE",
+                "value": "ad_storage"
+              },
+              {
+                "type": "TEMPLATE",
+                "value": "ad_user_data"
+              }
+            ]
+          }
         }
       }
     ]

@@ -8,7 +8,6 @@
 namespace CLICUTCL\Integrations\Forms;
 
 use CLICUTCL\Core\Attribution_Provider;
-use CLICUTCL\Server_Side\Consent;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -39,54 +38,119 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 
 	/**
 	 * Register hooks.
+	 *
+	 * WPForms fires no per-field value filter for server-side population (its dynamic
+	 * population reads `$_GET` only), so hidden fields are filled through
+	 * `wpforms_field_properties` at render and refreshed through `wpforms_process_filter`
+	 * at submit, before notifications and entries.
 	 */
 	public function register_hooks() {
-		$keys = Attribution_Provider::get_field_mapping();
-
-		foreach ( $keys as $key ) {
-			// Filter name format: wpforms_field_value_{parameter_name}
-			// When using Smart Tag {query_var key="ct_ft_source"} this hooks in?
-			// Actually WPForms 'Dynamic Field Population' uses 'wpforms_field_value_$key'.
-			$prefixed_key = $this->get_field_name( $key );
-			add_filter( "wpforms_field_value_{$prefixed_key}", array( $this, 'populate_field' ), 10, 3 );
-		}
+		add_filter( 'wpforms_field_properties', array( $this, 'render_field_default' ), 10, 3 );
+		add_filter( 'wpforms_process_filter', array( $this, 'refresh_fields' ), 10, 3 );
 
 		// Submission processing.
 		add_action( 'wpforms_process_complete', array( $this, 'on_submission' ), 10, 4 );
 	}
 
 	/**
-	 * Populate field via filter.
+	 * Resolve the ClickTrail field name a WPForms field is marked with.
 	 *
-	 * @param string $value     Field value.
-	 * @param array  $field     Field settings.
-	 * @param array  $form_data Form data.
-	 * @return string
+	 * A field is a ClickTrail field when its CSS class list carries a `ct_<key>` token
+	 * (recommended: WPForms fields have no name attribute) or its label is exactly `ct_<key>`
+	 * for a key in `Attribution_Provider::get_field_mapping()` (the form the docs and the
+	 * Diagnostics scan already accept; `ct_gclid note` is a label, not a marker).
+	 *
+	 * @param array $field Field settings from form data (`label`, `css`).
+	 * @return string `ct_<key>`, or '' when the field is not marked.
 	 */
-	public function populate_field( $value, $field, $form_data ) {
-		if ( ! $this->should_populate() ) {
-			return $value;
+	private function field_name( $field ) {
+		if ( ! is_array( $field ) ) {
+			return '';
+		}
+		if ( ! empty( $field['css'] ) && is_string( $field['css'] ) ) {
+			foreach ( preg_split( '/\s+/', trim( $field['css'] ) ) as $token ) {
+				if ( null !== $this->mapped_key( $token ) ) {
+					return $token;
+				}
+			}
+		}
+		$label = isset( $field['label'] ) && is_string( $field['label'] ) ? trim( $field['label'] ) : '';
+		if ( 0 !== strpos( $label, $this->field_prefix ) ) {
+			return '';
+		}
+		$key = substr( $label, strlen( $this->field_prefix ) );
+		return in_array( $key, Attribution_Provider::get_field_mapping(), true ) ? $label : '';
+	}
+
+	/**
+	 * Fill a marked hidden field from the attribution cookie at render, only when
+	 * `clicutcl_render_server_attribution_values` opts in (cached HTML, #152).
+	 *
+	 * @param array $properties Field properties.
+	 * @param array $field      Field settings.
+	 * @param array $form_data  Form data (unused).
+	 * @return array
+	 */
+	public function render_field_default( $properties, $field, $form_data = array() ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+		if ( ! is_array( $properties ) || ! is_array( $field ) || 'hidden' !== ( $field['type'] ?? '' ) ) {
+			return $properties;
+		}
+		$name = $this->field_name( $field );
+		if ( '' === $name || ! $this->render_server_values_enabled() || ! $this->refresh_allowed() ) {
+			return $properties;
 		}
 
-		// We need to identify which key triggered this.
-		// Since we registered specific hooks, we can't easily know strictly from arguments
-		// unless we closures or just check the current filter name,
-		// but checking current filter is hacky.
-		// A better way is to use a method that returns a closure, or `current_filter()`.
-
-		$filter = current_filter();
-		// Format: wpforms_field_value_ct_ft_source.
-		$prefix = 'wpforms_field_value_' . $this->field_prefix;
-
-		if ( strpos( $filter, $prefix ) !== 0 ) {
-			return $value;
+		$value = $this->cookie_value_for( $name, $this->get_attribution_payload() );
+		if ( null !== $value ) {
+			$properties['inputs']['primary']['attr']['value'] = $value;
 		}
 
-		$key = str_replace( $prefix, '', $filter );
+		return $properties;
+	}
 
-		$payload = $this->get_attribution_payload();
+	/**
+	 * Resolve marked fields at submit time (#152).
+	 *
+	 * Runs on `wpforms_process_filter`, after validation and formatting and before notifications
+	 * and the entry are written. Readable cookie: authoritative, keys it lacks are blanked. No
+	 * cookie: blanked (WPForms inputs carry no Injector marker). Consent blocked: blanked.
+	 *
+	 * @param array $fields    Processed fields keyed by field ID.
+	 * @param array $entry     Raw entry (unused).
+	 * @param array $form_data Form data.
+	 * @return array
+	 */
+	public function refresh_fields( $fields, $entry, $form_data = array() ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+		if ( ! is_array( $fields ) ) {
+			return $fields;
+		}
 
-		return isset( $payload[ $key ] ) ? $payload[ $key ] : $value;
+		$settings = isset( $form_data['fields'] ) && is_array( $form_data['fields'] ) ? $form_data['fields'] : array();
+
+		$posted = array();
+		$names  = array();
+		foreach ( $fields as $id => $field ) {
+			if ( ! is_array( $field ) || ! array_key_exists( 'value', $field ) ) {
+				continue;
+			}
+			// Processed fields carry the label as `name`; the CSS marker needs the form settings.
+			$name = $this->field_name( $settings[ $id ] ?? array( 'label' => $field['name'] ?? '' ) );
+			if ( '' === $name ) {
+				continue;
+			}
+			$names[ $id ]            = substr( $name, strlen( $this->field_prefix ) );
+			$posted[ $names[ $id ] ] = $field['value'];
+		}
+		if ( empty( $names ) ) {
+			return $fields;
+		}
+
+		$resolved = $this->resolve_submitted_attribution( $posted, false );
+		foreach ( $names as $id => $key ) {
+			$fields[ $id ]['value'] = $resolved[ $key ];
+		}
+
+		return $fields;
 	}
 
 	/**
@@ -117,7 +181,7 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 	 */
 	public function on_submission( $fields, $entry, $form_data = null, $entry_id = null ) {
 		// Submission-time consent is authoritative for both provider and legacy modes.
-		if ( ! $this->should_populate() || ( Consent::is_required() && ! Consent::marketing_allowed() ) ) {
+		if ( ! $this->refresh_allowed() ) {
 			return;
 		}
 
@@ -129,6 +193,10 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 		$form_id  = isset( $form_data['id'] ) ? absint( $form_data['id'] ) : 0;
 		$entry_id = absint( $entry_id );
 
+		// Log first: the entry meta carries the IDs it returns. A repeat of the same entry writes
+		// only the IDs the entry lacks (the first call wrote the rest, or died before it could).
+		$logged = $this->log_submission( 'wpforms', $form_id, $payload, $this->extract_identity_from_fields( $fields ), $entry_id );
+
 		// Save to WPForms entry meta only when a real entry exists.
 		// Lite installs and some processing paths may not provide one.
 		if (
@@ -139,7 +207,15 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 			is_object( wpforms()->entry_meta ) &&
 			method_exists( wpforms()->entry_meta, 'add' )
 		) {
-			foreach ( $payload as $key => $value ) {
+			$meta = $this->entry_meta_to_write(
+				$logged,
+				$payload,
+				function ( $meta_key ) use ( $entry_id ) {
+					return $this->wpforms_entry_has_meta( $entry_id, $meta_key );
+				}
+			);
+
+			foreach ( $meta as $key => $value ) {
 				$meta_key = $this->get_field_name( $key );
 				wpforms()->entry_meta->add(
 					array(
@@ -152,9 +228,32 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 				);
 			}
 		}
+	}
 
-		// Log to ClickTrail.
-		$this->log_submission( 'wpforms', $form_id, $payload, $this->extract_identity_from_fields( $fields ) );
+	/**
+	 * Whether a WPForms entry already has a meta row of this type.
+	 *
+	 * Uses `entry_meta->get_meta()`; without it the answer is "yes", so a repeat never writes
+	 * a second row it cannot rule out.
+	 *
+	 * @param int    $entry_id Entry ID.
+	 * @param string $type     Meta type (key).
+	 * @return bool
+	 */
+	private function wpforms_entry_has_meta( $entry_id, $type ) {
+		$entry_meta = wpforms()->entry_meta;
+		if ( ! method_exists( $entry_meta, 'get_meta' ) ) {
+			return true;
+		}
+
+		$rows = $entry_meta->get_meta(
+			array(
+				'entry_id' => $entry_id,
+				'type'     => $type,
+			)
+		);
+
+		return ! empty( $rows );
 	}
 
 	/**

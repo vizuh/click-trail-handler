@@ -560,6 +560,11 @@ trait Admin_Pages_Trait {
 								$cons_text = 'm:' . ( ! empty( $consent['marketing'] ) ? '1' : '0' ) . ' a:' . ( ! empty( $consent['analytics'] ) ? '1' : '0' );
 								$attr_keys = isset( $entry['attribution_keys'] ) && is_array( $entry['attribution_keys'] ) ? implode( ',', $entry['attribution_keys'] ) : '';
 								$id_keys   = isset( $entry['identity_keys'] ) && is_array( $entry['identity_keys'] ) ? implode( ',', $entry['identity_keys'] ) : '';
+								$id_drops  = isset( $entry['identity_dropped'] ) && is_array( $entry['identity_dropped'] ) ? implode( ',', $entry['identity_dropped'] ) : '';
+								if ( '' !== $id_drops ) {
+									/* translators: %s: comma-separated drop reasons (e.g. phone_no_country). */
+									$id_keys = trim( $id_keys . ' ' . sprintf( __( 'dropped: %s', 'click-trail-handler' ), $id_drops ) );
+								}
 								$event_col = trim( (string) ( $entry['event_name'] ?? '' ) . ' ' . (string) ( $entry['event_id'] ?? '' ) );
 								?>
 								<tr>

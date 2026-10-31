@@ -4,7 +4,7 @@
 - **Canonical for**: integration roles, source evidence, status boundaries, providers, forms, webhooks, GTM, and delivery adapter keys
 - **Update when**: integration support level, adapter list, provider contract, evidence status, or capability messaging changes
 - **Provider-wide audit baseline**: plugin code `1.9.0`, commit `a45aa9e`, reviewed 2026-08-19
-- **Current release**: plugin code `1.10.5`, with automated consent, queue, WooCommerce privacy, CF7 outcome, touch-event deduplication, CMP decision-transition, Calendly webhook, and attribution round-trip E2E (`tools/qa/e2e/`, CI) coverage; the live Calendly booking round trip remains unverified
+- **Current release**: plugin code `1.11.3` on GitHub and WordPress.org, with automated consent, queue, WooCommerce privacy, CF7 outcome, touch-event deduplication, CMP decision-transition, Calendly webhook, and attribution round-trip E2E (`tools/qa/e2e/`, CI) coverage; the live Calendly booking round trip remains unverified. HubSpot embedded form capture (new in 1.11.0) has a Node VM contract test only. The Gravity Forms first-page fix (1.11.1), the 1.11.2 submit-time refresh, purchase lock, purchase dataLayer `event_id`, phone E.164 normalisation, consent-before-GTM ordering and optimizer exclusions, and, new in 1.11.3, cache-safe hidden fields, form dedupe and entry IDs and the rebuilt GTM starter kit have PHPUnit/Node tests; CF7, Fluent Forms and WPForms Lite also ran in a throwaway WordPress 7.1 / PHP 8.3 pod (175+ checks, `tools/qa/e2e/EVIDENCE-2026-10-31.md`). Not run: Gravity Forms, Elementor Pro, Ninja Forms, WPForms Pro, a real page cache or optimizer, a real GTM import
 - **Runtime verification**: provider-wide E2E remains incomplete; bounded WooCommerce and Fluent Forms evidence is recorded below, while six form manifests remain explicitly runtime-unverified
 - **Machine-readable ledger**: [`integration-capabilities.json`](integration-capabilities.json)
 
@@ -58,8 +58,9 @@ live hook, consent, identity, and retention behavior still require testing.
 | TikTok Pixel, LinkedIn Insight, Pinterest Tag, Reddit Pixel | GTM-mediated only; direct SDKs not observed | Possible through a site-owned GTM container | No direct pixel/SDK injection or provider setup in ClickTrail |
 | Reddit destination | Relay-only | Destination toggle and `rdt_cid`/Reddit source classification | No native Reddit delivery adapter; no Reddit conversion-delivery claim |
 | Forms | Source connector / runtime-unverified overall | CF7, Elementor Pro, Fluent, Gravity, Ninja, and WPForms paths; bounded Fluent Forms submission-storage evidence; six-case evidence manifests | Live plugin-hook, posted-field, submission-storage, consent, and erasure proof for the remaining adapters |
-| WooCommerce | Source connector / runtime-unverified | Order attribution, storefront events, purchase/milestones, traces, and allowlisted order-meta privacy lifecycle contracts | Live checkout/CMP behavior, purchase dataLayer, dedup concurrency, queue/retry, and classic/HPOS staging proof |
+| WooCommerce | Source connector / runtime-unverified | Order attribution, storefront events, purchase/milestones, traces, allowlisted order-meta privacy lifecycle contracts, and a per-order thank-you dispatch lock (PHPUnit `WooCommercePurchaseDispatchLockTest`, #148) | Live checkout/CMP behavior, purchase dataLayer, dedup concurrency under real concurrent requests, queue/retry, and classic/HPOS staging proof |
 | Calendly, HubSpot, Typeform | Webhook ingress / runtime-unverified | Signed inbound routes and canonical translation | Provider timestamp, identity minimization, replay, consent, and E2E proof |
+| HubSpot embedded forms (updated editor v4 and legacy embeds) | Source-present / runtime-unverified | Browser `lead` on HubSpot's documented v4 submission-success event and legacy `hsFormCallback` `onFormSubmitted` message; `form_submit_failed` on v4 failure; consent-gated, deduplicated; Node VM contract test | A live HubSpot form submission; iframe origin of legacy iframe embeds; attribution written into HubSpot hidden fields (not implemented) |
 
 ### Important platform boundary
 
@@ -171,8 +172,10 @@ WordPress E2E status remain governed by the evidence labels above.
 Form integrations fall into three patterns:
 
 - automatic hidden-field injection: Contact Form 7 and Fluent Forms (Fluent Forms native entry/CSV visibility requires configured fields; see below)
-- compatible hidden-field population: Gravity Forms and WPForms
+- compatible hidden-field population: Gravity Forms, WPForms and Elementor Forms (Pro) hidden fields the site owner adds (`ct_<key>` parameter name, CSS class or label, and `custom_id` respectively)
 - submission-hook and stored-attribution path: Elementor Forms (Pro) and Ninja Forms
+
+Every adapter applies one submit-time rule (Gravity Forms via #137, the others via #142): for each `ct_<key>` field the form carries, a non-empty value for `<key>` in the attribution cookie sent with the submit replaces the posted value; keys the cookie lacks are blanked (1.11.2 kept the posted value; #152 tightened this because a posted value may be another visitor's, served from a page cache). With no readable cookie, posted values are kept only for forms the browser Injector marked with `ct_fill_source=js` (CF7 and Fluent Forms, whose inputs are named `ct_*`); Gravity Forms, Elementor and WPForms never carry the marker, so without a cookie their `ct_*` fields are blanked. When `should_populate()` is false or required marketing consent is absent, every posted `ct_*` is blanked before the provider stores or mails it (Ninja Forms: the stale `extra` value is removed). `ct_fill_source` is stripped and never stored, logged or forwarded. Server-rendered values are empty by default (filter `clicutcl_render_server_attribution_values`, default `false`), so cached form HTML carries no visitor's attribution and the browser fills it; the submit rule corrects it. Source-present / runtime-unverified for every adapter (PHPUnit and a Node VM test only, no live form plugin or page cache run). Source-present / runtime-unverified for CF7, Fluent Forms, Elementor and WPForms (PHPUnit only, no live form plugin run).
 
 That distinction matters operationally because teams should not expect every form plugin to receive fields the same way.
 
@@ -191,7 +194,9 @@ Source-present form adapters (runtime-unverified in this audit):
 - Fluent Forms
 - Gravity Forms
 - Ninja Forms
-- WPForms
+- WPForms (the `hidden` field type is Pro-only; on Lite use a Single Line Text field with the `ct_<key>` CSS class, hidden by the site owner's CSS, which is filled at submit; E2E on WordPress 7.1 / Lite 2.0.3.1 verified the submit-time fill, entry meta is not testable in Lite)
+
+Fluent Forms hooks: `fluentform/form_element_start`, `fluentform/insert_response_data` and `fluentform/submission_inserted` on Fluent Forms 5.0.0 or later (or when `FLUENTFORM_VERSION` is undefined); the underscore names (`fluentform_*`) only on 4.x, never both, because current Fluent Forms raises a deprecation notice for a callback on `fluentform_insert_response_data`.
 
 Runtime evidence for `1.9.1`: a consent-not-required browser submission on WordPress 6.9, PHP 8.1, and Fluent Forms 6.2.13 stored `ct_ft_source`, `ct_lt_source`, and campaign metadata in `fluentform_submission_meta`. This does not establish the other adapters, consent-required paths, or erasure behavior.
 
@@ -211,14 +216,19 @@ What ClickTrail does:
 
 - auto-add hidden attribution fields for Contact Form 7 and Fluent Forms
 - persist Fluent Forms attribution in `fluentform_submission_meta`, linked through Fluent Forms' `response_id` column
-- populate matching hidden fields already present in Gravity Forms and WPForms
-- recommend that Gravity Forms and WPForms users add the hidden fields they want stored or exported
+- populate matching hidden fields already present in Gravity Forms, WPForms and Elementor Forms (Pro)
+- recommend that Gravity Forms, WPForms and Elementor Forms users add the hidden fields they want stored or exported
 - keep attribution attached to submissions
 - dispatch form-related events when applicable
+- every adapter logs through `Abstract_Form_Adapter::log_submission()`, which writes one `form_submission` row and dispatches one event per `(provider, form_id, entry_id)`; a repeat returns the first `event_id` (#140). Fluent Forms' per-process static guard is replaced by this shared path, and its submission meta is written once per entry. Contact Form 7 and Elementor Forms (Pro) have no entry ID at hook time, so they dedupe best-effort on the posted `ct_*` values plus a 10 s time bucket (see [EVENT-PIPELINE.md](../architecture/EVENT-PIPELINE.md#4-form-submission-flow)). Browser side, a repeated CF7 `wpcf7mailsent` for the same form and `unitTag` inside 10 s is one `lead`. Source-present / runtime-unverified
+- Gravity Forms, WPForms and Fluent Forms write `ct_event_id` and `ct_lead_id` into the entry meta next to the attribution keys; Ninja Forms, Elementor Forms (Pro) and Contact Form 7 store the IDs in the `clicutcl_events` row and expose them through the `clicutcl_form_submission_logged` action (`HOOKS-REFERENCE.md`), so a CRM sync can match a closed deal back to the server-side event and the `clicutcl_events` row (#143); these IDs are not the browser `lead`'s ID. Source-present / runtime-unverified
 - for Contact Form 7, record and dispatch through `wpcf7_mail_sent`, after CF7 reports success; validation failure, missing acceptance, spam, abort and mail failure do not enter the conversion logger. This denotes CF7 success (including its configured skip-mail behavior), not recipient delivery or CRM acceptance. Hook-lifecycle regression coverage lives in `tests/unit/CF7SubmissionOutcomeTest.php`; real WordPress/cache/receiver proof remains separate.
-- for Contact Form 7, the attribution cookie sent with the submit wins over the posted `ct_*` hidden fields; posted values only fill keys the cookie lacks (for example when cookies are blocked). CF7 renders those hidden fields server-side from the cookie at page load, which on a landing visit is one touch behind and lacks keys that touch adds (before 1.10.5 a Google-then-Meta visitor's lead was stored as Google). The browser runtime also treats `ct_*` inputs as its own and refreshes them on load and at submit.
-- for Elementor Forms, log submissions through Elementor Pro's official `elementor_pro/forms/new_record` hook and read matching `ct_*` hidden fields when they are present, with cookie fallback when they are not
-- for Ninja Forms, store attribution in the submission extra data (`extra.clicktrail_attribution`), show it in the submission detail UI, and use the submission hooks rather than automatic hidden-field injection
+- for Contact Form 7, `wpcf7_posted_data` (priority 5, `CF7_Adapter::refresh_posted_data()`) rewrites the posted `ct_*` data from the attribution cookie sent with the submit while CF7 builds the submission, so mail tags such as `[ct_fbclid]`, Flamingo, CRM add-ons and ClickTrail's own `wpcf7_mail_sent` log all read the same submit-time values. Per posted `ct_<key>`: a non-empty cookie key wins, keys the cookie lacks are blanked, no key is added; without a cookie the posted values survive only with the Injector's `ct_fill_source=js` marker, which is stripped (#152). For the form to carry the fields on a landing page, `add_hidden_fields()` renders every key from `Attribution_Provider::get_field_mapping()` as a `ct_<key>` hidden input on every render, empty unless `clicutcl_render_server_attribution_values` returns `true`. Before 1.10.5 a Google-then-Meta visitor's lead was stored as Google; 1.10.5 to 1.11.0 fixed ClickTrail's log only. Unit coverage: `tests/unit/CF7PostedDataRefreshTest.php`, `tests/unit/CF7SubmissionOutcomeTest.php`.
+- for Gravity Forms, `gform_pre_submission` rewrites the posted value of every dynamic-population input whose parameter name starts with `ct_` from the attribution cookie sent with the submit (consent and the per-form toggle apply); keys the cookie lacks are blanked, and without a cookie every such input is blanked (the Injector never marks `input_<id>` forms; consent blocked blanks them too, #152). Gravity Forms fills those inputs server-side through `gform_field_value` only when `clicutcl_render_server_attribution_values` returns `true`; by default it returns GF's own value, so cached HTML is visitor-neutral. The render, which on the landing page runs before the browser writes the cookie, so before this change a visitor who submitted on the page they landed on stored empty ClickTrail fields. The browser runtime cannot refill them because Gravity Forms renders them as `input_<id>`, not under their parameter name. Unit coverage: `tests/unit/GravityFormsSubmissionRefreshTest.php`; no live Gravity Forms run yet.
+- for Fluent Forms, `fluentform/insert_response_data` (and the legacy `fluentform_insert_response_data` alias; `Fluent_Forms_Adapter::refresh_response_data()`) rewrites each `ct_<key>` key of the response data per key before Fluent Forms stores the entry (cookie authoritative, absent keys blank, marker rule without a cookie, consent blocked blanks all, #152), replacing the earlier "cookie only when every posted `ct_*` value is empty" fallback, so the native entry, `fluentform_submission_meta` and ClickTrail's log hold the submit-time value. The rewrite is a pure function of (posted, cookie), so the double hook needs no state. Only fields Fluent Forms keeps in the response reach the filter: the inputs ClickTrail echoes at `fluentform/form_element_start` are dropped by Fluent Forms' accepted-field intersection in `SubmissionHandlerService::prepareHandler()` unless they are also configured as native hidden fields named `ct_<key>` (see the visibility evidence above). A form with no `ct_*` field keeps today's record: ClickTrail's log and `fluentform_submission_meta` receive the cookie payload and no provider field is written. Unit coverage: `tests/unit/FluentFormsSubmissionRefreshTest.php`.
+- for Elementor Forms, a hidden field whose Advanced > ID (`custom_id`) is `ct_<key>` is filled from the cookie at render through `elementor_pro/forms/render/item/hidden` (`render_hidden_field()`, replacing the `value` render attribute) and refreshed from the submit-time cookie through `elementor_pro/forms/process` (`refresh_record()`, `Form_Record::update_field( $id, 'value', ... )`, verified against Elementor Pro 4.1.1), which runs after validation and before the form actions, so email, webhook and Submissions see the refreshed value; `elementor_pro/forms/new_record` runs after the actions and only logs. The render fill is opt-in through `clicutcl_render_server_attribution_values` (default off, so cached HTML is visitor-neutral); the submit refresh blanks keys the cookie lacks, blanks everything without a cookie and when consent is blocked (#152). The browser runtime cannot fill these inputs because Elementor names them `form_fields[<custom_id>]`. A form with no `ct_*` field keeps today's record: ClickTrail's log receives the cookie payload. Unit coverage: `tests/unit/ElementorFormsSubmissionRefreshTest.php`.
+- for WPForms, a field is a ClickTrail field when its CSS Classes (Advanced tab) contain the token `ct_<key>` (recommended; WPForms fields have no name attribute) or its label is exactly `ct_<key>` for a key in `Attribution_Provider::get_field_mapping()` (what earlier docs implied; still accepted; `ct_gclid note` is not a marker). Render fills the hidden field through `wpforms_field_properties` (`render_field_default()`, `inputs.primary.attr.value`; `hidden` fields only, a Pro field type) only when `clicutcl_render_server_attribution_values` returns `true`; submit resolves (cookie authoritative, absent keys and the no-cookie and consent-blocked cases blank, #152) `$fields[<id>]['value']` through `wpforms_process_filter` (`refresh_fields()`), which runs after validation and formatting and before notifications and the entry. The `wpforms_field_value_*` registrations ClickTrail used until 1.11.0 were removed: WPForms Lite 2.0.3.1 (full trunk export) fires no such filter, so those hidden fields always posted empty (#151). Entry meta is still written from the cookie at `wpforms_process_complete` (Pro only); the Diagnostics scan applies the same detection rule. Unit coverage: `tests/unit/WPFormsFieldRefreshTest.php`.
+- for Ninja Forms, store attribution in the submission extra data (`extra.clicktrail_attribution`), show it in the submission detail UI, and use the submission hooks rather than automatic hidden-field injection; `ninja_forms_submit_data` already injects the cookie payload at submit time, so Ninja Forms needed no change for #142
 - gate form field injection and submission-time ClickTrail/provider metadata writes through the centralized consent policy; denied consent also removes a stale Ninja Forms `extra.clicktrail_attribution` value while preserving unrelated extras
 
 Where teams see value:
@@ -233,10 +243,14 @@ Cache-key normalization may decide that `/?gclid=A` and `/` share one cached obj
 Visitor A's query data part of the object later served to Visitor B. Form actions, hidden fields, and
 other server-rendered markup in cached HTML are response data, not attribution input for the next visitor.
 
-Keep cached HTML visitor-neutral. ClickTrail browser capture reads the actual visitor's
+Keep cached HTML visitor-neutral. ClickTrail's own form render obeys this since #152: CF7, Gravity Forms, Fluent Forms, Elementor and WPForms emit the `ct_*` fields empty unless the site opts in with `clicutcl_render_server_attribution_values`, so a page cache needs no form-page exclusion and no `Vary` on the `attribution` cookie; the optimizer exclusions below still apply. ClickTrail browser capture reads the actual visitor's
 `window.location.search` and first-party state after page load; it never imports campaign parameters from
 a form action. The executable smoke regression in `tools/qa/smoke.js` pins the case where Visitor B loads
 `/` while cached markup still contains `/?gclid=visitor-a`: Visitor B's ClickTrail payload remains clean.
+
+#### Optimizer exclusions
+
+`includes/integrations/class-optimizer-compat.php` (`Optimizer_Compat`, registered from core bootstrap next to `NitroPack_Compat`) adds `nowprocket data-no-optimize="1" data-no-defer="1" data-noptimize="1" data-cfasync="false"` to the `src` tag of `clicutcl-consent-bridge-js`, `clicutcl-attribution-js`, `clicutcl-consent-js` and `clicutcl-events-js` through `wp_script_attributes` (WordPress 6.5+ `wp_get_script_tag()`), with `script_loader_tag` as string fallback; each attribute is inserted at most once. Vendors: `nowprocket` (WP Rocket Delay JS), `data-no-optimize="1"` and `data-no-defer="1"` (LiteSpeed Cache), `data-noptimize="1"` (Autoptimize), `data-cfasync="false"` (Cloudflare Rocket Loader). Vendor filters registered unconditionally (inert when the vendor is absent): WP Rocket (`rocket_delay_js_exclusions`, `rocket_exclude_defer_js`, `rocket_exclude_js`), LiteSpeed Cache (`litespeed_optm_js_exc`, `litespeed_optm_js_defer_exc`, `litespeed_optm_gm_js_exc`), Autoptimize (`autoptimize_filter_js_exclude`), Perfmatters (`perfmatters_delay_js_exclusions`, `perfmatters_defer_js_exclusions`, `perfmatters_minify_js_exclusions`) and SiteGround Speed Optimizer (`sgo_js_minify_exclude`, `sgo_javascript_combine_exclude`, `sgo_js_async_exclude`). The inline `clicktrail-consent-mode` snippet carries `nowprocket data-no-defer="1"`. NitroPack keeps `data-nitropack-exclude="true"` and `nitropack_js_url_exclude` in `NitroPack_Compat`. To check: view the page source, confirm every `clicutcl-*.js` tag carries the attributes, and confirm `window.ClickTrail` is defined before submitting a form. Delay-JS features run scripts on the first interaction (WP Rocket lists `keydown`, `mousemove`, `touchstart`, `scroll`, `click`, `input`, `onsubmit`), so a keyboard-only submit still runs them, too late for the landing touch. FlyingPress exposes no attribute or filter: add `clicutcl` and `clicktrail-consent-mode` to its exclusion field. Source-present / runtime-unverified.
 
 ### Form-readiness evidence contract (M5 first slice)
 
@@ -292,10 +306,11 @@ What the current source paths implement:
 
 - save attribution on checkout
 - render attribution in WooCommerce admin
-- push purchase event to `dataLayer` only when current visitor consent permits processing
+- push purchase event to `dataLayer` only when current visitor consent permits processing, and at most once per order: the thank-you path claims `clicutcl_purchase_lock_<order_id>` with a request-unique token (`wp_cache_add()` with a persistent object cache, else an `add_option()` row `<token>|<time>`; a row older than 30 s is taken over only through a row-conditional delete of the exact stale value) before building or emitting anything, so concurrent thank-you loads emit one `dataLayer` push and one server dispatch; the release after `_clicutcl_tracking_sent` is saved is owner-checked, so a dispatch that outlives the 30 s TTL may overlap with a successor but cannot release the successor's lock (#148, source-present / runtime-unverified)
 - optionally emit storefront `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` browser events
 - preserve `item_list_name` and `item_list_index` when list context is available
-- optionally widen Woo `dataLayer` pushes with `event_id` and consent-aware `user_data` for GTM-first setups
+- push `event_id` (`purchase_<order_id>`, same as the server purchase event) on every thank-you `purchase` push regardless of `woo_enhanced_datalayer` (#139)
+- optionally widen Woo `dataLayer` pushes with consent-aware `user_data` for GTM-first setups
 - store purchase and milestone trace snapshots on the order for Diagnostics lookup
 - optionally dispatch purchase and order-status milestone events into the server-side delivery pipeline
 
@@ -324,6 +339,13 @@ At checkout, ClickTrail writes attribution order metadata only when
 1. Read the consent-gated `ct_attribution` or `attribution` cookie payload.
 2. If no cookie payload is available, accept only nonce-verified `ct_*` POST fields.
 3. With required consent denied or unresolved, or with an invalid or missing checkout nonce, write no attribution fields.
+
+The metadata is in the database before any gateway redirect:
+
+- Classic checkout: `woocommerce_checkout_create_order`; WooCommerce saves the order right after the hook and before payment processing.
+- Checkout Block / Store API: `woocommerce_store_api_checkout_order_processed`; WooCommerce has already saved the order at that point, so ClickTrail saves it again (`WC_Order` CRUD, HPOS-compatible) before the gateway runs.
+
+Orders that some express or smart-button flows create outside these two hooks get no ClickTrail metadata.
 
 The buyer's consent snapshot is stored separately in `_clicutcl_consent` even
 when attribution is denied. This snapshot records the checkout-time policy
@@ -367,7 +389,7 @@ do not replace browser/CMP and provider validation. Remaining boundaries include
 
 - purchase identity still reads live-cookie consent in server-context milestone paths
 - purchase-path skipped dispatch can set the sent marker after the browser consent gate passes
-- dedup check/send/mark is non-atomic
+- Dispatcher `Dedup_Store` check/send/mark is non-atomic; the thank-you purchase path is covered by the per-order lock above, server-context milestone paths are not
 - queue uniqueness omits destination; strict/geo retries require a durable subject-consent resolver
 - classic and HPOS core order paths, refund trace persistence, and HPOS admin hooks are runtime-tested only in isolated synthetic stacks
 
@@ -445,6 +467,37 @@ Starter-kit contract:
 - Google tags retain their native GTM consent behavior; the site's CMP or selected ClickTrail consent source must still publish the required Consent Mode state before publishing the container
 - These mappings prove container wiring only. They do not prove Meta/Google acceptance, provider credentials, consent-law compliance, or destination delivery
 
+## HubSpot Embedded Forms
+
+Status: **source-present / runtime-unverified**. It stays that way until a live submission on a real HubSpot form
+(updated editor and legacy) shows exactly one `lead` per submission (`specs/003-hubspot-form-capture/`, SC-004).
+
+What ClickTrail does (`assets/js/clicutcl-events.js`, flow details in
+[EVENT-PIPELINE.md](../architecture/EVENT-PIPELINE.md#2-browser-event-flow)):
+
+- listens on `window` for HubSpot's documented
+  [global form events](https://developers.hubspot.com/docs/api-reference/latest/marketing/forms/global-form-events)
+  `hs-form-event:on-submission:success` (one `lead`, `event_id` `hsform_<conversionId>` when
+  `HubSpotFormsV4.getFormFromEvent(event).getConversionId()` returns one) and `hs-form-event:on-submission:failed`
+  (`form_submit_failed`, never `lead`)
+- turns the documented [legacy](https://developers.hubspot.com/docs/cms/start-building/features/forms/legacy-forms)
+  `hsFormCallback` / `onFormSubmitted` message into the same `lead`; other legacy callback names are ignored
+- pushes through the existing consent gate, reads identifiers only (no field values), and never pushes
+  `qualified_lead` from the browser
+
+Boundaries:
+
+- the capture-phase `submit` listener cannot see a `<form>` inside HubSpot's cross-origin iframe, and the
+  hidden-field injector cannot reach its fields; the events above are the only capture path for those forms
+- legacy messages pass the external-message origin rule: same host, or `clicutcl_iframe_origin_allowlist`, whose
+  default now adds `hsforms.net` (the host of HubSpot's form embed scripts) next to `hubspot.com`. HubSpot does not
+  document the `event.origin` of iframe-rendered legacy embeds; that is unverified
+- writing ClickTrail attribution into HubSpot hidden fields (`setFieldValue`) is not implemented. It waits on live
+  proof that the value reaches the contact record, the meaning of the `0-1/` field prefix, and `getForms()`
+  readiness (Phase 0 in the spec's tasks)
+- this browser `lead` and a HubSpot webhook `lead` for the same submission are separate events; see
+  [HubSpot mapping](#hubspot-mapping) before enabling both
+
 ## External Form Source Webhooks
 
 Webhook ingress providers (runtime-unverified in this audit):
@@ -461,11 +514,19 @@ Security:
 
 - provider signature verification
 - provider enablement
-- replay-window checks
+- replay-window checks on signed provider timestamps (HubSpot v3, native Calendly, ClickTrail relay); HubSpot v1 and
+  Typeform carry no timestamp and rely on the signature replay cache and event-ID dedup. See `REST-API.md`
 
 ### HubSpot mapping
 
-- `contact.creation` and other non-property events record a `lead`.
+- Supported source: a HubSpot developer or private app with webhook subscriptions, signed with
+  `X-HubSpot-Signature-v3` (v1 accepted only when no v3 header is sent). The provider secret is the app's client
+  secret.
+- Allowlist (`clicutcl_hubspot_webhook_event_types`, default `contact.creation`, `contact.propertyChange`):
+  `contact.creation` records a `lead`; any type added through the filter also records a `lead`. Every other type
+  (`contact.deletion`, `contact.merge`, `contact.restore`, `contact.associationChange`, `contact.privacyDeletion`,
+  unknown types, payloads without a subscription type) is acknowledged (2xx, `ignored`) without recording an event,
+  so HubSpot does not retry it. Before #128 every one of these was recorded as a `lead`.
 - `contact.propertyChange` records a `qualified_lead` only when the changed property is `lifecyclestage` and the new
   value is `marketingqualifiedlead` or `salesqualifiedlead`. The event ID includes the stage and HubSpot's `eventId`:
   an MQL and a later SQL, or a later re-entry into a stage, are separate events, while a retry of the same delivery
@@ -476,6 +537,14 @@ Security:
   `lead`; sites subscribed to property changes now record fewer, qualified events.
 - Batched HubSpot payloads are evaluated item by item. Non-qualified events keep their earlier event IDs, so
   deduplication of retries is unaffected.
+- Workflow "Send a webhook" actions are not supported. They sign with v2 (`secret + method + URI + body`), which
+  ClickTrail does not verify, so they fail with `401`; their body is the contact record without `subscriptionType`.
+  Use an app webhook subscription instead.
+- A HubSpot `lead` captured in the browser (form submission on the site) and a webhook `lead` for the same contact
+  never deduplicate against each other: `Dedup_Store` is keyed per route (`ingest` for browser intake,
+  `webhook_hubspot` for the webhook) and per destination, and the two paths produce different event IDs. Pick one
+  source of truth per event, for example the browser form for `lead` and the webhook for `qualified_lead` (remove
+  `contact.creation` from the allowlist), or the webhook for both.
 
 ### Calendly booking handoff
 
@@ -606,7 +675,7 @@ too late.
 
 ### Payment provider limitations
 
-Cross-domain decoration cannot reach external hosted-payment pages. These providers process payments on their own domain and strip any injected query parameters before the user reaches them:
+Cross-domain decoration cannot reach external hosted-payment pages. These providers process payments on their own domain, and ClickTrail cannot add parameters to their pages:
 
 | Provider | Domain |
 |----------|--------|
@@ -614,10 +683,20 @@ Cross-domain decoration cannot reach external hosted-payment pages. These provid
 | PayPal | `paypal.com` |
 | Mollie | `checkout.mollie.com` |
 | Square | `squareup.com` |
+| Klarna | `klarna.com` |
 
-Attribution survives these redirects only via the attribution cookie written before checkout. On return to your confirmation page, ClickTrail reads the cookie and tags the order as normal.
+Two things keep the pre-checkout attribution through the payment hop:
 
-If the user had no prior cookie when entering the payment flow, the order will be unattributed. This is a documented limitation of cookie-based cross-domain attribution — not a bug.
+1. **Order metadata at order creation.** WooCommerce orders get their `_clicutcl_*` attribution when the order is created, before the gateway redirect (see [WooCommerce attribution handoff](#woocommerce-attribution-handoff)). The thank-you page reads that metadata. It does not tag the order from the cookie or from the return referrer.
+2. **Ignored payment referrers.** On the return page the browser referrer is the payment host. A referrer on a host listed by `clicutcl_ignored_referrer_hosts`, or on a subdomain of one, counts like a same-site referrer: it creates no first touch and leaves the last touch unchanged (`lt_source`, `lt_medium`, `lt_referrer`, `lt_channel`, `lt_landing_page`, `lt_touch_timestamp`, click IDs). UTMs and click IDs on the return URL still count. Referrers on other external hosts still update the last touch.
+
+Default ignored hosts: `paypal.com`, `stripe.com`, `mollie.com`, `squareup.com`, `square.link`, `klarna.com`, `adyen.com`, `checkout.com`, `mercadopago.com`, `mercadopago.com.br`, `pagseguro.uol.com.br`. Card-issuer 3-D Secure / ACS pages run on bank-specific hosts that are **not** in the default list and that no default list can cover. When your referral reports show one, add it in two places: through the filter ([`clicutcl_ignored_referrer_hosts`](HOOKS-REFERENCE.md#clicutcl_ignored_referrer_hosts)) so ClickTrail keeps the stored touch, and in GA4 unwanted referrals (below) so GA4 keeps the session source.
+
+**Evidence:** `tools/qa/payment-referrer.test.js` (`npm run test:attribution`) runs the attribution script in a Node VM with `requireConsent: false`, so the ignored-referrer behaviour is exercised only on the consent-not-required path. The consent-gated path (required, unresolved or granted consent) is not exercised by that test. Source-present / runtime-unverified in a live store and a live payment gateway.
+
+A buyer who reached checkout with no prior attribution (no UTMs, click ID, or external referrer earlier in the visit) still produces an unattributed order.
+
+GA4 is separate. GA4 reads the referrer itself, so the return page starts a GA4 session sourced to the payment host and the `purchase` event lands in that session. Add the same domains in GA4 under **Admin → Data streams → (web stream) → Configure tag settings → Show all → List unwanted referrals** ([Google help](https://support.google.com/analytics/answer/10327750)). ClickTrail's `purchase` `dataLayer` push carries the stored `ft_*` / `lt_*` fields and click IDs, and a GTM tag can send them as event parameters, but event parameters do not change GA4's session source.
 
 See also: [Cross-Domain Limitations](../guides/IMPLEMENTATION-PLAYBOOK.md#cross-domain-limitations) in the Implementation Playbook.
 

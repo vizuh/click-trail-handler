@@ -35,6 +35,7 @@ Operational and readiness keys:
 - `clicutcl_touch_events_table_ready`
 - `clicutcl_touch_events_table_checked_at`
 - `clicutcl_db_version` (schema version; `Installer::maybe_upgrade()` re-runs `dbDelta` on existing installs until it matches `Installer::DB_VERSION`)
+- `clicutcl_purchase_lock_<order_id>` (short-lived, `autoload = no`, value `<uuid4>|<unix time>`; written by `WooCommerce::push_purchase_event()` only when no persistent object cache is present, deleted by a row-conditional `$wpdb->delete()` on its exact value after `_clicutcl_tracking_sent` is saved, taken over the same way after 30 s if a request died holding it; with a persistent object cache the same key holds the uuid in cache group `clicutcl` with a 30 s TTL instead)
 
 ## Option Responsibilities
 
@@ -122,6 +123,7 @@ Browser storage behavior:
 - when consent resolves to denied, both the attribution cookie and the localStorage mirror are cleared
 - attribution metadata fields use the same `ft_` / `lt_` key convention as the rest of the schema, and legacy `first_*` / `last_*` aliases are normalized back to the canonical keys on read
 - campaign attribution now includes the extended GA-style query fields `utm_id`, `utm_source_platform`, `utm_creative_format`, and `utm_marketing_tactic` under `ft_*` / `lt_*` keys
+- a referrer on the current site (or a related subdomain) or on a host listed by `clicutcl_ignored_referrer_hosts` (payment and hosted-checkout hosts such as `paypal.com` and `stripe.com`, subdomains included) is not a touch: it creates no `ft_*` and leaves every `lt_*` field, including `lt_landing_page` and `lt_touch_timestamp`, unchanged. UTMs and click IDs on the URL still form a touch. The list reaches the script as `clicutcl_config.ignoredReferrerHosts`
 - top-level click IDs (`gclid`, `fbclid`, ...) mirror the last touch: `lt_<id>` overwrites the top-level copy on read, on save, and in the PHP normalizers; `ft_<id>` fills it only when no last-touch or top-level value exists. Link decoration, the Calendly stamp, the cross-domain token, `ct_page_view`, injected hidden fields (`gclid` / `ct_gclid`), form entry meta (`ct_gclid`), and WooCommerce order meta (`_clicutcl_<id>`) read this mirror. Cookies written before 1.10.5 can still hold the first visit's value at the top level; every reader normalizes on read, so they resolve to the last touch
 - click-ID selection (D3, same contract as `clicktrail-js`): each touch that carries ad click IDs (`gclid`, `wbraid`, `gbraid`, `fbclid`, `ttclid`, `msclkid`, `twclid`, `li_fat_id`, `sccid`, `epik`) appends `{k, v, t}` entries to `click_id_history` (50 newest kept) and sets `attribution_selected_click_id` to the newest one, with `attribution_selected_click_id_reason` (`newest_valid` or `newest_valid_superseded_previous`). A touch without a click ID never clears the selection. `click_id_history` lives only inside the browser's localStorage/sessionStorage attribution envelope (it would overflow the 4 KB cookie), expires with that envelope (`cookie_days`), is cleared on consent withdrawal, and is never returned by `ClickTrail.getData()`, pushed to the `dataLayer` or posted with forms; the selected ID and reason ride the cookie, so forms, WooCommerce order meta (`_clicutcl_attribution_selected_click_id`) and the Calendly stamp can use them (with a selection the stamp carries only the selected click, never an older one from another platform; the fixed Google-first order applies only to payloads saved before 1.10.5). Extra captured IDs (`rdt_cid`, `pin_cid`, `snap_cid`, `mc_cid`, `mc_eid`, `dclid`) are stored but never selected
 - browser-level identifiers such as `fbc`, `fbp`, `ttp`, `li_gc`, `ga_client_id`, and `ga_session_id` are stored at the top level of the attribution payload when available and permitted by consent
@@ -138,6 +140,7 @@ Purpose:
 
 - store event log rows for the admin Logs screen
 - store form submission event payloads including resolved attribution and, when available, consent-aware identity fields
+- a `form_submission` row's `event_data` carries `event_id`, `lead_id` (`lead_` + the event ID without `evt_`; it matches the server-side event and is not the ID of the browser `lead` push), `platform`, `form_id`, `entry_id` (only when the provider has one), `attribution` and the IP-anonymized `identity`; there is one row per `(provider, form_id, entry_id)` (#140, #143)
 
 Columns:
 
@@ -145,6 +148,21 @@ Columns:
 - `event_type`
 - `event_data`
 - `created_at`
+
+## Form Entry Meta
+
+Written by the form adapters at submission time, after `log_submission()`, when consent allows. The first call of an entry writes attribution and IDs; a repeat writes only an ID the entry lacks (repairing a request that died between the dedupe mark and the meta write). `ct_event_id` / `ct_lead_id` are the values `log_submission()` returned, so a CRM sync that copies entry fields can carry an ID that matches the server-side event and the `clicutcl_events` row (#143). They do not match the browser `lead` push, whose ID is generated in the browser.
+
+| Provider | Store | Keys written | Source of IDs |
+| --- | --- | --- | --- |
+| Gravity Forms | entry meta (`gform_add_meta`), declared via `gform_entry_meta` and restored after an entry edit | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
+| WPForms | `wpforms()->entry_meta` (only when the entry ID is a real, positive ID) | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
+| Fluent Forms | `fluentform_submission_meta` (`response_id` = entry ID) | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
+| Ninja Forms | none | none | `clicutcl_events` row and action `clicutcl_form_submission_logged` |
+| Elementor Forms (Pro) | none | none | `clicutcl_events` row and action `clicutcl_form_submission_logged` |
+| Contact Form 7 | none | none | `clicutcl_events` row and action `clicutcl_form_submission_logged` |
+
+No ID is written when `log_submission()` returned early (consent denied or empty attribution), and a deduplicated repeat never rewrites an ID the entry already has.
 
 ## `wp_clicutcl_queue`
 
@@ -264,7 +282,7 @@ Notes:
 
 - `ct_session` stores the structured session object used by the current session manager and server-side readers
 - `ct_session_id` and `ct_visitor_id` remain lightweight browser identity fallbacks used by event helpers and compatibility paths
-- these identifiers are created only after marketing consent and are removed again on denial or withdrawal
+- these identifiers are minted only on consent-gated code paths and are removed again on denial or withdrawal. Attribution runtime (`Identity.sessionId()` / `Identity.visitorId()` in `clicutcl-attribution.js`): created on the first `Identity.get()` call, which only the capture run, the form injector and the API re-announce reach after the `liveConsentAllows()` gate. That gate is true when consent is resolved with marketing granted, or when consent is unresolved and the `requireConsent` setting is off — so with consent not required, the IDs are written without any explicit grant. Events runtime (`ensureIdentity()` in `clicutcl-events.js`): created on the first `pushEvent()`, which requires `ClickTrailConsent.isGranted()` (resolved with marketing granted) regardless of `requireConsent`. Both runtimes write `sessionStorage['ct_session_id']` + cookie (1 day) and `localStorage['ct_visitor_id']` + cookie (365 days), reuse an existing value, and fall back to the cookie when storage throws. Denial or withdrawal removes the storage keys and cookies (`Identity.clear()` in the attribution runtime, `clearIdentity()` in the events runtime on a `ct:consentResolved` without marketing). Source-present / runtime-unverified.
 - the richer session object is not stored in `sessionStorage['ct_session_id']`
 - pending attribution is not written to `sessionStorage` while consent is required and unresolved
 - the complete key inventory, with recommended CMP categories, lives in [`docs/guides/SECURITY-PRIVACY.md`](../guides/SECURITY-PRIVACY.md#browser-storage-inventory-and-cmp-classification); `tools/qa/cmp-transition.test.js` keeps it in sync

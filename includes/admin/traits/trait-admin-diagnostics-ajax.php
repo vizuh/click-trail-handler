@@ -985,6 +985,8 @@ trait Admin_Diagnostics_Ajax_Trait {
 			$wpforms_obj = wpforms();
 			if ( $wpforms_obj && isset( $wpforms_obj->form ) && method_exists( $wpforms_obj->form, 'get' ) ) {
 				$wpf_forms = $wpforms_obj->form->get( '', array( 'status' => 'publish' ) );
+				// Same rule as WPForms_Adapter::field_name(): a `ct_<key>` CSS class token, or a label that is exactly `ct_<key>` for a mapped key.
+				$ct_labels = array_flip( array_map( static fn( $key ) => 'ct_' . $key, \CLICUTCL\Core\Attribution_Provider::get_field_mapping() ) );
 				if ( is_array( $wpf_forms ) ) {
 					foreach ( $wpf_forms as $form ) {
 						$form_id    = isset( $form->ID ) ? (int) $form->ID : 0;
@@ -995,9 +997,9 @@ trait Admin_Diagnostics_Ajax_Trait {
 
 						$has_ct = false;
 						foreach ( $fields as $field ) {
-							$label = isset( $field['label'] ) ? strtolower( (string) $field['label'] ) : '';
-							$name  = isset( $field['name'] ) ? strtolower( (string) $field['name'] ) : '';
-							if ( str_starts_with( $label, 'ct_' ) || str_starts_with( $name, 'ct_' ) ) {
+							$label = isset( $field['label'] ) ? trim( (string) $field['label'] ) : '';
+							$css   = isset( $field['css'] ) ? (string) $field['css'] : '';
+							if ( isset( $ct_labels[ $label ] ) || preg_match( '/(^|\s)ct_/', $css ) ) {
 								$has_ct = true;
 								break;
 							}
@@ -1014,7 +1016,7 @@ trait Admin_Diagnostics_Ajax_Trait {
 								),
 								'detail'   => sprintf(
 									/* translators: %s: edit form URL. */
-									__( 'Add hidden fields named ct_utm_source, ct_utm_medium, etc. to capture attribution in this entry. <a href="%s">Edit form &rarr;</a>', 'click-trail-handler' ),
+									__( 'Add fields with the CSS class ct_utm_source, ct_utm_medium, etc. to capture attribution in this entry. Use a Hidden field (WPForms Pro) or, on WPForms Lite, a Single Line Text field hidden with CSS. <a href="%s">Edit form &rarr;</a>', 'click-trail-handler' ),
 									esc_url( $edit_url )
 								),
 							);

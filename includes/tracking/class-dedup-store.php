@@ -31,10 +31,11 @@ class Dedup_Store {
 	 * @param string $destination Destination key.
 	 * @param string $event_name  Event name.
 	 * @param string $event_id    Event ID.
-	 * @param int    $ttl_seconds Optional TTL.
+	 * @param int    $ttl_seconds  Optional TTL.
+	 * @param bool   $record_stats Whether the check counts toward the hit/miss stats.
 	 * @return bool True when duplicate found.
 	 */
-	public static function check_and_mark( string $destination, string $event_name, string $event_id, int $ttl_seconds = 0 ): bool {
+	public static function check_and_mark( string $destination, string $event_name, string $event_id, int $ttl_seconds = 0, bool $record_stats = true ): bool {
 		$destination = sanitize_key( $destination );
 		$event_name  = sanitize_key( $event_name );
 		$event_id    = sanitize_text_field( $event_id );
@@ -43,7 +44,7 @@ class Dedup_Store {
 			return false;
 		}
 
-		if ( self::is_duplicate( $destination, $event_name, $event_id ) ) {
+		if ( self::is_duplicate( $destination, $event_name, $event_id, $record_stats ) ) {
 			return true;
 		}
 
@@ -57,10 +58,11 @@ class Dedup_Store {
 	 *
 	 * @param string $destination Destination key.
 	 * @param string $event_name  Event name.
-	 * @param string $event_id    Event ID.
+	 * @param string $event_id     Event ID.
+	 * @param bool   $record_stats Whether the check counts toward the hit/miss stats.
 	 * @return bool
 	 */
-	public static function is_duplicate( string $destination, string $event_name, string $event_id ): bool {
+	public static function is_duplicate( string $destination, string $event_name, string $event_id, bool $record_stats = true ): bool {
 		$destination = sanitize_key( $destination );
 		$event_name  = sanitize_key( $event_name );
 		$event_id    = sanitize_text_field( $event_id );
@@ -71,7 +73,9 @@ class Dedup_Store {
 
 		$key = self::build_key( $destination, $event_name, $event_id );
 		$hit = (bool) get_transient( $key );
-		self::record_stats( $hit, $destination );
+		if ( $record_stats ) {
+			self::record_stats( $hit, $destination );
+		}
 		return $hit;
 	}
 

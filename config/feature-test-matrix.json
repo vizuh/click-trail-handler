@@ -1154,24 +1154,31 @@
         }
       ]
     },
-    "gf-script-minification-protection": {
-      "label": "ClickTrail script tags carry minification-exclusion attributes",
-      "expected_behavior": "The clicutcl-attribution-js, clicutcl-consent-bridge-js, and clicutcl-consent-js script tags are emitted with data-no-optimize, data-cfasync, data-wprocket-exclude, and data-litespeed-no-optimize attributes.",
+    "optimizer-exclusion-attributes": {
+      "label": "ClickTrail script tags carry optimizer-exclusion attributes on every site",
+      "expected_behavior": "The clicutcl-consent-bridge-js, clicutcl-attribution-js, clicutcl-consent-js, and clicutcl-events-js script tags are emitted with nowprocket, data-no-optimize, data-no-defer, data-noptimize, and data-cfasync attributes exactly once, regardless of which form plugin is active.",
       "prerequisites": [
-        "Gravity Forms is active.",
         "ClickTrail attribution is enabled."
       ],
       "automated": true,
       "manual_verification": [
-        "View the rendered page HTML source. Confirm each ClickTrail script tag includes data-no-optimize=\"1\" and data-cfasync=\"false\"."
+        "View the rendered page HTML source. Confirm each ClickTrail script tag includes nowprocket, data-no-optimize=\"1\", data-no-defer=\"1\", data-noptimize=\"1\" and data-cfasync=\"false\" once, and that window.ClickTrail is defined in the console."
       ],
       "evidence": [
         {
-          "file": "includes/integrations/forms/class-gf-minification-protector.php",
+          "file": "includes/integrations/class-optimizer-compat.php",
           "patterns": [
-            "add_attrs",
+            "add_attributes",
+            "mark_tag",
+            "nowprocket",
             "data-no-optimize",
             "data-cfasync"
+          ]
+        },
+        {
+          "file": "tests/unit/OptimizerExclusionsTest.php",
+          "patterns": [
+            "test_every_handle_carries_each_attribute_once_without_gravity_forms"
           ]
         }
       ]

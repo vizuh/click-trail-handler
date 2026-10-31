@@ -57,6 +57,7 @@ Browser events currently include:
 - WooCommerce storefront signals including `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` when the storefront-events flag is enabled
 - thank-you page lead detection
 - external message bridge events for supported embedded providers
+- HubSpot embedded form outcomes (`lead`, `form_submit_failed`), see below
 
 Flow:
 
@@ -72,6 +73,23 @@ Woo list-view specifics:
 - downstream add-to-cart events can inherit `item_list_name` and `item_list_index` when the click came from a tracked list
 - when the richer Woo `dataLayer` contract is enabled, Woo browser events can also carry consent-aware `user_data` identifiers for GTM-first setups
 - `view_cart` can come from the cart page itself, visible mini-cart surfaces, or supported drawer flows when the browser runtime can resolve the current cart payload from Woo blocks, fragments, or DOM cart rows
+
+Form-success `lead` dedupe (source-present / runtime-unverified, #140):
+
+- `markOnce(key, windowMs)` records a key and reports whether it is new; a repeat inside the window does not refresh it. `pushLeadOnce()` checks consent first (a denied attempt leaves no marker), then `markOnce()`, then `pushEvent('lead', ...)`; a dropped repeat is silent and never pushes `form_submit_failed`
+- Contact Form 7 `wpcf7mailsent`: key `lead|cf7|<contactFormId>|<unitTag>`, 10 s window, so a double-fired hook or retried AJAX send is one `lead` while a different form or a different instance of the same form (different `unitTag`) still pushes
+- generic external lead messages (`typeform-submit`, `clicutcl.lead`, ...): a message carrying an ID dedupes on that ID for the page's lifetime; one without an ID dedupes per provider inside the 10 s window
+- HubSpot uses the same helper (see below); the thank-you page lead keeps its per-path `sessionStorage` marker
+
+HubSpot embedded forms (source-present / runtime-unverified):
+
+- listeners for HubSpot's documented `hs-form-event:on-submission:success` and `hs-form-event:on-submission:failed` window events are registered when the script loads, before consent resolves; they do nothing until the tracker exists, and every push still goes through the `pushEvent()` consent gate
+- success pushes one `lead` with `form_provider: hubspot`, `form_id` from `event.detail.formId`, and `lead_context.provider: hubspot`; `event_id` is `hsform_<conversionId>` when `HubSpotFormsV4.getFormFromEvent(event).getConversionId()` returns one, otherwise `hsform_<formId>|<instanceId>|<page nonce>` (the nonce keeps the server dedup key unique across visitors, because instance IDs may repeat)
+- failure pushes `form_submit_failed` (`submit_status: failed`), never `lead`
+- a legacy `message` with `type: hsFormCallback` and `eventName: onFormSubmitted` pushes the same `lead` with `form_id` from the message `id`; it passes the same origin rule as the other external messages (same host or `clicutcl_iframe_origin_allowlist`), and other `hsFormCallback` event names are ignored
+- a v4 event and a legacy message for the same form within 10 seconds, or a repeated dispatch of the same submission, produce one `lead`
+- the browser never pushes `qualified_lead`; that stage stays on the HubSpot webhook and lifecycle routes
+- writing attribution into HubSpot hidden fields is not implemented (blocked on live proof, `specs/003-hubspot-form-capture/tasks.md`)
 
 ## 3. Canonical Intake and Normalization
 
@@ -103,9 +121,17 @@ Integrations:
 Flow:
 
 1. ClickTrail injects or populates attribution where the form integration supports it
-2. submitted attribution is logged to ClickTrail's form event table
+2. submitted attribution is logged to ClickTrail's form event table, once per entry: `Abstract_Form_Adapter::log_submission()` marks a key in `Dedup_Store` (destination `form_submission`, event name = provider) before writing, and a repeat writes no second `form_submission` row and dispatches no second event, returning the first call's `event_id` (#140)
 3. consent-aware identity is resolved from submitted form fields plus request context
 4. the enriched server-side form event is dispatched through the shared delivery pipeline
+
+Form dedupe key (`log_submission()`):
+
+- providers with an entry ID (Gravity Forms, WPForms, Fluent Forms, Ninja Forms when its Save action stored a submission ID): `(site, provider, form_id, entry_id)`, held for a day
+- providers without one (Contact Form 7, Elementor Forms Pro): **best-effort** `(site, provider, form_id, HMAC of the submitted ct_* attribution values plus the email/phone found in the posted data, 10 s time bucket)`; the HMAC means no plain hash of an email or phone reaches the transient key or the event ID. A repeat that crosses a bucket boundary, or whose posted `ct_*` values differ, counts as a new submission; two visitors posting identical values inside one bucket count as one
+- the `event_id` is `form_` plus the first 32 hex characters of the key's `hash_hmac( 'sha256', ..., wp_salt( 'auth' ) )`, so it is the same on every call for an entry (and changes if the site's auth salt changes); `lead_id` is `lead_` plus it, matches the `clicutcl_events` row and the server-side event, and is not the ID of the browser `lead` push
+- the `Dedup_Store` read-then-write is not atomic: sequential repeats (double click, retried AJAX, a hook firing twice) are caught, two truly simultaneous requests can both pass
+- consent is checked before the dedupe mark; a gated call marks nothing
 
 ## 5. External Webhook Intake
 
@@ -118,9 +144,11 @@ Providers:
 Flow:
 
 1. provider webhook hits `/clicutcl/v2/webhooks/{provider}`
-2. provider signature is validated
-3. replay-window checks run
-4. provider payload is mapped into canonical lead or booking events
+2. provider signature is validated; for HubSpot v3, native Calendly and the ClickTrail relay the signed provider
+   timestamp must fall inside the replay window (HubSpot v1 and Typeform carry no timestamp)
+3. the signature replay cache rejects a repeat within the replay window
+4. valid non-conversion events (Calendly cancellations, HubSpot types off the allowlist, unqualified HubSpot
+   property changes) are acknowledged as `ignored`; the rest are mapped into canonical lead or booking events
 5. event enters the same dispatcher path as browser-originated events
 
 ## 6. Lifecycle Update Intake
@@ -149,8 +177,8 @@ Integration:
 Flow:
 
 1. attribution is saved on checkout
-2. thank-you page pushes purchase event into `dataLayer`
-3. the optional richer Woo `dataLayer` contract can add `event_id` and consent-aware `user_data`
+2. thank-you page pushes purchase event into `dataLayer`, always carrying `event_id` equal to the server purchase event ID (`purchase_<order_id>`) so browser and server copies dedupe (#139)
+3. the optional richer Woo `dataLayer` contract can add consent-aware `user_data`
 4. purchase identity is resolved from WooCommerce order data plus request context
 5. purchase payload is sent into dispatcher as a server-side event
 6. purchase trace snapshots are stored on the order for Diagnostics lookup

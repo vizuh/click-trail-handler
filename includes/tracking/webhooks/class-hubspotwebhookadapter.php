@@ -28,24 +28,54 @@ class HubSpotWebhookAdapter implements WebhookProviderAdapterInterface {
 	}
 
 	/**
-	 * Check support.
+	 * Check support: the subscription type is on the allowlist.
 	 *
 	 * @param array $payload Payload.
 	 * @return bool
 	 */
 	public function supports( array $payload ): bool {
-		return ! empty( $payload['eventType'] ) || ! empty( $payload['subscriptionType'] );
+		return in_array( str_replace( '_', '.', self::event_type( $payload ) ), self::allowed_event_types(), true );
 	}
 
 	/**
-	 * A contact property change that does not meet the qualified-lead rule is not a
-	 * conversion; it is acknowledged without recording an event.
+	 * Subscription types off the allowlist (deletion, merge, restore, associationChange,
+	 * privacyDeletion, unknown) and contact property changes that do not meet the
+	 * qualified-lead rule are not conversions; they are acknowledged without recording an
+	 * event, so HubSpot does not retry them.
 	 *
 	 * @param array $payload Payload.
 	 * @return bool
 	 */
 	public function is_ignored_event( array $payload ): bool {
-		return self::is_property_change( $payload ) && ! self::is_qualifying_change( $payload );
+		return ! $this->supports( $payload )
+			|| ( self::is_property_change( $payload ) && ! self::is_qualifying_change( $payload ) );
+	}
+
+	/**
+	 * Normalized allowlist of recorded subscription types.
+	 *
+	 * @return string[]
+	 */
+	private static function allowed_event_types(): array {
+		/**
+		 * Filter the HubSpot subscription types ClickTrail records. contact.propertyChange stays
+		 * gated by clicutcl_hubspot_qualified_lead_rule and maps to qualified_lead; every other
+		 * listed type maps to lead. Unlisted types are acknowledged with 2xx and ignored.
+		 *
+		 * @param string[] $types Subscription types, e.g. "contact.creation".
+		 */
+		$types = apply_filters( 'clicutcl_hubspot_webhook_event_types', array( 'contact.creation', 'contact.propertyChange' ) );
+		$types = is_array( $types ) ? $types : array();
+
+		return array_values(
+			array_filter(
+				array_map(
+					static fn( $type ) => is_scalar( $type ) ? str_replace( '_', '.', strtolower( (string) preg_replace( '/[^A-Za-z0-9._-]/', '', (string) $type ) ) ) : '',
+					$types
+				),
+				'strlen'
+			)
+		);
 	}
 
 	/**

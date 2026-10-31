@@ -13,6 +13,7 @@ namespace CLICUTCL\Integrations\Forms {
 	}
 
 	function add_filter( $tag, $callback, $priority = 10, $accepted_args = 1 ) {
+		$GLOBALS['ct_cf7_hooks'][ $tag ][] = array( $callback, $accepted_args );
 		return true;
 	}
 }
@@ -63,6 +64,8 @@ namespace {
 		 */
 		public function test_only_completed_success_reaches_conversion_logger( string $status, bool $reaches_mail ): void {
 			$submission = new WPCF7_Submission();
+			// Landing-page render: the field exists but the cookie did not yet.
+			$submission->posted = array( 'ct_ft_source' => '' );
 			WPCF7_Submission::$instance = $submission;
 			$GLOBALS['ct_cf7_hooks']    = array();
 			$form = new class() {
@@ -75,13 +78,15 @@ namespace {
 			$adapter->method( 'get_attribution_payload' )->willReturn( array( 'ft_source' => 'google' ) );
 			$adapter->expects( 'mail_sent' === $status ? $this->once() : $this->never() )
 				->method( 'log_submission' )
-				->with( 'contact-form-7', 17, array( 'ft_source' => 'google' ), array() )
+				->with( 'contact-form-7', 17, array( 'ft_source' => 'google' ), array( 'ct_ft_source' => 'google' ) )
 				->willReturnCallback(
 					function () use ( $submission ) {
 						$this->assertSame( 'mail_sent', $submission->get_status(), 'Conversion logged before final success.' );
 					}
 				);
 			$adapter->register_hooks();
+			// CF7 filters wpcf7_posted_data while building the submission, before any outcome hook.
+			$submission->posted = $this->filter( 'wpcf7_posted_data', $submission->posted );
 			if ( $reaches_mail ) {
 				// Another pre-send callback may abort after ClickTrail's callback.
 				$this->fire( 'wpcf7_before_send_mail', array( $form, false, $submission ) );
@@ -96,6 +101,7 @@ namespace {
 			$submission->posted         = array(
 				'ct_lt_campaign'                   => 'google_first_visit',
 				'ct_gclid'                         => 'GA',
+				'ct_fbclid'                        => '',
 				'ct_attribution_selected_click_id' => 'GA',
 			);
 			WPCF7_Submission::$instance = $submission;
@@ -119,12 +125,13 @@ namespace {
 				17,
 				array(
 					'lt_campaign'                   => 'meta_this_visit',
-					'gclid'                         => 'GA',
 					'attribution_selected_click_id' => 'FB',
 					'fbclid'                        => 'FB',
-				)
+				),
+				$this->anything()
 			);
 			$adapter->register_hooks();
+			$submission->posted = $this->filter( 'wpcf7_posted_data', $submission->posted );
 			$this->fire( 'wpcf7_before_send_mail', array( $form, false, $submission ) );
 			$this->fire( 'wpcf7_mail_sent', array( $form ) );
 		}
@@ -133,6 +140,13 @@ namespace {
 			foreach ( $GLOBALS['ct_cf7_hooks'][ $hook ] ?? array() as $registration ) {
 				call_user_func_array( $registration[0], array_slice( $args, 0, $registration[1] ) );
 			}
+		}
+
+		private function filter( string $hook, $value ) {
+			foreach ( $GLOBALS['ct_cf7_hooks'][ $hook ] ?? array() as $registration ) {
+				$value = call_user_func( $registration[0], $value );
+			}
+			return $value;
 		}
 	}
 }

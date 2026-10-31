@@ -19,6 +19,7 @@ use CLICUTCL\Admin\Admin;
 use CLICUTCL\Api\Tracking_Controller;
 use CLICUTCL\Integrations\WooCommerce;
 use CLICUTCL\Integrations\NitroPack_Compat;
+use CLICUTCL\Integrations\Optimizer_Compat;
 use CLICUTCL\Modules\GTM\GTM_Settings;
 use CLICUTCL\Privacy\Privacy_Handler;
 use CLICUTCL\Settings\Attribution_Settings;
@@ -176,6 +177,7 @@ class Plugin {
 
 		Queue::register();
 		NitroPack_Compat::register();
+		Optimizer_Compat::register();
 
 		add_action(
 			'rest_api_init',
@@ -325,6 +327,7 @@ class Plugin {
 								'calendly.com',
 								'typeform.com',
 								'hubspot.com',
+								'hsforms.net',
 							)
 						)
 					),
@@ -422,6 +425,7 @@ class Plugin {
 			'tokenSignUrl'              => esc_url_raw( rest_url( 'clicutcl/v2/attribution-token/sign' ) ),
 			'tokenVerifyUrl'            => esc_url_raw( rest_url( 'clicutcl/v2/attribution-token/verify' ) ),
 			'linkAppendBlob'            => false,
+			'ignoredReferrerHosts'      => Core\Attribution_Provider::get_ignored_referrer_hosts(),
 		);
 	}
 

@@ -15,9 +15,12 @@ require_once dirname( __DIR__, 2 ) . '/includes/Consent/class-decision-v1.php';
 require_once dirname( __DIR__, 2 ) . '/includes/Consent/class-resolver-v1.php';
 require_once dirname( __DIR__, 2 ) . '/includes/Consent/class-snapshot-v1.php';
 require_once dirname( __DIR__, 2 ) . '/includes/server-side/class-consent.php';
+require_once dirname( __DIR__, 2 ) . '/includes/Core/Storage/class-setting.php';
+require_once dirname( __DIR__, 2 ) . '/includes/Modules/GTM/class-gtm-settings.php';
 
 use CLICUTCL\Core\Storage\Option_Cache;
 use CLICUTCL\Integrations\WooCommerce;
+use CLICUTCL\Modules\GTM\GTM_Settings;
 use CLICUTCL\Settings\Attribution_Settings;
 use PHPUnit\Framework\TestCase;
 
@@ -100,5 +103,51 @@ final class WooCommerceDataLayerContractTest extends TestCase {
 		$this->assertSame( 'TEST_PERSIST_456', $result['gclid'] );
 		$this->assertSame( 'TEST_GCLID_123', $result['ft_gclid'] );
 		$this->assertSame( 'TEST_PERSIST_456', $result['lt_gclid'] );
+	}
+
+	/** @dataProvider enhancedDataLayerProvider */
+	public function test_purchase_data_layer_event_id_matches_server_event_id( int $enhanced ): void {
+		$gtm = ( new GTM_Settings() )->get();
+		Option_Cache::set( GTM_Settings::OPTION, array_merge( GTM_Settings::defaults(), array( 'woo_enhanced_datalayer' => $enhanced ) ) );
+		try {
+			$woo     = new WooCommerce();
+			$order   = $this->stub_order( 4321 );
+			$payload = ( new ReflectionMethod( WooCommerce::class, 'build_purchase_payload' ) )->invoke( $woo, $order, array(), array() );
+			$push    = ( new ReflectionMethod( WooCommerce::class, 'build_purchase_datalayer_payload' ) )->invoke( $woo, $payload, array() );
+
+			$this->assertSame( 'purchase_4321', $payload['event_id'] );
+			$this->assertSame( $payload['event_id'], $push['event_id'] );
+			$this->assertSame( 'purchase', $push['event'] );
+			$this->assertSame( 'WC-4321', $push['ecommerce']['transaction_id'] );
+		} finally {
+			Option_Cache::set( GTM_Settings::OPTION, $gtm );
+		}
+	}
+
+	public static function enhancedDataLayerProvider(): array {
+		return array(
+			'enhanced-off' => array( 0 ),
+			'enhanced-on'  => array( 1 ),
+		);
+	}
+
+	/**
+	 * Minimal WC_Order stand-in covering the accessors the purchase builders call.
+	 *
+	 * @param int $id Order ID.
+	 * @return object
+	 */
+	private function stub_order( int $id ): object {
+		return new class( $id ) {
+			public function __construct( private int $id ) {}
+			public function get_id(): int { return $this->id; }
+			public function get_order_number(): string { return 'WC-' . $this->id; }
+			public function get_total(): float { return 99.5; }
+			public function get_currency(): string { return 'EUR'; }
+			public function get_coupon_codes(): array { return array(); }
+			public function get_status(): string { return 'processing'; }
+			public function get_items(): array { return array(); }
+			public function get_meta( string $key, bool $single = true ): string { return ''; }
+		};
 	}
 }

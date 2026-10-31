@@ -130,7 +130,7 @@ The MutationObserver that watches for dynamically inserted links now bails early
 ---
 
 ### 4. Third-party checkout limitation
-**Status:** Implemented (`cross_domain_decoration` setup-checklist item covers the guidance incl. the Stripe/PayPal/Mollie caveat). The "decoration will not fire without approved domains" warning was dropped — subdomains are now decorated automatically without the allowed list.
+**Status:** Implemented (`cross_domain_decoration` setup-checklist item covers the guidance incl. the Stripe/PayPal/Mollie caveat). The "decoration will not fire without approved domains" warning was dropped — subdomains are now decorated automatically without the allowed list. #129: returns from payment hosts (`clicutcl_ignored_referrer_hosts`) no longer overwrite the stored touch, Checkout Block orders are saved with their attribution before the gateway redirect, and the docs no longer say the confirmation page tags the order from the cookie.
 
 **Problem:** Cross-domain link decoration cannot cover external payment domains (Stripe, PayPal, Mollie). Attribution survives these redirects only if the cookie was written before checkout. This is documented nowhere visible to the user.
 

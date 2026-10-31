@@ -8,7 +8,6 @@
 namespace CLICUTCL\Integrations\Forms;
 
 use CLICUTCL\Core\Attribution_Provider;
-use CLICUTCL\Server_Side\Consent;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -38,22 +37,43 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 	}
 
 	/**
+	 * First Fluent Forms version that fires the slash-style hook names.
+	 */
+	const SLASH_HOOKS_SINCE = '5.0.0';
+
+	/**
+	 * Whether the installed Fluent Forms predates the slash-style hook names.
+	 *
+	 * An unknown version counts as current: only an explicit older FLUENTFORM_VERSION selects the legacy names.
+	 *
+	 * @return bool
+	 */
+	private function uses_legacy_hooks() {
+		return defined( 'FLUENTFORM_VERSION' ) && version_compare( (string) FLUENTFORM_VERSION, self::SLASH_HOOKS_SINCE, '<' );
+	}
+
+	/**
 	 * Register hooks.
 	 *
-	 * Fluent Forms v5+ uses slash-style hooks (fluentform/form_element_start).
-	 * v4 and earlier used underscore-style (fluentform_form_element_start).
-	 * Both sets are registered so the adapter works regardless of installed version.
-	 * on_submission carries a static dedup guard so it never logs the same entry twice
-	 * even when both aliases fire on an installation that preserves both.
+	 * Fluent Forms 5.0.0+ fires slash-style hooks (fluentform/form_element_start); 4.x fired
+	 * underscore-style ones (fluentform_form_element_start). Only the set matching the installed
+	 * version is registered: current Fluent Forms still fires the legacy names, and applies
+	 * fluentform/insert_response_data through apply_filters_deprecated(), so a callback on
+	 * fluentform_insert_response_data raises a deprecation notice on every submission.
+	 * The shared (provider, form, entry) dedupe in log_submission() still guards on_submission
+	 * should a site fire both names.
 	 */
 	public function register_hooks() {
-		// Slash-style (Fluent Forms v5+, current docs).
-		add_action( 'fluentform/form_element_start', array( $this, 'add_hidden_fields' ), 10, 1 );
-		add_action( 'fluentform/submission_inserted', array( $this, 'on_submission' ), 10, 3 );
+		if ( $this->uses_legacy_hooks() ) {
+			add_action( 'fluentform_form_element_start', array( $this, 'add_hidden_fields' ), 10, 1 );
+			add_filter( 'fluentform_insert_response_data', array( $this, 'refresh_response_data' ), 10, 3 );
+			add_action( 'fluentform_submission_inserted', array( $this, 'on_submission' ), 10, 3 );
+			return;
+		}
 
-		// Underscore-style (legacy aliases, v4 and below).
-		add_action( 'fluentform_form_element_start', array( $this, 'add_hidden_fields' ), 10, 1 );
-		add_action( 'fluentform_submission_inserted', array( $this, 'on_submission' ), 10, 3 );
+		add_action( 'fluentform/form_element_start', array( $this, 'add_hidden_fields' ), 10, 1 );
+		add_filter( 'fluentform/insert_response_data', array( $this, 'refresh_response_data' ), 10, 3 );
+		add_action( 'fluentform/submission_inserted', array( $this, 'on_submission' ), 10, 3 );
 	}
 
 	/**
@@ -62,15 +82,6 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 	 * @param object $form Form object.
 	 */
 	public function add_hidden_fields( $form ) {
-		if ( ! $this->should_populate() ) {
-			return;
-		}
-
-		$payload = $this->get_attribution_payload();
-		if ( empty( $payload ) ) {
-			return;
-		}
-
 		// Fluent Forms fires its legacy and slash-style render hooks for the same form.
 		static $last_form = null;
 		if ( is_object( $form ) ) {
@@ -80,7 +91,8 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 			$last_form = $form;
 		}
 
-		foreach ( $payload as $key => $value ) {
+		// Values are empty unless the render filter opts in (#152); names are always emitted.
+		foreach ( $this->get_render_payload() as $key => $value ) {
 			echo '<input type="hidden" name="' . esc_attr( $this->get_field_name( $key ) ) . '" value="' . esc_attr( $value ) . '">';
 		}
 	}
@@ -93,6 +105,88 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 	 */
 	public function populate_fields( $form_or_context ) {
 		return $form_or_context;
+	}
+
+	/**
+	 * Marker decision per form ID for the current request, recorded by refresh_response_data().
+	 *
+	 * @var array<int,bool>
+	 */
+	private static $fill_markers = array();
+
+	/**
+	 * Whether this submit carries the Injector's `ct_fill_source=js` marker.
+	 *
+	 * Fluent Forms intersects the posted data with the form's declared fields before
+	 * `fluentform/insert_response_data`, which drops the undeclared marker, so the raw AJAX
+	 * request (`data` is a urlencoded string, `SubmissionHandlerController`) is read as well.
+	 *
+	 * @param array $form_data Response data.
+	 * @return bool
+	 */
+	private function request_has_fill_marker( $form_data ) {
+		if ( isset( $form_data[ self::FILL_MARKER_FIELD ] ) && $this->has_fill_marker( $form_data[ self::FILL_MARKER_FIELD ] ) ) {
+			return true;
+		}
+
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Fluent Forms verifies its own request; the value is compared to a constant and never stored.
+		$raw = isset( $_POST['data'] ) ? wp_unslash( $_POST['data'] ) : array();
+		if ( is_string( $raw ) ) {
+			$parsed = array();
+			parse_str( $raw, $parsed );
+			$raw = $parsed;
+		}
+		if ( is_array( $raw ) && isset( $raw[ self::FILL_MARKER_FIELD ] ) && $this->has_fill_marker( $raw[ self::FILL_MARKER_FIELD ] ) ) {
+			return true;
+		}
+
+		return isset( $_POST[ self::FILL_MARKER_FIELD ] ) && $this->has_fill_marker( wp_unslash( $_POST[ self::FILL_MARKER_FIELD ] ) );
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+	}
+
+	/**
+	 * Resolve the ct_* keys of the response data at submit time (#152).
+	 *
+	 * Runs on `fluentform/insert_response_data` before Fluent Forms stores the entry, so the
+	 * native entry, `fluentform_submission_meta` and ClickTrail's log hold the same value. Readable
+	 * cookie: authoritative, keys it lacks are blanked. No cookie: posted values survive only with
+	 * the `ct_fill_source=js` marker. Consent blocked: every `ct_*` blanked. The marker is stripped.
+	 * Only `ct_*` names the form posted are rewritten.
+	 *
+	 * @param array $form_data     Response data about to be inserted.
+	 * @param int   $form_id       Form ID (unused).
+	 * @param array $input_configs Entry input configs (unused).
+	 * @return array
+	 */
+	public function refresh_response_data( $form_data, $form_id = 0, $input_configs = array() ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
+		if ( ! is_array( $form_data ) ) {
+			return $form_data;
+		}
+
+		$marker = $this->request_has_fill_marker( $form_data );
+		unset( $form_data[ self::FILL_MARKER_FIELD ] );
+		// `fluentform_submission_inserted` receives this refreshed copy, not the raw request, so
+		// carry the keep/blank decision to on_submission(). The raw request still holds the marker
+		// when the legacy alias runs this a second time.
+		self::$fill_markers[ (int) $form_id ] = $marker;
+
+		$posted = array();
+		foreach ( $form_data as $name => $value ) {
+			$key = $this->mapped_key( $name );
+			if ( null !== $key ) {
+				$posted[ $key ] = $value;
+			}
+		}
+		if ( empty( $posted ) ) {
+			return $form_data;
+		}
+
+		$resolved = $this->resolve_submitted_attribution( $posted, $marker );
+		foreach ( array_keys( $posted ) as $key ) {
+			$form_data[ $this->get_field_name( $key ) ] = $resolved[ $key ];
+		}
+
+		return $form_data;
 	}
 
 	/**
@@ -110,48 +204,67 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 	 * @param object $arg3 Form object (optional).
 	 */
 	public function on_submission( $arg1, $arg2, $arg3 = null ) {
-		if ( ! $this->should_populate() || ( Consent::is_required() && ! Consent::marketing_allowed() ) ) {
+		if ( ! $this->refresh_allowed() ) {
 			return;
 		}
 
-		static $logged = array();
-		$entry_id      = (int) $arg1;
-		if ( isset( $logged[ $entry_id ] ) ) {
-			return;
-		}
-		$logged[ $entry_id ] = true;
-
-		$form_data = $arg2;
+		$entry_id  = (int) $arg1;
+		$form_data = is_array( $arg2 ) ? $arg2 : array();
 		$form      = $arg3;
-		// Use payload from cookie or form_data?
-		// form_data should contain our hidden fields if they were submitted.
+		$payload   = $this->get_attribution_payload();
 
-		$keys        = Attribution_Provider::get_field_mapping();
-		$attribution = array();
+		// Re-apply the rule refresh_response_data() applied before insert. Fluent Forms passes the
+		// refreshed copy here (SubmissionHandlerService::processSubmissionData() reads
+		// `$this->formData`), whose marker was stripped, so use the decision recorded at refresh.
+		$form_id = isset( $arg3->id ) ? (int) $arg3->id : 0;
+		$marker  = $this->request_has_fill_marker( $form_data ) || ! empty( self::$fill_markers[ $form_id ] );
+		unset( $form_data[ self::FILL_MARKER_FIELD ] );
+		$posted = array();
+		foreach ( $form_data as $name => $value ) {
+			$key = $this->mapped_key( $name );
+			if ( null !== $key ) {
+				$posted[ $key ] = $value;
+			}
+		}
+		$carries_ct_field = ! empty( $posted );
+		$attribution      = array();
 
-		foreach ( $keys as $key ) {
-			$prefixed = $this->get_field_name( $key );
-			if ( isset( $form_data[ $prefixed ] ) ) {
-				$attribution[ $key ] = sanitize_text_field( $form_data[ $prefixed ] );
+		if ( $carries_ct_field ) {
+			foreach ( $this->resolve_submitted_attribution( $posted, $marker ) as $key => $value ) {
+				if ( '' !== $value && array_key_exists( $key, $posted ) ) {
+					$attribution[ $key ] = $value;
+				}
 			}
 		}
 
-		// Fallback.
-		if ( empty( $attribution ) ) {
-			$attribution = $this->get_attribution_payload();
+		// A form with no ct_* field keeps today's record: ClickTrail's own log holds the cookie.
+		if ( ! $carries_ct_field ) {
+			$attribution = $payload;
 		}
 
 		if ( empty( $attribution ) ) {
 			return;
 		}
 
-		// 1. Persist to Fluent Forms submission meta so attribution values are
+		// 1. Log to ClickTrail. A repeat of the same entry (both hook aliases firing) writes only
+		// the IDs the entry lacks: the first call wrote the rest, or died before it could.
+		$form_id_val = isset( $form->id ) ? $form->id : 0;
+		$logged      = $this->log_submission( 'fluentform', $form_id_val, $attribution, $form_data, $entry_id );
+		$meta        = $this->entry_meta_to_write(
+			$logged,
+			$attribution,
+			function ( $meta_key ) use ( $entry_id ) {
+				return $this->fluent_entry_has_meta( $entry_id, $meta_key );
+			}
+		);
+
+		// 2. Persist to Fluent Forms submission meta so attribution values are
 		// accessible in the Fluent Forms entry detail view and via its API.
 		// wpFluent() is Fluent's own DB wrapper and is always available when the
 		// plugin is active. The table is created by Fluent on activation.
 		if ( function_exists( 'wpFluent' ) ) {
 			$now = current_time( 'mysql' );
-			foreach ( $attribution as $key => $value ) {
+			foreach ( $meta as $key => $value ) {
 				try {
 					wpFluent()
 						->table( 'fluentform_submission_meta' )
@@ -165,13 +278,36 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 							)
 						);
 				} catch ( \Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
-					// Non-fatal: ClickTrail logging below still proceeds.
+					// Non-fatal: ClickTrail logging already ran above.
 				}
 			}
 		}
+	}
 
-		// 2. Log to ClickTrail
-		$form_id_val = isset( $form->id ) ? $form->id : 0;
-		$this->log_submission( 'fluentform', $form_id_val, $attribution, is_array( $form_data ) ? $form_data : array() );
+	/**
+	 * Whether a Fluent Forms submission already has a meta row with this key.
+	 *
+	 * A failed lookup answers "yes", so a repeat never writes a second row it cannot rule out.
+	 *
+	 * @param int    $entry_id Submission ID.
+	 * @param string $meta_key Meta key.
+	 * @return bool
+	 */
+	private function fluent_entry_has_meta( $entry_id, $meta_key ) {
+		if ( ! function_exists( 'wpFluent' ) ) {
+			return true;
+		}
+
+		try {
+			$row = wpFluent()
+				->table( 'fluentform_submission_meta' )
+				->where( 'response_id', $entry_id )
+				->where( 'meta_key', $meta_key ) // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Fluent Forms schema requires meta_key column.
+				->first();
+		} catch ( \Exception $e ) {
+			return true;
+		}
+
+		return ! empty( $row );
 	}
 }

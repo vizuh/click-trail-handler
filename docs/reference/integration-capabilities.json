@@ -106,6 +106,17 @@
       "next_proof": "Assert event names, event_id, order/value/currency/items, attribution, consent, ordering, deduplication, and absence of secrets in browser and GTM Preview."
     },
     {
+      "surface": "HubSpot embedded forms",
+      "entry_ids": ["source.embed.hubspot_forms"],
+      "business_value": "Count HubSpot iframe and legacy form submissions as one consented lead each, which the submit listener and hidden-field injector cannot see.",
+      "evidence_level": "synthetic_contract",
+      "proof_artifact": "assets/js/clicutcl-events.js; tools/qa/hubspot-form-capture.test.js; specs/003-hubspot-form-capture/",
+      "environment": "Node VM with stubbed consent bridge and HubSpotFormsV4; no WordPress, browser, or HubSpot form.",
+      "owner": "ClickTrail browser runtime",
+      "blocker": false,
+      "next_proof": "Submit a real updated-editor and a legacy HubSpot form on a disposable site; assert one lead per submission with the conversion ID, a failed submission, consent denial, and the legacy message origin (spec SC-004 and Phase 0)."
+    },
+    {
       "surface": "Server delivery adapters",
       "entry_ids": ["delivery.generic", "delivery.sgtm", "delivery.meta", "delivery.google", "delivery.linkedin", "delivery.pinterest", "delivery.tiktok"],
       "business_value": "Send canonical events to configured collectors while keeping provider acceptance claims honest.",
@@ -479,15 +490,18 @@
       "role": "wordpress_source",
       "status": "source_connector_runtime_unverified",
       "provider_contract": "WordPress form hooks and/or hidden-field/submission metadata",
-      "what_exists": "Attribution capture and form-event paths are present; exact population, successful-submission, consent, and third-party retention behavior requires live plugin tests.",
+      "what_exists": "Attribution capture and form-event paths are present. wpcf7_posted_data (priority 5) rewrites each posted ct_<key> from the attribution cookie sent with the submit (non-empty cookie key wins; keys the cookie lacks keep the posted value; no key added; consent-gated); add_hidden_fields() renders every mapped key as an empty-or-filled ct_<key> input on every render, so mail tags, add-ons and the wpcf7_mail_sent log share one source. Exact population, successful-submission, consent, and third-party retention behavior requires live plugin tests.",
       "evidence": [
         "includes/integrations/class-form-integration-manager.php",
         "includes/integrations/forms/class-cf7-adapter.php",
         "tests/fixtures/form-readiness/v1/cf7.json",
-        "tests/fixtures/form-runtime/v1/cf7.json"
+        "tests/fixtures/form-runtime/v1/cf7.json",
+        "tests/unit/CF7PostedDataRefreshTest.php",
+        "tests/unit/CF7SubmissionOutcomeTest.php"
       ],
       "test_ids": [
-        "form-readiness-contract"
+        "form-readiness-contract",
+        "cf7-posted-data-refresh"
       ],
       "runtime_tests": [],
       "known_limits": [
@@ -500,15 +514,17 @@
       "role": "wordpress_source",
       "status": "source_connector_runtime_unverified",
       "provider_contract": "WordPress form hooks and/or hidden-field/submission metadata",
-      "what_exists": "Attribution capture and form-event paths are present; exact population, successful-submission, consent, and third-party retention behavior requires live plugin tests.",
+      "what_exists": "Attribution capture and form-event paths are present. Hidden fields whose custom_id is ct_<key> are filled from the cookie at render (elementor_pro/forms/render/item/hidden) and refreshed from the submit-time cookie at elementor_pro/forms/process through Form_Record::update_field() before the form actions run; a form with no ct_* field logs the cookie payload. Exact population, successful-submission, consent, and third-party retention behavior requires live plugin tests.",
       "evidence": [
         "includes/integrations/class-form-integration-manager.php",
         "includes/integrations/forms/class-elementor-forms-adapter.php",
         "tests/fixtures/form-readiness/v1/elementor.json",
-        "tests/fixtures/form-runtime/v1/elementor.json"
+        "tests/fixtures/form-runtime/v1/elementor.json",
+        "tests/unit/ElementorFormsSubmissionRefreshTest.php"
       ],
       "test_ids": [
-        "form-readiness-contract"
+        "form-readiness-contract",
+        "elementor-forms-submission-refresh"
       ],
       "runtime_tests": [],
       "known_limits": [
@@ -521,16 +537,18 @@
       "role": "wordpress_source",
       "status": "source_connector_runtime_unverified",
       "provider_contract": "WordPress form hooks and/or hidden-field/submission metadata",
-      "what_exists": "Attribution capture and form-event paths are present. A consent-not-required browser submission on WordPress 6.9, PHP 8.1, and Fluent Forms 6.2.13 stored first-touch, last-touch, and campaign metadata in fluentform_submission_meta through response_id.",
+      "what_exists": "Attribution capture and form-event paths are present. fluentform/insert_response_data (and the legacy alias) rewrites each ct_<key> response key from the submit-time cookie per key before the entry is stored; a form with no ct_* field logs the cookie payload. A consent-not-required browser submission on WordPress 6.9, PHP 8.1, and Fluent Forms 6.2.13 stored first-touch, last-touch, and campaign metadata in fluentform_submission_meta through response_id (before the per-key refresh).",
       "evidence": [
         "includes/integrations/class-form-integration-manager.php",
         "includes/integrations/forms/class-fluent-forms-adapter.php",
         "tests/fixtures/form-readiness/v1/fluent.json",
         "tests/unit/FluentFormsAdapterTest.php",
+        "tests/unit/FluentFormsSubmissionRefreshTest.php",
         "tests/fixtures/form-runtime/v1/fluent.json"
       ],
       "test_ids": [
-        "form-readiness-contract"
+        "form-readiness-contract",
+        "fluent-forms-submission-refresh"
       ],
       "runtime_tests": [
         "fluent-forms-6.2.13-consent-not-required-browser-submission-wp6.9-php8.1"
@@ -588,15 +606,17 @@
       "role": "wordpress_source",
       "status": "source_connector_runtime_unverified",
       "provider_contract": "WordPress form hooks and/or hidden-field/submission metadata",
-      "what_exists": "Attribution capture and form-event paths are present; exact population, successful-submission, consent, and third-party retention behavior requires live plugin tests.",
+      "what_exists": "Attribution capture and form-event paths are present. A hidden field marked with CSS class token ct_<key> or a label exactly ct_<key> for a mapped key is filled from the cookie at render (wpforms_field_properties) and refreshed from the submit-time cookie at wpforms_process_filter before notifications and the entry; the former wpforms_field_value_* registrations were removed because WPForms never fires that filter. Entry meta is still written at wpforms_process_complete (Pro). Exact population, successful-submission, consent, and third-party retention behavior requires live plugin tests.",
       "evidence": [
         "includes/integrations/class-form-integration-manager.php",
         "includes/integrations/forms/class-wpforms-adapter.php",
         "tests/fixtures/form-readiness/v1/wpforms.json",
-        "tests/fixtures/form-runtime/v1/wpforms.json"
+        "tests/fixtures/form-runtime/v1/wpforms.json",
+        "tests/unit/WPFormsFieldRefreshTest.php"
       ],
       "test_ids": [
-        "form-readiness-contract"
+        "form-readiness-contract",
+        "wpforms-field-refresh"
       ],
       "runtime_tests": [],
       "known_limits": [
@@ -664,16 +684,23 @@
       "role": "webhook_ingress",
       "status": "webhook_ingress",
       "provider_contract": "signed inbound webhook route",
-      "what_exists": "Provider-specific webhook route, enablement, signature/replay controls, and canonical event translation.",
+      "what_exists": "Provider-specific webhook route, enablement, X-HubSpot-Signature-v3 verification with timestamp replay window (v1 fallback only without a v3 header), filterable subscription-type allowlist with 2xx ignored acknowledgement for non-conversion types, and canonical event translation.",
       "evidence": [
         "includes/api/class-tracking-controller.php",
         "includes/tracking/webhooks/class-hubspotwebhookadapter.php",
-        "includes/tracking/class-webhook-auth.php"
+        "includes/tracking/class-webhook-auth.php",
+        "tests/unit/HubSpotWebhookTest.php",
+        "tests/unit/BoundarySecurityTest.php"
       ],
       "test_ids": [],
       "runtime_tests": [],
       "known_limits": [
-        "Provider timestamp freshness, raw identity minimization, consent provenance, and retry semantics require runtime/provider verification."
+        "v3 signature, allowlist and ignored acknowledgement are unit-covered only; no live HubSpot delivery has been captured.",
+        "v3 is checked against https:// + Host and https:// + home_url() host (+ raw request URI) plus clicutcl_hubspot_v3_request_uris entries; a proxy that rewrites the path without a filter entry fails with 401, and HubSpot retries 4xx/5xx up to 10 times over 24 hours.",
+        "v1 fallback carries no timestamp; only the signature replay cache and event-ID dedup apply.",
+        "Workflow 'Send a webhook' (v2 signature) is not supported.",
+        "Browser-origin and webhook HubSpot leads never deduplicate against each other.",
+        "Raw identity minimization, consent provenance, and retry semantics require runtime/provider verification."
       ]
     },
     {
@@ -692,6 +719,25 @@
       "runtime_tests": [],
       "known_limits": [
         "Provider timestamp freshness, raw identity minimization, consent provenance, and retry semantics require runtime/provider verification."
+      ]
+    },
+    {
+      "id": "source.embed.hubspot_forms",
+      "label": "HubSpot embedded forms",
+      "role": "browser_source",
+      "status": "source_present_runtime_unverified",
+      "provider_contract": "HubSpot documented v4 global form events (window) and legacy hsFormCallback postMessage",
+      "what_exists": "Browser lead on hs-form-event:on-submission:success (event_id from getConversionId) and legacy onFormSubmitted, form_submit_failed on on-submission:failed, through the existing consent gate with in-memory dedupe; identifiers only, no field values.",
+      "what_does_not_exist": "No hidden-field attribution write into HubSpot forms (setFieldValue) and no browser qualified_lead.",
+      "evidence": [
+        "assets/js/clicutcl-events.js",
+        "tools/qa/hubspot-form-capture.test.js",
+        "specs/003-hubspot-form-capture/spec.md"
+      ],
+      "test_ids": [],
+      "runtime_tests": [],
+      "known_limits": [
+        "No live HubSpot submission observed; conversion ID availability at on-submission:success, instanceId uniqueness, and the event.origin of iframe-rendered legacy embeds are unverified."
       ]
     },
     {

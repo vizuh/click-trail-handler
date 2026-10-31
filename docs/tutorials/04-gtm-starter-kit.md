@@ -10,6 +10,9 @@ consent-law compliance, or destination delivery.
 - Confirm you own or administer the destination GTM container.
 - Decide which consent source is authoritative before publishing.
 - Do not configure GTM injection in ClickTrail if the site already injects GTM.
+- When ClickTrail injects GTM with consent mode enabled, the consent default
+  snippet prints before the GTM bootstrap in `wp_head` (fixed hook priorities,
+  #147), so Google tags start from the configured default, not `NOT_SET`.
 - Keep this first import in a new GTM workspace or a reviewed merge.
 
 ## Import and configure
@@ -22,11 +25,38 @@ consent-law compliance, or destination delivery.
 5. Review triggers and tags. Do not publish yet.
 
 The export expects ClickTrail data-layer events to include a top-level `event`
-key. It uses `event_id` for Meta `eventId` and reads
+key. It uses `event_id` for Meta `eventId`; the WooCommerce thank-you
+`purchase` push carries `event_id = purchase_<order_id>` on every install,
+matching the server-side purchase event, so the Meta Pixel `Purchase` and
+the CAPI copy dedupe without enabling `woo_enhanced_datalayer` (#139,
+source-present / runtime-unverified). It reads
 `marketing_trail.consent.advertising` with a missing-value default of `false`.
 The Meta PageView tag accepts both `ct_page_view` from WordPress and
 `page_view` from JavaScript. Google tags retain their native GTM consent
 behavior.
+
+## Attribution parameters and consent
+
+Every GA4 event tag forwards the stored attribution as event parameters:
+`ct_ft_source`, `ct_ft_medium`, `ct_ft_campaign`, `ct_ft_channel`,
+`ct_lt_source`, `ct_lt_medium`, `ct_lt_campaign`, `ct_lt_channel`, and
+`ct_click_id`. The `ct_` prefix keeps them clear of GA4 reserved names. They
+read the `DLV - ft_*` / `DLV - lt_*` variables; `ct_click_id` comes from
+`JS - selected click id`, which returns the first non-empty of `gclid`,
+`wbraid`, `gbraid`, `fbclid`, `msclkid`, `ttclid` (the plugin does not push
+`attribution_selected_click_id` to the `dataLayer`). The GA4 `purchase` tag
+still sets no session campaign fields.
+
+GA4 only reports custom parameters once registered: in GA4 go to **Admin →
+Custom definitions → Create custom dimension**, scope **Event**, and register
+each `ct_*` parameter you want in reports.
+
+Meta Pixel tags are imported with consent settings `NEEDED` for `ad_storage`
+and `ad_user_data`. GTM therefore blocks them until those Consent Mode signals
+are granted, so Meta gating now depends on Consent Mode signals reaching GTM
+(through a CMP or the ClickTrail consent bridge). Without them the Meta tags do
+not fire. Evidence: source-present / runtime-unverified; the import was not
+run against a real GTM container.
 
 ## Run the local contract check
 
@@ -81,3 +111,8 @@ keeps the generated artifact but not that reference source.
   active outside this starter kit.
 - **JavaScript page view missing:** the integration emitted only
   `ct_page_view`; use the matching trigger for the event actually published.
+- **GA4 credits purchases to `paypal.com` or another payment host:** GA4 starts
+  a new session from the payment-host referrer on the return page. Add the
+  payment domains to GA4 unwanted referrals; the starter kit's GA4 purchase tag
+  does not change session source. See
+  [Payment provider limitations](../reference/INTEGRATIONS.md#payment-provider-limitations).

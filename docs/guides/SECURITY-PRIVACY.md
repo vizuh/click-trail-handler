@@ -4,7 +4,7 @@
 - **Canonical for**: consent behavior, token handling, replay protection, and secret treatment
 - **Update when**: consent flow, auth, signing, secret storage, or privacy behavior changes
 - **Historical audit baseline**: plugin code `1.9.0`, commit `a45aa9e`, reviewed 2026-08-19
-- **Current release**: plugin code `1.10.5`, with automated consent, queue, WooCommerce privacy, CF7 outcome, touch-event deduplication, CMP decision-transition, Calendly webhook, and attribution round-trip E2E (`tools/qa/e2e/`, CI) coverage; the browser storage inventory is below
+- **Current release**: plugin code `1.11.3` on GitHub and WordPress.org, with automated consent, queue, WooCommerce privacy, CF7 outcome, touch-event deduplication, CMP decision-transition, Calendly webhook, HubSpot webhook signature, and attribution round-trip E2E (`tools/qa/e2e/`, CI) coverage, plus a throwaway-WordPress run of CF7, Fluent Forms and WPForms Lite (`tools/qa/e2e/EVIDENCE-2026-10-31.md`); the browser storage inventory is below
 - **Runtime verification**: PHP/WordPress/browser/CMP/provider E2E remains incomplete; live behavior is not implied by automated fixtures
 
 ClickTrail is designed to capture attribution and events without treating privacy and delivery as separate concerns.
@@ -46,6 +46,7 @@ Current source behavior (audit status):
 
 - server snapshot capture and `Dispatcher` share one policy requirement helper; when consent mode is disabled, both treat consent as not required rather than reading the legacy hidden gate
 - when consent mode is enabled, the runtime asks `Consent_Mode_Settings` whether the current request requires consent
+- when consent mode is enabled, the `gtag('consent','default', …)` snippet prints on `wp_head` at `Consent_Mode::HEAD_PRIORITY` (0) and the GTM bootstrap at `Web_Tag::HEAD_PRIORITY` (derived as consent + 1), so the default is set before `gtm.js` loads regardless of module registration order (#147; structural + rendered-order PHPUnit test, source-present / runtime-unverified in a real WordPress)
 - new Woo orders store a v1 decision snapshot; historical boolean order snapshots remain readable and are explicitly labeled `legacy_unversioned`
 - frontend attribution consumes the consent bridge as its primary runtime contract, but stale-cookie/CMP precedence
   and cross-tab synchronization remain runtime test requirements
@@ -152,6 +153,29 @@ Current design goals:
 Identity exposure is additionally filterable through:
 
 - `clicutcl_identity_fields_allowed`
+- `clicutcl_identity_default_country`
+
+`Identity_Resolver` (`includes/tracking/class-identity-resolver.php`) hashes only normalised values. Email is
+trimmed and lowercased. Phone is normalised to E.164 before SHA-256 (#144): everything but digits and a leading
+`+` is stripped, a `00` prefix becomes `+`, and a number with no country code is prefixed with the default
+country's calling code (`clicutcl_identity_default_country` filter, else the WooCommerce base country, else the
+billing country on the order). A number that cannot be resolved to `^\+[1-9][0-9]{6,14}$` is dropped from the
+identity payload (never hashed as-is) and counted per request in `Identity_Resolver::get_drop_counts()`
+(`phone_no_country`, `phone_invalid`); the v2 intake debug buffer records those reasons as `identity_dropped`
+and the Diagnostics "Identity Keys" column shows them as `dropped: …`. Drops are not delivery failures and do
+not touch the Dispatcher failure telemetry. The calling-code table is the ISO 3166-1 alpha-2 list in
+`includes/tracking/class-phone-calling-codes.php`; national trunk prefixes (for example a leading `0` in UK or
+German numbers) are not stripped. Source-present / runtime-unverified in a live WordPress.
+
+HubSpot embedded form capture (`assets/js/clicutcl-events.js`) reads only identifiers: `formId` and `instanceId`
+from HubSpot's v4 event, the conversion ID from `getConversionId()`, and the form `id` from a legacy
+`hsFormCallback` message. It never calls `getFieldValue()` / `getFormFieldValues()` and never reads the legacy
+message's `data` (which carries `submissionValues`), so no submitted field value or PII reaches `dataLayer` or the
+events route. It writes no browser storage (the dedupe markers are in memory) and pushes only through the
+`pushEvent()` consent gate; listeners registered before consent drop everything until the tracker starts.
+Legacy messages pass the external-message origin rule (same host or `clicutcl_iframe_origin_allowlist`, which
+now includes HubSpot's form host `hsforms.net` by default); the exact origin of iframe-rendered legacy embeds is
+not verified.
 
 The personal-data eraser currently targets matching rows from the events table, the structured touch
 events table (`clicutcl_touch_events`, matched on the exact hashed-email `visitor_id`), and the server-side
@@ -212,13 +236,22 @@ Controls include:
 
 - provider enablement
 - provider secret resolution
-- replay-window enforcement
+- replay-window enforcement on provider timestamps where the scheme carries one: HubSpot v3, native Calendly and the
+  ClickTrail relay. HubSpot v1 and Typeform carry no timestamp; for them only the signature replay cache and event-ID
+  dedup (`clicutcl_v2_dedup_ttl`) apply
 - optional replay protection filter control
 
 Verification hardening:
 
 - Typeform uses its native base64 HMAC `Typeform-Signature`
-- HubSpot uses its native SHA-256 `X-HubSpot-Signature`
+- HubSpot uses `X-HubSpot-Signature-v3` (base64 HMAC-SHA256 of method + `https://` + `Host` + raw request URI with
+  HubSpot's listed percent-encodings decoded + body + `X-HubSpot-Request-Timestamp`), rejecting timestamps outside
+  the replay window (default 300 s, HubSpot's recommended 5 minutes). A failing v3 never falls back to v1. The
+  legacy SHA-256 `X-HubSpot-Signature` (v1) is checked only when no v3 header is sent. The v3 URL is tried as
+  `Host` + request URI and `home_url()` host + request URI, plus any `clicutcl_hubspot_v3_request_uris` entries;
+  each candidate still needs the secret, and `X-Forwarded-*` headers are not read. HubSpot subscription types off the
+  `clicutcl_hubspot_webhook_event_types` allowlist (deletion, merge, restore, association change, privacy deletion,
+  unknown) are acknowledged (2xx, `ignored`) without recording an event
 - Calendly subscriptions use the native `Calendly-Webhook-Signature` (`t=<unix>,v1=<hex HMAC-SHA256 of "t.body">`,
   timestamp checked against the replay window) with the subscription's signing key as the provider secret.
   Requests without that header keep ClickTrail's timestamped HMAC relay contract. The adapter's raw identity,
@@ -238,6 +271,27 @@ Supported providers:
 - Calendly
 - HubSpot
 - Typeform
+
+## Cached Server-Rendered Attribution (#152)
+
+Leak class: a form adapter that writes the requesting visitor's attribution cookie into form HTML makes that
+HTML visitor-specific. A full-page cache that does not vary on the `attribution` cookie stores it and serves
+visitor A's click IDs and UTM values to visitor B, whose lead then carries A's attribution.
+
+Controls:
+
+- server render is empty by default (CF7, Gravity Forms, Fluent Forms, Elementor, WPForms); the filter
+  `clicutcl_render_server_attribution_values` (default `false`) restores the old render for sites without a
+  page cache
+- the browser Injector fills the visitor's own values after load and writes a hidden `ct_fill_source=js` into
+  each form it fills; `Injector.clear()` removes it on consent denial
+- submit rule per adapter: a readable cookie is authoritative and keys it lacks are blanked; with no cookie,
+  posted values are kept only with the marker (CF7, Fluent Forms), otherwise blanked; consent blocked blanks
+  every posted `ct_*` before the provider stores or mails it; ClickTrail's own log receives the post-rule set
+- `ct_fill_source` is stripped by the adapters and is never stored, logged or forwarded; a forged marker without
+  a cookie keeps only values the submitter already controlled
+
+Evidence: source-present / runtime-unverified (PHPUnit and a Node VM test; no live page cache run).
 
 ## Queue, Revocation, and Retention Boundary
 

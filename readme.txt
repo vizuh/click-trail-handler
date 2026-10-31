@@ -5,7 +5,7 @@ Author URI: https://vizuh.com
 Tags: attribution, utm, consent mode, woocommerce, server-side tracking
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 1.10.5
+Stable tag: 1.11.3
 Requires PHP: 8.1
 WC requires at least: 10.4.2
 License: GPLv2 or later
@@ -26,7 +26,7 @@ ClickTrail records what arrived. It does not decide what caused the sale.
 Pick the path that matches your site.
 
 * **WooCommerce store**: turn on Capture and WooCommerce. Orders carry the campaign. Add storefront events later if you want funnel signals.
-* **Lead forms**: turn on Capture and Forms. Contact Form 7 and Fluent Forms get hidden fields on their own. Gravity Forms and WPForms fill the `ct_*` fields you add.
+* **Lead forms**: turn on Capture and Forms. Contact Form 7 and Fluent Forms get hidden fields on their own. Gravity Forms and WPForms fill the `ct_*` fields you add (WPForms Lite has no Hidden field: use a Single Line Text field with the CSS class `ct_<key>` and hide it with CSS).
 * **GTM or server-side GTM**: turn on Capture, Events, and Delivery. Events go to the `dataLayer`, and ClickTrail can send canonical JSON to an endpoint you set.
 
 Then place one test order or send one test form, and look at what was stored. The [use-case guide](https://github.com/vizuh/click-trail-handler/blob/main/docs/guides/USE-CASES.md) and [tutorials](https://github.com/vizuh/click-trail-handler/blob/main/docs/tutorials/README.md) walk through each path.
@@ -36,8 +36,8 @@ Then place one test order or send one test form, and look at what was stored. Th
 ClickTrail only acts on the paths you turn on and set up in its settings. That is what "configured" means everywhere in this readme.
 
 * Capture: first-touch and last-touch UTMs, ad click IDs, and the referrer, with organic, social, and referral fallback when there are no UTMs. When a visitor comes back through a new ad, the newest click is the one that travels. Context lives in first-party storage, falls back to `sessionStorage` when cookies are blocked, and your own admin browsing stays out of it.
-* WooCommerce: attribution saved on the order, an enriched purchase event on the thank-you page, optional storefront events (`view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, `begin_checkout`), and optional order-status milestones. Order metadata has export, erase, retention, and uninstall handling.
-* Forms: Contact Form 7 and Fluent Forms get hidden fields automatically. Gravity Forms and WPForms fill the `ct_*` fields you add; Gravity Forms also gets a channel label, nine `{clicutcl_*}` merge tags, and a per-form switch. Elementor Forms (Pro) and Ninja Forms keep attribution with the submission record. A client-side fallback covers cached pages and forms that load late, and WhatsApp links can carry the context too.
+* WooCommerce: attribution saved on the order before an off-site payment redirect (classic and block checkout), with returns from payment hosts such as PayPal or Stripe never overwriting the stored touch, an enriched purchase event on the thank-you page, optional storefront events (`view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, `begin_checkout`), and optional order-status milestones. Order metadata has export, erase, retention, and uninstall handling.
+* Forms: Contact Form 7 and Fluent Forms get hidden fields automatically. Gravity Forms and WPForms fill the `ct_*` fields you add; Gravity Forms also gets a channel label, nine `{clicutcl_*}` merge tags, and a per-form switch. Elementor Forms (Pro) and Ninja Forms keep attribution with the submission record. The server renders those fields empty so a page cache never serves one visitor's attribution to another (the `clicutcl_render_server_attribution_values` filter opts back in on sites without a cache); the browser fills them after load, the submit-time cookie corrects them, and keys the cookie lacks are blanked rather than kept. Cached form pages need no exclusion. A client-side fallback covers cached pages and forms that load late, and WhatsApp links can carry the context too.
 * Bookings and your other domains: links to domains you approve carry the campaign, with a signed token between your own sites. Calendly booking links hold the newest click and the visitor's consent decision, and the signed Calendly webhook records the booking as `book_appointment` with its UTMs. Booking or form iframes your own script loads can carry the campaign too, through `window.ClickTrail.decorateEmbedUrl()`, for hosts you list.
 * Events and delivery: browser events to the `dataLayer`, a REST intake, webhooks from Calendly, HubSpot, and Typeform, lifecycle updates, and one-time WordPress events such as `login`, `sign_up`, and `comment_submit`. Optional server-side delivery adds a retry queue and diagnostics.
 
@@ -78,7 +78,7 @@ Having code for an integration is not proof that it works in production. Current
 * **Webhooks**: Calendly, HubSpot, Typeform
 * **Server-side adapter keys**: generic collector, sGTM, Meta CAPI, Google Ads / GA4, LinkedIn CAPI, Pinterest Conversions API, TikTok Events API (status above)
 * **Extra fields captured**: `utm_id`, `utm_source_platform`, `utm_creative_format`, `utm_marketing_tactic`, `fbc`, `fbp`, `_ttp`, `li_gc`, `ga_client_id`, `ga_session_id`
-* **Caching and minification**: ClickTrail script tags carry exclusion attributes for Autoptimize, Cloudflare Rocket Loader, WP Rocket, and LiteSpeed Cache.
+* **Caching and minification**: on every site, the four ClickTrail script tags (`clicutcl-consent-bridge-js`, `clicutcl-attribution-js`, `clicutcl-consent-js`, `clicutcl-events-js`) carry `nowprocket data-no-optimize="1" data-no-defer="1" data-noptimize="1" data-cfasync="false"`: `nowprocket` (WP Rocket Delay JS), `data-no-optimize="1"` and `data-no-defer="1"` (LiteSpeed Cache), `data-noptimize="1"` (Autoptimize), `data-cfasync="false"` (Cloudflare Rocket Loader). The same scripts are registered on the exclusion filters of WP Rocket (`rocket_delay_js_exclusions`, `rocket_exclude_defer_js`, `rocket_exclude_js`), LiteSpeed Cache (`litespeed_optm_js_exc`, `litespeed_optm_js_defer_exc`, `litespeed_optm_gm_js_exc`), Autoptimize (`autoptimize_filter_js_exclude`), Perfmatters (`perfmatters_delay_js_exclusions`, `perfmatters_defer_js_exclusions`, `perfmatters_minify_js_exclusions`) and SiteGround Speed Optimizer (`sgo_js_minify_exclude`, `sgo_javascript_combine_exclude`, `sgo_js_async_exclude`); NitroPack adds `data-nitropack-exclude="true"` and `nitropack_js_url_exclude` when active. The inline consent-default snippet carries `nowprocket data-no-defer="1"`. To check: view the page source, confirm every `clicutcl-*.js` tag carries the attributes, and confirm `window.ClickTrail` is defined before submitting a form. Delay-JS features run scripts on the first interaction (WP Rocket lists `keydown`, `mousemove`, `touchstart`, `scroll`, `click`, `input`, `onsubmit`), so a keyboard-only submit still runs them, too late for the landing touch. FlyingPress exposes no attribute or filter: add `clicutcl` and `clicktrail-consent-mode` to its exclusion field. Source-present / runtime-unverified.
 
 == Installation ==
 
@@ -103,7 +103,7 @@ ClickTrail can be rolled out in layers. A basic attribution setup for forms or W
 5. In **Forms**:
    * enable only the integrations you actually use
    * for Contact Form 7 and Fluent Forms, ClickTrail can add attribution hidden fields automatically
-   * for Gravity Forms and WPForms, add the matching `ct_*` hidden fields you want to preserve, such as `ct_ft_source`, `ct_lt_source`, or `ct_gclid` (latest click; use `ct_ft_gclid` or `ct_lt_gclid` to pin a touch)
+   * for Gravity Forms, WPForms and Elementor Forms (Pro), add the matching `ct_*` hidden fields you want to preserve, such as `ct_ft_source`, `ct_lt_source`, or `ct_gclid` (latest click; use `ct_ft_gclid` or `ct_lt_gclid` to pin a touch). Gravity Forms reads the parameter name, WPForms a CSS class (or a label) of `ct_<key>`, Elementor the field ID
 6. In **Events**:
    * leave browser events enabled only if you want `dataLayer` pushes and on-site event capture
    * enable **WooCommerce storefront events** only if you want `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` in the browser event layer
@@ -159,11 +159,11 @@ No. WooCommerce is one documented conversion surface; ClickTrail also has lead-f
 
 = What happens if my site uses aggressive caching? =
 
-ClickTrail includes a client-side fallback and dynamic-content support so attribution can still reach supported form fields when server-rendered fields are not enough.
+ClickTrail renders form attribution fields empty on the server, so cached form pages carry no visitor's data and do not need to be excluded from the page cache; its client-side script fills the visitor's own values after load, and the submit-time cookie corrects them. Minify, combine, defer and delay-JS features are handled too: every ClickTrail script tag carries `nowprocket data-no-optimize="1" data-no-defer="1" data-noptimize="1" data-cfasync="false"` and the scripts are listed on the exclusion filters of WP Rocket (`rocket_delay_js_exclusions`, `rocket_exclude_defer_js`, `rocket_exclude_js`), LiteSpeed Cache (`litespeed_optm_js_exc`, `litespeed_optm_js_defer_exc`, `litespeed_optm_gm_js_exc`), Autoptimize (`autoptimize_filter_js_exclude`), Perfmatters (`perfmatters_delay_js_exclusions`, `perfmatters_defer_js_exclusions`, `perfmatters_minify_js_exclusions`) and SiteGround Speed Optimizer (`sgo_js_minify_exclude`, `sgo_javascript_combine_exclude`, `sgo_js_async_exclude`). To check: view the page source, confirm every `clicutcl-*.js` tag carries the attributes, and confirm `window.ClickTrail` is defined before submitting a form. Delay-JS features run scripts on the first interaction (WP Rocket lists `keydown`, `mousemove`, `touchstart`, `scroll`, `click`, `input`, `onsubmit`), so a keyboard-only submit still runs them, too late for the landing touch. FlyingPress exposes no attribute or filter: add `clicutcl` and `clicktrail-consent-mode` to its exclusion field. Source-present / runtime-unverified.
 
 = Do I need to add hidden fields to every form? =
 
-No. Contact Form 7 and Fluent Forms can receive attribution hidden fields automatically. Gravity Forms and WPForms work best when you add the matching `ct_*` hidden fields you want stored or exported. Elementor Forms (Pro) and Ninja Forms use their submission hooks and stored attribution paths rather than automatic hidden-field injection.
+No. Contact Form 7 and Fluent Forms can receive attribution hidden fields automatically. Gravity Forms, WPForms and Elementor Forms (Pro) work best when you add the matching `ct_*` hidden fields you want stored or exported: Gravity Forms matches the parameter name, WPForms a CSS class `ct_<key>` (a Hidden field needs WPForms Pro; on Lite use a Single Line Text field hidden with CSS; a label of exactly `ct_<key>` also works), Elementor the hidden field's ID. Every adapter refreshes those fields from the cookie sent with the submit, so a form submitted on the landing page stores that visit's click. Elementor Forms (Pro) and Ninja Forms also keep attribution with the submission record.
 
 = Can I use it without server-side delivery? =
 
@@ -192,6 +192,32 @@ The entries below are historical release notes. They do not replace the current 
 behavior that still requires current runtime verification. In particular, older wording that calls platform-named
 server paths “first-class native delivery adapters” predates the current evidence classification: those paths are
 configured-endpoint relays whose provider authentication, acceptance, and runtime delivery remain unverified.
+
+= 1.11.3 =
+* Forms and page caches: a form served from a page cache can no longer show or submit another visitor's ad click or campaign. The attribution fields now start empty and are filled in the visitor's own browser; if a visitor has no consent or no attribution, the stored lead holds no attribution values.
+* Forms: a double click or a retried submit no longer records the same lead twice, and Gravity Forms, WPForms and Fluent Forms entries now carry `ct_event_id` and `ct_lead_id` so a CRM record can be matched back.
+* Google Tag Manager starter kit: the GA4 tags now send the stored campaign and click ID as `ct_*` event parameters, and the Meta tags wait for ad consent.
+* Fix: the WordPress debug log no longer fills with "headers already sent" warnings on pages shown before consent is given.
+* Fix: Fluent Forms no longer logs a deprecation notice on every submission.
+* WPForms Lite has no Hidden field: use a Single Line Text field with the CSS class `ct_<key>`; the documentation now says so.
+
+= 1.11.2 =
+* Contact Form 7, Fluent Forms, Elementor Forms (Pro) and WPForms: a form submitted on the page the visitor landed on now stores that visit's ad click and campaign. Before, those forms could store empty or previous-visit values (Gravity Forms got the same fix in 1.11.1).
+* WPForms: hidden fields now actually receive the attribution values. Mark a field with the CSS class (or exact label) `ct_<key>`, for example `ct_gclid`. The earlier method never worked.
+* WooCommerce: opening the thank-you page in two tabs, or reloading it quickly, no longer counts the purchase twice.
+* WooCommerce: the purchase event sent to Google Tag Manager now always carries an `event_id`, so Meta can match the browser and server copies of the same order.
+* Phone numbers sent for ad matching are now converted to international format (+351...) before hashing, so they match on Google and Meta.
+* Consent: the consent default is now set before Google Tag Manager loads.
+* Caching: ClickTrail's scripts are now excluded from WP Rocket, LiteSpeed Cache, Autoptimize, Cloudflare Rocket Loader, Perfmatters and SiteGround optimizations on every site, not only with Gravity Forms.
+
+= 1.11.1 =
+* Gravity Forms: a visitor who submits a form on the first page they land on now stores ClickTrail attribution in the form's `ct_*` fields. Before, those fields stayed empty unless the visitor opened another page first.
+
+= 1.11.0 =
+* WooCommerce: a buyer who pays on PayPal, Stripe Checkout, Mollie, Klarna or another payment page and comes back to your thank-you page keeps the ad or campaign they arrived from. Before, the return could replace the last-touch source with the payment site.
+* WooCommerce: Checkout Block orders now store their attribution before the buyer leaves for the payment page, so the order keeps its source even if the buyer never returns.
+* HubSpot: submissions of HubSpot forms embedded on your pages now produce a `lead` event (with consent). Failed submissions produce `form_submit_failed`.
+* HubSpot webhooks: newer HubSpot signatures (v3) are verified with a 5-minute replay window, and HubSpot events that are not leads (deletions, merges, privacy deletions) are acknowledged without recording a lead.
 
 = 1.10.5 =
 * Attribution: when a visitor comes back through a new ad, ClickTrail now sends the new click ID (for example `gclid`) in decorated links, Calendly bookings, form fields, WooCommerce orders and server-side events. Before, the click ID from the first visit was sent alongside current UTMs, so a CRM could credit the wrong ad click. First-touch fields are unchanged.

@@ -7,6 +7,8 @@
 
 namespace CLICUTCL\Api;
 
+use CLICUTCL\Tracking\Identity_Resolver;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -83,6 +85,7 @@ trait Tracking_Controller_Debug_Trait {
 			),
 			'attribution_keys' => $this->sanitize_key_list( array_keys( is_array( $canonical['attribution'] ?? null ) ? $canonical['attribution'] : array() ) ),
 			'identity_keys'    => $this->sanitize_key_list( array_keys( is_array( $canonical['identity'] ?? null ) ? $canonical['identity'] : array() ) ),
+			'identity_dropped' => $this->sanitize_key_list( array_keys( array_filter( Identity_Resolver::get_drop_counts() ) ) ),
 			'lead'             => array(
 				'provider'      => sanitize_text_field( (string) ( $lead['provider'] ?? '' ) ),
 				'submit_status' => sanitize_key( (string) ( $lead['submit_status'] ?? '' ) ),

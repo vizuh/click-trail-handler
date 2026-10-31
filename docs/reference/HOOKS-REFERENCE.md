@@ -3,7 +3,7 @@
 - **Audience**: contributors, integrators, and maintainers
 - **Canonical for**: public filters and actions exposed by the plugin
 - **Update when**: a public hook is added, removed, renamed, or changes contract
-- **Last verified against version**: `1.10.5` (every `apply_filters` / `do_action` name in `includes/`, `clicutcl.php`, and `uninstall.php` is listed)
+- **Last verified against version**: `1.11.0` (every `apply_filters` / `do_action` name in `includes/`, `clicutcl.php`, and `uninstall.php` is listed)
 
 This document lists the public custom hooks currently exposed by the active codebase.
 
@@ -72,6 +72,41 @@ Purpose:
 Arguments:
 
 - `array $origins`
+
+Default:
+
+- `calendly.com`, `typeform.com`, `hubspot.com`, `hsforms.net`; each entry also matches its subdomains
+
+### `clicutcl_ignored_referrer_hosts`
+
+Type:
+
+- filter
+
+Purpose:
+
+- list payment and hosted-checkout hosts whose referrals never update first- or last-touch attribution
+
+Notes:
+
+- passed to `assets/js/clicutcl-attribution.js` as `clicutcl_config.ignoredReferrerHosts`
+- a referrer on a listed host or any subdomain of it counts like a same-site referrer: no first touch is created and the stored last touch (source, medium, referrer, channel, landing page, timestamp, click IDs) is left unchanged; UTMs and click IDs on the URL still form a touch
+- defaults: `paypal.com`, `stripe.com`, `mollie.com`, `squareup.com`, `square.link`, `klarna.com`, `adyen.com`, `checkout.com`, `mercadopago.com`, `mercadopago.com.br`, `pagseguro.uol.com.br`
+- card-issuer 3-D Secure / ACS hosts are not in the default list; add the ones you see in your referral reports, and any other hosted checkout your store redirects through; values are lowercased, a URL is reduced to its host, a leading `www.` is dropped, and anything that is not a dotted hostname is discarded
+- this does not change GA4; add the same domains (including any card-issuer hosts you add here) to GA4's unwanted referrals (see [Payment provider limitations](INTEGRATIONS.md#payment-provider-limitations))
+
+Arguments:
+
+- `string[] $hosts`
+
+Example:
+
+```php
+add_filter( 'clicutcl_ignored_referrer_hosts', function ( $hosts ) {
+	$hosts[] = 'acs.examplebank.com';
+	return $hosts;
+} );
+```
 
 ## Consent
 
@@ -142,6 +177,46 @@ Arguments:
 - `array $allowed`
 - `array $context`
 
+### `clicutcl_render_server_attribution_values`
+
+Type:
+
+- filter
+
+Purpose:
+
+- let form adapters write the requesting visitor's attribution cookie into rendered form HTML (CF7 hidden
+  fields, Gravity Forms `gform_field_value`, Fluent Forms hidden inputs, Elementor and WPForms hidden fields);
+  default `false` keeps every `ct_*` value empty so a page cache cannot serve one visitor's values to another
+  (#152); return `true` only on sites without a full-page cache
+
+Arguments:
+
+- `bool $render` default `false`
+- `string $platform` adapter platform name, for example `Contact Form 7`
+
+Return:
+
+- `bool`
+
+### `clicutcl_identity_default_country`
+
+Type:
+
+- filter
+
+Purpose:
+
+- supply the ISO 3166-1 alpha-2 country used to complete a phone number posted without a country code
+  before `Identity_Resolver` normalises it to E.164 and hashes it (#144); a non-empty return wins over the
+  WooCommerce base country and the billing/order country on the event; return `''` to defer to those
+
+Arguments:
+
+- `string $country` (default `''`)
+- `array $input` (identity input being resolved)
+- `array $context`
+
 ## Event and Token Security
 
 ### `clicutcl_v2_token_ttl`
@@ -176,6 +251,24 @@ Purpose:
 
 - control webhook replay behavior, provider enablement, and provider secret resolution
 
+### `clicutcl_hubspot_v3_request_uris`
+
+Type:
+
+- filter
+
+Purpose:
+
+- add the public HubSpot target URL when a proxy rewrites the request path, so `X-HubSpot-Signature-v3` can be
+  verified. Each candidate is tried with `hash_equals`; it still needs the secret, and the timestamp window and replay
+  cache apply unchanged. HubSpot's listed percent-encodings are decoded in every entry
+
+Arguments:
+
+- `string[] $uris`: default `https://` + `Host` header + raw request URI, and `https://` + `home_url()` host (and
+  port) + raw request URI when it differs
+- `WP_REST_Request $request`
+
 ## Webhook Mapping
 
 ### `clicutcl_hubspot_qualified_lead_rule`
@@ -191,6 +284,24 @@ Purpose:
 Arguments:
 
 - `array $rule` with `property` (default `lifecyclestage`) and `values` (default `marketingqualifiedlead`, `salesqualifiedlead`), compared case-insensitively
+
+### `clicutcl_hubspot_webhook_event_types`
+
+Type:
+
+- filter
+
+Purpose:
+
+- choose which HubSpot subscription types the webhook route records. `contact.propertyChange` stays gated by
+  `clicutcl_hubspot_qualified_lead_rule` and records `qualified_lead`; every other listed type records `lead`.
+  Unlisted types (deletion, merge, restore, association change, privacy deletion, unknown) are acknowledged with 2xx
+  `ignored` and no event
+
+Arguments:
+
+- `string[] $types` (default `contact.creation`, `contact.propertyChange`), compared case-insensitively; `_` and `.`
+  are treated alike
 
 ## Lifecycle and Settings Security
 
@@ -304,6 +415,33 @@ Type:
 Purpose:
 
 - receive aggregated delivery failure telemetry when remote telemetry is enabled
+
+## Form Submissions
+
+### `clicutcl_form_submission_logged`
+
+Type:
+
+- action
+
+Purpose:
+
+- fires after `Abstract_Form_Adapter::log_submission()` wrote the `form_submission` row and dispatched the server-side event, so an add-on can copy the IDs into a CRM record or another entry store and match a closed deal back to the ClickTrail event (#143)
+- fires once per entry: a deduplicated repeat of the same `(provider, form_id, entry_id)` (#140) does not fire it again, and it does not fire when consent or empty attribution stopped the log
+
+Arguments:
+
+- `$provider` (`string`): `gravityforms`, `wpforms`, `fluentform`, `ninjaforms`, `elementor_forms`, `contact-form-7`
+- `$form_id` (`int|string`): provider form ID
+- `$entry_id` (`int|string|null`): provider entry ID; `null` for Contact Form 7 and Elementor Forms (Pro), and for a Ninja Forms form without a Save action
+- `$event_id` (`string`): ClickTrail event ID (`form_<32 hex>`, an HMAC of the dedupe key, stable for an entry), also stored in `clicutcl_events.event_data.event_id` and sent as the server event's ID
+- `$lead_id` (`string`): `lead_` + `$event_id` without a leading `evt_`. Derived from the server event ID, so it matches the `clicutcl_events` row and the server-side event; it is **not** the ID of the browser `lead` push, which is generated separately in the browser
+- `$payload` (`array`): the attribution payload that was logged (no resolved identity)
+
+Notes:
+
+- Gravity Forms, WPForms and Fluent Forms already write `ct_event_id` and `ct_lead_id` into their entry meta; use this action for Ninja Forms, Elementor Forms (Pro), Contact Form 7 and any other store
+- source-present / runtime-unverified
 
 ## WooCommerce
 

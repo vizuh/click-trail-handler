@@ -1,6 +1,17 @@
 (function () {
     'use strict';
 
+    // HubSpot updated-editor (v4) form events, dispatched on window by HubSpot's embed.
+    // https://developers.hubspot.com/docs/api-reference/latest/marketing/forms/global-form-events
+    const HUBSPOT_FORM_EVENTS = {
+        'hs-form-event:on-submission:success': 'lead',
+        'hs-form-event:on-submission:failed': 'form_submit_failed'
+    };
+    // The same provider success signal for the same form instance inside this window is one
+    // submission: a double-fired hook, a retried AJAX send, or a v4 event plus a legacy
+    // hsFormCallback for the same HubSpot form.
+    const FORM_LEAD_DEDUPE_MS = 10000;
+
     /**
      * ClickTrail Events Tracking
      * Handles: Search, Downloads, Scroll, Time on Page
@@ -22,7 +33,8 @@
                 ? window.clicutclEventsConfig.iframeOrigins
                 : [];
             this.formStarts = new WeakSet();
-            this.externalMarkers = new Set();
+            this.externalMarkers = new Map();
+            this.hubspotPageNonce = '';
             this.sessionId = '';
             this.visitorId = '';
             this.wooListSeen = new Set();
@@ -134,6 +146,7 @@
                 cta_click: { event_name: 'cta_click', funnel_stage: 'mid' },
                 form_start: { event_name: 'form_start', funnel_stage: 'mid' },
                 form_submit_attempt: { event_name: 'form_submit_attempt', funnel_stage: 'mid' },
+                form_submit_failed: { event_name: 'form_submit_failed', funnel_stage: 'mid' },
                 lead: { event_name: 'lead', funnel_stage: 'bottom' },
                 login: { event_name: 'login', funnel_stage: 'bottom' },
                 sign_up: { event_name: 'sign_up', funnel_stage: 'bottom' },
@@ -761,8 +774,10 @@
             }, true);
 
             document.addEventListener('wpcf7mailsent', (e) => {
-                const formId = e && e.detail && e.detail.contactFormId ? String(e.detail.contactFormId) : '';
-                this.pushEvent('lead', {
+                const detail = e && e.detail ? e.detail : {};
+                const formId = detail.contactFormId ? String(detail.contactFormId) : '';
+                const unitTag = this.safeText(detail.unitTag || '', 60);
+                this.pushLeadOnce('lead|cf7|' + formId + '|' + unitTag, FORM_LEAD_DEDUPE_MS, {
                     form_provider: 'cf7',
                     form_id: formId,
                     lead_context: {
@@ -2121,17 +2136,134 @@
                 const normalized = this.normalizeExternalMessage(data, event.origin);
                 if (!normalized) return;
 
-                const marker = normalized.event_name + '|' + normalized.external_id;
-                if (this.externalMarkers.has(marker)) return;
-                this.externalMarkers.add(marker);
+                if (normalized.hubspot_form_id) {
+                    this.pushHubSpotLead(normalized.hubspot_form_id, normalized.external_id);
+                    return;
+                }
 
-                this.pushEvent(normalized.event_name, {
+                const params = {
                     lead_context: {
                         provider: normalized.provider,
                         submit_status: normalized.submit_status
                     }
-                });
+                };
+
+                if (normalized.event_name === 'lead') {
+                    // A message that names its submission dedupes on that ID for the page's
+                    // lifetime; one that does not dedupes per provider inside the window.
+                    this.pushLeadOnce(
+                        normalized.id_supplied
+                            ? 'lead|' + normalized.external_id
+                            : 'lead|' + normalized.provider,
+                        normalized.id_supplied ? 0 : FORM_LEAD_DEDUPE_MS,
+                        params
+                    );
+                    return;
+                }
+
+                if (!this.markOnce(normalized.event_name + '|' + normalized.external_id)) return;
+                this.pushEvent(normalized.event_name, params);
             });
+        }
+
+        /**
+         * Record `key` as seen and report whether this is its first sighting. With a positive
+         * `windowMs` a key counts as unseen again once the window has passed; without one it
+         * stays seen for the page's lifetime. A repeat does not refresh the mark.
+         */
+        markOnce(key, windowMs = 0) {
+            const now = Date.now();
+            const last = this.externalMarkers.get(key);
+            if (last !== undefined && !(windowMs > 0 && now - last >= windowMs)) return false;
+            this.externalMarkers.set(key, now);
+            return true;
+        }
+
+        /**
+         * Push a form-success `lead` unless `key` was already pushed inside `windowMs`.
+         * Consent is checked first so a denied attempt leaves no marker behind; the dropped
+         * repeat is silent (no `form_submit_failed`).
+         */
+        pushLeadOnce(key, windowMs, params, options = {}) {
+            const consentBridge = window.ClickTrailConsent;
+            if (!this.collectionEnabled || typeof consentBridge === 'undefined' || !consentBridge.isGranted()) return;
+            if (!this.markOnce(key, windowMs)) {
+                this.debugLog('Duplicate lead dropped:', key);
+                return;
+            }
+            this.pushEvent('lead', params, options);
+        }
+
+        /**
+         * HubSpot v4 global form event. Registered at script load (see HUBSPOT_FORM_EVENTS) and
+         * handed to the tracker once it exists. Reads only the form/instance IDs and the conversion
+         * ID, never field values.
+         */
+        trackHubSpotFormEvent(event, eventName) {
+            const detail = event && event.detail && typeof event.detail === 'object' ? event.detail : {};
+            const formId = this.safeText(detail.formId || '', 60);
+            if (!formId) return;
+
+            if (eventName !== 'lead') {
+                this.pushEvent(eventName, {
+                    form_provider: 'hubspot',
+                    form_id: formId,
+                    lead_context: {
+                        provider: 'hubspot',
+                        form_id: formId,
+                        submit_status: 'failed'
+                    }
+                });
+                return;
+            }
+
+            // Without a conversion ID the form and instance IDs may be identical for every
+            // visitor, so a per-page nonce keeps the server-side dedup key unique.
+            const conversionId = this.getHubSpotConversionId(event);
+            const instanceId = this.safeText(detail.instanceId || '', 40);
+            this.pushHubSpotLead(
+                formId,
+                conversionId || formId + '|' + instanceId + '|' + this.getHubSpotPageNonce()
+            );
+        }
+
+        getHubSpotConversionId(event) {
+            const api = window.HubSpotFormsV4;
+            if (!api || typeof api.getFormFromEvent !== 'function') return '';
+            try {
+                const form = api.getFormFromEvent(event);
+                const id = form && typeof form.getConversionId === 'function' ? form.getConversionId() : '';
+                return typeof id === 'string' || typeof id === 'number' ? this.safeText(id, 100) : '';
+            } catch (e) {
+                return '';
+            }
+        }
+
+        getHubSpotPageNonce() {
+            if (!this.hubspotPageNonce) {
+                this.hubspotPageNonce = Array.from(
+                    window.crypto.getRandomValues(new Uint8Array(6)),
+                    (b) => b.toString(16).padStart(2, '0')
+                ).join('');
+            }
+            return this.hubspotPageNonce;
+        }
+
+        // One lead per HubSpot submission, whether it arrives as a v4 event, a legacy
+        // hsFormCallback message, or both.
+        pushHubSpotLead(formId, reference) {
+            const eventId = 'hsform_' + reference;
+            if (!this.markOnce('lead|' + eventId) || !this.markOnce('lead|hubspot|' + formId, FORM_LEAD_DEDUPE_MS)) return;
+
+            this.pushEvent('lead', {
+                form_provider: 'hubspot',
+                form_id: formId,
+                lead_context: {
+                    provider: 'hubspot',
+                    form_id: formId,
+                    submit_status: 'success'
+                }
+            }, { eventId });
         }
 
         consumeServerEvents() {
@@ -2176,6 +2308,7 @@
             if (typeof data === 'string') {
                 type = data.toLowerCase();
             } else if (typeof data === 'object') {
+                if (data.type === 'hsFormCallback') return this.normalizeHubSpotCallback(data);
                 type = String(data.type || data.event || '').toLowerCase();
                 eventId = String(data.event_id || data.id || data.token || '');
             } else {
@@ -2203,7 +2336,29 @@
                 event_name: isBooked ? 'book_appointment' : 'lead',
                 submit_status: 'success',
                 external_id: eventId || this.generateEventId('ext'),
+                id_supplied: !!eventId,
                 provider
+            };
+        }
+
+        /**
+         * Legacy HubSpot form callback message. Only `onFormSubmitted` (submission persisted)
+         * counts; the payload's `data` holds the submitted field values and is never read.
+         * https://developers.hubspot.com/docs/cms/start-building/features/forms/legacy-forms
+         */
+        normalizeHubSpotCallback(data) {
+            if (data.eventName !== 'onFormSubmitted') return null;
+            const rawId = typeof data.id === 'string' || typeof data.id === 'number' ? data.id : '';
+            const formId = this.safeText(rawId, 60);
+            if (!formId) return null;
+
+            return {
+                event_name: 'lead',
+                submit_status: 'success',
+                external_id: formId + '|legacy|' + this.getHubSpotPageNonce(),
+                id_supplied: true,
+                provider: 'hubspot',
+                hubspot_form_id: formId
             };
         }
 
@@ -2296,6 +2451,14 @@
     }
 
     let trackerInstance = null;
+
+    // HubSpot recommends defining form-event listeners before its embed runs, so these are
+    // registered at script load. They do nothing until the tracker exists (consent granted).
+    Object.keys(HUBSPOT_FORM_EVENTS).forEach((type) => {
+        window.addEventListener(type, (event) => {
+            if (trackerInstance) trackerInstance.trackHubSpotFormEvent(event, HUBSPOT_FORM_EVENTS[type]);
+        });
+    });
 
     function initTracking() {
         if (trackerInstance) return;

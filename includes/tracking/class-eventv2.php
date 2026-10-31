@@ -33,6 +33,7 @@ class EventV2 implements CanonicalEventInterfaceV2 {
 		'cta_click'           => true,
 		'form_start'          => true,
 		'form_submit_attempt' => true,
+		'form_submit_failed'  => true,
 		'lead'                => true,
 		'login'               => true,
 		'sign_up'             => true,
