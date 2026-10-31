@@ -2,6 +2,7 @@ Changelog
 ========
 
 = Unreleased =
+* Docs: aligned documentation with current code from the 2026-10-31 coverage audit (#149). Corrected the pt-BR playbook `gclid` row (no Google Ads upload client exists), the MASTER-SPECIFICATION click-ID/browser-identifier counts (16 captured, 10 in the D3 selection, 7 browser identifiers) and adapter support-level wording (registry `native_delivery` vs ledger `source_present_runtime_unverified`), the DATA-MODEL `ct_visitor_id`/`ct_session_id` consent gate (marketing grant, or consent not required in the attribution runtime), the 1.8.0 `event_id` dedup change-record entry, and the payment-referrer docs (card-issuer 3-D Secure / ACS hosts need the `clicutcl_ignored_referrer_hosts` filter and GA4 unwanted referrals; `payment-referrer.test.js` runs with `requireConsent: false`). No code changes.
 * GTM starter kit: every GA4 event tag now forwards stored attribution as `ct_ft_source`, `ct_ft_medium`, `ct_ft_campaign`, `ct_ft_channel`, `ct_lt_source`, `ct_lt_medium`, `ct_lt_campaign`, `ct_lt_channel`, and `ct_click_id` (new `JS - selected click id` plus `DLV - wbraid/gbraid/msclkid/ttclid`); Meta Pixel tags are built with `consentSettings` `NEEDED` for `ad_storage` and `ad_user_data`; Meta tags keep Event ID from `{{DLV - event_id}}`. Rebuilt `assets/gtm-starter-kit.json` from `assets/build-starter-kit.py`; `tools/qa/gtm-starter-kit.test.js` runs under `npm run test:attribution` (#146).
 
 = 1.11.2 =
