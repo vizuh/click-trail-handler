@@ -1159,6 +1159,8 @@
                 marker.name = FILL_MARKER_NAME;
                 form.appendChild(marker);
             }
+            // The attribute is the form's reset default (CF7 resets the form after an AJAX success).
+            marker.setAttribute('value', 'js');
             marker.value = 'js';
         },
 

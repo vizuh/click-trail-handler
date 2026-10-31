@@ -196,8 +196,9 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 			}
 
 			foreach ( $inputs as $input_id => $name ) {
-				if ( 0 === strpos( $name, $this->field_prefix ) ) {
-					$targets[ 'input_' . str_replace( '.', '_', $input_id ) ] = substr( $name, strlen( $this->field_prefix ) );
+				$key = $this->mapped_key( $name );
+				if ( null !== $key ) {
+					$targets[ 'input_' . str_replace( '.', '_', $input_id ) ] = $key;
 				}
 			}
 		}

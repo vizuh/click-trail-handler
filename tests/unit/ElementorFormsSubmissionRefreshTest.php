@@ -111,7 +111,7 @@ namespace {
 				array(
 					'name'         => self::field( 'name', 'Jonas', 'text' ),
 					'ct_gclid'     => self::field( 'ct_gclid', 'old' ),
-					'ct_utm_term'  => self::field( 'ct_utm_term', 'x' ),
+					'ct_ft_term'  => self::field( 'ct_ft_term', 'x' ),
 					'ct_ft_source' => self::field( 'ct_ft_source', '' ),
 				)
 			);
@@ -145,7 +145,7 @@ namespace {
 			$this->opt_in_to_server_render();
 			$form    = new ClickTrailElementorFormDouble();
 			$adapter = new Elementor_Forms_Adapter();
-			$missing = array( 'custom_id' => 'ct_utm_term', 'field_type' => 'hidden', 'field_value' => 'x' );
+			$missing = array( 'custom_id' => 'ct_ft_term', 'field_type' => 'hidden', 'field_value' => 'x' );
 			$other   = array( 'custom_id' => 'token', 'field_type' => 'hidden', 'field_value' => 't' );
 
 			$this->assertSame( $missing, $adapter->render_hidden_field( $missing, 0, $form ) );
@@ -161,12 +161,12 @@ namespace {
 			$this->assertSame(
 				array(
 					array( 'ct_gclid', 'value', 'new' ),
-					array( 'ct_utm_term', 'value', '' ),
+					array( 'ct_ft_term', 'value', '' ),
 					array( 'ct_ft_source', 'value', 'google' ),
 				),
 				$record->updates
 			);
-			$this->assertSame( '', $record->fields['ct_utm_term']['value'], 'A key the cookie lacks may be another visitor\'s value (#152).' );
+			$this->assertSame( '', $record->fields['ct_ft_term']['value'], 'A key the cookie lacks may be another visitor\'s value (#152).' );
 			$this->assertSame( 'Jonas', $record->fields['name']['value'] );
 		}
 
@@ -210,10 +210,40 @@ namespace {
 			$this->assertSame( array(), $form->attributes );
 
 			$adapter->refresh_record( $record, null );
-			foreach ( array( 'ct_gclid', 'ct_utm_term', 'ct_ft_source' ) as $id ) {
+			foreach ( array( 'ct_gclid', 'ct_ft_term', 'ct_ft_source' ) as $id ) {
 				$this->assertSame( '', $record->fields[ $id ]['value'], "$id is blanked before the form actions run." );
 			}
 			$this->assertSame( 'Jonas', $record->fields['name']['value'] );
+		}
+
+		public function test_an_unmapped_ct_field_is_never_touched(): void {
+			$this->in_each_state(
+				function ( string $state ): void {
+					$record = new ClickTrailElementorRecordDouble(
+						array(
+							'ct_company' => self::field( 'ct_company', 'Acme', 'text' ),
+							'ct_gclid'   => self::field( 'ct_gclid', 'A1' ),
+						)
+					);
+					( new Elementor_Forms_Adapter() )->refresh_record( $record, null );
+					$this->assertSame( 'Acme', $record->fields['ct_company']['value'], "ct_company is the visitor's own field ($state)." );
+				}
+			);
+		}
+
+		/**
+		 * Run $check in each state: valid cookie, consent blocked, no cookie.
+		 */
+		private function in_each_state( callable $check ): void {
+			$check( 'valid cookie' );
+
+			$_COOKIE = array();
+			$check( 'no cookie' );
+
+			$GLOBALS['clicktrail_test_consent_required']     = true;
+			$GLOBALS['clicktrail_test_consent_mode_enabled'] = true;
+			$_COOKIE['production_consent']                   = 'denied';
+			$check( 'consent blocked' );
 		}
 	}
 }

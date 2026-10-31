@@ -102,8 +102,9 @@ class Elementor_Forms_Adapter extends Abstract_Form_Adapter {
 
 		$posted = array();
 		foreach ( $fields as $field_id => $field ) {
-			if ( 0 === strpos( (string) $field_id, $this->field_prefix ) ) {
-				$posted[ substr( (string) $field_id, strlen( $this->field_prefix ) ) ] = is_array( $field ) ? ( $field['value'] ?? '' ) : '';
+			$key = $this->mapped_key( $field_id );
+			if ( null !== $key ) {
+				$posted[ $key ] = is_array( $field ) ? ( $field['value'] ?? '' ) : '';
 			}
 		}
 		if ( empty( $posted ) ) {
@@ -153,8 +154,9 @@ class Elementor_Forms_Adapter extends Abstract_Form_Adapter {
 		if ( is_array( $raw_fields ) ) {
 			foreach ( array_keys( $raw_fields ) as $field_id ) {
 				$prefixed = (string) $field_id;
-				if ( 0 === strpos( $prefixed, $this->field_prefix ) ) {
-					$posted[ substr( $prefixed, strlen( $this->field_prefix ) ) ] = $fields[ sanitize_key( $prefixed ) ] ?? '';
+				$key      = $this->mapped_key( $prefixed );
+				if ( null !== $key ) {
+					$posted[ $key ] = $fields[ sanitize_key( $prefixed ) ] ?? '';
 				}
 			}
 		}

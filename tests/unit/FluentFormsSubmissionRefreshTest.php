@@ -62,7 +62,7 @@ namespace {
 			return array(
 				'names'        => array( 'first_name' => 'Jonas' ),
 				'ct_gclid'     => 'old',
-				'ct_utm_term'  => 'x',
+				'ct_ft_term'  => 'x',
 				'ct_fbclid'    => 'stale-from-render',
 				'ct_ft_source' => '',
 				'ct_lt_source' => 'google',
@@ -74,7 +74,7 @@ namespace {
 
 			$this->assertSame( array( 'first_name' => 'Jonas' ), $out['names'] );
 			$this->assertSame( 'new', $out['ct_gclid'] );
-			$this->assertSame( '', $out['ct_utm_term'], 'Keys missing from the cookie are blanked (#152).' );
+			$this->assertSame( '', $out['ct_ft_term'], 'Keys missing from the cookie are blanked (#152).' );
 			$this->assertSame( '', $out['ct_fbclid'] );
 			$this->assertSame( 'google', $out['ct_ft_source'], 'An empty posted value is filled.' );
 			$this->assertSame( 'meta', $out['ct_lt_source'], 'A non-empty posted value is replaced too (per key, not only when all are empty).' );
@@ -148,13 +148,64 @@ namespace {
 			$adapter                                         = new ClickTrailFluentRefreshLogSpy();
 
 			$out = $adapter->refresh_response_data( $this->form_data(), 7, array() );
-			foreach ( array( 'ct_gclid', 'ct_utm_term', 'ct_fbclid', 'ct_ft_source', 'ct_lt_source' ) as $name ) {
+			foreach ( array( 'ct_gclid', 'ct_ft_term', 'ct_fbclid', 'ct_ft_source', 'ct_lt_source' ) as $name ) {
 				$this->assertSame( '', $out[ $name ], "$name is blanked before Fluent Forms stores it." );
 			}
 			$this->assertSame( array( 'first_name' => 'Jonas' ), $out['names'] );
 
 			$adapter->on_submission( 42, $this->form_data(), (object) array( 'id' => 7 ) );
 			$this->assertSame( array(), $adapter->logged );
+		}
+
+		public function test_an_unmapped_ct_field_is_never_touched(): void {
+			$this->in_each_state(
+				function ( string $state ): void {
+					$out = ( new Fluent_Forms_Adapter() )->refresh_response_data( array( 'ct_company' => 'Acme', 'ct_gclid' => 'A1' ), 7, array() );
+					$this->assertSame( 'Acme', $out['ct_company'], "ct_company is the visitor's own field ($state)." );
+				}
+			);
+		}
+
+		public function test_a_cookieless_marker_filled_submit_is_logged_although_fluent_strips_the_marker(): void {
+			$_COOKIE = array();
+			$adapter = new ClickTrailFluentRefreshLogSpy();
+			// Fluent drops the undeclared marker before the filter; it only survives in the raw AJAX request.
+			$_POST = array( 'data' => 'ct_gclid=A1&ct_fill_source=js' );
+
+			$refreshed = $adapter->refresh_response_data( array( 'ct_gclid' => 'A1' ), 7, array() );
+			$this->assertSame( array( 'ct_gclid' => 'A1' ), $refreshed );
+
+			// submission_inserted receives the refreshed copy, with no marker and no $_POST.
+			$_POST = array();
+			$adapter->on_submission( 42, $refreshed, (object) array( 'id' => 7 ) );
+			$this->assertSame( array( array( 7, array( 'gclid' => 'A1' ) ) ), $adapter->logged );
+		}
+
+		public function test_a_cookieless_unmarked_submit_is_blanked_and_not_logged(): void {
+			$_COOKIE = array();
+			$_POST   = array( 'data' => 'ct_gclid=A1' );
+			$adapter = new ClickTrailFluentRefreshLogSpy();
+
+			$refreshed = $adapter->refresh_response_data( array( 'ct_gclid' => 'A1' ), 7, array() );
+			$adapter->on_submission( 42, $refreshed, (object) array( 'id' => 7 ) );
+
+			$this->assertSame( array( 'ct_gclid' => '' ), $refreshed );
+			$this->assertSame( array(), $adapter->logged );
+		}
+
+		/**
+		 * Run $check in each state: valid cookie, consent blocked, no cookie.
+		 */
+		private function in_each_state( callable $check ): void {
+			$check( 'valid cookie' );
+
+			$_COOKIE = array();
+			$check( 'no cookie' );
+
+			$GLOBALS['clicktrail_test_consent_required']     = true;
+			$GLOBALS['clicktrail_test_consent_mode_enabled'] = true;
+			$_COOKIE['production_consent']                   = 'denied';
+			$check( 'consent blocked' );
 		}
 	}
 }

@@ -69,7 +69,7 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 		}
 		if ( ! empty( $field['css'] ) && is_string( $field['css'] ) ) {
 			foreach ( preg_split( '/\s+/', trim( $field['css'] ) ) as $token ) {
-				if ( 0 === strpos( $token, $this->field_prefix ) ) {
+				if ( null !== $this->mapped_key( $token ) ) {
 					return $token;
 				}
 			}

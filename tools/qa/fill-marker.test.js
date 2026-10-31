@@ -27,7 +27,11 @@ function input(name, value = '') {
 }
 
 function form(inputs) {
-  const f = { tagName: 'FORM', nodeType: 1, elements: [], appendChild(el) { el.form = f; el.parentNode = f; f.elements.push(el); return el; }, removeChild(el) { f.elements = f.elements.filter((e) => e !== el); el.parentNode = null; el.form = null; } };
+  const f = {
+    tagName: 'FORM', nodeType: 1, elements: [],
+    // Like the DOM: reset restores each control's value to its value attribute.
+    reset() { f.elements.forEach((el) => { el.value = el.hasAttribute('value') ? el.getAttribute('value') : ''; }); },
+    appendChild(el) { el.form = f; el.parentNode = f; f.elements.push(el); return el; }, removeChild(el) { f.elements = f.elements.filter((e) => e !== el); el.parentNode = null; el.form = null; } };
   inputs.forEach((i) => f.appendChild(i));
   return f;
 }
@@ -109,6 +113,13 @@ const tests = {
     document.dispatchEvent({ type: 'wpcf7init' });
     document.dispatchEvent({ type: 'wpcf7init' });
     assert.strictEqual(markers(filled).length, 1);
+  },
+
+  'the marker survives form.reset() after an AJAX success'() {
+    const filled = form([input('ct_gclid')]);
+    boot([filled]);
+    filled.reset();
+    assert.strictEqual(markers(filled)[0].value, 'js', 'the value attribute is the reset default');
   },
 
   'the marker is never itself filled from attribution data'() {

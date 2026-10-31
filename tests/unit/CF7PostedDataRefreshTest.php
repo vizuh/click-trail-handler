@@ -52,7 +52,7 @@ namespace {
 			return array(
 				'your-name'      => 'Jonas',
 				'ct_gclid'       => 'old',
-				'ct_utm_term'    => 'x',
+				'ct_ft_term'    => 'x',
 				'ct_fbclid'      => 'stale-from-render',
 				'ct_lt_campaign' => '',
 			);
@@ -63,7 +63,7 @@ namespace {
 
 			$this->assertSame( 'Jonas', $out['your-name'] );
 			$this->assertSame( 'new', $out['ct_gclid'], 'A non-empty cookie key replaces the posted value.' );
-			$this->assertSame( '', $out['ct_utm_term'], 'Keys missing from the cookie are blanked: they may be another visitor\'s (#152).' );
+			$this->assertSame( '', $out['ct_ft_term'], 'Keys missing from the cookie are blanked: they may be another visitor\'s (#152).' );
 			$this->assertSame( '', $out['ct_fbclid'], 'A stale or foreign value is blanked when the cookie lacks the key.' );
 			$this->assertSame( "o'brien", $out['ct_lt_campaign'], 'Posted data is already unslashed, so the value is not slashed.' );
 		}
@@ -112,7 +112,7 @@ namespace {
 			$out = ( new CF7_Adapter() )->refresh_posted_data( $this->posted() );
 
 			$this->assertSame( 'Jonas', $out['your-name'] );
-			foreach ( array( 'ct_gclid', 'ct_utm_term', 'ct_fbclid', 'ct_lt_campaign' ) as $name ) {
+			foreach ( array( 'ct_gclid', 'ct_ft_term', 'ct_fbclid', 'ct_lt_campaign' ) as $name ) {
 				$this->assertSame( '', $out[ $name ], "$name is blanked before CF7 mails or stores it." );
 			}
 		}
@@ -170,6 +170,30 @@ namespace {
 
 		public function test_non_array_input_passes_through(): void {
 			$this->assertNull( ( new CF7_Adapter() )->refresh_posted_data( null ) );
+		}
+
+		public function test_an_unmapped_ct_field_is_never_touched(): void {
+			$cookie = $_COOKIE;
+			$run    = function ( string $state ): void {
+				$out = ( new CF7_Adapter() )->refresh_posted_data( array( 'ct_company' => 'Acme', 'ct_gclid' => 'A1' ) );
+				$this->assertSame( 'Acme', $out['ct_company'], "ct_company is the visitor's own field ($state)." );
+			};
+			$this->in_each_state( $run );
+		}
+
+		/**
+		 * Run $check in each state: valid cookie, consent blocked, no cookie.
+		 */
+		private function in_each_state( callable $check ): void {
+			$check( 'valid cookie' );
+
+			$_COOKIE = array();
+			$check( 'no cookie' );
+
+			$GLOBALS['clicktrail_test_consent_required']     = true;
+			$GLOBALS['clicktrail_test_consent_mode_enabled'] = true;
+			$_COOKIE['production_consent']                   = 'denied';
+			$check( 'consent blocked' );
 		}
 	}
 }

@@ -149,5 +149,38 @@ namespace {
 			$GLOBALS['clicktrail_test_filters']['clicutcl_render_server_attribution_values'] = static fn() => true;
 			$this->assertSame( 'test62', $adapter->populate_fields_dynamic( 'gf-default', $field, 'ct_ft_source' ) );
 		}
+
+		public function test_an_unmapped_ct_input_is_never_touched(): void {
+			$this->in_each_state(
+				function ( string $state ): void {
+					$form  = array(
+						'id'     => 1,
+						'fields' => array(
+							(object) array( 'id' => 20, 'type' => 'text', 'allowsPrepopulate' => true, 'inputName' => 'ct_company' ),
+						),
+					);
+					$_POST = array( 'input_20' => 'Acme' );
+
+					( new Gravity_Forms_Adapter() )->refresh_submitted_fields( $form );
+
+					$this->assertSame( 'Acme', $_POST['input_20'], "ct_company is the visitor's own input ($state)." );
+				}
+			);
+		}
+
+		/**
+		 * Run $check in each state: valid cookie, consent blocked, no cookie.
+		 */
+		private function in_each_state( callable $check ): void {
+			$check( 'valid cookie' );
+
+			$_COOKIE = array();
+			$check( 'no cookie' );
+
+			$GLOBALS['clicktrail_test_consent_required']     = true;
+			$GLOBALS['clicktrail_test_consent_mode_enabled'] = true;
+			$_COOKIE['production_consent']                   = 'denied';
+			$check( 'consent blocked' );
+		}
 	}
 }

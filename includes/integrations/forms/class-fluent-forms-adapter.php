@@ -89,6 +89,43 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 	}
 
 	/**
+	 * Marker decision per form ID for the current request, recorded by refresh_response_data().
+	 *
+	 * @var array<int,bool>
+	 */
+	private static $fill_markers = array();
+
+	/**
+	 * Whether this submit carries the Injector's `ct_fill_source=js` marker.
+	 *
+	 * Fluent Forms intersects the posted data with the form's declared fields before
+	 * `fluentform/insert_response_data`, which drops the undeclared marker, so the raw AJAX
+	 * request (`data` is a urlencoded string, `SubmissionHandlerController`) is read as well.
+	 *
+	 * @param array $form_data Response data.
+	 * @return bool
+	 */
+	private function request_has_fill_marker( $form_data ) {
+		if ( isset( $form_data[ self::FILL_MARKER_FIELD ] ) && $this->has_fill_marker( $form_data[ self::FILL_MARKER_FIELD ] ) ) {
+			return true;
+		}
+
+		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Fluent Forms verifies its own request; the value is compared to a constant and never stored.
+		$raw = isset( $_POST['data'] ) ? wp_unslash( $_POST['data'] ) : array();
+		if ( is_string( $raw ) ) {
+			$parsed = array();
+			parse_str( $raw, $parsed );
+			$raw = $parsed;
+		}
+		if ( is_array( $raw ) && isset( $raw[ self::FILL_MARKER_FIELD ] ) && $this->has_fill_marker( $raw[ self::FILL_MARKER_FIELD ] ) ) {
+			return true;
+		}
+
+		return isset( $_POST[ self::FILL_MARKER_FIELD ] ) && $this->has_fill_marker( wp_unslash( $_POST[ self::FILL_MARKER_FIELD ] ) );
+		// phpcs:enable WordPress.Security.NonceVerification.Missing
+	}
+
+	/**
 	 * Resolve the ct_* keys of the response data at submit time (#152).
 	 *
 	 * Runs on `fluentform/insert_response_data` before Fluent Forms stores the entry, so the
@@ -107,13 +144,18 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 			return $form_data;
 		}
 
-		$marker = isset( $form_data[ self::FILL_MARKER_FIELD ] ) && $this->has_fill_marker( $form_data[ self::FILL_MARKER_FIELD ] );
+		$marker = $this->request_has_fill_marker( $form_data );
 		unset( $form_data[ self::FILL_MARKER_FIELD ] );
+		// `fluentform_submission_inserted` receives this refreshed copy, not the raw request, so
+		// carry the keep/blank decision to on_submission(). The raw request still holds the marker
+		// when the legacy alias runs this a second time.
+		self::$fill_markers[ (int) $form_id ] = $marker;
 
 		$posted = array();
 		foreach ( $form_data as $name => $value ) {
-			if ( 0 === strpos( (string) $name, $this->field_prefix ) ) {
-				$posted[ substr( (string) $name, strlen( $this->field_prefix ) ) ] = $value;
+			$key = $this->mapped_key( $name );
+			if ( null !== $key ) {
+				$posted[ $key ] = $value;
 			}
 		}
 		if ( empty( $posted ) ) {
@@ -158,15 +200,17 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 		$form      = $arg3;
 		$payload   = $this->get_attribution_payload();
 
-		// Re-apply the rule refresh_response_data() applied before insert (pure, idempotent). If
-		// this hook receives the already-refreshed copy the marker is gone, which can only blank,
-		// never leak.
-		$marker = isset( $form_data[ self::FILL_MARKER_FIELD ] ) && $this->has_fill_marker( $form_data[ self::FILL_MARKER_FIELD ] );
+		// Re-apply the rule refresh_response_data() applied before insert. Fluent Forms passes the
+		// refreshed copy here (SubmissionHandlerService::processSubmissionData() reads
+		// `$this->formData`), whose marker was stripped, so use the decision recorded at refresh.
+		$form_id = isset( $arg3->id ) ? (int) $arg3->id : 0;
+		$marker  = $this->request_has_fill_marker( $form_data ) || ! empty( self::$fill_markers[ $form_id ] );
 		unset( $form_data[ self::FILL_MARKER_FIELD ] );
 		$posted = array();
 		foreach ( $form_data as $name => $value ) {
-			if ( 0 === strpos( (string) $name, $this->field_prefix ) ) {
-				$posted[ substr( (string) $name, strlen( $this->field_prefix ) ) ] = $value;
+			$key = $this->mapped_key( $name );
+			if ( null !== $key ) {
+				$posted[ $key ] = $value;
 			}
 		}
 		$carries_ct_field = ! empty( $posted );

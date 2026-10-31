@@ -340,17 +340,35 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 	}
 
 	/**
+	 * Attribution key for a posted field name, or null when it is not ClickTrail's.
+	 *
+	 * Only `ct_<key>` names whose key is in `Attribution_Provider::get_field_mapping()` belong to
+	 * ClickTrail; a visitor-typed field such as `ct_company` must never be rewritten or blanked.
+	 *
+	 * @param mixed $name Posted field name.
+	 * @return string|null
+	 */
+	protected function mapped_key( $name ) {
+		$name = (string) $name;
+		if ( 0 !== strpos( $name, $this->field_prefix ) ) {
+			return null;
+		}
+		$key = substr( $name, strlen( $this->field_prefix ) );
+		return in_array( $key, Attribution_Provider::get_field_mapping(), true ) ? $key : null;
+	}
+
+	/**
 	 * Resolve the submit-time attribution set for posted ct_* values.
 	 *
 	 * Consent blocked: every key blank. Readable cookie present: the cookie is authoritative and
 	 * keys it lacks are blank. Cookie absent: posted values survive only with the JS fill marker.
 	 *
-	 * @param array $posted Posted values keyed by attribution key (without the `ct_` prefix).
+	 * @param array $posted Posted values keyed by mapped attribution key (without the `ct_` prefix).
 	 * @param bool  $marker Whether the form posted `ct_fill_source=js`.
-	 * @return array Value per mapped key and per posted key; '' for blanked keys.
+	 * @return array Value per mapped key; '' for blanked keys.
 	 */
 	protected function resolve_submitted_attribution( array $posted, $marker ) {
-		$keys = array_unique( array_merge( Attribution_Provider::get_field_mapping(), array_keys( $posted ) ) );
+		$keys = Attribution_Provider::get_field_mapping();
 		$out  = array_fill_keys( $keys, '' );
 
 		if ( ! $this->refresh_allowed() ) {
@@ -368,6 +386,9 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 
 		if ( $marker ) {
 			foreach ( $posted as $key => $value ) {
+				if ( ! isset( $out[ $key ] ) ) {
+					continue;
+				}
 				$out[ $key ] = is_scalar( $value ) ? sanitize_text_field( (string) $value ) : '';
 			}
 		}

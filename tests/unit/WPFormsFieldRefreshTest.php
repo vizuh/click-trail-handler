@@ -195,5 +195,40 @@ namespace {
 			$this->assertContains( 'wpforms_field_properties', $GLOBALS['ct_wpforms_filters'] );
 			$this->assertContains( 'wpforms_process_filter', $GLOBALS['ct_wpforms_filters'] );
 		}
+
+		public function test_an_unmapped_ct_field_is_never_touched(): void {
+			$this->in_each_state(
+				function ( string $state ): void {
+					$form_data = array(
+						'id'     => 9,
+						'fields' => array(
+							8 => array( 'id' => 8, 'type' => 'text', 'label' => 'Company', 'css' => 'ct_company' ),
+							9 => array( 'id' => 9, 'type' => 'text', 'label' => 'ct_company', 'css' => '' ),
+						),
+					);
+					$fields    = array(
+						8 => array( 'name' => 'Company', 'value' => 'Acme', 'id' => 8, 'type' => 'text' ),
+						9 => array( 'name' => 'ct_company', 'value' => 'Acme2', 'id' => 9, 'type' => 'text' ),
+					);
+
+					$this->assertSame( $fields, ( new WPForms_Adapter() )->refresh_fields( $fields, array(), $form_data ), "Unmapped class and label markers are left alone ($state)." );
+				}
+			);
+		}
+
+		/**
+		 * Run $check in each state: valid cookie, consent blocked, no cookie.
+		 */
+		private function in_each_state( callable $check ): void {
+			$check( 'valid cookie' );
+
+			$_COOKIE = array();
+			$check( 'no cookie' );
+
+			$GLOBALS['clicktrail_test_consent_required']     = true;
+			$GLOBALS['clicktrail_test_consent_mode_enabled'] = true;
+			$_COOKIE['production_consent']                   = 'denied';
+			$check( 'consent blocked' );
+		}
 	}
 }

@@ -91,8 +91,9 @@ class CF7_Adapter extends Abstract_Form_Adapter {
 
 		$posted = array();
 		foreach ( $posted_data as $name => $value ) {
-			if ( 0 === strpos( (string) $name, $this->field_prefix ) ) {
-				$posted[ substr( (string) $name, strlen( $this->field_prefix ) ) ] = $value;
+			$key = $this->mapped_key( $name );
+			if ( null !== $key ) {
+				$posted[ $key ] = $value;
 			}
 		}
 		if ( empty( $posted ) ) {
