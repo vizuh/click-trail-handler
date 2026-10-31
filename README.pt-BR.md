@@ -17,7 +17,7 @@ O ClickTrail registra o que chegou. Ele não decide o que causou a venda.
 Escolha o caminho que combina com o seu site.
 
 - **Loja WooCommerce**: ative Capture e WooCommerce. Os pedidos passam a levar a campanha. Ative os eventos de vitrine depois, se quiser sinais de funil.
-- **Formulários de leads**: ative Capture e Forms. Contact Form 7 e Fluent Forms recebem os campos ocultos sozinhos. Gravity Forms e WPForms preenchem os campos `ct_*` que você adicionar.
+- **Formulários de leads**: ative Capture e Forms. Contact Form 7 e Fluent Forms recebem os campos ocultos sozinhos. Gravity Forms e WPForms preenchem os campos `ct_*` que você adicionar (o WPForms Lite não tem campo Hidden: use um campo de Texto de Linha Única com a classe CSS `ct_<chave>` e oculte-o com CSS).
 - **GTM ou GTM server-side**: ative Capture, Events e Delivery. Os eventos vão para o `dataLayer`, e o ClickTrail pode enviar JSON canônico para um endpoint que você definir.
 
 Depois, faça um pedido de teste ou envie um formulário de teste e veja o que ficou salvo. O [guia de casos de uso](docs/guides/USE-CASES.md) e os [tutoriais](docs/tutorials/README.md) mostram cada caminho.
