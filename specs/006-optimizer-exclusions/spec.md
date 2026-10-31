@@ -97,7 +97,7 @@ Some optimizers decide exclusions from a PHP list, not from tag attributes, or a
 
 ### Key Entities
 
-- **Exclusion attribute set**: the six attributes in FR-002, applied to the `src` tag of each ClickTrail handle.
+- **Exclusion attribute set**: the five attributes in FR-002, applied to the `src` tag of each ClickTrail handle. `data-nitropack-exclude` is separate and only present when NitroPack is active (`class-nitropack-compat.php:42-46`).
 - **Vendor filter list**: the per-vendor list entries (URL path, file name or handle) registered through the filters in R3.
 - **ClickTrail handles**: `clicutcl-consent-bridge-js`, `clicutcl-attribution-js`, `clicutcl-consent-js`, `clicutcl-events-js` (`class-clicutcl-core.php:230-306`).
 
@@ -105,10 +105,10 @@ Some optimizers decide exclusions from a PHP list, not from tag attributes, or a
 
 ### Measurable Outcomes
 
-- **SC-001**: PHPUnit: 4 handles x 6 attributes, each present exactly once, with and without Gravity Forms, after one and after two filter passes.
+- **SC-001**: PHPUnit: 4 handles x 5 attributes, each present exactly once, with and without Gravity Forms, after one and after two filter passes.
 - **SC-002**: PHPUnit: every registered vendor callback returns the input list plus exactly four ClickTrail entries.
 - **SC-003**: PHPUnit: a non-ClickTrail handle is returned byte-identical.
-- **SC-004**: Throwaway WordPress (`tools/qa/e2e`): the HTML of the landing page shows all four tags with the six attributes and the consent snippet with `nowprocket`; the run is recorded in research.md and the docs drop runtime-unverified only then. A run with WP Rocket Delay JS enabled on the same pod is a separate, optional proof.
+- **SC-004**: Throwaway WordPress (`tools/qa/e2e`) with consent mode and browser event collection enabled so that all four handles are enqueued (`class-clicutcl-core.php:257-295` enqueues the consent and events scripts conditionally): the HTML of the landing page shows all four tags with the five attributes and the consent snippet with `nowprocket`; the run is recorded in research.md and the docs drop runtime-unverified only then. A run with WP Rocket Delay JS enabled on the same pod is a separate, optional proof.
 
 ## Assumptions
 

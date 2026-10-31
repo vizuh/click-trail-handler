@@ -43,6 +43,7 @@ The Fluent Forms adapter stops preferring posted `ct_*` values with an all-empty
 3. **Given** posted `ct_ft_source = ''` and `ct_lt_source = 'google'` and a cookie with both keys, **Then** both are rewritten (per key, not only when every posted value is empty).
 4. **Given** consent required and absent, **Then** `$formData` is returned unchanged and `on_submission()` still returns early.
 5. **Given** both the slash and the legacy hook fire for one submission, **Then** the rewrite is idempotent (same output on the second run).
+6. **Given** a form with zero `ct_*` fields and a cookie present, **Then** no provider field is written and `log_submission()` receives the cookie payload (today's behaviour for such forms). This is the only case where the cookie is read without a matching field; the all-empty fallback at `class-fluent-forms-adapter.php:139-142` is removed. Same rule for Elementor (`class-elementor-forms-adapter.php:86-88`).
 
 ---
 

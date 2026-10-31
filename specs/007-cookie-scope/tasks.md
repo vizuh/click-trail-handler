@@ -29,8 +29,7 @@
 - [ ] T014 Add `ct_cookie_scope` to the key inventory checked by `tools/qa/cmp-transition.test.js` and to the storage table (Necessary, local, holds only the applied domain). — `tools/qa/cmp-transition.test.js`, `docs/guides/SECURITY-PRIVACY.md:107-113`
 - [ ] T015 Docs per FR-009: `DATA-MODEL.md:248-272` (scope line per cookie), `SECURITY-PRIVACY.md` (Scope column), `IMPLEMENTATION-PLAYBOOK.md:278-299` (new subsection "Same domain, different hosts: cookie scope" vs "Different domains: cross-domain token"), `HOOKS-REFERENCE.md` (`clicutcl_public_suffixes`), `SETTINGS-AND-ADMIN.md` (Capture tab), `CODE-MAP.md` (new class, new test), `readme.txt`, `README.en.md`, `changelog.txt`. — docs
 - [ ] T016 Live acceptance (SC-004) on a disposable site serving `www` and apex; record the result in research.md and drop the runtime-unverified label only after it passes. — open
-- [ ] T017 Comment on #141 with the `Cookie_Scope::resolve()` signature so the server re-issue consumes it (US5). — issue thread only
 
 ## Dependencies
 
-T001 → T002, T004, T005, T006. T002 → T003. T004 → T007–T010. T007 → T011, T012. T007–T012 → T013. T013 → T014, T015. T016 after T013. T017 after T001.
+T001 → T002, T004, T005, T006. T002 → T003. T004 → T007–T010. T007 → T011, T012. T007–T012 → T013. T013 → T014, T015. T016 after T013. US5: #141 consumes `Cookie_Scope::resolve()`; no task here.

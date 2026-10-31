@@ -16,7 +16,7 @@ A visitor with marketing consent lands on `www.example.com/?gclid=X` and convert
 
 **Why this priority**: Today `Store.setCookie` (`assets/js/clicutcl-attribution.js:578-594`) writes `path=/; SameSite=Lax` with no `domain`, and the same shape is repeated in `clicutcl-events.js:546-555`, `clicutcl-consent.js:165-174` and `clicutcl-consent-bridge.js:178-189`. No `cookie_domain` or `cookie_scope` setting exists under `includes/`. The cross-domain token path targets different registrable domains and does nothing for www / apex / subdomain hops that start without a decorated link.
 
-**Independent Test**: Run the real `clicutcl-attribution.js` in a Node VM (`tools/qa/cookie-scope.test.js`) with a `document.cookie` jar that records the `domain` attribute, set `clicutcl_config.cookieDomain`, and assert every write and every delete.
+**Independent Test**: Run each of the four real scripts (`clicutcl-attribution.js`, `clicutcl-events.js`, `clicutcl-consent.js`, `clicutcl-consent-bridge.js`) in a Node VM (`tools/qa/cookie-scope.test.js`) with a `document.cookie` jar that records the `domain` attribute, set the localized `cookieDomain` for each script's config object, and assert every write and every delete per script.
 
 **Acceptance Scenarios**:
 
@@ -111,7 +111,7 @@ When #141 adds a PHP re-issue of the attribution cookie, it calls `Cookie_Scope:
 
 ### Measurable Outcomes
 
-- **SC-001**: VM test: 100% of writes and expiries for the six cookie names carry the identical `domain` attribute under `registrable`, and 0 carry one under `host`.
+- **SC-001**: VM test: 100% of writes and expiries for the seven cookie names in FR-006 carry the identical `domain` attribute under `registrable`, and 0 carry one under `host`; the legacy `ct_attribution` expiry (`clicutcl-attribution.js:675-680`) is asserted explicitly.
 - **SC-002**: VM test: after migration exactly one `attribution` cookie remains in the jar and its value equals the pre-migration host-only value; a second boot performs 0 cookie writes for migration.
 - **SC-003**: PHPUnit: `co.uk`, `github.io`, `127.0.0.1`, `localhost` and a filtered suffix all resolve to `""`; `www.example.com` resolves to `example.com`; `custom = other.com` on `www.example.com` sanitises to `host`.
 - **SC-004**: Live: a tagged landing on `www.<site>` followed by a CF7 submission on `<site>` apex shows `ct_gclid` in the entry. Until this passes the feature stays runtime-unverified.
