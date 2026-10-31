@@ -190,7 +190,8 @@
       "docs_target": "docs/guides/SETTINGS-AND-ADMIN.md",
       "smoke_test_ids": [
         "admin-save-capture",
-        "admin-get-admin-settings"
+        "admin-get-admin-settings",
+        "optimizer-exclusion-attributes"
       ]
     },
     "forms_capture": {
@@ -390,7 +391,6 @@
         "gf-per-form-toggle",
         "gf-entry-edit-safety",
         "gf-admin-qa-mode",
-        "gf-script-minification-protection",
         "gf-session-storage-fallback"
       ]
     }

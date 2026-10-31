@@ -4,7 +4,7 @@
 - **Canonical for**: integration roles, source evidence, status boundaries, providers, forms, webhooks, GTM, and delivery adapter keys
 - **Update when**: integration support level, adapter list, provider contract, evidence status, or capability messaging changes
 - **Provider-wide audit baseline**: plugin code `1.9.0`, commit `a45aa9e`, reviewed 2026-08-19
-- **Current release**: plugin code `1.11.0` on GitHub and WordPress.org, with automated consent, queue, WooCommerce privacy, CF7 outcome, touch-event deduplication, CMP decision-transition, Calendly webhook, and attribution round-trip E2E (`tools/qa/e2e/`, CI) coverage; the live Calendly booking round trip remains unverified. HubSpot embedded form capture (new in 1.11.0) has a Node VM contract test only
+- **Current release**: plugin code `1.11.1` on GitHub and WordPress.org, with automated consent, queue, WooCommerce privacy, CF7 outcome, touch-event deduplication, CMP decision-transition, Calendly webhook, and attribution round-trip E2E (`tools/qa/e2e/`, CI) coverage; the live Calendly booking round trip remains unverified. HubSpot embedded form capture (new in 1.11.0) has a Node VM contract test only. The 1.11.1 Gravity Forms first-page fix has a PHPUnit test only
 - **Runtime verification**: provider-wide E2E remains incomplete; bounded WooCommerce and Fluent Forms evidence is recorded below, while six form manifests remain explicitly runtime-unverified
 - **Machine-readable ledger**: [`integration-capabilities.json`](integration-capabilities.json)
 
@@ -240,6 +240,10 @@ Keep cached HTML visitor-neutral. ClickTrail browser capture reads the actual vi
 a form action. The executable smoke regression in `tools/qa/smoke.js` pins the case where Visitor B loads
 `/` while cached markup still contains `/?gclid=visitor-a`: Visitor B's ClickTrail payload remains clean.
 
+#### Optimizer exclusions
+
+`includes/integrations/class-optimizer-compat.php` (`Optimizer_Compat`, registered from core bootstrap next to `NitroPack_Compat`) adds `nowprocket data-no-optimize="1" data-no-defer="1" data-noptimize="1" data-cfasync="false"` to the `src` tag of `clicutcl-consent-bridge-js`, `clicutcl-attribution-js`, `clicutcl-consent-js` and `clicutcl-events-js` through `wp_script_attributes` (WordPress 6.5+ `wp_get_script_tag()`), with `script_loader_tag` as string fallback; each attribute is inserted at most once. Vendors: `nowprocket` (WP Rocket Delay JS), `data-no-optimize="1"` and `data-no-defer="1"` (LiteSpeed Cache), `data-noptimize="1"` (Autoptimize), `data-cfasync="false"` (Cloudflare Rocket Loader). Vendor filters registered unconditionally (inert when the vendor is absent): WP Rocket (`rocket_delay_js_exclusions`, `rocket_exclude_defer_js`, `rocket_exclude_js`), LiteSpeed Cache (`litespeed_optm_js_exc`, `litespeed_optm_js_defer_exc`, `litespeed_optm_gm_js_exc`), Autoptimize (`autoptimize_filter_js_exclude`), Perfmatters (`perfmatters_delay_js_exclusions`, `perfmatters_defer_js_exclusions`, `perfmatters_minify_js_exclusions`) and SiteGround Speed Optimizer (`sgo_js_minify_exclude`, `sgo_javascript_combine_exclude`, `sgo_js_async_exclude`). The inline `clicktrail-consent-mode` snippet carries `nowprocket data-no-defer="1"`. NitroPack keeps `data-nitropack-exclude="true"` and `nitropack_js_url_exclude` in `NitroPack_Compat`. To check: view the page source, confirm every `clicutcl-*.js` tag carries the attributes, and confirm `window.ClickTrail` is defined before submitting a form. Delay-JS features run scripts on the first interaction (WP Rocket lists `keydown`, `mousemove`, `touchstart`, `scroll`, `click`, `input`, `onsubmit`), so a keyboard-only submit still runs them, too late for the landing touch. FlyingPress exposes no attribute or filter: add `clicutcl` and `clicktrail-consent-mode` to its exclusion field. Source-present / runtime-unverified.
+
 ### Form-readiness evidence contract (M5 first slice)
 
 The source tree contains a pure, versioned presence comparator at
@@ -297,7 +301,8 @@ What the current source paths implement:
 - push purchase event to `dataLayer` only when current visitor consent permits processing, and at most once per order: the thank-you path claims `clicutcl_purchase_lock_<order_id>` with a request-unique token (`wp_cache_add()` with a persistent object cache, else an `add_option()` row `<token>|<time>`; a row older than 30 s is taken over only through a row-conditional delete of the exact stale value) before building or emitting anything, so concurrent thank-you loads emit one `dataLayer` push and one server dispatch; the release after `_clicutcl_tracking_sent` is saved is owner-checked, so a dispatch that outlives the 30 s TTL may overlap with a successor but cannot release the successor's lock (#148, source-present / runtime-unverified)
 - optionally emit storefront `view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, and `begin_checkout` browser events
 - preserve `item_list_name` and `item_list_index` when list context is available
-- optionally widen Woo `dataLayer` pushes with `event_id` and consent-aware `user_data` for GTM-first setups
+- push `event_id` (`purchase_<order_id>`, same as the server purchase event) on every thank-you `purchase` push regardless of `woo_enhanced_datalayer` (#139)
+- optionally widen Woo `dataLayer` pushes with consent-aware `user_data` for GTM-first setups
 - store purchase and milestone trace snapshots on the order for Diagnostics lookup
 - optionally dispatch purchase and order-status milestone events into the server-side delivery pipeline
 

@@ -5,7 +5,7 @@ Author URI: https://vizuh.com
 Tags: attribution, utm, consent mode, woocommerce, server-side tracking
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 1.11.0
+Stable tag: 1.11.1
 Requires PHP: 8.1
 WC requires at least: 10.4.2
 License: GPLv2 or later
@@ -78,7 +78,7 @@ Having code for an integration is not proof that it works in production. Current
 * **Webhooks**: Calendly, HubSpot, Typeform
 * **Server-side adapter keys**: generic collector, sGTM, Meta CAPI, Google Ads / GA4, LinkedIn CAPI, Pinterest Conversions API, TikTok Events API (status above)
 * **Extra fields captured**: `utm_id`, `utm_source_platform`, `utm_creative_format`, `utm_marketing_tactic`, `fbc`, `fbp`, `_ttp`, `li_gc`, `ga_client_id`, `ga_session_id`
-* **Caching and minification**: ClickTrail script tags carry exclusion attributes for Autoptimize, Cloudflare Rocket Loader, WP Rocket, and LiteSpeed Cache.
+* **Caching and minification**: on every site, the four ClickTrail script tags (`clicutcl-consent-bridge-js`, `clicutcl-attribution-js`, `clicutcl-consent-js`, `clicutcl-events-js`) carry `nowprocket data-no-optimize="1" data-no-defer="1" data-noptimize="1" data-cfasync="false"`: `nowprocket` (WP Rocket Delay JS), `data-no-optimize="1"` and `data-no-defer="1"` (LiteSpeed Cache), `data-noptimize="1"` (Autoptimize), `data-cfasync="false"` (Cloudflare Rocket Loader). The same scripts are registered on the exclusion filters of WP Rocket (`rocket_delay_js_exclusions`, `rocket_exclude_defer_js`, `rocket_exclude_js`), LiteSpeed Cache (`litespeed_optm_js_exc`, `litespeed_optm_js_defer_exc`, `litespeed_optm_gm_js_exc`), Autoptimize (`autoptimize_filter_js_exclude`), Perfmatters (`perfmatters_delay_js_exclusions`, `perfmatters_defer_js_exclusions`, `perfmatters_minify_js_exclusions`) and SiteGround Speed Optimizer (`sgo_js_minify_exclude`, `sgo_javascript_combine_exclude`, `sgo_js_async_exclude`); NitroPack adds `data-nitropack-exclude="true"` and `nitropack_js_url_exclude` when active. The inline consent-default snippet carries `nowprocket data-no-defer="1"`. To check: view the page source, confirm every `clicutcl-*.js` tag carries the attributes, and confirm `window.ClickTrail` is defined before submitting a form. Delay-JS features run scripts on the first interaction (WP Rocket lists `keydown`, `mousemove`, `touchstart`, `scroll`, `click`, `input`, `onsubmit`), so a keyboard-only submit still runs them, too late for the landing touch. FlyingPress exposes no attribute or filter: add `clicutcl` and `clicktrail-consent-mode` to its exclusion field. Source-present / runtime-unverified.
 
 == Installation ==
 
@@ -159,7 +159,7 @@ No. WooCommerce is one documented conversion surface; ClickTrail also has lead-f
 
 = What happens if my site uses aggressive caching? =
 
-ClickTrail includes a client-side fallback and dynamic-content support so attribution can still reach supported form fields when server-rendered fields are not enough.
+ClickTrail includes a client-side fallback and dynamic-content support so attribution can still reach supported form fields when server-rendered fields are not enough. Minify, combine, defer and delay-JS features are handled too: every ClickTrail script tag carries `nowprocket data-no-optimize="1" data-no-defer="1" data-noptimize="1" data-cfasync="false"` and the scripts are listed on the exclusion filters of WP Rocket (`rocket_delay_js_exclusions`, `rocket_exclude_defer_js`, `rocket_exclude_js`), LiteSpeed Cache (`litespeed_optm_js_exc`, `litespeed_optm_js_defer_exc`, `litespeed_optm_gm_js_exc`), Autoptimize (`autoptimize_filter_js_exclude`), Perfmatters (`perfmatters_delay_js_exclusions`, `perfmatters_defer_js_exclusions`, `perfmatters_minify_js_exclusions`) and SiteGround Speed Optimizer (`sgo_js_minify_exclude`, `sgo_javascript_combine_exclude`, `sgo_js_async_exclude`). To check: view the page source, confirm every `clicutcl-*.js` tag carries the attributes, and confirm `window.ClickTrail` is defined before submitting a form. Delay-JS features run scripts on the first interaction (WP Rocket lists `keydown`, `mousemove`, `touchstart`, `scroll`, `click`, `input`, `onsubmit`), so a keyboard-only submit still runs them, too late for the landing touch. FlyingPress exposes no attribute or filter: add `clicutcl` and `clicktrail-consent-mode` to its exclusion field. Source-present / runtime-unverified.
 
 = Do I need to add hidden fields to every form? =
 
@@ -192,6 +192,9 @@ The entries below are historical release notes. They do not replace the current 
 behavior that still requires current runtime verification. In particular, older wording that calls platform-named
 server paths “first-class native delivery adapters” predates the current evidence classification: those paths are
 configured-endpoint relays whose provider authentication, acceptance, and runtime delivery remain unverified.
+
+= 1.11.1 =
+* Gravity Forms: a visitor who submits a form on the first page they land on now stores ClickTrail attribution in the form's `ct_*` fields. Before, those fields stayed empty unless the visitor opened another page first.
 
 = 1.11.0 =
 * WooCommerce: a buyer who pays on PayPal, Stripe Checkout, Mollie, Klarna or another payment page and comes back to your thank-you page keeps the ad or campaign they arrived from. Before, the return could replace the last-touch source with the payment site.
