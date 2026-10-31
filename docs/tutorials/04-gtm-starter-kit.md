@@ -22,7 +22,11 @@ consent-law compliance, or destination delivery.
 5. Review triggers and tags. Do not publish yet.
 
 The export expects ClickTrail data-layer events to include a top-level `event`
-key. It uses `event_id` for Meta `eventId` and reads
+key. It uses `event_id` for Meta `eventId`; the WooCommerce thank-you
+`purchase` push carries `event_id = purchase_<order_id>` on every install,
+matching the server-side purchase event, so the Meta Pixel `Purchase` and
+the CAPI copy dedupe without enabling `woo_enhanced_datalayer` (#139,
+source-present / runtime-unverified). It reads
 `marketing_trail.consent.advertising` with a missing-value default of `false`.
 The Meta PageView tag accepts both `ct_page_view` from WordPress and
 `page_view` from JavaScript. Google tags retain their native GTM consent

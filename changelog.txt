@@ -2,6 +2,7 @@ Changelog
 ========
 
 = Unreleased =
+* WooCommerce: the thank-you `purchase` dataLayer push now always carries `event_id` (`purchase_<order_id>`, the same ID the server-side purchase event uses) instead of only when `woo_enhanced_datalayer` is on (#139). That toggle defaults to `0`, so on a default install the GTM Meta Pixel `Purchase` had no Event ID to match against the CAPI copy and the order counted twice. `WooCommerce::build_purchase_datalayer_payload()` moves `event_id` out of the enhanced gate; `user_data` stays gated by `woo_enhanced_datalayer` / `woo_include_user_data`. Source-present / runtime-unverified in a live store.
 * Gravity Forms: a visitor who submits a form on the page they landed on now stores ClickTrail attribution in the form's `ct_*` dynamic-population fields. Gravity Forms renders those fields server-side from the attribution cookie, and on the landing page that request runs before the browser writes the cookie, so they posted empty (on a later page they were filled, which is why navigating first worked). `Gravity_Forms_Adapter::refresh_submitted_fields()` on `gform_pre_submission` now sets each such input from the cookie sent with the submit, so a stale value from a previous touch is replaced too; keys the cookie lacks keep the posted value, and consent and the per-form toggle apply. Reported on WordPress.org ("Gravity Forms Issue on First Page Load Form Submission"). Unit-tested (`tests/unit/GravityFormsSubmissionRefreshTest.php`); not yet verified against a live Gravity Forms install.
 
 = 1.11.0 =
