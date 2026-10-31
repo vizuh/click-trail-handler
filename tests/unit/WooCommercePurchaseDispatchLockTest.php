@@ -260,6 +260,10 @@ namespace {
 			return 'buyer@example.com';
 		}
 
+		public function get_billing_country() {
+			return 'PT';
+		}
+
 		public function get_billing_phone() {
 			return '';
 		}
