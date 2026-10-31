@@ -7,8 +7,10 @@
         'hs-form-event:on-submission:success': 'lead',
         'hs-form-event:on-submission:failed': 'form_submit_failed'
     };
-    // A v4 event and a legacy hsFormCallback for the same form inside this window are one submission.
-    const HUBSPOT_LEAD_DEDUPE_MS = 10000;
+    // The same provider success signal for the same form instance inside this window is one
+    // submission: a double-fired hook, a retried AJAX send, or a v4 event plus a legacy
+    // hsFormCallback for the same HubSpot form.
+    const FORM_LEAD_DEDUPE_MS = 10000;
 
     /**
      * ClickTrail Events Tracking
@@ -31,8 +33,7 @@
                 ? window.clicutclEventsConfig.iframeOrigins
                 : [];
             this.formStarts = new WeakSet();
-            this.externalMarkers = new Set();
-            this.hubspotLeadTimes = new Map();
+            this.externalMarkers = new Map();
             this.hubspotPageNonce = '';
             this.sessionId = '';
             this.visitorId = '';
@@ -773,8 +774,10 @@
             }, true);
 
             document.addEventListener('wpcf7mailsent', (e) => {
-                const formId = e && e.detail && e.detail.contactFormId ? String(e.detail.contactFormId) : '';
-                this.pushEvent('lead', {
+                const detail = e && e.detail ? e.detail : {};
+                const formId = detail.contactFormId ? String(detail.contactFormId) : '';
+                const unitTag = this.safeText(detail.unitTag || '', 60);
+                this.pushLeadOnce('lead|cf7|' + formId + '|' + unitTag, FORM_LEAD_DEDUPE_MS, {
                     form_provider: 'cf7',
                     form_id: formId,
                     lead_context: {
@@ -2138,17 +2141,57 @@
                     return;
                 }
 
-                const marker = normalized.event_name + '|' + normalized.external_id;
-                if (this.externalMarkers.has(marker)) return;
-                this.externalMarkers.add(marker);
-
-                this.pushEvent(normalized.event_name, {
+                const params = {
                     lead_context: {
                         provider: normalized.provider,
                         submit_status: normalized.submit_status
                     }
-                });
+                };
+
+                if (normalized.event_name === 'lead') {
+                    // A message that names its submission dedupes on that ID for the page's
+                    // lifetime; one that does not dedupes per provider inside the window.
+                    this.pushLeadOnce(
+                        normalized.id_supplied
+                            ? 'lead|' + normalized.external_id
+                            : 'lead|' + normalized.provider,
+                        normalized.id_supplied ? 0 : FORM_LEAD_DEDUPE_MS,
+                        params
+                    );
+                    return;
+                }
+
+                if (!this.markOnce(normalized.event_name + '|' + normalized.external_id)) return;
+                this.pushEvent(normalized.event_name, params);
             });
+        }
+
+        /**
+         * Record `key` as seen and report whether this is its first sighting. With a positive
+         * `windowMs` a key counts as unseen again once the window has passed; without one it
+         * stays seen for the page's lifetime. A repeat does not refresh the mark.
+         */
+        markOnce(key, windowMs = 0) {
+            const now = Date.now();
+            const last = this.externalMarkers.get(key);
+            if (last !== undefined && !(windowMs > 0 && now - last >= windowMs)) return false;
+            this.externalMarkers.set(key, now);
+            return true;
+        }
+
+        /**
+         * Push a form-success `lead` unless `key` was already pushed inside `windowMs`.
+         * Consent is checked first so a denied attempt leaves no marker behind; the dropped
+         * repeat is silent (no `form_submit_failed`).
+         */
+        pushLeadOnce(key, windowMs, params, options = {}) {
+            const consentBridge = window.ClickTrailConsent;
+            if (!this.collectionEnabled || typeof consentBridge === 'undefined' || !consentBridge.isGranted()) return;
+            if (!this.markOnce(key, windowMs)) {
+                this.debugLog('Duplicate lead dropped:', key);
+                return;
+            }
+            this.pushEvent('lead', params, options);
         }
 
         /**
@@ -2210,12 +2253,7 @@
         // hsFormCallback message, or both.
         pushHubSpotLead(formId, reference) {
             const eventId = 'hsform_' + reference;
-            const marker = 'lead|' + eventId;
-            const now = Date.now();
-            const last = this.hubspotLeadTimes.get(formId) || 0;
-            if (this.externalMarkers.has(marker) || (last && now - last < HUBSPOT_LEAD_DEDUPE_MS)) return;
-            this.externalMarkers.add(marker);
-            this.hubspotLeadTimes.set(formId, now);
+            if (!this.markOnce('lead|' + eventId) || !this.markOnce('lead|hubspot|' + formId, FORM_LEAD_DEDUPE_MS)) return;
 
             this.pushEvent('lead', {
                 form_provider: 'hubspot',
@@ -2298,6 +2336,7 @@
                 event_name: isBooked ? 'book_appointment' : 'lead',
                 submit_status: 'success',
                 external_id: eventId || this.generateEventId('ext'),
+                id_supplied: !!eventId,
                 provider
             };
         }
@@ -2317,6 +2356,7 @@
                 event_name: 'lead',
                 submit_status: 'success',
                 external_id: formId + '|legacy|' + this.getHubSpotPageNonce(),
+                id_supplied: true,
                 provider: 'hubspot',
                 hubspot_form_id: formId
             };

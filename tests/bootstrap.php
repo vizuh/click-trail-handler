@@ -247,7 +247,7 @@ if ( ! function_exists( 'wp_json_encode' ) ) {
 
 if ( ! function_exists( 'wp_salt' ) ) {
 	function wp_salt( $scheme = 'auth' ) {
-		return 'test-salt-' . $scheme;
+		return $GLOBALS['clicktrail_test_wp_salt'] ?? 'test-salt-' . $scheme;
 	}
 }
 

@@ -69,7 +69,7 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 		}
 		if ( ! empty( $field['css'] ) && is_string( $field['css'] ) ) {
 			foreach ( preg_split( '/\s+/', trim( $field['css'] ) ) as $token ) {
-				if ( 0 === strpos( $token, $this->field_prefix ) ) {
+				if ( null !== $this->mapped_key( $token ) ) {
 					return $token;
 				}
 			}
@@ -83,7 +83,8 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 	}
 
 	/**
-	 * Fill a marked hidden field from the attribution cookie at render.
+	 * Fill a marked hidden field from the attribution cookie at render, only when
+	 * `clicutcl_render_server_attribution_values` opts in (cached HTML, #152).
 	 *
 	 * @param array $properties Field properties.
 	 * @param array $field      Field settings.
@@ -95,7 +96,7 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 			return $properties;
 		}
 		$name = $this->field_name( $field );
-		if ( '' === $name || ! $this->refresh_allowed() ) {
+		if ( '' === $name || ! $this->render_server_values_enabled() || ! $this->refresh_allowed() ) {
 			return $properties;
 		}
 
@@ -108,11 +109,11 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 	}
 
 	/**
-	 * Refresh marked fields from the cookie sent with the submit.
+	 * Resolve marked fields at submit time (#152).
 	 *
-	 * Runs on `wpforms_process_filter`, after validation and formatting and before
-	 * notifications and the entry are written. Per key: a non-empty cookie key wins, keys the
-	 * cookie lacks keep the posted value.
+	 * Runs on `wpforms_process_filter`, after validation and formatting and before notifications
+	 * and the entry are written. Readable cookie: authoritative, keys it lacks are blanked. No
+	 * cookie: blanked (WPForms inputs carry no Injector marker). Consent blocked: blanked.
 	 *
 	 * @param array $fields    Processed fields keyed by field ID.
 	 * @param array $entry     Raw entry (unused).
@@ -120,17 +121,14 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 	 * @return array
 	 */
 	public function refresh_fields( $fields, $entry, $form_data = array() ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed
-		if ( ! is_array( $fields ) || ! $this->refresh_allowed() ) {
-			return $fields;
-		}
-
-		$payload = $this->get_attribution_payload();
-		if ( empty( $payload ) ) {
+		if ( ! is_array( $fields ) ) {
 			return $fields;
 		}
 
 		$settings = isset( $form_data['fields'] ) && is_array( $form_data['fields'] ) ? $form_data['fields'] : array();
 
+		$posted = array();
+		$names  = array();
 		foreach ( $fields as $id => $field ) {
 			if ( ! is_array( $field ) || ! array_key_exists( 'value', $field ) ) {
 				continue;
@@ -140,11 +138,16 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 			if ( '' === $name ) {
 				continue;
 			}
+			$names[ $id ]            = substr( $name, strlen( $this->field_prefix ) );
+			$posted[ $names[ $id ] ] = $field['value'];
+		}
+		if ( empty( $names ) ) {
+			return $fields;
+		}
 
-			$value = $this->cookie_value_for( $name, $payload );
-			if ( null !== $value ) {
-				$fields[ $id ]['value'] = sanitize_text_field( $value );
-			}
+		$resolved = $this->resolve_submitted_attribution( $posted, false );
+		foreach ( $names as $id => $key ) {
+			$fields[ $id ]['value'] = $resolved[ $key ];
 		}
 
 		return $fields;
@@ -190,6 +193,10 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 		$form_id  = isset( $form_data['id'] ) ? absint( $form_data['id'] ) : 0;
 		$entry_id = absint( $entry_id );
 
+		// Log first: the entry meta carries the IDs it returns. A repeat of the same entry writes
+		// only the IDs the entry lacks (the first call wrote the rest, or died before it could).
+		$logged = $this->log_submission( 'wpforms', $form_id, $payload, $this->extract_identity_from_fields( $fields ), $entry_id );
+
 		// Save to WPForms entry meta only when a real entry exists.
 		// Lite installs and some processing paths may not provide one.
 		if (
@@ -200,7 +207,15 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 			is_object( wpforms()->entry_meta ) &&
 			method_exists( wpforms()->entry_meta, 'add' )
 		) {
-			foreach ( $payload as $key => $value ) {
+			$meta = $this->entry_meta_to_write(
+				$logged,
+				$payload,
+				function ( $meta_key ) use ( $entry_id ) {
+					return $this->wpforms_entry_has_meta( $entry_id, $meta_key );
+				}
+			);
+
+			foreach ( $meta as $key => $value ) {
 				$meta_key = $this->get_field_name( $key );
 				wpforms()->entry_meta->add(
 					array(
@@ -213,9 +228,32 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 				);
 			}
 		}
+	}
 
-		// Log to ClickTrail.
-		$this->log_submission( 'wpforms', $form_id, $payload, $this->extract_identity_from_fields( $fields ) );
+	/**
+	 * Whether a WPForms entry already has a meta row of this type.
+	 *
+	 * Uses `entry_meta->get_meta()`; without it the answer is "yes", so a repeat never writes
+	 * a second row it cannot rule out.
+	 *
+	 * @param int    $entry_id Entry ID.
+	 * @param string $type     Meta type (key).
+	 * @return bool
+	 */
+	private function wpforms_entry_has_meta( $entry_id, $type ) {
+		$entry_meta = wpforms()->entry_meta;
+		if ( ! method_exists( $entry_meta, 'get_meta' ) ) {
+			return true;
+		}
+
+		$rows = $entry_meta->get_meta(
+			array(
+				'entry_id' => $entry_id,
+				'type'     => $type,
+			)
+		);
+
+		return ! empty( $rows );
 	}
 
 	/**

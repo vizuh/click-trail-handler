@@ -49,7 +49,8 @@ class Elementor_Forms_Adapter extends Abstract_Form_Adapter {
 	}
 
 	/**
-	 * Fill a hidden field whose custom ID is `ct_<key>` from the attribution cookie at render.
+	 * Fill a hidden field whose custom ID is `ct_<key>` from the attribution cookie at render,
+	 * only when `clicutcl_render_server_attribution_values` opts in (cached HTML, #152).
 	 *
 	 * Elementor names the input `form_fields[<custom_id>]`, so the browser runtime's exact
 	 * `name="ct_*"` match cannot fill it; the server does. Form_Base already added the `value`
@@ -61,7 +62,7 @@ class Elementor_Forms_Adapter extends Abstract_Form_Adapter {
 	 * @return array
 	 */
 	public function render_hidden_field( $item, $item_index, $form = null ) {
-		if ( ! is_array( $item ) || empty( $item['custom_id'] ) || ! $this->refresh_allowed() ) {
+		if ( ! is_array( $item ) || empty( $item['custom_id'] ) || ! $this->render_server_values_enabled() || ! $this->refresh_allowed() ) {
 			return $item;
 		}
 
@@ -79,10 +80,11 @@ class Elementor_Forms_Adapter extends Abstract_Form_Adapter {
 	}
 
 	/**
-	 * Refresh each `ct_<key>` record field from the cookie sent with the submit.
+	 * Resolve each `ct_<key>` record field at submit time (#152).
 	 *
-	 * Per key: a non-empty cookie key wins, keys the cookie lacks keep the posted value. Fields
-	 * the form does not carry are never added.
+	 * Readable cookie: authoritative, keys it lacks are blanked. No cookie: blanked (Elementor
+	 * inputs are not named `ct_*`, so no Injector marker). Consent blocked: blanked. Fields the
+	 * form does not carry are never added.
 	 *
 	 * @param object $record       Form_Record instance.
 	 * @param object $ajax_handler Ajax handler (unused).
@@ -92,25 +94,26 @@ class Elementor_Forms_Adapter extends Abstract_Form_Adapter {
 		if ( ! is_object( $record ) || ! method_exists( $record, 'get' ) || ! method_exists( $record, 'update_field' ) ) {
 			return;
 		}
-		if ( ! $this->refresh_allowed() ) {
-			return;
-		}
 
 		$fields = $record->get( 'fields' );
 		if ( ! is_array( $fields ) ) {
 			return;
 		}
 
-		$payload = $this->get_attribution_payload();
-		if ( empty( $payload ) ) {
+		$posted = array();
+		foreach ( $fields as $field_id => $field ) {
+			$key = $this->mapped_key( $field_id );
+			if ( null !== $key ) {
+				$posted[ $key ] = is_array( $field ) ? ( $field['value'] ?? '' ) : '';
+			}
+		}
+		if ( empty( $posted ) ) {
 			return;
 		}
 
-		foreach ( array_keys( $fields ) as $field_id ) {
-			$value = $this->cookie_value_for( (string) $field_id, $payload );
-			if ( null !== $value ) {
-				$record->update_field( $field_id, 'value', sanitize_text_field( $value ) );
-			}
+		$resolved = $this->resolve_submitted_attribution( $posted, false );
+		foreach ( array_keys( $posted ) as $key ) {
+			$record->update_field( $this->get_field_name( $key ), 'value', $resolved[ $key ] );
 		}
 	}
 
@@ -146,24 +149,22 @@ class Elementor_Forms_Adapter extends Abstract_Form_Adapter {
 		$payload     = $this->get_attribution_payload();
 		$attribution = array();
 
-		// Per key, the same rule refresh_record() applied before the actions ran: a non-empty
-		// cookie key wins, keys the cookie lacks keep the posted value. Idempotent here.
-		$carries_ct_field = false;
+		// The rule refresh_record() applied before the actions ran, re-applied (pure, idempotent).
+		$posted = array();
 		if ( is_array( $raw_fields ) ) {
 			foreach ( array_keys( $raw_fields ) as $field_id ) {
 				$prefixed = (string) $field_id;
-				if ( 0 !== strpos( $prefixed, $this->field_prefix ) ) {
-					continue;
+				$key      = $this->mapped_key( $prefixed );
+				if ( null !== $key ) {
+					$posted[ $key ] = $fields[ sanitize_key( $prefixed ) ] ?? '';
 				}
-				$carries_ct_field = true;
-
-				$value = $this->cookie_value_for( $prefixed, $payload );
-				if ( null === $value ) {
-					$value = $fields[ sanitize_key( $prefixed ) ] ?? '';
-				}
-				$value = sanitize_text_field( $value );
-				if ( '' !== $value ) {
-					$attribution[ substr( $prefixed, strlen( $this->field_prefix ) ) ] = $value;
+			}
+		}
+		$carries_ct_field = ! empty( $posted );
+		if ( $carries_ct_field ) {
+			foreach ( $this->resolve_submitted_attribution( $posted, false ) as $key => $value ) {
+				if ( '' !== $value && array_key_exists( $key, $posted ) ) {
+					$attribution[ $key ] = $value;
 				}
 			}
 		}

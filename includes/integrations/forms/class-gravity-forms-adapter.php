@@ -104,6 +104,16 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 	}
 
 	/**
+	 * Unprefixed keys ClickTrail stores as entry meta: the attribution key set plus the
+	 * `event_id` / `lead_id` pair `log_submission()` returns (#143).
+	 *
+	 * @return string[]
+	 */
+	private function tracking_meta_keys() {
+		return array_merge( Attribution_Provider::get_field_mapping(), array( 'event_id', 'lead_id' ) );
+	}
+
+	/**
 	 * Declare ClickTrail attribution keys as Gravity Forms entry meta.
 	 *
 	 * @param array $entry_meta Existing entry meta definitions.
@@ -111,8 +121,7 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 	 * @return array
 	 */
 	public function register_entry_meta( $entry_meta, $form_id ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
-		$keys = Attribution_Provider::get_field_mapping();
-		foreach ( $keys as $key ) {
+		foreach ( $this->tracking_meta_keys() as $key ) {
 			$meta_key                = $this->get_field_name( $key );
 			$entry_meta[ $meta_key ] = array(
 				'label'             => 'ClickTrail: ' . ucwords( str_replace( '_', ' ', $key ) ),
@@ -135,7 +144,8 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 		if ( 0 !== strpos( $name, $this->field_prefix ) ) {
 			return $value;
 		}
-		if ( ! $this->should_populate() ) {
+		// Server-rendered values are opt-in: a page cache would serve one visitor's cookie to another (#152).
+		if ( ! $this->render_server_values_enabled() || ! $this->should_populate() ) {
 			return $value;
 		}
 
@@ -153,11 +163,13 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 	}
 
 	/**
-	 * Refresh ct_* dynamic-population inputs from the attribution cookie at submit time.
+	 * Resolve ct_* dynamic-population inputs at submit time (#152).
 	 *
-	 * The hidden values are rendered from the cookie the page request carried. On the
-	 * landing page that request runs before the browser writes the cookie, so the form
-	 * posts empty (or previous-touch) values. The cookie sent with the submission is current.
+	 * The hidden values come from whatever request rendered the page, which a page cache can make
+	 * another visitor's. The cookie sent with the submission is authoritative: its keys replace the
+	 * posted values and keys it lacks are blanked. GF inputs are named `input_N`, so the Injector
+	 * never marks them; without a cookie every `ct_*` input is blanked. Consent blocked blanks them
+	 * too. Runs before GF saves the entry.
 	 *
 	 * @param array $form Form object.
 	 */
@@ -165,19 +177,16 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 		if ( ! is_array( $form ) || empty( $form['fields'] ) || ! is_array( $form['fields'] ) ) {
 			return;
 		}
-		if ( ! $this->refresh_allowed() ) {
-			return;
-		}
 		$form_id = isset( $form['id'] ) ? absint( $form['id'] ) : 0;
-		if ( 0 !== $form_id && null !== $this->settings_tab && ! $this->settings_tab->is_enabled( $form_id, $form ) ) {
+		if (
+			$this->refresh_allowed() &&
+			0 !== $form_id && null !== $this->settings_tab && ! $this->settings_tab->is_enabled( $form_id, $form )
+		) {
 			return;
 		}
 
-		$payload = $this->get_attribution_payload();
-		if ( empty( $payload ) ) {
-			return;
-		}
-
+		// Collect every ct_* input of the form: POST key => attribution key.
+		$targets = array();
 		foreach ( $form['fields'] as $field ) {
 			// phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- GF core property.
 			if ( ! is_object( $field ) || empty( $field->allowsPrepopulate ) ) {
@@ -196,13 +205,27 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 			}
 
 			foreach ( $inputs as $input_id => $name ) {
-				$value = $this->cookie_value_for( $name, $payload );
-				if ( null === $value ) {
-					continue;
+				$key = $this->mapped_key( $name );
+				if ( null !== $key ) {
+					$targets[ 'input_' . str_replace( '.', '_', $input_id ) ] = $key;
 				}
-				// GF reads submitted values from $_POST, which WordPress keeps slashed.
-				$_POST[ 'input_' . str_replace( '.', '_', $input_id ) ] = wp_slash( $value );
 			}
+		}
+		if ( empty( $targets ) ) {
+			return;
+		}
+
+		$posted = array();
+		foreach ( $targets as $post_key => $key ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- GF verifies its own nonce; the value only feeds the resolver, which sanitizes it.
+			$posted[ $key ] = isset( $_POST[ $post_key ] ) && is_scalar( $_POST[ $post_key ] ) ? wp_unslash( $_POST[ $post_key ] ) : '';
+		}
+
+		// GF inputs never carry the Injector marker: no cookie means blank.
+		$resolved = $this->resolve_submitted_attribution( $posted, false );
+		foreach ( $targets as $post_key => $key ) {
+			// GF reads submitted values from $_POST, which WordPress keeps slashed.
+			$_POST[ $post_key ] = wp_slash( $resolved[ $key ] );
 		}
 	}
 
@@ -273,11 +296,20 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 			$payload['lt_channel'] = 'Unknown';
 		}
 
-		foreach ( $payload as $key => $value ) {
+		// Log first: the entry meta carries the IDs it returns. A repeat of the same entry writes
+		// only the IDs the entry lacks (the first call wrote the rest, or died before it could).
+		$logged = $this->log_submission( 'gravityforms', $form['id'], $payload, $this->extract_identity_from_entry( $entry, $form ), $entry['id'] ?? null );
+		$meta   = $this->entry_meta_to_write(
+			$logged,
+			$payload,
+			static function ( $meta_key ) use ( $entry ) {
+				return '' !== (string) \gform_get_meta( $entry['id'], $meta_key );
+			}
+		);
+
+		foreach ( $meta as $key => $value ) {
 			\gform_add_meta( $entry['id'], $this->get_field_name( $key ), $value );
 		}
-
-		$this->log_submission( 'gravityforms', $form['id'], $payload, $this->extract_identity_from_entry( $entry, $form ) );
 	}
 
 	/**
@@ -407,7 +439,7 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 			return;
 		}
 
-		foreach ( Attribution_Provider::get_field_mapping() as $key ) {
+		foreach ( $this->tracking_meta_keys() as $key ) {
 			$meta_key = $this->get_field_name( $key );
 
 			if ( ! isset( $original_entry[ $meta_key ] ) || '' === (string) $original_entry[ $meta_key ] ) {

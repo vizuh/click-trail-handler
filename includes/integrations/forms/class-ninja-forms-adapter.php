@@ -78,9 +78,9 @@ class Ninja_Forms_Adapter extends Abstract_Form_Adapter {
 			return $form_data;
 		}
 
-		if ( ! $this->should_populate() ) {
+		if ( ! $this->refresh_allowed() ) {
 			// Remove a stale ClickTrail extra that may have been added before
-			// consent was withdrawn; leave unrelated Ninja Forms extras intact.
+			// consent was withdrawn (submit-time consent is authoritative, #152); leave unrelated Ninja Forms extras intact.
 			if ( isset( $form_data['extra'] ) && is_array( $form_data['extra'] ) ) {
 				unset( $form_data['extra'][ Ninja_Forms_Submission_Extra_Handler::EXTRA_VALUE_KEY ] );
 				if ( empty( $form_data['extra'] ) ) {
@@ -145,7 +145,8 @@ class Ninja_Forms_Adapter extends Abstract_Form_Adapter {
 			'ninjaforms',
 			$this->resolve_form_identifier( $form_data ),
 			$attribution,
-			$form_data
+			$form_data,
+			$this->resolve_entry_identifier( $form_data )
 		);
 	}
 
@@ -281,5 +282,20 @@ class Ninja_Forms_Adapter extends Abstract_Form_Adapter {
 		}
 
 		return 0;
+	}
+
+	/**
+	 * Resolve the Ninja Forms submission ID, when the Save action stored one.
+	 *
+	 * @param array $form_data Submission payload.
+	 * @return int|null
+	 */
+	private function resolve_entry_identifier( $form_data ) {
+		$sub_id = $form_data['actions']['save']['sub_id'] ?? null;
+		if ( ! is_scalar( $sub_id ) || ! ctype_digit( trim( (string) $sub_id ) ) ) {
+			return null;
+		}
+
+		return (int) $sub_id;
 	}
 }

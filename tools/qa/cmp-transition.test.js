@@ -58,7 +58,7 @@ function element(tag, attrs = {}, value = '') {
     hasAttribute: (name) => name in at,
     removeAttribute: (name) => { delete at[name]; },
     dispatchEvent() {},
-    closest: () => el,
+    closest: (selector) => (selector === 'form' ? null : el), // the fixture elements sit outside any form
   };
   // Like the DOM, the href property and attribute are one value.
   Object.defineProperty(el, 'href', { get: () => at.href, set: (v) => { at.href = String(v); } });

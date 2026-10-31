@@ -140,6 +140,7 @@ Purpose:
 
 - store event log rows for the admin Logs screen
 - store form submission event payloads including resolved attribution and, when available, consent-aware identity fields
+- a `form_submission` row's `event_data` carries `event_id`, `lead_id` (`lead_` + the event ID without `evt_`; it matches the server-side event and is not the ID of the browser `lead` push), `platform`, `form_id`, `entry_id` (only when the provider has one), `attribution` and the IP-anonymized `identity`; there is one row per `(provider, form_id, entry_id)` (#140, #143)
 
 Columns:
 
@@ -147,6 +148,21 @@ Columns:
 - `event_type`
 - `event_data`
 - `created_at`
+
+## Form Entry Meta
+
+Written by the form adapters at submission time, after `log_submission()`, when consent allows. The first call of an entry writes attribution and IDs; a repeat writes only an ID the entry lacks (repairing a request that died between the dedupe mark and the meta write). `ct_event_id` / `ct_lead_id` are the values `log_submission()` returned, so a CRM sync that copies entry fields can carry an ID that matches the server-side event and the `clicutcl_events` row (#143). They do not match the browser `lead` push, whose ID is generated in the browser.
+
+| Provider | Store | Keys written | Source of IDs |
+| --- | --- | --- | --- |
+| Gravity Forms | entry meta (`gform_add_meta`), declared via `gform_entry_meta` and restored after an entry edit | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
+| WPForms | `wpforms()->entry_meta` (only when the entry ID is a real, positive ID) | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
+| Fluent Forms | `fluentform_submission_meta` (`response_id` = entry ID) | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
+| Ninja Forms | none | none | `clicutcl_events` row and action `clicutcl_form_submission_logged` |
+| Elementor Forms (Pro) | none | none | `clicutcl_events` row and action `clicutcl_form_submission_logged` |
+| Contact Form 7 | none | none | `clicutcl_events` row and action `clicutcl_form_submission_logged` |
+
+No ID is written when `log_submission()` returned early (consent denied or empty attribution), and a deduplicated repeat never rewrites an ID the entry already has.
 
 ## `wp_clicutcl_queue`
 
@@ -266,7 +282,7 @@ Notes:
 
 - `ct_session` stores the structured session object used by the current session manager and server-side readers
 - `ct_session_id` and `ct_visitor_id` remain lightweight browser identity fallbacks used by event helpers and compatibility paths
-- these identifiers are created only after marketing consent and are removed again on denial or withdrawal
+- these identifiers are minted only on consent-gated code paths and are removed again on denial or withdrawal. Attribution runtime (`Identity.sessionId()` / `Identity.visitorId()` in `clicutcl-attribution.js`): created on the first `Identity.get()` call, which only the capture run, the form injector and the API re-announce reach after the `liveConsentAllows()` gate. That gate is true when consent is resolved with marketing granted, or when consent is unresolved and the `requireConsent` setting is off — so with consent not required, the IDs are written without any explicit grant. Events runtime (`ensureIdentity()` in `clicutcl-events.js`): created on the first `pushEvent()`, which requires `ClickTrailConsent.isGranted()` (resolved with marketing granted) regardless of `requireConsent`. Both runtimes write `sessionStorage['ct_session_id']` + cookie (1 day) and `localStorage['ct_visitor_id']` + cookie (365 days), reuse an existing value, and fall back to the cookie when storage throws. Denial or withdrawal removes the storage keys and cookies (`Identity.clear()` in the attribution runtime, `clearIdentity()` in the events runtime on a `ct:consentResolved` without marketing). Source-present / runtime-unverified.
 - the richer session object is not stored in `sessionStorage['ct_session_id']`
 - pending attribution is not written to `sessionStorage` while consent is required and unresolved
 - the complete key inventory, with recommended CMP categories, lives in [`docs/guides/SECURITY-PRIVACY.md`](../guides/SECURITY-PRIVACY.md#browser-storage-inventory-and-cmp-classification); `tools/qa/cmp-transition.test.js` keeps it in sync
