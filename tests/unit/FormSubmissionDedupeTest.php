@@ -74,12 +74,28 @@ namespace {
 	 * Records Fluent submission-meta inserts.
 	 */
 	final class ClickTrailDedupeFluentDb {
-		public $rows  = array();
-		private $table = '';
+		public $rows    = array();
+		private $table   = '';
+		private $filters = array();
 
 		public function table( string $table ): self {
-			$this->table = $table;
+			$this->table   = $table;
+			$this->filters = array();
 			return $this;
+		}
+
+		public function where( string $column, $value ): self {
+			$this->filters[ $column ] = $value;
+			return $this;
+		}
+
+		public function first() {
+			foreach ( $this->rows as $insert ) {
+				if ( $insert['table'] === $this->table && array_intersect_assoc( $this->filters, $insert['row'] ) === $this->filters ) {
+					return (object) $insert['row'];
+				}
+			}
+			return null;
 		}
 
 		public function insert( array $row ): bool {
@@ -143,6 +159,7 @@ namespace {
 			$GLOBALS['clicktrail_test_transients']           = array();
 			$GLOBALS['clicktrail_test_dispatches']           = array();
 			$GLOBALS['clicktrail_test_actions']              = array();
+			unset( $GLOBALS['clicktrail_test_wp_salt'] );
 			$GLOBALS['clicktrail_test_consent_required']     = false;
 			$GLOBALS['clicktrail_test_consent_mode_enabled'] = false;
 			$this->db                                        = new ClickTrailDedupeWpdbStub();
@@ -175,6 +192,51 @@ namespace {
 			$this->assertSame( 'form_submission', $this->db->rows[0]['data']['event_type'] );
 			$this->assertCount( 1, $GLOBALS['clicktrail_test_dispatches'] );
 			$this->assertSame( $first['event_id'], $GLOBALS['clicktrail_test_dispatches'][0][3]['event_id'] );
+		}
+
+		public function test_event_id_is_an_hmac_of_the_dedupe_key_with_the_auth_salt(): void {
+			$adapter = new ClickTrailDedupeAdapter();
+
+			$result   = $adapter->record( 'gravityforms', 7, $this->attribution(), array(), 501 );
+			$expected = 'form_' . substr( hash_hmac( 'sha256', '1|gravityforms|7|entry|501', 'test-salt-auth' ), 0, 32 );
+
+			$this->assertSame( $expected, $result['event_id'] );
+		}
+
+		public function test_same_inputs_give_the_same_id_and_a_different_salt_a_different_one(): void {
+			$posted = array( 'your-email' => 'jane@example.test' );
+
+			$first = ( new ClickTrailDedupeAdapter() )->record( 'contact-form-7', 12, $this->attribution(), $posted )['event_id'];
+			$GLOBALS['clicktrail_test_transients'] = array();
+			$same = ( new ClickTrailDedupeAdapter() )->record( 'contact-form-7', 12, $this->attribution(), $posted )['event_id'];
+			$GLOBALS['clicktrail_test_transients'] = array();
+			$GLOBALS['clicktrail_test_wp_salt']    = 'another-site-salt';
+			$other = ( new ClickTrailDedupeAdapter() )->record( 'contact-form-7', 12, $this->attribution(), $posted )['event_id'];
+
+			$this->assertSame( $first, $same );
+			$this->assertNotSame( $first, $other );
+		}
+
+		public function test_a_raw_or_plainly_hashed_email_or_phone_never_appears_in_the_id_or_store_keys(): void {
+			$email  = 'jane@example.test';
+			$phone  = '+351912345678';
+			$result = ( new ClickTrailDedupeAdapter() )->record( 'contact-form-7', 12, $this->attribution(), array( 'your-email' => $email, 'your-phone' => $phone ) );
+
+			$haystack = $result['event_id'] . ' ' . implode( ' ', array_keys( $GLOBALS['clicktrail_test_transients'] ) ) . ' ' . wp_json_encode( $GLOBALS['clicktrail_test_transients'] );
+			foreach ( array( $email, $phone ) as $secret ) {
+				foreach ( array( $secret, sha1( $secret ), md5( $secret ), hash( 'sha256', $secret ) ) as $needle ) {
+					$this->assertStringNotContainsString( $needle, $haystack );
+				}
+			}
+		}
+
+		public function test_form_checks_do_not_count_toward_dedup_hit_miss_stats(): void {
+			$adapter = new ClickTrailDedupeAdapter();
+
+			$adapter->record( 'gravityforms', 7, $this->attribution(), array(), 501 );
+			$adapter->record( 'gravityforms', 7, $this->attribution(), array(), 501 );
+
+			$this->assertSame( 0, \CLICUTCL\Tracking\Dedup_Store::get_stats()['total_checks'] );
 		}
 
 		public function test_a_different_entry_form_or_provider_is_a_new_submission(): void {

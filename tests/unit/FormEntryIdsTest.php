@@ -67,7 +67,21 @@ namespace {
 
 	if ( ! function_exists( 'gform_add_meta' ) ) {
 		function gform_add_meta( $entry_id, $key, $value ) {
+			if ( ! empty( $GLOBALS['clicktrail_test_meta_write_fails'] ) ) {
+				throw new \RuntimeException( 'meta write failed' );
+			}
 			$GLOBALS['clicktrail_test_gf_meta'][] = array( $entry_id, $key, $value );
+		}
+	}
+
+	if ( ! function_exists( 'gform_get_meta' ) ) {
+		function gform_get_meta( $entry_id, $key ) {
+			foreach ( $GLOBALS['clicktrail_test_gf_meta'] as $row ) {
+				if ( $row[0] === $entry_id && $row[1] === $key ) {
+					return $row[2];
+				}
+			}
+			return false;
 		}
 	}
 
@@ -100,15 +114,37 @@ namespace {
 	 * Records Fluent submission-meta inserts.
 	 */
 	final class ClickTrailEntryIdsFluentDb {
-		public $rows   = array();
-		private $table = '';
+		public $rows    = array();
+		private $table   = '';
+		private $filters = array();
 
 		public function table( string $table ): self {
-			$this->table = $table;
+			$this->table   = $table;
+			$this->filters = array();
 			return $this;
 		}
 
+		public function where( string $column, $value ): self {
+			$this->filters[ $column ] = $value;
+			return $this;
+		}
+
+		public function first() {
+			foreach ( $this->rows as $insert ) {
+				if ( $insert['table'] !== $this->table ) {
+					continue;
+				}
+				if ( array_intersect_assoc( $this->filters, $insert['row'] ) === $this->filters ) {
+					return (object) $insert['row'];
+				}
+			}
+			return null;
+		}
+
 		public function insert( array $row ): bool {
+			if ( ! empty( $GLOBALS['clicktrail_test_meta_write_fails'] ) ) {
+				throw new \RuntimeException( 'meta write failed' );
+			}
 			$this->rows[] = array( 'table' => $this->table, 'row' => $row );
 			return true;
 		}
@@ -125,7 +161,21 @@ namespace {
 				public $rows = array();
 
 				public function add( array $row ) {
+					if ( ! empty( $GLOBALS['clicktrail_test_meta_write_fails'] ) ) {
+						throw new \RuntimeException( 'meta write failed' );
+					}
 					$this->rows[] = $row;
+				}
+
+				public function get_meta( array $args ) {
+					return array_values(
+						array_filter(
+							$this->rows,
+							static function ( $row ) use ( $args ) {
+								return $row['entry_id'] === $args['entry_id'] && $row['type'] === $args['type'];
+							}
+						)
+					);
 				}
 			};
 		}
@@ -219,6 +269,7 @@ namespace {
 			$GLOBALS['clicktrail_test_dispatches']           = array();
 			$GLOBALS['clicktrail_test_actions']              = array();
 			$GLOBALS['clicktrail_test_gf_meta']              = array();
+			$GLOBALS['clicktrail_test_meta_write_fails']     = false;
 			$GLOBALS['clicktrail_test_consent_required']     = false;
 			$GLOBALS['clicktrail_test_consent_mode_enabled'] = false;
 			$this->db                                        = new ClickTrailEntryIdsWpdb();
@@ -416,6 +467,76 @@ namespace {
 			$this->assertArrayNotHasKey( 'entry_id', $data );
 			$this->assertCount( 1, $actions );
 			$this->assertSame( array( 'elementor_forms', 'contact', null, $data['event_id'], $data['lead_id'] ), array_slice( $actions[0]['args'], 0, 5 ) );
+		}
+
+		public function test_gravity_forms_repeat_repairs_ids_missing_after_a_failed_first_write(): void {
+			$adapter = new ClickTrailEntryIdsGf();
+
+			$GLOBALS['clicktrail_test_meta_write_fails'] = true;
+			try {
+				$adapter->on_submission( array( 'id' => 501 ), array( 'id' => 7 ) );
+				$this->fail( 'The first meta write should have failed.' );
+			} catch ( \RuntimeException $e ) {
+				$this->assertSame( array(), $GLOBALS['clicktrail_test_gf_meta'] );
+			}
+			$GLOBALS['clicktrail_test_meta_write_fails'] = false;
+
+			$adapter->on_submission( array( 'id' => 501 ), array( 'id' => 7 ) );
+			$meta = $this->meta_map( array_map( static function ( $row ) {
+				return array( $row[1], $row[2] );
+			}, $GLOBALS['clicktrail_test_gf_meta'] ) );
+			$data = json_decode( $this->db->rows[0]['data']['event_data'], true );
+
+			$this->assertSame( array( 'ct_event_id', 'ct_lead_id' ), array_keys( $meta ), 'The repeat writes only the IDs.' );
+			$this->assertSame( $data['event_id'], $meta['ct_event_id'] );
+			$this->assertSame( $data['lead_id'], $meta['ct_lead_id'] );
+
+			$adapter->on_submission( array( 'id' => 501 ), array( 'id' => 7 ) );
+			$this->assertCount( 2, $GLOBALS['clicktrail_test_gf_meta'], 'Once present, the IDs are not written again.' );
+			$this->assertCount( 1, $this->db->rows );
+			$this->assertCount( 1, $this->logged_actions() );
+		}
+
+		public function test_wpforms_repeat_repairs_ids_missing_after_a_failed_first_write(): void {
+			$GLOBALS['clicktrail_test_wpforms'] = new ClickTrailEntryIdsWpformsDouble();
+			$adapter                            = new ClickTrailEntryIdsWpforms();
+
+			$GLOBALS['clicktrail_test_meta_write_fails'] = true;
+			try {
+				$adapter->on_submission( array(), array(), array( 'id' => 3 ), 88 );
+				$this->fail( 'The first meta write should have failed.' );
+			} catch ( \RuntimeException $e ) {
+				$this->assertSame( array(), $GLOBALS['clicktrail_test_wpforms']->entry_meta->rows );
+			}
+			$GLOBALS['clicktrail_test_meta_write_fails'] = false;
+
+			$adapter->on_submission( array(), array(), array( 'id' => 3 ), 88 );
+			$types = array_column( $GLOBALS['clicktrail_test_wpforms']->entry_meta->rows, 'type' );
+			$this->assertSame( array( 'ct_event_id', 'ct_lead_id' ), $types );
+
+			$adapter->on_submission( array(), array(), array( 'id' => 3 ), 88 );
+			$this->assertCount( 2, $GLOBALS['clicktrail_test_wpforms']->entry_meta->rows );
+			$this->assertCount( 1, $this->db->rows );
+		}
+
+		public function test_fluent_repeat_repairs_ids_missing_after_a_failed_first_write(): void {
+			$fluent_db                            = new ClickTrailEntryIdsFluentDb();
+			$GLOBALS['clicktrail_test_fluent_db'] = $fluent_db;
+			$adapter                              = new ClickTrailEntryIdsFluent();
+			$form                                 = (object) array( 'id' => 7 );
+
+			// Fluent's adapter swallows meta failures, so the first call "succeeds" with no meta.
+			$GLOBALS['clicktrail_test_meta_write_fails'] = true;
+			$adapter->on_submission( 42, array( 'ct_ft_source' => 'google' ), $form );
+			$this->assertSame( array(), $fluent_db->rows );
+			$GLOBALS['clicktrail_test_meta_write_fails'] = false;
+
+			$adapter->on_submission( 42, array( 'ct_ft_source' => 'google' ), $form );
+			$this->assertSame( array( 'ct_event_id', 'ct_lead_id' ), array_column( array_column( $fluent_db->rows, 'row' ), 'meta_key' ) );
+
+			$adapter->on_submission( 42, array( 'ct_ft_source' => 'google' ), $form );
+			$this->assertCount( 2, $fluent_db->rows );
+			$this->assertCount( 1, $this->db->rows );
 		}
 
 		public function test_denied_consent_writes_no_ids_and_fires_no_action(): void {

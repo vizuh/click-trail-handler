@@ -128,8 +128,8 @@ Flow:
 Form dedupe key (`log_submission()`):
 
 - providers with an entry ID (Gravity Forms, WPForms, Fluent Forms, Ninja Forms when its Save action stored a submission ID): `(site, provider, form_id, entry_id)`, held for a day
-- providers without one (Contact Form 7, Elementor Forms Pro): **best-effort** `(site, provider, form_id, sha1 of the submitted ct_* attribution values plus the email/phone found in the posted data, 10 s time bucket)`. A repeat that crosses a bucket boundary, or whose posted `ct_*` values differ, counts as a new submission; two visitors posting identical values inside one bucket count as one
-- the `event_id` is `form_` plus the first 32 hex characters of the key's sha1, so it is the same on every call for an entry
+- providers without one (Contact Form 7, Elementor Forms Pro): **best-effort** `(site, provider, form_id, HMAC of the submitted ct_* attribution values plus the email/phone found in the posted data, 10 s time bucket)`; the HMAC means no plain hash of an email or phone reaches the transient key or the event ID. A repeat that crosses a bucket boundary, or whose posted `ct_*` values differ, counts as a new submission; two visitors posting identical values inside one bucket count as one
+- the `event_id` is `form_` plus the first 32 hex characters of the key's `hash_hmac( 'sha256', ..., wp_salt( 'auth' ) )`, so it is the same on every call for an entry (and changes if the site's auth salt changes); `lead_id` is `lead_` plus it, matches the `clicutcl_events` row and the server-side event, and is not the ID of the browser `lead` push
 - the `Dedup_Store` read-then-write is not atomic: sequential repeats (double click, retried AJAX, a hook firing twice) are caught, two truly simultaneous requests can both pass
 - consent is checked before the dedupe mark; a gated call marks nothing
 

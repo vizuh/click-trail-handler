@@ -185,13 +185,17 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 			return;
 		}
 
-		// 1. Log to ClickTrail. A repeat of the same entry (both hook aliases firing) stops here:
-		// its meta was written by the first call.
+		// 1. Log to ClickTrail. A repeat of the same entry (both hook aliases firing) writes only
+		// the IDs the entry lacks: the first call wrote the rest, or died before it could.
 		$form_id_val = isset( $form->id ) ? $form->id : 0;
 		$logged      = $this->log_submission( 'fluentform', $form_id_val, $attribution, $form_data, $entry_id );
-		if ( ! empty( $logged['duplicate'] ) ) {
-			return;
-		}
+		$meta        = $this->entry_meta_to_write(
+			$logged,
+			$attribution,
+			function ( $meta_key ) use ( $entry_id ) {
+				return $this->fluent_entry_has_meta( $entry_id, $meta_key );
+			}
+		);
 
 		// 2. Persist to Fluent Forms submission meta so attribution values are
 		// accessible in the Fluent Forms entry detail view and via its API.
@@ -199,7 +203,7 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 		// plugin is active. The table is created by Fluent on activation.
 		if ( function_exists( 'wpFluent' ) ) {
 			$now = current_time( 'mysql' );
-			foreach ( array_merge( $attribution, $this->entry_id_meta( $logged ) ) as $key => $value ) {
+			foreach ( $meta as $key => $value ) {
 				try {
 					wpFluent()
 						->table( 'fluentform_submission_meta' )
@@ -217,5 +221,32 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 				}
 			}
 		}
+	}
+
+	/**
+	 * Whether a Fluent Forms submission already has a meta row with this key.
+	 *
+	 * A failed lookup answers "yes", so a repeat never writes a second row it cannot rule out.
+	 *
+	 * @param int    $entry_id Submission ID.
+	 * @param string $meta_key Meta key.
+	 * @return bool
+	 */
+	private function fluent_entry_has_meta( $entry_id, $meta_key ) {
+		if ( ! function_exists( 'wpFluent' ) ) {
+			return true;
+		}
+
+		try {
+			$row = wpFluent()
+				->table( 'fluentform_submission_meta' )
+				->where( 'response_id', $entry_id )
+				->where( 'meta_key', $meta_key ) // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- Fluent Forms schema requires meta_key column.
+				->first();
+		} catch ( \Exception $e ) {
+			return true;
+		}
+
+		return ! empty( $row );
 	}
 }

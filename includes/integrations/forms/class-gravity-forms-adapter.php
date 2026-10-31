@@ -282,14 +282,18 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 			$payload['lt_channel'] = 'Unknown';
 		}
 
-		// Log first: the entry meta carries the IDs it returns, and a repeat of the same entry
-		// (its meta was written by the first call) writes nothing.
+		// Log first: the entry meta carries the IDs it returns. A repeat of the same entry writes
+		// only the IDs the entry lacks (the first call wrote the rest, or died before it could).
 		$logged = $this->log_submission( 'gravityforms', $form['id'], $payload, $this->extract_identity_from_entry( $entry, $form ), $entry['id'] ?? null );
-		if ( ! empty( $logged['duplicate'] ) ) {
-			return;
-		}
+		$meta   = $this->entry_meta_to_write(
+			$logged,
+			$payload,
+			static function ( $meta_key ) use ( $entry ) {
+				return '' !== (string) \gform_get_meta( $entry['id'], $meta_key );
+			}
+		);
 
-		foreach ( array_merge( $payload, $this->entry_id_meta( $logged ) ) as $key => $value ) {
+		foreach ( $meta as $key => $value ) {
 			\gform_add_meta( $entry['id'], $this->get_field_name( $key ), $value );
 		}
 	}

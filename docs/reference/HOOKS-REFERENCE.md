@@ -395,8 +395,8 @@ Arguments:
 - `$provider` (`string`): `gravityforms`, `wpforms`, `fluentform`, `ninjaforms`, `elementor_forms`, `contact-form-7`
 - `$form_id` (`int|string`): provider form ID
 - `$entry_id` (`int|string|null`): provider entry ID; `null` for Contact Form 7 and Elementor Forms (Pro), and for a Ninja Forms form without a Save action
-- `$event_id` (`string`): ClickTrail event ID (`form_<32 hex>`), also stored in `clicutcl_events.event_data.event_id` and sent as the server event's ID
-- `$lead_id` (`string`): `lead_` + `$event_id` without a leading `evt_`, the same derivation the browser applies to a `lead` (`buildMarketingTrailEnvelope()` in `clicutcl-events.js`)
+- `$event_id` (`string`): ClickTrail event ID (`form_<32 hex>`, an HMAC of the dedupe key, stable for an entry), also stored in `clicutcl_events.event_data.event_id` and sent as the server event's ID
+- `$lead_id` (`string`): `lead_` + `$event_id` without a leading `evt_`. Derived from the server event ID, so it matches the `clicutcl_events` row and the server-side event; it is **not** the ID of the browser `lead` push, which is generated separately in the browser
 - `$payload` (`array`): the attribution payload that was logged (no resolved identity)
 
 Notes:

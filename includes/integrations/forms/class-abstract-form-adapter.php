@@ -71,8 +71,9 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 	 * `form_submission` row and dispatches no second event; it returns the first call's
 	 * `event_id` with `duplicate` set. The `event_id` is derived from the dedupe key, so it is
 	 * the same on every call for an entry. When the provider supplies no entry ID (CF7,
-	 * Elementor), the key is `(provider, form_id, sha1 of the ct_* values and the submitter's
-	 * email/phone, 10 s time bucket)`. That is best-effort: a repeat that crosses a bucket
+	 * Elementor), the key is `(provider, form_id, HMAC of the ct_* values and the submitter's
+	 * email/phone, 10 s time bucket)`. The fingerprint is `hash_hmac( 'sha256', ..., wp_salt( 'auth' ) )`,
+	 * so neither the dedupe store key nor the event ID exposes a guessable hash of an email or phone. That is best-effort: a repeat that crosses a bucket
 	 * boundary, or arrives with different posted ct_* values, counts as a new submission.
 	 *
 	 * @param string          $platform       Platform name.
@@ -82,8 +83,7 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 	 * @param int|string|null $entry_id       Provider entry ID, when the provider has one.
 	 * @return array Empty when consent or empty attribution stopped the log; otherwise
 	 *               `event_id` (string), `lead_id` (string, `lead_` + the event ID without a
-	 *               leading `evt_`, the browser's derivation) and `duplicate` (bool).
-	 *               A repeat returns the same IDs.
+	 *               leading `evt_`) and `duplicate` (bool). A repeat returns the same IDs.
 	 */
 	protected function log_submission( $platform, $form_id, $attribution, $identity_input = array(), $entry_id = null ) {
 		global $wpdb;
@@ -105,7 +105,7 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 
 		// Dedup_Store::check_and_mark() is a transient read-then-write, so two truly simultaneous
 		// requests can both pass; sequential repeats (double click, retried AJAX) cannot.
-		if ( Dedup_Store::check_and_mark( 'form_submission', (string) $platform, $fingerprint, DAY_IN_SECONDS ) ) {
+		if ( Dedup_Store::check_and_mark( 'form_submission', (string) $platform, $fingerprint, DAY_IN_SECONDS, false ) ) {
 			return array(
 				'event_id'  => $event_id,
 				'lead_id'   => $lead_id,
@@ -163,8 +163,9 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 		/**
 		 * Fires after a form submission was logged and dispatched, once per entry (not on a
 		 * deduplicated repeat). Lets add-ons copy the IDs into a CRM record or another
-		 * entry store: `$event_id` matches the `clicutcl_events` row and the server event,
-		 * `$lead_id` the browser `lead`.
+		 * entry store: `$event_id` matches the `clicutcl_events` row and the server-side event;
+		 * `$lead_id` is derived from it and is what the entry meta carries. Neither is the ID of
+		 * the browser `lead` push.
 		 *
 		 * @param string          $provider Provider key, e.g. `gravityforms`.
 		 * @param mixed           $form_id  Provider form ID.
@@ -185,8 +186,8 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 	/**
 	 * Derive the lead ID from an event ID: `lead_` + the ID without a leading `evt_`.
 	 *
-	 * Mirrors `buildMarketingTrailEnvelope()` in `clicutcl-events.js`, so the server event and
-	 * the browser `lead` of one submission share the same lead ID.
+	 * Uses the same prefix rule as `buildMarketingTrailEnvelope()` in `clicutcl-events.js`, but
+	 * from the server event ID: it is not the ID of the browser `lead` (that one is random).
 	 *
 	 * @param string $event_id Event ID.
 	 * @return string
@@ -215,6 +216,34 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 			'event_id' => (string) $logged['event_id'],
 			'lead_id'  => (string) $logged['lead_id'],
 		);
+	}
+
+	/**
+	 * Meta pairs a provider adapter should write to the entry after `log_submission()`.
+	 *
+	 * First call of an entry: the attribution plus the IDs. Repeat of an entry: the first call
+	 * wrote everything, except when it died after marking the dedupe key and before the meta
+	 * write, so only IDs the provider reports as absent are written (write-if-missing).
+	 *
+	 * @param mixed    $logged      `log_submission()` result.
+	 * @param array    $attribution Unprefixed attribution pairs.
+	 * @param callable $has_meta    Receives the prefixed meta key, returns whether the entry already has it.
+	 * @return array<string, string> Unprefixed key to value.
+	 */
+	protected function entry_meta_to_write( $logged, array $attribution, callable $has_meta ) {
+		$ids = $this->entry_id_meta( $logged );
+
+		if ( empty( $logged['duplicate'] ) ) {
+			return array_merge( $attribution, $ids );
+		}
+
+		foreach ( array_keys( $ids ) as $key ) {
+			if ( $has_meta( $this->get_field_name( $key ) ) ) {
+				unset( $ids[ $key ] );
+			}
+		}
+
+		return $ids;
 	}
 
 	/**
@@ -250,13 +279,13 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 	 * @param array           $attribution    Attribution data.
 	 * @param array           $identity_input Raw identity input candidates.
 	 * @param int|string|null $entry_id       Normalized provider entry ID, null when none.
-	 * @return string 40-character sha1.
+	 * @return string 64-character HMAC-SHA256 hex.
 	 */
 	private function submission_fingerprint( $platform, $form_id, $attribution, $identity_input, $entry_id ) {
 		$scope = (int) get_current_blog_id() . '|' . $platform . '|' . ( is_scalar( $form_id ) ? (string) $form_id : '' );
 
 		if ( null !== $entry_id ) {
-			return sha1( $scope . '|entry|' . $entry_id );
+			return hash_hmac( 'sha256', $scope . '|entry|' . $entry_id, wp_salt( 'auth' ) );
 		}
 
 		$candidates = $this->extract_identity_candidates( is_array( $identity_input ) ? $identity_input : array() );
@@ -264,7 +293,7 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 		ksort( $values );
 		$bucket = (int) floor( $this->submission_time() / self::DEDUPE_BUCKET_SECONDS );
 
-		return sha1( $scope . '|best_effort|' . $bucket . '|' . wp_json_encode( $values ) );
+		return hash_hmac( 'sha256', $scope . '|best_effort|' . $bucket . '|' . wp_json_encode( $values ), wp_salt( 'auth' ) );
 	}
 
 	/**

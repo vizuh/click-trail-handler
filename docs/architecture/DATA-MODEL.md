@@ -140,7 +140,7 @@ Purpose:
 
 - store event log rows for the admin Logs screen
 - store form submission event payloads including resolved attribution and, when available, consent-aware identity fields
-- a `form_submission` row's `event_data` carries `event_id`, `lead_id` (`lead_` + the event ID without `evt_`, the browser's derivation), `platform`, `form_id`, `entry_id` (only when the provider has one), `attribution` and the IP-anonymized `identity`; there is one row per `(provider, form_id, entry_id)` (#140, #143)
+- a `form_submission` row's `event_data` carries `event_id`, `lead_id` (`lead_` + the event ID without `evt_`; it matches the server-side event and is not the ID of the browser `lead` push), `platform`, `form_id`, `entry_id` (only when the provider has one), `attribution` and the IP-anonymized `identity`; there is one row per `(provider, form_id, entry_id)` (#140, #143)
 
 Columns:
 
@@ -151,7 +151,7 @@ Columns:
 
 ## Form Entry Meta
 
-Written by the form adapters at submission time, after `log_submission()`, when consent allows and only for the first call of an entry. `ct_event_id` / `ct_lead_id` are the values `log_submission()` returned, so a CRM sync that copies entry fields can carry an ID that matches the server event and the `clicutcl_events` row (#143).
+Written by the form adapters at submission time, after `log_submission()`, when consent allows. The first call of an entry writes attribution and IDs; a repeat writes only an ID the entry lacks (repairing a request that died between the dedupe mark and the meta write). `ct_event_id` / `ct_lead_id` are the values `log_submission()` returned, so a CRM sync that copies entry fields can carry an ID that matches the server-side event and the `clicutcl_events` row (#143). They do not match the browser `lead` push, whose ID is generated in the browser.
 
 | Provider | Store | Keys written | Source of IDs |
 | --- | --- | --- | --- |
@@ -162,7 +162,7 @@ Written by the form adapters at submission time, after `log_submission()`, when 
 | Elementor Forms (Pro) | none | none | `clicutcl_events` row and action `clicutcl_form_submission_logged` |
 | Contact Form 7 | none | none | `clicutcl_events` row and action `clicutcl_form_submission_logged` |
 
-No ID is written when `log_submission()` returned early (consent denied or empty attribution), and a deduplicated repeat of the same entry writes no meta again.
+No ID is written when `log_submission()` returned early (consent denied or empty attribution), and a deduplicated repeat never rewrites an ID the entry already has.
 
 ## `wp_clicutcl_queue`
 
