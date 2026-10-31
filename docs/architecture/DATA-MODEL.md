@@ -35,6 +35,7 @@ Operational and readiness keys:
 - `clicutcl_touch_events_table_ready`
 - `clicutcl_touch_events_table_checked_at`
 - `clicutcl_db_version` (schema version; `Installer::maybe_upgrade()` re-runs `dbDelta` on existing installs until it matches `Installer::DB_VERSION`)
+- `clicutcl_purchase_lock_<order_id>` (short-lived, `autoload = no`; written by `WooCommerce::push_purchase_event()` only when no persistent object cache is present, deleted after `_clicutcl_tracking_sent` is saved, taken over after 30 s if a request died holding it; with a persistent object cache the same key lives in cache group `clicutcl` with a 30 s TTL instead)
 
 ## Option Responsibilities
 

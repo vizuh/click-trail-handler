@@ -39,6 +39,16 @@ class WooCommerce {
 	public const CONSENT_META_KEY = '_clicutcl_consent';
 
 	/**
+	 * Prefix for the per-order thank-you dispatch lock (object cache key or option name).
+	 */
+	public const PURCHASE_LOCK_PREFIX = 'clicutcl_purchase_lock_';
+
+	/**
+	 * Seconds a thank-you dispatch lock may be held before it is considered stale.
+	 */
+	private const PURCHASE_LOCK_TTL = 30;
+
+	/**
 	 * Initialize hooks.
 	 */
 	public function init() {
@@ -235,35 +245,99 @@ class WooCommerce {
 			return;
 		}
 
-		$attribution = $this->collect_order_attribution( $order );
-		$flat_attr   = $this->flatten_attribution_for_event( $attribution );
-		$identity    = $this->resolve_purchase_identity( $order );
-		$payload     = $this->build_purchase_payload( $order, $attribution, $identity );
-		$defaults    = $payload;
-
-		/**
-		 * Filter the final WooCommerce purchase payload before ClickTrail pushes
-		 * it into `dataLayer` and the server-side dispatcher.
-		 *
-		 * @param array     $payload Purchase payload.
-		 * @param \WC_Order $order   Order instance.
-		 */
-		$payload   = apply_filters( 'clicutcl_woocommerce_purchase_payload', $payload, $order );
-		$payload   = is_array( $payload ) ? wp_parse_args( $payload, $defaults ) : $defaults;
-		$datalayer = $this->build_purchase_datalayer_payload( $payload, $flat_attr );
-
-		$result = $this->dispatch_order_payload( $order, $payload, 'purchase', 'woocommerce_thankyou' );
-		?>
-		<script>
-			window.dataLayer = window.dataLayer || [];
-			window.dataLayer.push(<?php echo wp_json_encode( $datalayer ); ?>);
-		</script>
-		<?php
-
-		if ( $this->should_mark_milestone_sent( $result ) ) {
-			$order->update_meta_data( '_clicutcl_tracking_sent', 'yes' );
+		// The marker above is a read-then-write: two concurrent thank-you loads
+		// (double tab, prefetch, reload mid-request) both pass it. Claim the
+		// order atomically before building or emitting anything so only one
+		// request pushes the dataLayer purchase and dispatches the server copy.
+		if ( ! $this->acquire_purchase_lock( (int) $order_id ) ) {
+			return;
 		}
-		$order->save();
+
+		try {
+			$attribution = $this->collect_order_attribution( $order );
+			$flat_attr   = $this->flatten_attribution_for_event( $attribution );
+			$identity    = $this->resolve_purchase_identity( $order );
+			$payload     = $this->build_purchase_payload( $order, $attribution, $identity );
+			$defaults    = $payload;
+
+			/**
+			 * Filter the final WooCommerce purchase payload before ClickTrail pushes
+			 * it into `dataLayer` and the server-side dispatcher.
+			 *
+			 * @param array     $payload Purchase payload.
+			 * @param \WC_Order $order   Order instance.
+			 */
+			$payload   = apply_filters( 'clicutcl_woocommerce_purchase_payload', $payload, $order );
+			$payload   = is_array( $payload ) ? wp_parse_args( $payload, $defaults ) : $defaults;
+			$datalayer = $this->build_purchase_datalayer_payload( $payload, $flat_attr );
+
+			$result = $this->dispatch_order_payload( $order, $payload, 'purchase', 'woocommerce_thankyou' );
+			?>
+			<script>
+				window.dataLayer = window.dataLayer || [];
+				window.dataLayer.push(<?php echo wp_json_encode( $datalayer ); ?>);
+			</script>
+			<?php
+
+			if ( $this->should_mark_milestone_sent( $result ) ) {
+				$order->update_meta_data( '_clicutcl_tracking_sent', 'yes' );
+			}
+			$order->save();
+		} finally {
+			$this->release_purchase_lock( (int) $order_id );
+		}
+	}
+
+	/**
+	 * Atomically claim the thank-you dispatch for one order.
+	 *
+	 * With a persistent object cache, `wp_cache_add()` is an atomic claim that
+	 * fails when the key already exists. Without one, the in-memory cache is
+	 * per request and cannot see a concurrent PHP worker, so fall back to
+	 * `add_option()` uniqueness on the options table (the same pattern core
+	 * uses for upgrader locks). A lock older than PURCHASE_LOCK_TTL is treated
+	 * as abandoned by a request that died before releasing it.
+	 *
+	 * Keyed by order ID only, so posts storage and HPOS behave identically.
+	 *
+	 * @param int $order_id Order ID.
+	 * @return bool True when this request owns the lock.
+	 */
+	private function acquire_purchase_lock( int $order_id ): bool {
+		$key = self::PURCHASE_LOCK_PREFIX . $order_id;
+
+		if ( wp_using_ext_object_cache() ) {
+			return (bool) wp_cache_add( $key, 1, 'clicutcl', self::PURCHASE_LOCK_TTL );
+		}
+
+		if ( add_option( $key, time(), '', 'no' ) ) {
+			return true;
+		}
+
+		$held_since = (int) get_option( $key, 0 );
+		if ( $held_since > 0 && ( time() - $held_since ) > self::PURCHASE_LOCK_TTL ) {
+			delete_option( $key );
+			return (bool) add_option( $key, time(), '', 'no' );
+		}
+
+		return false;
+	}
+
+	/**
+	 * Release the thank-you dispatch lock once the marker has been saved.
+	 *
+	 * @param int $order_id Order ID.
+	 * @return void
+	 */
+	private function release_purchase_lock( int $order_id ): void {
+		$key = self::PURCHASE_LOCK_PREFIX . $order_id;
+
+		if ( wp_using_ext_object_cache() ) {
+			wp_cache_delete( $key, 'clicutcl' );
+			return;
+		}
+
+		delete_option( $key );
 	}
 
 	/**
