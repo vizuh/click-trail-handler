@@ -52,16 +52,20 @@ class CF7_Adapter extends Abstract_Form_Adapter {
 	/**
 	 * Add hidden fields to CF7 form.
 	 *
+	 * Every key from `Attribution_Provider::get_field_mapping()` is emitted as `ct_<key>` on every
+	 * render, empty when the cookie lacks the key or `should_populate()` is false, so the form
+	 * always carries the fields and the submit-time refresh can fill them (a landing-page render
+	 * runs before the browser writes the cookie).
+	 *
 	 * @param array $fields Hidden fields.
 	 * @return array
 	 */
 	public function add_hidden_fields( $fields ) {
-		if ( ! $this->should_populate() ) {
-			return $fields;
+		$payload = $this->should_populate() ? $this->get_attribution_payload() : array();
+
+		foreach ( Attribution_Provider::get_field_mapping() as $key ) {
+			$fields[ $this->get_field_name( $key ) ] = isset( $payload[ $key ] ) ? $payload[ $key ] : '';
 		}
-
-		$payload = $this->get_attribution_payload();
-
 		foreach ( $payload as $key => $value ) {
 			$fields[ $this->get_field_name( $key ) ] = $value;
 		}
@@ -72,11 +76,11 @@ class CF7_Adapter extends Abstract_Form_Adapter {
 	/**
 	 * Refresh the posted ct_* data from the attribution cookie sent with the submit.
 	 *
-	 * `add_hidden_fields()` renders one input per cookie key from the page request, which on a
-	 * landing visit runs before the browser writes the cookie (no inputs at all) and otherwise is
-	 * one touch behind. The same rule as render applies at submit: every non-empty cookie key is
-	 * written as `ct_<key>`; keys the cookie lacks keep the posted value. Runs inside
-	 * WPCF7_Submission setup, so mail tags, Flamingo and `wpcf7_mail_sent` all see these values.
+	 * The hidden inputs were rendered from the cookie the page request carried, which on a
+	 * landing visit is empty and otherwise one touch behind. For each `ct_<key>` the form posted,
+	 * a non-empty cookie key wins; keys the cookie lacks keep the posted value; no key is added.
+	 * Runs inside WPCF7_Submission setup, so mail tags, Flamingo and `wpcf7_mail_sent` all see
+	 * these values.
 	 *
 	 * @param array $posted_data Posted data (already unslashed by CF7).
 	 * @return array
@@ -86,11 +90,16 @@ class CF7_Adapter extends Abstract_Form_Adapter {
 			return $posted_data;
 		}
 
-		foreach ( $this->get_attribution_payload() as $key => $value ) {
-			if ( '' === (string) $value ) {
-				continue;
+		$payload = $this->get_attribution_payload();
+		if ( empty( $payload ) ) {
+			return $posted_data;
+		}
+
+		foreach ( $posted_data as $name => $posted ) {
+			$value = $this->cookie_value_for( $name, $payload );
+			if ( null !== $value ) {
+				$posted_data[ $name ] = sanitize_text_field( $value );
 			}
-			$posted_data[ $this->get_field_name( $key ) ] = sanitize_text_field( (string) $value );
 		}
 
 		return $posted_data;
@@ -147,8 +156,13 @@ class CF7_Adapter extends Abstract_Form_Adapter {
 			$keys = Attribution_Provider::get_field_mapping();
 			foreach ( $keys as $key ) {
 				$prefixed = $this->get_field_name( $key );
-				if ( isset( $posted_data[ $prefixed ] ) ) {
-					$attribution[ $key ] = sanitize_text_field( $posted_data[ $prefixed ] );
+				if ( ! isset( $posted_data[ $prefixed ] ) ) {
+					continue;
+				}
+				// Every mapped key is rendered; only the ones that hold a value are attribution.
+				$value = sanitize_text_field( $posted_data[ $prefixed ] );
+				if ( '' !== $value ) {
+					$attribution[ $key ] = $value;
 				}
 			}
 		}

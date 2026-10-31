@@ -76,7 +76,7 @@ namespace {
 				'fields' => array(
 					1 => array( 'id' => 1, 'type' => 'text', 'label' => 'Name', 'css' => '' ),
 					3 => array( 'id' => 3, 'type' => 'hidden', 'label' => 'Google click', 'css' => 'wpf-tracking ct_gclid' ),
-					4 => array( 'id' => 4, 'type' => 'hidden', 'label' => 'ct_utm_term', 'css' => '' ),
+					4 => array( 'id' => 4, 'type' => 'hidden', 'label' => 'ct_lt_term', 'css' => '' ),
 					5 => array( 'id' => 5, 'type' => 'hidden', 'label' => 'ct_ft_source', 'css' => '' ),
 				),
 			);
@@ -86,7 +86,7 @@ namespace {
 			return array(
 				1 => array( 'name' => 'Name', 'value' => 'Jonas', 'id' => 1, 'type' => 'text' ),
 				3 => array( 'name' => 'Google click', 'value' => 'old', 'id' => 3, 'type' => 'hidden' ),
-				4 => array( 'name' => 'ct_utm_term', 'value' => 'x', 'id' => 4, 'type' => 'hidden' ),
+				4 => array( 'name' => 'ct_lt_term', 'value' => 'x', 'id' => 4, 'type' => 'hidden' ),
 				5 => array( 'name' => 'ct_ft_source', 'value' => '', 'id' => 5, 'type' => 'hidden' ),
 			);
 		}
@@ -110,12 +110,23 @@ namespace {
 		public function test_render_leaves_unmarked_and_cookie_missing_fields_alone(): void {
 			$adapter = new WPForms_Adapter();
 			$plain   = array( 'id' => 1, 'type' => 'hidden', 'label' => 'Token', 'css' => 'nothing' );
-			$missing = array( 'id' => 4, 'type' => 'hidden', 'label' => 'ct_utm_term', 'css' => '' );
+			$missing = array( 'id' => 4, 'type' => 'hidden', 'label' => 'ct_lt_term', 'css' => '' );
 			$text    = array( 'id' => 2, 'type' => 'text', 'label' => 'ct_gclid', 'css' => '' );
 
 			$this->assertSame( self::properties( 'keep' ), $adapter->render_field_default( self::properties( 'keep' ), $plain, self::form_data() ) );
 			$this->assertSame( self::properties( 'keep' ), $adapter->render_field_default( self::properties( 'keep' ), $missing, self::form_data() ) );
 			$this->assertSame( self::properties( 'keep' ), $adapter->render_field_default( self::properties( 'keep' ), $text, self::form_data() ), 'Only hidden fields are filled.' );
+		}
+
+		public function test_a_label_that_merely_starts_with_a_ct_key_is_not_a_marker(): void {
+			$adapter = new WPForms_Adapter();
+			$note    = array( 'id' => 6, 'type' => 'hidden', 'label' => 'ct_gclid note', 'css' => '' );
+			$unknown = array( 'id' => 7, 'type' => 'hidden', 'label' => 'ct_utm_term', 'css' => '' );
+			$fields  = array( 6 => array( 'name' => 'ct_gclid note', 'value' => 'old', 'id' => 6, 'type' => 'hidden' ) );
+
+			$this->assertSame( self::properties( 'keep' ), $adapter->render_field_default( self::properties( 'keep' ), $note, self::form_data() ) );
+			$this->assertSame( self::properties( 'keep' ), $adapter->render_field_default( self::properties( 'keep' ), $unknown, self::form_data() ), 'Only keys from get_field_mapping() count.' );
+			$this->assertSame( $fields, $adapter->refresh_fields( $fields, array(), array( 'id' => 9, 'fields' => array( 6 => $note ) ) ) );
 		}
 
 		public function test_submit_refreshes_marked_fields_from_the_cookie_per_key(): void {

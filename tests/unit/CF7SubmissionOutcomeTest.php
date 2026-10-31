@@ -64,6 +64,8 @@ namespace {
 		 */
 		public function test_only_completed_success_reaches_conversion_logger( string $status, bool $reaches_mail ): void {
 			$submission = new WPCF7_Submission();
+			// Landing-page render: the field exists but the cookie did not yet.
+			$submission->posted = array( 'ct_ft_source' => '' );
 			WPCF7_Submission::$instance = $submission;
 			$GLOBALS['ct_cf7_hooks']    = array();
 			$form = new class() {
@@ -99,6 +101,7 @@ namespace {
 			$submission->posted         = array(
 				'ct_lt_campaign'                   => 'google_first_visit',
 				'ct_gclid'                         => 'GA',
+				'ct_fbclid'                        => '',
 				'ct_attribution_selected_click_id' => 'GA',
 			);
 			WPCF7_Submission::$instance = $submission;

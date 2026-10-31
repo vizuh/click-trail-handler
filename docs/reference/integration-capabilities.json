@@ -490,7 +490,7 @@
       "role": "wordpress_source",
       "status": "source_connector_runtime_unverified",
       "provider_contract": "WordPress form hooks and/or hidden-field/submission metadata",
-      "what_exists": "Attribution capture and form-event paths are present. wpcf7_posted_data (priority 5) rewrites the posted ct_* data from the attribution cookie sent with the submit (every non-empty cookie key; keys the cookie lacks keep the posted value; consent-gated), so mail tags, add-ons and the wpcf7_mail_sent log share one source. Exact population, successful-submission, consent, and third-party retention behavior requires live plugin tests.",
+      "what_exists": "Attribution capture and form-event paths are present. wpcf7_posted_data (priority 5) rewrites each posted ct_<key> from the attribution cookie sent with the submit (non-empty cookie key wins; keys the cookie lacks keep the posted value; no key added; consent-gated); add_hidden_fields() renders every mapped key as an empty-or-filled ct_<key> input on every render, so mail tags, add-ons and the wpcf7_mail_sent log share one source. Exact population, successful-submission, consent, and third-party retention behavior requires live plugin tests.",
       "evidence": [
         "includes/integrations/class-form-integration-manager.php",
         "includes/integrations/forms/class-cf7-adapter.php",
@@ -606,7 +606,7 @@
       "role": "wordpress_source",
       "status": "source_connector_runtime_unverified",
       "provider_contract": "WordPress form hooks and/or hidden-field/submission metadata",
-      "what_exists": "Attribution capture and form-event paths are present. A hidden field marked with CSS class token ct_<key> or label ct_<key> is filled from the cookie at render (wpforms_field_properties) and refreshed from the submit-time cookie at wpforms_process_filter before notifications and the entry; the former wpforms_field_value_* registrations were removed because WPForms never fires that filter. Entry meta is still written at wpforms_process_complete (Pro). Exact population, successful-submission, consent, and third-party retention behavior requires live plugin tests.",
+      "what_exists": "Attribution capture and form-event paths are present. A hidden field marked with CSS class token ct_<key> or a label exactly ct_<key> for a mapped key is filled from the cookie at render (wpforms_field_properties) and refreshed from the submit-time cookie at wpforms_process_filter before notifications and the entry; the former wpforms_field_value_* registrations were removed because WPForms never fires that filter. Entry meta is still written at wpforms_process_complete (Pro). Exact population, successful-submission, consent, and third-party retention behavior requires live plugin tests.",
       "evidence": [
         "includes/integrations/class-form-integration-manager.php",
         "includes/integrations/forms/class-wpforms-adapter.php",

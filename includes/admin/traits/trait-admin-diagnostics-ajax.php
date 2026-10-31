@@ -985,6 +985,8 @@ trait Admin_Diagnostics_Ajax_Trait {
 			$wpforms_obj = wpforms();
 			if ( $wpforms_obj && isset( $wpforms_obj->form ) && method_exists( $wpforms_obj->form, 'get' ) ) {
 				$wpf_forms = $wpforms_obj->form->get( '', array( 'status' => 'publish' ) );
+				// Same rule as WPForms_Adapter::field_name(): a `ct_<key>` CSS class token, or a label that is exactly `ct_<key>` for a mapped key.
+				$ct_labels = array_flip( array_map( static fn( $key ) => 'ct_' . $key, \CLICUTCL\Core\Attribution_Provider::get_field_mapping() ) );
 				if ( is_array( $wpf_forms ) ) {
 					foreach ( $wpf_forms as $form ) {
 						$form_id    = isset( $form->ID ) ? (int) $form->ID : 0;
@@ -993,13 +995,11 @@ trait Admin_Diagnostics_Ajax_Trait {
 						$form_data  = is_array( $form_data ) ? $form_data : array();
 						$fields     = isset( $form_data['fields'] ) && is_array( $form_data['fields'] ) ? $form_data['fields'] : array();
 
-						// Same rule as WPForms_Adapter::field_name(): a `ct_<key>` CSS class token or a `ct_<key>` label.
 						$has_ct = false;
 						foreach ( $fields as $field ) {
-							$label = isset( $field['label'] ) ? strtolower( (string) $field['label'] ) : '';
-							$name  = isset( $field['name'] ) ? strtolower( (string) $field['name'] ) : '';
-							$css   = isset( $field['css'] ) ? strtolower( (string) $field['css'] ) : '';
-							if ( str_starts_with( $label, 'ct_' ) || str_starts_with( $name, 'ct_' ) || preg_match( '/(^|\s)ct_/', $css ) ) {
+							$label = isset( $field['label'] ) ? trim( (string) $field['label'] ) : '';
+							$css   = isset( $field['css'] ) ? (string) $field['css'] : '';
+							if ( isset( $ct_labels[ $label ] ) || preg_match( '/(^|\s)ct_/', $css ) ) {
 								$has_ct = true;
 								break;
 							}

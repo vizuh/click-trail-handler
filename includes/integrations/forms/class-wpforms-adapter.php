@@ -7,6 +7,8 @@
 
 namespace CLICUTCL\Integrations\Forms;
 
+use CLICUTCL\Core\Attribution_Provider;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
@@ -55,7 +57,8 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 	 *
 	 * A field is a ClickTrail field when its CSS class list carries a `ct_<key>` token
 	 * (recommended: WPForms fields have no name attribute) or its label is exactly `ct_<key>`
-	 * (the form the docs and the Diagnostics scan already accept).
+	 * for a key in `Attribution_Provider::get_field_mapping()` (the form the docs and the
+	 * Diagnostics scan already accept; `ct_gclid note` is a label, not a marker).
 	 *
 	 * @param array $field Field settings from form data (`label`, `css`).
 	 * @return string `ct_<key>`, or '' when the field is not marked.
@@ -72,7 +75,11 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 			}
 		}
 		$label = isset( $field['label'] ) && is_string( $field['label'] ) ? trim( $field['label'] ) : '';
-		return 0 === strpos( $label, $this->field_prefix ) ? $label : '';
+		if ( 0 !== strpos( $label, $this->field_prefix ) ) {
+			return '';
+		}
+		$key = substr( $label, strlen( $this->field_prefix ) );
+		return in_array( $key, Attribution_Provider::get_field_mapping(), true ) ? $label : '';
 	}
 
 	/**
