@@ -1016,7 +1016,7 @@ trait Admin_Diagnostics_Ajax_Trait {
 								),
 								'detail'   => sprintf(
 									/* translators: %s: edit form URL. */
-									__( 'Add hidden fields named ct_utm_source, ct_utm_medium, etc. to capture attribution in this entry. <a href="%s">Edit form &rarr;</a>', 'click-trail-handler' ),
+									__( 'Add fields with the CSS class ct_utm_source, ct_utm_medium, etc. to capture attribution in this entry. Use a Hidden field (WPForms Pro) or, on WPForms Lite, a Single Line Text field hidden with CSS. <a href="%s">Edit form &rarr;</a>', 'click-trail-handler' ),
 									esc_url( $edit_url )
 								),
 							);

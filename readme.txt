@@ -26,7 +26,7 @@ ClickTrail records what arrived. It does not decide what caused the sale.
 Pick the path that matches your site.
 
 * **WooCommerce store**: turn on Capture and WooCommerce. Orders carry the campaign. Add storefront events later if you want funnel signals.
-* **Lead forms**: turn on Capture and Forms. Contact Form 7 and Fluent Forms get hidden fields on their own. Gravity Forms and WPForms fill the `ct_*` fields you add.
+* **Lead forms**: turn on Capture and Forms. Contact Form 7 and Fluent Forms get hidden fields on their own. Gravity Forms and WPForms fill the `ct_*` fields you add (WPForms Lite has no Hidden field: use a Single Line Text field with the CSS class `ct_<key>` and hide it with CSS).
 * **GTM or server-side GTM**: turn on Capture, Events, and Delivery. Events go to the `dataLayer`, and ClickTrail can send canonical JSON to an endpoint you set.
 
 Then place one test order or send one test form, and look at what was stored. The [use-case guide](https://github.com/vizuh/click-trail-handler/blob/main/docs/guides/USE-CASES.md) and [tutorials](https://github.com/vizuh/click-trail-handler/blob/main/docs/tutorials/README.md) walk through each path.
@@ -163,7 +163,7 @@ ClickTrail renders form attribution fields empty on the server, so cached form p
 
 = Do I need to add hidden fields to every form? =
 
-No. Contact Form 7 and Fluent Forms can receive attribution hidden fields automatically. Gravity Forms, WPForms and Elementor Forms (Pro) work best when you add the matching `ct_*` hidden fields you want stored or exported: Gravity Forms matches the parameter name, WPForms a CSS class `ct_<key>` (a label of exactly `ct_<key>` also works), Elementor the hidden field's ID. Every adapter refreshes those fields from the cookie sent with the submit, so a form submitted on the landing page stores that visit's click. Elementor Forms (Pro) and Ninja Forms also keep attribution with the submission record.
+No. Contact Form 7 and Fluent Forms can receive attribution hidden fields automatically. Gravity Forms, WPForms and Elementor Forms (Pro) work best when you add the matching `ct_*` hidden fields you want stored or exported: Gravity Forms matches the parameter name, WPForms a CSS class `ct_<key>` (a Hidden field needs WPForms Pro; on Lite use a Single Line Text field hidden with CSS; a label of exactly `ct_<key>` also works), Elementor the hidden field's ID. Every adapter refreshes those fields from the cookie sent with the submit, so a form submitted on the landing page stores that visit's click. Elementor Forms (Pro) and Ninja Forms also keep attribution with the submission record.
 
 = Can I use it without server-side delivery? =
 
