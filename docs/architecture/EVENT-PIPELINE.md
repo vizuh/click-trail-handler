@@ -74,6 +74,13 @@ Woo list-view specifics:
 - when the richer Woo `dataLayer` contract is enabled, Woo browser events can also carry consent-aware `user_data` identifiers for GTM-first setups
 - `view_cart` can come from the cart page itself, visible mini-cart surfaces, or supported drawer flows when the browser runtime can resolve the current cart payload from Woo blocks, fragments, or DOM cart rows
 
+Form-success `lead` dedupe (source-present / runtime-unverified, #140):
+
+- `markOnce(key, windowMs)` records a key and reports whether it is new; a repeat inside the window does not refresh it. `pushLeadOnce()` checks consent first (a denied attempt leaves no marker), then `markOnce()`, then `pushEvent('lead', ...)`; a dropped repeat is silent and never pushes `form_submit_failed`
+- Contact Form 7 `wpcf7mailsent`: key `lead|cf7|<contactFormId>|<unitTag>`, 10 s window, so a double-fired hook or retried AJAX send is one `lead` while a different form or a different instance of the same form (different `unitTag`) still pushes
+- generic external lead messages (`typeform-submit`, `clicutcl.lead`, ...): a message carrying an ID dedupes on that ID for the page's lifetime; one without an ID dedupes per provider inside the 10 s window
+- HubSpot uses the same helper (see below); the thank-you page lead keeps its per-path `sessionStorage` marker
+
 HubSpot embedded forms (source-present / runtime-unverified):
 
 - listeners for HubSpot's documented `hs-form-event:on-submission:success` and `hs-form-event:on-submission:failed` window events are registered when the script loads, before consent resolves; they do nothing until the tracker exists, and every push still goes through the `pushEvent()` consent gate
@@ -114,9 +121,17 @@ Integrations:
 Flow:
 
 1. ClickTrail injects or populates attribution where the form integration supports it
-2. submitted attribution is logged to ClickTrail's form event table
+2. submitted attribution is logged to ClickTrail's form event table, once per entry: `Abstract_Form_Adapter::log_submission()` marks a key in `Dedup_Store` (destination `form_submission`, event name = provider) before writing, and a repeat writes no second `form_submission` row and dispatches no second event, returning the first call's `event_id` (#140)
 3. consent-aware identity is resolved from submitted form fields plus request context
 4. the enriched server-side form event is dispatched through the shared delivery pipeline
+
+Form dedupe key (`log_submission()`):
+
+- providers with an entry ID (Gravity Forms, WPForms, Fluent Forms, Ninja Forms when its Save action stored a submission ID): `(site, provider, form_id, entry_id)`, held for a day
+- providers without one (Contact Form 7, Elementor Forms Pro): **best-effort** `(site, provider, form_id, sha1 of the submitted ct_* attribution values plus the email/phone found in the posted data, 10 s time bucket)`. A repeat that crosses a bucket boundary, or whose posted `ct_*` values differ, counts as a new submission; two visitors posting identical values inside one bucket count as one
+- the `event_id` is `form_` plus the first 32 hex characters of the key's sha1, so it is the same on every call for an entry
+- the `Dedup_Store` read-then-write is not atomic: sequential repeats (double click, retried AJAX, a hook firing twice) are caught, two truly simultaneous requests can both pass
+- consent is checked before the dedupe mark; a gated call marks nothing
 
 ## 5. External Webhook Intake
 

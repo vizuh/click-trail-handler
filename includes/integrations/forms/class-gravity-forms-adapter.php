@@ -277,7 +277,7 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 			\gform_add_meta( $entry['id'], $this->get_field_name( $key ), $value );
 		}
 
-		$this->log_submission( 'gravityforms', $form['id'], $payload, $this->extract_identity_from_entry( $entry, $form ) );
+		$this->log_submission( 'gravityforms', $form['id'], $payload, $this->extract_identity_from_entry( $entry, $form ), $entry['id'] ?? null );
 	}
 
 	/**

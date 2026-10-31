@@ -215,7 +215,7 @@ class WPForms_Adapter extends Abstract_Form_Adapter {
 		}
 
 		// Log to ClickTrail.
-		$this->log_submission( 'wpforms', $form_id, $payload, $this->extract_identity_from_fields( $fields ) );
+		$this->log_submission( 'wpforms', $form_id, $payload, $this->extract_identity_from_fields( $fields ), $entry_id );
 	}
 
 	/**

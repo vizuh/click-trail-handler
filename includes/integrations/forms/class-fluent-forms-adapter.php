@@ -42,8 +42,9 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 	 * Fluent Forms v5+ uses slash-style hooks (fluentform/form_element_start).
 	 * v4 and earlier used underscore-style (fluentform_form_element_start).
 	 * Both sets are registered so the adapter works regardless of installed version.
-	 * on_submission carries a static dedup guard so it never logs the same entry twice
-	 * even when both aliases fire on an installation that preserves both.
+	 * on_submission relies on the shared (provider, form, entry) dedupe in log_submission() so
+	 * it never logs or writes meta for the same entry twice even when both aliases fire on an
+	 * installation that preserves both.
 	 */
 	public function register_hooks() {
 		// Slash-style (Fluent Forms v5+, current docs).
@@ -148,13 +149,7 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 			return;
 		}
 
-		static $logged = array();
-		$entry_id      = (int) $arg1;
-		if ( isset( $logged[ $entry_id ] ) ) {
-			return;
-		}
-		$logged[ $entry_id ] = true;
-
+		$entry_id  = (int) $arg1;
 		$form_data = is_array( $arg2 ) ? $arg2 : array();
 		$form      = $arg3;
 		$payload   = $this->get_attribution_payload();
@@ -190,7 +185,15 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 			return;
 		}
 
-		// 1. Persist to Fluent Forms submission meta so attribution values are
+		// 1. Log to ClickTrail. A repeat of the same entry (both hook aliases firing) stops here:
+		// its meta was written by the first call.
+		$form_id_val = isset( $form->id ) ? $form->id : 0;
+		$logged      = $this->log_submission( 'fluentform', $form_id_val, $attribution, $form_data, $entry_id );
+		if ( ! empty( $logged['duplicate'] ) ) {
+			return;
+		}
+
+		// 2. Persist to Fluent Forms submission meta so attribution values are
 		// accessible in the Fluent Forms entry detail view and via its API.
 		// wpFluent() is Fluent's own DB wrapper and is always available when the
 		// plugin is active. The table is created by Fluent on activation.
@@ -210,13 +213,9 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 							)
 						);
 				} catch ( \Exception $e ) { // phpcs:ignore Generic.CodeAnalysis.EmptyStatement.DetectedCatch
-					// Non-fatal: ClickTrail logging below still proceeds.
+					// Non-fatal: ClickTrail logging already ran above.
 				}
 			}
 		}
-
-		// 2. Log to ClickTrail
-		$form_id_val = isset( $form->id ) ? $form->id : 0;
-		$this->log_submission( 'fluentform', $form_id_val, $attribution, $form_data );
 	}
 }

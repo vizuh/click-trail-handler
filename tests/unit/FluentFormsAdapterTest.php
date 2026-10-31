@@ -49,8 +49,9 @@ final class ClickTrailFluentDbStub {
 }
 
 final class ClickTrailTestableFluentFormsAdapter extends Fluent_Forms_Adapter {
-	protected function log_submission( $platform, $form_id, $attribution, $identity_input = array() ) {
+	protected function log_submission( $platform, $form_id, $attribution, $identity_input = array(), $entry_id = null ) {
 		// Persistence is the behavior under test; ClickTrail event logging is covered separately.
+		return array();
 	}
 }
 
