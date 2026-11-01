@@ -102,7 +102,8 @@ Usually leave off at first:
 
 Recommended form pattern:
 
-- Contact Form 7 and Fluent Forms: let ClickTrail add hidden fields automatically
+- Fluent Forms: let ClickTrail add hidden fields automatically
+- Contact Form 7: add `[hidden ct_gclid]` (or `[ct_gclid]` in the mail) for each key you want; ClickTrail renders only referenced keys
 - Gravity Forms and WPForms: add the `ct_*` hidden fields you want stored or exported (Gravity Forms: parameter name; WPForms: CSS class `ct_<key>`, or a label of exactly `ct_<key>`)
 - Elementor Forms (Pro): add hidden fields whose ID is `ct_<key>`; ClickTrail fills them at render and refreshes them at submit, and also logs the submission record
 - Ninja Forms: rely on submission storage, not automatic hidden-field injection

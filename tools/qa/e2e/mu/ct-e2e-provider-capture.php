@@ -57,3 +57,20 @@ add_action(
 	99,
 	4
 );
+
+// CF7 mail body as sent (wp_mail is short-circuited by ct-e2e-capture.php at a later priority).
+add_filter(
+	'pre_wp_mail',
+	static function ( $short_circuit, $atts ) {
+		ct_e2e_provider_log(
+			array(
+				'provider' => 'mail',
+				'subject'  => (string) ( $atts['subject'] ?? '' ),
+				'body'     => is_array( $atts['message'] ?? '' ) ? wp_json_encode( $atts['message'] ) : (string) ( $atts['message'] ?? '' ),
+			)
+		);
+		return $short_circuit;
+	},
+	1,
+	2
+);

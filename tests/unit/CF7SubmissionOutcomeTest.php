@@ -136,6 +136,68 @@ namespace {
 			$this->fire( 'wpcf7_mail_sent', array( $form ) );
 		}
 
+		private function zero_field_adapter( array $payload, bool $log_expected ) {
+			$submission                 = new WPCF7_Submission();
+			$submission->status         = 'mail_sent';
+			$submission->posted         = array( 'your-name' => 'Jonas' );
+			WPCF7_Submission::$instance = $submission;
+			$GLOBALS['ct_cf7_hooks']    = array();
+			$adapter                    = $this->getMockBuilder( \CLICUTCL\Integrations\Forms\CF7_Adapter::class )
+				->onlyMethods( array( 'log_submission', 'get_attribution_payload', 'refresh_allowed' ) )->getMock();
+			$adapter->method( 'get_attribution_payload' )->willReturn( $payload );
+			$adapter->method( 'refresh_allowed' )->willReturn( $log_expected );
+			$adapter->expects( $log_expected ? $this->once() : $this->never() )->method( 'log_submission' )
+				->with( 'contact-form-7', 17, $payload, array( 'your-name' => 'Jonas' ) );
+			$adapter->register_hooks();
+			return $adapter;
+		}
+
+		public function test_form_without_ct_fields_logs_the_cookie_payload(): void {
+			$form = new class() {
+				public function id() {
+					return 17;
+				}
+			};
+			$this->zero_field_adapter( array( 'gclid' => 'G1', 'lt_source' => 'google' ), true );
+			$this->fire( 'wpcf7_mail_sent', array( $form ) );
+		}
+
+		public function test_form_without_ct_fields_logs_nothing_without_consent(): void {
+			$form = new class() {
+				public function id() {
+					return 17;
+				}
+			};
+			$this->zero_field_adapter( array( 'gclid' => 'G1' ), false );
+			$this->fire( 'wpcf7_mail_sent', array( $form ) );
+		}
+
+		public function test_partial_reference_form_logs_the_full_cookie_payload(): void {
+			$payload = array(
+				'gclid' => 'G1', 'fbclid' => 'F1', 'ft_source' => 'a', 'ft_medium' => 'b', 'lt_source' => 'c',
+				'lt_medium' => 'd', 'lt_campaign' => 'e', 'attribution_selected_click_id' => 'G1',
+			);
+			$submission                 = new WPCF7_Submission();
+			$submission->status         = 'mail_sent';
+			$submission->posted         = array( 'ct_gclid' => 'G1', 'ct_lt_campaign' => 'e' );
+			WPCF7_Submission::$instance = $submission;
+			$GLOBALS['ct_cf7_hooks']    = array();
+			$form = new class() {
+				public function id() {
+					return 17;
+				}
+			};
+			foreach ( array( true, false ) as $allowed ) {
+				$adapter = $this->getMockBuilder( \CLICUTCL\Integrations\Forms\CF7_Adapter::class )
+					->onlyMethods( array( 'log_submission', 'get_attribution_payload', 'refresh_allowed' ) )->getMock();
+				$adapter->method( 'get_attribution_payload' )->willReturn( $payload );
+				$adapter->method( 'refresh_allowed' )->willReturn( $allowed );
+				$adapter->expects( $allowed ? $this->once() : $this->never() )->method( 'log_submission' )
+					->with( 'contact-form-7', 17, $payload, $this->anything() );
+				$adapter->on_submission( $form );
+			}
+		}
+
 		private function fire( string $hook, array $args ): void {
 			foreach ( $GLOBALS['ct_cf7_hooks'][ $hook ] ?? array() as $registration ) {
 				call_user_func_array( $registration[0], array_slice( $args, 0, $registration[1] ) );

@@ -121,7 +121,22 @@ foreach ( array( 'hidden' => 'hidden', 'text' => 'text' ) as $variant => $field_
 
 // --- One page per provider, same URL shape.
 $cf7_id = (int) get_posts( array( 'post_type' => 'wpcf7_contact_form', 'numberposts' => 1, 'fields' => 'ids' ) )[0];
+
+// CF7 renders a ct_* hidden field only for keys the form references (#168): the main form references
+// every key the scenarios assert, one form references none.
+$cf7_main = WPCF7_ContactForm::get_instance( $cf7_id );
+$props    = $cf7_main->get_properties();
+$props['form'] .= "\n" . implode( "\n", array_map( static fn( $k ) => '[hidden ct_' . $k . ']', $ct_keys ) );
+$props['mail']['body'] .= "\nGCLID: [ct_gclid]";
+$cf7_main->set_properties( $props );
+$cf7_main->save();
+$cf7_plain = WPCF7_ContactForm::get_template();
+$cf7_plain->set_title( 'E2E CF7 no ct references' );
+$cf7_plain->save();
+$cf7_plain_id = (int) $cf7_plain->id();
+
 $pages  = array(
+	'form-cf7-plain' => '[contact-form-7 id="' . $cf7_plain_id . '"]',
 	'form-cf7'     => '[contact-form-7 id="' . $cf7_id . '"]',
 	'form-fluent'  => '[fluentform id="' . $fluent_id . '"]',
 	'form-wpforms'      => '[wpforms id="' . $wpforms_ids['hidden'] . '"]',
@@ -130,4 +145,4 @@ $pages  = array(
 foreach ( $pages as $slug => $content ) {
 	wp_insert_post( array( 'post_type' => 'page', 'post_status' => 'publish', 'post_title' => $slug, 'post_name' => $slug, 'post_content' => $content ) );
 }
-echo wp_json_encode( array( 'cf7' => $cf7_id, 'fluent' => $fluent_id, 'wpforms_hidden' => $wpforms_ids['hidden'], 'wpforms_text' => $wpforms_ids['text'] ) ) . "\n";
+echo wp_json_encode( array( 'cf7' => $cf7_id, 'cf7_plain' => $cf7_plain_id, 'fluent' => $fluent_id, 'wpforms_hidden' => $wpforms_ids['hidden'], 'wpforms_text' => $wpforms_ids['text'] ) ) . "\n";
