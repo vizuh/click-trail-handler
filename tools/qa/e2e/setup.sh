@@ -32,6 +32,8 @@ wp option update clicutcl_attribution_settings '{"enable_attribution":1,"require
 wp option update clicutcl_server_side '{"enabled":1,"endpoint_url":"https://capture.invalid/collect","adapter":"generic","timeout":5}' --format=json >/dev/null
 wp eval '$s = CLICUTCL\Tracking\Settings::get(); $s["external_forms"]["providers"]["calendly"] = array("enabled" => 1, "secret" => "e2e-secret"); update_option(CLICUTCL\Tracking\Settings::OPTION, $s);'
 FORM=$(wp post list --post_type=wpcf7_contact_form --field=ID | head -1)
+# CF7 renders a ct_<key> hidden field only for keys the form references (#168): reference the ones the journey asserts.
+wp eval "\$cf = wpcf7_contact_form( $FORM ); \$cf->set_properties( array( 'form' => \$cf->prop( 'form' ) . \"\\n[hidden ct_gclid][hidden ct_fbclid][hidden ct_lt_campaign][hidden ct_attribution_selected_click_id]\" ) ); \$cf->save();" >/dev/null
 wp post create --post_type=page --post_status=publish --post_title=Landing --post_name=landing \
   --post_content="<p><a id=\"apply\" href=\"https://apply.example.test/form?ref=site\">Apply</a> <a id=\"book\" href=\"https://calendly.com/acme/intro\">Book</a></p>[contact-form-7 id=\"$FORM\"]" >/dev/null
 wp rewrite structure '/%postname%/' >/dev/null

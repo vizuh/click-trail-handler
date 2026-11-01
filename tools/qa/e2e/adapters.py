@@ -324,12 +324,23 @@ def cf7_no_references(browser):
     settle()
     stored = delta(snap)
     ctx.close()
+    # Referenced form: the `GCLID: [ct_gclid]` mail line must resolve to this visit's gclid.
+    ctx = new_context(browser)
+    page = ctx.new_page()
+    snap = snapshot()
+    page.goto(BASE + '/form-cf7/?utm_source=t1&utm_medium=cpc&gclid=G1')
+    page.wait_for_load_state('networkidle')
+    submit(page, 'cf7', 'refmail')
+    settle()
+    ref_mail = [r['body'] for r in delta(snap)['provider'] if r['provider'] == 'mail']
+    ctx.close()
     return {
         'status': status,
         'served_ct_inputs': served,
         'dom_ct_inputs': dom,
         'posted_ct_fields': sorted(k for r in stored['provider'] if r['provider'] == 'cf7' for k in r['fields'] if k.startswith('ct_')),
         'mail_bodies': [r['body'] for r in stored['provider'] if r['provider'] == 'mail'],
+        'referenced_mail_bodies': ref_mail,
         'leads': [e['attribution'] for e in stored['events'] if e['platform'] == 'contact-form-7'],
         'dispatched': sum(1 for e in stored['capture'] if e.get('event_name') == 'form_submission'),
     }

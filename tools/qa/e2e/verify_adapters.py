@@ -116,6 +116,7 @@ if nr:
     check(not nr['served_ct_inputs'] and not nr['dom_ct_inputs'], scenario, 'cf7', 'no ct_* input in the served HTML or the DOM (%s %s)' % (nr['served_ct_inputs'], nr['dom_ct_inputs']))
     check(not nr['posted_ct_fields'], scenario, 'cf7', 'no ct_* field in the CF7 posted data (%s)' % nr['posted_ct_fields'])
     check(len(nr['mail_bodies']) >= 1 and not any('ct_' in b for b in nr['mail_bodies']), scenario, 'cf7', 'mail sent (%d) with no ct_* line' % len(nr['mail_bodies']))
+    check(any('GCLID: G1' in b for b in nr['referenced_mail_bodies']), scenario, 'cf7 referenced form', 'mail line `GCLID: [ct_gclid]` resolves to the visit gclid (%s)' % [b[-60:] for b in nr['referenced_mail_bodies']])
     check(len(nr['leads']) == 1 and nr['leads'][0].get('gclid') == 'G1', scenario, 'cf7', 'ClickTrail lead carries the visit gclid G1 via the cookie fallback (%d lead(s))' % len(nr['leads']))
     check(nr['dispatched'] == 1, scenario, 'cf7', 'one dispatched form_submission (%d)' % nr['dispatched'])
 

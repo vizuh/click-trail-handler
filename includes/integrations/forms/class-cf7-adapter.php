@@ -232,30 +232,24 @@ class CF7_Adapter extends Abstract_Form_Adapter {
 
 		$posted_data = $submission->get_posted_data();
 
-		$attribution = array();
-		$carries     = false;
+		// ClickTrail's own lead carries the full consented cookie payload whatever ct_* keys the form
+		// references (#168); posted values, already refreshed from the cookie in refresh_posted_data(),
+		// win only where non-empty. Nothing is logged without submission-time consent.
+		if ( ! $this->refresh_allowed() ) {
+			return;
+		}
+
+		$payload     = $this->get_attribution_payload();
+		$attribution = is_array( $payload ) ? $payload : array();
 
 		foreach ( Attribution_Provider::get_field_mapping() as $key ) {
 			$prefixed = $this->get_field_name( $key );
-			if ( ! isset( $posted_data[ $prefixed ] ) ) {
+			if ( ! isset( $posted_data[ $prefixed ] ) || ! is_scalar( $posted_data[ $prefixed ] ) ) {
 				continue;
 			}
-			$carries = true;
-			$value   = sanitize_text_field( $posted_data[ $prefixed ] );
+			$value = sanitize_text_field( (string) $posted_data[ $prefixed ] );
 			if ( '' !== $value ) {
 				$attribution[ $key ] = $value;
-			}
-		}
-
-		// A form with no ct_* field keeps ClickTrail's own lead: log the cookie payload, behind the
-		// same submission-time consent gate that blanks posted values.
-		if ( ! $carries ) {
-			if ( ! $this->refresh_allowed() ) {
-				return;
-			}
-			$payload = $this->get_attribution_payload();
-			if ( is_array( $payload ) ) {
-				$attribution = $payload;
 			}
 		}
 
