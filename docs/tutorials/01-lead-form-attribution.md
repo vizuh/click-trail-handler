@@ -12,7 +12,8 @@ can answer which sources supplied the observed successful submissions.
 
 Form behavior differs by adapter:
 
-- Contact Form 7 and Fluent Forms can receive hidden fields automatically.
+- Fluent Forms can receive hidden fields automatically.
+- Contact Form 7 renders a `ct_<key>` hidden field only for keys the form references: add `[hidden ct_gclid]` (and the other keys you want) to the form, or put `[ct_gclid]` in the mail template, to get the value into the mail and Flamingo. A form with no `ct_*` reference carries none and keeps only ClickTrail's own lead.
 - Gravity Forms, WPForms and Elementor Forms Pro need the matching `ct_*` hidden fields you want stored or exported (see below for how each plugin identifies them).
 - Elementor Forms Pro and Ninja Forms also keep attribution on the submission record itself.
 

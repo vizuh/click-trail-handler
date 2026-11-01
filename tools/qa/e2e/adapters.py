@@ -310,7 +310,33 @@ def script_attrs(browser):
     }
 
 
+def cf7_no_references(browser):
+    """A CF7 form that references no ct_* tag: no ct_* input in the served HTML, none posted or mailed, lead still carries the visit (#168)."""
+    ctx = new_context(browser)
+    page = ctx.new_page()
+    snap = snapshot()
+    page.goto(BASE + '/form-cf7-plain/?utm_source=t1&utm_medium=cpc&gclid=G1')
+    page.wait_for_load_state('networkidle')
+    html = page.content()
+    served = re.findall(r'<input\b[^>]*\bname=["\'](ct_[^"\']*)["\']', html)
+    dom = ct_inputs(page)
+    status = submit(page, 'cf7', 'noref')
+    settle()
+    stored = delta(snap)
+    ctx.close()
+    return {
+        'status': status,
+        'served_ct_inputs': served,
+        'dom_ct_inputs': dom,
+        'posted_ct_fields': sorted(k for r in stored['provider'] if r['provider'] == 'cf7' for k in r['fields'] if k.startswith('ct_')),
+        'mail_bodies': [r['body'] for r in stored['provider'] if r['provider'] == 'mail'],
+        'leads': [e['attribution'] for e in stored['events'] if e['platform'] == 'contact-form-7'],
+        'dispatched': sum(1 for e in stored['capture'] if e.get('event_name') == 'form_submission'),
+    }
+
+
 SCENARIOS = {
+    'cf7_no_references': cf7_no_references,
     'landing': landing, 'landing_server_only': landing_server_only, 'returning': returning, 'cache_leak': cache_leak,
     'double_submit': double_submit, 'consent': consent, 'script_attrs': script_attrs,
 }

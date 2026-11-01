@@ -32,7 +32,7 @@ ClickTrail records what arrived. It does not decide what caused the sale.
 Pick the path that matches your site.
 
 - **WooCommerce store**: turn on Capture and WooCommerce. Orders carry the campaign. Add storefront events later if you want funnel signals.
-- **Lead forms**: turn on Capture and Forms. Contact Form 7 and Fluent Forms get hidden fields on their own. Gravity Forms and WPForms fill the `ct_*` fields you add.
+- **Lead forms**: turn on Capture and Forms. Fluent Forms gets hidden fields on its own; Contact Form 7 fills the `ct_*` tags you reference (`[hidden ct_gclid]` in the form or `[ct_gclid]` in the mail). Gravity Forms and WPForms fill the `ct_*` fields you add.
 - **GTM or server-side GTM**: turn on Capture, Events, and Delivery. Events go to the `dataLayer`, and ClickTrail can send canonical JSON to an endpoint you set.
 
 Then place one test order or send one test form, and look at what was stored. The [use-case guide](docs/guides/USE-CASES.md) and [tutorials](docs/tutorials/README.md) walk through each path.
@@ -43,7 +43,7 @@ ClickTrail only acts on the paths you turn on and set up in its settings. That i
 
 - Capture: first-touch and last-touch UTMs, ad click IDs, and the referrer, with organic, social, and referral fallback when there are no UTMs. When a visitor comes back through a new ad, the newest click is the one that travels. Context lives in first-party storage, falls back to `sessionStorage` when cookies are blocked, and your own admin browsing stays out of it.
 - WooCommerce: attribution saved on the order, an enriched purchase event on the thank-you page, optional storefront events (`view_item`, `view_item_list`, `view_cart`, `add_to_cart`, `remove_from_cart`, `begin_checkout`), and optional order-status milestones. Order metadata has export, erase, retention, and uninstall handling.
-- Forms: Contact Form 7 and Fluent Forms get hidden fields automatically. Gravity Forms and WPForms fill the `ct_*` fields you add; Gravity Forms also gets a channel label, nine `{clicutcl_*}` merge tags, and a per-form switch. Elementor Forms (Pro) and Ninja Forms keep attribution with the submission record. A client-side fallback covers cached pages and forms that load late, and WhatsApp links can carry the context too.
+- Forms: Fluent Forms gets hidden fields automatically; Contact Form 7 fills the `ct_*` tags you reference (`[hidden ct_gclid]` or `[ct_gclid]` in the mail). Gravity Forms and WPForms fill the `ct_*` fields you add; Gravity Forms also gets a channel label, nine `{clicutcl_*}` merge tags, and a per-form switch. Elementor Forms (Pro) and Ninja Forms keep attribution with the submission record. A client-side fallback covers cached pages and forms that load late, and WhatsApp links can carry the context too.
 - Bookings and your other domains: links to domains you approve carry the campaign, with a signed token between your own sites. Calendly booking links hold the newest click and the visitor's consent decision, and the signed Calendly webhook records the booking as `book_appointment` with its UTMs. Booking or form iframes your own script loads can carry the campaign too, through `window.ClickTrail.decorateEmbedUrl()`, for hosts you list.
 - Events and delivery: browser events to the `dataLayer`, a REST intake, webhooks from Calendly, HubSpot, and Typeform, lifecycle updates, and one-time WordPress events such as `login`, `sign_up`, and `comment_submit`. Optional server-side delivery adds a retry queue and diagnostics.
 
