@@ -20,7 +20,7 @@ class Installer {
 	 * Schema version. Bump when table definitions change; `maybe_upgrade()`
 	 * re-runs dbDelta on existing installs until the stored version matches.
 	 */
-	public const DB_VERSION = 4;
+	public const DB_VERSION = 5;
 
 	/**
 	 * Option key for the installed schema version.
@@ -56,6 +56,16 @@ class Installer {
 	 * Touch events table readiness checked timestamp option key.
 	 */
 	private const TOUCH_EVENTS_READY_CHECKED_AT_OPTION = 'clicutcl_touch_events_table_checked_at';
+
+	/**
+	 * WhatsApp reference table readiness option key.
+	 */
+	private const WHATSAPP_REFS_READY_OPTION = 'clicutcl_whatsapp_refs_table_ready';
+
+	/**
+	 * WhatsApp reference table readiness checked timestamp option key.
+	 */
+	private const WHATSAPP_REFS_READY_CHECKED_AT_OPTION = 'clicutcl_whatsapp_refs_table_checked_at';
 
 	/**
 	 * Run the installer.
@@ -129,10 +139,11 @@ class Installer {
 	private static function create_tables() {
 		global $wpdb;
 
-		$table_name         = $wpdb->prefix . 'clicutcl_events';
-		$queue_table        = $wpdb->prefix . 'clicutcl_queue';
-		$touch_events_table = $wpdb->prefix . 'clicutcl_touch_events';
-		$charset_collate    = $wpdb->get_charset_collate();
+		$table_name          = $wpdb->prefix . 'clicutcl_events';
+		$queue_table         = $wpdb->prefix . 'clicutcl_queue';
+		$touch_events_table  = $wpdb->prefix . 'clicutcl_touch_events';
+		$whatsapp_refs_table = $wpdb->prefix . 'clicutcl_whatsapp_refs';
+		$charset_collate     = $wpdb->get_charset_collate();
 
 		$sql = "CREATE TABLE $table_name (
 			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
@@ -193,18 +204,38 @@ class Installer {
 			KEY created_at (created_at)
 		) $charset_collate;";
 
+		// Short WhatsApp reference codes -> attribution snapshot (spec 008). `UNIQUE (blog_id, code)`
+		// is the collision primitive; `expires_at` carries the per-row TTL (attribution retention).
+		$whatsapp_refs_sql = "CREATE TABLE $whatsapp_refs_table (
+			id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			blog_id bigint(20) unsigned NOT NULL DEFAULT 1,
+			code varchar(16) NOT NULL,
+			visitor_id varchar(64) NOT NULL DEFAULT '',
+			selected_click_id_key varchar(16) NOT NULL DEFAULT '',
+			selected_click_id varchar(128) NOT NULL DEFAULT '',
+			snapshot text NOT NULL,
+			created_at datetime NOT NULL,
+			expires_at datetime NOT NULL,
+			PRIMARY KEY  (id),
+			UNIQUE KEY blog_code (blog_id, code),
+			KEY visitor_id (visitor_id),
+			KEY expires_at (expires_at)
+		) $charset_collate;";
+
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 		dbDelta( $sql );
 		dbDelta( $queue_sql );
 		dbDelta( $touch_events_sql );
+		dbDelta( $whatsapp_refs_sql );
 
-		$events_ready       = self::table_exists( $table_name );
-		$queue_ready        = self::table_exists( $queue_table );
-		$touch_events_ready = self::table_exists( $touch_events_table )
+		$events_ready        = self::table_exists( $table_name );
+		$queue_ready         = self::table_exists( $queue_table );
+		$touch_events_ready  = self::table_exists( $touch_events_table )
 			&& self::column_exists( $touch_events_table, 'event_id' )
 			&& self::column_exists( $touch_events_table, 'event_key' )
 			&& self::has_touch_event_unique_key( $touch_events_table );
-		$checked_at         = time();
+		$whatsapp_refs_ready = self::table_exists( $whatsapp_refs_table );
+		$checked_at          = time();
 
 		update_option( self::EVENTS_READY_OPTION, $events_ready ? 1 : 0, false );
 		update_option( self::EVENTS_READY_CHECKED_AT_OPTION, $checked_at, false );
@@ -212,6 +243,8 @@ class Installer {
 		update_option( self::QUEUE_READY_CHECKED_AT_OPTION, $checked_at, false );
 		update_option( self::TOUCH_EVENTS_READY_OPTION, $touch_events_ready ? 1 : 0, false );
 		update_option( self::TOUCH_EVENTS_READY_CHECKED_AT_OPTION, $checked_at, false );
+		update_option( self::WHATSAPP_REFS_READY_OPTION, $whatsapp_refs_ready ? 1 : 0, false );
+		update_option( self::WHATSAPP_REFS_READY_CHECKED_AT_OPTION, $checked_at, false );
 
 		// Backward-compatible aggregate readiness flags.
 		update_option( 'clicutcl_db_ready', ( $events_ready && $queue_ready && $touch_events_ready ) ? 1 : 0, false );
@@ -220,7 +253,7 @@ class Installer {
 		// Record schema version only when the queue status column verifiably
 		// exists and the touch events table is up, so maybe_upgrade() retries
 		// on the next request if dbDelta failed to fully apply.
-		if ( $queue_ready && self::column_exists( $queue_table, 'status' ) && $touch_events_ready ) {
+		if ( $queue_ready && self::column_exists( $queue_table, 'status' ) && $touch_events_ready && $whatsapp_refs_ready ) {
 			update_option( self::DB_VERSION_OPTION, self::DB_VERSION, false );
 		}
 

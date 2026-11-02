@@ -211,7 +211,9 @@ class Plugin {
 		$events_transport_enabled  = class_exists( 'CLICUTCL\\Tracking\\Settings' ) && Tracking_Settings::browser_event_transport_enabled();
 		$enable_cross_domain_token = isset( $options['enable_cross_domain_token'] ) ? (bool) $options['enable_cross_domain_token'] : false;
 		$events_batch_url          = $events_transport_enabled ? rest_url( 'clicutcl/v2/events/batch' ) : '';
-		$events_token              = ( class_exists( 'CLICUTCL\\Tracking\\Auth' ) && ( $events_transport_enabled || $enable_cross_domain_token ) )
+		// The reference-code route is gated by the same page-embedded client token.
+		$whatsapp_ref_enabled = ( isset( $options['enable_whatsapp'] ) ? (bool) $options['enable_whatsapp'] : true ) && ! empty( $options['whatsapp_append_attribution'] );
+		$events_token         = ( class_exists( 'CLICUTCL\\Tracking\\Auth' ) && ( $events_transport_enabled || $enable_cross_domain_token || $whatsapp_ref_enabled ) )
 			? \CLICUTCL\Tracking\Auth::mint_client_token()
 			: '';
 
@@ -414,6 +416,7 @@ class Plugin {
 			'requireConsent'            => $consent_config['require_consent'],
 			'enableWhatsapp'            => isset( $options['enable_whatsapp'] ) ? (bool) $options['enable_whatsapp'] : true,
 			'whatsappAppendAttribution' => isset( $options['whatsapp_append_attribution'] ) ? (bool) $options['whatsapp_append_attribution'] : false,
+			'whatsappRefUrl'            => esc_url_raw( rest_url( 'clicutcl/v2/whatsapp-ref' ) ),
 			'debug'                     => (bool) $debug_active,
 			'eventsBatchUrl'            => esc_url_raw( $events_batch_url ),
 			'eventsToken'               => $events_token,

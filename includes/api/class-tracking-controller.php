@@ -7,7 +7,10 @@
 
 namespace CLICUTCL\Api;
 
+use CLICUTCL\Database\Whatsapp_Ref_Store;
 use CLICUTCL\Server_Side\Dispatcher;
+use CLICUTCL\Server_Side\Consent;
+use CLICUTCL\Settings\Attribution_Settings;
 use CLICUTCL\Tracking\Auth;
 use CLICUTCL\Tracking\Dedup_Store;
 use CLICUTCL\Tracking\Event_Translator_V1_To_V2;
@@ -54,6 +57,11 @@ class Tracking_Controller extends WP_REST_Controller {
 	 * Maximum JSON request body size in bytes.
 	 */
 	private const MAX_BODY_BYTES = 131072;
+
+	/**
+	 * Maximum JSON body size, in bytes, of a WhatsApp reference registration.
+	 */
+	private const MAX_WHATSAPP_REF_BODY_BYTES = 16384;
 
 	/**
 	 * Maximum events accepted per batch.
@@ -164,6 +172,30 @@ class Tracking_Controller extends WP_REST_Controller {
 				array(
 					'methods'             => WP_REST_Server::READABLE,
 					'callback'            => array( $this, 'diagnostics_delivery' ),
+					'permission_callback' => array( $this, 'diagnostics_permissions_check' ),
+				),
+			)
+		);
+
+		register_rest_route(
+			$this->namespace,
+			'/whatsapp-ref',
+			array(
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'create_whatsapp_ref' ),
+					'permission_callback' => array( $this, 'whatsapp_ref_create_permissions_check' ),
+				),
+			)
+		);
+
+		register_rest_route(
+			$this->namespace,
+			'/whatsapp-ref/(?P<code>[A-Za-z0-9-]{1,16})',
+			array(
+				array(
+					'methods'             => WP_REST_Server::READABLE,
+					'callback'            => array( $this, 'lookup_whatsapp_ref' ),
 					'permission_callback' => array( $this, 'diagnostics_permissions_check' ),
 				),
 			)
@@ -504,6 +536,123 @@ class Tracking_Controller extends WP_REST_Controller {
 		return array(
 			'success' => true,
 			'data'    => isset( $verified['data'] ) ? $verified['data'] : array(),
+		);
+	}
+
+	/**
+	 * WhatsApp reference registration permission check.
+	 *
+	 * Same gates as attribution-token/sign, plus the feature switch first and the server-side
+	 * consent gate: consent is read from this request's cookie, never from the body.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return true|WP_Error
+	 */
+	public function whatsapp_ref_create_permissions_check( WP_REST_Request $request ) {
+		$settings = new Attribution_Settings();
+		if ( ! $settings->is_whatsapp_enabled() || ! $settings->append_attribution_to_whatsapp() ) {
+			return new WP_Error( 'whatsapp_ref_disabled', 'WhatsApp reference codes are disabled', array( 'status' => 403 ) );
+		}
+
+		$body_size = strlen( (string) $request->get_body() );
+		if ( $body_size > self::MAX_WHATSAPP_REF_BODY_BYTES ) {
+			return new WP_Error( 'payload_too_large', 'Payload too large', array( 'status' => 413 ) );
+		}
+
+		$rate = $this->check_rate_limit( 'whatsapp_ref' );
+		if ( is_wp_error( $rate ) ) {
+			return $rate;
+		}
+
+		$verified = Auth::verify_client_token( $this->extract_token_from_request( $request ) );
+		if ( is_wp_error( $verified ) ) {
+			return $verified;
+		}
+
+		if ( Consent::is_required() && ! Consent::marketing_allowed() ) {
+			return new WP_Error( 'consent_required', 'Marketing consent is required', array( 'status' => 403 ) );
+		}
+
+		$nonce_limit = $this->check_token_nonce_limit( $verified, 20 );
+		if ( is_wp_error( $nonce_limit ) ) {
+			return $nonce_limit;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Store a client-generated WhatsApp reference code with the visitor's attribution snapshot.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return array|WP_Error
+	 */
+	public function create_whatsapp_ref( WP_REST_Request $request ) {
+		$payload = $request->get_json_params();
+		$payload = is_array( $payload ) ? $payload : array();
+
+		$code = isset( $payload['code'] ) && is_string( $payload['code'] ) ? $payload['code'] : '';
+		if ( ! Whatsapp_Ref_Store::is_canonical_code( $code ) ) {
+			return new WP_Error( 'invalid_code', 'Invalid reference code', array( 'status' => 400 ) );
+		}
+
+		$data = isset( $payload['data'] ) && is_array( $payload['data'] ) ? $this->sanitize_attribution_token_data( $payload['data'] ) : array();
+		if ( empty( $data ) ) {
+			return new WP_Error( 'invalid_attribution_data', 'No allowed attribution fields to store', array( 'status' => 400 ) );
+		}
+
+		$selected   = isset( $payload['selected_click_id_key'] ) && is_string( $payload['selected_click_id_key'] ) ? sanitize_key( $payload['selected_click_id_key'] ) : '';
+		$visitor_id = isset( $payload['visitor_id'] ) && is_string( $payload['visitor_id'] ) ? $payload['visitor_id'] : '';
+		$row        = Whatsapp_Ref_Store::build_row(
+			$code,
+			$data,
+			$selected,
+			$visitor_id,
+			function_exists( 'get_current_blog_id' ) ? (int) get_current_blog_id() : 1,
+			Whatsapp_Ref_Store::retention_days(),
+			time()
+		);
+		if ( null === $row ) {
+			return new WP_Error( 'invalid_code', 'Invalid reference code', array( 'status' => 400 ) );
+		}
+
+		switch ( Whatsapp_Ref_Store::create( $row ) ) {
+			case 'created':
+				return array(
+					'success'    => true,
+					'code'       => 'CT-' . $code,
+					'expires_at' => $row['expires_at'],
+				);
+			case 'collision':
+				return new WP_Error( 'whatsapp_ref_collision', 'Reference code already exists', array( 'status' => 409 ) );
+			case 'visitor_limit':
+				return new WP_Error( 'whatsapp_ref_visitor_limit', 'Too many reference codes for this visitor', array( 'status' => 429 ) );
+			case 'capacity':
+				return new WP_Error( 'whatsapp_ref_capacity', 'Reference storage is full', array( 'status' => 503 ) );
+			default:
+				return new WP_Error( 'whatsapp_ref_unavailable', 'Reference storage is not available', array( 'status' => 503 ) );
+		}
+	}
+
+	/**
+	 * Resolve a reference code to its attribution snapshot (administrators only).
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return array|WP_Error
+	 */
+	public function lookup_whatsapp_ref( WP_REST_Request $request ) {
+		$row = Whatsapp_Ref_Store::find(
+			(string) $request->get_param( 'code' ),
+			function_exists( 'get_current_blog_id' ) ? (int) get_current_blog_id() : 1,
+			time()
+		);
+		if ( null === $row ) {
+			return new WP_Error( 'whatsapp_ref_not_found', 'Reference code not found or expired', array( 'status' => 404 ) );
+		}
+
+		return array(
+			'success' => true,
+			'data'    => $row,
 		);
 	}
 

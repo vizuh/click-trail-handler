@@ -7,6 +7,7 @@
 
 namespace CLICUTCL\Admin;
 
+use CLICUTCL\Database\Whatsapp_Ref_Store;
 use CLICUTCL\Modules\Consent_Mode\Consent_Mode_Settings;
 use CLICUTCL\Modules\GTM\GTM_Settings;
 use CLICUTCL\Privacy\Woo_Order_Privacy;
@@ -179,6 +180,18 @@ trait Admin_Diagnostics_Ajax_Trait {
 			$result = $wpdb->query( "TRUNCATE TABLE {$touch_table}" );
 			if ( false === $result ) {
 				$errors[] = 'touch_events_truncate_failed';
+			}
+		}
+
+		// WhatsApp reference codes are local tracking data too.
+		$whatsapp_table = Whatsapp_Ref_Store::table_name();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$whatsapp_ready = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $whatsapp_table ) );
+		if ( $whatsapp_ready === $whatsapp_table ) {
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table name from $wpdb->prefix.
+			$result = $wpdb->query( "TRUNCATE TABLE {$whatsapp_table}" );
+			if ( false === $result ) {
+				$errors[] = 'whatsapp_refs_truncate_failed';
 			}
 		}
 
@@ -488,6 +501,35 @@ trait Admin_Diagnostics_Ajax_Trait {
 				'message' => __( 'Order trace loaded.', 'click-trail-handler' ),
 				'html'    => $this->render_woo_order_lookup_results( $lookup ),
 				'lookup'  => $lookup,
+			)
+		);
+	}
+
+	/**
+	 * Lookup a WhatsApp reference code (the same store method as the REST route).
+	 *
+	 * @return void
+	 */
+	public function ajax_lookup_whatsapp_ref() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			wp_send_json_error( array( 'message' => __( 'Forbidden', 'click-trail-handler' ) ), 403 );
+		}
+		check_ajax_referer( 'clicutcl_diag', 'nonce' );
+
+		$raw_code = isset( $_POST['code'] ) ? sanitize_text_field( wp_unslash( $_POST['code'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Verified above.
+		if ( '' === Whatsapp_Ref_Store::normalize_code( $raw_code ) ) {
+			wp_send_json_error( array( 'message' => __( 'Enter a reference code such as CT-ABCD2345.', 'click-trail-handler' ) ), 400 );
+		}
+
+		$row = Whatsapp_Ref_Store::find( $raw_code, function_exists( 'get_current_blog_id' ) ? (int) get_current_blog_id() : 1, time() );
+		if ( null === $row ) {
+			wp_send_json_error( array( 'message' => __( 'Reference code not found or expired.', 'click-trail-handler' ) ), 404 );
+		}
+
+		wp_send_json_success(
+			array(
+				'message' => __( 'Reference code found.', 'click-trail-handler' ),
+				'lookup'  => $row,
 			)
 		);
 	}

@@ -362,4 +362,12 @@ if ( ! function_exists( 'set_transient' ) ) {
 	}
 }
 
+if ( ! function_exists( 'delete_transient' ) ) {
+	function delete_transient( $key ) {
+		$existed = isset( $GLOBALS['clicktrail_test_transients'][ $key ] );
+		unset( $GLOBALS['clicktrail_test_transients'][ $key ] );
+		return $existed;
+	}
+}
+
 // Each test file is responsible for `require_once`-ing its target classes.

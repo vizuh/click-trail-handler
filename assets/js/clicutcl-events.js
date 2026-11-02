@@ -11,6 +11,12 @@
     // submission: a double-fired hook, a retried AJAX send, or a v4 event plus a legacy
     // hsFormCallback for the same HubSpot form.
     const FORM_LEAD_DEDUPE_MS = 10000;
+    // WhatsApp links ClickTrail treats as a chat handoff (kept in step with WHATSAPP_HOSTS in
+    // clicutcl-attribution.js; the whatsapp:// protocol is matched separately).
+    const WHATSAPP_HOSTS = ['wa.me', 'whatsapp.com', 'api.whatsapp.com', 'web.whatsapp.com'];
+    // One click on one WhatsApp link inside this window is one chat start: a double click or a
+    // touch that also fires a click.
+    const WHATSAPP_CLICK_DEDUPE_MS = 10000;
 
     /**
      * ClickTrail Events Tracking
@@ -152,6 +158,7 @@
                 sign_up: { event_name: 'sign_up', funnel_stage: 'bottom' },
                 comment_submit: { event_name: 'comment_submit', funnel_stage: 'mid' },
                 contact_call_click: { event_name: 'contact_call_click', funnel_stage: 'mid' },
+                contact_whatsapp_start: { event_name: 'contact_whatsapp_start', funnel_stage: 'mid' },
                 contact_chat_start: { event_name: 'contact_chat_start', funnel_stage: 'mid' },
                 book_appointment: { event_name: 'book_appointment', funnel_stage: 'bottom' },
                 qualified_lead: { event_name: 'qualified_lead', funnel_stage: 'bottom' },
@@ -858,6 +865,26 @@
                         cta_label: this.safeText(el.textContent || ''),
                         contact_type: 'chat'
                     });
+                    return;
+                }
+
+                const whatsapp = href ? this.parseWhatsAppLink(href) : null;
+                if (whatsapp) {
+                    // Consent first, so a denied click leaves no dedupe marker behind.
+                    const consentBridge = window.ClickTrailConsent;
+                    if (typeof consentBridge === 'undefined' || !consentBridge.isGranted()) return;
+                    if (!this.markOnce('whatsapp|' + whatsapp.link_url, WHATSAPP_CLICK_DEDUPE_MS)) return;
+                    const ref = window.ClickTrail && typeof window.ClickTrail.getWhatsAppRef === 'function'
+                        ? window.ClickTrail.getWhatsAppRef()
+                        : '';
+                    const params = {
+                        cta_label: this.safeText(el.textContent || ''),
+                        contact_type: 'whatsapp',
+                        link_url: whatsapp.link_url,
+                        phone: whatsapp.phone
+                    };
+                    if (ref) params.ref_code = 'CT-' + ref;
+                    this.pushEvent('contact_whatsapp_start', params);
                     return;
                 }
 
@@ -2215,6 +2242,31 @@
                 if (!this.markOnce(normalized.event_name + '|' + normalized.external_id)) return;
                 this.pushEvent(normalized.event_name, params);
             });
+        }
+
+        /**
+         * Facts about a WhatsApp link, or null when `href` is not one. `link_url` drops the
+         * pre-filled `text` (site copy, plus the reference ClickTrail adds, which has its own
+         * field) and the fragment. `phone` is the public business number from `wa.me/<digits>` or
+         * `?phone=`, digits only (7 to 15), empty when the link carries none.
+         */
+        parseWhatsAppLink(href) {
+            let url;
+            try { url = new URL(href, window.location.href); } catch (err) { return null; }
+            if (url.protocol !== 'whatsapp:' && WHATSAPP_HOSTS.indexOf(url.hostname) === -1) return null;
+
+            let candidate = '';
+            try {
+                candidate = url.hostname === 'wa.me'
+                    ? decodeURIComponent(url.pathname.split('/')[1] || '')
+                    : (url.searchParams.get('phone') || '');
+            } catch (err) {}
+            let phone = /^[+\d\s().-]+$/.test(candidate) ? candidate.replace(/\D/g, '') : '';
+            if (phone.length < 7 || phone.length > 15) phone = '';
+
+            url.searchParams.delete('text');
+            url.hash = '';
+            return { link_url: url.toString(), phone: phone };
         }
 
         /**

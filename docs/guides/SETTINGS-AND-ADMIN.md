@@ -201,7 +201,7 @@ Relevant keys:
 - `enable_cross_domain_token`
 - `embed_allowed_domains`
 - `enable_whatsapp`
-- `whatsapp_append_attribution`
+- `whatsapp_append_attribution` (default off): the pre-filled WhatsApp text gets a short `Ref: CT-<8 chars>` code that the server maps to the stored attribution; Diagnostics > WhatsApp Reference Lookup resolves it. The click event `contact_whatsapp_start` does not depend on this setting
 
 Sanitizer:
 

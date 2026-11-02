@@ -105,6 +105,7 @@ This map is organized around the active code paths first, then compatibility and
 ### Utilities and DB
 
 - `includes/database/class-installer.php`
+- `includes/database/class-whatsapp-ref-store.php`: WhatsApp reference-code table (`clicutcl_whatsapp_refs`)
 - `includes/settings/class-attribution-settings.php`
 - `includes/utils/class-attribution.php`
 - `includes/utils/class-cleanup.php`
@@ -140,6 +141,7 @@ This map is organized around the active code paths first, then compatibility and
 - `tools/qa/consent-bridge.test.js`, `tools/qa/cmp-transition.test.js`, `tools/qa/hubspot-form-capture.test.js`: consent bridge, CMP transition, and HubSpot embedded form capture checks (`npm run test:consent`)
 - `tools/qa/payment-referrer.test.js`: payment-return referrer checks for the attribution script (`npm run test:attribution`)
 - `tools/qa/cookie-scope.test.js`: cookie `domain` attribute and one-time scope migration across the four scripts (`npm run test:attribution`); PHP side in `tests/unit/CookieScopeSettingsTest.php`
+- `tools/qa/whatsapp-handoff.test.js`: WhatsApp click event and `Ref: CT-` reference checks (`npm run test:attribution`, `npm run test:consent`)
 - `tools/admin-css/`: Tailwind source, config, and `check-scope.js` for `assets/css/admin-refresh.css` (`npm run build:admin-css`)
 - `tools/release/`: packaging (`make-zip.js`, `make-zip.ps1`) and WordPress.org asset validation
 
@@ -155,6 +157,8 @@ This map is organized around the active code paths first, then compatibility and
 - DB tables:
   - `wp_clicutcl_events`
   - `wp_clicutcl_queue`
+  - `wp_clicutcl_touch_events`
+  - `wp_clicutcl_whatsapp_refs`
 
 ## Compatibility and Legacy Surfaces
 
