@@ -35,6 +35,21 @@ The Meta PageView tag accepts both `ct_page_view` from WordPress and
 `page_view` from JavaScript. Google tags retain their native GTM consent
 behavior.
 
+Two rules keep the push from colliding with the Google tag (#135):
+
+- ClickTrail pushes the Google tag's reserved field names prefixed, for
+  example `ct_session_id` and `ct_session_number` (full list in
+  [EVENT-PIPELINE.md](../architecture/EVENT-PIPELINE.md#datalayer-push-shape)).
+  In a GA4 Event tag, a parameter named `session_id` is sent as GA4's own
+  session and splits it, so map ClickTrail identity under a custom name such
+  as `ct_session_id` and never use a reserved name as the parameter name.
+  Before this change the pushes carried a flat `session_id`; update any GTM
+  variable that read it.
+- The canonical page view is pushed as `ct_page_view`, never as `page_view`.
+  The Google tag sends its own `page_view`; a catch-all GA4 Event tag with
+  event name `{{Event}}` must exclude `ct_page_view`, or navigations count
+  more than once.
+
 ## Attribution parameters and consent
 
 Every GA4 event tag forwards the stored attribution as event parameters:
@@ -87,6 +102,7 @@ or reproduce the same shape through the integration that owns the event.
 In GTM Preview, confirm:
 
 - `ct_page_view` and `page_view` appear as separate custom events.
+- ClickTrail pushes carry `datalayer_version` `2.0.0` and no flat `session_id`, `session_number`, `client_id`, `user_id`, `engagement_time_msec`, `timestamp_micros`, `page_location` or `page_referrer`; they appear as `ct_session_id`, `ct_session_number`, and so on.
 - `DLV - event_id` resolves to the fixture event ID.
 - `DLV - marketing_trail.consent.advertising` is `false` when the field is
   absent and reflects the published consent source when present.

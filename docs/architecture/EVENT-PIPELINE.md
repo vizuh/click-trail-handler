@@ -66,6 +66,15 @@ Flow:
 3. event is pushed to `window.dataLayer`
 4. if REST delivery is configured, a canonical event payload is posted to `/clicutcl/v2/events/batch`
 
+## dataLayer push shape
+
+Every dataLayer push made by ClickTrail's browser scripts (`ct_page_view` from `clicutcl-attribution.js`, `lead_submit` from its form listener, and every `pushEvent()` event from `clicutcl-events.js`) carries `datalayer_version: "2.0.0"` (same shape version as `clicktrail-js`, #135; source-present / runtime-unverified) and follows two rules:
+
+- **Reserved Google tag fields are prefixed.** The Google tag (gtag.js / GA4) reads `session_id`, `client_id`, `user_id`, `session_number`, `engagement_time_msec`, `timestamp_micros`, `page_location` and `page_referrer` as its own fields, not as free event parameters. A GA4 Event tag that maps a dataLayer `session_id` sends it as `sid`, overrides the `_ga_<property>` session on the tag's first hit and writes it back into the cookie, so the GA4 session splits and conversions land in Unassigned. ClickTrail therefore pushes these keys as `ct_<name>` (`ct_session_id`, `ct_session_number`, `ct_engagement_time_msec`, ...); the renamed value wins over a caller key already named `ct_<name>`. The prefix is fixed (`ct_`); there is no setting. The list is `RESERVED_GOOGLE_TAG_FIELDS` in both scripts, kept equal by `tools/qa/ga4-session.test.js`. The `marketing_trail` envelope, `ct_attribution` and the canonical event posted to `/clicutcl/v2/events/batch` are not renamed: the server copy keeps its own `session_id`.
+- **The canonical `page_view` is `ct_page_view`.** ClickTrail never pushes `event: "page_view"` (the Google tag sends its own); `marketing_trail.event_name` stays `page_view`. A catch-all GA4 Event tag keyed on `{{Event}}` must exclude `ct_page_view` or every navigation counts more than once.
+
+Migration: GTM variables that read a flat `session_id` or `session_number` from a ClickTrail push (`session_id` and `session_number` were pushed flat before this change) must read `ct_session_id` / `ct_session_number`. The bundled starter kit maps neither. WooCommerce `purchase`, server events from `Events_Logger` and Ninja Forms pushes carry none of the reserved keys.
+
 Woo list-view specifics:
 
 - product loops, related products, upsells, cross-sells, widgets, and supported Woo blocks can resolve `item_list_name`
@@ -127,7 +136,7 @@ Flow:
 
 Form dedupe key (`log_submission()`):
 
-- providers with an entry ID (Gravity Forms, WPForms, Fluent Forms, MetForm when it stored an entry, Ninja Forms when its Save action stored a submission ID): `(site, provider, form_id, entry_id)`, held for a day
+- providers with an entry ID (Gravity Forms, WPForms, Fluent Forms, MetForm and SureForms when they stored an entry, Ninja Forms when its Save action stored a submission ID): `(site, provider, form_id, entry_id)`, held for a day
 - providers without one (Contact Form 7, Elementor Forms Pro): **best-effort** `(site, provider, form_id, HMAC of the submitted ct_* attribution values plus the email/phone found in the posted data, 10 s time bucket)`; the HMAC means no plain hash of an email or phone reaches the transient key or the event ID. A repeat that crosses a bucket boundary, or whose posted `ct_*` values differ, counts as a new submission; two visitors posting identical values inside one bucket count as one
 - the `event_id` is `form_` plus the first 32 hex characters of the key's `hash_hmac( 'sha256', ..., wp_salt( 'auth' ) )`, so it is the same on every call for an entry (and changes if the site's auth salt changes); `lead_id` is `lead_` plus it, matches the `clicutcl_events` row and the server-side event, and is not the ID of the browser `lead` push
 - the claim makes simultaneous requests safe (#189): `Claim_Lock::acquire()` uses `wp_cache_add()` with a persistent object cache, otherwise `add_option()` whose boolean return decides the winner (the same design as the WooCommerce thank-you lock), with a request-unique owner token, a 30 s stale takeover through a row-conditional delete of the exact stale value, and an owner-checked release. The loser writes nothing and returns the winner's deterministic `event_id` / `lead_id` with `duplicate` set. The winner keeps the dedupe marker only after the row is stored and the event dispatched and always releases the claim, so a failed or thrown attempt leaves nothing that suppresses a retry; sequential repeats (double click, retried AJAX, a hook firing twice) hit the marker. A winner that outlives the 30 s TTL can overlap a successor by design. Form checks do not count toward the dedup hit/miss stats

@@ -41,6 +41,13 @@ def touch_checks(scenario, name, res, expect):
     if name == 'fluent':
         meta = rec['meta']
         check(all(meta.get('ct_' + k) == v for k, v in expect.items()), scenario, name, 'Fluent submission meta carries %s' % expect)
+    if name == 'sureforms':
+        meta = rec['meta']
+        check(all(meta.get('ct_' + k) == v for k, v in expect.items()), scenario, name, 'SureForms entry extras carry %s (got %s)' % (expect, {k: meta.get('ct_' + k) for k in expect}))
+        check(meta.get('lead_ids') == [[meta.get('ct_event_id'), meta.get('ct_lead_id')]] and bool(meta.get('ct_event_id')), scenario, name, 'entry extras carry the ClickTrail event_id / lead_id of the stored lead (%s vs %s)' % ([meta.get('ct_event_id'), meta.get('ct_lead_id')], meta.get('lead_ids')))
+        bodies = meta.get('mail_bodies') or []
+        gclid = expect.get('gclid') or expect.get('fbclid')
+        check(len(bodies) >= 1 and any('ct_' in b and gclid in b for b in bodies), scenario, name, 'notification mail carries the ct_* label and value (%d mail(s))' % len(bodies))
     if name.startswith('wpforms'):
         record('FINDING' if not rec['meta'].get('entry_meta_api') else 'PASS', scenario, name,
                'WPForms Lite has no entry/entry-meta API (wpforms()->entry_meta unset, entry_id=%s): entry meta cannot be asserted; the processed field values captured at wpforms_process_complete were asserted instead' % rec['meta'].get('entry_id'))
@@ -98,8 +105,8 @@ for name, res in data.get('cache_leak', {}).items():
     # (b) submit layer: force the old vector (render filter on), serve A's snapshot to B.
     sub = res['submit']
     forced = res['forced_render']
-    if name.startswith('wpforms'):
-        record('INFO', scenario, name + ' submit', "Lite fills no field at render (hidden is a Pro field); A's values were planted in the posted inputs instead (rendered with filter on: %s)" % (forced['ct_inputs_non_empty'] or 'none'))
+    if name.startswith('wpforms') or name == 'sureforms':
+        record('INFO', scenario, name + ' submit', "WPForms Lite and SureForms free fill no field at render (hidden is a Pro field in both); A's values were planted in the posted inputs instead (rendered with filter on: %s)" % (forced['ct_inputs_non_empty'] or 'none'))
     elif name.startswith('metform'):
         record('INFO', scenario, name + ' submit', "MetForm renders no ClickTrail value (the adapter has no render fill); A's values were planted in the posted inputs instead (rendered with filter on: %s)" % (forced['ct_inputs_non_empty'] or 'none'))
         posted = (sub.get('posted') or [{}])[0]
@@ -117,7 +124,7 @@ for name, res in data.get('cache_leak', {}).items():
     check(entry.get('ct_gclid', '') == '' and entry.get('ct_ft_gclid', '') == '' and entry.get('ct_lt_gclid', '') == '', scenario, name + ' submit', "provider record is empty for the keys B's cookie lacks (gclid=%r)" % entry.get('ct_gclid'))
     check(lead.get('gclid', '') == '' and lead.get('ft_gclid', '') == '', scenario, name + ' submit', "stored lead is empty for the keys B's cookie lacks (gclid=%r)" % lead.get('gclid'))
     leaked = dict(has_a_value(entry), **{'lead.' + k: v for k, v in has_a_value(lead).items()})
-    if (name == 'fluent' or name.startswith('metform')) and rec:
+    if (name in ('fluent', 'sureforms') or name.startswith('metform')) and rec:
         leaked.update({'meta.' + k: v for k, v in has_a_value(rec['meta']).items()})
     check(not leaked, scenario, name + ' submit', "no value of visitor A anywhere in the stored lead or provider record (%s)" % (leaked or 'none'))
 

@@ -50,6 +50,40 @@ class Attribution_Settings {
 	}
 
 	/**
+	 * Parse GA4 measurement IDs from a comma or whitespace separated string.
+	 *
+	 * Keeps only `G-` plus alphanumerics, uppercased and de-duplicated in the order given. The
+	 * attribution script turns each into a `_ga_<ID>` cookie name, so anything else is dropped here.
+	 *
+	 * @param mixed $value Raw value.
+	 * @return string[]
+	 */
+	public static function parse_ga4_measurement_ids( $value ): array {
+		if ( ! is_string( $value ) ) {
+			return array();
+		}
+
+		$ids = array();
+		foreach ( preg_split( '/[\s,]+/', $value, -1, PREG_SPLIT_NO_EMPTY ) as $candidate ) {
+			if ( 1 === preg_match( '/^G-[A-Z0-9]+$/i', $candidate ) ) {
+				$ids[] = strtoupper( $candidate );
+			}
+		}
+
+		return array_values( array_unique( $ids ) );
+	}
+
+	/**
+	 * GA4 measurement IDs the site configured (`ga4_measurement_id`), validated.
+	 *
+	 * @param array $options Attribution settings.
+	 * @return string[]
+	 */
+	public static function ga4_measurement_ids( array $options ): array {
+		return self::parse_ga4_measurement_ids( $options['ga4_measurement_id'] ?? '' );
+	}
+
+	/**
 	 * Get Cookie Duration (days).
 	 *
 	 * @return int

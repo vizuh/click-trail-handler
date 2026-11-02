@@ -13,6 +13,7 @@ use CLICUTCL\Modules\GTM\GTM_Settings;
 use CLICUTCL\Server_Side\Dispatcher;
 use CLICUTCL\Server_Side\Queue;
 use CLICUTCL\Server_Side\Settings;
+use CLICUTCL\Settings\Attribution_Settings;
 use CLICUTCL\Support\Feature_Registry;
 use CLICUTCL\Tracking\Settings as Tracking_Settings;
 
@@ -600,6 +601,7 @@ class Admin {
 				'retention_days'       => absint( $attr_options['cookie_days'] ?? 90 ),
 				'cookie_scope'         => in_array( $attr_options['cookie_scope'] ?? 'host', Cookie_Scope::scopes(), true ) ? $attr_options['cookie_scope'] : 'host',
 				'cookie_custom_domain' => (string) ( $attr_options['cookie_custom_domain'] ?? '' ),
+				'ga4_measurement_id'   => (string) ( $attr_options['ga4_measurement_id'] ?? '' ),
 				'decorate_links'       => ! empty( $attr_options['enable_link_decoration'] ) ? 1 : 0,
 				'allowed_domains'      => $this->format_multiline_setting( $attr_options['link_allowed_domains'] ?? '' ),
 				'embed_domains'        => $this->format_multiline_setting( $attr_options['embed_allowed_domains'] ?? '' ),
@@ -1009,6 +1011,10 @@ class Admin {
 			'enable_whatsapp'             => ! empty( $forms_whatsapp['enabled'] ) ? 1 : 0,
 			'whatsapp_append_attribution' => ! empty( $forms_whatsapp['append_attribution'] ) ? 1 : 0,
 		);
+		// A client that does not send the field must not clear the stored GA4 measurement ID.
+		if ( array_key_exists( 'ga4_measurement_id', $capture ) ) {
+			$attr_input['ga4_measurement_id'] = $capture['ga4_measurement_id'];
+		}
 		update_option( 'clicutcl_attribution_settings', $this->sanitize_settings( $attr_input ), false );
 
 		$consent_input = array(
@@ -1180,6 +1186,10 @@ class Admin {
 				'default'  => '',
 				'sanitize' => array( $this, 'sanitize_cookie_custom_domain' ),
 			),
+			'ga4_measurement_id'          => array(
+				'default'  => '',
+				'sanitize' => array( $this, 'sanitize_ga4_measurement_ids' ),
+			),
 			'enable_js_injection'         => array(
 				'default'  => 1,
 				'sanitize' => array( $this, 'sanitize_toggle' ),
@@ -1339,6 +1349,16 @@ class Admin {
 		$domain = ltrim( $domain, '.' );
 
 		return preg_match( '/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/', $domain ) ? $domain : '';
+	}
+
+	/**
+	 * Sanitize the GA4 measurement ID list: `G-` IDs only, uppercased, comma separated.
+	 *
+	 * @param mixed $value Raw input.
+	 * @return string
+	 */
+	private function sanitize_ga4_measurement_ids( $value ) {
+		return implode( ',', Attribution_Settings::parse_ga4_measurement_ids( $value ) );
 	}
 
 	/**

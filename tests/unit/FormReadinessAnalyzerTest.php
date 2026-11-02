@@ -55,6 +55,7 @@ final class FormReadinessAnalyzerTest extends TestCase {
 			'wpforms matching fields'            => array( $base . 'wpforms.json' ),
 			'elementor hook storage'              => array( $base . 'elementor.json' ),
 			'ninja hook storage'                  => array( $base . 'ninja.json' ),
+			'sureforms matching fields'           => array( $base . 'sureforms.json' ),
 		);
 	}
 

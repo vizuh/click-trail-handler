@@ -646,6 +646,9 @@
                     renderText('capture.cookie_custom_domain', __('Custom cookie domain', 'click-trail-handler'), __('A parent domain of this site, for example example.com. Ignored unless Cookie scope is Custom. Public suffixes and unrelated domains are rejected and cookies stay host-only.', 'click-trail-handler'), {
                         disabled: getIn(settings, 'capture.cookie_scope', 'host') !== 'custom',
                         placeholder: 'example.com'
+                    }),
+                    renderText('capture.ga4_measurement_id', __('GA4 measurement ID', 'click-trail-handler'), __('For example G-ABC123. When set, the GA4 session ID is read only from that property\'s _ga_ cookie, so a second GA4 property on the same domain cannot supply it. Separate several IDs with commas. Leave empty to use the first _ga_ cookie that has a session ID.', 'click-trail-handler'), {
+                        placeholder: 'G-XXXXXXXXXX'
                     })
                 ]),
                 el(AppCard, {
