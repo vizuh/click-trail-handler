@@ -102,6 +102,11 @@ class Setup_Detector {
 				'active' => defined( 'FLUENTFORM' ) || class_exists( '\FluentForm\Framework\Foundation\Application' ),
 			),
 			array(
+				'key'    => 'forminator',
+				'label'  => 'Forminator',
+				'active' => defined( 'FORMINATOR_VERSION' ) || class_exists( 'Forminator' ),
+			),
+			array(
 				'key'    => 'ninja',
 				'label'  => 'Ninja Forms',
 				'active' => class_exists( 'Ninja_Forms' ),

@@ -14,7 +14,7 @@ Form behavior differs by adapter:
 
 - Fluent Forms can receive hidden fields automatically.
 - Contact Form 7 renders a `ct_<key>` hidden field only for keys the form references: add `[hidden ct_gclid]` (and the other keys you want) to the form, or put `[ct_gclid]` in the mail template, to get the value into the mail and Flamingo. A form with no `ct_*` reference carries none and keeps only ClickTrail's own lead.
-- Gravity Forms, WPForms and Elementor Forms Pro need the matching `ct_*` hidden fields you want stored or exported (see below for how each plugin identifies them).
+- Gravity Forms, WPForms, Forminator and Elementor Forms Pro need the matching `ct_*` hidden fields you want stored or exported (see below for how each plugin identifies them).
 - Elementor Forms Pro and Ninja Forms also keep attribution on the submission record itself.
 
 Every adapter refreshes the `ct_*` fields from the attribution cookie sent with the submit, so a form submitted on the landing page stores the click ID of that visit rather than the empty or previous value the page rendered. This is unit-tested, not yet verified on a live install of each form plugin.
@@ -34,6 +34,22 @@ value. Entry meta is written separately for WPForms Pro. E2E on WordPress 7.1 wi
 WPForms Lite 2.0.3.1 verified the submit-time fill on a Single Line Text field with
 the CSS class; entry meta cannot be tested in Lite. The render-time fill only touches
 `hidden` fields, so on Lite the value appears at submit, not on page load.
+
+### Forminator: mark the Hidden fields
+
+Add a **Hidden** field per value you want and give it the custom CSS class `ct_<key>`
+(Styling tab), for example `ct_gclid`, `ct_ft_source` or `ct_lt_source`. Forminator names the input after the field ID (`hidden-1`), so the browser
+never fills it and the server does: the field renders empty and, when the form is submitted
+(Forminator's default AJAX mode; non-AJAX forms run the same filters but are source-present
+only), ClickTrail writes the value from the attribution cookie sent with the submit
+before Forminator validates, stores and mails it. The field's **Default value** can stay
+whatever it is, including **Custom value**. Setting the field **label** to exactly
+`ct_<key>`, or the Default value **Custom value** to exactly `ct_<key>`, also marks it. A key
+the cookie lacks leaves the field empty, and without marketing consent every marked field is
+empty. The entry also gets `ct_event_id` and `ct_lead_id` in its meta; use `{hidden-1}` style
+placeholders (the field's ID) in notifications. E2E on WordPress 7.1 with free Forminator
+1.58.4 verified landing, returning-visitor, cache and consent submits on AJAX forms for all
+three marker styles.
 
 ### Elementor Forms Pro: set the field ID
 

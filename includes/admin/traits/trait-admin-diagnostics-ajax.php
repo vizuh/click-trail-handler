@@ -937,7 +937,7 @@ trait Admin_Diagnostics_Ajax_Trait {
 			}
 		}
 
-		// Check GF / WPForms for missing ct_* hidden fields.
+		// Check GF / WPForms / Forminator for missing ct_* hidden fields.
 		foreach ( $this->check_form_attribution_fields() as $item ) {
 			$findings[] = $item;
 		}
@@ -966,9 +966,9 @@ trait Admin_Diagnostics_Ajax_Trait {
 	 */
 
 	/**
-	 * Check whether Gravity Forms and WPForms have ct_* hidden fields in active forms.
+	 * Check whether Gravity Forms, WPForms and Forminator have ct_* hidden fields in active forms.
 	 *
-	 * Gravity Forms and WPForms require manually placed ct_* hidden fields for
+	 * Gravity Forms, WPForms and Forminator require manually placed ct_* hidden fields for
 	 * attribution data to be captured in form entries. When those fields are absent,
 	 * attribution silently fails. This check surfaces a warning per affected form
 	 * with a direct edit link so the user can act without leaving Diagnostics.
@@ -1063,6 +1063,54 @@ trait Admin_Diagnostics_Ajax_Trait {
 								),
 							);
 						}
+					}
+				}
+			}
+		}
+
+		// --- Forminator ---
+		if ( class_exists( 'Forminator_API' ) ) {
+			$forminator_forms = Forminator_API::get_forms( null, 1, 100, 'publish' );
+			// Same rule as Forminator_Adapter::field_key(): a Hidden field with a `ct_<key>` custom CSS class token, a label that is exactly `ct_<key>`, or the Default value "Custom value" set to exactly `ct_<key>`, for a mapped key.
+			$ct_names = array_flip( array_map( static fn( $key ) => 'ct_' . $key, \CLICUTCL\Core\Attribution_Provider::get_field_mapping() ) );
+			if ( is_array( $forminator_forms ) ) {
+				foreach ( $forminator_forms as $form ) {
+					if ( ! is_object( $form ) || ! method_exists( $form, 'get_fields' ) ) {
+						continue;
+					}
+					$form_id    = isset( $form->id ) ? (int) $form->id : 0;
+					$form_title = isset( $form->settings['formName'] ) ? (string) $form->settings['formName'] : "Form #{$form_id}";
+
+					$has_ct = false;
+					foreach ( (array) $form->get_fields() as $field ) {
+						$settings = is_object( $field ) && method_exists( $field, 'to_formatted_array' ) ? $field->to_formatted_array() : array();
+						if ( ! is_array( $settings ) || 'hidden' !== ( $settings['type'] ?? '' ) ) {
+							continue;
+						}
+						$classes = isset( $settings['custom-class'] ) && is_string( $settings['custom-class'] ) ? preg_split( '/\s+/', trim( $settings['custom-class'] ) ) : array();
+						$label   = isset( $settings['field_label'] ) && is_string( $settings['field_label'] ) ? trim( $settings['field_label'] ) : '';
+						$custom  = 'custom_value' === ( $settings['default_value'] ?? '' ) && isset( $settings['custom_value'] ) && is_string( $settings['custom_value'] ) ? trim( $settings['custom_value'] ) : '';
+						if ( array_intersect_key( array_flip( $classes ), $ct_names ) || isset( $ct_names[ $label ] ) || isset( $ct_names[ $custom ] ) ) {
+							$has_ct = true;
+							break;
+						}
+					}
+
+					if ( ! $has_ct ) {
+						$edit_url   = admin_url( 'admin.php?page=forminator-cform-wizard&id=' . $form_id );
+						$findings[] = array(
+							'severity' => 'medium',
+							'title'    => sprintf(
+								/* translators: %s: form title. */
+								__( 'Forminator: "%s" has no ct_* attribution fields', 'click-trail-handler' ),
+								$form_title
+							),
+							'detail'   => sprintf(
+								/* translators: %s: edit form URL. */
+								__( 'Add Hidden fields with the custom CSS class ct_utm_source, ct_utm_medium, etc. to capture attribution in this entry. ClickTrail fills them when the form is submitted. <a href="%s">Edit form &rarr;</a>', 'click-trail-handler' ),
+								esc_url( $edit_url )
+							),
+						);
 					}
 				}
 			}

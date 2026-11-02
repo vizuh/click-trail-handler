@@ -33,10 +33,10 @@ Serves the one WordPress as `www.example.test` and `example.test` (`mu/ct-e2e-dy
 reads the CF7 hidden `ct_gclid` and submits; the script runs it once with `cookie_scope=registrable` (cookie
 `domain=.example.test`, apex field `GA`, stored lead carries it) and once with `host` (cookie host-only, apex field empty).
 
-## Form adapters (Fluent Forms, WPForms Lite, Contact Form 7)
+## Form adapters (Fluent Forms, WPForms Lite, Forminator, Contact Form 7)
 
 ```sh
-tools/qa/e2e/adapters-ci.sh [plugin-root]   # same pod + Fluent Forms 6.2.16 + WPForms Lite 2.0.3.1, WP_DEBUG_LOG on
+tools/qa/e2e/adapters-ci.sh [plugin-root]   # same pod + Fluent Forms 6.2.16 + WPForms Lite 2.0.3.1 + Forminator 1.58.4, WP_DEBUG_LOG on
 ```
 
 `adapters-setup.sh` extends `setup.sh` (pinned plugins, `fixtures.php` forms and one page per provider,
@@ -47,6 +47,9 @@ the cache leak of #152 or the double submit of #140). Run a subset with
 `python3 tools/qa/e2e/adapters.py <out-dir> landing returning` against a pod from `adapters-setup.sh`.
 `mu/ct-e2e-render-toggle.php` (option `ct_e2e_render_values`) forces the #152 render filter on so the cache scenario can build
 the stale-snapshot vector and prove the submit layer blanks it.
+Forminator (AJAX mode) has three forms from `fixtures-forminator.php` (providers `forminator`, `forminator_label`, `forminator_custom`: the
+Hidden fields marked by custom CSS class, by label, and by Default value "Custom value"); its provider record is the `frmt_form_entry` / `frmt_form_entry_meta`
+rows, and the notification mail (`GCLID: {hidden-1}`) is read from the `pre_wp_mail` capture.
 Results of a run: `EVIDENCE-<date>.md`.
 
 Notes:

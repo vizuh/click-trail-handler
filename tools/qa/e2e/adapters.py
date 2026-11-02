@@ -1,4 +1,4 @@
-"""E2E form-adapter scenarios (CF7, Fluent Forms, WPForms Lite). Usage: adapters.py <evidence-dir> [scenario ...]
+"""E2E form-adapter scenarios (CF7, Fluent Forms, WPForms Lite, Forminator). Usage: adapters.py <evidence-dir> [scenario ...]
 
 Writes <evidence-dir>/adapters.json (observations only; verify_adapters.py judges them) and the optimizer-facing
 landing HTML. Scenarios: landing, landing_server_only, returning, cache_leak, double_submit, consent, script_attrs, cf7_no_references,
@@ -39,6 +39,11 @@ def records(provider, stored):
                 continue
             fields = {'ct_' + k[len('Hidden '):]: v for k, v in r['fields'].items() if k.startswith('Hidden ')}
             out.append({'entry': {k: v for k, v in fields.items() if v != '' or k[3:] in CT_FIELDS}, 'meta': {'entry_meta_api': r['entry_meta_api'], 'entry_id': r['entry_id']}})
+    elif is_forminator(provider):
+        # Hidden fields are hidden-1..6 in CT_FIELDS order (fixtures-forminator.php); `meta` is what ClickTrail wrote to the entry.
+        for r in stored['forminator']:
+            fields = {'ct_' + key: str(r['meta'].get('hidden-%d' % (i + 1), '')) for i, key in enumerate(CT_FIELDS)}
+            out.append({'entry': {k: v for k, v in fields.items() if v != '' or k[3:] in CT_FIELDS}, 'meta': {k: v for k, v in r['meta'].items() if k.startswith('ct_')}, 'status': r['status']})
     else:
         for r in stored['fluent']:
             out.append({'entry': keep(r['response']), 'meta': {k: v for k, v in r['meta'].items() if k.startswith('ct_')}})
@@ -55,6 +60,7 @@ def observe(provider, page, ctx, snap, status, dom_before):
         'leads': [e['attribution'] for e in stored['events'] if e['platform'] == platform],
         'records': records(provider, stored),
         'dispatched': sum(1 for e in stored['capture'] if e.get('event_name') == 'form_submission'),
+        'mail_bodies': [r['body'] for r in stored['provider'] if r['provider'] == 'mail'] if is_forminator(provider) else [],
     }
 
 
@@ -155,7 +161,12 @@ def stale_submit(browser, provider, html, tag, cookies=None, prime_b=True, plant
         planted = {'gclid': 'AAA', 'fbclid': 'AFB', 'ft_source': 'a_src', 'lt_source': 'a_src', 'lt_medium': 'cpc'}
         ids = {'gclid': '3', 'fbclid': '4', 'ft_source': '5', 'lt_source': '6', 'lt_medium': '7'}
         for key, value in planted.items():
-            selector = '[name="wpforms[fields][%s]"]' % ids[key] if provider.startswith('wpforms') else 'form input[name="ct_%s"]' % key
+            if provider.startswith('wpforms'):
+                selector = '[name="wpforms[fields][%s]"]' % ids[key]
+            elif is_forminator(provider):
+                selector = 'form input[name="hidden-%d"]' % (CT_FIELDS.index(key) + 1)
+            else:
+                selector = 'form input[name="ct_%s"]' % key
             page.evaluate("([sel, v]) => { const el = document.querySelector(sel); if (el) el.value = v; }", [selector, value])
     dom = ct_inputs(page)
     status = submit(page, provider, tag)
@@ -175,7 +186,7 @@ def cache_leak(browser):
     consent:  consent required and not granted (no cookie, denied cookie), stale snapshot posted: everything blank.
     """
     out = {}
-    for provider in ('cf7', 'fluent', 'wpforms_text'):
+    for provider in ('cf7', 'fluent', 'wpforms_text', 'forminator'):
         path = PROVIDERS[provider]['path']
         result = {}
         set_render_values(False)
@@ -189,7 +200,7 @@ def cache_leak(browser):
         try:
             html_forced, _ = visitor_a_html(browser, path)
             result['forced_render'] = {'ct_inputs_non_empty': render_ct_values(html_forced), 'carries_A': 'AAA' in html_forced}
-            planted = provider != 'cf7'
+            planted = provider not in ('cf7', 'forminator')  # Forminator fills its Hidden fields at render when the filter opts in, so A's snapshot already carries A's values.
             result['submit'] = stale_submit(browser, provider, html_forced, 'cache-' + provider, plant_a_values=planted)
             set_consent_mode(True)
             consent = {}

@@ -12,8 +12,16 @@ PROVIDERS = {
     'fluent': {'path': '/form-fluent/', 'platform': 'fluentform'},
     'wpforms_hidden': {'path': '/form-wpforms/', 'platform': 'wpforms'},
     'wpforms_text': {'path': '/form-wpforms-text/', 'platform': 'wpforms'},
+    # Forminator (AJAX mode): the same Hidden fields marked three ways (see fixtures-forminator.php).
+    'forminator': {'path': '/form-forminator/', 'platform': 'forminator'},
+    'forminator_label': {'path': '/form-forminator-label/', 'platform': 'forminator'},
+    'forminator_custom': {'path': '/form-forminator-custom/', 'platform': 'forminator'},
 }
 CT_FIELDS = ('gclid', 'fbclid', 'ft_source', 'lt_source', 'lt_medium', 'attribution_selected_click_id')
+
+
+def is_forminator(provider):
+    return provider.startswith('forminator')
 
 
 def wp(*args, check=True):
@@ -39,7 +47,8 @@ def snapshot():
     ids = wp_json(
         "global $wpdb; $p = $wpdb->prefix; "
         "$f = $wpdb->get_var( \"SELECT IFNULL(MAX(id),0) FROM {$p}fluentform_submissions\" ); "
-        "return array( 'events' => (int) $wpdb->get_var( \"SELECT IFNULL(MAX(id),0) FROM {$p}clicutcl_events\" ), 'fluent' => (int) $f );"
+        "$fm = $wpdb->get_var( \"SELECT IFNULL(MAX(entry_id),0) FROM {$p}frmt_form_entry\" ); "
+        "return array( 'events' => (int) $wpdb->get_var( \"SELECT IFNULL(MAX(id),0) FROM {$p}clicutcl_events\" ), 'fluent' => (int) $f, 'forminator' => (int) $fm );"
     )
     ids['provider'] = len(pod_lines('ct-provider.jsonl'))
     ids['capture'] = len(pod_lines('ct-capture.jsonl'))
@@ -54,7 +63,10 @@ def delta(snap):
         "$fl = array(); foreach ( $wpdb->get_results( $wpdb->prepare( \"SELECT id, form_id, response FROM {$p}fluentform_submissions WHERE id > %%d ORDER BY id\", %d ) ) as $r ) { "
         "$meta = array(); foreach ( $wpdb->get_results( $wpdb->prepare( \"SELECT meta_key, value FROM {$p}fluentform_submission_meta WHERE response_id = %%d\", $r->id ) ) as $m ) { $meta[ $m->meta_key ] = $m->value; } "
         "$fl[] = array( 'id' => (int) $r->id, 'form_id' => (int) $r->form_id, 'response' => json_decode( $r->response, true ), 'meta' => $meta ); } "
-        "return array( 'events' => $ev, 'fluent' => $fl );" % (snap['events'], snap['fluent'])
+        "$fm = array(); foreach ( $wpdb->get_results( $wpdb->prepare( \"SELECT entry_id, form_id, status FROM {$p}frmt_form_entry WHERE entry_id > %%d ORDER BY entry_id\", %d ) ) as $r ) { "
+        "$meta = array(); foreach ( $wpdb->get_results( $wpdb->prepare( \"SELECT meta_key, meta_value FROM {$p}frmt_form_entry_meta WHERE entry_id = %%d\", $r->entry_id ) ) as $m ) { $meta[ $m->meta_key ] = maybe_unserialize( $m->meta_value ); } "
+        "$fm[] = array( 'id' => (int) $r->entry_id, 'form_id' => (int) $r->form_id, 'status' => $r->status, 'meta' => $meta ); } "
+        "return array( 'events' => $ev, 'fluent' => $fl, 'forminator' => $fm );" % (snap['events'], snap['fluent'], snap['forminator'])
     )
     stored['provider'] = pod_lines('ct-provider.jsonl')[snap['provider']:]
     stored['capture'] = [e for e in pod_lines('ct-capture.jsonl')[snap['capture']:]]
@@ -98,6 +110,9 @@ def fill(page, provider, tag):
     elif provider == 'fluent':
         page.fill('input[name="your_name"]', 'E2E ' + tag)
         page.fill('input[name="email"]', email)
+    elif is_forminator(provider):
+        page.fill('input[name="text-1"]', 'E2E ' + tag)
+        page.fill('input[name="email-1"]', email)
     else:
         page.fill('input[name="wpforms[fields][1]"]', 'E2E ' + tag)
         # WPForms' mail-check widget blocks unknown TLDs such as .test with a "Did you mean" prompt.
@@ -106,6 +121,8 @@ def fill(page, provider, tag):
 
 
 def submit_button(provider):
+    if is_forminator(provider):
+        return 'button.forminator-button-submit'
     return {
         'cf7': 'input[type="submit"].wpcf7-submit',
         'fluent': 'button.ff-btn-submit',
@@ -120,6 +137,9 @@ def wait_done(page, provider, timeout=25000):
     if provider == 'fluent':
         page.wait_for_selector('.ff-message-success, .ff-errors-in-stack, .ff-el-is-error', timeout=timeout)
         return 'sent' if page.locator('.ff-message-success').count() else 'failed: ' + page.inner_text('form, .ff-errors-in-stack')[:200]
+    if is_forminator(provider):
+        page.wait_for_selector('.forminator-response-message.forminator-success, .forminator-response-message.forminator-error, .forminator-error-message', timeout=timeout)
+        return 'sent' if page.locator('.forminator-response-message.forminator-success').count() else 'failed: ' + page.inner_text('form')[:200]
     page.wait_for_selector('.wpforms-confirmation-container-full, .wpforms-confirmation-container, .wpforms-error-container, .wpforms-has-error', timeout=timeout)
     return 'sent' if page.locator('.wpforms-confirmation-container-full, .wpforms-confirmation-container').count() else 'failed'
 
