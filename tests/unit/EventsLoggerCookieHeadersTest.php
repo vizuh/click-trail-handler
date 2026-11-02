@@ -89,14 +89,27 @@ namespace {
 			$this->require_consent( true );
 			$logger = $this->logger();
 			$_COOKIE['ct_event_login'] = '{"event":"login","event_id":"evt_1"}';
+			$_COOKIE['ct_event_comment'] = '{"event":"comment_submit","event_id":"evt_2"}';
 			$logger->process_event_cookies();
-			$this->assertCount( 3, $GLOBALS['clicktrail_test_setcookie'] );
+			$this->assertSame( array( 'ct_event_login', 'ct_event_comment' ), array_column( $GLOBALS['clicktrail_test_setcookie'], 0 ) );
 
 			$before = count( $GLOBALS['clicktrail_test_setcookie'] );
 			ob_start();
 			$logger->render_server_events();
 			$this->assertSame( '', ob_get_clean() );
 			$this->assertCount( $before, $GLOBALS['clicktrail_test_setcookie'] );
+		}
+
+		/**
+		 * A first-time visitor (no ct_event_* cookie) must get no Set-Cookie header: it makes CDNs skip the edge cache (#164).
+		 */
+		public function test_no_set_cookie_without_a_pending_event_cookie(): void {
+			foreach ( array( true, false ) as $required ) {
+				$GLOBALS['clicktrail_test_setcookie'] = array();
+				$this->require_consent( $required );
+				$this->logger()->process_event_cookies();
+				$this->assertSame( array(), $GLOBALS['clicktrail_test_setcookie'], 'require_consent=' . var_export( $required, true ) );
+			}
 		}
 	}
 }

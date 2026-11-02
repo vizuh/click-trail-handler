@@ -157,6 +157,29 @@ if sa:
     c, g = sa['index_consent_gtag_default'], sa['index_gtm_bootstrap']
     check(c >= 0 and g >= 0 and c < g, scenario, '#147 order', "consent default (offset %d) precedes the GTM bootstrap (offset %d)" % (c, g))
 
+ec = data.get('edge_cache_headers')
+if ec:
+    scenario = 'S8 edge_cache_headers'
+    CACHE_HEADERS = ('cache-control', 'expires', 'pragma', 'vary', 'last-modified', 'etag')
+    cookie_names = lambda r: sorted(c.split('=', 1)[0] for c in r['headers'].get('set-cookie', []))
+    for key, responses in ec['active'].items():
+        state, page, method = key.split('|')
+        base = ec['baseline'][key]
+        subject = '%s %s %s' % (state, page, method)
+        check(all(r['status'] == 200 for r in responses + base), scenario, subject, 'HTTP 200 with and without ClickTrail (%s)' % [r['status'] for r in responses + base])
+        cookies = [cookie_names(r) for r in responses]
+        if state == 'stale_event_cookie_not_granted':
+            # A request that carries a follow-up event cookie is not a first visit: expiring exactly that cookie is expected.
+            check(all(c == ['ct_event_login'] for c in cookies), scenario, subject, 'only the carried ct_event_login cookie is expired (%s)' % cookies)
+            continue
+        check(all(c == cookie_names(b) == [] for c, b in zip(cookies, base)), scenario, subject, 'no Set-Cookie with ClickTrail active (%s) or deactivated (%s)' % (cookies, [cookie_names(b) for b in base]))
+        for r, b in zip(responses, base):
+            same = {h: (r['headers'].get(h), b['headers'].get(h)) for h in CACHE_HEADERS if r['headers'].get(h) != b['headers'].get(h)}
+            check(not same, scenario, subject, 'cache-relevant headers identical to ClickTrail deactivated (%s differ: %s)' % (list(same), same or 'none'))
+            vary = ','.join(r['headers'].get('vary', [])).lower()
+            check('cookie' not in vary and 'no-cache' not in ','.join(r['headers'].get('cache-control', [])).lower(), scenario, subject, 'no Vary: Cookie, no no-cache (vary=%r cache-control=%r)' % (vary, r['headers'].get('cache-control')))
+    record('INFO', scenario, 'scope', 'raw HTTP against local Apache/PHP only; no CDN, no Cloudflare, no real cf-cache-status was exercised')
+
 # Plugin diagnostics seen in the 2026-10-31 run and reported, not yet fixed: a FINDING while present, a PASS when gone.
 KNOWN_PLUGIN_DIAGNOSTICS = {
     'class-events-logger.php': 'Events_Logger::clear_event_cookie() calls setcookie() from the wp_head callback render_server_events() (priority 5), '

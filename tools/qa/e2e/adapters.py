@@ -1,10 +1,11 @@
 """E2E form-adapter scenarios (CF7, Fluent Forms, WPForms Lite). Usage: adapters.py <evidence-dir> [scenario ...]
 
 Writes <evidence-dir>/adapters.json (observations only; verify_adapters.py judges them) and the optimizer-facing
-landing HTML. Scenarios: landing, landing_server_only, returning, cache_leak, double_submit, consent, script_attrs.
+landing HTML. Scenarios: landing, landing_server_only, returning, cache_leak, double_submit, consent, script_attrs, cf7_no_references,
+edge_cache_headers.
 Consent-off scenarios run first; consent and script_attrs switch Consent Mode on.
 """
-import json, pathlib, re, sys, time, urllib.parse
+import http.client, json, pathlib, re, sys, time, urllib.parse
 from playwright.sync_api import sync_playwright
 from adapters_lib import *
 
@@ -346,10 +347,58 @@ def cf7_no_references(browser):
     }
 
 
+def raw_request(method, path, cookie=''):
+    """One raw HTTP request, no browser, no redirects: status plus every response header (Set-Cookie kept as a list)."""
+    conn = http.client.HTTPConnection('127.0.0.1', 8088, timeout=30)
+    conn.request(method, path, headers={'Cookie': cookie} if cookie else {})
+    resp = conn.getresponse()
+    body = resp.read()
+    headers = {}
+    for name, value in resp.getheaders():
+        headers.setdefault(name.lower(), []).append(value)
+    conn.close()
+    return {'status': resp.status, 'headers': headers, 'body_bytes': len(body)}
+
+
+EDGE_PAGES = {'landing': '/landing/?gclid=X&utm_source=t', 'plain_home': '/?gclid=X&utm_source=t', 'cf7_form': '/form-cf7/?gclid=X&utm_source=t'}
+EDGE_STATES = {
+    'consent_required_not_granted': '',
+    'consent_required_granted': 'ct_consent=%s' % urllib.parse.quote('{"marketing":true,"analytics":true}'),
+    'consent_required_denied': 'ct_consent=%s' % urllib.parse.quote('{"marketing":false,"analytics":false}'),
+    'consent_not_required': '',
+    # Not a first visit: a pending follow-up event cookie (login/signup/comment) is legitimately expired once.
+    'stale_event_cookie_not_granted': 'ct_event_login=%s' % urllib.parse.quote('{"event":"login","event_id":"evt_1"}'),
+}
+
+
+def edge_cache_headers(browser):
+    """#164: raw GET/HEAD to landing, plain and CF7 pages with UTM/click-ID query strings, ClickTrail active vs deactivated."""
+    def sweep():
+        out = {}
+        for state, cookie in EDGE_STATES.items():
+            set_consent_mode(state != 'consent_not_required')
+            wp('option', 'update', 'clicutcl_attribution_settings', json.dumps(dict(ATTRIBUTION_SETTINGS, require_consent=0 if state == 'consent_not_required' else 1)), '--format=json')
+            for page, path in EDGE_PAGES.items():
+                for method in ('GET', 'GET', 'HEAD'):  # second GET = the repeat visit a CDN would serve from cache
+                    out.setdefault('%s|%s|%s' % (state, page, method), []).append(raw_request(method, path, cookie))
+        return out
+
+    try:
+        active = sweep()
+        wp('plugin', 'deactivate', 'click-trail-handler')
+        baseline = sweep()
+    finally:
+        wp('plugin', 'activate', 'click-trail-handler', check=False)
+        set_consent_mode(False)
+        wp('option', 'update', 'clicutcl_attribution_settings', json.dumps(ATTRIBUTION_SETTINGS), '--format=json')
+    return {'active': active, 'baseline': baseline, 'pages': EDGE_PAGES, 'states': {k: v for k, v in EDGE_STATES.items()}}
+
+
 SCENARIOS = {
     'cf7_no_references': cf7_no_references,
     'landing': landing, 'landing_server_only': landing_server_only, 'returning': returning, 'cache_leak': cache_leak,
     'double_submit': double_submit, 'consent': consent, 'script_attrs': script_attrs,
+    'edge_cache_headers': edge_cache_headers,
 }
 
 if __name__ == '__main__':
