@@ -580,6 +580,34 @@
       ]
     },
     {
+      "id": "source.form.metform",
+      "label": "MetForm",
+      "role": "wordpress_source",
+      "status": "source_connector_runtime_unverified",
+      "provider_contract": "WordPress form hooks and/or hidden-field/submission metadata",
+      "what_exists": "Attribution capture and form-event paths are present for both MetForm builders (Elementor and the standalone block builder). Hidden inputs named ct_<key> are rewritten from the submit-time cookie per key on metform_filter_before_store_form_data before the entry and the admin email are built; metform_after_store_form_data logs one form_submission row per (form, entry) with the full consented cookie payload overlaid by the refreshed values and writes ct_<key>, ct_event_id and ct_lead_id to the metform-entry post meta. No render fill. MetForm fires no elementor_pro/forms hook, so the Elementor Forms adapter cannot log the same submission. Recorded slices on WordPress 7.1, PHP 8.3, MetForm 4.3.4 and Elementor 4.3.5: landing-page, returning-visitor, stale-cache and consent-accept/deny/ignore browser submissions through both builders (tools/qa/e2e/EVIDENCE-2026-10-31.md, 2026-11-02 MetForm section).",
+      "evidence": [
+        "includes/integrations/class-form-integration-manager.php",
+        "includes/integrations/forms/class-metform-adapter.php",
+        "tests/fixtures/form-readiness/v1/metform.json",
+        "tests/fixtures/form-runtime/v1/metform.json",
+        "tests/unit/MetFormSubmissionRefreshTest.php"
+      ],
+      "test_ids": [
+        "form-readiness-contract",
+        "metform-submission-refresh"
+      ],
+      "runtime_tests": [
+        "metform-4.3.4-elementor-4.3.5-adapters-e2e-landing-returning-cache-consent-wp7.1-php8.3"
+      ],
+      "known_limits": [
+        "Posted attribution and form-owned submission metadata are separate privacy boundaries.",
+        "MetForm runs its Pro and list integrations (Zapier, ConvertKit, MailerLite and similar) on the raw posted data before the entry is stored, so they receive what the browser posted, not the refreshed value.",
+        "MetForm's Elementor builder omits Submit Button hidden inputs from its admin email; the entry holds them.",
+        "The runtime fixture stays unverified: the harness slices above do not cover MetForm Pro, other MetForm versions, forms with Store entries off, payment-first flows or the double-submit and edge-cache scenarios."
+      ]
+    },
+    {
       "id": "source.form.ninja",
       "label": "Ninja Forms",
       "role": "wordpress_source",
