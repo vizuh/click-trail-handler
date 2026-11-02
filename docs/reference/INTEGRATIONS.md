@@ -702,17 +702,20 @@ See also: [Cross-Domain Limitations](../guides/IMPLEMENTATION-PLAYBOOK.md#cross-
 
 ## WhatsApp
 
-Supported hosts:
+Supported hosts (and the `whatsapp://` protocol):
 
 - `wa.me`
 - `whatsapp.com`
 - `api.whatsapp.com`
 - `web.whatsapp.com`
+- `whatsapp://send?...`
 
 What ClickTrail does:
 
-- preserve attribution continuity in WhatsApp links
-- optionally append attribution context to pre-filled messages
+- **Click event** (`assets/js/clicutcl-events.js`, independent of the append setting): a click on an allowlisted WhatsApp link, with consent, pushes one `contact_whatsapp_start` through the `pushEvent()` consent gate. The event carries `link_url` (the link without its `text` parameter and fragment), `phone` (the public business number, digits only, 7 to 15; empty for `wa.me/message/<id>` style links), `contact_type: whatsapp`, `cta_label` and, when the next section applies, `ref_code`. It is deduped per link for 10 seconds (`ClickTrailEvents.markOnce`), mapped to the canonical `contact_whatsapp_start` (funnel stage `mid`) and accepted on the public browser route. No event, marker or request exists without consent. The GTM starter kit trigger and GA4 tag are named `contact_whatsapp_start`.
+- **Reference code** (setting **Append attribution to message**, off by default): with consent, the pre-filled text ends with `Ref: CT-<8 base32 chars>` (for example `Ref: CT-K7QZ4M2P`). The code is generated in the browser, registered first through `POST /clicutcl/v2/whatsapp-ref` together with the visitor's first/last touch, selected click ID and `visitor_id`, and used to decorate the link only once the server confirmed it (a collision is rejected with 409 and retried once). Nothing is appended when no attribution is stored or registration failed, and the click event still fires. The previous `CT:<base64 of the whole store>` text is gone. An administrator resolves a code under **Diagnostics > WhatsApp Reference Lookup** or with `GET /clicutcl/v2/whatsapp-ref/<code>`; an unknown or expired code is a 404. Rows live in `wp_clicutcl_whatsapp_refs` for the attribution retention period (default 90 days). Consent withdrawal restores the original link and forgets the code in the browser; see [SECURITY-PRIVACY.md](../guides/SECURITY-PRIVACY.md) for what stays on the server.
+- Collision odds: 8 base32 characters are 40 bits, so a new code collides with about `N / 2^40` for `N` live rows (roughly 9e-8 at 100 000 rows).
+- Evidence: source-present / runtime-unverified. Node VM and PHPUnit tests cover the event, consent, dedupe, code format, collision retry, restore on withdrawal, route gates, TTL, 404 and the eraser path; a real WhatsApp compose box has not been exercised (`specs/008-whatsapp-handoff/`).
 
 Best fit:
 

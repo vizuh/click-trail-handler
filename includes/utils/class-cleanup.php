@@ -76,6 +76,9 @@ class Cleanup {
 			);
 		}
 
+		// WhatsApp reference codes: TTL is the attribution retention, so they go with it.
+		\CLICUTCL\Database\Whatsapp_Ref_Store::purge_expired( $days, time() );
+
 		$woo_result = ( new Woo_Order_Privacy() )->purge_expired_order_metadata( $days );
 		if ( ! empty( $woo_result['remaining'] ) && function_exists( 'do_action' ) ) {
 			do_action( 'clicutcl_cleanup_batch_incomplete', 'woocommerce_order_meta', $woo_result );

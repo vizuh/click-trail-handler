@@ -34,6 +34,8 @@ Operational and readiness keys:
 - `clicutcl_queue_table_checked_at`
 - `clicutcl_touch_events_table_ready`
 - `clicutcl_touch_events_table_checked_at`
+- `clicutcl_whatsapp_refs_table_ready`
+- `clicutcl_whatsapp_refs_table_checked_at`
 - `clicutcl_db_version` (schema version; `Installer::maybe_upgrade()` re-runs `dbDelta` on existing installs until it matches `Installer::DB_VERSION`)
 - `clicutcl_purchase_lock_<order_id>` (short-lived, `autoload = no`, value `<uuid4>|<unix time>`; written by `WooCommerce::push_purchase_event()` only when no persistent object cache is present, deleted by a row-conditional `$wpdb->delete()` on its exact value after `_clicutcl_tracking_sent` is saved, taken over the same way after 30 s if a request died holding it; with a persistent object cache the same key holds the uuid in cache group `clicutcl` with a 30 s TTL instead)
 
@@ -237,6 +239,22 @@ Rows whose `visitor_id` fell back to a session ID (no identity was ever resolved
 visitor, e.g. anonymous browsing that never converted) are not reachable by an email-keyed
 erasure request -- inherent to hashed-only matching, same limitation the queue eraser already
 has.
+
+## `wp_clicutcl_whatsapp_refs`
+
+Added with schema version 5 (#145, `CLICUTCL\Database\Whatsapp_Ref_Store`). Maps the short `Ref: CT-<code>` a visitor sends in a pre-filled WhatsApp message back to the attribution snapshot. Separate from `clicutcl_touch_events`, which is an event ledger without click-ID columns, expiry or a lookup key (reasons in `specs/008-whatsapp-handoff/research.md` R5). Written only by `POST /clicutcl/v2/whatsapp-ref` (consent-gated, see [REST-API.md](../reference/REST-API.md)).
+
+Columns:
+
+- `id`
+- `blog_id` -- multisite blog ID
+- `code` -- 6 to 8 characters of `A-Z2-7`, without the `CT-` prefix; unique with `blog_id` (`blog_code`), which is what makes a duplicate code detectable atomically
+- `visitor_id` -- the browser's `ct_visitor_id` (random, not derived from an email); indexed for the eraser
+- `selected_click_id_key`, `selected_click_id` -- the click ID the attribution engine selected (empty when none)
+- `snapshot` -- JSON `{ first_touch, last_touch, click_ids }` from the signed-token allowlist
+- `created_at`, `expires_at` -- UTC; `expires_at = created_at + cookie_days` (default 90)
+
+Retention and lifecycle: `Cleanup::run_cleanup()` deletes `expires_at < now` and `created_at < now - retention` rows in batches of 1000 (up to 20 per run); lookups ignore expired rows even before the purge; the Diagnostics purge truncates the table; uninstall drops it; `Privacy_Handler` deletes the rows of the `visitor_id` values found in the subject's logged events. `Installer::DB_VERSION` is 5 and is recorded only when this table exists, like the touch-events table.
 
 ## WooCommerce Order Meta Surfaces
 

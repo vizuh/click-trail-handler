@@ -237,6 +237,8 @@ Purpose:
 
 - tune event intake token behavior, allowed hosts, rate limiting, and replay controls
 
+The rate-limit filters receive the route scope as their second argument: `events_batch`, `attribution_token_sign`, `attribution_token_verify` and, since the WhatsApp reference route (#145), `whatsapp_ref`. No new public hook was added for the reference codes; the TTL follows the attribution retention (`cookie_days`).
+
 ## Webhook Security
 
 ### `clicutcl_webhook_replay_window`

@@ -70,6 +70,7 @@ class Admin {
 		add_action( 'wp_ajax_clicutcl_export_settings_backup', array( $this, 'ajax_export_settings_backup' ) );
 		add_action( 'wp_ajax_clicutcl_import_settings_backup', array( $this, 'ajax_import_settings_backup' ) );
 		add_action( 'wp_ajax_clicutcl_lookup_woo_order_trace', array( $this, 'ajax_lookup_woo_order_trace' ) );
+		add_action( 'wp_ajax_clicutcl_lookup_whatsapp_ref', array( $this, 'ajax_lookup_whatsapp_ref' ) );
 		add_action( 'wp_ajax_clicutcl_attribution_readiness', array( $this, 'ajax_attribution_readiness' ) );
 
 		if ( is_multisite() ) {
@@ -293,6 +294,8 @@ class Admin {
 						'confirm_import'        => __( 'Restore this ClickTrail backup now? Current settings will be replaced.', 'click-trail-handler' ),
 						'looking_up'            => __( 'Looking up order...', 'click-trail-handler' ),
 						'lookup_failed'         => __( 'Order lookup failed.', 'click-trail-handler' ),
+						'wa_ref_looking_up'     => __( 'Looking up reference code...', 'click-trail-handler' ),
+						'wa_ref_failed'         => __( 'Reference lookup failed.', 'click-trail-handler' ),
 						'checking_readiness'    => __( 'Analyzing test payload...', 'click-trail-handler' ),
 						'readiness_failed'      => __( 'Attribution readiness check failed.', 'click-trail-handler' ),
 						'test_url_copied'       => __( 'Test URL copied.', 'click-trail-handler' ),

@@ -381,16 +381,18 @@ Daily cleanup removes:
 
 - old event log rows from `clicutcl_events`
 - old queue rows from `clicutcl_queue`
+- expired WhatsApp reference rows from `clicutcl_whatsapp_refs`
 
 Retention defaults:
 
 - events: attribution retention days
 - queue: 7 days, filterable
+- WhatsApp reference codes: attribution retention days (each row carries its own `expires_at`)
 
 ## Multisite
 
 Touch-event schema version 4 preserves historical rows and adds logical-event deduplication.
-Verify `clicutcl_db_version = 4` and `clicutcl_touch_events_table_ready = 1` after an upgrade.
+Verify `clicutcl_db_version = 5`, `clicutcl_touch_events_table_ready = 1` and `clicutcl_whatsapp_refs_table_ready = 1` after an upgrade (schema 5 adds `clicutcl_whatsapp_refs`; it is recorded only when that table exists).
 Incomplete migrations suppress new touch-ledger writes while leaving transport independent;
 inspect database migration errors before using reporting totals. Existing historical duplicates
 are not deleted or inferred. The disposable migration check lives at

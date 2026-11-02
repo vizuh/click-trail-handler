@@ -193,7 +193,7 @@ class Privacy_Handler {
 
 			// Always read first page for erasure to avoid offset skipping after deletions.
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name and WHERE clause are plugin-owned.
-			$query = "SELECT id FROM {$table_escaped} WHERE {$where['sql']} ORDER BY id ASC LIMIT %d";
+			$query = "SELECT id, event_data FROM {$table_escaped} WHERE {$where['sql']} ORDER BY id ASC LIMIT %d";
 
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Required for privacy erasure callbacks.
 			$rows = $wpdb->get_results(
@@ -283,6 +283,18 @@ class Privacy_Handler {
 		}
 		if ( ! empty( $touch_events['messages'] ) && is_array( $touch_events['messages'] ) ) {
 			$messages = array_merge( $messages, $touch_events['messages'] );
+		}
+
+		// WhatsApp reference rows hold a random browser visitor ID and no email, so they are reached
+		// through the visitor IDs recorded in this subject's logged events.
+		$wa_deleted = \CLICUTCL\Database\Whatsapp_Ref_Store::delete_by_visitor_ids(
+			\CLICUTCL\Database\Whatsapp_Ref_Store::visitor_ids_from_event_rows( $rows )
+		);
+		if ( false === $wa_deleted ) {
+			$retained   = true;
+			$messages[] = __( 'Some ClickTrail WhatsApp reference records could not be deleted.', 'click-trail-handler' );
+		} elseif ( $wa_deleted > 0 ) {
+			$removed_any = true;
 		}
 
 		$woo = ( new Woo_Order_Privacy() )->erase_order_data( $email, $page );

@@ -74,7 +74,7 @@ When the plugin is the source, ClickTrail can render its own lightweight consent
 The Cookiebot bridge stays subscribed to `CookiebotOnConsentReady`, `CookiebotOnAccept`, and
 `CookiebotOnDecline`, so an in-page change or withdrawal (Cookiebot's renew dialog) clears ClickTrail
 storage without a reload. The same withdrawal removes the parameters ClickTrail added from every link it decorated, including the
-`CT:` payload on WhatsApp links (later site edits to those links are kept) and restores the `data-url` of inline Calendly widgets; an inline iframe or
+`Ref: CT-...` reference on WhatsApp links (later site edits to those links are kept) and restores the `data-url` of inline Calendly widgets; an inline iframe or
 popup that already loaded keeps the URL it loaded with. The same holds for an embed iframe whose URL came from
 `ClickTrail.decorateEmbedUrl()`; after withdrawal that function returns URLs unchanged. It clears every `ct_*` hidden field and plain-name fields
 (`gclid`, `utm_source`, ...) only when ClickTrail filled them. `ct_*` inputs are ClickTrail's namespace: while
@@ -112,6 +112,7 @@ when they write a key that is missing from this table. The built-in banner's `ct
 | `ct_visitor_id` | cookie, local | `clicutcl-attribution.js`, `clicutcl-events.js` | Pseudonymous visitor ID | 365 days | no | Marketing |
 | `ct_pending_v1` | session | `clicutcl-attribution.js` | Landing-page signals promoted on the next page (only when consent is not required or already granted) | tab | no | Marketing |
 | `ct_thankyou_lead_<path>` | session | `clicutcl-events.js` | Deduplicates a thank-you-page lead | tab | no | Statistics |
+| `ct_wa_ref` | session | `clicutcl-attribution.js` | Server-confirmed WhatsApp reference code and a hash of the attribution it maps to (only with WhatsApp tracking and Append attribution on) | tab | no | Marketing |
 | `ct_consent_state` | cookie | `clicutcl-consent-bridge.js` | Consent decision read by the server | 365 days | decision only | Necessary |
 | `ct_consent_v1` | local | `clicutcl-consent-bridge.js` | Consent decision shared across tabs | until changed | decision only | Necessary |
 | `ct_consent` | cookie | `clicutcl-consent.js` | Built-in banner decision (plugin source only) | 365 days | decision only | Necessary |
@@ -182,6 +183,17 @@ events table (`clicutcl_touch_events`, matched on the exact hashed-email `visito
 delivery queue (`clicutcl_queue`, matched on raw and SHA-256-hashed email). This is not complete erasure proof:
 legacy event matching does not cover every stored hashed identity shape. Woo order metadata now has an
 allowlisted export/erase/uninstall lifecycle, but live Woo runtime verification remains open.
+
+## WhatsApp Reference Codes
+
+With WhatsApp tracking and **Append attribution to message** on (off by default) and marketing consent granted, a visitor who clicks a WhatsApp link sends `Ref: CT-<8 chars>` in the chat. The server holds one row per code in `wp_clicutcl_whatsapp_refs`:
+
+- stored: the code, the random `ct_visitor_id`, first/last-touch UTMs and click IDs from the signed-token allowlist, the selected click ID, creation and expiry time. Not stored: IP address, user agent, email, phone number, the WhatsApp number of the visitor (ClickTrail never sees it) or any page content
+- written only by a request that passes the client token, rate limit, size cap and the **server-side consent check** (the request's consent cookie, never the body); never written without attribution
+- retention: the attribution retention setting (`cookie_days`, default 90 days); expired rows answer 404 immediately and are deleted by the daily cleanup in batches (and rows older than a shortened retention), by **Purge Tracking Data**, and at uninstall unless `clicutcl_preserve_data_on_uninstall`
+- read: only by administrators (`manage_options`) through `GET /clicutcl/v2/whatsapp-ref/<code>` or the Diagnostics lookup box
+- consent withdrawal clears the browser side (link restored, `ct_wa_ref` removed); the server row is not deleted at that moment, it expires with the TTL or goes through the eraser
+- eraser: rows carry no email, so `Privacy_Handler` finds them through the `visitor_id` values recorded in the subject's logged `clicutcl_events` rows and deletes them. A visitor who never submitted a logged form cannot be reached by an email request; their rows expire by TTL. No exporter covers this table
 
 ## Client Token Security
 

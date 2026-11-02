@@ -386,6 +386,26 @@ trait Admin_Pages_Trait {
 			<section class="clicktrail-card">
 				<div class="clicktrail-card__header clicktrail-card__header--static">
 					<span class="clicktrail-card__header-main">
+						<span class="clicktrail-card__icon dashicons dashicons-format-chat" aria-hidden="true"></span>
+						<span class="clicktrail-card__heading">
+							<span class="clicktrail-card__title"><?php esc_html_e( 'WhatsApp Reference Lookup', 'click-trail-handler' ); ?></span>
+							<span class="clicktrail-card__description"><?php esc_html_e( 'Paste the Ref: CT-XXXXXXXX code from a WhatsApp conversation to see the attribution stored for that visitor. Codes expire with the attribution retention period.', 'click-trail-handler' ); ?></span>
+						</span>
+					</span>
+				</div>
+				<div class="clicktrail-card__body">
+					<div class="clicktrail-action-row">
+						<input type="text" id="clicutcl-wa-ref-code" class="regular-text" maxlength="16" placeholder="<?php echo esc_attr__( 'CT-ABCD2345', 'click-trail-handler' ); ?>" />
+						<button class="button button-secondary" id="clicutcl-wa-ref-lookup"><?php esc_html_e( 'Lookup Code', 'click-trail-handler' ); ?></button>
+						<span id="clicutcl-wa-ref-status" class="clicktrail-action-status"></span>
+					</div>
+					<pre id="clicutcl-wa-ref-results" class="clicktrail-diagnostics-results"></pre>
+				</div>
+			</section>
+
+			<section class="clicktrail-card">
+				<div class="clicktrail-card__header clicktrail-card__header--static">
+					<span class="clicktrail-card__header-main">
 						<span class="clicktrail-card__icon dashicons dashicons-media-text" aria-hidden="true"></span>
 						<span class="clicktrail-card__heading">
 							<span class="clicktrail-card__title"><?php esc_html_e( 'Debug Logging', 'click-trail-handler' ); ?></span>

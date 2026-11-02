@@ -277,6 +277,35 @@
             });
         }
 
+        const waRefInput = document.getElementById('clicutcl-wa-ref-code');
+        const waRefBtn = document.getElementById('clicutcl-wa-ref-lookup');
+        const waRefStatus = document.getElementById('clicutcl-wa-ref-status');
+        const waRefResults = document.getElementById('clicutcl-wa-ref-results');
+        if (waRefInput && waRefBtn && waRefStatus && waRefResults) {
+            waRefBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                waRefStatus.textContent = getString('wa_ref_looking_up', 'Looking up reference code...');
+                waRefResults.textContent = '';
+                post(window.clicutclDiagnostics.ajaxUrl, {
+                    action: 'clicutcl_lookup_whatsapp_ref',
+                    nonce: window.clicutclDiagnostics.nonce,
+                    code: waRefInput.value || ''
+                })
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        if (data && data.success) {
+                            waRefStatus.textContent = data.data && data.data.message ? data.data.message : '';
+                            waRefResults.textContent = JSON.stringify(data.data && data.data.lookup ? data.data.lookup : {}, null, 2);
+                            return;
+                        }
+                        waRefStatus.textContent = data && data.data && data.data.message ? data.data.message : getString('wa_ref_failed', 'Reference lookup failed.');
+                    })
+                    .catch(function () {
+                        waRefStatus.textContent = getString('wa_ref_failed', 'Reference lookup failed.');
+                    });
+            });
+        }
+
         const readinessPayload = document.getElementById('clicutcl-attribution-readiness-payload');
         const readinessReferrer = document.getElementById('clicutcl-attribution-readiness-referrer');
         const readinessHost = document.getElementById('clicutcl-attribution-readiness-host');

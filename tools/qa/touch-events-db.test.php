@@ -19,7 +19,7 @@ require_once dirname( __DIR__, 2 ) . '/includes/database/class-touch-events-stor
 
 global $wpdb;
 $table = $wpdb->prefix . 'clicutcl_touch_events';
-foreach ( array( 'clicutcl_events', 'clicutcl_queue', 'clicutcl_touch_events' ) as $suffix ) {
+foreach ( array( 'clicutcl_events', 'clicutcl_queue', 'clicutcl_touch_events', 'clicutcl_whatsapp_refs' ) as $suffix ) {
 	if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->prefix . $suffix ) ) ) {
 		throw new RuntimeException( 'Refusing to overwrite existing ClickTrail tables.' );
 	}
@@ -32,14 +32,14 @@ $check = static function ( bool $ok, string $message ): void {
 };
 
 Installer::run();
-$check( 4 === (int) get_option( Installer::DB_VERSION_OPTION ), 'Fresh install did not become ready.' );
+$check( Installer::DB_VERSION === (int) get_option( Installer::DB_VERSION_OPTION ), 'Fresh install did not become ready.' );
 
 // Reconstruct the v3 table, including a historical row with no event identity.
 $wpdb->query( "ALTER TABLE {$table} DROP INDEX blog_event_key, DROP COLUMN event_key, DROP COLUMN event_id" );
 $wpdb->insert( $table, array( 'event_name' => 'legacy', 'created_at' => '2026-01-01 00:00:00' ) );
 update_option( Installer::DB_VERSION_OPTION, 3 );
 Installer::run();
-$check( 4 === (int) get_option( Installer::DB_VERSION_OPTION ), 'Upgrade did not become ready.' );
+$check( Installer::DB_VERSION === (int) get_option( Installer::DB_VERSION_OPTION ), 'Upgrade did not become ready.' );
 $check( 1 === (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table} WHERE event_id IS NULL AND event_key IS NULL" ), 'Migration lost or re-keyed legacy data.' );
 
 $event = array(
