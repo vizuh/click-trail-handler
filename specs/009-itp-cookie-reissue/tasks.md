@@ -16,7 +16,7 @@
 
 ## Phase 3 — Proof and docs
 
-- [x] T007 E2E (done: 49 checks, 0 failures; S8 132 PASS) `tools/qa/e2e/cookie-reissue.sh` + `cookie_reissue.py`: wire shape, lifetime, single cookie, no page `Set-Cookie`; run `ci.sh` and `adapters-ci.sh` (S8) under `flock /tmp/ct-e2e.lock`. — `tools/qa/e2e/`
+- [x] T007 E2E (done: 55 checks, 0 failures; S8 132 PASS) `tools/qa/e2e/cookie-reissue.sh` + `cookie_reissue.py`: wire shape, lifetime, single cookie, no page `Set-Cookie`; run `ci.sh` and `adapters-ci.sh` (S8) under `flock /tmp/ct-e2e.lock`. — `tools/qa/e2e/`
 - [x] T008 Docs per FR-009, spec status line. — docs, readmes, `changelog.txt`
 
 ## Dependencies
