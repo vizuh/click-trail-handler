@@ -353,7 +353,9 @@ const tests = {
     assert.ok(!/^javascript:/i.test(link.getAttribute('href')), 'restore does not write javascript:');
   },
 
-  'WhatsApp links carry one CT payload and are restored on withdrawal'() {
+  'WhatsApp links never carry the base64 store and stay as authored without a confirmed reference'() {
+    // The reference-code flow (registration, `Ref: CT-...`, restore on withdrawal) is covered by
+    // whatsapp-handoff.test.js; here no registration route is configured, so nothing may be appended.
     const original = 'https://wa.me/5511999999999?text=Hi';
     const link = element('a', { href: original });
     const page = boot({
@@ -361,17 +363,14 @@ const tests = {
       config: { enableWhatsapp: true, whatsappAppendAttribution: true },
       elements: [link],
     });
-    const click = () => {
-      page.document.dispatchEvent({ type: 'click', target: link });
-      return new URL(link.getAttribute('href')).searchParams.get('text');
-    };
-    assert.ok(click().includes('CT:'), 'granted: WhatsApp text carries attribution');
-    assert.strictEqual(click().split('CT:').length, 2, 'a second click does not stack another CT payload');
+    page.document.dispatchEvent({ type: 'click', target: link });
+    assert.strictEqual(link.getAttribute('href'), original, 'granted but unconfirmed: the link is untouched');
+    assert.ok(!link.getAttribute('href').includes('CT%3A'), 'no base64 CT: payload');
 
     page.window.Cookiebot.consent = { marketing: false, statistics: false };
     page.window.dispatchEvent(new page.window.CustomEvent('CookiebotOnDecline'));
-    assert.strictEqual(link.getAttribute('href'), original, 'withdrawal restores the WhatsApp link');
-    assert.strictEqual(click(), 'Hi', 'a click after withdrawal adds nothing');
+    page.document.dispatchEvent({ type: 'click', target: link });
+    assert.strictEqual(link.getAttribute('href'), original, 'a click after withdrawal adds nothing');
   },
 
   'after withdrawal no event path stores, sends or pushes identifiers'() {

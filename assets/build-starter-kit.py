@@ -326,7 +326,7 @@ for evt, t_id in ecom_events.items():
 
 # Engagement events (ClickTrail-specific)
 engage_events = {}
-for evt in ["form_submit", "email_click", "phone_click", "whatsapp_click"]:
+for evt in ["form_submit", "email_click", "phone_click", "contact_whatsapp_start"]:
     tid += 1; engage_events[evt] = tid
 for evt, t_id in engage_events.items():
     triggers.append(make_ce_trigger(t_id, f"LC - {evt}", evt, FOLDER_TRIGS))
@@ -480,7 +480,7 @@ for evt, params in ga4_ecom.items():
     ))
 
 # --- GA4 Engagement Events ---
-for evt in ["form_submit", "email_click", "phone_click", "whatsapp_click"]:
+for evt in ["form_submit", "email_click", "phone_click", "contact_whatsapp_start"]:
     tags.append(make_ga4_event(
         tag_id := tag_id + 1,
         f"GA4 Event - {evt}", evt, TRIG[evt], FOLDER_GA4

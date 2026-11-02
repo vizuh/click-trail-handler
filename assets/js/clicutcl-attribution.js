@@ -1076,6 +1076,9 @@
                     API.install({ withIdentity: false });
                 },
                 getSession: () => SessionManager.getPayload(),
+                // The confirmed WhatsApp reference code (without the CT- prefix) for the stored
+                // attribution, or '' when none is registered or consent is missing.
+                getWhatsAppRef: () => WhatsAppRef.current(),
                 decorateEmbedUrl: (url) => Decorator.decorateEmbedUrl(url)
             };
             window.ClickTrailIdentity = withIdentity ? Identity.get() : null;
@@ -1483,11 +1486,12 @@
             return changed ? url.toString() : null;
         },
 
-        // ClickTrail only ever writes http(s) URLs to an href; anything else is left untouched.
+        // ClickTrail only ever writes http(s) URLs to an href (plus whatsapp:// for WhatsApp links);
+        // anything else is left untouched.
         setHref: function (a, value) {
             let url;
             try { url = new URL(value, window.location.href); } catch (e) { return; }
-            if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
+            if (url.protocol !== 'http:' && url.protocol !== 'https:' && url.protocol !== 'whatsapp:') return;
             a.setAttribute('href', url.href);
         },
 
@@ -1546,6 +1550,7 @@
                 this.setHref(a, current === decorated ? original : this.withoutAddedParams(current, original, decorated || ''));
                 a.removeAttribute('data-clicutcl-href');
                 a.removeAttribute('data-clicutcl-decorated');
+                a.removeAttribute('data-clicutcl-wa-ref');
             });
             document.querySelectorAll('.calendly-inline-widget[data-clicutcl-url]').forEach((el) => {
                 el.setAttribute('data-url', el.getAttribute('data-clicutcl-url'));
@@ -1726,6 +1731,141 @@
                 base.session_number = session.session_number;
             }
             return base;
+        }
+    };
+
+    // --- 4.4 WHATSAPP REFERENCE ---
+    const WHATSAPP_HOSTS = ['wa.me', 'whatsapp.com', 'api.whatsapp.com', 'web.whatsapp.com'];
+    const WA_REF_STORAGE_KEY = 'ct_wa_ref';
+    const WA_REF_ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'; // RFC 4648 base32
+    const WA_REF_LENGTH = 8; // 40 bits
+
+    function isWhatsAppUrl(url) {
+        return !!url && (url.protocol === 'whatsapp:' || (url.protocol === 'https:' && WHATSAPP_HOSTS.indexOf(url.hostname) !== -1));
+    }
+
+    function pageHasWhatsAppLink() {
+        return Array.from(document.querySelectorAll('a[href*="wa.me"], a[href*="whatsapp"]')).some((a) => {
+            try {
+                return isWhatsAppUrl(new URL(a.getAttribute('href'), window.location.href));
+            } catch (e) {
+                return false;
+            }
+        });
+    }
+
+    // A short client-generated code (`CT-` + 8 base32 characters) the server maps back to the
+    // attribution snapshot. It is registered BEFORE a link is decorated: a code the server rejected
+    // as a collision is replaced while the link is still untouched, and an unconfirmed code is never
+    // put into a chat message.
+    const WhatsAppRef = {
+        code: '',
+        hash: '',
+        failedHash: '',
+        pending: false,
+
+        generate: function () {
+            const cryptoApi = window.crypto;
+            if (!cryptoApi || typeof cryptoApi.getRandomValues !== 'function') return '';
+            const bytes = cryptoApi.getRandomValues(new Uint8Array(WA_REF_LENGTH));
+            let out = '';
+            for (let i = 0; i < bytes.length; i++) out += WA_REF_ALPHABET.charAt(bytes[i] & 31);
+            return out;
+        },
+
+        // What the server stores: the signed-token allowlist of first/last touch and click IDs, the
+        // selected click ID key and the visitor ID. Null when nothing is stored (nothing to map).
+        snapshot: function () {
+            const stored = Store.getData();
+            const token = stored ? Store.buildToken(stored) : null;
+            if (!token) return null;
+            const selectedKey = selectedClickIdKey(withCanonicalClickIds(stored));
+            const json = JSON.stringify([token.data, selectedKey]);
+            let h = 5381;
+            for (let i = 0; i < json.length; i++) h = ((h << 5) + h + json.charCodeAt(i)) | 0;
+            return { data: token.data, selectedKey: selectedKey, hash: (h >>> 0).toString(16) };
+        },
+
+        readStored: function () {
+            try {
+                const parsed = JSON.parse(sessionStorage.getItem(WA_REF_STORAGE_KEY) || 'null');
+                return parsed && typeof parsed.c === 'string' && typeof parsed.h === 'string' ? parsed : null;
+            } catch (e) {
+                return null;
+            }
+        },
+
+        forget: function () {
+            this.code = '';
+            this.hash = '';
+            this.failedHash = '';
+            try { sessionStorage.removeItem(WA_REF_STORAGE_KEY); } catch (e) {}
+        },
+
+        // The confirmed code for the stored attribution as it is now, or ''.
+        current: function () {
+            if (!liveConsentAllows()) {
+                this.forget();
+                return '';
+            }
+            const snap = this.snapshot();
+            if (!snap) return '';
+            if (this.code && this.hash === snap.hash) return this.code;
+            const stored = this.readStored();
+            if (stored && stored.h === snap.hash && /^[A-Z2-7]{8}$/.test(stored.c)) {
+                this.code = stored.c;
+                this.hash = stored.h;
+                return this.code;
+            }
+            return '';
+        },
+
+        // Ask the server for a code for the current snapshot unless one is confirmed, in flight, or
+        // already failed for this exact snapshot.
+        ensure: function () {
+            const url = String(CONFIG.whatsappRefUrl || '');
+            const token = String(CONFIG.eventsToken || '');
+            if (this.pending || !url || !token || typeof window.fetch !== 'function') return;
+            if (this.current()) return;
+            const snap = this.snapshot();
+            if (!snap || this.failedHash === snap.hash) return;
+            this.pending = true;
+            this.mint(url, token, snap, 0).then((ok) => {
+                this.failedHash = ok ? '' : snap.hash;
+            }).then(() => {
+                this.pending = false;
+            }, () => {
+                this.pending = false;
+            });
+        },
+
+        // One attempt plus one retry: the server answers 409 for a code that already exists.
+        mint: function (url, token, snap, attempt) {
+            const code = this.generate();
+            if (!code) return Promise.resolve(false);
+            return fetch(url, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Clicutcl-Token': token
+                },
+                body: JSON.stringify({
+                    token: token,
+                    code: code,
+                    visitor_id: Identity.get().visitor_id,
+                    selected_click_id_key: snap.selectedKey,
+                    data: snap.data
+                }),
+                keepalive: true
+            }).then((response) => {
+                if (response.status === 409 && attempt === 0) return this.mint(url, token, snap, 1);
+                if (!response.ok || !liveConsentAllows()) return false;
+                this.code = code;
+                this.hash = snap.hash;
+                try { sessionStorage.setItem(WA_REF_STORAGE_KEY, JSON.stringify({ c: code, h: snap.hash })); } catch (e) {}
+                return true;
+            }).catch(() => false);
         }
     };
 
@@ -1951,6 +2091,7 @@
             Identity.clear();
             Injector.clear();
             Decorator.restore();
+            WhatsAppRef.forget();
             // Legacy key written unconditionally in 1.10.2 and earlier; nothing reads it.
             try { localStorage.removeItem('clicutcl_js_last_seen'); } catch (e) {}
             API.install({ withIdentity: false });
@@ -2263,15 +2404,23 @@
             const appendAttr = CONFIG.whatsappAppendAttribution === true || CONFIG.whatsappAppendAttribution === '1';
             if (!appendAttr) return;
 
-            const allowedHosts = ['wa.me', 'whatsapp.com', 'api.whatsapp.com', 'web.whatsapp.com'];
+            // Withdrawal followed by a new grant runs attribution again; one set of listeners is enough.
+            if (!this.whatsAppListening) {
+                this.whatsAppListening = true;
+                this.bindWhatsAppHandler();
+            }
 
+        }
+
+        bindWhatsAppHandler() {
             const handler = (evt) => {
-                // The listener can outlive a consent withdrawal. Do not append
-                // attribution to the outbound URL after marketing is denied.
-                if (!this.canCapture()) return;
-
-                const a = evt.target.closest('a');
+                // Cheap exits first: this also runs on every mouseover.
+                const a = evt.target && typeof evt.target.closest === 'function' ? evt.target.closest('a') : null;
                 if (!a) return;
+
+                // The listener can outlive a consent withdrawal. Do not append
+                // a reference to the outbound URL after marketing is denied.
+                if (!this.canCapture()) return;
 
                 const current = a.getAttribute('href');
                 if (!current) return;
@@ -2287,23 +2436,53 @@
                     return;
                 }
 
-                if (!allowedHosts.includes(url.hostname)) return;
+                // The href (or the stored original it is restored from) comes from the DOM: re-validate
+                // the parsed URL here, at the sinks below, and only ever write url.toString() of it.
+                // Only https and whatsapp: links, and for https only the WhatsApp hosts.
+                if (url.protocol !== 'https:' && url.protocol !== 'whatsapp:') return;
+                if (url.protocol === 'https:' && WHATSAPP_HOSTS.indexOf(url.hostname) === -1) return;
 
-                if (appendAttr && window.ClickTrail && typeof window.ClickTrail.getEncoded === 'function') {
-                    const encoded = window.ClickTrail.getEncoded();
-                    if (encoded) {
-                        const text = url.searchParams.get('text') || '';
-                        const glue = text ? '\n\n' : '';
-                        url.searchParams.set('text', text + glue + 'CT:' + encoded);
-                        a.setAttribute('data-clicutcl-href', href);
-                        a.setAttribute('data-clicutcl-decorated', url.toString());
-                        a.setAttribute('href', url.toString());
-                    }
+                // Pointer or focus on the link only warms the code up, so the click finds it ready.
+                if (evt.type === 'mouseover' || evt.type === 'focusin' || evt.type === 'pointerdown') {
+                    WhatsAppRef.ensure();
+                    return;
                 }
+
+                const code = WhatsAppRef.current();
+                if (!code) {
+                    // Never send a reference the server has not confirmed for this attribution.
+                    WhatsAppRef.ensure();
+                    if (a.hasAttribute('data-clicutcl-wa-ref')) {
+                        a.setAttribute('href', url.toString());
+                        a.removeAttribute('data-clicutcl-href');
+                        a.removeAttribute('data-clicutcl-decorated');
+                        a.removeAttribute('data-clicutcl-wa-ref');
+                    }
+                    return;
+                }
+
+                const text = url.searchParams.get('text') || '';
+                const glue = text ? '\n\n' : '';
+                url.searchParams.set('text', text + glue + 'Ref: CT-' + code);
+                a.setAttribute('data-clicutcl-href', href);
+                a.setAttribute('data-clicutcl-decorated', url.toString());
+                a.setAttribute('data-clicutcl-wa-ref', 'CT-' + code);
+                a.setAttribute('href', url.toString());
             };
 
             document.addEventListener('click', handler, true);
             document.addEventListener('touchstart', handler, { capture: true, passive: true });
+            document.addEventListener('mouseover', handler, { capture: true, passive: true });
+            document.addEventListener('focusin', handler, true);
+            document.addEventListener('pointerdown', handler, { capture: true, passive: true });
+
+            // Touch screens give a tap too little time to register: the first touch anywhere on a page
+            // that holds a WhatsApp link is the warm-up there. A page view alone registers nothing.
+            const warmOnTouch = () => {
+                document.removeEventListener('touchstart', warmOnTouch, true);
+                if (this.canCapture() && pageHasWhatsAppLink()) WhatsAppRef.ensure();
+            };
+            document.addEventListener('touchstart', warmOnTouch, { capture: true, passive: true });
         }
     }
 

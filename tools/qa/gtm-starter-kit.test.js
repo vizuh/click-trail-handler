@@ -61,3 +61,10 @@ assert.strictEqual(eventId.value, '{{DLV - event_id}}', 'Meta Purchase eventId')
 assert.ok(varNames.has('DLV - event_id'), 'DLV - event_id defined');
 
 console.log('gtm-starter-kit.test.js: ok');
+
+// The WhatsApp trigger and GA4 tag use the event the plugin actually pushes (#145).
+const waTrigger = cv.trigger.find((t) => t.name === 'LC - contact_whatsapp_start');
+assert.ok(waTrigger, 'contact_whatsapp_start trigger');
+assert.ok(JSON.stringify(waTrigger.customEventFilter).includes('"contact_whatsapp_start"'), 'trigger fires on contact_whatsapp_start');
+assert.ok(cv.tag.some((t) => t.name === 'GA4 Event - contact_whatsapp_start'), 'GA4 tag for contact_whatsapp_start');
+assert.ok(!JSON.stringify(cv).includes('whatsapp_click'), 'no producer-less whatsapp_click left');

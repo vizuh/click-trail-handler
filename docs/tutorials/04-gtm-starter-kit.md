@@ -47,6 +47,15 @@ read the `DLV - ft_*` / `DLV - lt_*` variables; `ct_click_id` comes from
 `attribution_selected_click_id` to the `dataLayer`). The GA4 `purchase` tag
 still sets no session campaign fields.
 
+The WhatsApp trigger (`LC - contact_whatsapp_start`) and its GA4 tag fire on the
+`contact_whatsapp_start` event the plugin pushes when a visitor with consent
+clicks a `wa.me`, `api.whatsapp.com` or `whatsapp://` link (#145). The event
+also carries `link_url`, `phone` (the public business number, digits only) and,
+when **Append attribution to message** is on, `ref_code` (`CT-XXXXXXXX`, the
+code in the WhatsApp message). The kit does not map those three keys to GA4
+parameters yet; add Data Layer Variables for them if you want them in reports.
+Evidence: source-present / runtime-unverified.
+
 GA4 only reports custom parameters once registered: in GA4 go to **Admin →
 Custom definitions → Create custom dimension**, scope **Event**, and register
 each `ct_*` parameter you want in reports.

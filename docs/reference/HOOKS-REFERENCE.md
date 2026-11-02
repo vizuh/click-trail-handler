@@ -237,6 +237,20 @@ Purpose:
 
 - tune event intake token behavior, allowed hosts, rate limiting, and replay controls
 
+The rate-limit filters receive the route scope as their second argument: `events_batch`, `attribution_token_sign`, `attribution_token_verify` and, since the WhatsApp reference route (#145), `whatsapp_ref`. The reference-code TTL follows the attribution retention (`cookie_days`). Two filters bound the table (#145):
+
+### `clicutcl_whatsapp_ref_max_rows`
+
+Maximum rows in `wp_clicutcl_whatsapp_refs` (default `50000`, minimum 1). At the ceiling `POST /clicutcl/v2/whatsapp-ref` answers 503 `whatsapp_ref_capacity` and stores nothing until the daily purge frees room.
+
+- `int $max_rows`
+
+### `clicutcl_whatsapp_ref_max_per_visitor`
+
+Maximum live (unexpired) rows per `visitor_id` (default `20`, minimum 1). Beyond it the route answers 429 `whatsapp_ref_visitor_limit`.
+
+- `int $max_per_visitor`
+
 ## Webhook Security
 
 ### `clicutcl_webhook_replay_window`

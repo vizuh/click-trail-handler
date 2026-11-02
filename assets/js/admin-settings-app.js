@@ -725,7 +725,7 @@
                     collapsed: true
                 }, [
                     renderToggle('forms.whatsapp.enabled', __('Enable WhatsApp tracking', 'click-trail-handler'), __('Track clicks on WhatsApp links and buttons.', 'click-trail-handler')),
-                    renderToggle('forms.whatsapp.append_attribution', __('Append attribution to message', 'click-trail-handler'), __('Add attribution details to the pre-filled WhatsApp message.', 'click-trail-handler'), {
+                    renderToggle('forms.whatsapp.append_attribution', __('Append attribution to message', 'click-trail-handler'), __('End the pre-filled WhatsApp message with a short Ref: CT-… code that Diagnostics maps back to the stored attribution.', 'click-trail-handler'), {
                         disabled: !whatsappEnabled
                     })
                 ]),
