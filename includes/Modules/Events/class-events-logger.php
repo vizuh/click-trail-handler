@@ -184,7 +184,11 @@ class Events_Logger {
 		$events              = array( 'ct_event_login', 'ct_event_signup', 'ct_event_comment' );
 		if ( Consent::is_required() && ! Consent::marketing_allowed() ) {
 			foreach ( $events as $cookie_name ) {
-				$this->clear_event_cookie( $cookie_name );
+				// Only expire a cookie the request carries: an unconditional clear adds a Set-Cookie to every
+				// anonymous page view and makes CDNs skip the edge cache (#164).
+				if ( isset( $_COOKIE[ $cookie_name ] ) ) {
+					$this->clear_event_cookie( $cookie_name );
+				}
 			}
 			return;
 		}
