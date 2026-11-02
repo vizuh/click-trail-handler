@@ -106,6 +106,11 @@ class Setup_Detector {
 				'label'  => 'Ninja Forms',
 				'active' => class_exists( 'Ninja_Forms' ),
 			),
+			array(
+				'key'    => 'sureforms',
+				'label'  => 'SureForms',
+				'active' => defined( 'SRFM_VER' ),
+			),
 		);
 	}
 

@@ -73,6 +73,7 @@ final class FormRuntimeEvidenceContractTest extends TestCase {
 			'WPForms'       => array( 'wpforms' ),
 			'Ninja Forms'   => array( 'ninja' ),
 			'Elementor Pro' => array( 'elementor' ),
+			'SureForms'     => array( 'sureforms' ),
 		);
 	}
 
