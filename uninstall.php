@@ -87,6 +87,17 @@ if ( ! $clicutcl_preserve_data ) {
 		}
 	}
 
+	// EDD 3.x orders carry the same ClickTrail meta keys; the EDD helper reuses the Woo key allowlist.
+	$clicutcl_edd_privacy_file = __DIR__ . '/includes/privacy/class-edd-order-privacy.php';
+	if ( function_exists( 'edd_get_orders' ) && file_exists( $clicutcl_woo_privacy_file ) && file_exists( $clicutcl_edd_privacy_file ) ) {
+		require_once $clicutcl_woo_privacy_file;
+		require_once $clicutcl_edd_privacy_file;
+		$clicutcl_edd_purge = ( new \CLICUTCL\Privacy\Edd_Order_Privacy() )->purge_all_order_metadata();
+		if ( ! empty( $clicutcl_edd_purge['remaining'] ) && function_exists( 'do_action' ) ) {
+			do_action( 'clicutcl_uninstall_order_meta_incomplete', $clicutcl_edd_purge );
+		}
+	}
+
 	$clicutcl_queue_table         = $wpdb->prefix . 'clicutcl_queue';
 	$clicutcl_events_table        = $wpdb->prefix . 'clicutcl_events';
 	$clicutcl_touch_events_table  = $wpdb->prefix . 'clicutcl_touch_events';

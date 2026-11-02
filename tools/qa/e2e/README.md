@@ -59,3 +59,21 @@ Notes:
   WordPress container out of the plugin files (Apache 403).
 - A replayed webhook proves ClickTrail's mapping only. Whether Calendly keeps `salesforce_uuid` through a real
   booking still needs a live booking.
+
+## Easy Digital Downloads (#173)
+
+```sh
+flock /tmp/ct-e2e.lock tools/qa/e2e/edd-ci.sh [plugin-root]   # same pod + EDD 3.7.3, Store (manual) gateway, WP_DEBUG_LOG on
+```
+
+`edd-setup.sh` extends `setup.sh` with EDD pinned to 3.7.3. `edd-fixtures.php` installs EDD's component tables
+(`edd_install_component_database_tables()`: WP-CLI activation never fires `admin_init`, where EDD creates them, and
+without them the cart session fails silently), enables only the Store gateway, and creates one priced download.
+`edd.py` drives Chromium through add to cart, checkout and the receipt and writes `edd.json`; `verify_edd.py` judges it
+(`PASS` / `FAIL`, exit 1 on any FAIL) and scans `debug.log` for PHP or database errors raised by ClickTrail.
+Scenarios: `landing` (gclid landing, buy, two receipt reloads; order meta, one dataLayer purchase, one dispatch),
+`consent_denied`, `consent_accepted`, `consent_withdrawn` (consent cookie flipped to denied after capture, attribution
+cookie still sent) and `privacy` (WordPress exporter and eraser, retention on an aged order, manual purge, against real
+`edd_get_orders()` queries). Run a subset with `python3 tools/qa/e2e/edd.py <out-dir> landing` against a pod from
+`edd-setup.sh`. Results of a run: `EVIDENCE-<date>-edd.md`.
+

@@ -218,3 +218,17 @@ function clicutcl_init() {
 	$plugin->run();
 }
 add_action( 'init', 'clicutcl_init', 20 );
+
+/**
+ * Register the Easy Digital Downloads integration.
+ *
+ * EDD builds the order while handling the checkout POST on `init` priority 10
+ * (`edd_post_actions`), long before `clicutcl_init` runs at priority 20, so the
+ * `edd_built_order` hook has to exist by `plugins_loaded`.
+ */
+function clicutcl_init_edd() {
+	if ( class_exists( 'Easy_Digital_Downloads' ) && class_exists( 'CLICUTCL\\Integrations\\Edd' ) ) {
+		( new CLICUTCL\Integrations\Edd() )->init();
+	}
+}
+add_action( 'plugins_loaded', 'clicutcl_init_edd' );

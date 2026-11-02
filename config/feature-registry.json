@@ -265,6 +265,21 @@
         "woo-order-cancelled"
       ]
     },
+    "edd_order_attribution": {
+      "label": "Easy Digital Downloads order attribution and purchase",
+      "support_level": "source_present_runtime_unverified",
+      "runtime_surface": [
+        "delivery",
+        "edd"
+      ],
+      "enablement_path": "none",
+      "docs_target": "docs/reference/INTEGRATIONS.md",
+      "smoke_test_ids": [
+        "edd-order-attribution",
+        "edd-purchase-receipt",
+        "edd-order-privacy"
+      ]
+    },
     "diagnostics_conflict_scan": {
       "label": "Diagnostics conflict scan",
       "support_level": "shipped",

@@ -322,6 +322,8 @@ WooCommerce order-meta lifecycle. Live runtime evidence is still required to pro
 - purge/export/erase/uninstall cover every ClickTrail-owned storage key in a live installation; expired Woo metadata
   is processed in bounded cleanup batches.
 
+Easy Digital Downloads orders carry the same `_clicutcl_*` keys and the same lifecycle (`Edd_Order_Privacy`: personal-data export and erase by billing email, bounded retention, Diagnostics purge, uninstall). Attribution is written at `edd_built_order` only for customer-context requests and only when `Attribution_Provider::should_populate()` allows; only keys the allowlist can erase are written (the attribution cookie parser does not allowlist keys itself); a denied or withdrawn checkout stores just the consent snapshot, and the receipt never pushes or dispatches a purchase without current marketing consent. Runtime evidence: Store gateway, EDD 3.7.3, `tools/qa/e2e/edd-ci.sh` (export, erase, retention and purge against real EDD order queries). Evidence status: source-present, staged E2E for the Store gateway only, Stripe/PayPal runtime-unverified.
+
 ## Trusted Proxies and Request Identity
 
 Trusted proxy handling matters for:

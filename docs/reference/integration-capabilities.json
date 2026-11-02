@@ -51,6 +51,17 @@
       "next_proof": "Run consent denial/grant, paid/refund/cancel, retry/dedup, queue replay, and erasure assertions in both modes; then add provider sandbox evidence."
     },
     {
+      "surface": "Easy Digital Downloads",
+      "entry_ids": ["source.edd"],
+      "business_value": "Keep campaign context attached to EDD orders and emit one consented purchase per order.",
+      "evidence_level": "staged_e2e",
+      "proof_artifact": "includes/integrations/class-edd.php; includes/privacy/class-edd-order-privacy.php; tests/unit/EddIntegrationTest.php; tests/unit/EddOrderPrivacyTest.php; tools/qa/e2e/edd-ci.sh",
+      "environment": "Disposable WordPress/EDD 3.7.3 stack with Playwright browser, Store (manual) gateway, outbound endpoint captured, MariaDB.",
+      "owner": "ClickTrail WP runtime",
+      "blocker": false,
+      "next_proof": "Run a Stripe and a PayPal sandbox checkout (off-site and AJAX order creation), a block-based receipt, refund and status-change events, and EDD Recurring/Software Licensing renewals; then add provider sandbox evidence."
+    },
+    {
       "surface": "Stripe Checkout hosted boundary",
       "entry_ids": ["payment.stripe_checkout"],
       "business_value": "Preserve pre-checkout attribution without misrepresenting hosted payment as a native adapter.",
@@ -658,6 +669,36 @@
         "Consent denial/grant transitions, refund/cancellation, replay/dedup, queue replay, order-meta erasure, and trace identity minimization remain release blockers.",
         "Dedup is non-atomic; queued replay does not re-check consent; queue uniqueness omits destination.",
         "Classic and HPOS Store API fake COD checkout, order meta, purchase dataLayer, trace persistence, disabled dispatch, and empty queue were reproduced locally from a dirty 1.9.0 checkout; provider and release proof remain open."
+      ]
+    },
+    {
+      "id": "source.edd",
+      "label": "Easy Digital Downloads",
+      "role": "wordpress_source",
+      "status": "source_connector_runtime_unverified",
+      "provider_contract": "EDD 3.x edd_built_order action, edd_update_order_meta()/edd_get_order_meta(), edd_order_receipt_before_table action, edd_get_orders() order queries",
+      "what_exists": "Consent-gated order attribution meta at order creation, one receipt purchase (dataLayer plus Dispatcher) with event_id purchase_edd_<order ID>, and an allowlisted order-meta export/erase/retention/purge/uninstall lifecycle.",
+      "evidence": [
+        "includes/integrations/class-edd.php",
+        "includes/privacy/class-edd-order-privacy.php",
+        "tests/unit/EddIntegrationTest.php",
+        "tests/unit/EddOrderPrivacyTest.php",
+        "tools/qa/e2e/edd-ci.sh",
+        "tools/qa/e2e/verify_edd.py"
+      ],
+      "test_ids": [
+        "edd-order-attribution",
+        "edd-purchase-receipt",
+        "edd-order-privacy"
+      ],
+      "runtime_tests": [
+        "edd-store-gateway-browser-runtime-2026-11-02"
+      ],
+      "known_limits": [
+        "Runtime proof is the Store (manual) gateway on EDD 3.7.3 only; Stripe, PayPal, Square and the REST card controllers call the same edd_build_order() but were not run.",
+        "No order-status milestones, refund events, or EDD 2.x payment support; EDD Recurring and Software Licensing renewals are cron-created and get no attribution by design.",
+        "The receipt hook fires for the shortcode and block receipt templates; only the shortcode template was exercised.",
+        "Test-mode orders are tracked like live orders."
       ]
     },
     {
