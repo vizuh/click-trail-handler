@@ -12,6 +12,7 @@ const path = require('path');
 const REQUIRED_ADAPTERS = {
   cf7: 'source.form.cf7',
   fluent: 'source.form.fluent',
+  formidable: 'source.form.formidable',
   gravity: 'source.form.gravity',
   wpforms: 'source.form.wpforms',
   ninja: 'source.form.ninja',
@@ -225,7 +226,7 @@ function main() {
     process.exit(1);
   }
   console.log(
-    'Form runtime evidence check passed: six adapters, six required cases each; ' +
+    `Form runtime evidence check passed: ${Object.keys(REQUIRED_ADAPTERS).length} adapters, six required cases each; ` +
       'runtime proof remains explicitly unverified without WordPress/plugin runtime.'
   );
 }

@@ -12,6 +12,7 @@ PROVIDERS = {
     'fluent': {'path': '/form-fluent/', 'platform': 'fluentform'},
     'wpforms_hidden': {'path': '/form-wpforms/', 'platform': 'wpforms'},
     'wpforms_text': {'path': '/form-wpforms-text/', 'platform': 'wpforms'},
+    'formidable': {'path': '/form-formidable/', 'platform': 'formidable'},
 }
 CT_FIELDS = ('gclid', 'fbclid', 'ft_source', 'lt_source', 'lt_medium', 'attribution_selected_click_id')
 
@@ -39,7 +40,8 @@ def snapshot():
     ids = wp_json(
         "global $wpdb; $p = $wpdb->prefix; "
         "$f = $wpdb->get_var( \"SELECT IFNULL(MAX(id),0) FROM {$p}fluentform_submissions\" ); "
-        "return array( 'events' => (int) $wpdb->get_var( \"SELECT IFNULL(MAX(id),0) FROM {$p}clicutcl_events\" ), 'fluent' => (int) $f );"
+        "$fr = $wpdb->get_var( \"SELECT IFNULL(MAX(id),0) FROM {$p}frm_items\" ); "
+        "return array( 'events' => (int) $wpdb->get_var( \"SELECT IFNULL(MAX(id),0) FROM {$p}clicutcl_events\" ), 'fluent' => (int) $f, 'formidable' => (int) $fr );"
     )
     ids['provider'] = len(pod_lines('ct-provider.jsonl'))
     ids['capture'] = len(pod_lines('ct-capture.jsonl'))
@@ -54,7 +56,12 @@ def delta(snap):
         "$fl = array(); foreach ( $wpdb->get_results( $wpdb->prepare( \"SELECT id, form_id, response FROM {$p}fluentform_submissions WHERE id > %%d ORDER BY id\", %d ) ) as $r ) { "
         "$meta = array(); foreach ( $wpdb->get_results( $wpdb->prepare( \"SELECT meta_key, value FROM {$p}fluentform_submission_meta WHERE response_id = %%d\", $r->id ) ) as $m ) { $meta[ $m->meta_key ] = $m->value; } "
         "$fl[] = array( 'id' => (int) $r->id, 'form_id' => (int) $r->form_id, 'response' => json_decode( $r->response, true ), 'meta' => $meta ); } "
-        "return array( 'events' => $ev, 'fluent' => $fl );" % (snap['events'], snap['fluent'])
+        "$fm = array(); foreach ( $wpdb->get_results( $wpdb->prepare( \"SELECT id, form_id, is_draft FROM {$p}frm_items WHERE id > %%d ORDER BY id\", %d ) ) as $r ) { "
+        "$fields = array(); $meta = array(); "
+        "foreach ( $wpdb->get_results( $wpdb->prepare( \"SELECT m.field_id, m.meta_value, f.field_key FROM {$p}frm_item_metas m LEFT JOIN {$p}frm_fields f ON f.id = m.field_id WHERE m.item_id = %%d\", $r->id ) ) as $m ) { "
+        "if ( (int) $m->field_id === 0 ) { $v = maybe_unserialize( $m->meta_value ); if ( is_array( $v ) ) { $meta = array_merge( $meta, $v ); } } else { $fields[ $m->field_key ] = wp_unslash( $m->meta_value ); } } "
+        "$fm[] = array( 'id' => (int) $r->id, 'form_id' => (int) $r->form_id, 'is_draft' => (int) $r->is_draft, 'fields' => $fields, 'meta' => $meta ); } "
+        "return array( 'events' => $ev, 'fluent' => $fl, 'formidable' => $fm );" % (snap['events'], snap['fluent'], snap['formidable'])
     )
     stored['provider'] = pod_lines('ct-provider.jsonl')[snap['provider']:]
     stored['capture'] = [e for e in pod_lines('ct-capture.jsonl')[snap['capture']:]]
@@ -75,6 +82,8 @@ def ct_inputs(page):
             const out = {};
             for (const el of document.querySelectorAll('form input:not([type=submit]):not([type=button]), form textarea')) {
                 let label = (el.name || '').startsWith('ct_') ? el.name : null;
+                // Formidable names inputs item_meta[<field id>]; the field key is in the input id (field_<key>).
+                if (!label && (el.id || '').startsWith('field_ct_')) label = el.id.slice('field_'.length);
                 if (!label) {
                     const wrap = el.closest('[class*="ct_"]');
                     const tok = wrap && [...wrap.classList].find((c) => c.startsWith('ct_'));
@@ -98,6 +107,9 @@ def fill(page, provider, tag):
     elif provider == 'fluent':
         page.fill('input[name="your_name"]', 'E2E ' + tag)
         page.fill('input[name="email"]', email)
+    elif provider == 'formidable':
+        page.fill('#field_e2e_name', 'E2E ' + tag)
+        page.fill('#field_e2e_email', email)
     else:
         page.fill('input[name="wpforms[fields][1]"]', 'E2E ' + tag)
         # WPForms' mail-check widget blocks unknown TLDs such as .test with a "Did you mean" prompt.
@@ -109,6 +121,7 @@ def submit_button(provider):
     return {
         'cf7': 'input[type="submit"].wpcf7-submit',
         'fluent': 'button.ff-btn-submit',
+        'formidable': '.frm_button_submit',
     }.get(provider, 'button.wpforms-submit')
 
 
@@ -120,6 +133,9 @@ def wait_done(page, provider, timeout=25000):
     if provider == 'fluent':
         page.wait_for_selector('.ff-message-success, .ff-errors-in-stack, .ff-el-is-error', timeout=timeout)
         return 'sent' if page.locator('.ff-message-success').count() else 'failed: ' + page.inner_text('form, .ff-errors-in-stack')[:200]
+    if provider == 'formidable':
+        page.wait_for_selector('.frm_message, .frm_error_style, .frm_error', timeout=timeout)
+        return 'sent' if page.locator('.frm_message').count() else 'failed: ' + page.inner_text('form, .frm_error_style')[:200]
     page.wait_for_selector('.wpforms-confirmation-container-full, .wpforms-confirmation-container, .wpforms-error-container, .wpforms-has-error', timeout=timeout)
     return 'sent' if page.locator('.wpforms-confirmation-container-full, .wpforms-confirmation-container').count() else 'failed'
 

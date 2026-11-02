@@ -33,10 +33,10 @@ Serves the one WordPress as `www.example.test` and `example.test` (`mu/ct-e2e-dy
 reads the CF7 hidden `ct_gclid` and submits; the script runs it once with `cookie_scope=registrable` (cookie
 `domain=.example.test`, apex field `GA`, stored lead carries it) and once with `host` (cookie host-only, apex field empty).
 
-## Form adapters (Fluent Forms, WPForms Lite, Contact Form 7)
+## Form adapters (Fluent Forms, WPForms Lite, Formidable Forms, Contact Form 7)
 
 ```sh
-tools/qa/e2e/adapters-ci.sh [plugin-root]   # same pod + Fluent Forms 6.2.16 + WPForms Lite 2.0.3.1, WP_DEBUG_LOG on
+tools/qa/e2e/adapters-ci.sh [plugin-root]   # same pod + Fluent Forms 6.2.16 + WPForms Lite 2.0.3.1 + Formidable Forms 7.0, WP_DEBUG_LOG on
 ```
 
 `adapters-setup.sh` extends `setup.sh` (pinned plugins, `fixtures.php` forms and one page per provider,
@@ -47,6 +47,11 @@ the cache leak of #152 or the double submit of #140). Run a subset with
 `python3 tools/qa/e2e/adapters.py <out-dir> landing returning` against a pod from `adapters-setup.sh`.
 `mu/ct-e2e-render-toggle.php` (option `ct_e2e_render_values`) forces the #152 render filter on so the cache scenario can build
 the stale-snapshot vector and prove the submit layer blanks it.
+Formidable Forms (free) keeps its entries in `frm_items` / `frm_item_metas`, so no provider capture is needed: `delta()` reads the entry
+fields (by field key `ct_<key>`) and the ClickTrail meta row (`field_id` 0) straight from the database. `adapters-setup.sh` skips
+Formidable's first-admin-request redirect to its onboarding wizard (it would turn the first `admin-ajax.php` call of a run into a 302)
+and `fixtures.php` runs Formidable's installer, since wp-cli never fires `admin_init`. Scenario `formidable_utm_content` (S9) lands with
+`utm_source`, `utm_content` and `gclid`, submits, and checks the entry, its meta, the lead and the email notification.
 Results of a run: `EVIDENCE-<date>.md`.
 
 Notes:

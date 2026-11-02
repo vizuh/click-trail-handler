@@ -1244,6 +1244,13 @@
           ]
         },
         {
+          "file": "tests/fixtures/form-readiness/v1/formidable.json",
+          "patterns": [
+            "matching_fields",
+            "provider_record"
+          ]
+        },
+        {
           "file": "tests/fixtures/form-readiness/v1/gravity.json",
           "patterns": [
             "matching_fields",
@@ -1303,6 +1310,14 @@
         },
         {
           "file": "tests/fixtures/form-runtime/v1/fluent.json",
+          "patterns": [
+            "ajax_cache_path",
+            "stored_record_inspection",
+            "runtime_unverified"
+          ]
+        },
+        {
+          "file": "tests/fixtures/form-runtime/v1/formidable.json",
           "patterns": [
             "ajax_cache_path",
             "stored_record_inspection",
