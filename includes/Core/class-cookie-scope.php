@@ -130,8 +130,7 @@ class Cookie_Scope {
 
 		if ( self::SCOPE_CUSTOM === $scope ) {
 			$domain = self::normalize_host( $custom );
-			$covers = '' !== $domain && ( $host === $domain || str_ends_with( $host, '.' . $domain ) );
-			if ( ! $covers ) {
+			if ( ! self::covers( $domain, $host ) ) {
 				return array(
 					'domain' => '',
 					'reason' => 'custom_not_suffix',
@@ -161,6 +160,22 @@ class Cookie_Scope {
 			'domain' => $domain,
 			'reason' => 'ok',
 		);
+	}
+
+	/**
+	 * Whether a cookie domain covers a host: the host itself or any subdomain of it.
+	 *
+	 * The same rule the scripts apply before they send `domain=` (`coversHost()` in clicutcl-attribution.js).
+	 *
+	 * @param string $domain Cookie domain (empty never covers).
+	 * @param string $host   Host, with or without port or case.
+	 * @return bool
+	 */
+	public static function covers( string $domain, string $host ): bool {
+		$domain = self::normalize_host( $domain );
+		$host   = self::normalize_host( $host );
+
+		return '' !== $domain && '' !== $host && ( $host === $domain || str_ends_with( $host, '.' . $domain ) );
 	}
 
 	/**

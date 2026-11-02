@@ -101,6 +101,7 @@ ClickTrail can be rolled out in layers. A basic attribution setup for forms or W
    * keep attribution enabled
    * choose a retention window that matches your sales cycle
    * set Cookie scope to Registrable domain if visitors move between www, the bare domain and other subdomains of your site (host only keeps cookies on one exact host)
+   * leave **Re-issue the attribution cookie from the server** on (default on new installs, off on upgraded ones) so Safari does not drop the attribution cookie after a day or a week; your cache or firewall must not block or cache `POST /wp-json/clicutcl/v2/cookie-refresh`
    * enable cross-domain continuity only if visitors move between approved domains or subdomains
 5. In **Forms**:
    * enable only the integrations you actually use

@@ -213,7 +213,9 @@ class Plugin {
 		$events_batch_url          = $events_transport_enabled ? rest_url( 'clicutcl/v2/events/batch' ) : '';
 		// The reference-code route is gated by the same page-embedded client token.
 		$whatsapp_ref_enabled = ( isset( $options['enable_whatsapp'] ) ? (bool) $options['enable_whatsapp'] : true ) && ! empty( $options['whatsapp_append_attribution'] );
-		$events_token         = ( class_exists( 'CLICUTCL\\Tracking\\Auth' ) && ( $events_transport_enabled || $enable_cross_domain_token || $whatsapp_ref_enabled ) )
+		// The cookie re-issue route (#141) is gated by the same token.
+		$cookie_reissue_enabled = $enable_attribution && $this->cookie_reissue_enabled( $options, $cookie_days );
+		$events_token           = ( class_exists( 'CLICUTCL\\Tracking\\Auth' ) && ( $events_transport_enabled || $enable_cross_domain_token || $whatsapp_ref_enabled || $cookie_reissue_enabled ) )
 			? \CLICUTCL\Tracking\Auth::mint_client_token()
 			: '';
 
@@ -417,6 +419,7 @@ class Plugin {
 			'enableWhatsapp'            => isset( $options['enable_whatsapp'] ) ? (bool) $options['enable_whatsapp'] : true,
 			'whatsappAppendAttribution' => isset( $options['whatsapp_append_attribution'] ) ? (bool) $options['whatsapp_append_attribution'] : false,
 			'whatsappRefUrl'            => esc_url_raw( rest_url( 'clicutcl/v2/whatsapp-ref' ) ),
+			'cookieReissueUrl'          => $this->cookie_reissue_enabled( $options, $cookie_days ) ? esc_url_raw( rest_url( 'clicutcl/v2/cookie-refresh' ) ) : '',
 			'debug'                     => (bool) $debug_active,
 			'eventsBatchUrl'            => esc_url_raw( $events_batch_url ),
 			'eventsToken'               => $events_token,
@@ -437,6 +440,17 @@ class Plugin {
 			'linkAppendBlob'            => false,
 			'ignoredReferrerHosts'      => Core\Attribution_Provider::get_ignored_referrer_hosts(),
 		);
+	}
+
+	/**
+	 * Whether the attribution cookie server re-issue (#141) is on: the setting, and a retention to renew.
+	 *
+	 * @param array $options     Attribution settings.
+	 * @param int   $cookie_days Cookie retention days.
+	 * @return bool
+	 */
+	private function cookie_reissue_enabled( array $options, int $cookie_days ): bool {
+		return ! empty( $options['attribution_cookie_reissue'] ) && $cookie_days > 0;
 	}
 
 	/**

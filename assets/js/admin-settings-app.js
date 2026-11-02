@@ -646,7 +646,8 @@
                     renderText('capture.cookie_custom_domain', __('Custom cookie domain', 'click-trail-handler'), __('A parent domain of this site, for example example.com. Ignored unless Cookie scope is Custom. Public suffixes and unrelated domains are rejected and cookies stay host-only.', 'click-trail-handler'), {
                         disabled: getIn(settings, 'capture.cookie_scope', 'host') !== 'custom',
                         placeholder: 'example.com'
-                    })
+                    }),
+                    renderToggle('capture.cookie_reissue', __('Re-issue the attribution cookie from the server', 'click-trail-handler'), __('Safari shortens or purges cookies written by JavaScript. With this on, the browser asks ClickTrail once after it writes the attribution cookie, and the response sets the same cookie again (same value, same lifetime, same domain), which Safari does not cap. Needs a REST POST to /wp-json/clicutcl/v2/cookie-refresh that your cache or firewall does not block or cache. Only runs with marketing consent when consent is required.', 'click-trail-handler'))
                 ]),
                 el(AppCard, {
                     key: 'capture-cross-domain',

@@ -68,6 +68,17 @@ class Attribution_Settings {
 	}
 
 	/**
+	 * Is the server re-issue of the attribution cookie on?
+	 *
+	 * Off unless stored: existing installs are unchanged, fresh installs are seeded on.
+	 *
+	 * @return bool
+	 */
+	public function is_cookie_reissue_enabled() {
+		return ! empty( $this->settings['attribution_cookie_reissue'] );
+	}
+
+	/**
 	 * Is Consent Required?
 	 *
 	 * Defaults to false to match the dispatcher and Attribution_Provider:
