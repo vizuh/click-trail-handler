@@ -5,7 +5,7 @@ Author URI: https://vizuh.com
 Tags: attribution, utm, consent mode, woocommerce, server-side tracking
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 1.11.3
+Stable tag: 1.12.0
 Requires PHP: 8.1
 WC requires at least: 10.4.2
 License: GPLv2 or later
@@ -192,6 +192,13 @@ The entries below are historical release notes. They do not replace the current 
 behavior that still requires current runtime verification. In particular, older wording that calls platform-named
 server paths “first-class native delivery adapters” predates the current evidence classification: those paths are
 configured-endpoint relays whose provider authentication, acceptance, and runtime delivery remain unverified.
+
+= 1.12.0 =
+* Contact Form 7: ClickTrail now only adds hidden fields for the `ct_` tags the form or its mail references. Add `[hidden ct_gclid]` to the form to get the value into mail and CRM add-ons; ClickTrail's own lead is unaffected.
+* Embedded booking and form iframes created by your site's own script can carry the campaign: call `window.ClickTrail.decorateEmbedUrl()` for hosts you list under Embedded widget hosts.
+* Forms: double submits no longer create two leads, even when they arrive at the same moment.
+* LiteSpeed Cache: the exclusion now uses the correct filter, and path exclusions work when the plugin folder is renamed.
+* FlyingPress: ClickTrail scripts are excluded from JavaScript minification.
 
 = 1.11.3 =
 * Forms and page caches: a form served from a page cache can no longer show or submit another visitor's ad click or campaign. The attribution fields now start empty and are filled in the visitor's own browser; if a visitor has no consent or no attribution, the stored lead holds no attribution values.
