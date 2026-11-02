@@ -33,15 +33,15 @@ Serves the one WordPress as `www.example.test` and `example.test` (`mu/ct-e2e-dy
 reads the CF7 hidden `ct_gclid` and submits; the script runs it once with `cookie_scope=registrable` (cookie
 `domain=.example.test`, apex field `GA`, stored lead carries it) and once with `host` (cookie host-only, apex field empty).
 
-## Form adapters (Fluent Forms, WPForms Lite, Contact Form 7)
+## Form adapters (Fluent Forms, WPForms Lite, SureForms, Contact Form 7)
 
 ```sh
-tools/qa/e2e/adapters-ci.sh [plugin-root]   # same pod + Fluent Forms 6.2.16 + WPForms Lite 2.0.3.1, WP_DEBUG_LOG on
+tools/qa/e2e/adapters-ci.sh [plugin-root]   # same pod + Fluent Forms 6.2.16 + WPForms Lite 2.0.3.1 + SureForms 2.13.0, WP_DEBUG_LOG on
 ```
 
 `adapters-setup.sh` extends `setup.sh` (pinned plugins, `fixtures.php` forms and one page per provider,
 `mu/ct-e2e-provider-capture.php` recording the CF7 posted data and the WPForms processed fields, because CF7 has no
-storage and WPForms Lite has no entries table). `adapters.py` drives Chromium through the scenarios and writes
+storage and WPForms Lite has no entries table; SureForms entries are read from `wp_srfm_entries`, its notification mail is captured by the same `pre_wp_mail` observer). `adapters.py` drives Chromium through the scenarios and writes
 `adapters.json`; `verify_adapters.py` judges it (`PASS`, `FAIL` exits 1, `FINDING` is a recorded known defect such as
 the cache leak of #152 or the double submit of #140). Run a subset with
 `python3 tools/qa/e2e/adapters.py <out-dir> landing returning` against a pod from `adapters-setup.sh`.

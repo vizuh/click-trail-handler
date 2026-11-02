@@ -12,6 +12,7 @@ use CLICUTCL\Integrations\Forms\Elementor_Forms_Adapter;
 use CLICUTCL\Integrations\Forms\Fluent_Forms_Adapter;
 use CLICUTCL\Integrations\Forms\Gravity_Forms_Adapter;
 use CLICUTCL\Integrations\Forms\Ninja_Forms_Adapter;
+use CLICUTCL\Integrations\Forms\SureForms_Adapter;
 use CLICUTCL\Integrations\Forms\WPForms_Adapter;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -62,6 +63,7 @@ class Form_Integration_Manager {
 			'CLICUTCL\Integrations\Forms\Fluent_Forms_Adapter' => 'forms/class-fluent-forms-adapter.php',
 			'CLICUTCL\Integrations\Forms\Gravity_Forms_Adapter' => 'forms/class-gravity-forms-adapter.php',
 			'CLICUTCL\Integrations\Forms\Ninja_Forms_Adapter' => 'forms/class-ninja-forms-adapter.php',
+			'CLICUTCL\Integrations\Forms\SureForms_Adapter' => 'forms/class-sureforms-adapter.php',
 			'CLICUTCL\Integrations\Forms\WPForms_Adapter' => 'forms/class-wpforms-adapter.php',
 		);
 

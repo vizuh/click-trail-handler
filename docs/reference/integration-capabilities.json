@@ -624,6 +624,30 @@
       ]
     },
     {
+      "id": "source.form.sureforms",
+      "label": "SureForms",
+      "role": "wordpress_source",
+      "status": "source_connector_runtime_unverified",
+      "provider_contract": "WordPress form hooks and/or hidden-field/submission metadata",
+      "what_exists": "Attribution capture and form-event paths are present. SureForms (free) has no Hidden field block and submits through REST (sureforms/v1/submit-form). srfm_before_fields_processing rewrites each field whose encoded label is ct_<key> (or slug ct-<key>) from the submit-time cookie before the entry and the notification email are built (cookie authoritative, absent keys blank, marker rule without a cookie, consent blocked blanks all); srfm_form_submit logs one form_submission per entry and writes the attribution and ct_event_id / ct_lead_id into the entry extras column. Hook names and signatures were checked against the SureForms 2.13.0 source and the 1.12.0 to 2.12.9 tags. Exact population, successful-submission, consent, and third-party retention behavior requires live plugin tests.",
+      "evidence": [
+        "includes/integrations/class-form-integration-manager.php",
+        "includes/integrations/forms/class-sureforms-adapter.php",
+        "tests/fixtures/form-readiness/v1/sureforms.json",
+        "tests/fixtures/form-runtime/v1/sureforms.json",
+        "tests/unit/SureFormsSubmissionRefreshTest.php"
+      ],
+      "test_ids": [
+        "form-readiness-contract",
+        "sureforms-submission-refresh"
+      ],
+      "runtime_tests": [],
+      "known_limits": [
+        "Posted attribution and form-owned submission metadata are separate privacy boundaries.",
+        "The Pro Hidden field and other SureForms versions remain unverified."
+      ]
+    },
+    {
       "id": "source.woocommerce",
       "label": "WooCommerce",
       "role": "wordpress_source",
