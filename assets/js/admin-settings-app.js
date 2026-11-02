@@ -647,7 +647,10 @@
                         disabled: getIn(settings, 'capture.cookie_scope', 'host') !== 'custom',
                         placeholder: 'example.com'
                     }),
-                    renderToggle('capture.cookie_reissue', __('Re-issue the attribution cookie from the server', 'click-trail-handler'), __('Safari shortens or purges cookies written by JavaScript. With this on, the browser asks ClickTrail once after it writes the attribution cookie, and the response sets the same cookie again (same value, same lifetime, same domain), which Safari does not cap. Needs a REST POST to /wp-json/clicutcl/v2/cookie-refresh that your cache or firewall does not block or cache. Only runs with marketing consent when consent is required.', 'click-trail-handler'))
+                    renderToggle('capture.cookie_reissue', __('Re-issue the attribution cookie from the server', 'click-trail-handler'), __('Safari shortens or purges cookies written by JavaScript. With this on, the browser asks ClickTrail once after it writes the attribution cookie, and the response sets the same cookie again (same value, same lifetime, same domain), which Safari does not cap. Needs a REST POST to /wp-json/clicutcl/v2/cookie-refresh that your cache or firewall does not block or cache. Only runs with marketing consent when consent is required.', 'click-trail-handler')),
+                    renderText('capture.ga4_measurement_id', __('GA4 measurement ID', 'click-trail-handler'), __('For example G-ABC123. When set, the GA4 session ID is read only from that property\'s _ga_ cookie, so a second GA4 property on the same domain cannot supply it. Separate several IDs with commas. Leave empty to use the first _ga_ cookie that has a session ID.', 'click-trail-handler'), {
+                        placeholder: 'G-XXXXXXXXXX'
+                    })
                 ]),
                 el(AppCard, {
                     key: 'capture-cross-domain',

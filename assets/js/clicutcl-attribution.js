@@ -38,6 +38,17 @@
     const BROWSER_IDENTIFIER_KEYS = [
         'fbc', 'fbp', 'ttp', 'li_gc', 'ga_client_id', 'ga_session_id', 'ga_session_number'
     ];
+    // dataLayer push shape (clicktrail-js DATALAYER_VERSION 2.0.0). The Google tag (gtag.js / GA4)
+    // reads these flat keys as its own fields: a GA4 Event tag mapping `session_id` replaces the
+    // `_ga_<property>` session and splits sessions. They are pushed as `ct_<name>` instead. Kept
+    // in step with RESERVED_GOOGLE_TAG_FIELDS in clicutcl-events.js.
+    const RESERVED_GOOGLE_TAG_FIELDS = Object.freeze([
+        'session_id', 'client_id', 'user_id', 'session_number',
+        'engagement_time_msec', 'timestamp_micros', 'page_location', 'page_referrer'
+    ]);
+    const DATALAYER_RESERVED_PREFIX = 'ct_';
+    const DATALAYER_PAGE_VIEW_EVENT = 'ct_page_view';
+    const DATALAYER_VERSION = '2.0.0';
     const CLICK_ID_ALIASES = {
         gclid: ['gclid'],
         fbclid: ['fbclid'],
@@ -111,6 +122,37 @@
         if (/^\{\{.+\}\}$/.test(s)) return '';
         if (s.length > maxLen) s = s.slice(0, maxLen);
         return s;
+    }
+
+    // Diagnostics are names and counts only, never cookie values. Each code is reported once
+    // per page load as a `ct:diagnostic` document event (and in the console when debugging).
+    const reportedDiagnostics = {};
+    function reportDiagnostic(code, level, message, context) {
+        if (reportedDiagnostics[code]) return;
+        reportedDiagnostics[code] = true;
+        if (DEBUG_ENABLED) {
+            console.warn('[ClickTrail] ' + code + ': ' + message, context || {});
+        }
+        try {
+            document.dispatchEvent(new CustomEvent('ct:diagnostic', {
+                detail: { code: code, level: level, message: message, context: context || {} }
+            }));
+        } catch (e) { }
+    }
+
+    // Build one dataLayer push from an event object: Google tag field names are renamed to
+    // `ct_<name>` (the renamed value wins over a same-named caller key), the canonical page_view
+    // is pushed as `ct_page_view`, and the push is stamped with the shape version.
+    function toDataLayerPush(event) {
+        const push = Object.assign({}, event);
+        RESERVED_GOOGLE_TAG_FIELDS.forEach((key) => {
+            if (!Object.prototype.hasOwnProperty.call(push, key)) return;
+            push[DATALAYER_RESERVED_PREFIX + key] = push[key];
+            delete push[key];
+        });
+        if (push.event === 'page_view') push.event = DATALAYER_PAGE_VIEW_EVENT;
+        push.datalayer_version = DATALAYER_VERSION;
+        return push;
     }
 
     function escapeRegExp(value) {
@@ -1207,45 +1249,56 @@
             return '';
         },
 
+        /**
+         * Read GA4 session fields from a `_ga_<property>` cookie value. Only the two formats
+         * gtag writes are accepted; anything else yields nothing, because a wrong session ID
+         * splits the GA4 session and a missing one does not.
+         * - GS2 `GS2.1.s<id>$o<num>$g<0|1>$t<ts>$j<n>...`: `$`-separated tokens after the
+         *   `GS2.<n>.` prefix, so the leading `s<id>` token counts.
+         * - GS1 `GS1.1.<id>.<num>.<...>`: dot-separated fields.
+         */
         parseGaSessionData: function (rawValue) {
             const value = sanitizeValue(rawValue || '', 256);
-            if (!value) return {};
-
             const out = {};
-            const gs2SessionId = value.match(/(?:^|\$)s(\d{6,})(?:\$|$)/);
-            const gs2SessionNumber = value.match(/(?:^|\$)o(\d+)(?:\$|$)/);
-            if (gs2SessionId) {
-                out.ga_session_id = gs2SessionId[1];
-            }
-            if (gs2SessionNumber) {
-                out.ga_session_number = gs2SessionNumber[1];
-            }
-            if (Object.keys(out).length) {
+            if (!value) return out;
+
+            const gs2 = /^GS2\.\d+\.(.*)$/.exec(value);
+            if (gs2) {
+                gs2[1].split('$').forEach((token) => {
+                    const field = token.slice(1);
+                    if (token.charAt(0) === 's' && !out.ga_session_id && /^\d{6,}$/.test(field)) {
+                        out.ga_session_id = field;
+                    } else if (token.charAt(0) === 'o' && !out.ga_session_number && /^\d+$/.test(field)) {
+                        out.ga_session_number = field;
+                    }
+                });
                 return out;
             }
 
             if (value.indexOf('GS1.') === 0) {
                 const parts = value.split('.');
-                if (parts[2]) {
-                    out.ga_session_id = sanitizeValue(parts[2], 32);
-                }
-                if (parts[3]) {
-                    out.ga_session_number = sanitizeValue(parts[3], 16);
-                }
-                if (Object.keys(out).length) {
-                    return out;
-                }
-            }
-
-            const numericTokens = value.match(/\d+/g) || [];
-            if (numericTokens[0]) {
-                out.ga_session_id = numericTokens[0];
-            }
-            if (numericTokens[1]) {
-                out.ga_session_number = numericTokens[1];
+                const sessionId = parts[2] || '';
+                const sessionNumber = parts[3] || '';
+                if (/^\d{6,}$/.test(sessionId)) out.ga_session_id = sessionId;
+                if (/^\d+$/.test(sessionNumber)) out.ga_session_number = sessionNumber;
             }
 
             return out;
+        },
+
+        /**
+         * Lowercased `_ga_<suffix>` cookie names for the configured GA4 measurement ID(s)
+         * (string or array; `G-` plus alphanumerics). Entries that do not match are ignored,
+         * so a bad value leaves the read unpinned instead of dropping the session ID.
+         */
+        gaSessionCookieNames: function (measurementIds) {
+            const ids = Array.isArray(measurementIds) ? measurementIds : [measurementIds];
+            const names = [];
+            ids.forEach((id) => {
+                const match = typeof id === 'string' ? /^G-([A-Z0-9]+)$/i.exec(id.trim()) : null;
+                if (match) names.push('_ga_' + match[1].toLowerCase());
+            });
+            return names;
         },
 
         collect: function (params) {
@@ -1283,13 +1336,27 @@
                 out.ga_client_id = gaClientId;
             }
 
-            Object.keys(cookies).some((name) => {
-                if (name === '_ga' || name.indexOf('_ga_') !== 0) {
-                    return false;
+            // `_ga` is the client ID source, never session data. A session number without its
+            // session ID cannot join a GA4 session, so such a cookie is skipped.
+            const sessionCookieNames = Object.keys(cookies).filter((name) => name !== '_ga' && name.indexOf('_ga_') === 0);
+            const pinnedNames = this.gaSessionCookieNames(CONFIG.ga4MeasurementId);
+            let sessionCandidates;
+            if (pinnedNames.length) {
+                // Pinned: configured property order; other properties' cookies are ignored.
+                sessionCandidates = pinnedNames.map((name) => cookies[name] || '');
+            } else {
+                // Unpinned: the first `_ga_*` cookie with a session ID wins; with several properties
+                // on the domain that may be another property's session.
+                sessionCandidates = sessionCookieNames.map((name) => cookies[name]);
+                if (sessionCookieNames.length > 1) {
+                    reportDiagnostic('ga_session_property_unpinned', 'warn',
+                        'Several _ga_* cookies found and no GA4 measurement ID configured; ga_session_id may belong to another GA4 property.',
+                        { ga_session_cookie_count: sessionCookieNames.length });
                 }
-
-                const gaSession = this.parseGaSessionData(cookies[name]);
-                if (!gaSession.ga_session_id && !gaSession.ga_session_number) {
+            }
+            sessionCandidates.some((value) => {
+                const gaSession = this.parseGaSessionData(value);
+                if (!gaSession.ga_session_id) {
                     return false;
                 }
 
@@ -2470,7 +2537,7 @@
                 const value = storedData[key] || storedData['lt_' + key] || storedData['ft_' + key] || '';
                 if (value) pageClickIds[key] = value;
             });
-            window.dataLayer.push({
+            window.dataLayer.push(toDataLayerPush({
                 event: 'ct_page_view',
                 event_id: pageEventId,
                 session_id: session ? session.session_id : identity.session_id,
@@ -2499,7 +2566,7 @@
                     },
                     form: { provider: '', form_id: '' }
                 }
-            });
+            }));
 
             this.initFormListeners(storedData);
             this.initWhatsAppListener(storedData);
@@ -2636,12 +2703,12 @@
             // bridge state before creating a lead dataLayer entry.
             if (!this.canCapture()) return;
 
-            window.dataLayer.push({
+            window.dataLayer.push(toDataLayerPush({
                 event: 'lead_submit',
                 form_provider: provider,
                 form_id: id,
                 attribution: data
-            });
+            }));
         }
 
         initWhatsAppListener(data) {

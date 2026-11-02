@@ -412,6 +412,8 @@ class Plugin {
 			'cookieName'                => 'attribution',
 			'cookieDomain'              => $cookie_scope['domain'],
 			'cookieScopeReason'         => $cookie_scope['reason'],
+			// Pins the `_ga_<ID>` session cookie read; empty keeps the read unpinned.
+			'ga4MeasurementId'          => Attribution_Settings::ga4_measurement_ids( $options ),
 			'siteId'                    => function_exists( 'get_current_blog_id' ) ? (string) get_current_blog_id() : '',
 			'cookieDays'                => $cookie_days,
 			'consentCookieName'         => $consent_config['cookie_name'],

@@ -17,6 +17,17 @@
     // One click on one WhatsApp link inside this window is one chat start: a double click or a
     // touch that also fires a click.
     const WHATSAPP_CLICK_DEDUPE_MS = 10000;
+    // dataLayer push shape (clicktrail-js DATALAYER_VERSION 2.0.0). The Google tag (gtag.js / GA4)
+    // reads these flat keys as its own fields: a GA4 Event tag mapping `session_id` replaces the
+    // `_ga_<property>` session and splits sessions. They are pushed as `ct_<name>` instead. Kept
+    // in step with RESERVED_GOOGLE_TAG_FIELDS in clicutcl-attribution.js.
+    const RESERVED_GOOGLE_TAG_FIELDS = Object.freeze([
+        'session_id', 'client_id', 'user_id', 'session_number',
+        'engagement_time_msec', 'timestamp_micros', 'page_location', 'page_referrer'
+    ]);
+    const DATALAYER_RESERVED_PREFIX = 'ct_';
+    const DATALAYER_PAGE_VIEW_EVENT = 'ct_page_view';
+    const DATALAYER_VERSION = '2.0.0';
 
     /**
      * ClickTrail Events Tracking
@@ -103,8 +114,27 @@
 
             this.debugLog('ClickTrail Event:', eventName, eventData);
 
-            window.dataLayer.push(eventData);
+            window.dataLayer.push(this.toDataLayerPush(eventData));
             this.sendServerEvent(eventName, eventData, eventId);
+        }
+
+        /**
+         * One dataLayer push from an event object (shape `DATALAYER_VERSION`). Google tag field
+         * names are renamed to `ct_<name>` (the renamed value wins over a same-named caller key)
+         * and the canonical page_view is pushed as `ct_page_view`, so a GA4 Event tag cannot pick
+         * up the plugin session as GA4's own and a catch-all tag cannot duplicate the Google tag's
+         * page_view. The server event copy is built from the unrenamed event.
+         */
+        toDataLayerPush(event) {
+            const push = Object.assign({}, event);
+            RESERVED_GOOGLE_TAG_FIELDS.forEach((key) => {
+                if (!Object.prototype.hasOwnProperty.call(push, key)) return;
+                push[DATALAYER_RESERVED_PREFIX + key] = push[key];
+                delete push[key];
+            });
+            if (push.event === 'page_view') push.event = DATALAYER_PAGE_VIEW_EVENT;
+            push.datalayer_version = DATALAYER_VERSION;
+            return push;
         }
 
         debugLog(...args) {
