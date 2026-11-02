@@ -8,6 +8,7 @@
 namespace CLICUTCL\Utils;
 
 use CLICUTCL\Privacy\Edd_Order_Privacy;
+use CLICUTCL\Privacy\User_Registration_Privacy;
 use CLICUTCL\Privacy\Woo_Order_Privacy;
 use CLICUTCL\Settings\Attribution_Settings;
 
@@ -89,6 +90,11 @@ class Cleanup {
 		$edd_result = ( new Edd_Order_Privacy() )->purge_expired_order_metadata( $days );
 		if ( ! empty( $edd_result['remaining'] ) && function_exists( 'do_action' ) ) {
 			do_action( 'clicutcl_cleanup_batch_incomplete', 'edd_order_meta', $edd_result );
+		}
+
+		$user_result = ( new User_Registration_Privacy() )->purge_expired_user_metadata( $days );
+		if ( ! empty( $user_result['remaining'] ) && function_exists( 'do_action' ) ) {
+			do_action( 'clicutcl_cleanup_batch_incomplete', 'registration_user_meta', $user_result );
 		}
 
 		$queue_days = (int) apply_filters( 'clicutcl_queue_retention_days', 7 );

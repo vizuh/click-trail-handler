@@ -60,6 +60,7 @@ live hook, consent, identity, and retention behavior still require testing.
 | Forms | Source connector / runtime-unverified overall | CF7, Elementor Pro, Fluent, Gravity, MetForm, Ninja, SureForms, and WPForms paths; bounded Fluent Forms submission-storage evidence; six-case evidence manifests (eight adapters) | Live plugin-hook, posted-field, submission-storage, consent, and erasure proof for the remaining adapters |
 | WooCommerce | Source connector / runtime-unverified | Order attribution, storefront events, purchase/milestones, traces, allowlisted order-meta privacy lifecycle contracts, and a per-order thank-you dispatch lock (PHPUnit `WooCommercePurchaseDispatchLockTest`, #148) | Live checkout/CMP behavior, purchase dataLayer, dedup concurrency under real concurrent requests, queue/retry, and classic/HPOS staging proof |
 | Easy Digital Downloads (3.0+) | Source connector / runtime-unverified overall; Store gateway staged E2E | Consent-gated order attribution at `edd_built_order`, one receipt purchase (`purchase_edd_<order ID>`), allowlisted order-meta privacy lifecycle (PHPUnit `EddIntegrationTest`, `EddOrderPrivacyTest`; `tools/qa/e2e/edd-ci.sh` on EDD 3.7.3, Store gateway) | Stripe/PayPal/Square gateway runs, block receipt, refunds and status milestones, EDD Recurring/Software Licensing renewals |
+| Ultimate Member (free) | Source connector / runtime-unverified | Registration attribution stored as allowlisted `_clicutcl_*` user meta, one `sign_up` dispatch (`um_registration_<user_id>`, claim + sent-marker dedupe), consent gate, exporter/eraser/retention/purge (PHPUnit `UltimateMemberRegistrationTest`, `UserRegistrationPrivacyTest`) | Live behavior on other UM versions, UM extensions (social login, Stripe), registration over REST or the UM API, consent from a real CMP, destination acceptance |
 | Calendly, HubSpot, Typeform | Webhook ingress / runtime-unverified | Signed inbound routes and canonical translation | Provider timestamp, identity minimization, replay, consent, and E2E proof |
 | HubSpot embedded forms (updated editor v4 and legacy embeds) | Source-present / runtime-unverified | Browser `lead` on HubSpot's documented v4 submission-success event and legacy `hsFormCallback` `onFormSubmitted` message; `form_submit_failed` on v4 failure; consent-gated, deduplicated; Node VM contract test | A live HubSpot form submission; iframe origin of legacy iframe embeds; attribution written into HubSpot hidden fields (not implemented) |
 
@@ -445,6 +446,32 @@ Behavior:
 
 Privacy lifecycle: `Edd_Order_Privacy` mirrors `Woo_Order_Privacy` (export, erase, bounded retention, Diagnostics purge, uninstall) through `edd_get_orders()` and the `edd_*_order_meta()` functions. It reuses the Woo key allowlist and queries it as one anchored `REGEXP` key clause, because `WP_Meta_Query` joins once per clause and the 130+ `EXISTS` clauses of the Woo query fail on MariaDB with "can only use 61 tables in a join". See [DATA-MODEL.md](../architecture/DATA-MODEL.md#easy-digital-downloads-order-meta-surfaces).
 
+## Ultimate Member
+
+Managed by:
+
+- `includes/integrations/class-ultimate-member.php` (active when `UM_VERSION` is defined and `UM()` exists)
+- `includes/privacy/class-user-registration-privacy.php`
+
+Hooks verified against Ultimate Member 2.14.1 source (`includes/core/class-form.php`, `includes/core/um-actions-register.php`, `includes/core/class-user.php`), not against other versions:
+
+- `um_submit_form_register` (action, `$post`, `$form_data`; ClickTrail reads neither): fires for every registration form submit; ClickTrail only marks the request
+- `um_registration_complete` (action, `$user_id`, `$args`, `$form_data`): fires from `um_after_insert_user()` (`um_user_register` priority 1) after UM stored the submitted details and extra data. `$form_data` is the UM form's own data; it is `null` when a user is added from wp-admin (`UM()->user()->user_register_via_admin()`), which ClickTrail ignores. `$args` contains the submitted password; ClickTrail never reads it.
+- `um_after_user_is_created` does not exist in 2.14.1; `um_user_register` (the parent hook) also fires for wp-admin users, so `um_registration_complete` is the one used.
+
+What ClickTrail does on a visitor registration, only when marketing consent allows (denied or undecided: nothing stored, nothing dispatched):
+
+- writes the attribution cookie payload sent with the registration request as user meta, `_clicutcl_<key>` for the keys of `Attribution_Provider::get_field_mapping()` only (see [DATA-MODEL.md](../architecture/DATA-MODEL.md)); nothing is read from `$_POST`, so no hidden fields are needed and a cached registration page cannot leak another visitor's attribution
+- dispatches one `sign_up` event through `Dispatcher::dispatch()` with the deterministic ID `um_registration_<user_id>`, `form.platform = ultimate-member`, the UM form ID and an identity resolved from the user's email plus the request IP and user agent; it is recorded as a touch event like every dispatched event, and delivered when server-side delivery is configured
+- dedupes with a `Claim_Lock` claim per user (`clicutcl_um_signup_lock_<user_id>`, 30 s, released in a `finally`) and the `_clicutcl_um_signup_sent` user meta marker, so a repeat of the hook, including a simultaneous one, dispatches once; a failed dispatch leaves no marker
+- registers the exporter and eraser `clicutcl-user-registration` and covers the meta in retention, the Diagnostics purge and uninstall
+
+Core `sign_up` precedence: core `user_register` already queues a browser `sign_up` follow-up event (`Events_Logger`, see below) for every registration, including UM's. It is kept, because GTM setups read its `dataLayer` push, and aligned: while a UM registration submit is being processed the filter `clicutcl_signup_event_id` gives it the same `um_registration_<user_id>` ID as the server event, so a destination that deduplicates on event ID sees one registration. Any other registration keeps its random `signup_<uuid>` ID. If marketing consent is denied neither event exists.
+
+Not covered: other registration paths (WordPress core `wp-login.php?action=register`, WooCommerce account creation, UM extensions that insert users themselves) keep only the core follow-up event with no attribution on the user; a generic `user_register` fallback was not built.
+
+Status: source connector, runtime-unverified. PHPUnit covers consent, storage, dispatch, dedupe, precedence, exporter, eraser, retention and purge with doubles; `tools/qa/e2e/EVIDENCE-2026-11-02-ultimate-member.md` records one harness run (`um-ci.sh`, 43 checks, 0 FAIL: the real UM registration form, consent accept/deny/undecided, hook replay, wp-admin Add user, real WordPress exporter/eraser/retention/purge) on Ultimate Member 2.14.1 free, WordPress 7.1, PHP 8.3 only, with the ClickTrail banner as consent source and a collector stub.
+
 ## WordPress Core Follow-Up Events
 
 Managed by:
@@ -460,6 +487,7 @@ What ClickTrail does:
 Where teams see value:
 
 - login and signup milestones can reach the same `dataLayer` and delivery path used by other browser events
+- a registration through an Ultimate Member form keeps this `sign_up`, with its event ID aligned to the Ultimate Member integration's server-side `sign_up` (filter `clicutcl_signup_event_id`, see [Ultimate Member](#ultimate-member))
 - the follow-up events still respect ClickTrail's consent gate instead of bypassing the unified pipeline
 
 ## Consent and CMP Sources

@@ -432,11 +432,11 @@ Purpose:
 Purpose:
 
 - fires when the daily cleanup stops before finishing a bounded batch, so the remainder is processed on the next run
-- emitted for `woocommerce_order_meta` and `edd_order_meta` retention
+- emitted for `woocommerce_order_meta`, `edd_order_meta` and `registration_user_meta` retention
 
 Arguments:
 
-- `$scope` (`string`): for example `woocommerce_order_meta`
+- `$scope` (`string`): `woocommerce_order_meta` or `registration_user_meta`
 - `$result` (`array`): batch result, including `remaining`
 
 ### `clicutcl_uninstall_order_meta_incomplete`
@@ -444,6 +444,16 @@ Arguments:
 Purpose:
 
 - fires during uninstall when ClickTrail WooCommerce order metadata could not all be removed in one pass
+
+Arguments:
+
+- `$result` (`array`): purge result, including `remaining`
+
+### `clicutcl_uninstall_user_meta_incomplete`
+
+Purpose:
+
+- fires during uninstall when the registration attribution user meta (Ultimate Member, `_clicutcl_*`) could not all be removed in one pass
 
 Arguments:
 
@@ -458,6 +468,31 @@ Type:
 Purpose:
 
 - receive aggregated delivery failure telemetry when remote telemetry is enabled
+
+## Registrations
+
+### `clicutcl_signup_event_id`
+
+Type:
+
+- filter
+
+Purpose:
+
+- change the event ID of the browser `sign_up` event that `Events_Logger::log_signup_event()` queues on core `user_register` (the `ct_event_signup` follow-up cookie)
+- the Ultimate Member integration uses it to give that event the ID of its own server-side `sign_up` (`um_registration_<user_id>`) while one of its registration form submits is being processed, so a destination that deduplicates on event ID counts the registration once; every other registration keeps the generated `signup_<uuid>` ID
+
+Arguments:
+
+- `$event_id` (`string`): generated event ID
+- `$user_id` (`int`): registered user ID
+
+### Ultimate Member hooks ClickTrail listens to
+
+Not ClickTrail hooks, listed because they are the integration's contract (verified against Ultimate Member 2.14.1 source, `includes/core/class-form.php` and `includes/core/um-actions-register.php`):
+
+- `um_submit_form_register` (action, priority 5, no arguments read): marks the request as a UM registration form submit; fires for every submit after UM's validation hook ran (UM's own handler at priority 10 stops when there are errors), before it inserts the user
+- `um_registration_complete` (action, priority 10, `$user_id`, `$args`, `$form_data`): fires after UM stored the submitted details and extra data; `$form_data` is `null` for a user added from wp-admin, which ClickTrail ignores. `$args` contains the submitted password and is never read.
 
 ## Form Submissions
 

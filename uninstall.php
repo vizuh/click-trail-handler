@@ -98,6 +98,18 @@ if ( ! $clicutcl_preserve_data ) {
 		}
 	}
 
+	// Registration attribution meta (Ultimate Member) lives in user meta and outlives the tables below.
+	// Load the helper because WordPress may include uninstall.php without loading the plugin bootstrap first.
+	if ( function_exists( 'get_users' ) ) {
+		require_once __DIR__ . '/includes/Core/class-attribution-provider.php';
+		require_once __DIR__ . '/includes/integrations/class-ultimate-member.php';
+		require_once __DIR__ . '/includes/privacy/class-user-registration-privacy.php';
+		$clicutcl_user_purge = ( new \CLICUTCL\Privacy\User_Registration_Privacy() )->purge_all_user_metadata();
+		if ( ! empty( $clicutcl_user_purge['remaining'] ) && function_exists( 'do_action' ) ) {
+			do_action( 'clicutcl_uninstall_user_meta_incomplete', $clicutcl_user_purge );
+		}
+	}
+
 	$clicutcl_queue_table         = $wpdb->prefix . 'clicutcl_queue';
 	$clicutcl_events_table        = $wpdb->prefix . 'clicutcl_events';
 	$clicutcl_touch_events_table  = $wpdb->prefix . 'clicutcl_touch_events';

@@ -370,6 +370,14 @@ class Setup_Wizard {
 						</div>
 					<?php endif; ?>
 
+					<?php if ( ! empty( $env['ultimate_member'] ) ) : ?>
+						<div class="clicutcl-wizard__check-row">
+							<span class="clicutcl-wizard__check-icon dashicons dashicons-yes-alt" style="color:var(--clicktrail-success)" aria-hidden="true"></span>
+							<span class="clicutcl-wizard__check-label"><?php esc_html_e( 'Ultimate Member registration attribution', 'click-trail-handler' ); ?></span>
+							<span class="clicutcl-wizard__check-badge clicutcl-wizard__check-badge--on"><?php esc_html_e( 'Detected', 'click-trail-handler' ); ?></span>
+						</div>
+					<?php endif; ?>
+
 					<?php if ( ! empty( $env['cmp'] ) ) : ?>
 						<div class="clicutcl-wizard__check-row">
 							<span class="clicutcl-wizard__check-icon dashicons dashicons-yes-alt" style="color:var(--clicktrail-success)" aria-hidden="true"></span>
@@ -549,6 +557,9 @@ class Setup_Wizard {
 		}
 		if ( $env['edd'] ) {
 			$parts[] = __( 'Easy Digital Downloads: ON', 'click-trail-handler' );
+		}
+		if ( ! empty( $env['ultimate_member'] ) ) {
+			$parts[] = __( 'Ultimate Member: ON', 'click-trail-handler' );
 		}
 		?>
 		<div class="clicutcl-wizard__panel" data-panel="3" hidden>

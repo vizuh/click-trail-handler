@@ -200,6 +200,25 @@ Woo milestone flow:
 3. trace snapshots are stored on the order before and after dispatch
 4. per-milestone order meta is only written after a successful, skipped, or confirmed queued attempt, so queue retry remains the second line of defense without suppressing unqueued failures
 
+### Ultimate Member registration flow
+
+Integration:
+
+- `includes/integrations/class-ultimate-member.php` (loaded only when `UM_VERSION` and `UM()` exist)
+
+Flow (one registration through a UM registration form):
+
+1. `um_submit_form_register` (priority 5) marks the request as a UM registration submit
+2. UM inserts the user with `wp_insert_user()`; core `user_register` runs `Events_Logger::log_signup_event()`, which queues the browser `sign_up` follow-up cookie `ct_event_signup`; the filter `clicutcl_signup_event_id` gives it the ID `um_registration_<user_id>` because step 1 marked the request (any other registration keeps `signup_<uuid>`)
+3. UM stores the submitted details and fires `um_registration_complete` (priority 10, before UM's own redirect at 100); a `null` form (user added from wp-admin) stops here
+4. the integration checks consent (`Attribution_Provider::should_populate()`, and `Consent::marketing_allowed()` when consent is required); denied or undecided stops here, nothing is stored or dispatched
+5. it claims `clicutcl_um_signup_lock_<user_id>` (`Claim_Lock`), stops when `_clicutcl_um_signup_sent` is already set, writes the allowlisted `_clicutcl_*` user meta from the cookie payload, and dispatches one `sign_up` event (`Dispatcher::dispatch()`, event ID `um_registration_<user_id>`, `form.platform` `ultimate-member`, identity from the user's email and the request IP/user agent) before releasing the claim in a `finally`
+6. the next page the browser loads prints the `ct_event_signup` event with the same ID; `Dispatcher::dispatch()` deduplicates on destination, event name and event ID (`Dedup_Store`), so a browser `sign_up` posted through the events route after the server dispatch is expected to be skipped as `duplicate_event` (the harness saw one `sign_up` at the collector while the browser route was sent the same ID; it did not read the skip reason)
+
+Precedence: the core `user_register` event is not suppressed (GTM setups keep their `sign_up` `dataLayer` push); it is aligned to the UM event's ID instead of being a second, differently identified event. A non-UM registration is unchanged. Denied consent produces neither the cookie event nor the server event.
+
+Source-present / runtime-unverified except where `tools/qa/e2e/EVIDENCE-*.md` records a run.
+
 ## 8. Dispatch and Queue
 
 Dispatcher:

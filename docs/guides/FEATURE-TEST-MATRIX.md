@@ -86,6 +86,20 @@ comparator check across 16 synthetic scenarios. It proves only the closed M6-A
 contract, not hooks, order persistence, browser behavior, HPOS, provider
 acceptance, consent correctness, dedup concurrency, or privacy lifecycle.
 
+## Ultimate Member Registration
+
+Smoke IDs:
+
+- `ultimate-member-registration`
+
+A structural source check with `automated: false`. The consent gate, the stored
+user meta, the deterministic `um_registration_<user_id>` event ID, the claim and
+sent-marker dedupe, the core `sign_up` precedence and the exporter/eraser are
+covered by PHPUnit (`UltimateMemberRegistrationTest`, `UserRegistrationPrivacyTest`,
+`EventsLoggerCookieHeadersTest`). The registration through the real Ultimate
+Member form is exercised by `tools/qa/e2e/um-ci.sh`; it is a harness run, not a CI
+gate.
+
 ## Delivery Adapters and Destinations
 
 Smoke IDs:

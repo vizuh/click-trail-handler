@@ -194,6 +194,11 @@ class Plugin {
 			$woocommerce_integration = new WooCommerce();
 			$woocommerce_integration->init();
 		}
+
+		if ( Integrations\Ultimate_Member::is_active() ) {
+			$ultimate_member_integration = new Integrations\Ultimate_Member();
+			$ultimate_member_integration->init();
+		}
 	}
 
 	/**
