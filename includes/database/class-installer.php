@@ -75,6 +75,35 @@ class Installer {
 	}
 
 	/**
+	 * Default cookie scope for a brand-new install: `registrable`, or `host` on
+	 * subdomain multisite networks where every site shares one registrable domain.
+	 *
+	 * @return string
+	 */
+	public static function default_cookie_scope(): string {
+		return ( function_exists( 'is_multisite' ) && is_multisite() && function_exists( 'is_subdomain_install' ) && is_subdomain_install() ) ? 'host' : 'registrable';
+	}
+
+	/**
+	 * Seed `cookie_scope` on a genuinely fresh install only: no attribution option and no sign of earlier use.
+	 * Anything else keeps the schema default (`host`).
+	 *
+	 * Called from the activation hook, never from maybe_upgrade().
+	 *
+	 * @return void
+	 */
+	public static function seed_cookie_scope(): void {
+		// Any sign of earlier use (reactivation, a deleted settings row) keeps the schema default `host`.
+		$earlier_use = array( 'clicutcl_attribution_settings', 'clicutcl_setup_complete', 'clicutcl_mode', 'clicutcl_tracking_v2', self::DB_VERSION_OPTION );
+		foreach ( $earlier_use as $option ) {
+			if ( false !== get_option( $option, false ) ) {
+				return;
+			}
+		}
+		add_option( 'clicutcl_attribution_settings', array( 'cookie_scope' => self::default_cookie_scope() ), '', false );
+	}
+
+	/**
 	 * Upgrade the schema when the stored version is behind DB_VERSION.
 	 *
 	 * Cheap option read on the happy path; runs dbDelta only when behind.

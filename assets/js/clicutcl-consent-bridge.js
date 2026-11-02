@@ -116,10 +116,88 @@
         return envelope;
     }
 
+    var domainProbe = null;
+
+    function coversHost(domain) {
+        var host = String((window.location && window.location.hostname) || '').toLowerCase();
+        return !!domain && (host === domain || host.slice(-(domain.length + 1)) === '.' + domain);
+    }
+
+    function secureFlag() {
+        return window.location && window.location.protocol === 'https:' ? '; Secure' : '';
+    }
+
+    // Browsers refuse `domain=` on a public suffix and the suffix table is incomplete: prove the domain
+    // is accepted with a throwaway cookie before a real cookie relies on it.
+    function probeDomain(domain) {
+        try {
+            document.cookie = 'ct_scope_probe=1; domain=' + domain + '; path=/; SameSite=Lax' + secureFlag();
+            var accepted = /(^|;\s*)ct_scope_probe=1(;|$)/.test(document.cookie);
+            document.cookie = 'ct_scope_probe=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; domain=' + domain + '; path=/; SameSite=Lax' + secureFlag();
+            return accepted;
+        } catch (e) {
+            try {
+                document.cookie = 'ct_scope_probe=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; domain=' + domain + '; path=/; SameSite=Lax' + secureFlag();
+            } catch (ignore) {
+                // Nothing more to clean up.
+            }
+            return false;
+        }
+    }
+
+    function cookieDomainAttr() {
+        var domain = String(CONFIG.cookieDomain || '').toLowerCase();
+        if (!coversHost(domain)) return '';
+        if (domainProbe === null) domainProbe = probeDomain(domain);
+        return domainProbe ? '; domain=' + domain : '';
+    }
+
+    // Lets clicutcl-attribution.js expire this cookie if the scope changes later.
+    function rememberCookieScope(domain) {
+        try {
+            window.localStorage.setItem('ct_cookie_scope', domain);
+        } catch (e) {
+            // Best effort.
+        }
+    }
+
+    // Every scope this origin may hold a copy in: host-only, the configured domain and the last domain it wrote
+    // (marker). No probe: expiring a domain cookie that cannot exist is harmless, so removal never writes a probe.
+    var markerAtLoad = (function () {
+        try {
+            return window.localStorage.getItem('ct_cookie_scope');
+        } catch (e) {
+            return null;
+        }
+    })();
+
+    function allAttrs() {
+        var attrs = [''];
+        function add(domain) {
+            domain = String(domain || '').toLowerCase();
+            if (coversHost(domain) && attrs.indexOf('; domain=' + domain) === -1) attrs.push('; domain=' + domain);
+        }
+        add(CONFIG.cookieDomain);
+        add(markerAtLoad); // the domain a previous config used, even after a write overwrote the marker
+        try {
+            add(window.localStorage.getItem('ct_cookie_scope'));
+        } catch (e) {
+            // Marker unreadable: the configured domain still covers the common case.
+        }
+        return attrs;
+    }
+
+    function expireVariant(name, attr) {
+        document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0' + attr + '; path=/; SameSite=Lax' + secureFlag();
+    }
+
+    // Expires every copy (every scope) so a withdrawal reaches all of them.
+    function expireCookieEverywhere(name) {
+        allAttrs().forEach(function (attr) { expireVariant(name, attr); });
+    }
+
     function clearPluginCookie() {
-        var name = String(CONFIG.cookieName || 'ct_consent');
-        var secure = window.location && window.location.protocol === 'https:' ? '; Secure' : '';
-        document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; path=/; SameSite=Lax' + secure;
+        expireCookieEverywhere(String(CONFIG.cookieName || 'ct_consent'));
     }
 
     function normalizeConsent(value) {
@@ -185,7 +263,12 @@
         }));
         var expires = new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)).toUTCString();
         var secure = window.location && window.location.protocol === 'https:' ? '; Secure' : '';
-        document.cookie = name + '=' + value + '; expires=' + expires + '; path=/; SameSite=Lax' + secure;
+        var domainAttr = cookieDomainAttr();
+        var scopes = allAttrs(); // before the marker below is overwritten
+        document.cookie = name + '=' + value + '; expires=' + expires + domainAttr + '; path=/; SameSite=Lax' + secure;
+        if (domainAttr) rememberCookieScope(domainAttr.slice('; domain='.length));
+        // A stale copy in the other scope would shadow this decision in document.cookie and in PHP $_COOKIE.
+        scopes.forEach(function (attr) { if (attr !== domainAttr) expireVariant(name, attr); });
     }
 
     function resolve(nextConsent, source, force, persistDecision, decisionAt) {

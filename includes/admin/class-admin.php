@@ -7,6 +7,7 @@
 
 namespace CLICUTCL\Admin;
 
+use CLICUTCL\Core\Cookie_Scope;
 use CLICUTCL\Modules\Consent_Mode\Consent_Mode_Settings;
 use CLICUTCL\Modules\GTM\GTM_Settings;
 use CLICUTCL\Server_Side\Dispatcher;
@@ -595,13 +596,15 @@ class Admin {
 
 		return array(
 			'capture'         => array(
-				'enabled'          => ! empty( $attr_options['enable_attribution'] ) ? 1 : 0,
-				'retention_days'   => absint( $attr_options['cookie_days'] ?? 90 ),
-				'decorate_links'   => ! empty( $attr_options['enable_link_decoration'] ) ? 1 : 0,
-				'allowed_domains'  => $this->format_multiline_setting( $attr_options['link_allowed_domains'] ?? '' ),
-				'embed_domains'    => $this->format_multiline_setting( $attr_options['embed_allowed_domains'] ?? '' ),
-				'skip_signed_urls' => ! empty( $attr_options['link_skip_signed'] ) ? 1 : 0,
-				'pass_token'       => ! empty( $attr_options['enable_cross_domain_token'] ) ? 1 : 0,
+				'enabled'              => ! empty( $attr_options['enable_attribution'] ) ? 1 : 0,
+				'retention_days'       => absint( $attr_options['cookie_days'] ?? 90 ),
+				'cookie_scope'         => in_array( $attr_options['cookie_scope'] ?? 'host', Cookie_Scope::scopes(), true ) ? $attr_options['cookie_scope'] : 'host',
+				'cookie_custom_domain' => (string) ( $attr_options['cookie_custom_domain'] ?? '' ),
+				'decorate_links'       => ! empty( $attr_options['enable_link_decoration'] ) ? 1 : 0,
+				'allowed_domains'      => $this->format_multiline_setting( $attr_options['link_allowed_domains'] ?? '' ),
+				'embed_domains'        => $this->format_multiline_setting( $attr_options['embed_allowed_domains'] ?? '' ),
+				'skip_signed_urls'     => ! empty( $attr_options['link_skip_signed'] ) ? 1 : 0,
+				'pass_token'           => ! empty( $attr_options['enable_cross_domain_token'] ) ? 1 : 0,
 			),
 			'forms'           => array(
 				'client_fallback'         => ! empty( $attr_options['enable_js_injection'] ) ? 1 : 0,
@@ -992,6 +995,8 @@ class Admin {
 		$attr_input = array(
 			'enable_attribution'          => ! empty( $capture['enabled'] ) ? 1 : 0,
 			'cookie_days'                 => $capture['retention_days'] ?? 90,
+			'cookie_scope'                => $capture['cookie_scope'] ?? 'host',
+			'cookie_custom_domain'        => $capture['cookie_custom_domain'] ?? '',
 			'enable_link_decoration'      => ! empty( $capture['decorate_links'] ) ? 1 : 0,
 			'link_allowed_domains'        => $capture['allowed_domains'] ?? '',
 			'embed_allowed_domains'       => $capture['embed_domains'] ?? '',
@@ -1133,6 +1138,22 @@ class Admin {
 			}
 		}
 
+		// A custom cookie domain must be a usable suffix of this site's host, else fall back to host-only.
+		if ( Cookie_Scope::SCOPE_CUSTOM === $merged['cookie_scope'] ) {
+			$resolved = Cookie_Scope::resolve( Cookie_Scope::SCOPE_CUSTOM, (string) $merged['cookie_custom_domain'], (string) wp_parse_url( home_url(), PHP_URL_HOST ) );
+			if ( 'ok' !== $resolved['reason'] ) {
+				$merged['cookie_scope'] = Cookie_Scope::SCOPE_HOST;
+				if ( function_exists( 'add_settings_error' ) ) {
+					add_settings_error(
+						'clicutcl_attribution_settings',
+						'clicutcl_cookie_custom_domain_invalid',
+						__( 'The custom cookie domain must be a parent domain of this site and not a public suffix. Cookies stay host-only.', 'click-trail-handler' ),
+						'error'
+					);
+				}
+			}
+		}
+
 		return $merged;
 	}
 
@@ -1150,6 +1171,14 @@ class Admin {
 			'cookie_days'                 => array(
 				'default'  => 90,
 				'sanitize' => array( $this, 'sanitize_cookie_days' ),
+			),
+			'cookie_scope'                => array(
+				'default'  => 'host',
+				'sanitize' => array( $this, 'sanitize_cookie_scope' ),
+			),
+			'cookie_custom_domain'        => array(
+				'default'  => '',
+				'sanitize' => array( $this, 'sanitize_cookie_custom_domain' ),
 			),
 			'enable_js_injection'         => array(
 				'default'  => 1,
@@ -1282,6 +1311,34 @@ class Admin {
 		}
 
 		return min( 3650, $days );
+	}
+
+	/**
+	 * Sanitize the cookie scope selector.
+	 *
+	 * @param mixed $value Raw input.
+	 * @return string
+	 */
+	private function sanitize_cookie_scope( $value ) {
+		$value = is_scalar( $value ) ? strtolower( trim( (string) $value ) ) : '';
+
+		return in_array( $value, Cookie_Scope::scopes(), true ) ? $value : Cookie_Scope::SCOPE_HOST;
+	}
+
+	/**
+	 * Sanitize the custom cookie domain: lowercase, no scheme, port or leading dot.
+	 *
+	 * @param mixed $value Raw input.
+	 * @return string
+	 */
+	private function sanitize_cookie_custom_domain( $value ) {
+		if ( ! is_scalar( $value ) ) {
+			return '';
+		}
+		$domain = Cookie_Scope::normalize_host( sanitize_text_field( (string) $value ) );
+		$domain = ltrim( $domain, '.' );
+
+		return preg_match( '/^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/', $domain ) ? $domain : '';
 	}
 
 	/**

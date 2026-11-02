@@ -77,6 +77,34 @@ Default:
 
 - `calendly.com`, `typeform.com`, `hubspot.com`, `hsforms.net`; each entry also matches its subdomains
 
+### `clicutcl_public_suffixes`
+
+Type:
+
+- filter
+
+Purpose:
+
+- list multi-label public suffixes (for example `github.io`) that ClickTrail never uses as a cookie `domain`
+
+Notes:
+
+- read by `Cookie_Scope::is_public_suffix()`; a `registrable` or `custom` scope that lands on a listed suffix resolves to host-only with reason `public_suffix` (shown in Site Health and as `clicutcl_config.cookieScopeReason`)
+- the default table covers common hosting suffixes; two-label suffixes whose first label is `co`, `com`, `net`, `org`, `gov`, `edu`, `ac`, `ne`, `or` or `me` (such as `co.uk`) are always treated as public
+
+Arguments:
+
+- `string[] $suffixes`
+
+Example:
+
+```php
+add_filter( 'clicutcl_public_suffixes', function ( $suffixes ) {
+	$suffixes[] = 'example.org';
+	return $suffixes;
+} );
+```
+
 ### `clicutcl_ignored_referrer_hosts`
 
 Type:

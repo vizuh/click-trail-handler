@@ -551,6 +551,55 @@
             return match ? decodeURIComponent(match[2]) : '';
         }
 
+        coversHost(domain) {
+            const host = String(window.location.hostname || '').toLowerCase();
+            return !!domain && (host === domain || host.endsWith('.' + domain));
+        }
+
+        // Browsers refuse `domain=` on a public suffix: prove the domain is accepted before relying on it.
+        cookieDomainAttr() {
+            const domain = String((window.clicutclEventsConfig && window.clicutclEventsConfig.cookieDomain) || '').toLowerCase();
+            if (!this.coversHost(domain)) return '';
+            if (this.domainProbe === undefined) {
+                const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+                try {
+                    document.cookie = 'ct_scope_probe=1; domain=' + domain + '; path=/; SameSite=Lax' + secure;
+                    this.domainProbe = /(^|;\s*)ct_scope_probe=1(;|$)/.test(document.cookie);
+                    document.cookie = 'ct_scope_probe=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; domain=' + domain + '; path=/; SameSite=Lax' + secure;
+                } catch (e) {
+                    this.domainProbe = false;
+                    try {
+                        document.cookie = 'ct_scope_probe=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; domain=' + domain + '; path=/; SameSite=Lax' + secure;
+                    } catch (ignore) {
+                        // Nothing more to clean up.
+                    }
+                }
+            }
+            return this.domainProbe ? '; domain=' + domain : '';
+        }
+
+        // Every scope this origin may hold a copy in: host-only, the configured domain and the last domain it wrote
+        // (marker). No probe: expiring a domain cookie that cannot exist is harmless.
+        allAttrs() {
+            const attrs = [''];
+            const add = (domain) => {
+                domain = String(domain || '').toLowerCase();
+                if (this.coversHost(domain) && attrs.indexOf('; domain=' + domain) === -1) attrs.push('; domain=' + domain);
+            };
+            add(window.clicutclEventsConfig && window.clicutclEventsConfig.cookieDomain);
+            try {
+                add(window.localStorage.getItem('ct_cookie_scope'));
+            } catch (e) {
+                // Marker unreadable: the configured domain still covers the common case.
+            }
+            return attrs;
+        }
+
+        expireVariant(name, attr) {
+            const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
+            document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0' + attr + '; path=/; SameSite=Lax' + secureFlag;
+        }
+
         setCookie(name, value, days) {
             let expires = '';
             if (days) {
@@ -559,12 +608,14 @@
                 expires = '; expires=' + date.toUTCString();
             }
             const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
-            document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/; SameSite=Lax" + secureFlag;
+            const domainAttr = this.cookieDomainAttr();
+            document.cookie = name + "=" + encodeURIComponent(value) + expires + domainAttr + "; path=/; SameSite=Lax" + secureFlag;
+            this.allAttrs().forEach((attr) => { if (attr !== domainAttr) this.expireVariant(name, attr); });
         }
 
+        // Expires every copy (applied scope and the other one) so a withdrawal reaches all of them.
         removeCookie(name) {
-            const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
-            document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; path=/; SameSite=Lax' + secureFlag;
+            this.allAttrs().forEach((attr) => this.expireVariant(name, attr));
         }
 
         ensureIdentity() {

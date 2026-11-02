@@ -162,6 +162,55 @@
             document.dispatchEvent(new CustomEvent('ct:gtmConsentUpdate', { detail: consentMode }));
         }
 
+        coversHost(domain) {
+            const host = String(window.location.hostname || '').toLowerCase();
+            return !!domain && (host === domain || host.endsWith('.' + domain));
+        }
+
+        // Browsers refuse `domain=` on a public suffix: prove the domain is accepted before relying on it.
+        cookieDomainAttr() {
+            const domain = String((window.clicutclConsentL10n && window.clicutclConsentL10n.cookieDomain) || '').toLowerCase();
+            if (!this.coversHost(domain)) return '';
+            if (this.domainProbe === undefined) {
+                const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+                try {
+                    document.cookie = 'ct_scope_probe=1; domain=' + domain + '; path=/; SameSite=Lax' + secure;
+                    this.domainProbe = /(^|;\s*)ct_scope_probe=1(;|$)/.test(document.cookie);
+                    document.cookie = 'ct_scope_probe=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; domain=' + domain + '; path=/; SameSite=Lax' + secure;
+                } catch (e) {
+                    this.domainProbe = false;
+                    try {
+                        document.cookie = 'ct_scope_probe=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; domain=' + domain + '; path=/; SameSite=Lax' + secure;
+                    } catch (ignore) {
+                        // Nothing more to clean up.
+                    }
+                }
+            }
+            return this.domainProbe ? '; domain=' + domain : '';
+        }
+
+        // Every scope this origin may hold a copy in: host-only, the configured domain and the last domain it wrote
+        // (marker). No probe: expiring a domain cookie that cannot exist is harmless.
+        allAttrs() {
+            const attrs = [''];
+            const add = (domain) => {
+                domain = String(domain || '').toLowerCase();
+                if (this.coversHost(domain) && attrs.indexOf('; domain=' + domain) === -1) attrs.push('; domain=' + domain);
+            };
+            add(window.clicutclConsentL10n && window.clicutclConsentL10n.cookieDomain);
+            try {
+                add(window.localStorage.getItem('ct_cookie_scope'));
+            } catch (e) {
+                // Marker unreadable: the configured domain still covers the common case.
+            }
+            return attrs;
+        }
+
+        expireVariant(name, attr) {
+            const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+            document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0' + attr + '; path=/; SameSite=Lax' + secure;
+        }
+
         setCookie(name, value, days) {
             let expires = "";
             if (days) {
@@ -170,7 +219,19 @@
                 expires = "; expires=" + date.toUTCString();
             }
             const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
-            document.cookie = name + "=" + encodeURIComponent(value || "") + expires + "; path=/; SameSite=Lax" + secureFlag;
+            const domainAttr = this.cookieDomainAttr();
+            const scopes = this.allAttrs(); // before the marker below is overwritten
+            document.cookie = name + "=" + encodeURIComponent(value || "") + expires + domainAttr + "; path=/; SameSite=Lax" + secureFlag;
+            if (domainAttr) {
+                try {
+                    // Lets clicutcl-attribution.js expire this cookie if the scope changes later.
+                    window.localStorage.setItem('ct_cookie_scope', domainAttr.slice('; domain='.length));
+                } catch (e) {
+                    // Best effort.
+                }
+            }
+            // A stale copy in the other scope would shadow this decision in document.cookie and in PHP $_COOKIE.
+            scopes.forEach((attr) => { if (attr !== domainAttr) this.expireVariant(name, attr); });
         }
 
         getCookie(name) {

@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-31
 
-**Status**: Draft, not started. Every claim below is source-present / runtime-unverified: the current behaviour was read from `main` @ `ef6a20b` (1.11.0), nothing has been run in a browser yet.
+**Status**: Implemented (PHPUnit `CookieScopeSettingsTest` and Node VM `tools/qa/cookie-scope.test.js`), SC-004 passed once in the real-WordPress harness (`tools/qa/e2e/cookie-scope.sh`, WordPress php8.3 + Contact Form 7 6.2.2, Chromium via Playwright, `www.example.test` and `example.test` over HTTP, no `Secure`): registrable shares the click to the apex form and stored lead, host does not. Not run: https, Safari/Firefox, a real DNS two-host site, the migration in a browser. The text below keeps the pre-implementation reading of `main` @ `ef6a20b` (1.11.0).
 
 **Input**: GitHub issue [#154](https://github.com/vizuh/click-trail-handler/issues/154). Every cookie ClickTrail writes from JavaScript is host-only, so attribution captured on `www.example.com` is invisible on `example.com` or `lp.example.com`. Related: [#141](https://github.com/vizuh/click-trail-handler/issues/141) (server re-issue must use the same scope), competitor review in [../004-submit-time-refresh-parity/research.md](../004-submit-time-refresh-parity/research.md).
 
@@ -43,7 +43,7 @@ An admin who updates the plugin sees no change in cookie behaviour. A fresh inst
 
 ### User Story 3 - One-time migration from host-only to domain-scoped cookies (Priority: P2)
 
-A returning visitor on a site that just switched to `registrable` keeps their attribution: the host-only cookie value is copied into the domain-scoped cookie once and the host-only copy is deleted, so two cookies with the same name never diverge.
+A returning visitor on a site that just switched to `registrable` keeps their attribution: the host-only copy is expired and, if no shared (domain-scoped) cookie of that name is readable afterwards, its value is written to the domain-scoped cookie; an already shared value wins over an older host-only one. Guarantees: (1) a cookie is only moved after the browser is shown to accept the `domain` (a throwaway probe cookie is written and read back first), and if the move fails the old cookie is put back and the `ct_cookie_scope` marker is not written; (2) every write expires the same name in the other scope (host-only vs domain) and every removal expires both, in all four scripts, so a consent withdrawal reaches every copy this origin can name; (3) if the probe fails (for example a public suffix missing from the table) every script falls back to host-only writes. Not guaranteed: `document.cookie` cannot tell two same-named cookies apart, and the `ct_cookie_scope` marker is per origin, so a sibling subdomain that never loaded the plugin after a scope switch keeps its own stale copy until it writes or removes that cookie.
 
 **Independent Test**: same VM harness, jar pre-seeded with a host-only `attribution`.
 

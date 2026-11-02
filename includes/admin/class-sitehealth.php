@@ -142,15 +142,17 @@ class SiteHealth {
 		$options         = get_option( 'clicutcl_consent_mode', array() );
 		$consent_enabled = ! empty( $options['enabled'] );
 
+		$scope_line = $this->describe_cookie_scope();
+
 		if ( $has_cookie ) {
 			return array(
 				'status'      => 'good',
 				'label'       => __( 'Attribution cookie present in request', 'click-trail-handler' ),
-				'description' => __( 'Server received the attribution cookie.', 'click-trail-handler' ),
+				'description' => __( 'Server received the attribution cookie.', 'click-trail-handler' ) . ' ' . $scope_line,
 			);
 		}
 
-		$description = __( 'This may be normal if no UTM visit occurred.', 'click-trail-handler' );
+		$description = __( 'This may be normal if no UTM visit occurred.', 'click-trail-handler' ) . ' ' . $scope_line;
 		if ( $consent_enabled ) {
 			$description .= ' ' . __( 'Note: Consent Mode is enabled. If you have not granted consent, no cookie will be set.', 'click-trail-handler' );
 		} else {
@@ -162,6 +164,28 @@ class SiteHealth {
 			'label'       => __( 'Attribution cookie not present in request', 'click-trail-handler' ),
 			'description' => $description,
 		);
+	}
+
+	/**
+	 * One-line cookie scope summary, including the fallback reason when `registrable` or `custom` could not be applied.
+	 *
+	 * @return string
+	 */
+	private function describe_cookie_scope(): string {
+		$options   = \CLICUTCL\Settings\Attribution_Settings::get_all();
+		$requested = isset( $options['cookie_scope'] ) ? (string) $options['cookie_scope'] : 'host';
+		$resolved  = \CLICUTCL\Core\Cookie_Scope::resolve_for_site( $options );
+
+		if ( '' !== $resolved['domain'] ) {
+			/* translators: 1: requested scope, 2: cookie domain. */
+			return sprintf( __( 'Cookie scope: %1$s (%2$s).', 'click-trail-handler' ), $requested, $resolved['domain'] );
+		}
+		if ( 'host_scope' === $resolved['reason'] ) {
+			return __( 'Cookie scope: host.', 'click-trail-handler' );
+		}
+
+		/* translators: 1: requested scope, 2: fallback reason code. */
+		return sprintf( __( 'Cookie scope: host (fallback from %1$s: %2$s).', 'click-trail-handler' ), $requested, $resolved['reason'] );
 	}
 
 	/**
