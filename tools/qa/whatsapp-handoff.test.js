@@ -60,7 +60,7 @@ function anchor(href, text = 'Chat with us') {
     setAttribute: (name, v) => { at[name] = String(v); },
     hasAttribute: (name) => name in at,
     removeAttribute: (name) => { delete at[name]; },
-    closest: () => el,
+    closest: (selector) => (selector === 'form' ? null : el),
   };
   return el;
 }
@@ -176,13 +176,14 @@ function boot({ granted = true, config = {}, eventsConfig = {}, elements = [], r
   SCRIPTS.forEach(({ file, source }) => vm.runInContext(source, context, { filename: file }));
 
   const click = (el) => document.dispatchEvent({ type: 'click', target: el });
+  const hover = (el) => document.dispatchEvent({ type: 'mouseover', target: el });
   const events = (name) => window.dataLayer.filter((entry) => entry.event === name);
   const withdraw = () => {
     window.Cookiebot.consent = { marketing: false, statistics: false };
     window.dispatchEvent(new window.CustomEvent('CookiebotOnDecline'));
   };
   const sentEvents = () => batchCalls.map((call) => call.body.events[0]);
-  return { window, document, click, events, withdraw, refCalls, batchCalls, sentEvents };
+  return { window, document, click, hover, events, withdraw, refCalls, batchCalls, sentEvents };
 }
 
 const textOf = (el) => new URL(el.getAttribute('href')).searchParams.get('text');
@@ -262,7 +263,10 @@ const tests = {
     const link = anchor('https://wa.me/351912345678?text=Hi');
     const page = boot({ elements: [link] });
     await flush();
-    assert.strictEqual(page.refCalls.length, 1, 'one registration at boot for the page with a WhatsApp link');
+    assert.strictEqual(page.refCalls.length, 0, 'a page view alone registers nothing');
+    page.hover(link);
+    await flush();
+    assert.strictEqual(page.refCalls.length, 1, 'one registration on the first hover');
     const call = page.refCalls[0];
     assert.strictEqual(call.headers['X-Clicutcl-Token'], 'tok.en');
     assert.match(call.body.code, /^[A-Z2-7]{8}$/);
@@ -288,6 +292,7 @@ const tests = {
   async 'a link without a text parameter gets a bare Ref line'() {
     const link = anchor('https://wa.me/351912345678');
     const page = boot({ elements: [link] });
+    page.hover(link);
     await flush();
     page.click(link);
     assert.match(textOf(link), /^Ref: CT-[A-Z2-7]{8}$/);
@@ -296,6 +301,7 @@ const tests = {
   async 'a collision (409) is retried once with a new code and only the confirmed code is used'() {
     const link = anchor('https://wa.me/351912345678');
     const page = boot({ elements: [link], refReplies: [409, 200] });
+    page.hover(link);
     await flush();
     assert.strictEqual(page.refCalls.length, 2);
     assert.notStrictEqual(page.refCalls[0].body.code, page.refCalls[1].body.code);
@@ -306,6 +312,7 @@ const tests = {
   async 'two collisions or a server refusal leave the link undecorated, and a failed snapshot is not retried on every hover'() {
     const link = anchor('https://wa.me/351912345678?text=Hi');
     const page = boot({ elements: [link], refReplies: [409, 409] });
+    page.hover(link);
     await flush();
     assert.strictEqual(page.refCalls.length, 2, 'exactly one retry');
     page.click(link);
@@ -315,6 +322,46 @@ const tests = {
     page.document.dispatchEvent({ type: 'mouseover', target: link });
     await flush();
     assert.strictEqual(page.refCalls.length, 2, 'no new request for the same failed snapshot');
+  },
+
+  async 'a page view, with or without a WhatsApp link, registers nothing'() {
+    const link = anchor('https://wa.me/351912345678');
+    const page = boot({ elements: [link] });
+    await flush();
+    assert.strictEqual(page.refCalls.length, 0);
+    assert.strictEqual(page.window.sessionStorage.getItem('ct_wa_ref'), null);
+  },
+
+  async 'pointerdown or focus on a WhatsApp link registers once; other links and elements do not'() {
+    const link = anchor('https://wa.me/351912345678');
+    const other = anchor('https://example.com/contact');
+    const page = boot({ elements: [link, other] });
+    page.document.dispatchEvent({ type: 'pointerdown', target: other });
+    page.hover(other);
+    await flush();
+    assert.strictEqual(page.refCalls.length, 0, 'a non-WhatsApp link is ignored');
+    page.document.dispatchEvent({ type: 'focusin', target: link });
+    page.document.dispatchEvent({ type: 'pointerdown', target: link });
+    page.hover(link);
+    await flush();
+    assert.strictEqual(page.refCalls.length, 1, 'one registration however many warm-up events');
+    page.click(link);
+    assert.match(textOf(link), REF_TEXT);
+  },
+
+  async 'the first touch anywhere warms a page that has a WhatsApp link, and only such a page'() {
+    const link = anchor('https://wa.me/351912345678');
+    const withLink = boot({ elements: [link] });
+    withLink.document.dispatchEvent({ type: 'touchstart', target: { closest: () => null } });
+    await flush();
+    assert.strictEqual(withLink.refCalls.length, 1);
+    withLink.click(link);
+    assert.match(textOf(link), REF_TEXT);
+
+    const without = boot({ elements: [anchor('https://example.com/contact')] });
+    without.document.dispatchEvent({ type: 'touchstart', target: { closest: () => null } });
+    await flush();
+    assert.strictEqual(without.refCalls.length, 0);
   },
 
   async 'a click before the code is confirmed is not decorated'() {
@@ -347,7 +394,9 @@ const tests = {
   },
 
   async 'the confirmed code is reused for the tab session and forgotten on withdrawal'() {
-    const first = boot({ elements: [anchor('https://wa.me/351912345678')] });
+    const firstLink = anchor('https://wa.me/351912345678');
+    const first = boot({ elements: [firstLink] });
+    first.hover(firstLink);
     await flush();
     assert.strictEqual(first.refCalls.length, 1);
     const seed = Object.assign({}, first.window.sessionStorage.values);
@@ -356,13 +405,16 @@ const tests = {
     // A new page view in the same tab with the same attribution: no second registration.
     const link = anchor('https://wa.me/351912345678');
     const second = boot({ elements: [link], sessionSeed: seed });
+    second.hover(link);
     await flush();
     assert.strictEqual(second.refCalls.length, 0);
     second.click(link);
     assert.ok(textOf(link).endsWith(JSON.parse(seed.ct_wa_ref).c));
 
     // Different attribution: the stored code does not apply, a new one is registered.
-    const third = boot({ elements: [anchor('https://wa.me/351912345678')], sessionSeed: seed, search: '?gclid=OTHER' });
+    const thirdLink = anchor('https://wa.me/351912345678');
+    const third = boot({ elements: [thirdLink], sessionSeed: seed, search: '?gclid=OTHER' });
+    third.hover(thirdLink);
     await flush();
     assert.strictEqual(third.refCalls.length, 1);
 
@@ -374,6 +426,7 @@ const tests = {
     const original = 'https://wa.me/351912345678?text=Hi';
     const link = anchor(original);
     const page = boot({ elements: [link] });
+    page.hover(link);
     await flush();
     page.click(link);
     assert.match(textOf(link), REF_TEXT);
@@ -391,6 +444,7 @@ const tests = {
     const original = 'whatsapp://send?phone=351912345678&text=Hi';
     const link = anchor(original);
     const page = boot({ elements: [link] });
+    page.hover(link);
     await flush();
     page.click(link);
     assert.match(new URL(link.getAttribute('href')).searchParams.get('text'), REF_TEXT);

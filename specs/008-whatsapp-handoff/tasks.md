@@ -27,6 +27,7 @@
 - [x] T012 Node VM test `tools/qa/whatsapp-handoff.test.js`; wire into `npm run test:attribution` and `npm run test:consent`. — `tools/qa/whatsapp-handoff.test.js`, `package.json`
 - [x] T013 PHPUnit `tests/unit/WhatsappRefTest.php`: route auth, validation, TTL, collision, consent gate, lookup 404, eraser helper. — `tests/unit/WhatsappRefTest.php`
 - [x] T014 Docs per FR-009 and `changelog.txt` (`= Unreleased =`). — docs
+- [x] T016 Review fixes: row ceilings (per visitor 20, table 50 000, filters), registration only after interaction, exactly 8 characters, purge before the events-table early return, privacy exporter. — `includes/database/class-whatsapp-ref-store.php`, `class-privacy-handler.php`, `class-cleanup.php`, `clicutcl-attribution.js`, tests
 - [ ] T015 Live acceptance (SC-003): a real click on a consented tagged landing, the `Ref:` visible in the WhatsApp compose box, the admin lookup resolving it. Open: not run.
 
 ## Dependencies

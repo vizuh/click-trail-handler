@@ -153,6 +153,13 @@ class Privacy_Handler {
 			);
 		}
 
+		if ( 1 === $page ) {
+			$export_items = array_merge(
+				$export_items,
+				$this->export_whatsapp_ref_items( $this->collect_subject_visitor_ids( $email, $user_id ) )
+			);
+		}
+
 		$touch_items  = $this->export_touch_events_items( $email, $page );
 		$export_items = array_merge( $export_items, $touch_items['items'] );
 		$woo_items    = ( new Woo_Order_Privacy() )->export_order_data( $email, $page );
@@ -162,6 +169,96 @@ class Privacy_Handler {
 			'data' => $export_items,
 			'done' => count( $rows ) < self::PAGE_SIZE && $touch_items['done'] && $woo_items['done'],
 		);
+	}
+
+	/**
+	 * Export the WhatsApp reference rows of the given visitor IDs.
+	 *
+	 * The rows hold no email; they are matched like the eraser matches them, through the visitor IDs
+	 * recorded in the subject's logged events.
+	 *
+	 * @param string[] $visitor_ids Visitor IDs.
+	 * @return array<int,array<string,mixed>> Export items.
+	 */
+	public function export_whatsapp_ref_items( array $visitor_ids ): array {
+		$items = array();
+		$rows  = \CLICUTCL\Database\Whatsapp_Ref_Store::find_by_visitor_ids(
+			$visitor_ids,
+			function_exists( 'get_current_blog_id' ) ? (int) get_current_blog_id() : 1
+		);
+
+		foreach ( $rows as $row ) {
+			$items[] = array(
+				'group_id'    => 'clicutcl_whatsapp_refs',
+				'group_label' => __( 'ClickTrail WhatsApp References', 'click-trail-handler' ),
+				'item_id'     => 'clicutcl-whatsapp-ref-' . sanitize_key( (string) $row['code'] ),
+				'data'        => array(
+					array(
+						'name'  => __( 'Reference code', 'click-trail-handler' ),
+						'value' => sanitize_text_field( (string) $row['code'] ),
+					),
+					array(
+						'name'  => __( 'Created', 'click-trail-handler' ),
+						'value' => sanitize_text_field( (string) $row['created_at'] ),
+					),
+					array(
+						'name'  => __( 'Expires', 'click-trail-handler' ),
+						'value' => sanitize_text_field( (string) $row['expires_at'] ),
+					),
+					array(
+						'name'  => __( 'Attribution snapshot', 'click-trail-handler' ),
+						'value' => (string) wp_json_encode(
+							array(
+								'selected_click_id' => $row['selected_click_id'],
+								'attribution'       => $row['attribution'],
+							)
+						),
+					),
+				),
+			);
+		}
+
+		return $items;
+	}
+
+	/**
+	 * Visitor IDs recorded in all of the subject's logged events (same match as the export and eraser).
+	 *
+	 * @param string $email   Email address.
+	 * @param int    $user_id WordPress user ID (0 when none).
+	 * @return string[]
+	 */
+	private function collect_subject_visitor_ids( string $email, int $user_id ): array {
+		global $wpdb;
+
+		$table = $this->get_events_table_name();
+		if ( ! $this->table_exists( $table ) ) {
+			return array();
+		}
+
+		$table_escaped = esc_sql( $table );
+		$where         = $this->build_event_match_where( $email, $user_id );
+		$ids           = array();
+		// Read-only walk in pages, bounded so a very large log cannot stall the export request.
+		for ( $offset = 0; $offset < self::PAGE_SIZE * 200; $offset += self::PAGE_SIZE ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name and WHERE clause are plugin-owned.
+			$query = "SELECT event_data FROM {$table_escaped} WHERE {$where['sql']} ORDER BY id ASC LIMIT %d OFFSET %d";
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- Required for privacy export callbacks; params merged dynamically.
+			$rows = $wpdb->get_results(
+				$wpdb->prepare(
+					$query, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $query built above.
+					array_merge( $where['params'], array( self::PAGE_SIZE, $offset ) )
+				),
+				ARRAY_A
+			);
+			$rows = is_array( $rows ) ? $rows : array();
+			$ids  = array_merge( $ids, \CLICUTCL\Database\Whatsapp_Ref_Store::visitor_ids_from_event_rows( $rows ) );
+			if ( count( $rows ) < self::PAGE_SIZE ) {
+				break;
+			}
+		}
+
+		return array_values( array_unique( $ids ) );
 	}
 
 	/**

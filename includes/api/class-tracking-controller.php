@@ -625,6 +625,10 @@ class Tracking_Controller extends WP_REST_Controller {
 				);
 			case 'collision':
 				return new WP_Error( 'whatsapp_ref_collision', 'Reference code already exists', array( 'status' => 409 ) );
+			case 'visitor_limit':
+				return new WP_Error( 'whatsapp_ref_visitor_limit', 'Too many reference codes for this visitor', array( 'status' => 429 ) );
+			case 'capacity':
+				return new WP_Error( 'whatsapp_ref_capacity', 'Reference storage is full', array( 'status' => 503 ) );
 			default:
 				return new WP_Error( 'whatsapp_ref_unavailable', 'Reference storage is not available', array( 'status' => 503 ) );
 		}

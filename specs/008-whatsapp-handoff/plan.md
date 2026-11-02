@@ -69,7 +69,7 @@ admin GET /whatsapp-ref/CT-ABCD2345 -> {code, created_at, expires_at, visitor_id
 
 ## Risks
 
-- A click before the code is confirmed sends an undecorated link (event still fires). Mitigated by session reuse and the pre-mint triggers; no wrong mapping is possible.
+- A click before the code is confirmed sends an undecorated link (event still fires). Mitigated by session reuse and the warm-up triggers (pointer-over, focus, pointer-down, first touch on a page with a WhatsApp link); no wrong mapping is possible.
 - Rows are created on public requests: bounded by the body cap, the rate limit, the nonce limit, the consent gate and session reuse.
 - `DB_VERSION` 5 may collide with another branch that also bumps it; the integrator renumbers.
 - The eraser only reaches visitors whose email appears in logged form events (research R9).

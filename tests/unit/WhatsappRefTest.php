@@ -31,11 +31,21 @@ namespace {
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-webhook-auth.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/database/class-whatsapp-ref-store.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/api/class-tracking-controller.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/utils/class-cleanup.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/privacy/class-privacy-handler.php';
+
+	if ( ! function_exists( 'esc_sql' ) ) {
+		function esc_sql( $value ) {
+			return $value;
+		}
+	}
 
 	use CLICUTCL\Api\Tracking_Controller;
 	use CLICUTCL\Core\Storage\Option_Cache;
 	use CLICUTCL\Database\Whatsapp_Ref_Store;
+	use CLICUTCL\Privacy\Privacy_Handler;
 	use CLICUTCL\Tracking\Auth;
+	use CLICUTCL\Utils\Cleanup;
 	use PHPUnit\Framework\TestCase;
 
 	/**
@@ -46,6 +56,7 @@ namespace {
 		public bool $table_exists = true;
 		/** @var array<string,array<string,string>> */
 		public array $rows = array();
+		public int $count_queries = 0;
 
 		public function prepare( string $query, ...$args ): array {
 			if ( 1 === count( $args ) && is_array( $args[0] ) ) {
@@ -57,8 +68,33 @@ namespace {
 			);
 		}
 
-		public function get_var( array $q ) {
-			return 0 === strpos( $q['sql'], 'SHOW TABLES LIKE' ) && $this->table_exists ? $q['args'][0] : null;
+		public function get_var( $q ) {
+			$q = is_array( $q ) ? $q : array( 'sql' => $q, 'args' => array() );
+			if ( 0 === strpos( $q['sql'], 'SHOW TABLES LIKE' ) ) {
+				return $this->table_exists && $q['args'][0] === $this->prefix . 'clicutcl_whatsapp_refs' ? $q['args'][0] : null;
+			}
+			if ( 0 === strpos( $q['sql'], 'SELECT COUNT(*)' ) ) {
+				$this->count_queries++;
+				$count = 0;
+				foreach ( $this->rows as $row ) {
+					if ( false === strpos( $q['sql'], 'visitor_id = %s' ) || ( $row['visitor_id'] === $q['args'][1] && $row['expires_at'] > $q['args'][2] ) ) {
+						++$count;
+					}
+				}
+				return (string) $count;
+			}
+			return null;
+		}
+
+		public function get_results( array $q, $output = null ): array {
+			$ids = array_slice( $q['args'], 1, -1 );
+			$out = array();
+			foreach ( $this->rows as $row ) {
+				if ( in_array( $row['visitor_id'], $ids, true ) ) {
+					$out[] = $row;
+				}
+			}
+			return $out;
 		}
 
 		public function query( array $q ) {
@@ -280,7 +316,7 @@ namespace {
 		}
 
 		public function test_create_rejects_malformed_codes_and_empty_attribution(): void {
-			foreach ( array( '', 'abcd2345', 'ABCD1234', 'ABCDE', 'ABCD23456', 'CT-ABCD2345', "ABCD23\n5" ) as $bad ) {
+			foreach ( array( '', 'abcd2345', 'ABCD1234', 'ABCDE', 'ABCDEFG', 'ABCD23456', 'CT-ABCD2345', "ABCD23\n5" ) as $bad ) {
 				$result = $this->create( $this->body( array( 'code' => $bad ) ) );
 				$this->assertTrue( is_wp_error( $result ), 'code ' . $bad );
 				$this->assertSame( 'invalid_code', $result->get_error_code(), 'code ' . $bad );
@@ -388,10 +424,116 @@ namespace {
 			$this->assertSame( 0, Whatsapp_Ref_Store::delete_by_visitor_ids( array() ) );
 		}
 
+		// ----- Table-fill caps -----
+
+		public function test_a_visitor_cannot_hold_more_than_the_cap_of_live_rows(): void {
+			$GLOBALS['clicktrail_test_filters']['clicutcl_whatsapp_ref_max_per_visitor'] = static fn() => 2;
+			$this->assertTrue( $this->create( $this->body( array( 'code' => 'AAAAAAAA' ) ) )['success'] );
+			$this->assertTrue( $this->create( $this->body( array( 'code' => 'BBBBBBBB' ) ) )['success'] );
+			$third = $this->create( $this->body( array( 'code' => 'CCCCCCCC' ) ) );
+			$this->assertTrue( is_wp_error( $third ) );
+			$this->assertSame( 'whatsapp_ref_visitor_limit', $third->get_error_code() );
+			$this->assertCount( 2, $this->db->rows, 'nothing stored over the cap' );
+			$this->assertTrue( $this->create( $this->body( array( 'code' => 'DDDDDDDD', 'visitor_id' => 'another' ) ) )['success'], 'another visitor is unaffected' );
+
+			// An expired row no longer counts.
+			$this->db->rows['1:AAAAAAAA']['expires_at'] = gmdate( 'Y-m-d H:i:s', time() - 5 );
+			$this->assertTrue( $this->create( $this->body( array( 'code' => 'EEEEEEEE' ) ) )['success'] );
+		}
+
+		public function test_the_per_visitor_cap_defaults_to_twenty(): void {
+			$alphabet = 'ABCDEFGH';
+			for ( $i = 0; $i < 20; $i++ ) {
+				$code = 'AAAAAA' . $alphabet[ intdiv( $i, 8 ) ] . $alphabet[ $i % 8 ];
+				$this->assertIsArray( $this->create( $this->body( array( 'code' => $code ) ) ), 'row ' . $i );
+			}
+			$this->assertSame( 'whatsapp_ref_visitor_limit', $this->create( $this->body( array( 'code' => 'ZZZZZZZZ' ) ) )->get_error_code() );
+		}
+
+		public function test_a_global_row_ceiling_stops_inserts_and_purge_frees_capacity(): void {
+			$GLOBALS['clicktrail_test_filters']['clicutcl_whatsapp_ref_max_rows'] = static fn() => 2;
+			$this->assertIsArray( $this->create( $this->body( array( 'code' => 'AAAAAAAA', 'visitor_id' => 'v1' ) ) ) );
+			$this->assertIsArray( $this->create( $this->body( array( 'code' => 'BBBBBBBB', 'visitor_id' => 'v2' ) ) ) );
+			$full = $this->create( $this->body( array( 'code' => 'CCCCCCCC', 'visitor_id' => 'v3' ) ) );
+			$this->assertTrue( is_wp_error( $full ) );
+			$this->assertSame( 'whatsapp_ref_capacity', $full->get_error_code() );
+			$this->assertCount( 2, $this->db->rows );
+
+			// The daily purge removes an expired row and the next insert fits again.
+			$this->db->rows['1:AAAAAAAA']['expires_at'] = gmdate( 'Y-m-d H:i:s', time() - 5 );
+			$this->assertSame( 1, Whatsapp_Ref_Store::purge_expired( 90, time() ) );
+			$this->assertIsArray( $this->create( $this->body( array( 'code' => 'CCCCCCCC', 'visitor_id' => 'v3' ) ) ) );
+			$this->assertCount( 2, $this->db->rows );
+		}
+
+		public function test_the_row_count_is_cached_between_inserts(): void {
+			$GLOBALS['clicktrail_test_filters']['clicutcl_whatsapp_ref_max_rows'] = static fn() => 100;
+			$this->create( $this->body( array( 'code' => 'AAAAAAAA', 'visitor_id' => 'v1' ) ) );
+			$after_first = $this->db->count_queries;
+			$this->create( $this->body( array( 'code' => 'BBBBBBBB', 'visitor_id' => 'v2' ) ) );
+			$this->create( $this->body( array( 'code' => 'CCCCCCCC', 'visitor_id' => 'v3' ) ) );
+			// Only the per-visitor count runs per insert; the table-wide count is read once and bumped.
+			$this->assertSame( $after_first + 2, $this->db->count_queries );
+		}
+
+		// ----- Exactly 8 characters -----
+
+		public function test_only_eight_character_codes_are_accepted(): void {
+			$six = $this->create( $this->body( array( 'code' => 'ABCDEF' ) ) );
+			$this->assertSame( 'invalid_code', $six->get_error_code() );
+			$seven = $this->create( $this->body( array( 'code' => 'ABCDEFG' ) ) );
+			$this->assertSame( 'invalid_code', $seven->get_error_code() );
+
+			$this->db->rows['1:ABCDEF'] = array( 'blog_id' => '1', 'code' => 'ABCDEF', 'visitor_id' => 'v', 'selected_click_id_key' => '', 'selected_click_id' => '', 'snapshot' => '{}', 'created_at' => gmdate( 'Y-m-d H:i:s' ), 'expires_at' => gmdate( 'Y-m-d H:i:s', time() + 99 ) );
+			$lookup = ( new Tracking_Controller() )->lookup_whatsapp_ref( new \WP_REST_Request( array(), '', '/', array( 'code' => 'CT-ABCDEF' ) ) );
+			$this->assertSame( 'whatsapp_ref_not_found', $lookup->get_error_code() );
+		}
+
+		// ----- Daily purge independent of the events table -----
+
+		public function test_the_daily_cleanup_purges_reference_rows_even_when_the_events_table_is_missing(): void {
+			$this->db->rows['1:AAAAAAAA'] = array(
+				'blog_id'    => '1',
+				'code'       => 'AAAAAAAA',
+				'visitor_id' => 'v',
+				'created_at' => gmdate( 'Y-m-d H:i:s', time() - 200 * DAY_IN_SECONDS ),
+				'expires_at' => gmdate( 'Y-m-d H:i:s', time() - 110 * DAY_IN_SECONDS ),
+			);
+			( new Cleanup() )->run_cleanup(); // Only the reference table exists in the fake database.
+			$this->assertSame( array(), $this->db->rows );
+		}
+
+		// ----- Exporter -----
+
+		public function test_export_returns_the_subjects_reference_rows_with_the_snapshot(): void {
+			$this->create( $this->body() );
+			$this->create( $this->body( array( 'code' => 'EFGH6767', 'visitor_id' => 'someone_else' ) ) );
+
+			$items = ( new Privacy_Handler() )->export_whatsapp_ref_items( array( 'vis_123' ) );
+			$this->assertCount( 1, $items );
+			$this->assertSame( 'clicutcl_whatsapp_refs', $items[0]['group_id'] );
+			$flat = array();
+			foreach ( $items[0]['data'] as $field ) {
+				$flat[ $field['name'] ] = $field['value'];
+			}
+			$this->assertSame( 'CT-ABCD2345', $flat['Reference code'] );
+			$this->assertArrayHasKey( 'Created', $flat );
+			$this->assertArrayHasKey( 'Expires', $flat );
+			$this->assertStringContainsString( '"gclid":"G1"', $flat['Attribution snapshot'] );
+			$this->assertStringContainsString( 'newsletter', $flat['Attribution snapshot'] );
+			$this->assertSame( array(), ( new Privacy_Handler() )->export_whatsapp_ref_items( array() ) );
+		}
+
+		public function test_exporter_and_eraser_use_the_same_visitor_matching(): void {
+			$source = (string) file_get_contents( dirname( __DIR__, 2 ) . '/includes/privacy/class-privacy-handler.php' );
+			$this->assertSame( 2, substr_count( $source, 'Whatsapp_Ref_Store::visitor_ids_from_event_rows' ), 'export and erase both go through the one extraction rule' );
+			$this->assertStringContainsString( 'export_whatsapp_ref_items', $source );
+		}
+
 		public function test_normalize_code(): void {
 			$this->assertSame( 'ABCD2345', Whatsapp_Ref_Store::normalize_code( 'ct-abcd2345' ) );
-			$this->assertSame( 'ABCDEF', Whatsapp_Ref_Store::normalize_code( 'ABCDEF' ) );
-			$this->assertSame( '', Whatsapp_Ref_Store::normalize_code( 'ABCDE' ) );
+			$this->assertSame( '', Whatsapp_Ref_Store::normalize_code( 'ABCDEF' ), 'six characters are not a code' );
+			$this->assertSame( '', Whatsapp_Ref_Store::normalize_code( 'ABCDEFG' ) );
 			$this->assertSame( '', Whatsapp_Ref_Store::normalize_code( 'ABCD1189' ) );
 		}
 

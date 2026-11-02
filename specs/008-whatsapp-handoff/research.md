@@ -35,7 +35,7 @@ Source read on 2026-11-02 (`main` @ `805a721`, 1.12.0). Nothing below was run ag
 
 ## R4 — Pre-mint, not mint-on-click
 
-**Decision**: request the code when consent is granted and the page holds an allowlisted anchor (and on first pointer/touch/focus on one for links added later), decorate at click time only with a confirmed code. Reuse the confirmed code for the tab session while the snapshot hash is unchanged.
+**Decision**: request the code on the first pointer-over, focus or pointer-down on an allowlisted anchor, on a click, or on the first touch anywhere on a page that holds one (touch has no hover and a tap is too short to register in time), never on page load; decorate at click time only with a confirmed code. Revised after review: registering at page load created a row for every visitor who never clicked. Reuse the confirmed code for the tab session while the snapshot hash is unchanged.
 **Rationale**: the issue asks for collision handling (server rejects, client retries once). That only means something if the link has not left yet: with mint-on-click the first click would already have sent a code that maps to someone else. This is the `Store.prepareSignedToken()` pattern and the pre-mint decision in spec 001 R4. The trade-off is that a very fast click leaves the link undecorated, never wrongly decorated.
 
 ## R5 — Table, not the touch-events store
@@ -61,7 +61,12 @@ Source read on 2026-11-02 (`main` @ `805a721`, 1.12.0). Nothing below was run ag
 ## R9 — Eraser
 
 **Decision**: reference rows hold only a random `visitor_id` and attribution, no email or hash, so an email cannot key them directly. `Privacy_Handler::erase_user_data()` already reads the subject's matched `clicutcl_events` rows (form submissions); their `event_data` carries the `visitor_id` of the browser (via `Attribution_Provider`). The eraser extracts those IDs and deletes the reference rows with `visitor_id IN (...)`.
-**Limit, stated plainly**: a visitor who never submitted a logged form has no link from an email to their reference rows; those rows expire with the retention TTL (default 90 days). No exporter is added for this table.
+**Limit, stated plainly**: a visitor who never submitted a logged form has no link from an email to their reference rows; those rows expire with the retention TTL (default 90 days). The exporter (added after review) uses the same rule: it collects the visitor IDs from all of the subject's logged events and returns the matching rows.
+
+## R11 — Bounds on a public write
+
+**Decision**: refuse past 20 live rows per `visitor_id` (indexed count, 429) and past 50 000 rows in the table (cached count in a transient, bumped on insert and dropped on purge, 503), both filterable (`clicutcl_whatsapp_ref_max_per_visitor`, `clicutcl_whatsapp_ref_max_rows`). The code is exactly 8 characters (no 6 to 8 range). The daily purge runs before the events-table early return.
+**Rationale**: the route is public and token-holding; the rate limit bounds speed, not volume. A forged `visitor_id` can bypass the per-visitor cap, which is why the global ceiling exists.
 
 ## R10 — Consent withdrawal
 

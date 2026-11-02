@@ -248,13 +248,15 @@ Columns:
 
 - `id`
 - `blog_id` -- multisite blog ID
-- `code` -- 6 to 8 characters of `A-Z2-7`, without the `CT-` prefix; unique with `blog_id` (`blog_code`), which is what makes a duplicate code detectable atomically
+- `code` -- exactly 8 characters of `A-Z2-7`, without the `CT-` prefix; unique with `blog_id` (`blog_code`), which is what makes a duplicate code detectable atomically
 - `visitor_id` -- the browser's `ct_visitor_id` (random, not derived from an email); indexed for the eraser
 - `selected_click_id_key`, `selected_click_id` -- the click ID the attribution engine selected (empty when none)
 - `snapshot` -- JSON `{ first_touch, last_touch, click_ids }` from the signed-token allowlist
 - `created_at`, `expires_at` -- UTC; `expires_at = created_at + cookie_days` (default 90)
 
-Retention and lifecycle: `Cleanup::run_cleanup()` deletes `expires_at < now` and `created_at < now - retention` rows in batches of 1000 (up to 20 per run); lookups ignore expired rows even before the purge; the Diagnostics purge truncates the table; uninstall drops it; `Privacy_Handler` deletes the rows of the `visitor_id` values found in the subject's logged events. `Installer::DB_VERSION` is 5 and is recorded only when this table exists, like the touch-events table.
+Row creation and bounds: A row is created only after a visitor interacts with a WhatsApp link: first pointer-over, focus or pointer-down on the link, a click on it, or (touch screens, where a tap is too short to register in time) the first touch anywhere on a page that holds a WhatsApp link. A page view alone creates nothing; a visitor who never touches or hovers the page, or a page without a WhatsApp link, creates no row. The table is bounded: at most 20 live rows per `visitor_id` and 50 000 rows in total (both filterable, see [HOOKS-REFERENCE.md](../reference/HOOKS-REFERENCE.md)); beyond either the route stores nothing. The table-wide count is cached in the transient `clicutcl_whatsapp_refs_count` (5 minutes; inserts bump it, purges drop it).
+
+Retention and lifecycle: `Cleanup::run_cleanup()` deletes `expires_at < now` and `created_at < now - retention` rows in batches of 1000 (up to 20 per run); lookups ignore expired rows even before the purge; the Diagnostics purge truncates the table; uninstall drops it; `Privacy_Handler` exports and deletes the rows of the `visitor_id` values found in the subject's logged events (one matching rule for both). The daily purge runs before the events-table check, so a missing events table does not stop it. `Installer::DB_VERSION` is 5 and is recorded only when this table exists, like the touch-events table.
 
 ## WooCommerce Order Meta Surfaces
 

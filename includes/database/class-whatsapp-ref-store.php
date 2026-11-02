@@ -35,6 +35,26 @@ class Whatsapp_Ref_Store {
 	public const SELECTABLE_CLICK_IDS = array( 'gclid', 'wbraid', 'gbraid', 'fbclid', 'ttclid', 'msclkid', 'twclid', 'li_fat_id', 'sccid', 'epik' );
 
 	/**
+	 * Default ceiling on rows in the table; a public route writes here, so it must be bounded.
+	 */
+	private const DEFAULT_MAX_ROWS = 50000;
+
+	/**
+	 * Default ceiling on live rows per `visitor_id`.
+	 */
+	private const DEFAULT_MAX_PER_VISITOR = 20;
+
+	/**
+	 * Transient holding the cached table row count.
+	 */
+	private const COUNT_TRANSIENT = 'clicutcl_whatsapp_refs_count';
+
+	/**
+	 * Seconds the cached row count lives; inserts bump it and purges drop it.
+	 */
+	private const COUNT_TTL = 300;
+
+	/**
 	 * Rows deleted per purge statement.
 	 */
 	private const PURGE_BATCH = 1000;
@@ -55,7 +75,7 @@ class Whatsapp_Ref_Store {
 	}
 
 	/**
-	 * Normalise a code typed or pasted by a person: optional `CT-` prefix, any case, 6 to 8 base32
+	 * Normalise a code typed or pasted by a person: optional `CT-` prefix, any case, exactly 8 base32
 	 * characters. Returns '' when it is not a valid code.
 	 *
 	 * @param string $raw Raw code.
@@ -67,7 +87,7 @@ class Whatsapp_Ref_Store {
 			$code = substr( $code, 3 );
 		}
 
-		return 1 === preg_match( '/^[A-Z2-7]{6,8}$/', $code ) ? $code : '';
+		return 1 === preg_match( '/^[A-Z2-7]{8}$/D', $code ) ? $code : '';
 	}
 
 	/**
@@ -77,7 +97,7 @@ class Whatsapp_Ref_Store {
 	 * @return bool
 	 */
 	public static function is_canonical_code( string $code ): bool {
-		return 1 === preg_match( '/^[A-Z2-7]{6,8}$/D', $code );
+		return 1 === preg_match( '/^[A-Z2-7]{8}$/D', $code );
 	}
 
 	/**
@@ -166,8 +186,13 @@ class Whatsapp_Ref_Store {
 	/**
 	 * Insert a row; the unique `(blog_id, code)` key makes a duplicate code a no-op.
 	 *
+	 * Two ceilings come first, so a public route cannot fill the table: live rows per `visitor_id`
+	 * (`clicutcl_whatsapp_ref_max_per_visitor`, default 20) and rows in the table
+	 * (`clicutcl_whatsapp_ref_max_rows`, default 50 000; counted from a cached figure that inserts
+	 * bump and purges drop).
+	 *
 	 * @param array<string,mixed> $row Row built by build_row().
-	 * @return string `created`, `collision` or `unavailable`.
+	 * @return string `created`, `collision`, `visitor_limit`, `capacity` or `unavailable`.
 	 */
 	public static function create( array $row ): string {
 		global $wpdb;
@@ -175,6 +200,18 @@ class Whatsapp_Ref_Store {
 		$table = self::table_name();
 		if ( ! self::table_exists( $table ) ) {
 			return 'unavailable';
+		}
+
+		$max_per_visitor = max( 1, (int) apply_filters( 'clicutcl_whatsapp_ref_max_per_visitor', self::DEFAULT_MAX_PER_VISITOR ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table name.
+		$visitor_rows = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE blog_id = %d AND visitor_id = %s AND expires_at > %s", $row['blog_id'], $row['visitor_id'], $row['created_at'] ) );
+		if ( $visitor_rows >= $max_per_visitor ) {
+			return 'visitor_limit';
+		}
+
+		$max_rows = max( 1, (int) apply_filters( 'clicutcl_whatsapp_ref_max_rows', self::DEFAULT_MAX_ROWS ) );
+		if ( self::row_count( $table ) >= $max_rows ) {
+			return 'capacity';
 		}
 
 		$columns      = implode( ', ', array_keys( $row ) );
@@ -186,8 +223,37 @@ class Whatsapp_Ref_Store {
 		if ( false === $affected ) {
 			return 'unavailable';
 		}
+		if ( 1 !== (int) $affected ) {
+			return 'collision';
+		}
 
-		return 1 === (int) $affected ? 'created' : 'collision';
+		$cached = get_transient( self::COUNT_TRANSIENT );
+		if ( false !== $cached ) {
+			set_transient( self::COUNT_TRANSIENT, (int) $cached + 1, self::COUNT_TTL );
+		}
+
+		return 'created';
+	}
+
+	/**
+	 * Rows in the table, from a short-lived cached count.
+	 *
+	 * @param string $table Table name.
+	 * @return int
+	 */
+	private static function row_count( string $table ): int {
+		global $wpdb;
+
+		$cached = get_transient( self::COUNT_TRANSIENT );
+		if ( false !== $cached ) {
+			return (int) $cached;
+		}
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- Plugin-owned table name; no user input.
+		$count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" );
+		set_transient( self::COUNT_TRANSIENT, $count, self::COUNT_TTL );
+
+		return $count;
 	}
 
 	/**
@@ -222,6 +288,40 @@ class Whatsapp_Ref_Store {
 			return null;
 		}
 
+		return self::format_row( $row );
+	}
+
+	/**
+	 * Rows held for the given visitor IDs, newest first (privacy export).
+	 *
+	 * @param string[] $visitor_ids Visitor IDs.
+	 * @param int      $blog_id     Blog ID.
+	 * @param int      $limit       Maximum rows.
+	 * @return array<int,array<string,mixed>> Rows shaped like find().
+	 */
+	public static function find_by_visitor_ids( array $visitor_ids, int $blog_id, int $limit = 500 ): array {
+		global $wpdb;
+
+		$visitor_ids = array_values( array_unique( array_filter( array_map( 'strval', $visitor_ids ) ) ) );
+		$table       = self::table_name();
+		if ( empty( $visitor_ids ) || ! self::table_exists( $table ) ) {
+			return array();
+		}
+
+		$placeholders = implode( ', ', array_fill( 0, count( $visitor_ids ), '%s' ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Required for privacy export; plugin-owned table, placeholders generated above.
+		$rows = $wpdb->get_results( $wpdb->prepare( "SELECT code, visitor_id, selected_click_id_key, selected_click_id, snapshot, created_at, expires_at FROM {$table} WHERE blog_id = %d AND visitor_id IN ({$placeholders}) ORDER BY created_at DESC LIMIT %d", array_merge( array( $blog_id ), $visitor_ids, array( max( 1, $limit ) ) ) ), ARRAY_A );
+
+		return array_map( array( self::class, 'format_row' ), is_array( $rows ) ? $rows : array() );
+	}
+
+	/**
+	 * Shape a table row for lookup and export.
+	 *
+	 * @param array<string,mixed> $row Table row.
+	 * @return array<string,mixed>
+	 */
+	private static function format_row( array $row ): array {
 		$snapshot = json_decode( (string) $row['snapshot'], true );
 		$snapshot = is_array( $snapshot ) ? $snapshot : array();
 
@@ -272,6 +372,10 @@ class Whatsapp_Ref_Store {
 			}
 		}
 
+		if ( $total > 0 ) {
+			delete_transient( self::COUNT_TRANSIENT );
+		}
+
 		return $total;
 	}
 
@@ -292,7 +396,10 @@ class Whatsapp_Ref_Store {
 
 		$placeholders = implode( ', ', array_fill( 0, count( $visitor_ids ), '%s' ) );
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- Required for privacy erasure; plugin-owned table, placeholders generated above.
-		return $wpdb->query( $wpdb->prepare( "DELETE FROM {$table} WHERE visitor_id IN ({$placeholders})", $visitor_ids ) );
+		$deleted = $wpdb->query( $wpdb->prepare( "DELETE FROM {$table} WHERE visitor_id IN ({$placeholders})", $visitor_ids ) );
+		delete_transient( self::COUNT_TRANSIENT );
+
+		return $deleted;
 	}
 
 	/**

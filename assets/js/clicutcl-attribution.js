@@ -1744,6 +1744,16 @@
         return !!url && (url.protocol === 'whatsapp:' || WHATSAPP_HOSTS.indexOf(url.hostname) !== -1);
     }
 
+    function pageHasWhatsAppLink() {
+        return Array.from(document.querySelectorAll('a[href*="wa.me"], a[href*="whatsapp"]')).some((a) => {
+            try {
+                return isWhatsAppUrl(new URL(a.getAttribute('href'), window.location.href));
+            } catch (e) {
+                return false;
+            }
+        });
+    }
+
     // A short client-generated code (`CT-` + 8 base32 characters) the server maps back to the
     // attribution snapshot. It is registered BEFORE a link is decorated: a code the server rejected
     // as a collision is replaced while the link is still untouched, and an unconfirmed code is never
@@ -1802,7 +1812,7 @@
             if (!snap) return '';
             if (this.code && this.hash === snap.hash) return this.code;
             const stored = this.readStored();
-            if (stored && stored.h === snap.hash && /^[A-Z2-7]{6,8}$/.test(stored.c)) {
+            if (stored && stored.h === snap.hash && /^[A-Z2-7]{8}$/.test(stored.c)) {
                 this.code = stored.c;
                 this.hash = stored.h;
                 return this.code;
@@ -2400,16 +2410,6 @@
                 this.bindWhatsAppHandler();
             }
 
-            const hasWhatsAppLink = Array.from(document.querySelectorAll('a[href*="wa.me"], a[href*="whatsapp"]')).some((a) => {
-                try {
-                    return isWhatsAppUrl(new URL(a.getAttribute('href'), window.location.href));
-                } catch (e) {
-                    return false;
-                }
-            });
-            if (hasWhatsAppLink) {
-                WhatsAppRef.ensure();
-            }
         }
 
         bindWhatsAppHandler() {
@@ -2439,7 +2439,7 @@
                 if (!isWhatsAppUrl(url)) return;
 
                 // Pointer or focus on the link only warms the code up, so the click finds it ready.
-                if (evt.type === 'mouseover' || evt.type === 'focusin') {
+                if (evt.type === 'mouseover' || evt.type === 'focusin' || evt.type === 'pointerdown') {
                     WhatsAppRef.ensure();
                     return;
                 }
@@ -2470,6 +2470,15 @@
             document.addEventListener('touchstart', handler, { capture: true, passive: true });
             document.addEventListener('mouseover', handler, { capture: true, passive: true });
             document.addEventListener('focusin', handler, true);
+            document.addEventListener('pointerdown', handler, { capture: true, passive: true });
+
+            // Touch screens give a tap too little time to register: the first touch anywhere on a page
+            // that holds a WhatsApp link is the warm-up there. A page view alone registers nothing.
+            const warmOnTouch = () => {
+                document.removeEventListener('touchstart', warmOnTouch, true);
+                if (this.canCapture() && pageHasWhatsAppLink()) WhatsAppRef.ensure();
+            };
+            document.addEventListener('touchstart', warmOnTouch, { capture: true, passive: true });
         }
     }
 

@@ -39,6 +39,10 @@ class Cleanup {
 			$days = 90;
 		}
 
+		// WhatsApp reference codes: TTL is the attribution retention, so they go with it. Runs before
+		// the events-table check below, which returns early, so a missing table there cannot stop it.
+		\CLICUTCL\Database\Whatsapp_Ref_Store::purge_expired( $days, time() );
+
 		$table_name         = $wpdb->prefix . 'clicutcl_events';
 		$table_name_escaped = esc_sql( $table_name ); // Internal, but still escape.
 
@@ -75,9 +79,6 @@ class Cleanup {
 				$wpdb->prepare( $touch_events_sql, $days )
 			);
 		}
-
-		// WhatsApp reference codes: TTL is the attribution retention, so they go with it.
-		\CLICUTCL\Database\Whatsapp_Ref_Store::purge_expired( $days, time() );
 
 		$woo_result = ( new Woo_Order_Privacy() )->purge_expired_order_metadata( $days );
 		if ( ! empty( $woo_result['remaining'] ) && function_exists( 'do_action' ) ) {
