@@ -66,6 +66,15 @@ Flow:
 3. event is pushed to `window.dataLayer`
 4. if REST delivery is configured, a canonical event payload is posted to `/clicutcl/v2/events/batch`
 
+## dataLayer push shape
+
+Every dataLayer push made by ClickTrail's browser scripts (`ct_page_view` from `clicutcl-attribution.js`, `lead_submit` from its form listener, and every `pushEvent()` event from `clicutcl-events.js`) carries `datalayer_version: "2.0.0"` (same shape version as `clicktrail-js`, #135; source-present / runtime-unverified) and follows two rules:
+
+- **Reserved Google tag fields are prefixed.** The Google tag (gtag.js / GA4) reads `session_id`, `client_id`, `user_id`, `session_number`, `engagement_time_msec`, `timestamp_micros`, `page_location` and `page_referrer` as its own fields, not as free event parameters. A GA4 Event tag that maps a dataLayer `session_id` sends it as `sid`, overrides the `_ga_<property>` session on the tag's first hit and writes it back into the cookie, so the GA4 session splits and conversions land in Unassigned. ClickTrail therefore pushes these keys as `ct_<name>` (`ct_session_id`, `ct_session_number`, `ct_engagement_time_msec`, ...); the renamed value wins over a caller key already named `ct_<name>`. The prefix is fixed (`ct_`); there is no setting. The list is `RESERVED_GOOGLE_TAG_FIELDS` in both scripts, kept equal by `tools/qa/ga4-session.test.js`. The `marketing_trail` envelope, `ct_attribution` and the canonical event posted to `/clicutcl/v2/events/batch` are not renamed: the server copy keeps its own `session_id`.
+- **The canonical `page_view` is `ct_page_view`.** ClickTrail never pushes `event: "page_view"` (the Google tag sends its own); `marketing_trail.event_name` stays `page_view`. A catch-all GA4 Event tag keyed on `{{Event}}` must exclude `ct_page_view` or every navigation counts more than once.
+
+Migration: GTM variables that read a flat `session_id` or `session_number` from a ClickTrail push (`session_id` and `session_number` were pushed flat before this change) must read `ct_session_id` / `ct_session_number`. The bundled starter kit maps neither. WooCommerce `purchase`, server events from `Events_Logger` and Ninja Forms pushes carry none of the reserved keys.
+
 Woo list-view specifics:
 
 - product loops, related products, upsells, cross-sells, widgets, and supported Woo blocks can resolve `item_list_name`

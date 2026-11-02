@@ -120,6 +120,7 @@ retry/replay/dedup → retention/purge → setup → evidence and limitations.
 - **Input:** canonical event; POST JSON with `schema_version: 2`, `collector: google_ads`.
 - **Transport/auth:** the reviewed class does not construct a verified Google Ads or GA4 API request/auth contract.
 - **Browser boundary:** Google tags remain site-owned/GTM-mediated.
+- **Browser session join (source-present / runtime-unverified, #135):** `clicutcl-attribution.js` reads `ga_client_id` from `_ga` and `ga_session_id` / `ga_session_number` from the `_ga_<property>` cookie (GS2 and GS1; no numeric fallback; pinned to the `ga4_measurement_id` setting when set, otherwise first usable cookie plus a `ct:diagnostic` `ga_session_property_unpinned` event when several exist), after consent. Format and pin rules: [DATA-MODEL.md](../architecture/DATA-MODEL.md). ClickTrail dataLayer pushes never carry the Google tag's reserved field names flat (`session_id`, `client_id`, `user_id`, `session_number`, `engagement_time_msec`, `timestamp_micros`, `page_location`, `page_referrer`; pushed as `ct_<name>`) and the canonical page view is `ct_page_view`: [EVENT-PIPELINE.md](../architecture/EVENT-PIPELINE.md#datalayer-push-shape). In a GA4 Event tag never use a reserved name as the parameter name, and exclude `ct_page_view` from a catch-all `{{Event}}` tag.
 - **Evidence:** `includes/server-side/class-google-ads-adapter.php`, smoke ID `delivery-adapter-google`.
 
 ### LinkedIn CAPI — `linkedin_capi`
