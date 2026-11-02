@@ -19,6 +19,11 @@ namespace CLICUTCL\Integrations {
 namespace {
 	require_once dirname( __DIR__, 2 ) . '/includes/integrations/class-optimizer-compat.php';
 
+	// Installed from a GitHub zip: folder differs from the slug (#166).
+	if ( ! defined( 'CLICUTCL_PLUGIN_MAIN_FILE' ) ) {
+		define( 'CLICUTCL_PLUGIN_MAIN_FILE', '/var/www/html/wp-content/plugins/click-trail-handler-main/clicutcl.php' );
+	}
+
 	use CLICUTCL\Integrations\Optimizer_Compat;
 	use PHPUnit\Framework\TestCase;
 
@@ -40,6 +45,10 @@ namespace {
 		);
 
 		private const PATHS = array(
+			'plugins/click-trail-handler-main/assets/js/clicutcl-consent-bridge.js',
+			'plugins/click-trail-handler-main/assets/js/clicutcl-attribution.js',
+			'plugins/click-trail-handler-main/assets/js/clicutcl-consent.js',
+			'plugins/click-trail-handler-main/assets/js/clicutcl-events.js',
 			'plugins/click-trail-handler/assets/js/clicutcl-consent-bridge.js',
 			'plugins/click-trail-handler/assets/js/clicutcl-attribution.js',
 			'plugins/click-trail-handler/assets/js/clicutcl-consent.js',
@@ -161,6 +170,32 @@ namespace {
 			}
 		}
 
+		public function test_path_prefixes_follow_the_real_install_folder(): void {
+			$this->assertSame(
+				array( 'plugins/click-trail-handler-main/assets/js/', 'plugins/click-trail-handler/assets/js/' ),
+				Optimizer_Compat::path_prefixes( '/srv/wp-content/plugins/click-trail-handler-main/clicutcl.php' )
+			);
+			$this->assertSame(
+				array( 'plugins/ct/assets/js/', 'plugins/click-trail-handler/assets/js/' ),
+				Optimizer_Compat::path_prefixes( '/srv/wp-content/plugins/ct/clicutcl.php' )
+			);
+		}
+
+		public function test_path_prefixes_do_not_repeat_the_literal_for_the_standard_folder(): void {
+			$this->assertSame(
+				array( 'plugins/click-trail-handler/assets/js/' ),
+				Optimizer_Compat::path_prefixes( '/srv/wp-content/plugins/click-trail-handler/clicutcl.php' )
+			);
+		}
+
+		public function test_path_callbacks_add_paths_for_the_installed_folder_without_duplicates(): void {
+			$this->assertSame( 'click-trail-handler-main', basename( dirname( CLICUTCL_PLUGIN_MAIN_FILE ) ) );
+			foreach ( Optimizer_Compat::exclude_paths( array() ) as $path ) {
+				$this->assertContains( $path, self::PATHS );
+			}
+			$this->assertContains( 'plugins/click-trail-handler-main/assets/js/clicutcl-attribution.js', Optimizer_Compat::exclude_paths( array() ) );
+		}
+
 		public function test_path_callbacks_add_four_paths_without_duplicates(): void {
 			$this->assertSame( self::PATHS, Optimizer_Compat::exclude_paths( array() ) );
 			$this->assertSame( array_merge( array( 'foo.js' ), self::PATHS ), Optimizer_Compat::exclude_paths( array( 'foo.js' ) ) );
@@ -198,7 +233,7 @@ namespace {
 				'rocket_delay_js_exclusions'       => 'exclude_paths',
 				'rocket_exclude_defer_js'          => 'exclude_paths',
 				'rocket_exclude_js'                => 'exclude_paths',
-				'litespeed_optm_js_exc'            => 'exclude_paths',
+				'litespeed_optimize_js_excludes'  => 'exclude_paths',
 				'litespeed_optm_js_defer_exc'      => 'exclude_paths',
 				'litespeed_optm_gm_js_exc'         => 'exclude_paths',
 				'autoptimize_filter_js_exclude'    => 'exclude_csv',
@@ -208,13 +243,14 @@ namespace {
 				'sgo_js_minify_exclude'            => 'exclude_handles',
 				'sgo_javascript_combine_exclude'   => 'exclude_handles',
 				'sgo_js_async_exclude'             => 'exclude_handles',
+				'flying_press_exclude_from_minify:js' => 'exclude_files',
 			);
 			foreach ( $expected as $filter => $method ) {
 				$this->assertSame( array( Optimizer_Compat::class, $method ), $registered[ $filter ][0][0], $filter );
 			}
 
 			$vendor = array_diff_key( $registered, array( 'wp_script_attributes' => 1, 'script_loader_tag' => 1 ) );
-			$this->assertSame( array_keys( $expected ), array_keys( $vendor ), 'no unverified vendor filter (FlyingPress has none)' );
+			$this->assertSame( array_keys( $expected ), array_keys( $vendor ), 'no unverified vendor filter (FlyingPress documents a minify filter only, no delay or defer filter)' );
 		}
 	}
 }

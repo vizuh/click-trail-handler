@@ -32,7 +32,7 @@ Move the script-tag exclusion logic from the Gravity Forms adapter into a core c
 | `ATTRIBUTES` | `array( 'nowprocket' => true, 'data-no-optimize' => '1', 'data-no-defer' => '1', 'data-noptimize' => '1', 'data-cfasync' => 'false' )` |
 | `add_attributes( array $attr )` on `wp_script_attributes` | If `$attr['id']` is `{handle}-js` for one of `HANDLES`, merge `ATTRIBUTES` with `$attr + ATTRIBUTES` (existing keys win). Keyed array means no duplicates and the attributes land on the `src` tag only |
 | `mark_tag( string $tag, string $handle )` on `script_loader_tag` | For `HANDLES` only: for each attribute name absent from the tag (word-boundary match), insert after the `<script` token whose `id="{handle}-js"`; otherwise leave the tag. Covers hosts that print tags without `wp_get_script_tag()` and any plugin that re-applies the filter |
-| Vendor filters | `exclude_paths( array $list )` adds the four `plugins/click-trail-handler/assets/js/clicutcl-*.js` paths (relative, so they also match WP Rocket's minified copies and CDN rewrites); `exclude_files( array $list )` adds the four file names; `exclude_handles( array $list )` adds the four handles; `exclude_csv( string $list )` for Autoptimize. Registered per the table in research.md R3 |
+| Vendor filters | `exclude_paths( array $list )` adds the four `plugins/<install folder>/assets/js/clicutcl-*.js` paths, with the `click-trail-handler` folder as an extra set only when the real folder differs (#166) (relative, so they also match WP Rocket's minified copies and CDN rewrites); `exclude_files( array $list )` adds the four file names; `exclude_handles( array $list )` adds the four handles; `exclude_csv( string $list )` for Autoptimize. Registered per the table in research.md R3 |
 | Consent snippet | `class-consent-mode.php:95` echoes `<script id="clicktrail-consent-mode" nowprocket data-no-defer="1">` |
 
 ### Admin and bootstrap
@@ -53,9 +53,9 @@ same five attributes on clicutcl-consent-bridge-js, clicutcl-consent-js, clicutc
 <script id="clicktrail-consent-mode" nowprocket data-no-defer="1">window.dataLayer=...;gtag('consent','default',...)</script>
 
 rocket_delay_js_exclusions, rocket_exclude_defer_js, rocket_exclude_js,
-litespeed_optm_js_exc, litespeed_optm_js_defer_exc, litespeed_optm_gm_js_exc
+litespeed_optimize_js_excludes, litespeed_optm_js_defer_exc, litespeed_optm_gm_js_exc
     -> list + 4 paths  "plugins/click-trail-handler/assets/js/clicutcl-<name>.js"
-perfmatters_delay_js_exclusions, perfmatters_defer_js_exclusions, perfmatters_minify_js_exclusions
+perfmatters_delay_js_exclusions, perfmatters_defer_js_exclusions, perfmatters_minify_js_exclusions, flying_press_exclude_from_minify:js
     -> list + 4 file names "clicutcl-<name>.js"
 autoptimize_filter_js_exclude -> csv + ",clicutcl-<name>.js" x4
 sgo_js_minify_exclude, sgo_javascript_combine_exclude, sgo_js_async_exclude
