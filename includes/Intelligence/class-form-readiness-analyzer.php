@@ -37,6 +37,7 @@ class Form_Readiness_Analyzer {
 		'wpforms'   => 'matching_fields',
 		'elementor' => 'hook_storage',
 		'ninja'     => 'hook_storage',
+		'sureforms' => 'matching_fields',
 	);
 
 	/**

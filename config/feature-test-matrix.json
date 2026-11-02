@@ -1272,6 +1272,13 @@
           ]
         },
         {
+          "file": "tests/fixtures/form-readiness/v1/sureforms.json",
+          "patterns": [
+            "matching_fields",
+            "provider_record"
+          ]
+        },
+        {
           "file": "tests/unit/FormReadinessAnalyzerTest.php",
           "patterns": [
             "test_each_adapter_has_a_versioned_privacy_safe_fixture",
@@ -1335,6 +1342,14 @@
         },
         {
           "file": "tests/fixtures/form-runtime/v1/ninja.json",
+          "patterns": [
+            "ajax_cache_path",
+            "stored_record_inspection",
+            "runtime_unverified"
+          ]
+        },
+        {
+          "file": "tests/fixtures/form-runtime/v1/sureforms.json",
           "patterns": [
             "ajax_cache_path",
             "stored_record_inspection",
