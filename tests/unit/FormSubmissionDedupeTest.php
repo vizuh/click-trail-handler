@@ -24,6 +24,9 @@ namespace CLICUTCL\Server_Side {
 			 */
 			public static function dispatch_form_submission( $platform, $form_id, $attribution, $context = array() ) {
 				$GLOBALS['clicktrail_test_dispatches'][] = array( $platform, $form_id, $attribution, $context );
+				if ( ! empty( $GLOBALS['clicktrail_test_dispatch_throws'] ) ) {
+					throw new \RuntimeException( 'collector_down' );
+				}
 			}
 		}
 	}
@@ -38,6 +41,7 @@ namespace {
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-dedup-store.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/Core/class-attribution-provider.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/integrations/forms/interface-form-adapter.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-claim-lock.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/integrations/forms/class-abstract-form-adapter.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/integrations/forms/class-fluent-forms-adapter.php';
 
@@ -60,12 +64,47 @@ namespace {
 	/**
 	 * Records `$wpdb->insert()` calls.
 	 */
-	final class ClickTrailDedupeWpdbStub {
-		public $prefix = 'wp_';
-		public $rows   = array();
+	class ClickTrailDedupeWpdbStub {
+		public $prefix  = 'wp_';
+		public $options = 'wp_options';
+		public $rows    = array();
+
+		/**
+		 * Optional hook run inside insert(), to interleave a rival request.
+		 *
+		 * @var callable|null
+		 */
+		public $on_insert = null;
+
+		/**
+		 * Value insert() reports.
+		 *
+		 * @var int|false
+		 */
+		public $insert_result = 1;
 
 		public function insert( $table, $data ) {
+			if ( is_callable( $this->on_insert ) ) {
+				$hook            = $this->on_insert;
+				$this->on_insert = null;
+				$hook();
+			}
+			if ( false === $this->insert_result ) {
+				return false;
+			}
 			$this->rows[] = array( 'table' => $table, 'data' => $data );
+			return 1;
+		}
+
+		/**
+		 * Row-conditional delete: only when name and exact value match.
+		 */
+		public function delete( $table, $where ) {
+			$name = (string) $where['option_name'];
+			if ( ! isset( $GLOBALS['clicktrail_test_options'][ $name ] ) || (string) $GLOBALS['clicktrail_test_options'][ $name ] !== (string) $where['option_value'] ) {
+				return 0;
+			}
+			unset( $GLOBALS['clicktrail_test_options'][ $name ] );
 			return 1;
 		}
 	}
@@ -159,6 +198,10 @@ namespace {
 			$GLOBALS['clicktrail_test_transients']           = array();
 			$GLOBALS['clicktrail_test_dispatches']           = array();
 			$GLOBALS['clicktrail_test_actions']              = array();
+			$GLOBALS['clicktrail_test_options']              = array();
+			$GLOBALS['clicktrail_test_cache']                = array();
+			$GLOBALS['clicktrail_test_ext_object_cache']     = false;
+			unset( $GLOBALS['clicktrail_test_dispatch_throws'] );
 			unset( $GLOBALS['clicktrail_test_wp_salt'] );
 			$GLOBALS['clicktrail_test_consent_required']     = false;
 			$GLOBALS['clicktrail_test_consent_mode_enabled'] = false;
@@ -323,6 +366,196 @@ namespace {
 
 			$adapter->on_submission( 43, $posted, $form );
 			$this->assertCount( 2, $this->db->rows, 'A new Fluent entry is a new submission.' );
+		}
+
+		/**
+		 * Backends for the claim: option row (no object cache) and `wp_cache_add` (persistent cache).
+		 *
+		 * @return array<string,array{bool}>
+		 */
+		public static function claim_backends(): array {
+			return array(
+				'option row'   => array( false ),
+				'object cache' => array( true ),
+			);
+		}
+
+		private function claim_leftovers(): array {
+			return array_merge(
+				array_keys( $GLOBALS['clicktrail_test_options'] ),
+				array_keys( $GLOBALS['clicktrail_test_cache']['clicutcl'] ?? array() )
+			);
+		}
+
+		/**
+		 * @dataProvider claim_backends
+		 */
+		public function test_a_second_call_entering_between_claim_and_mark_logs_and_dispatches_once( bool $ext_cache ): void {
+			$GLOBALS['clicktrail_test_ext_object_cache'] = $ext_cache;
+			$adapter                                     = new ClickTrailDedupeAdapter();
+			$rival                                       = null;
+
+			$this->db->on_insert = function () use ( $adapter, &$rival ) {
+				$rival = $adapter->record( 'gravityforms', 7, $this->attribution(), array(), 501 );
+			};
+
+			$winner = $adapter->record( 'gravityforms', 7, $this->attribution(), array(), 501 );
+
+			$this->assertCount( 1, $this->db->rows, 'Exactly one row.' );
+			$this->assertCount( 1, $GLOBALS['clicktrail_test_dispatches'], 'Exactly one dispatch.' );
+			$this->assertFalse( $winner['duplicate'] );
+			$this->assertTrue( $rival['duplicate'] );
+			$this->assertSame( $winner['event_id'], $rival['event_id'], 'The loser returns the winner\'s deterministic IDs.' );
+			$this->assertSame( $winner['lead_id'], $rival['lead_id'] );
+			$this->assertSame( array(), $this->claim_leftovers(), 'The claim is released once the marker is kept.' );
+			$this->assertTrue( $adapter->record( 'gravityforms', 7, $this->attribution(), array(), 501 )['duplicate'], 'The marker still dedupes later repeats.' );
+			$this->assertCount( 1, $this->db->rows );
+		}
+
+		public function test_the_same_race_on_the_best_effort_key_logs_once(): void {
+			$adapter = new ClickTrailDedupeAdapter();
+
+			$this->db->on_insert = function () use ( $adapter ) {
+				$adapter->record( 'contact-form-7', 12, $this->attribution(), array( 'your-email' => 'jane@example.test' ) );
+			};
+
+			$adapter->record( 'contact-form-7', 12, $this->attribution(), array( 'your-email' => 'jane@example.test' ) );
+
+			$this->assertCount( 1, $this->db->rows );
+			$this->assertCount( 1, $GLOBALS['clicktrail_test_dispatches'] );
+		}
+
+		/**
+		 * @dataProvider claim_backends
+		 */
+		public function test_a_dispatch_exception_releases_the_claim_and_leaves_no_marker( bool $ext_cache ): void {
+			$GLOBALS['clicktrail_test_ext_object_cache'] = $ext_cache;
+			$adapter                                     = new ClickTrailDedupeAdapter();
+
+			$GLOBALS['clicktrail_test_dispatch_throws'] = true;
+			try {
+				$adapter->record( 'gravityforms', 7, $this->attribution(), array(), 501 );
+				$this->fail( 'The dispatch exception must propagate.' );
+			} catch ( \RuntimeException $e ) {
+				$this->assertSame( 'collector_down', $e->getMessage() );
+			}
+
+			$this->assertSame( array(), $this->claim_leftovers(), 'Claim released on failure.' );
+			$this->assertSame( array(), $GLOBALS['clicktrail_test_transients'], 'No dedupe marker after a failed dispatch.' );
+
+			unset( $GLOBALS['clicktrail_test_dispatch_throws'] );
+			$retry = $adapter->record( 'gravityforms', 7, $this->attribution(), array(), 501 );
+
+			$this->assertFalse( $retry['duplicate'], 'The retry proceeds.' );
+			$this->assertCount( 2, $this->db->rows, 'The failed attempt row plus the retry row.' );
+		}
+
+		/**
+		 * @dataProvider claim_backends
+		 */
+		public function test_a_failed_insert_releases_the_claim_and_leaves_no_marker( bool $ext_cache ): void {
+			$GLOBALS['clicktrail_test_ext_object_cache'] = $ext_cache;
+			$this->db->insert_result                     = false;
+			$adapter                                     = new ClickTrailDedupeAdapter();
+
+			$adapter->record( 'gravityforms', 7, $this->attribution(), array(), 501 );
+
+			$this->assertSame( array(), $this->claim_leftovers() );
+			$this->assertSame( array(), $GLOBALS['clicktrail_test_transients'] );
+
+			$this->db->insert_result = 1;
+			$this->assertFalse( $adapter->record( 'gravityforms', 7, $this->attribution(), array(), 501 )['duplicate'] );
+			$this->assertCount( 1, $this->db->rows );
+		}
+
+		/**
+		 * @dataProvider claim_backends
+		 */
+		public function test_a_held_claim_makes_the_caller_a_loser_that_writes_nothing_and_releases_nothing( bool $ext_cache ): void {
+			$GLOBALS['clicktrail_test_ext_object_cache'] = $ext_cache;
+			$adapter                                     = new ClickTrailDedupeAdapter();
+			$key                                         = Abstract_Form_Adapter::SUBMISSION_CLAIM_PREFIX . md5( 'gravityforms|' . $this->fingerprint_for( $adapter ) );
+
+			if ( $ext_cache ) {
+				$GLOBALS['clicktrail_test_cache']['clicutcl'][ $key ] = 'rival';
+			} else {
+				$GLOBALS['clicktrail_test_options'][ $key ] = 'rival|' . time();
+			}
+
+			$result = $adapter->record( 'gravityforms', 7, $this->attribution(), array(), 501 );
+
+			$this->assertTrue( $result['duplicate'] );
+			$this->assertNotEmpty( $result['event_id'] );
+			$this->assertSame( array(), $this->db->rows );
+			$this->assertSame( array(), $GLOBALS['clicktrail_test_dispatches'] );
+			$this->assertSame( array( $key ), $this->claim_leftovers(), 'A loser must not release the winner\'s claim.' );
+		}
+
+		public function test_a_stale_option_claim_is_taken_over(): void {
+			$adapter = new ClickTrailDedupeAdapter();
+			$key     = Abstract_Form_Adapter::SUBMISSION_CLAIM_PREFIX . md5( 'gravityforms|' . $this->fingerprint_for( $adapter ) );
+
+			$GLOBALS['clicktrail_test_options'][ $key ] = 'dead|' . ( time() - 31 );
+
+			$result = $adapter->record( 'gravityforms', 7, $this->attribution(), array(), 501 );
+
+			$this->assertFalse( $result['duplicate'] );
+			$this->assertCount( 1, $this->db->rows );
+			$this->assertSame( array(), $this->claim_leftovers() );
+		}
+
+		public function test_stale_takeover_loses_when_a_rival_changed_the_row_first(): void {
+			$adapter = new ClickTrailDedupeAdapter();
+			$key     = Abstract_Form_Adapter::SUBMISSION_CLAIM_PREFIX . md5( 'gravityforms|' . $this->fingerprint_for( $adapter ) );
+			$fresh   = 'rival|' . time();
+
+			$GLOBALS['clicktrail_test_options'][ $key ] = 'dead|' . ( time() - 31 );
+
+			// A rival re-claims the stale row between our read and our conditional delete.
+			$db     = new class( $key, $fresh ) extends ClickTrailDedupeWpdbStub {
+				private $key;
+				private $fresh;
+
+				public function __construct( $key, $fresh ) {
+					$this->key   = $key;
+					$this->fresh = $fresh;
+				}
+
+				public function delete( $table, $where ) {
+					$GLOBALS['clicktrail_test_options'][ $this->key ] = $this->fresh;
+					return parent::delete( $table, $where );
+				}
+			};
+			$GLOBALS['wpdb'] = $db;
+
+			$result = $adapter->record( 'gravityforms', 7, $this->attribution(), array(), 501 );
+
+			$this->assertTrue( $result['duplicate'], 'The takeover lost, so this call is a loser.' );
+			$this->assertSame( array(), $db->rows );
+			$this->assertSame( array(), $GLOBALS['clicktrail_test_dispatches'] );
+			$this->assertSame( $fresh, $GLOBALS['clicktrail_test_options'][ $key ], 'The rival\'s claim survives.' );
+		}
+
+		public function test_gated_consent_takes_no_claim(): void {
+			$GLOBALS['clicktrail_test_consent_required']     = true;
+			$GLOBALS['clicktrail_test_consent_mode_enabled'] = true;
+
+			( new ClickTrailDedupeAdapter() )->record( 'gravityforms', 7, $this->attribution(), array(), 501 );
+
+			$this->assertSame( array(), $this->claim_leftovers() );
+			$this->assertSame( array(), $this->db->rows );
+		}
+
+		/**
+		 * Dedupe fingerprint the adapter derives for the gravityforms/7/501 submission.
+		 *
+		 * @param ClickTrailDedupeAdapter $adapter Adapter.
+		 * @return string
+		 */
+		private function fingerprint_for( ClickTrailDedupeAdapter $adapter ): string {
+			$method = new \ReflectionMethod( Abstract_Form_Adapter::class, 'submission_fingerprint' );
+			$method->setAccessible( true );
+			return $method->invoke( $adapter, 'gravityforms', 7, $this->attribution(), array(), 501 );
 		}
 	}
 }

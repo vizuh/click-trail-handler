@@ -17,6 +17,7 @@ namespace {
 	require_once dirname( __DIR__, 2 ) . '/includes/server-side/class-consent.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/Core/class-attribution-provider.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/integrations/forms/interface-form-adapter.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-claim-lock.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/integrations/forms/class-abstract-form-adapter.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/integrations/forms/class-gravity-forms-adapter.php';
 

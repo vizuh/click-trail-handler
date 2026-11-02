@@ -87,6 +87,7 @@ namespace {
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-canonicaleventinterfacev2.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-eventv2.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-event-translator-v1-to-v2.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-claim-lock.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/integrations/class-woocommerce.php';
 
 	use CLICUTCL\Integrations\WooCommerce;
