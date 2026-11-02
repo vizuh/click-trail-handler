@@ -49,7 +49,7 @@ Some optimizers decide exclusions from a PHP list, not from tag attributes, or a
 **Acceptance Scenarios**:
 
 1. **Given** WP Rocket, **When** `rocket_delay_js_exclusions`, `rocket_exclude_defer_js` and `rocket_exclude_js` run, **Then** each list gains the four script paths.
-2. **Given** LiteSpeed Cache, **When** `litespeed_optm_js_exc`, `litespeed_optm_js_defer_exc` and `litespeed_optm_gm_js_exc` run, **Then** each list gains the four paths.
+2. **Given** LiteSpeed Cache, **When** `litespeed_optimize_js_excludes`, `litespeed_optm_js_defer_exc` and `litespeed_optm_gm_js_exc` run, **Then** each list gains the four paths.
 3. **Given** Autoptimize, **When** `autoptimize_filter_js_exclude` runs, **Then** the comma-separated string gains the four file names.
 4. **Given** Perfmatters, **When** `perfmatters_delay_js_exclusions`, `perfmatters_defer_js_exclusions` and `perfmatters_minify_js_exclusions` run, **Then** each list gains the four file names.
 5. **Given** SiteGround Speed Optimizer, **When** `sgo_js_minify_exclude`, `sgo_javascript_combine_exclude` and `sgo_js_async_exclude` run, **Then** each list gains the four handles.
@@ -114,5 +114,5 @@ Some optimizers decide exclusions from a PHP list, not from tag attributes, or a
 
 - Vendor behaviour is taken from the documents and source files listed in research.md as read on 2026-10-31; vendors can change parsing without notice.
 - No setting is added; sites that want fewer exclusions use the vendors' own settings.
-- FlyingPress exposes no attribute or filter in its public docs (R3); it stays documentation-only.
+- FlyingPress exposes no attribute and no delay or defer filter in its public docs, only `flying_press_exclude_from_minify:js` (R3, hooked in #165); Delay and Defer stay documentation-only.
 - Rocket Loader honours `data-cfasync="false"` on the tag (Cloudflare docs, R2); no Cloudflare API work is in scope.

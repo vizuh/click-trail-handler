@@ -17,8 +17,9 @@
  * PHP filters: WP Rocket, LiteSpeed Cache, Autoptimize, Perfmatters and
  * SiteGround Speed Optimizer each expose an exclusion list; the callbacks are
  * registered unconditionally and never run when the vendor is absent.
- * FlyingPress documents no attribute or filter; its exclusion field is a
- * documentation-only step. NitroPack stays in `NitroPack_Compat`.
+ * FlyingPress documents a keyword filter for JS minification only; its Delay
+ * and Defer exclusions are settings fields (documentation-only step).
+ * NitroPack stays in `NitroPack_Compat`.
  *
  * @package ClickTrail
  */
@@ -60,11 +61,11 @@ class Optimizer_Compat {
 	);
 
 	/**
-	 * Plugin-relative path prefix; relative so minified copies and CDN rewrites still match.
+	 * Plugin folder of the standard install, kept as an extra path when the real folder differs.
 	 *
 	 * @var string
 	 */
-	private const PATH_PREFIX = 'plugins/click-trail-handler/assets/js/';
+	private const DEFAULT_FOLDER = 'click-trail-handler';
 
 	/**
 	 * Register the tag filters and every verified vendor filter.
@@ -83,7 +84,7 @@ class Optimizer_Compat {
 		add_filter( 'rocket_exclude_js', array( static::class, 'exclude_paths' ) );
 
 		// LiteSpeed Cache: JS excludes, deferred/delayed excludes, guest mode excludes.
-		add_filter( 'litespeed_optm_js_exc', array( static::class, 'exclude_paths' ) );
+		add_filter( 'litespeed_optimize_js_excludes', array( static::class, 'exclude_paths' ) );
 		add_filter( 'litespeed_optm_js_defer_exc', array( static::class, 'exclude_paths' ) );
 		add_filter( 'litespeed_optm_gm_js_exc', array( static::class, 'exclude_paths' ) );
 
@@ -99,6 +100,9 @@ class Optimizer_Compat {
 		add_filter( 'sgo_js_minify_exclude', array( static::class, 'exclude_handles' ) );
 		add_filter( 'sgo_javascript_combine_exclude', array( static::class, 'exclude_handles' ) );
 		add_filter( 'sgo_js_async_exclude', array( static::class, 'exclude_handles' ) );
+
+		// FlyingPress: documents a keyword filter for JS minification only; delay and defer have no filter.
+		add_filter( 'flying_press_exclude_from_minify:js', array( static::class, 'exclude_files' ) );
 	}
 
 	/**
@@ -173,7 +177,32 @@ class Optimizer_Compat {
 	 * @return string[]
 	 */
 	public static function exclude_paths( array $excludes ): array {
-		return self::append( $excludes, self::PATH_PREFIX );
+		foreach ( self::path_prefixes( CLICUTCL_PLUGIN_MAIN_FILE ) as $prefix ) {
+			$excludes = self::append( $excludes, $prefix );
+		}
+
+		return $excludes;
+	}
+
+	/**
+	 * Plugin-relative path prefixes for the real install folder.
+	 *
+	 * Relative so minified copies and CDN rewrites still match. A renamed or
+	 * GitHub-zip folder (`click-trail-handler-main`) yields its own prefix;
+	 * the standard-folder prefix is kept as an extra entry only when it differs.
+	 *
+	 * @param string $main_file Absolute path of the plugin main file.
+	 * @return string[]
+	 */
+	public static function path_prefixes( string $main_file ): array {
+		$folders = array_unique( array( basename( dirname( $main_file ) ), self::DEFAULT_FOLDER ) );
+
+		return array_map(
+			static function ( string $folder ): string {
+				return 'plugins/' . $folder . '/assets/js/';
+			},
+			array_values( $folders )
+		);
 	}
 
 	/**
