@@ -49,8 +49,6 @@ Chromium reports no response for a `keepalive` fetch, so the server-side view co
 recording status and the `Set-Cookie` headers PHP sent). Raw requests are rate limited (60 a minute per IP, scope `cookie_reissue`): wait a
 minute between manual reruns against one pod. Safari itself is not exercised.
 
-## Form adapters (Fluent Forms, WPForms Lite, Contact Form 7)
-
 ## Form adapters (Fluent Forms, WPForms Lite, SureForms, Contact Form 7)
 
 ```sh
