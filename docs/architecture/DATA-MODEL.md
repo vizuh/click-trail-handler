@@ -163,6 +163,7 @@ Written by the form adapters at submission time, after `log_submission()`, when 
 | WPForms | `wpforms()->entry_meta` (only when the entry ID is a real, positive ID) | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
 | Fluent Forms | `fluentform_submission_meta` (`response_id` = entry ID) | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
 | Formidable Forms | `frm_item_metas` row with `field_id` 0 and a serialized array (`FrmEntryMeta::add_entry_meta()`, the shape Formidable uses for its own non-field entry data); not shown in the Formidable entry view | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` (one row; a repeat adds a row with only the missing IDs) | `log_submission()` |
+| SureForms | entry `extras` column (`srfm_entries.extras`, an array SureForms owns; ClickTrail merges its keys into it and never replaces a non-array value; no write when the form stores no entry) | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
 | Ninja Forms | none | none | `clicutcl_events` row and action `clicutcl_form_submission_logged` |
 | Elementor Forms (Pro) | none | none | `clicutcl_events` row and action `clicutcl_form_submission_logged` |
 | Contact Form 7 | none | none | `clicutcl_events` row and action `clicutcl_form_submission_logged` |

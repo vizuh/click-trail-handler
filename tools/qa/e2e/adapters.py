@@ -1,11 +1,11 @@
-"""E2E form-adapter scenarios (CF7, Fluent Forms, WPForms Lite, Formidable Forms). Usage: adapters.py <evidence-dir> [scenario ...]
+"""E2E form-adapter scenarios (CF7, Fluent Forms, WPForms Lite, Formidable Forms, SureForms). Usage: adapters.py <evidence-dir> [scenario ...]
 
 Writes <evidence-dir>/adapters.json (observations only; verify_adapters.py judges them) and the optimizer-facing
 landing HTML. Scenarios: landing, landing_server_only, returning, formidable_utm_content, cache_leak, double_submit, consent, script_attrs, cf7_no_references,
 edge_cache_headers.
 Consent-off scenarios run first; consent and script_attrs switch Consent Mode on.
 """
-import http.client, json, pathlib, re, sys, time, urllib.parse
+import base64, http.client, json, pathlib, re, sys, time, urllib.parse
 from playwright.sync_api import sync_playwright
 from adapters_lib import *
 
@@ -45,6 +45,16 @@ def records(provider, stored):
         for r in stored['formidable']:
             if not r['is_draft']:
                 out.append({'entry': keep(r['fields']), 'meta': {k: v for k, v in r['meta'].items() if k.startswith('ct_')}})
+    elif provider == 'sureforms':
+        mail = [r['body'] for r in stored['provider'] if r['provider'] == 'mail']
+        ids = [[e.get('event_id'), e.get('lead_id')] for e in stored['events'] if e['platform'] == 'sureforms']
+        for r in stored['sureforms']:
+            entry = {sureforms_label(k): v for k, v in (r['form_data'] or {}).items() if sureforms_label(k)}
+            extras = r['extras'] if isinstance(r['extras'], dict) else {}
+            out.append({
+                'entry': {k: v for k, v in entry.items() if v != '' or k[3:] in CT_FIELDS},
+                'meta': dict({k: v for k, v in extras.items() if k.startswith('ct_')}, entry_id=r['id'], extras_raw=r['extras_raw'], mail_bodies=mail, lead_ids=ids),
+            })
     else:
         for r in stored['fluent']:
             out.append({'entry': keep(r['response']), 'meta': {k: v for k, v in r['meta'].items() if k.startswith('ct_')}})
@@ -124,6 +134,8 @@ def render_ct_values(html):
         klass = re.search(r'\bclass=["\']([^"\']*)["\']', tag)
         ident = re.search(r'\bid=["\']field_(ct_[^"\']*)["\']', tag)  # Formidable: item_meta[<id>] name, field key in the id
         label = name.group(1) if name and name.group(1).startswith('ct_') else (ident.group(1) if ident else None)
+        if not label and name and sureforms_label(name.group(1)):
+            label = sureforms_label(name.group(1))
         if not label and klass:
             label = next((c for c in klass.group(1).split() if c.startswith('ct_')), None)
         if label and label != 'ct_fill_source' and value and value.group(1):
@@ -180,6 +192,9 @@ def stale_submit(browser, provider, html, tag, cookies=None, prime_b=True, plant
                 selector = '[name="wpforms[fields][%s]"]' % ids[key]
             elif provider == 'formidable':
                 selector = '#field_ct_%s' % key
+            elif provider == 'sureforms':
+                # SureForms names carry the base64 label: `-lbl-<base64("ct_<key>")>-`.
+                selector = 'form input[name*="-lbl-%s-"]' % base64.b64encode(('ct_' + key).encode()).decode().rstrip('=')
             else:
                 selector = 'form input[name="ct_%s"]' % key
             page.evaluate("([sel, v]) => { const el = document.querySelector(sel); if (el) el.value = v; }", [selector, value])
@@ -201,7 +216,7 @@ def cache_leak(browser):
     consent:  consent required and not granted (no cookie, denied cookie), stale snapshot posted: everything blank.
     """
     out = {}
-    for provider in ('cf7', 'fluent', 'wpforms_text', 'formidable'):
+    for provider in ('cf7', 'fluent', 'wpforms_text', 'formidable', 'sureforms'):
         path = PROVIDERS[provider]['path']
         result = {}
         set_render_values(False)

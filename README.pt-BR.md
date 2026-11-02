@@ -68,7 +68,7 @@ Ter código para uma integração não prova que ela funciona em produção. O s
 
 **Integrações**
 
-- **Formulários**: Contact Form 7, Elementor Forms (Pro), Fluent Forms, Formidable Forms, Gravity Forms, Ninja Forms, WPForms
+- **Formulários**: Contact Form 7, Elementor Forms (Pro), Fluent Forms, Formidable Forms, Gravity Forms, Ninja Forms, SureForms, WPForms
 - **Comércio**: WooCommerce
 - **Fontes de consentimento**: banner do ClickTrail, Cookiebot, OneTrust, Complianz, GTM, personalizada
 - **Webhooks**: Calendly, HubSpot, Typeform

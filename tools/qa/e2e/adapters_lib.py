@@ -1,5 +1,5 @@
 """Shared helpers for the form-adapter E2E scenarios (adapters.py): wp-cli bridge, storage deltas, form drivers."""
-import json, pathlib, subprocess, time
+import base64, json, pathlib, re, subprocess, time
 
 HERE = pathlib.Path(__file__).resolve().parent
 BASE = 'http://127.0.0.1:8088'
@@ -13,6 +13,7 @@ PROVIDERS = {
     'wpforms_hidden': {'path': '/form-wpforms/', 'platform': 'wpforms'},
     'wpforms_text': {'path': '/form-wpforms-text/', 'platform': 'wpforms'},
     'formidable': {'path': '/form-formidable/', 'platform': 'formidable'},
+    'sureforms': {'path': '/form-sureforms/', 'platform': 'sureforms'},
 }
 CT_FIELDS = ('gclid', 'fbclid', 'ft_source', 'lt_source', 'lt_medium', 'attribution_selected_click_id')
 
@@ -45,6 +46,7 @@ def snapshot():
     )
     ids['provider'] = len(pod_lines('ct-provider.jsonl'))
     ids['capture'] = len(pod_lines('ct-capture.jsonl'))
+    ids['sureforms'] = sureforms_max_id()
     return ids
 
 
@@ -65,7 +67,40 @@ def delta(snap):
     )
     stored['provider'] = pod_lines('ct-provider.jsonl')[snap['provider']:]
     stored['capture'] = [e for e in pod_lines('ct-capture.jsonl')[snap['capture']:]]
+    stored['sureforms'] = sureforms_entries(snap['sureforms'])
     return stored
+
+
+def sureforms_max_id():
+    """Highest SureForms entry ID (0 when the table does not exist)."""
+    return wp_json(
+        "global $wpdb; $t = $wpdb->prefix . 'srfm_entries'; "
+        "return $wpdb->get_var( \"SHOW TABLES LIKE '$t'\" ) ? (int) $wpdb->get_var( \"SELECT IFNULL(MAX(ID),0) FROM $t\" ) : 0;"
+    )
+
+
+def sureforms_entries(after_id):
+    """SureForms entries stored after `after_id`: form data, `extras` and submission info as SureForms keeps them."""
+    return wp_json(
+        "global $wpdb; $t = $wpdb->prefix . 'srfm_entries'; "
+        "if ( ! $wpdb->get_var( \"SHOW TABLES LIKE '$t'\" ) ) { return array(); } "
+        "$out = array(); foreach ( $wpdb->get_results( $wpdb->prepare( \"SELECT ID, form_id, form_data, extras FROM $t WHERE ID > %%d ORDER BY ID\", %d ) ) as $r ) { "
+        "$out[] = array( 'id' => (int) $r->ID, 'form_id' => (int) $r->form_id, 'form_data' => json_decode( $r->form_data, true ), 'extras' => json_decode( $r->extras, true ), 'extras_raw' => $r->extras ); } "
+        "return $out;" % int(after_id)
+    )
+
+
+def sureforms_label(name):
+    """The `ct_*` label SureForms encodes in a field key (`srfm-<type>-<id>-lbl-<base64 label>-<slug>`), else ''."""
+    m = re.search(r'-lbl-([A-Za-z0-9+/]*)-', name or '')
+    if not m:
+        return ''
+    raw = m.group(1)
+    try:
+        label = base64.b64decode(raw + '=' * (-len(raw) % 4)).decode('utf-8', 'replace')
+    except Exception:
+        return ''
+    return label if label.startswith('ct_') else ''
 
 
 def new_context(browser):
@@ -76,7 +111,7 @@ def new_context(browser):
 
 
 def ct_inputs(page):
-    """Every ClickTrail-marked input in the first form: by name (`ct_*`) or by a `ct_*` class on the field wrapper."""
+    """Every ClickTrail-marked input in the first form: by name (`ct_*`), by a `ct_*` class on the field wrapper, or by a SureForms key whose encoded label is `ct_*`."""
     return page.evaluate(
         """() => {
             const out = {};
@@ -84,6 +119,8 @@ def ct_inputs(page):
                 let label = (el.name || '').startsWith('ct_') ? el.name : null;
                 // Formidable names inputs item_meta[<field id>]; the field key is in the input id (field_<key>).
                 if (!label && (el.id || '').startsWith('field_ct_')) label = el.id.slice('field_'.length);
+                const sf = !label && /-lbl-([A-Za-z0-9+/]*)-/.exec(el.name || '');
+                if (sf) { try { const t = atob(sf[1] + '='.repeat((4 - sf[1].length % 4) % 4)); if (t.startsWith('ct_')) label = t; } catch (e) {} }
                 if (!label) {
                     const wrap = el.closest('[class*="ct_"]');
                     const tok = wrap && [...wrap.classList].find((c) => c.startsWith('ct_'));
@@ -110,6 +147,9 @@ def fill(page, provider, tag):
     elif provider == 'formidable':
         page.fill('#field_e2e_name', 'E2E ' + tag)
         page.fill('#field_e2e_email', email)
+    elif provider == 'sureforms':
+        page.fill('input[name^="srfm-input-"][name$="-name"]', 'E2E ' + tag)
+        page.fill('input[name^="srfm-email-"]', email)
     else:
         page.fill('input[name="wpforms[fields][1]"]', 'E2E ' + tag)
         # WPForms' mail-check widget blocks unknown TLDs such as .test with a "Did you mean" prompt.
@@ -122,6 +162,7 @@ def submit_button(provider):
         'cf7': 'input[type="submit"].wpcf7-submit',
         'fluent': 'button.ff-btn-submit',
         'formidable': '.frm_button_submit',
+        'sureforms': 'button.srfm-submit-button',
     }.get(provider, 'button.wpforms-submit')
 
 
@@ -136,6 +177,12 @@ def wait_done(page, provider, timeout=25000):
     if provider == 'formidable':
         page.wait_for_selector('.frm_message, .frm_error_style, .frm_error', timeout=timeout)
         return 'sent' if page.locator('.frm_message').count() else 'failed: ' + page.inner_text('form, .frm_error_style')[:200]
+    if provider == 'sureforms':
+        try:
+            page.wait_for_selector('.srfm-success-box', timeout=timeout)
+            return 'sent'
+        except Exception:
+            return 'failed: ' + page.inner_text('form, .srfm-form-container')[:200]
     page.wait_for_selector('.wpforms-confirmation-container-full, .wpforms-confirmation-container, .wpforms-error-container, .wpforms-has-error', timeout=timeout)
     return 'sent' if page.locator('.wpforms-confirmation-container-full, .wpforms-confirmation-container').count() else 'failed'
 

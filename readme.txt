@@ -73,7 +73,7 @@ Having code for an integration is not proof that it works in production. Current
 
 = Integrations =
 
-* **Forms**: Contact Form 7, Elementor Forms (Pro), Fluent Forms, Formidable Forms, Gravity Forms, Ninja Forms, WPForms
+* **Forms**: Contact Form 7, Elementor Forms (Pro), Fluent Forms, Formidable Forms, Gravity Forms, Ninja Forms, SureForms, WPForms
 * **Commerce**: WooCommerce
 * **Consent sources**: ClickTrail banner, Cookiebot, OneTrust, Complianz, GTM, custom
 * **Webhooks**: Calendly, HubSpot, Typeform
