@@ -58,6 +58,29 @@ add_action(
 	4
 );
 
+// MetForm: the raw posted `ct_*` data before ClickTrail's refresh on `metform_filter_before_store_form_data`, i.e. what the browser sent.
+// The entry itself is a metform-entry post, read from the database.
+add_action(
+	'metform_before_store_form_data',
+	static function ( $form_id, $form_data ) {
+		$posted = array();
+		foreach ( (array) $form_data as $name => $value ) {
+			if ( 0 === strpos( (string) $name, 'ct_' ) ) {
+				$posted[ $name ] = $value;
+			}
+		}
+		ct_e2e_provider_log(
+			array(
+				'provider' => 'metform',
+				'form_id'  => (int) $form_id,
+				'posted'   => $posted,
+			)
+		);
+	},
+	99,
+	2
+);
+
 // CF7 mail body as sent (wp_mail is short-circuited by ct-e2e-capture.php at a later priority).
 add_filter(
 	'pre_wp_mail',

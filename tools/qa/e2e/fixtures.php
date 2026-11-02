@@ -119,6 +119,63 @@ foreach ( array( 'hidden' => 'hidden', 'text' => 'text' ) as $variant => $field_
 	$wpforms_ids[ $variant ] = (int) $form_id;
 }
 
+// --- MetForm: one form per builder, same hidden `ct_<key>` inputs and a stored entry plus an admin email that lists every field.
+// Block builder (MetForm 4.1.8+, no Elementor needed): `hiddenfield` blocks, Static value, empty.
+// Elementor builder: the Submit Button widget's Hidden Input list, empty Input Value.
+$mf_settings = array(
+	'form_title'                 => 'E2E MetForm',
+	'store_entries'              => 1,
+	'success_message'            => 'E2E thanks',
+	'hide_form_after_submission' => '',
+	'enable_admin_notification'  => 1,
+	'admin_email_to'             => 'admin@example.test',
+	'admin_email_subject'        => 'E2E MetForm',
+	'admin_email_from'           => 'a@example.test',
+	'admin_email_reply_to'       => 'a@example.test',
+	'admin_email_body'           => 'E2E MetForm submission',
+);
+
+$mf_block_id = wp_insert_post( array( 'post_type' => 'metform-form', 'post_status' => 'publish', 'post_title' => 'E2E MetForm block builder' ) );
+$mf_elements = array(
+	array( 'id' => 'e2e-name', 'type' => 'input', 'props' => array( 'name' => 'mf-name', 'label' => 'Name' ) ),
+	array( 'id' => 'e2e-email', 'type' => 'email', 'props' => array( 'name' => 'mf-email', 'label' => 'Email', 'required' => true ) ),
+);
+foreach ( $ct_keys as $key ) {
+	$mf_elements[] = array( 'id' => 'e2e-ct-' . $key, 'type' => 'hiddenfield', 'props' => array( 'name' => 'ct_' . $key, 'valueSource' => 'static', 'value' => '' ) );
+}
+$mf_elements[] = array( 'id' => 'e2e-submit', 'type' => 'button', 'props' => array( 'text' => 'Submit', 'buttonType' => 'submit' ) );
+update_post_meta( $mf_block_id, '_metform_editor_mode', 'metform' );
+update_post_meta( $mf_block_id, '_metform_builder_document', array( 'version' => '1.0.0', 'elements' => $mf_elements ) );
+update_post_meta( $mf_block_id, 'metform_form__form_setting', $mf_settings );
+
+$mf_el_id    = wp_insert_post( array( 'post_type' => 'metform-form', 'post_status' => 'publish', 'post_title' => 'E2E MetForm Elementor builder' ) );
+$mf_hidden   = array();
+foreach ( $ct_keys as $i => $key ) {
+	$mf_hidden[] = array( '_id' => 'e2ehid' . $i, 'mf_hidden_input_name' => 'ct_' . $key, 'mf_hidden_input_value' => '', 'mf_hidden_input_class' => '' );
+}
+$mf_el_data = array(
+	array(
+		'id'       => 'e2esec1',
+		'elType'   => 'section',
+		'settings' => array(),
+		'elements' => array(
+			array(
+				'id'       => 'e2ecol1',
+				'elType'   => 'column',
+				'settings' => array( '_column_size' => 100 ),
+				'elements' => array(
+					array( 'id' => 'e2ew1', 'elType' => 'widget', 'widgetType' => 'mf-text', 'settings' => array( 'mf_input_name' => 'mf-name', 'mf_input_label' => 'Name' ), 'elements' => array() ),
+					array( 'id' => 'e2ew2', 'elType' => 'widget', 'widgetType' => 'mf-email', 'settings' => array( 'mf_input_name' => 'mf-email', 'mf_input_label' => 'Email', 'mf_input_required' => 'yes' ), 'elements' => array() ),
+					array( 'id' => 'e2ew3', 'elType' => 'widget', 'widgetType' => 'mf-button', 'settings' => array( 'mf_btn_text' => 'Submit', 'mf_hidden_input' => $mf_hidden ), 'elements' => array() ),
+				),
+			),
+		),
+	),
+);
+update_post_meta( $mf_el_id, '_elementor_edit_mode', 'builder' );
+update_post_meta( $mf_el_id, '_elementor_data', wp_slash( wp_json_encode( $mf_el_data ) ) );
+update_post_meta( $mf_el_id, 'metform_form__form_setting', $mf_settings );
+
 // --- SureForms (free): name, email, one Text field per ClickTrail key whose label is `ct_<key>` (free SureForms has no
 // Hidden field; the same label rule covers the Pro Hidden field). The form is a block post; formId is set after the insert.
 $sureforms_id = 0;
@@ -180,6 +237,8 @@ $pages  = array(
 	'form-fluent'  => '[fluentform id="' . $fluent_id . '"]',
 	'form-wpforms'      => '[wpforms id="' . $wpforms_ids['hidden'] . '"]',
 	'form-wpforms-text' => '[wpforms id="' . $wpforms_ids['text'] . '"]',
+	'form-metform'      => '[metform form_id="' . $mf_block_id . '"]',
+	'form-metform-el'   => '[metform form_id="' . $mf_el_id . '"]',
 );
 if ( $sureforms_id ) {
 	$pages['form-sureforms'] = '[sureforms id="' . $sureforms_id . '"]';
@@ -187,4 +246,4 @@ if ( $sureforms_id ) {
 foreach ( $pages as $slug => $content ) {
 	wp_insert_post( array( 'post_type' => 'page', 'post_status' => 'publish', 'post_title' => $slug, 'post_name' => $slug, 'post_content' => $content ) );
 }
-echo wp_json_encode( array( 'cf7' => $cf7_id, 'cf7_plain' => $cf7_plain_id, 'fluent' => $fluent_id, 'wpforms_hidden' => $wpforms_ids['hidden'], 'wpforms_text' => $wpforms_ids['text'], 'sureforms' => $sureforms_id ) ) . "\n";
+echo wp_json_encode( array( 'cf7' => $cf7_id, 'cf7_plain' => $cf7_plain_id, 'fluent' => $fluent_id, 'wpforms_hidden' => $wpforms_ids['hidden'], 'wpforms_text' => $wpforms_ids['text'], 'sureforms' => $sureforms_id, 'metform_block' => $mf_block_id, 'metform_elementor' => $mf_el_id ) ) . "\n";

@@ -33,10 +33,10 @@ Serves the one WordPress as `www.example.test` and `example.test` (`mu/ct-e2e-dy
 reads the CF7 hidden `ct_gclid` and submits; the script runs it once with `cookie_scope=registrable` (cookie
 `domain=.example.test`, apex field `GA`, stored lead carries it) and once with `host` (cookie host-only, apex field empty).
 
-## Form adapters (Fluent Forms, WPForms Lite, SureForms, Contact Form 7)
+## Form adapters (Fluent Forms, WPForms Lite, SureForms, Contact Form 7, MetForm)
 
 ```sh
-tools/qa/e2e/adapters-ci.sh [plugin-root]   # same pod + Fluent Forms 6.2.16 + WPForms Lite 2.0.3.1 + SureForms 2.13.0, WP_DEBUG_LOG on
+tools/qa/e2e/adapters-ci.sh [plugin-root]   # same pod + Fluent Forms 6.2.16 + WPForms Lite 2.0.3.1 + SureForms 2.13.0 + Elementor 4.3.5 + MetForm 4.3.4, WP_DEBUG_LOG on
 ```
 
 `adapters-setup.sh` extends `setup.sh` (pinned plugins, `fixtures.php` forms and one page per provider,
@@ -47,6 +47,11 @@ the cache leak of #152 or the double submit of #140). Run a subset with
 `python3 tools/qa/e2e/adapters.py <out-dir> landing returning` against a pod from `adapters-setup.sh`.
 `mu/ct-e2e-render-toggle.php` (option `ct_e2e_render_values`) forces the #152 render filter on so the cache scenario can build
 the stale-snapshot vector and prove the submit layer blanks it.
+MetForm is driven in both builders (`metform` = the standalone block builder, `metform_el` = the Elementor builder), each with
+six `ct_<key>` hidden inputs. Its entries are `metform-entry` posts, so `adapters_lib.delta()` reads them (form data plus the
+`ct_*` post meta ClickTrail writes) straight from the database, and the observer in `mu/ct-e2e-provider-capture.php` logs the
+raw posted `ct_*` data on `metform_before_store_form_data`, i.e. what the browser sent before the refresh. The Elementor builder
+posts its Preact state, not the DOM, so the cache scenario plants visitor A's values in the served template for it.
 Results of a run: `EVIDENCE-<date>.md` (`EVIDENCE-2026-11-02-sureforms.md` for SureForms).
 
 Notes:
