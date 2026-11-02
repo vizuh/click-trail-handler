@@ -453,6 +453,35 @@ const tests = {
     assert.strictEqual(link.getAttribute('href'), original);
   },
 
+  async 'a tampered stored original is never written back to href on click, hover or withdrawal'() {
+    const authored = 'https://wa.me/351912345678?text=Hi%20Ref%3A%20CT-ABCDEFGH';
+    const link = anchor(authored);
+    link.setAttribute('data-clicutcl-href', 'javascript:alert(1)');
+    link.setAttribute('data-clicutcl-decorated', authored);
+    link.setAttribute('data-clicutcl-wa-ref', 'CT-ABCDEFGH');
+    const page = boot({ elements: [link] });
+    page.hover(link);
+    page.click(link);
+    await flush();
+    page.click(link);
+    assert.ok(!/^javascript:/i.test(link.getAttribute('href')), 'click never writes javascript:');
+    assert.strictEqual(link.getAttribute('href'), authored);
+
+    link.setAttribute('data-clicutcl-href', 'javascript:alert(1)');
+    link.setAttribute('data-clicutcl-decorated', authored);
+    page.withdraw();
+    assert.ok(!/^javascript:/i.test(link.getAttribute('href')), 'withdrawal never writes javascript:');
+
+    // The same for a link that is not WhatsApp at all, and for http: and data: originals.
+    ['http://wa.me/351912345678', 'data:text/html,x', 'https://evil.example/wa.me'].forEach((bad) => {
+      const other = anchor(bad);
+      const p2 = boot({ elements: [other] });
+      p2.hover(other);
+      p2.click(other);
+      assert.strictEqual(other.getAttribute('href'), bad, 'untouched: ' + bad);
+    });
+  },
+
   async 'the starter kit and the plugin agree on the event name'() {
     const kit = JSON.parse(fs.readFileSync(path.join(ROOT, 'assets/gtm-starter-kit.json'), 'utf8')).containerVersion;
     const trigger = kit.trigger.find((t) => t.name === 'LC - contact_whatsapp_start');

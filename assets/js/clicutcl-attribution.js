@@ -1741,7 +1741,7 @@
     const WA_REF_LENGTH = 8; // 40 bits
 
     function isWhatsAppUrl(url) {
-        return !!url && (url.protocol === 'whatsapp:' || WHATSAPP_HOSTS.indexOf(url.hostname) !== -1);
+        return !!url && (url.protocol === 'whatsapp:' || (url.protocol === 'https:' && WHATSAPP_HOSTS.indexOf(url.hostname) !== -1));
     }
 
     function pageHasWhatsAppLink() {
@@ -2436,7 +2436,11 @@
                     return;
                 }
 
-                if (!isWhatsAppUrl(url)) return;
+                // The href (or the stored original it is restored from) comes from the DOM: re-validate
+                // the parsed URL here, at the sinks below, and only ever write url.toString() of it.
+                // Only https and whatsapp: links, and for https only the WhatsApp hosts.
+                if (url.protocol !== 'https:' && url.protocol !== 'whatsapp:') return;
+                if (url.protocol === 'https:' && WHATSAPP_HOSTS.indexOf(url.hostname) === -1) return;
 
                 // Pointer or focus on the link only warms the code up, so the click finds it ready.
                 if (evt.type === 'mouseover' || evt.type === 'focusin' || evt.type === 'pointerdown') {
@@ -2449,7 +2453,7 @@
                     // Never send a reference the server has not confirmed for this attribution.
                     WhatsAppRef.ensure();
                     if (a.hasAttribute('data-clicutcl-wa-ref')) {
-                        a.setAttribute('href', href);
+                        a.setAttribute('href', url.toString());
                         a.removeAttribute('data-clicutcl-href');
                         a.removeAttribute('data-clicutcl-decorated');
                         a.removeAttribute('data-clicutcl-wa-ref');
