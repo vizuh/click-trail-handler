@@ -21,6 +21,18 @@ Expected for 1.10.5: stamp `ct1;fbclid=FB`; stored and dispatched lead `lt_campa
 `attribution_selected_click_id=FB`; dispatched `book_appointment` with `fbclid=FB` and no `gclid`; with both
 cookies present the canonical one wins in the browser, the rendered field and the stored lead.
 
+## Cookie scope across hosts (#154)
+
+```sh
+flock /tmp/ct-e2e.lock tools/qa/e2e/cookie-scope.sh [plugin-root]   # own pod run, tears down; exit 1 on any mismatch
+```
+
+Serves the one WordPress as `www.example.test` and `example.test` (`mu/ct-e2e-dynamic-host.php` answers
+`home`/`siteurl` with the request Host while option `ct_e2e_dynamic_host` is set; Chromium maps both names to
+127.0.0.1 with `--host-resolver-rules`). `cookie_scope.py` lands on `www` with `?gclid=GA`, opens `example.test`,
+reads the CF7 hidden `ct_gclid` and submits; the script runs it once with `cookie_scope=registrable` (cookie
+`domain=.example.test`, apex field `GA`, stored lead carries it) and once with `host` (cookie host-only, apex field empty).
+
 ## Form adapters (Fluent Forms, WPForms Lite, Contact Form 7)
 
 ```sh

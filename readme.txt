@@ -99,6 +99,7 @@ ClickTrail can be rolled out in layers. A basic attribution setup for forms or W
 4. In **Capture**:
    * keep attribution enabled
    * choose a retention window that matches your sales cycle
+   * set Cookie scope to Registrable domain if visitors move between www, the bare domain and other subdomains of your site (host only keeps cookies on one exact host)
    * enable cross-domain continuity only if visitors move between approved domains or subdomains
 5. In **Forms**:
    * enable only the integrations you actually use

@@ -637,6 +637,15 @@
                     renderToggle('capture.enabled', __('Enable attribution tracking', 'click-trail-handler'), __('Capture campaign and referral data for each visit.', 'click-trail-handler')),
                     renderText('capture.retention_days', __('Attribution retention (days)', 'click-trail-handler'), __('How long attribution data should be stored.', 'click-trail-handler'), {
                         type: 'number'
+                    }),
+                    renderSelect('capture.cookie_scope', __('Cookie scope', 'click-trail-handler'), __('Host only keeps cookies on the exact host. Registrable domain shares them with every subdomain of your site, including staging and other subdomains. Custom lets you choose a parent domain.', 'click-trail-handler'), {}, [
+                        { label: __('Host only (this exact host)', 'click-trail-handler'), value: 'host' },
+                        { label: __('Registrable domain (all subdomains)', 'click-trail-handler'), value: 'registrable' },
+                        { label: __('Custom parent domain', 'click-trail-handler'), value: 'custom' }
+                    ]),
+                    renderText('capture.cookie_custom_domain', __('Custom cookie domain', 'click-trail-handler'), __('A parent domain of this site, for example example.com. Ignored unless Cookie scope is Custom. Public suffixes and unrelated domains are rejected and cookies stay host-only.', 'click-trail-handler'), {
+                        disabled: getIn(settings, 'capture.cookie_scope', 'host') !== 'custom',
+                        placeholder: 'example.com'
                     })
                 ]),
                 el(AppCard, {

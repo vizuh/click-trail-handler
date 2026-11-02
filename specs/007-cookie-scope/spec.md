@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-31
 
-**Status**: Draft, not started. Every claim below is source-present / runtime-unverified: the current behaviour was read from `main` @ `ef6a20b` (1.11.0), nothing has been run in a browser yet.
+**Status**: Implemented (PHPUnit `CookieScopeSettingsTest` and Node VM `tools/qa/cookie-scope.test.js`), SC-004 passed once in the real-WordPress harness (`tools/qa/e2e/cookie-scope.sh`, WordPress php8.3 + Contact Form 7 6.2.2, Chromium via Playwright, `www.example.test` and `example.test` over HTTP, no `Secure`): registrable shares the click to the apex form and stored lead, host does not. Not run: https, Safari/Firefox, a real DNS two-host site, the migration in a browser. The text below keeps the pre-implementation reading of `main` @ `ef6a20b` (1.11.0).
 
 **Input**: GitHub issue [#154](https://github.com/vizuh/click-trail-handler/issues/154). Every cookie ClickTrail writes from JavaScript is host-only, so attribution captured on `www.example.com` is invisible on `example.com` or `lp.example.com`. Related: [#141](https://github.com/vizuh/click-trail-handler/issues/141) (server re-issue must use the same scope), competitor review in [../004-submit-time-refresh-parity/research.md](../004-submit-time-refresh-parity/research.md).
 

@@ -215,8 +215,10 @@ class Plugin {
 			? \CLICUTCL\Tracking\Auth::mint_client_token()
 			: '';
 
-		$consent_config     = $this->build_consent_bridge_config( $options, $debug_active );
-		$should_load_events = ! is_admin() && ! is_feed() && ! is_robots() && ! is_trackback() && $browser_events_enabled;
+		$cookie_scope                             = \CLICUTCL\Core\Cookie_Scope::resolve_for_site( $options );
+		$consent_config                           = $this->build_consent_bridge_config( $options, $debug_active );
+		$consent_config['bridge']['cookieDomain'] = $cookie_scope['domain'];
+		$should_load_events                       = ! is_admin() && ! is_feed() && ! is_robots() && ! is_trackback() && $browser_events_enabled;
 
 		/**
 		 * Filter whether the events tracking script should be loaded.
@@ -254,7 +256,7 @@ class Plugin {
 			wp_localize_script(
 				'clicutcl-attribution-js',
 				'clicutcl_config',
-				$this->build_attribution_config( $options, $consent_config, $cookie_days, $debug_active, $events_batch_url, $events_token, $enable_cross_domain_token )
+				$this->build_attribution_config( $options, $consent_config, $cookie_days, $debug_active, $events_batch_url, $events_token, $enable_cross_domain_token, $cookie_scope )
 			);
 		}
 
@@ -288,6 +290,7 @@ class Plugin {
 					'rejectEssential' => __( 'Reject Non-Essential', 'click-trail-handler' ),
 					'privacyUrl'      => get_privacy_policy_url() ? get_privacy_policy_url() : '#',
 					'cookieName'      => $consent_config['cookie_name'],
+					'cookieDomain'    => $cookie_scope['domain'],
 				)
 			);
 		}
@@ -314,6 +317,7 @@ class Plugin {
 					'siteId'           => function_exists( 'get_current_blog_id' ) ? (string) get_current_blog_id() : '',
 					'transportEnabled' => (bool) $events_transport_enabled,
 					'debug'            => ! empty( $debug_active ),
+					'cookieDomain'     => $cookie_scope['domain'],
 					'eventsBatchUrl'   => esc_url_raw( $events_batch_url ),
 					'eventsToken'      => $events_token,
 					'wooCommerce'      => $this->build_woocommerce_events_config(),
@@ -396,11 +400,14 @@ class Plugin {
 	 * @param string $events_batch_url           Batch events REST URL.
 	 * @param string $events_token               Client auth token.
 	 * @param bool   $enable_cross_domain_token  Whether cross-domain token is enabled.
+	 * @param array  $cookie_scope               Cookie_Scope::resolve() result.
 	 * @return array
 	 */
-	private function build_attribution_config( array $options, array $consent_config, int $cookie_days, bool $debug_active, string $events_batch_url, string $events_token, bool $enable_cross_domain_token ): array {
+	private function build_attribution_config( array $options, array $consent_config, int $cookie_days, bool $debug_active, string $events_batch_url, string $events_token, bool $enable_cross_domain_token, array $cookie_scope ): array {
 		return array(
 			'cookieName'                => 'attribution',
+			'cookieDomain'              => $cookie_scope['domain'],
+			'cookieScopeReason'         => $cookie_scope['reason'],
 			'siteId'                    => function_exists( 'get_current_blog_id' ) ? (string) get_current_blog_id() : '',
 			'cookieDays'                => $cookie_days,
 			'consentCookieName'         => $consent_config['cookie_name'],

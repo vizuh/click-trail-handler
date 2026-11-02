@@ -104,17 +104,18 @@ when they write a key that is missing from this table. The built-in banner's `ct
 (`clicutcl-consent.js`) is listed manually.
 
 <!-- storage-inventory:start -->
-| Key | Medium | Written by | Purpose | Lifetime | Before consent | CMP category |
-|---|---|---|---|---|---|---|
-| `attribution` | cookie, local, session | `clicutcl-attribution.js` | First/last-touch UTMs, click IDs, landing page, referrer (session copy only when the cookie is too large) | cookie duration setting (default 90 days) | no | Marketing |
-| `ct_session` | cookie, local | `clicutcl-attribution.js` | Session number and timing | 1 day | no | Statistics |
-| `ct_session_id` | cookie, session | `clicutcl-attribution.js`, `clicutcl-events.js` | Pseudonymous session ID | 1 day / tab | no | Statistics |
-| `ct_visitor_id` | cookie, local | `clicutcl-attribution.js`, `clicutcl-events.js` | Pseudonymous visitor ID | 365 days | no | Marketing |
-| `ct_pending_v1` | session | `clicutcl-attribution.js` | Landing-page signals promoted on the next page (only when consent is not required or already granted) | tab | no | Marketing |
-| `ct_thankyou_lead_<path>` | session | `clicutcl-events.js` | Deduplicates a thank-you-page lead | tab | no | Statistics |
-| `ct_consent_state` | cookie | `clicutcl-consent-bridge.js` | Consent decision read by the server | 365 days | decision only | Necessary |
-| `ct_consent_v1` | local | `clicutcl-consent-bridge.js` | Consent decision shared across tabs | until changed | decision only | Necessary |
-| `ct_consent` | cookie | `clicutcl-consent.js` | Built-in banner decision (plugin source only) | 365 days | decision only | Necessary |
+| Key | Medium | Written by | Purpose | Lifetime | Before consent | CMP category | Scope |
+|---|---|---|---|---|---|---|---|
+| `attribution` | cookie, local, session | `clicutcl-attribution.js` | First/last-touch UTMs, click IDs, landing page, referrer (session copy only when the cookie is too large) | cookie duration setting (default 90 days) | no | Marketing | per `cookie_scope` (host-only or `domain=<cookieDomain>`) |
+| `ct_session` | cookie, local | `clicutcl-attribution.js` | Session number and timing | 1 day | no | Statistics | per `cookie_scope` (host-only or `domain=<cookieDomain>`) |
+| `ct_session_id` | cookie, session | `clicutcl-attribution.js`, `clicutcl-events.js` | Pseudonymous session ID | 1 day / tab | no | Statistics | per `cookie_scope` (host-only or `domain=<cookieDomain>`) |
+| `ct_visitor_id` | cookie, local | `clicutcl-attribution.js`, `clicutcl-events.js` | Pseudonymous visitor ID | 365 days | no | Marketing | per `cookie_scope` (host-only or `domain=<cookieDomain>`) |
+| `ct_pending_v1` | session | `clicutcl-attribution.js` | Landing-page signals promoted on the next page (only when consent is not required or already granted) | tab | no | Marketing | origin (browser storage) |
+| `ct_thankyou_lead_<path>` | session | `clicutcl-events.js` | Deduplicates a thank-you-page lead | tab | no | Statistics | origin (browser storage) |
+| `ct_consent_state` | cookie | `clicutcl-consent-bridge.js` | Consent decision read by the server | 365 days | decision only | Necessary | per `cookie_scope` (host-only or `domain=<cookieDomain>`) |
+| `ct_consent_v1` | local | `clicutcl-consent-bridge.js` | Consent decision shared across tabs | until changed | decision only | Necessary | origin (browser storage) |
+| `ct_consent` | cookie | `clicutcl-consent.js` | Built-in banner decision (plugin source only) | 365 days | decision only | Necessary | per `cookie_scope` (host-only or `domain=<cookieDomain>`) |
+| `ct_cookie_scope` | local | `clicutcl-attribution.js`, `clicutcl-consent-bridge.js`, `clicutcl-consent.js` | Last cookie domain the plugin applied (empty means host-only), so a scope change can expire the previous cookies. Written only next to a domain-scoped cookie or a migration. | until changed | no (written with the first domain-scoped cookie) | Necessary | origin (browser storage) |
 <!-- storage-inventory:end -->
 
 CMP notes:

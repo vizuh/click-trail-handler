@@ -162,6 +162,13 @@
             document.dispatchEvent(new CustomEvent('ct:gtmConsentUpdate', { detail: consentMode }));
         }
 
+        cookieDomainAttr() {
+            const domain = String((window.clicutclConsentL10n && window.clicutclConsentL10n.cookieDomain) || '').toLowerCase();
+            if (!domain) return '';
+            const host = String(window.location.hostname || '').toLowerCase();
+            return (host === domain || host.endsWith('.' + domain)) ? '; domain=' + domain : '';
+        }
+
         setCookie(name, value, days) {
             let expires = "";
             if (days) {
@@ -170,7 +177,16 @@
                 expires = "; expires=" + date.toUTCString();
             }
             const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
-            document.cookie = name + "=" + encodeURIComponent(value || "") + expires + "; path=/; SameSite=Lax" + secureFlag;
+            const domainAttr = this.cookieDomainAttr();
+            document.cookie = name + "=" + encodeURIComponent(value || "") + expires + domainAttr + "; path=/; SameSite=Lax" + secureFlag;
+            if (domainAttr) {
+                try {
+                    // Lets clicutcl-attribution.js expire this cookie if the scope changes later.
+                    window.localStorage.setItem('ct_cookie_scope', domainAttr.slice('; domain='.length));
+                } catch (e) {
+                    // Best effort.
+                }
+            }
         }
 
         getCookie(name) {

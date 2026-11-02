@@ -144,7 +144,11 @@ namespace {
 				false,
 				'',
 				'',
-				false
+				false,
+				array(
+					'domain' => '',
+					'reason' => 'host_scope',
+				)
 			);
 
 			$this->assertSame( array( 'acs.issuer-bank.example' ), $config['ignoredReferrerHosts'] );

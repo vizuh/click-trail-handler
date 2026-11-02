@@ -142,6 +142,7 @@ register_activation_hook(
 	function () {
 		// Autoloader is already loaded globally.
 		require_once CLICUTCL_DIR . 'includes/database/class-installer.php';
+		CLICUTCL\Database\Installer::seed_cookie_scope();
 		CLICUTCL\Database\Installer::run();
 
 		if ( ! wp_next_scheduled( 'clicutcl_daily_cleanup' ) ) {

@@ -271,6 +271,9 @@ Cookies:
 - lightweight session ID fallback: `ct_session_id`
 - lightweight visitor ID fallback: `ct_visitor_id`
 - canonical session state cookie: `ct_session`
+- consent decision cookie for the server: `ct_consent_state`
+
+Cookie scope: the `cookie_scope` attribution setting (`host` default for existing installs, `registrable` seeded on new installs, `custom` with `cookie_custom_domain`) resolves in PHP (`Cookie_Scope::resolve()`) to one `cookieDomain`. Every cookie above is written and expired from JavaScript with `; domain=<cookieDomain>` when that value is a suffix of `location.hostname`, and host-only otherwise (public suffixes, IPs, single-label hosts and a non-covering domain always fall back to host-only). PHP readers read `$_COOKIE` by name and are unaffected. `localStorage['ct_cookie_scope']` holds the last applied domain so `clicutcl-attribution.js` can migrate existing cookies once per origin (host-only to domain, domain to host, domain to domain); it is written only next to a domain-scoped cookie or a migration. The `localStorage` mirror of `attribution` stays per origin.
 
 Browser storage:
 

@@ -116,10 +116,26 @@
         return envelope;
     }
 
+    function cookieDomainAttr() {
+        var domain = String(CONFIG.cookieDomain || '').toLowerCase();
+        if (!domain) return '';
+        var host = String((window.location && window.location.hostname) || '').toLowerCase();
+        return (host === domain || host.slice(-(domain.length + 1)) === '.' + domain) ? '; domain=' + domain : '';
+    }
+
+    // Lets clicutcl-attribution.js expire this cookie if the scope changes later.
+    function rememberCookieScope(domain) {
+        try {
+            window.localStorage.setItem('ct_cookie_scope', domain);
+        } catch (e) {
+            // Best effort.
+        }
+    }
+
     function clearPluginCookie() {
         var name = String(CONFIG.cookieName || 'ct_consent');
         var secure = window.location && window.location.protocol === 'https:' ? '; Secure' : '';
-        document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; path=/; SameSite=Lax' + secure;
+        document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0' + cookieDomainAttr() + '; path=/; SameSite=Lax' + secure;
     }
 
     function normalizeConsent(value) {
@@ -185,7 +201,9 @@
         }));
         var expires = new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)).toUTCString();
         var secure = window.location && window.location.protocol === 'https:' ? '; Secure' : '';
-        document.cookie = name + '=' + value + '; expires=' + expires + '; path=/; SameSite=Lax' + secure;
+        var domainAttr = cookieDomainAttr();
+        document.cookie = name + '=' + value + '; expires=' + expires + domainAttr + '; path=/; SameSite=Lax' + secure;
+        if (domainAttr) rememberCookieScope(domainAttr.slice('; domain='.length));
     }
 
     function resolve(nextConsent, source, force, persistDecision, decisionAt) {

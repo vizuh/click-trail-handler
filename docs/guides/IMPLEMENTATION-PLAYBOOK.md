@@ -281,6 +281,16 @@ If the implementation is working, teams should see value in at least one of thes
 - cross-domain journeys stop resetting source attribution
 
 
+## Same Domain, Different Hosts: Cookie Scope
+
+Hops between `www.example.com`, `example.com` and `lp.example.com` are not a cross-domain problem and need no decorated link or token: set **Capture → Cookie scope** to *Registrable domain* and the attribution, visitor, session and consent cookies are written with `domain=example.com`, so every host under it sends them. Existing installs stay on *Host only* until you change it; new installs start on *Registrable domain*. The next page view on each origin migrates that visitor's existing host-only cookies once.
+
+- Choose *Host only* when subdomains must not share state (staging, a separate app or another tenant on the same registrable domain). A domain-scoped cookie is visible to all of them.
+- On public suffixes (`github.io`, `co.uk`, hosting domains), IP addresses and `localhost` the setting falls back to host-only; Site Health shows the reason. Extend the list with `clicutcl_public_suffixes`.
+- Use *Custom* for a parent that is neither the host nor its registrable domain (for example `shop.example.com` on `eu.shop.example.com`).
+- Different registrable domains still need link decoration and the signed token (next section).
+- Evidence: the cookie `domain` attribute and the migration are covered by `tools/qa/cookie-scope.test.js` (Node VM) and `CookieScopeSettingsTest`. `tools/qa/e2e/cookie-scope.sh` ran once in the real-WordPress harness over http with Chromium (www landing, apex CF7 submit); https, other browsers and the in-browser migration are source-present / runtime-unverified.
+
 ## Cross-Domain Limitations
 
 Link decoration and signed token continuity work between domains you control and have listed under **Capture → Link Decoration → Allowed domains**. They cannot cover external payment providers.

@@ -522,6 +522,7 @@
     }
 
     // --- 1. STORE & UTILS ---
+    const COOKIE_SCOPE_KEY = 'ct_cookie_scope';
     const Store = {
         base64UrlEncode: function (str) {
             return btoa(unescape(encodeURIComponent(str)))
@@ -575,11 +576,28 @@
             }
         },
 
-        setCookie: function (name, value, days) {
+        cookieScopeReason: '',
+
+        // `; domain=<cookieDomain>` when the localized domain covers this host, else '' (host-only).
+        cookieDomainAttr: function () {
+            const domain = String(CONFIG.cookieDomain || '').toLowerCase();
+            if (!domain) return '';
+            const host = String(window.location.hostname || '').toLowerCase();
+            if (host === domain || host.endsWith('.' + domain)) return '; domain=' + domain;
+            if (this.cookieScopeReason !== 'domain_mismatch') {
+                this.cookieScopeReason = 'domain_mismatch';
+                if (DEBUG_ENABLED) {
+                    console.log('[ClickTrail] cookieDomain "' + domain + '" does not cover "' + host + '"; writing host-only cookies (domain_mismatch).');
+                }
+            }
+            return '';
+        },
+
+        setCookie: function (name, value, days, domainAttr) {
             const rawValue = String(value || '');
             const encodedValue = encodeURIComponent(rawValue);
             if (encodedValue.length > MAX_COOKIE_VALUE_BYTES) {
-                this.removeCookie(name);
+                this.removeCookie(name, domainAttr);
                 return false;
             }
             let expires = "";
@@ -589,13 +607,61 @@
                 expires = "; expires=" + date.toUTCString();
             }
             const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
-            document.cookie = name + "=" + encodedValue + expires + "; path=/; SameSite=Lax" + secureFlag;
+            const domain = typeof domainAttr === 'string' ? domainAttr : this.cookieDomainAttr();
+            document.cookie = name + "=" + encodedValue + expires + domain + "; path=/; SameSite=Lax" + secureFlag;
+            if (domain) this.rememberCookieScope(domain.slice('; domain='.length));
             return this.getCookie(name) === rawValue;
         },
 
-        removeCookie: function (name) {
+        removeCookie: function (name, domainAttr) {
             const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
-            document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; path=/; SameSite=Lax" + secureFlag;
+            const domain = typeof domainAttr === 'string' ? domainAttr : this.cookieDomainAttr();
+            document.cookie = name + "=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0" + domain + "; path=/; SameSite=Lax" + secureFlag;
+        },
+
+        // Remember the domain a cookie was written with so a later scope change can expire it.
+        // Only written next to a domain-scoped cookie or a migration: host scope with nothing to move stores nothing.
+        rememberCookieScope: function (applied) {
+            try {
+                localStorage.setItem(COOKIE_SCOPE_KEY, applied);
+            } catch (e) {
+                // Marker is best effort; the next boot re-runs an idempotent copy.
+            }
+        },
+
+        // One-time, per-origin move of existing cookies to the applied scope (host-only <-> domain, domain <-> domain).
+        migrateCookieScope: function () {
+            const attr = this.cookieDomainAttr();
+            const applied = attr ? attr.slice('; domain='.length) : '';
+            let previous = null;
+            try {
+                previous = localStorage.getItem(COOKIE_SCOPE_KEY);
+            } catch (e) {
+                return;
+            }
+            // No marker means cookies were written host-only (every release before this setting).
+            if (previous === applied || (previous === null && applied === '')) return;
+            const previousAttr = previous ? '; domain=' + previous : '';
+            const days = Number(CONFIG.cookieDays) || 90;
+            const names = [
+                [CONFIG.cookieName || 'attribution', days],
+                ['ct_attribution', days],
+                ['ct_visitor_id', 365],
+                ['ct_session_id', 1],
+                ['ct_session', 1],
+                [CONFIG.consentCookieName || 'ct_consent', 365],
+                ['ct_consent_state', 365]
+            ];
+            const values = names.map((entry) => this.getCookie(entry[0]));
+            let moved = 0;
+            names.forEach((entry, index) => {
+                const value = values[index];
+                if (!value) return;
+                moved += 1;
+                this.removeCookie(entry[0], previousAttr);
+                this.setCookie(entry[0], value, entry[1], attr);
+            });
+            if (moved > 0 || previous !== null) this.rememberCookieScope(applied);
         },
 
         getLocalData: function () {
@@ -1897,6 +1963,7 @@
         }
 
         init() {
+            Store.migrateCookieScope();
             const requiresConsent = CONFIG.requireConsent === true || CONFIG.requireConsent === '1';
             this.bindConsentListener();
             const consent = this.getConsent();

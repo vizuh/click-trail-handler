@@ -544,6 +544,13 @@
             return match ? decodeURIComponent(match[2]) : '';
         }
 
+        cookieDomainAttr() {
+            const domain = String((window.clicutclEventsConfig && window.clicutclEventsConfig.cookieDomain) || '').toLowerCase();
+            if (!domain) return '';
+            const host = String(window.location.hostname || '').toLowerCase();
+            return (host === domain || host.endsWith('.' + domain)) ? '; domain=' + domain : '';
+        }
+
         setCookie(name, value, days) {
             let expires = '';
             if (days) {
@@ -552,12 +559,12 @@
                 expires = '; expires=' + date.toUTCString();
             }
             const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
-            document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/; SameSite=Lax" + secureFlag;
+            document.cookie = name + "=" + encodeURIComponent(value) + expires + this.cookieDomainAttr() + "; path=/; SameSite=Lax" + secureFlag;
         }
 
         removeCookie(name) {
             const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
-            document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; path=/; SameSite=Lax' + secureFlag;
+            document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0' + this.cookieDomainAttr() + '; path=/; SameSite=Lax' + secureFlag;
         }
 
         ensureIdentity() {
