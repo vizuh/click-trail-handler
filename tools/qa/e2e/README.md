@@ -47,7 +47,7 @@ the cache leak of #152 or the double submit of #140). Run a subset with
 `python3 tools/qa/e2e/adapters.py <out-dir> landing returning` against a pod from `adapters-setup.sh`.
 `mu/ct-e2e-render-toggle.php` (option `ct_e2e_render_values`) forces the #152 render filter on so the cache scenario can build
 the stale-snapshot vector and prove the submit layer blanks it.
-Results of a run: `EVIDENCE-<date>.md`.
+Results of a run: `EVIDENCE-<date>.md` (`EVIDENCE-2026-11-02-sureforms.md` for SureForms).
 
 Notes:
 
