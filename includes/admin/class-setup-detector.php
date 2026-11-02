@@ -107,6 +107,11 @@ class Setup_Detector {
 				'active' => class_exists( 'FrmAppHelper' ),
 			),
 			array(
+				'key'    => 'metform',
+				'label'  => 'MetForm',
+				'active' => defined( 'METFORM_VERSION' ) || class_exists( '\MetForm\Plugin' ),
+			),
+			array(
 				'key'    => 'ninja',
 				'label'  => 'Ninja Forms',
 				'active' => class_exists( 'Ninja_Forms' ),

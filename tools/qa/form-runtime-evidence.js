@@ -14,6 +14,7 @@ const REQUIRED_ADAPTERS = {
   fluent: 'source.form.fluent',
   formidable: 'source.form.formidable',
   gravity: 'source.form.gravity',
+  metform: 'source.form.metform',
   wpforms: 'source.form.wpforms',
   ninja: 'source.form.ninja',
   elementor: 'source.form.elementor',

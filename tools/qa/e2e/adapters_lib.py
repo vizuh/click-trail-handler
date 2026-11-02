@@ -13,6 +13,9 @@ PROVIDERS = {
     'wpforms_hidden': {'path': '/form-wpforms/', 'platform': 'wpforms'},
     'wpforms_text': {'path': '/form-wpforms-text/', 'platform': 'wpforms'},
     'formidable': {'path': '/form-formidable/', 'platform': 'formidable'},
+    # MetForm 4.3.4 block builder (PHP-rendered, FormData post) and Elementor builder (Preact state post).
+    'metform': {'path': '/form-metform/', 'platform': 'metform'},
+    'metform_el': {'path': '/form-metform-el/', 'platform': 'metform'},
     'sureforms': {'path': '/form-sureforms/', 'platform': 'sureforms'},
 }
 CT_FIELDS = ('gclid', 'fbclid', 'ft_source', 'lt_source', 'lt_medium', 'attribution_selected_click_id')
@@ -42,7 +45,8 @@ def snapshot():
         "global $wpdb; $p = $wpdb->prefix; "
         "$f = $wpdb->get_var( \"SELECT IFNULL(MAX(id),0) FROM {$p}fluentform_submissions\" ); "
         "$fr = $wpdb->get_var( \"SELECT IFNULL(MAX(id),0) FROM {$p}frm_items\" ); "
-        "return array( 'events' => (int) $wpdb->get_var( \"SELECT IFNULL(MAX(id),0) FROM {$p}clicutcl_events\" ), 'fluent' => (int) $f, 'formidable' => (int) $fr );"
+        "$mf = $wpdb->get_var( \"SELECT IFNULL(MAX(ID),0) FROM {$p}posts WHERE post_type='metform-entry'\" ); "
+        "return array( 'events' => (int) $wpdb->get_var( \"SELECT IFNULL(MAX(id),0) FROM {$p}clicutcl_events\" ), 'fluent' => (int) $f, 'formidable' => (int) $fr, 'metform' => (int) $mf );"
     )
     ids['provider'] = len(pod_lines('ct-provider.jsonl'))
     ids['capture'] = len(pod_lines('ct-capture.jsonl'))
@@ -63,7 +67,10 @@ def delta(snap):
         "foreach ( $wpdb->get_results( $wpdb->prepare( \"SELECT m.field_id, m.meta_value, f.field_key FROM {$p}frm_item_metas m LEFT JOIN {$p}frm_fields f ON f.id = m.field_id WHERE m.item_id = %%d\", $r->id ) ) as $m ) { "
         "if ( (int) $m->field_id === 0 ) { $v = maybe_unserialize( $m->meta_value ); if ( is_array( $v ) ) { $meta = array_merge( $meta, $v ); } } else { $fields[ $m->field_key ] = wp_unslash( $m->meta_value ); } } "
         "$fm[] = array( 'id' => (int) $r->id, 'form_id' => (int) $r->form_id, 'is_draft' => (int) $r->is_draft, 'fields' => $fields, 'meta' => $meta ); } "
-        "return array( 'events' => $ev, 'fluent' => $fl, 'formidable' => $fm );" % (snap['events'], snap['fluent'], snap['formidable'])
+        "$mf = array(); foreach ( $wpdb->get_col( \"SELECT ID FROM {$p}posts WHERE post_type='metform-entry' AND ID > %d ORDER BY ID\" ) as $id ) { "
+        "$m = array(); foreach ( get_post_meta( (int) $id ) as $k => $v ) { if ( 0 === strpos( $k, 'ct_' ) ) { $m[ $k ] = $v[0]; } } "
+        "$mf[] = array( 'id' => (int) $id, 'form_id' => (int) get_post_meta( (int) $id, 'metform_entries__form_id', true ), 'data' => get_post_meta( (int) $id, 'metform_entries__form_data', true ), 'meta' => $m ); } "
+        "return array( 'events' => $ev, 'fluent' => $fl, 'formidable' => $fm, 'metform' => $mf );" % (snap['events'], snap['fluent'], snap['formidable'], snap['metform'])
     )
     stored['provider'] = pod_lines('ct-provider.jsonl')[snap['provider']:]
     stored['capture'] = [e for e in pod_lines('ct-capture.jsonl')[snap['capture']:]]
@@ -147,6 +154,13 @@ def fill(page, provider, tag):
     elif provider == 'formidable':
         page.fill('#field_e2e_name', 'E2E ' + tag)
         page.fill('#field_e2e_email', email)
+    elif provider.startswith('metform'):
+        # The Elementor builder keeps field values in Preact state written on change/blur: type, then blur.
+        for name, value in (('mf-name', 'E2E ' + tag), ('mf-email', email)):
+            field = page.locator('input[name="%s"]' % name)
+            field.click()
+            field.press_sequentially(value, delay=10)
+            field.blur()
     elif provider == 'sureforms':
         page.fill('input[name^="srfm-input-"][name$="-name"]', 'E2E ' + tag)
         page.fill('input[name^="srfm-email-"]', email)
@@ -162,6 +176,8 @@ def submit_button(provider):
         'cf7': 'input[type="submit"].wpcf7-submit',
         'fluent': 'button.ff-btn-submit',
         'formidable': '.frm_button_submit',
+        'metform': 'button.mfb-button[type="submit"]',
+        'metform_el': 'button.metform-submit-btn',
         'sureforms': 'button.srfm-submit-button',
     }.get(provider, 'button.wpforms-submit')
 
@@ -177,6 +193,15 @@ def wait_done(page, provider, timeout=25000):
     if provider == 'formidable':
         page.wait_for_selector('.frm_message, .frm_error_style, .frm_error', timeout=timeout)
         return 'sent' if page.locator('.frm_message').count() else 'failed: ' + page.inner_text('form, .frm_error_style')[:200]
+    if provider.startswith('metform'):
+        # Block builder: `.mfb-form__response` ends in data-state success or error; Elementor builder: `.mf-main-response-wrap[data-show="1"]`.
+        done = {
+            'metform': '.mfb-form__response[data-state="success"], .mfb-form__response[data-state="error"]',
+            'metform_el': '.mf-main-response-wrap[data-show="1"]',
+        }[provider]
+        page.wait_for_selector(done, timeout=timeout)
+        text = page.inner_text(done)
+        return 'sent' if 'E2E thanks' in text else 'failed: ' + text[:200]
     if provider == 'sureforms':
         try:
             page.wait_for_selector('.srfm-success-box', timeout=timeout)

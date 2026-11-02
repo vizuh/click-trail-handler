@@ -35,6 +35,7 @@ class Form_Readiness_Analyzer {
 		'fluent'     => 'automatic_hidden',
 		'formidable' => 'matching_fields',
 		'gravity'    => 'matching_fields',
+		'metform'    => 'matching_fields',
 		'wpforms'    => 'matching_fields',
 		'elementor'  => 'hook_storage',
 		'ninja'      => 'hook_storage',

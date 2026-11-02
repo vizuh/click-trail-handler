@@ -296,13 +296,13 @@ visitor A's click IDs and UTM values to visitor B, whose lead then carries A's a
 
 Controls:
 
-- server render is empty by default (CF7, Gravity Forms, Fluent Forms, Elementor, WPForms, Formidable Forms; SureForms renders nothing at all, its field names are not `ct_*`); the filter
+- server render is empty by default (CF7, Gravity Forms, Fluent Forms, Elementor, WPForms, Formidable Forms; MetForm renders nothing from ClickTrail; SureForms renders nothing at all, its field names are not `ct_*`); the filter
   `clicutcl_render_server_attribution_values` (default `false`) restores the old render for sites without a
   page cache
 - the browser Injector fills the visitor's own values after load and writes a hidden `ct_fill_source=js` into
   each form it fills; `Injector.clear()` removes it on consent denial
 - submit rule per adapter: a readable cookie is authoritative and keys it lacks are blanked; with no cookie,
-  posted values are kept only with the marker (CF7, Fluent Forms; SureForms honours a posted marker but the Injector cannot mark its forms), otherwise blanked (Formidable Forms inputs are
+  posted values are kept only with the marker (CF7, Fluent Forms, MetForm block builder; SureForms honours a posted marker but the Injector cannot mark its forms), otherwise blanked (Formidable Forms inputs are
   named `item_meta[<field id>]`, so the Injector never fills or marks them and its fields are always blanked
   without a cookie); consent blocked blanks
   every posted `ct_*` before the provider stores or mails it; ClickTrail's own log receives the post-rule set

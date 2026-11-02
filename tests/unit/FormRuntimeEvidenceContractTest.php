@@ -71,6 +71,7 @@ final class FormRuntimeEvidenceContractTest extends TestCase {
 			'Fluent Forms'  => array( 'fluent' ),
 			'Formidable Forms' => array( 'formidable' ),
 			'Gravity Forms' => array( 'gravity' ),
+			'MetForm'       => array( 'metform' ),
 			'WPForms'       => array( 'wpforms' ),
 			'Ninja Forms'   => array( 'ninja' ),
 			'Elementor Pro' => array( 'elementor' ),
