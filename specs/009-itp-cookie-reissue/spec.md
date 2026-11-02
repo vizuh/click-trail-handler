@@ -4,7 +4,7 @@
 
 **Created**: 2026-11-02
 
-**Status**: Implemented (PHPUnit `AttributionCookieReissueTest`, Node VM `tools/qa/cookie-reissue.test.js`; SC-003 ran in the real-WordPress harness: `tools/qa/e2e/cookie-reissue.sh`, 64 checks, 0 failures, Chromium via Playwright 1.59.0, http, `www.example.test` / `example.test`, Safari's 24-hour script-cookie cap emulated by an init script; `adapters-ci.sh` S8 `edge_cache_headers` still 132 PASS). Not run: Safari or iOS, https (`Secure` only in PHPUnit), a real CDN or a cache that stores `POST` responses. Source-present / runtime-unverified for Safari.
+**Status**: Implemented (PHPUnit `AttributionCookieReissueTest`, Node VM `tools/qa/cookie-reissue.test.js`; SC-003 ran in the real-WordPress harness: `tools/qa/e2e/cookie-reissue.sh`, 49 checks, 0 failures, Chromium via Playwright 1.59.0, http, `www.example.test` / `example.test`, Safari's 24-hour script-cookie cap emulated by an init script; `adapters-ci.sh` S8 `edge_cache_headers` still 132 PASS). Not run: Safari or iOS, https (`Secure` only in PHPUnit), a real CDN or a cache that stores `POST` responses. Source-present / runtime-unverified for Safari.
 
 **Input**: GitHub issue [#141](https://github.com/vizuh/click-trail-handler/issues/141). The `attribution` cookie is written only with `document.cookie`, which Safari ITP shortens or purges (see [research.md](research.md), W1-W5), so `Attribution_Provider::get_payload()` finds nothing for a visitor who converts later. Related: [../007-cookie-scope/spec.md](../007-cookie-scope/spec.md) US5 (the re-issue must use the same domain attribute as the JS writer).
 
