@@ -15,6 +15,7 @@ namespace {
 	require_once dirname( __DIR__, 2 ) . '/includes/Core/class-attribution-provider.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-claim-lock.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/integrations/class-woocommerce.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/settings/class-attribution-settings.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/class-clicutcl-core.php';
 
 	use CLICUTCL\Core\Attribution_Provider;

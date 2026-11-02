@@ -83,6 +83,7 @@ Primary user-facing controls:
 - skip signed URLs
 - pass cross-domain token
 - embedded widget hosts (exact hosts for `window.ClickTrail.decorateEmbedUrl()`)
+- GA4 measurement ID (`ga4_measurement_id`): pins which `_ga_<property>` cookie supplies the GA4 session ID when several GA4 properties share the domain; empty reads the first `_ga_*` cookie with a session ID (source-present / runtime-unverified, #135)
 
 ## Forms
 
@@ -200,6 +201,7 @@ Relevant keys:
 - `link_skip_signed`
 - `enable_cross_domain_token`
 - `embed_allowed_domains`
+- `ga4_measurement_id` (default empty): one or more GA4 measurement IDs (`G-` plus letters and digits, comma separated, uppercased on save, anything else dropped; the setup wizard writes the same key). Localized as `clicutcl_config.ga4MeasurementId` and pins the `_ga_<ID>` cookie that supplies `ga_session_id` / `ga_session_number`
 - `enable_whatsapp`
 - `whatsapp_append_attribution` (default off): the pre-filled WhatsApp text gets a short `Ref: CT-<8 chars>` code that the server maps to the stored attribution; Diagnostics > WhatsApp Reference Lookup resolves it. The click event `contact_whatsapp_start` does not depend on this setting
 
