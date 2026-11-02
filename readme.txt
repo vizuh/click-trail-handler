@@ -26,7 +26,7 @@ ClickTrail records what arrived. It does not decide what caused the sale.
 Pick the path that matches your site.
 
 * **WooCommerce store**: turn on Capture and WooCommerce. Orders carry the campaign. Add storefront events later if you want funnel signals.
-* **Lead forms**: turn on Capture and Forms. Fluent Forms gets hidden fields on its own; Contact Form 7 fills the `ct_*` tags you reference (`[hidden ct_gclid]` in the form or `[ct_gclid]` in the mail). Gravity Forms and WPForms fill the `ct_*` fields you add (WPForms Lite has no Hidden field: use a Single Line Text field with the CSS class `ct_<key>` and hide it with CSS).
+* **Lead forms**: turn on Capture and Forms. Fluent Forms gets hidden fields on its own; Contact Form 7 fills the `ct_*` tags you reference (`[hidden ct_gclid]` in the form or `[ct_gclid]` in the mail). Gravity Forms, WPForms and MetForm fill the `ct_*` fields you add (WPForms Lite has no Hidden field: use a Single Line Text field with the CSS class `ct_<key>` and hide it with CSS; in MetForm, name a hidden input `ct_<key>`).
 * **GTM or server-side GTM**: turn on Capture, Events, and Delivery. Events go to the `dataLayer`, and ClickTrail can send canonical JSON to an endpoint you set.
 
 Then place one test order or send one test form, and look at what was stored. The [use-case guide](https://github.com/vizuh/click-trail-handler/blob/main/docs/guides/USE-CASES.md) and [tutorials](https://github.com/vizuh/click-trail-handler/blob/main/docs/tutorials/README.md) walk through each path.
@@ -73,7 +73,7 @@ Having code for an integration is not proof that it works in production. Current
 
 = Integrations =
 
-* **Forms**: Contact Form 7, Elementor Forms (Pro), Fluent Forms, Gravity Forms, Ninja Forms, SureForms, WPForms
+* **Forms**: Contact Form 7, Elementor Forms (Pro), Fluent Forms, Gravity Forms, MetForm, Ninja Forms, SureForms, WPForms
 * **Commerce**: WooCommerce
 * **Consent sources**: ClickTrail banner, Cookiebot, OneTrust, Complianz, GTM, custom
 * **Webhooks**: Calendly, HubSpot, Typeform
