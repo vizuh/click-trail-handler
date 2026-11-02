@@ -561,27 +561,34 @@
                     document.cookie = 'ct_scope_probe=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; domain=' + domain + '; path=/; SameSite=Lax' + secure;
                 } catch (e) {
                     this.domainProbe = false;
+                    try {
+                        document.cookie = 'ct_scope_probe=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; domain=' + domain + '; path=/; SameSite=Lax' + secure;
+                    } catch (ignore) {
+                        // Nothing more to clean up.
+                    }
                 }
             }
             return this.domainProbe ? '; domain=' + domain : '';
         }
 
-        // Other scope's copy: host-only when a domain is applied, else the last domain this origin used (or null).
-        staleAttr(appliedAttr) {
-            if (appliedAttr) return '';
-            let candidate = String((window.clicutclEventsConfig && window.clicutclEventsConfig.cookieDomain) || '').toLowerCase();
-            if (!candidate) {
-                try {
-                    candidate = String(localStorage.getItem('ct_cookie_scope') || '').toLowerCase();
-                } catch (e) {
-                    candidate = '';
-                }
+        // Every scope this origin may hold a copy in: host-only, the configured domain and the last domain it wrote
+        // (marker). No probe: expiring a domain cookie that cannot exist is harmless.
+        allAttrs() {
+            const attrs = [''];
+            const add = (domain) => {
+                domain = String(domain || '').toLowerCase();
+                if (this.coversHost(domain) && attrs.indexOf('; domain=' + domain) === -1) attrs.push('; domain=' + domain);
+            };
+            add(window.clicutclEventsConfig && window.clicutclEventsConfig.cookieDomain);
+            try {
+                add(window.localStorage.getItem('ct_cookie_scope'));
+            } catch (e) {
+                // Marker unreadable: the configured domain still covers the common case.
             }
-            return this.coversHost(candidate) ? '; domain=' + candidate : null;
+            return attrs;
         }
 
         expireVariant(name, attr) {
-            if (attr === null) return;
             const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
             document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0' + attr + '; path=/; SameSite=Lax' + secureFlag;
         }
@@ -596,14 +603,12 @@
             const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
             const domainAttr = this.cookieDomainAttr();
             document.cookie = name + "=" + encodeURIComponent(value) + expires + domainAttr + "; path=/; SameSite=Lax" + secureFlag;
-            this.expireVariant(name, this.staleAttr(domainAttr));
+            this.allAttrs().forEach((attr) => { if (attr !== domainAttr) this.expireVariant(name, attr); });
         }
 
         // Expires every copy (applied scope and the other one) so a withdrawal reaches all of them.
         removeCookie(name) {
-            const applied = this.cookieDomainAttr();
-            this.expireVariant(name, applied);
-            this.expireVariant(name, this.staleAttr(applied));
+            this.allAttrs().forEach((attr) => this.expireVariant(name, attr));
         }
 
         ensureIdentity() {

@@ -118,6 +118,8 @@ when they write a key that is missing from this table. The built-in banner's `ct
 | `ct_cookie_scope` | local | `clicutcl-attribution.js`, `clicutcl-consent-bridge.js`, `clicutcl-consent.js` | Last cookie domain the plugin applied (empty means host-only), so a scope change can expire the previous cookies. Written only next to a domain-scoped cookie or a migration. | until changed | no (written with the first domain-scoped cookie) | Necessary | origin (browser storage) |
 <!-- storage-inventory:end -->
 
+Transient `ct_scope_probe` cookie: when a real cookie write is about to use a `domain` attribute, the scripts write `ct_scope_probe` with that domain, read it back and expire it within the same synchronous call to learn whether the browser accepts the domain (public suffixes are refused). It is never persisted, never carries data, and is not written on removals, on a denied or empty boot, or when `cookie_scope` is `host`.
+
 CMP notes:
 
 - **Cookiebot**: declare each key in the Cookiebot manager with the category above (cookies and

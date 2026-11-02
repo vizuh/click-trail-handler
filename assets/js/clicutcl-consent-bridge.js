@@ -136,6 +136,11 @@
             document.cookie = 'ct_scope_probe=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; domain=' + domain + '; path=/; SameSite=Lax' + secureFlag();
             return accepted;
         } catch (e) {
+            try {
+                document.cookie = 'ct_scope_probe=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; domain=' + domain + '; path=/; SameSite=Lax' + secureFlag();
+            } catch (ignore) {
+                // Nothing more to clean up.
+            }
             return false;
         }
     }
@@ -156,30 +161,39 @@
         }
     }
 
-    // The other scope's copy of a cookie: host-only when a domain is applied, otherwise the last domain this origin used (or null).
-    function staleAttr(appliedAttr) {
-        if (appliedAttr) return '';
-        var candidate = String(CONFIG.cookieDomain || '').toLowerCase();
-        if (!candidate) {
-            try {
-                candidate = String(window.localStorage.getItem('ct_cookie_scope') || '').toLowerCase();
-            } catch (e) {
-                candidate = '';
-            }
+    // Every scope this origin may hold a copy in: host-only, the configured domain and the last domain it wrote
+    // (marker). No probe: expiring a domain cookie that cannot exist is harmless, so removal never writes a probe.
+    var markerAtLoad = (function () {
+        try {
+            return window.localStorage.getItem('ct_cookie_scope');
+        } catch (e) {
+            return null;
         }
-        return coversHost(candidate) ? '; domain=' + candidate : null;
+    })();
+
+    function allAttrs() {
+        var attrs = [''];
+        function add(domain) {
+            domain = String(domain || '').toLowerCase();
+            if (coversHost(domain) && attrs.indexOf('; domain=' + domain) === -1) attrs.push('; domain=' + domain);
+        }
+        add(CONFIG.cookieDomain);
+        add(markerAtLoad); // the domain a previous config used, even after a write overwrote the marker
+        try {
+            add(window.localStorage.getItem('ct_cookie_scope'));
+        } catch (e) {
+            // Marker unreadable: the configured domain still covers the common case.
+        }
+        return attrs;
     }
 
     function expireVariant(name, attr) {
-        if (attr === null) return;
         document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0' + attr + '; path=/; SameSite=Lax' + secureFlag();
     }
 
-    // Expires every copy (applied scope and the other one) so a withdrawal reaches all of them.
+    // Expires every copy (every scope) so a withdrawal reaches all of them.
     function expireCookieEverywhere(name) {
-        var applied = cookieDomainAttr();
-        expireVariant(name, applied);
-        expireVariant(name, staleAttr(applied));
+        allAttrs().forEach(function (attr) { expireVariant(name, attr); });
     }
 
     function clearPluginCookie() {
@@ -250,10 +264,11 @@
         var expires = new Date(Date.now() + (365 * 24 * 60 * 60 * 1000)).toUTCString();
         var secure = window.location && window.location.protocol === 'https:' ? '; Secure' : '';
         var domainAttr = cookieDomainAttr();
+        var scopes = allAttrs(); // before the marker below is overwritten
         document.cookie = name + '=' + value + '; expires=' + expires + domainAttr + '; path=/; SameSite=Lax' + secure;
         if (domainAttr) rememberCookieScope(domainAttr.slice('; domain='.length));
         // A stale copy in the other scope would shadow this decision in document.cookie and in PHP $_COOKIE.
-        expireVariant(name, staleAttr(domainAttr));
+        scopes.forEach(function (attr) { if (attr !== domainAttr) expireVariant(name, attr); });
     }
 
     function resolve(nextConsent, source, force, persistDecision, decisionAt) {

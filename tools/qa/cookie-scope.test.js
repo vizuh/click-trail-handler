@@ -76,7 +76,7 @@ function makeJar(seed, options = {}) {
   };
 }
 
-function boot({ scripts, hostname = 'www.example.com', cookieDomain = '', jar = makeJar(), local = {}, search = '', configs = {} }) {
+function boot({ globals = {}, scripts, hostname = 'www.example.com', cookieDomain = '', jar = makeJar(), local = {}, search = '', configs = {} }) {
   const document = new Bus();
   Object.assign(document, {
     readyState: 'complete', referrer: '', title: 'Page', visibilityState: 'visible',
@@ -107,6 +107,7 @@ function boot({ scripts, hostname = 'www.example.com', cookieDomain = '', jar = 
     clicutclEventsConfig: Object.assign({ enabled: true, cookieDomain }, configs.events),
     clicutclConsentL10n: Object.assign({ cookieName: 'ct_consent', cookieDomain }, configs.consent),
   });
+  Object.assign(window, globals);
   window.window = window;
   window.self = window;
   const context = vm.createContext(window);
@@ -360,6 +361,46 @@ const tests = {
     const { window } = boot({ scripts: ['bridge'], cookieDomain: 'example.com', jar });
     window.ClickTrailConsent.deny('manual');
     assert.deepStrictEqual(jar.names().filter((n) => n.startsWith('ct_consent@') ), [], 'no ct_consent copy remains');
+  },
+
+  'no probe cookie is written before consent: registrable, consent required, nothing stored'() {
+    const jar = makeJar();
+    boot({ scripts: ['attribution'], cookieDomain: 'example.com', jar, configs: { attribution: { requireConsent: true } } });
+    assert.strictEqual(jar.probes.length, 0);
+  },
+
+  'no probe cookie when consent is denied'() {
+    const jar = makeJar();
+    const denied = { isResolved: () => true, isGranted: () => false, getState: () => ({ resolved: true, granted: false, marketing: false, analytics: false }) };
+    boot({ scripts: ['attribution'], cookieDomain: 'example.com', jar, globals: { ClickTrailConsent: denied }, configs: { attribution: { requireConsent: true } } });
+    assert.strictEqual(jar.probes.length, 0);
+    assert.strictEqual(jar.log.filter((w) => !w.expired).length, 0, 'denial with nothing stored writes no cookie');
+  },
+
+  'removals never probe, and a probe is always expired when one is written'() {
+    const jar = makeJar({ 'attribution@example.com': 'v' });
+    const { window } = boot({ scripts: ['attribution'], cookieDomain: 'example.com', jar, local: { ct_cookie_scope: 'example.com' }, configs: { attribution: { requireConsent: true } } });
+    window.ClickTrail && window.ClickTrail.clearData();
+    assert.strictEqual(jar.probes.length, 0);
+    const written = makeJar();
+    const page = boot({ scripts: ['bridge'], cookieDomain: 'example.com', jar: written });
+    page.window.ClickTrailConsent.grant('manual');
+    assert.ok(written.probes.length >= 2, 'a real write probes');
+    assert.strictEqual(written.probes.filter((x) => !x.expired).length, written.probes.filter((x) => x.expired).length, 'every probe is expired');
+  },
+
+  'a domain A to domain B change: bridge denial expires the old A-scoped consent cookie too'() {
+    const jar = makeJar({ 'ct_consent@example.com': 'OLD', 'ct_consent@shop.example.com': 'NEW', ct_consent: 'HOST' });
+    const { window } = boot({ scripts: ['bridge'], hostname: 'www.shop.example.com', cookieDomain: 'shop.example.com', jar, local: { ct_cookie_scope: 'example.com' } });
+    window.ClickTrailConsent.deny('manual');
+    assert.deepStrictEqual(jar.names().filter((n) => n.startsWith('ct_consent@')), [], 'every ct_consent copy expired');
+  },
+
+  'a domain A to domain B change: a bridge write expires the old A-scoped copy'() {
+    const jar = makeJar({ 'ct_consent_state@example.com': 'OLD' });
+    const { window } = boot({ scripts: ['bridge'], hostname: 'www.shop.example.com', cookieDomain: 'shop.example.com', jar, local: { ct_cookie_scope: 'example.com' } });
+    window.ClickTrailConsent.grant('manual');
+    assert.deepStrictEqual(jar.names().filter((n) => n.startsWith('ct_consent_state')), ['ct_consent_state@shop.example.com']);
   },
 };
 

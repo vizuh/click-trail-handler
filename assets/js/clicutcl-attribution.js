@@ -589,6 +589,11 @@
                 document.cookie = 'ct_scope_probe=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; domain=' + domain + '; path=/; SameSite=Lax' + secureFlag;
                 return accepted;
             } catch (e) {
+                try {
+                    document.cookie = 'ct_scope_probe=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; domain=' + domain + '; path=/; SameSite=Lax' + secureFlag;
+                } catch (ignore) {
+                    // Nothing more to clean up.
+                }
                 return false;
             }
         },
@@ -622,18 +627,21 @@
             }
         },
 
-        // The other scope's copy of a cookie: host-only when a domain is applied, otherwise the last domain this origin used.
-        staleAttr: function (appliedAttr) {
-            if (appliedAttr) return '';
-            let candidate = String(CONFIG.cookieDomain || '').toLowerCase();
-            if (!candidate) {
-                try {
-                    candidate = String(localStorage.getItem(COOKIE_SCOPE_KEY) || '').toLowerCase();
-                } catch (e) {
-                    candidate = '';
-                }
+        // Every scope this origin may hold a copy in: host-only, the configured domain and the last domain it wrote
+        // (marker). No probe: expiring a domain cookie that cannot exist is harmless, so removal never writes a probe.
+        allAttrs: function () {
+            const attrs = [''];
+            const add = (domain) => {
+                domain = String(domain || '').toLowerCase();
+                if (this.coversHost(domain) && attrs.indexOf('; domain=' + domain) === -1) attrs.push('; domain=' + domain);
+            };
+            add(CONFIG.cookieDomain);
+            try {
+                add(localStorage.getItem(COOKIE_SCOPE_KEY));
+            } catch (e) {
+                // Marker unreadable: the configured domain still covers the common case.
             }
-            return this.coversHost(candidate) ? '; domain=' + candidate : null;
+            return attrs;
         },
 
         setCookie: function (name, value, days, domainAttr) {
@@ -651,11 +659,14 @@
             }
             const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
             const domain = typeof domainAttr === 'string' ? domainAttr : this.cookieDomainAttr();
+            const scopes = this.allAttrs(); // before the marker below is overwritten
             document.cookie = name + "=" + encodedValue + expires + domain + "; path=/; SameSite=Lax" + secureFlag;
             const persisted = this.getCookie(name) === rawValue;
             if (domain) this.rememberCookieScope(domain.slice('; domain='.length));
             // Never leave the same name in the other scope: it would shadow this value in document.cookie and in PHP.
-            if (persisted && typeof domainAttr !== 'string') this.expireVariant(name, this.staleAttr(domain));
+            if (persisted && typeof domainAttr !== 'string') {
+                scopes.forEach((attr) => { if (attr !== domain) this.expireVariant(name, attr); });
+            }
             return persisted;
         },
 
@@ -671,9 +682,7 @@
                 this.expireVariant(name, domainAttr);
                 return;
             }
-            const applied = this.cookieDomainAttr();
-            this.expireVariant(name, applied);
-            this.expireVariant(name, this.staleAttr(applied));
+            this.allAttrs().forEach((attr) => this.expireVariant(name, attr));
         },
 
         // Best effort: lets a later scope change expire the domain cookie this origin wrote.
@@ -689,17 +698,14 @@
         // Per name: read, expire the previous variant, and if a copy is still readable another scope already holds
         // a (shared) value, which wins; otherwise write the value in the applied scope, and put it back on failure.
         migrateCookieScope: function () {
-            const attr = this.cookieDomainAttr();
-            const applied = attr ? attr.slice('; domain='.length) : '';
             let previous = null;
             try {
                 previous = localStorage.getItem(COOKIE_SCOPE_KEY);
             } catch (e) {
                 return;
             }
-            // No marker means cookies were written host-only (every release before this setting).
-            if (previous === applied || (previous === null && applied === '')) return;
-            const previousAttr = previous ? '; domain=' + previous : '';
+            // No marker and no domain configured for this host: nothing was ever scoped, nothing to move.
+            if (previous === null && !this.coversHost(String(CONFIG.cookieDomain || '').toLowerCase())) return;
             const days = Number(CONFIG.cookieDays) || 90;
             const names = [
                 [CONFIG.cookieName || 'attribution', days],
@@ -710,6 +716,15 @@
                 [CONFIG.consentCookieName || 'ct_consent', 365],
                 ['ct_consent_state', 365]
             ];
+            // Enumerate first: with nothing stored there is nothing to move, and no probe cookie is written before consent.
+            if (!names.some((entry) => this.getCookie(entry[0]))) return;
+            // Already scoped to the configured domain: nothing to move, so no probe either.
+            if (previous !== null && previous === String(CONFIG.cookieDomain || '').toLowerCase()) return;
+            const attr = this.cookieDomainAttr();
+            const applied = attr ? attr.slice('; domain='.length) : '';
+            // No marker means cookies were written host-only (every release before this setting).
+            if (previous === applied || (previous === null && applied === '')) return;
+            const previousAttr = previous ? '; domain=' + previous : '';
             let moved = 0;
             let failed = false;
             names.forEach((entry) => {
