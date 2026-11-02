@@ -17,7 +17,7 @@ O ClickTrail registra o que chegou. Ele não decide o que causou a venda.
 Escolha o caminho que combina com o seu site.
 
 - **Loja WooCommerce**: ative Capture e WooCommerce. Os pedidos passam a levar a campanha. Ative os eventos de vitrine depois, se quiser sinais de funil.
-- **Formulários de leads**: ative Capture e Forms. O Fluent Forms recebe os campos ocultos sozinho; o Contact Form 7 preenche as tags `ct_*` que o formulário ou o e-mail referenciar (`[hidden ct_gclid]` ou `[ct_gclid]`). Gravity Forms e WPForms preenchem os campos `ct_*` que você adicionar (o WPForms Lite não tem campo Hidden: use um campo de Texto de Linha Única com a classe CSS `ct_<chave>` e oculte-o com CSS). O Forminator preenche os campos Hidden que receberem a classe CSS personalizada `ct_<chave>`.
+- **Formulários de leads**: ative Capture e Forms. O Fluent Forms recebe os campos ocultos sozinho; o Contact Form 7 preenche as tags `ct_*` que o formulário ou o e-mail referenciar (`[hidden ct_gclid]` ou `[ct_gclid]`). Gravity Forms, WPForms e MetForm preenchem os campos `ct_*` que você adicionar (o WPForms Lite não tem campo Hidden: use um campo de Texto de Linha Única com a classe CSS `ct_<chave>` e oculte-o com CSS; no MetForm, nomeie um campo oculto `ct_<chave>`). O Forminator preenche os campos Hidden que receberem a classe CSS personalizada `ct_<chave>`.
 - **GTM ou GTM server-side**: ative Capture, Events e Delivery. Os eventos vão para o `dataLayer`, e o ClickTrail pode enviar JSON canônico para um endpoint que você definir.
 
 Depois, faça um pedido de teste ou envie um formulário de teste e veja o que ficou salvo. O [guia de casos de uso](docs/guides/USE-CASES.md) e os [tutoriais](docs/tutorials/README.md) mostram cada caminho.
@@ -68,7 +68,7 @@ Ter código para uma integração não prova que ela funciona em produção. O s
 
 **Integrações**
 
-- **Formulários**: Contact Form 7, Elementor Forms (Pro), Fluent Forms, Forminator, Gravity Forms, Ninja Forms, SureForms, WPForms
+- **Formulários**: Contact Form 7, Elementor Forms (Pro), Fluent Forms, Forminator, Gravity Forms, MetForm, Ninja Forms, SureForms, WPForms
 - **Comércio**: WooCommerce
 - **Fontes de consentimento**: banner do ClickTrail, Cookiebot, OneTrust, Complianz, GTM, personalizada
 - **Webhooks**: Calendly, HubSpot, Typeform

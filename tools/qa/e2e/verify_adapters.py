@@ -60,12 +60,28 @@ def touch_checks(scenario, name, res, expect):
     if name.startswith('wpforms'):
         record('FINDING' if not rec['meta'].get('entry_meta_api') else 'PASS', scenario, name,
                'WPForms Lite has no entry/entry-meta API (wpforms()->entry_meta unset, entry_id=%s): entry meta cannot be asserted; the processed field values captured at wpforms_process_complete were asserted instead' % rec['meta'].get('entry_id'))
+    if name.startswith('metform'):
+        meta, row = rec['meta'], (res.get('lead_rows') or [{}])[0]
+        check(all(meta.get('ct_' + k) == v for k, v in expect.items()), scenario, name, 'metform-entry post meta carries %s' % expect)
+        check(bool(row.get('event_id')) and meta.get('ct_event_id') == row.get('event_id') and meta.get('ct_lead_id') == row.get('lead_id'), scenario, name,
+              'entry post meta ct_event_id / ct_lead_id equal the ClickTrail row (%s / %s)' % (meta.get('ct_event_id'), row.get('event_id')))
+        check(str(row.get('entry_id')) == str(rec.get('entry_id')) and str(row.get('form_id')) == str(rec.get('form_id')), scenario, name,
+              'ClickTrail row entry_id %s / form_id %s equal the entry post %s / form %s' % (row.get('entry_id'), row.get('form_id'), rec.get('entry_id'), rec.get('form_id')))
+        bodies = res.get('mail_bodies') or []
+        shown = bool(bodies) and all(str(v) in bodies[-1] for v in expect.values())
+        if name == 'metform':
+            check(shown, scenario, name, 'admin email (%d sent) lists the refreshed values %s' % (len(bodies), list(expect.values())))
+        else:
+            # Vendor behaviour, not ours: the Elementor builder's admin email lists the widget fields, not the Submit Button's hidden inputs.
+            record('PASS' if shown else 'FINDING', scenario, name, 'admin email (%d sent) lists the refreshed values %s (MetForm Elementor builder: the email omits the Submit Button hidden inputs)' % (len(bodies), list(expect.values())))
+        posted = (res.get('posted') or [{}])[0]
+        record('INFO', scenario, name, 'MetForm received ct_gclid=%r before the refresh, the entry holds %r (browser fill: %s)' % (posted.get('ct_gclid'), rec['entry'].get('ct_gclid'), 'DOM value at submit %r' % res['dom_before'].get('ct_gclid')))
 
 
 for scenario, expect_dom in (('landing', True), ('landing_server_only', False)):
     for name, res in data.get(scenario, {}).items():
         touch_checks('S1 ' + scenario, name, res, {'gclid': 'G1', 'lt_source': 't1', 'lt_medium': 'cpc', 'attribution_selected_click_id': 'G1'})
-        if scenario == 'landing_server_only' and name in ('cf7', 'fluent', 'forminator'):
+        if scenario == 'landing_server_only' and name in ('cf7', 'fluent', 'forminator', 'metform', 'metform_el'):
             pre = res['dom_before'].get('ct_gclid', '')
             record('PASS' if pre == '' else 'FINDING', 'S1 landing_server_only', name, 'with browser injection off the rendered field was %r at submit, so the stored value is the server submit-time refresh' % pre)
 
@@ -103,6 +119,10 @@ for name, res in data.get('cache_leak', {}).items():
     forced = res['forced_render']
     if name.startswith('wpforms') or name == 'sureforms':
         record('INFO', scenario, name + ' submit', "WPForms Lite and SureForms free fill no field at render (hidden is a Pro field in both); A's values were planted in the posted inputs instead (rendered with filter on: %s)" % (forced['ct_inputs_non_empty'] or 'none'))
+    elif name.startswith('metform'):
+        record('INFO', scenario, name + ' submit', "MetForm renders no ClickTrail value (the adapter has no render fill); A's values were planted in the posted inputs instead (rendered with filter on: %s)" % (forced['ct_inputs_non_empty'] or 'none'))
+        posted = (sub.get('posted') or [{}])[0]
+        check(bool(has_a_value(posted)), scenario, name + ' submit', "setup: the data MetForm received before ClickTrail's refresh held A's values (%s)" % (has_a_value(posted) or 'none'))
     else:
         check(forced['carries_A'] and bool(forced['ct_inputs_non_empty']), scenario, name + ' submit', "setup: with the render filter on, A's snapshot carries A's values (%s)" % list(forced['ct_inputs_non_empty'].items())[:3])
         record('INFO', scenario, name + ' submit', "B's DOM held A's values for: %s" % (sorted(has_a_value(sub['dom_before'])) or 'none'))
@@ -116,7 +136,7 @@ for name, res in data.get('cache_leak', {}).items():
     check(entry.get('ct_gclid', '') == '' and entry.get('ct_ft_gclid', '') == '' and entry.get('ct_lt_gclid', '') == '', scenario, name + ' submit', "provider record is empty for the keys B's cookie lacks (gclid=%r)" % entry.get('ct_gclid'))
     check(lead.get('gclid', '') == '' and lead.get('ft_gclid', '') == '', scenario, name + ' submit', "stored lead is empty for the keys B's cookie lacks (gclid=%r)" % lead.get('gclid'))
     leaked = dict(has_a_value(entry), **{'lead.' + k: v for k, v in has_a_value(lead).items()})
-    if (name in ('fluent', 'sureforms') or name.startswith('forminator')) and rec:
+    if (name in ('fluent', 'sureforms') or name.startswith('forminator') or name.startswith('metform')) and rec:
         leaked.update({'meta.' + k: v for k, v in has_a_value(rec['meta']).items()})
     mail_leak = [b[:80] for b in sub['mail_bodies'] if any(a in b for a in A_VALUES)]
     if mail_leak:
@@ -233,6 +253,9 @@ if log.exists():
            '%d "Hook fluentform_insert_response_data is deprecated" notice(s): Fluent_Forms_Adapter registers the legacy alias next to the slash hook (one notice per Fluent submission with WP_DEBUG)' % len(legacy))
     ours_hooks = [l for l in others if re.search(r'forminator_(field_hidden_field_value|prepared_data|custom_form_submit_field_data|custom_form_submit_before_set_fields)', l)]
     check(not ours_hooks, 'debug.log', 'forminator hooks', '%d PHP diagnostics line(s) naming a Forminator hook the adapter registers (a deprecated hook would raise one per submission)' % len(ours_hooks))
+    mf_hooks = ('metform_before_store_form_data', 'metform_filter_before_store_form_data', 'metform_after_store_form_data', 'save_post_metform-entry')
+    mf_deprecated = [l for l in lines if 'deprecated' in l.lower() and any(h in l for h in mf_hooks)]
+    check(not mf_deprecated, 'debug.log', 'metform hooks', '%d deprecation notice(s) for the hooks MetForm_Adapter registers' % len(mf_deprecated))
     record('INFO', 'debug.log', 'other', '%d other PHP diagnostics line(s) from WordPress, form plugins or wp-cli' % (len(others) - len(legacy)))
     record('INFO', 'debug.log', 'plugin notes', '%d "consent override by caller" debug line(s) (not PHP diagnostics; WP_DEBUG-only audit log)' % sum('consent override by caller' in l for l in text))
     (out / 'debug-log-other.txt').write_text('\n'.join(others))
