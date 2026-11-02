@@ -51,9 +51,11 @@ final class FormReadinessAnalyzerTest extends TestCase {
 			'cf7 automatic hidden fields'       => array( $base . 'cf7.json' ),
 			'fluent automatic hidden fields'    => array( $base . 'fluent.json' ),
 			'gravity matching fields'            => array( $base . 'gravity.json' ),
+			'metform matching fields'            => array( $base . 'metform.json' ),
 			'wpforms matching fields'            => array( $base . 'wpforms.json' ),
 			'elementor hook storage'              => array( $base . 'elementor.json' ),
 			'ninja hook storage'                  => array( $base . 'ninja.json' ),
+			'sureforms matching fields'           => array( $base . 'sureforms.json' ),
 		);
 	}
 

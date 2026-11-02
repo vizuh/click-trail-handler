@@ -214,7 +214,8 @@ Type:
 Purpose:
 
 - let form adapters write the requesting visitor's attribution cookie into rendered form HTML (CF7 hidden
-  fields, Gravity Forms `gform_field_value`, Fluent Forms hidden inputs, Elementor and WPForms hidden fields);
+  fields, Gravity Forms `gform_field_value`, Fluent Forms hidden inputs, Elementor and WPForms hidden fields; MetForm is not
+  filled at render, the filter has no effect on it);
   default `false` keeps every `ct_*` value empty so a page cache cannot serve one visitor's values to another
   (#152); return `true` only on sites without a full-page cache
 
@@ -473,16 +474,16 @@ Purpose:
 
 Arguments:
 
-- `$provider` (`string`): `gravityforms`, `wpforms`, `fluentform`, `ninjaforms`, `elementor_forms`, `contact-form-7`
+- `$provider` (`string`): `gravityforms`, `wpforms`, `fluentform`, `ninjaforms`, `elementor_forms`, `contact-form-7`, `metform`, `sureforms`
 - `$form_id` (`int|string`): provider form ID
-- `$entry_id` (`int|string|null`): provider entry ID; `null` for Contact Form 7 and Elementor Forms (Pro), and for a Ninja Forms form without a Save action
+- `$entry_id` (`int|string|null`): provider entry ID; `null` for Contact Form 7 and Elementor Forms (Pro), for a Ninja Forms form without a Save action, and for a SureForms form that does not store entries
 - `$event_id` (`string`): ClickTrail event ID (`form_<32 hex>`, an HMAC of the dedupe key, stable for an entry), also stored in `clicutcl_events.event_data.event_id` and sent as the server event's ID
 - `$lead_id` (`string`): `lead_` + `$event_id` without a leading `evt_`. Derived from the server event ID, so it matches the `clicutcl_events` row and the server-side event; it is **not** the ID of the browser `lead` push, which is generated separately in the browser
 - `$payload` (`array`): the attribution payload that was logged (no resolved identity)
 
 Notes:
 
-- Gravity Forms, WPForms and Fluent Forms already write `ct_event_id` and `ct_lead_id` into their entry meta; use this action for Ninja Forms, Elementor Forms (Pro), Contact Form 7 and any other store
+- Gravity Forms, WPForms, Fluent Forms, MetForm and SureForms (entry `extras`) already write `ct_event_id` and `ct_lead_id` into their entry; use this action for Ninja Forms, Elementor Forms (Pro), Contact Form 7 and any other store
 - source-present / runtime-unverified
 
 

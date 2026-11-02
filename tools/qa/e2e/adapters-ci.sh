@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Form-adapter runtime evidence (CF7, Fluent Forms, WPForms Lite). Usage: adapters-ci.sh [plugin-root]
+# Form-adapter runtime evidence (CF7, Fluent Forms, WPForms Lite, MetForm). Usage: adapters-ci.sh [plugin-root]
 # Needs podman, curl, python3 with playwright + chromium. Evidence lands in $CT_E2E_OUT (default: a temp dir).
 # Exit 1 only on FAIL; FINDING lines are known, tracked defects recorded as evidence (see verify_adapters.py).
 set -euo pipefail

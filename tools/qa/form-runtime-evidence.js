@@ -13,9 +13,11 @@ const REQUIRED_ADAPTERS = {
   cf7: 'source.form.cf7',
   fluent: 'source.form.fluent',
   gravity: 'source.form.gravity',
+  metform: 'source.form.metform',
   wpforms: 'source.form.wpforms',
   ninja: 'source.form.ninja',
   elementor: 'source.form.elementor',
+  sureforms: 'source.form.sureforms',
 };
 const REQUIRED_CASES = [
   'ajax_cache_path',
@@ -225,7 +227,7 @@ function main() {
     process.exit(1);
   }
   console.log(
-    'Form runtime evidence check passed: six adapters, six required cases each; ' +
+    `Form runtime evidence check passed: ${Object.keys(REQUIRED_ADAPTERS).length} adapters, six required cases each; ` +
       'runtime proof remains explicitly unverified without WordPress/plugin runtime.'
   );
 }

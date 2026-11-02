@@ -1,5 +1,5 @@
 """Shared helpers for the form-adapter E2E scenarios (adapters.py): wp-cli bridge, storage deltas, form drivers."""
-import json, pathlib, subprocess, time
+import base64, json, pathlib, re, subprocess, time
 
 HERE = pathlib.Path(__file__).resolve().parent
 BASE = 'http://127.0.0.1:8088'
@@ -12,6 +12,10 @@ PROVIDERS = {
     'fluent': {'path': '/form-fluent/', 'platform': 'fluentform'},
     'wpforms_hidden': {'path': '/form-wpforms/', 'platform': 'wpforms'},
     'wpforms_text': {'path': '/form-wpforms-text/', 'platform': 'wpforms'},
+    # MetForm 4.3.4 block builder (PHP-rendered, FormData post) and Elementor builder (Preact state post).
+    'metform': {'path': '/form-metform/', 'platform': 'metform'},
+    'metform_el': {'path': '/form-metform-el/', 'platform': 'metform'},
+    'sureforms': {'path': '/form-sureforms/', 'platform': 'sureforms'},
 }
 CT_FIELDS = ('gclid', 'fbclid', 'ft_source', 'lt_source', 'lt_medium', 'attribution_selected_click_id')
 
@@ -39,10 +43,12 @@ def snapshot():
     ids = wp_json(
         "global $wpdb; $p = $wpdb->prefix; "
         "$f = $wpdb->get_var( \"SELECT IFNULL(MAX(id),0) FROM {$p}fluentform_submissions\" ); "
-        "return array( 'events' => (int) $wpdb->get_var( \"SELECT IFNULL(MAX(id),0) FROM {$p}clicutcl_events\" ), 'fluent' => (int) $f );"
+        "$mf = $wpdb->get_var( \"SELECT IFNULL(MAX(ID),0) FROM {$p}posts WHERE post_type='metform-entry'\" ); "
+        "return array( 'events' => (int) $wpdb->get_var( \"SELECT IFNULL(MAX(id),0) FROM {$p}clicutcl_events\" ), 'fluent' => (int) $f, 'metform' => (int) $mf );"
     )
     ids['provider'] = len(pod_lines('ct-provider.jsonl'))
     ids['capture'] = len(pod_lines('ct-capture.jsonl'))
+    ids['sureforms'] = sureforms_max_id()
     return ids
 
 
@@ -54,11 +60,47 @@ def delta(snap):
         "$fl = array(); foreach ( $wpdb->get_results( $wpdb->prepare( \"SELECT id, form_id, response FROM {$p}fluentform_submissions WHERE id > %%d ORDER BY id\", %d ) ) as $r ) { "
         "$meta = array(); foreach ( $wpdb->get_results( $wpdb->prepare( \"SELECT meta_key, value FROM {$p}fluentform_submission_meta WHERE response_id = %%d\", $r->id ) ) as $m ) { $meta[ $m->meta_key ] = $m->value; } "
         "$fl[] = array( 'id' => (int) $r->id, 'form_id' => (int) $r->form_id, 'response' => json_decode( $r->response, true ), 'meta' => $meta ); } "
-        "return array( 'events' => $ev, 'fluent' => $fl );" % (snap['events'], snap['fluent'])
+        "$mf = array(); foreach ( $wpdb->get_col( \"SELECT ID FROM {$p}posts WHERE post_type='metform-entry' AND ID > %d ORDER BY ID\" ) as $id ) { "
+        "$m = array(); foreach ( get_post_meta( (int) $id ) as $k => $v ) { if ( 0 === strpos( $k, 'ct_' ) ) { $m[ $k ] = $v[0]; } } "
+        "$mf[] = array( 'id' => (int) $id, 'form_id' => (int) get_post_meta( (int) $id, 'metform_entries__form_id', true ), 'data' => get_post_meta( (int) $id, 'metform_entries__form_data', true ), 'meta' => $m ); } "
+        "return array( 'events' => $ev, 'fluent' => $fl, 'metform' => $mf );" % (snap['events'], snap['fluent'], snap['metform'])
     )
     stored['provider'] = pod_lines('ct-provider.jsonl')[snap['provider']:]
     stored['capture'] = [e for e in pod_lines('ct-capture.jsonl')[snap['capture']:]]
+    stored['sureforms'] = sureforms_entries(snap['sureforms'])
     return stored
+
+
+def sureforms_max_id():
+    """Highest SureForms entry ID (0 when the table does not exist)."""
+    return wp_json(
+        "global $wpdb; $t = $wpdb->prefix . 'srfm_entries'; "
+        "return $wpdb->get_var( \"SHOW TABLES LIKE '$t'\" ) ? (int) $wpdb->get_var( \"SELECT IFNULL(MAX(ID),0) FROM $t\" ) : 0;"
+    )
+
+
+def sureforms_entries(after_id):
+    """SureForms entries stored after `after_id`: form data, `extras` and submission info as SureForms keeps them."""
+    return wp_json(
+        "global $wpdb; $t = $wpdb->prefix . 'srfm_entries'; "
+        "if ( ! $wpdb->get_var( \"SHOW TABLES LIKE '$t'\" ) ) { return array(); } "
+        "$out = array(); foreach ( $wpdb->get_results( $wpdb->prepare( \"SELECT ID, form_id, form_data, extras FROM $t WHERE ID > %%d ORDER BY ID\", %d ) ) as $r ) { "
+        "$out[] = array( 'id' => (int) $r->ID, 'form_id' => (int) $r->form_id, 'form_data' => json_decode( $r->form_data, true ), 'extras' => json_decode( $r->extras, true ), 'extras_raw' => $r->extras ); } "
+        "return $out;" % int(after_id)
+    )
+
+
+def sureforms_label(name):
+    """The `ct_*` label SureForms encodes in a field key (`srfm-<type>-<id>-lbl-<base64 label>-<slug>`), else ''."""
+    m = re.search(r'-lbl-([A-Za-z0-9+/]*)-', name or '')
+    if not m:
+        return ''
+    raw = m.group(1)
+    try:
+        label = base64.b64decode(raw + '=' * (-len(raw) % 4)).decode('utf-8', 'replace')
+    except Exception:
+        return ''
+    return label if label.startswith('ct_') else ''
 
 
 def new_context(browser):
@@ -69,12 +111,14 @@ def new_context(browser):
 
 
 def ct_inputs(page):
-    """Every ClickTrail-marked input in the first form: by name (`ct_*`) or by a `ct_*` class on the field wrapper."""
+    """Every ClickTrail-marked input in the first form: by name (`ct_*`), by a `ct_*` class on the field wrapper, or by a SureForms key whose encoded label is `ct_*`."""
     return page.evaluate(
         """() => {
             const out = {};
             for (const el of document.querySelectorAll('form input:not([type=submit]):not([type=button]), form textarea')) {
                 let label = (el.name || '').startsWith('ct_') ? el.name : null;
+                const sf = !label && /-lbl-([A-Za-z0-9+/]*)-/.exec(el.name || '');
+                if (sf) { try { const t = atob(sf[1] + '='.repeat((4 - sf[1].length % 4) % 4)); if (t.startsWith('ct_')) label = t; } catch (e) {} }
                 if (!label) {
                     const wrap = el.closest('[class*="ct_"]');
                     const tok = wrap && [...wrap.classList].find((c) => c.startsWith('ct_'));
@@ -98,6 +142,16 @@ def fill(page, provider, tag):
     elif provider == 'fluent':
         page.fill('input[name="your_name"]', 'E2E ' + tag)
         page.fill('input[name="email"]', email)
+    elif provider.startswith('metform'):
+        # The Elementor builder keeps field values in Preact state written on change/blur: type, then blur.
+        for name, value in (('mf-name', 'E2E ' + tag), ('mf-email', email)):
+            field = page.locator('input[name="%s"]' % name)
+            field.click()
+            field.press_sequentially(value, delay=10)
+            field.blur()
+    elif provider == 'sureforms':
+        page.fill('input[name^="srfm-input-"][name$="-name"]', 'E2E ' + tag)
+        page.fill('input[name^="srfm-email-"]', email)
     else:
         page.fill('input[name="wpforms[fields][1]"]', 'E2E ' + tag)
         # WPForms' mail-check widget blocks unknown TLDs such as .test with a "Did you mean" prompt.
@@ -109,6 +163,9 @@ def submit_button(provider):
     return {
         'cf7': 'input[type="submit"].wpcf7-submit',
         'fluent': 'button.ff-btn-submit',
+        'metform': 'button.mfb-button[type="submit"]',
+        'metform_el': 'button.metform-submit-btn',
+        'sureforms': 'button.srfm-submit-button',
     }.get(provider, 'button.wpforms-submit')
 
 
@@ -120,6 +177,21 @@ def wait_done(page, provider, timeout=25000):
     if provider == 'fluent':
         page.wait_for_selector('.ff-message-success, .ff-errors-in-stack, .ff-el-is-error', timeout=timeout)
         return 'sent' if page.locator('.ff-message-success').count() else 'failed: ' + page.inner_text('form, .ff-errors-in-stack')[:200]
+    if provider.startswith('metform'):
+        # Block builder: `.mfb-form__response` ends in data-state success or error; Elementor builder: `.mf-main-response-wrap[data-show="1"]`.
+        done = {
+            'metform': '.mfb-form__response[data-state="success"], .mfb-form__response[data-state="error"]',
+            'metform_el': '.mf-main-response-wrap[data-show="1"]',
+        }[provider]
+        page.wait_for_selector(done, timeout=timeout)
+        text = page.inner_text(done)
+        return 'sent' if 'E2E thanks' in text else 'failed: ' + text[:200]
+    if provider == 'sureforms':
+        try:
+            page.wait_for_selector('.srfm-success-box', timeout=timeout)
+            return 'sent'
+        except Exception:
+            return 'failed: ' + page.inner_text('form, .srfm-form-container')[:200]
     page.wait_for_selector('.wpforms-confirmation-container-full, .wpforms-confirmation-container, .wpforms-error-container, .wpforms-has-error', timeout=timeout)
     return 'sent' if page.locator('.wpforms-confirmation-container-full, .wpforms-confirmation-container').count() else 'failed'
 

@@ -1,11 +1,11 @@
-"""E2E form-adapter scenarios (CF7, Fluent Forms, WPForms Lite). Usage: adapters.py <evidence-dir> [scenario ...]
+"""E2E form-adapter scenarios (CF7, Fluent Forms, WPForms Lite, SureForms, MetForm). Usage: adapters.py <evidence-dir> [scenario ...]
 
 Writes <evidence-dir>/adapters.json (observations only; verify_adapters.py judges them) and the optimizer-facing
 landing HTML. Scenarios: landing, landing_server_only, returning, cache_leak, double_submit, consent, script_attrs, cf7_no_references,
 edge_cache_headers.
 Consent-off scenarios run first; consent and script_attrs switch Consent Mode on.
 """
-import http.client, json, pathlib, re, sys, time, urllib.parse
+import base64, http.client, json, pathlib, re, sys, time, urllib.parse
 from playwright.sync_api import sync_playwright
 from adapters_lib import *
 
@@ -39,6 +39,21 @@ def records(provider, stored):
                 continue
             fields = {'ct_' + k[len('Hidden '):]: v for k, v in r['fields'].items() if k.startswith('Hidden ')}
             out.append({'entry': {k: v for k, v in fields.items() if v != '' or k[3:] in CT_FIELDS}, 'meta': {'entry_meta_api': r['entry_meta_api'], 'entry_id': r['entry_id']}})
+    elif provider.startswith('metform'):
+        # The entry's own form data, and the `ct_*` post meta ClickTrail wrote on the metform-entry post.
+        for r in stored['metform']:
+            data = r['data'] if isinstance(r['data'], dict) else {}
+            out.append({'entry': keep(data), 'meta': dict(r['meta']) if isinstance(r['meta'], dict) else {}, 'entry_id': r['id'], 'form_id': r['form_id']})
+    elif provider == 'sureforms':
+        mail = [r['body'] for r in stored['provider'] if r['provider'] == 'mail']
+        ids = [[e.get('event_id'), e.get('lead_id')] for e in stored['events'] if e['platform'] == 'sureforms']
+        for r in stored['sureforms']:
+            entry = {sureforms_label(k): v for k, v in (r['form_data'] or {}).items() if sureforms_label(k)}
+            extras = r['extras'] if isinstance(r['extras'], dict) else {}
+            out.append({
+                'entry': {k: v for k, v in entry.items() if v != '' or k[3:] in CT_FIELDS},
+                'meta': dict({k: v for k, v in extras.items() if k.startswith('ct_')}, entry_id=r['id'], extras_raw=r['extras_raw'], mail_bodies=mail, lead_ids=ids),
+            })
     else:
         for r in stored['fluent']:
             out.append({'entry': keep(r['response']), 'meta': {k: v for k, v in r['meta'].items() if k.startswith('ct_')}})
@@ -48,14 +63,21 @@ def records(provider, stored):
 def observe(provider, page, ctx, snap, status, dom_before):
     stored = delta(snap)
     platform = PROVIDERS[provider]['platform']
-    return {
+    result = {
         'status': status,
         'dom_before': dom_before,
         'cookie': {k: v for k, v in attribution_cookie(ctx).items() if k in CT_FIELDS or k in ('lt_campaign', 'ft_campaign')},
         'leads': [e['attribution'] for e in stored['events'] if e['platform'] == platform],
+        'lead_rows': [{k: e.get(k) for k in ('event_id', 'lead_id', 'entry_id', 'form_id')} for e in stored['events'] if e['platform'] == platform],
         'records': records(provider, stored),
         'dispatched': sum(1 for e in stored['capture'] if e.get('event_name') == 'form_submission'),
     }
+    if provider.startswith('metform'):
+        # The admin notification MetForm sent for the entry (wp_mail is short-circuited, ct-e2e-provider-capture.php logs it).
+        result['mail_bodies'] = [r['body'] for r in stored['provider'] if r['provider'] == 'mail']
+        # What the browser posted for the ct_* inputs, before ClickTrail's refresh (mu/ct-e2e-provider-capture.php).
+        result['posted'] = [r['posted'] for r in stored['provider'] if r['provider'] == 'metform']
+    return result
 
 
 def run_visit(browser, provider, urls, tag, settle_between=True):
@@ -103,6 +125,8 @@ def render_ct_values(html):
         value = re.search(r'\bvalue=["\']([^"\']*)["\']', tag)
         klass = re.search(r'\bclass=["\']([^"\']*)["\']', tag)
         label = name.group(1) if name and name.group(1).startswith('ct_') else None
+        if not label and name and sureforms_label(name.group(1)):
+            label = sureforms_label(name.group(1))
         if not label and klass:
             label = next((c for c in klass.group(1).split() if c.startswith('ct_')), None)
         if label and label != 'ct_fill_source' and value and value.group(1):
@@ -139,6 +163,12 @@ def stale_submit(browser, provider, html, tag, cookies=None, prime_b=True, plant
         page.wait_for_load_state('networkidle')
         cookie_before = {k: v for k, v in attribution_cookie(ctx).items() if k in CT_FIELDS}
 
+    if plant_a_values and provider == 'metform_el':
+        # The Elementor builder posts its Preact state, which `ref=${parent.setDefault}` fills from the `value` attribute at
+        # mount, not the DOM the Injector writes later: plant A's values in the served template, where a stale cache keeps them.
+        for key, value in {'gclid': 'AAA', 'fbclid': 'AFB', 'ft_source': 'a_src', 'lt_source': 'a_src', 'lt_medium': 'cpc'}.items():
+            html = re.sub(r'(<input\b[^>]*\bname="ct_%s"[^>]*\bvalue=)""' % re.escape(key), r'\g<1>"%s"' % value, html)
+
     def serve(route, request=None):
         if route.request.resource_type == 'document':
             route.fulfill(status=200, content_type='text/html; charset=utf-8', body=html)
@@ -156,6 +186,9 @@ def stale_submit(browser, provider, html, tag, cookies=None, prime_b=True, plant
         ids = {'gclid': '3', 'fbclid': '4', 'ft_source': '5', 'lt_source': '6', 'lt_medium': '7'}
         for key, value in planted.items():
             selector = '[name="wpforms[fields][%s]"]' % ids[key] if provider.startswith('wpforms') else 'form input[name="ct_%s"]' % key
+            if provider == 'sureforms':
+                # SureForms names carry the base64 label: `-lbl-<base64("ct_<key>")>-`.
+                selector = 'form input[name*="-lbl-%s-"]' % base64.b64encode(('ct_' + key).encode()).decode().rstrip('=')
             page.evaluate("([sel, v]) => { const el = document.querySelector(sel); if (el) el.value = v; }", [selector, value])
     dom = ct_inputs(page)
     status = submit(page, provider, tag)
@@ -175,7 +208,7 @@ def cache_leak(browser):
     consent:  consent required and not granted (no cookie, denied cookie), stale snapshot posted: everything blank.
     """
     out = {}
-    for provider in ('cf7', 'fluent', 'wpforms_text'):
+    for provider in ('cf7', 'fluent', 'wpforms_text', 'sureforms', 'metform', 'metform_el'):
         path = PROVIDERS[provider]['path']
         result = {}
         set_render_values(False)

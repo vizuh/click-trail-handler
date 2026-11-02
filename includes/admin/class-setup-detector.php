@@ -104,9 +104,19 @@ class Setup_Detector {
 				'active' => defined( 'FLUENTFORM' ) || class_exists( '\FluentForm\Framework\Foundation\Application' ),
 			),
 			array(
+				'key'    => 'metform',
+				'label'  => 'MetForm',
+				'active' => defined( 'METFORM_VERSION' ) || class_exists( '\MetForm\Plugin' ),
+			),
+			array(
 				'key'    => 'ninja',
 				'label'  => 'Ninja Forms',
 				'active' => class_exists( 'Ninja_Forms' ),
+			),
+			array(
+				'key'    => 'sureforms',
+				'label'  => 'SureForms',
+				'active' => defined( 'SRFM_VER' ),
 			),
 		);
 	}

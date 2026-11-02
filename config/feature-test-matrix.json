@@ -1353,6 +1353,13 @@
           ]
         },
         {
+          "file": "tests/fixtures/form-readiness/v1/metform.json",
+          "patterns": [
+            "matching_fields",
+            "provider_record"
+          ]
+        },
+        {
           "file": "tests/fixtures/form-readiness/v1/wpforms.json",
           "patterns": [
             "matching_fields",
@@ -1371,6 +1378,13 @@
           "patterns": [
             "hook_storage",
             "hook_payload"
+          ]
+        },
+        {
+          "file": "tests/fixtures/form-readiness/v1/sureforms.json",
+          "patterns": [
+            "matching_fields",
+            "provider_record"
           ]
         },
         {
@@ -1420,6 +1434,14 @@
           ]
         },
         {
+          "file": "tests/fixtures/form-runtime/v1/metform.json",
+          "patterns": [
+            "ajax_cache_path",
+            "stored_record_inspection",
+            "runtime_unverified"
+          ]
+        },
+        {
           "file": "tests/fixtures/form-runtime/v1/wpforms.json",
           "patterns": [
             "ajax_cache_path",
@@ -1437,6 +1459,14 @@
         },
         {
           "file": "tests/fixtures/form-runtime/v1/ninja.json",
+          "patterns": [
+            "ajax_cache_path",
+            "stored_record_inspection",
+            "runtime_unverified"
+          ]
+        },
+        {
+          "file": "tests/fixtures/form-runtime/v1/sureforms.json",
           "patterns": [
             "ajax_cache_path",
             "stored_record_inspection",

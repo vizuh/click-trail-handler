@@ -162,6 +162,8 @@ Written by the form adapters at submission time, after `log_submission()`, when 
 | Gravity Forms | entry meta (`gform_add_meta`), declared via `gform_entry_meta` and restored after an entry edit | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
 | WPForms | `wpforms()->entry_meta` (only when the entry ID is a real, positive ID) | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
 | Fluent Forms | `fluentform_submission_meta` (`response_id` = entry ID) | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
+| MetForm | `metform-entry` post meta (`update_post_meta`; only when MetForm stored an entry for the form) | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
+| SureForms | entry `extras` column (`srfm_entries.extras`, an array SureForms owns; ClickTrail merges its keys into it and never replaces a non-array value; no write when the form stores no entry) | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
 | Ninja Forms | none | none | `clicutcl_events` row and action `clicutcl_form_submission_logged` |
 | Elementor Forms (Pro) | none | none | `clicutcl_events` row and action `clicutcl_form_submission_logged` |
 | Contact Form 7 | none | none | `clicutcl_events` row and action `clicutcl_form_submission_logged` |
