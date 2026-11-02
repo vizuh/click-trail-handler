@@ -38,6 +38,13 @@ class Forminator_Adapter extends Abstract_Form_Adapter {
 	private const NON_SUBMISSION_STATUSES = array( 'draft', 'abandoned', 'spam' );
 
 	/**
+	 * Entry meta waiting for Forminator to finish storing the entry, by entry ID.
+	 *
+	 * @var array<int,array{entry:object,logged:mixed,payload:array}>
+	 */
+	private $deferred = array();
+
+	/**
 	 * Check if Forminator is active.
 	 *
 	 * @return bool
@@ -69,13 +76,16 @@ class Forminator_Adapter extends Abstract_Form_Adapter {
 	 *   before it builds the entry fields, so the cookie value is the one Forminator validates, stores and
 	 *   mails. `forminator_custom_form_submit_field_data` runs after that and only keeps Forminator from
 	 *   overwriting the value (see `protect_entry_fields()`).
-	 * - `forminator_custom_form_submit_before_set_fields` runs once the entry exists and only logs.
+	 * - `forminator_custom_form_submit_before_set_fields` runs once the entry exists: it logs and writes the entry meta.
+	 * - `forminator_after_handle_form` (`do_action( ..., $entry )` at the end of `handle_form()`, after the entry fields,
+	 *   add-ons and mail) writes the entry meta that could not be written earlier (see `on_submission()`).
 	 */
 	public function register_hooks() {
 		add_filter( 'forminator_field_hidden_field_value', array( $this, 'render_field_value' ), 10, 4 );
 		add_filter( 'forminator_prepared_data', array( $this, 'refresh_prepared_data' ), 10, 2 );
 		add_filter( 'forminator_custom_form_submit_field_data', array( $this, 'protect_entry_fields' ), 10, 2 );
 		add_action( 'forminator_custom_form_submit_before_set_fields', array( $this, 'on_submission' ), 10, 3 );
+		add_action( 'forminator_after_handle_form', array( $this, 'flush_deferred_meta' ), 10, 1 );
 	}
 
 	/**
@@ -198,10 +208,31 @@ class Forminator_Adapter extends Abstract_Form_Adapter {
 
 		$resolved = $this->resolve_submitted_attribution( array(), false );
 		foreach ( $marked as $element_id => $key ) {
-			$prepared_data[ $element_id ] = $resolved[ $key ];
+			// A value Forminator would rewrite when it stores the entry is left out of the field; the entry meta
+			// and ClickTrail's own log still carry it.
+			$prepared_data[ $element_id ] = $this->forminator_would_rewrite( $resolved[ $key ] ) ? '' : $resolved[ $key ];
 		}
 
 		return $prepared_data;
+	}
+
+	/**
+	 * Whether Forminator would change this value when it stores a Hidden field.
+	 *
+	 * For every Hidden field whose Default value is not Custom value / Embed ..., `handle_hidden_fields_after_entry_save()`
+	 * stores `trim( forminator_replace_variables( '{' . $value . '}' ), '{}' )`, so a value that is a Forminator variable
+	 * name (`user_ip`, `site_url`, `form_name`) or carries one (`{user_email}`) is replaced, and braces at either end are
+	 * dropped (an unexpanded `{keyword}` ValueTrack template). The same call is made here to learn whether that happens.
+	 *
+	 * @param string $value Candidate field value.
+	 * @return bool
+	 */
+	private function forminator_would_rewrite( $value ) {
+		if ( '' === $value || ! function_exists( 'forminator_replace_variables' ) ) {
+			return false;
+		}
+
+		return trim( (string) forminator_replace_variables( '{' . $value . '}' ), '{}' ) !== $value;
 	}
 
 	/**
@@ -296,6 +327,52 @@ class Forminator_Adapter extends Abstract_Form_Adapter {
 			return;
 		}
 
+		// A form_uid that matches an abandoned entry makes Forminator reuse that entry (`updating_entry`), and every
+		// `set_fields()` call on it first deletes all of the entry's meta, including what is written here: Forminator
+		// stores the fields right after this action. Wait until it has finished (`flush_deferred_meta()`).
+		if ( ! empty( $entry->updating_entry ) ) {
+			// A repeat for the same entry keeps the first call's result: it is the one that logged.
+			if ( empty( $this->deferred[ $entry_id ] ) || ! empty( $this->deferred[ $entry_id ]['logged']['duplicate'] ) ) {
+				$this->deferred[ $entry_id ] = array(
+					'entry'   => $entry,
+					'logged'  => $logged,
+					'payload' => $payload,
+				);
+			}
+			return;
+		}
+
+		$this->write_entry_meta( $entry, $logged, $payload );
+	}
+
+	/**
+	 * Write the entry meta of the submissions `on_submission()` deferred.
+	 *
+	 * Fires at the end of `handle_form()`, after Forminator stored the entry fields, ran add-ons and sent mail. It does
+	 * not fire when `handle_form()` returns earlier (a Stripe checkout response), in which case an abandoned entry that
+	 * is being completed keeps no ClickTrail meta; the lead is still logged.
+	 *
+	 * @param mixed $entry Forminator_Form_Entry_Model (unused; the stored objects are the same request's entries).
+	 * @return void
+	 */
+	public function flush_deferred_meta( $entry = null ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found
+		$deferred       = $this->deferred;
+		$this->deferred = array();
+
+		foreach ( $deferred as $item ) {
+			$this->write_entry_meta( $item['entry'], $item['logged'], $item['payload'] );
+		}
+	}
+
+	/**
+	 * Write `ct_<key>`, `ct_event_id` and `ct_lead_id` to a Forminator entry, once.
+	 *
+	 * @param object $entry   Forminator_Form_Entry_Model.
+	 * @param mixed  $logged  `log_submission()` result.
+	 * @param array  $payload Attribution payload that was logged.
+	 * @return void
+	 */
+	private function write_entry_meta( $entry, $logged, array $payload ) {
 		$meta = $this->entry_meta_to_write(
 			$logged,
 			$payload,
@@ -313,8 +390,18 @@ class Forminator_Adapter extends Abstract_Form_Adapter {
 				);
 			}
 		}
-		if ( ! empty( $rows ) ) {
-			$entry->set_fields( $rows );
+		if ( empty( $rows ) ) {
+			return;
+		}
+
+		// `set_fields()` on an entry that is being updated deletes the entry's other meta first; this write adds rows only.
+		$updating = ! empty( $entry->updating_entry );
+		if ( $updating ) {
+			$entry->updating_entry = false;
+		}
+		$entry->set_fields( $rows );
+		if ( $updating ) {
+			$entry->updating_entry = true;
 		}
 	}
 

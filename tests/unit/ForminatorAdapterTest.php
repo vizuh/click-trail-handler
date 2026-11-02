@@ -80,14 +80,30 @@ namespace {
 		}
 	}
 
+	if ( ! function_exists( 'forminator_replace_variables' ) ) {
+		/**
+		 * Forminator's variable replacement, reduced to two variables.
+		 *
+		 * @param string $content Content.
+		 * @return string
+		 */
+		function forminator_replace_variables( $content, $id = false, $entry = null ) {
+			return str_replace( array( '{user_ip}', '{site_url}' ), array( '203.0.113.9', 'https://example.test' ), (string) $content );
+		}
+	}
+
 	/**
 	 * Forminator_Form_Entry_Model double: records `set_fields()` rows, answers `get_meta()` from them.
+	 *
+	 * Like the real model, `set_fields()` on an entry that is being updated (`updating_entry`, an abandoned entry
+	 * completed by the submit) first deletes every meta row of the entry.
 	 */
 	final class ClickTrailForminatorEntry {
-		public $entry_id = 0;
-		public $status   = 'active';
-		public $rows     = array();
-		public $writes   = 0;
+		public $entry_id       = 0;
+		public $status         = 'active';
+		public $updating_entry = false;
+		public $rows           = array();
+		public $writes         = 0;
 
 		public function __construct( int $entry_id = 0, string $status = 'active' ) {
 			$this->entry_id = $entry_id;
@@ -95,6 +111,9 @@ namespace {
 		}
 
 		public function set_fields( $meta_array, $entry_date = '' ) {
+			if ( $this->updating_entry ) {
+				$this->rows = array();
+			}
 			foreach ( $meta_array as $meta ) {
 				$this->rows[ $meta['name'] ] = $meta['value'];
 				++$this->writes;
@@ -374,6 +393,7 @@ namespace {
 					'forminator_prepared_data',
 					'forminator_custom_form_submit_field_data',
 					'forminator_custom_form_submit_before_set_fields',
+					'forminator_after_handle_form',
 				),
 				$GLOBALS['ct_forms_registered_hooks']
 			);
@@ -405,6 +425,58 @@ namespace {
 			$this->assertSame( $logged['event_id'], $entry->rows['ct_event_id'] );
 			$this->assertSame( $logged['lead_id'], $entry->rows['ct_lead_id'] );
 			$this->assertCount( 1, $GLOBALS['clicktrail_test_dispatches'] );
+		}
+
+		public function test_an_abandoned_entry_being_completed_keeps_the_meta_after_forminator_stores_its_fields(): void {
+			$adapter                = new ClickTrailForminatorTestAdapter();
+			$entry                  = new ClickTrailForminatorEntry( 88 );
+			$entry->updating_entry  = true;
+
+			$adapter->on_submission( $entry, 7, array() );
+			$this->assertCount( 1, $this->db->rows, 'The lead is logged at once.' );
+			$this->assertSame( array(), $entry->rows, 'No set_fields() while Forminator is about to delete the entry meta.' );
+
+			// Forminator's own set_fields() right after the action: deletes every row of the entry, then stores the fields.
+			$entry->set_fields( array( array( 'name' => 'text-1', 'value' => 'Jonas' ) ) );
+			$this->assertSame( array( 'text-1' => 'Jonas' ), $entry->rows );
+
+			$adapter->flush_deferred_meta( $entry );
+
+			$logged = json_decode( $this->db->rows[0]['data']['event_data'], true );
+			$this->assertSame( 'Jonas', $entry->rows['text-1'], 'The write adds rows; it does not delete Forminator\'s.' );
+			$this->assertSame( 'abc', $entry->rows['ct_gclid'] );
+			$this->assertSame( $logged['event_id'], $entry->rows['ct_event_id'] );
+			$this->assertSame( $logged['lead_id'], $entry->rows['ct_lead_id'] );
+			$this->assertTrue( $entry->updating_entry, 'The model flag is restored.' );
+
+			$writes = $entry->writes;
+			$adapter->flush_deferred_meta( $entry );
+			$this->assertSame( $writes, $entry->writes, 'A second flush has nothing left to write.' );
+		}
+
+		public function test_a_repeat_for_an_entry_being_updated_still_writes_once_and_logs_once(): void {
+			$adapter               = new ClickTrailForminatorTestAdapter();
+			$entry                 = new ClickTrailForminatorEntry( 88 );
+			$entry->updating_entry = true;
+
+			$adapter->on_submission( $entry, 7, array() );
+			$adapter->on_submission( $entry, 7, array() );
+			$entry->set_fields( array( array( 'name' => 'text-1', 'value' => 'Jonas' ) ) );
+			$adapter->flush_deferred_meta( $entry );
+
+			$this->assertCount( 1, $this->db->rows );
+			$this->assertSame( 'abc', $entry->rows['ct_gclid'], 'The first call (the one that logged) decides what is written, not the duplicate.' );
+			$this->assertArrayHasKey( 'ct_event_id', $entry->rows );
+		}
+
+		public function test_a_value_forminator_would_rewrite_is_left_out_of_the_field_not_stored_changed(): void {
+			$_COOKIE = array( 'attribution' => json_encode( array( 'gclid' => 'user_ip', 'ft_source' => '{keyword}', 'lt_term' => 'plain' ) ) );
+
+			$out = ( new Forminator_Adapter() )->refresh_prepared_data( self::posted(), self::module() );
+
+			$this->assertSame( '', $out['hidden-1'], 'A bare variable name would be stored as the visitor IP.' );
+			$this->assertSame( '', $out['hidden-3'], 'Braces at either end would be stripped.' );
+			$this->assertSame( 'plain', $out['hidden-2'], 'An ordinary value is untouched.' );
 		}
 
 		public function test_a_repeat_of_the_same_entry_logs_and_writes_once(): void {
