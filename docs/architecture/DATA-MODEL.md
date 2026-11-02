@@ -284,6 +284,33 @@ The trace snapshot stores:
 - canonical payload snapshot
 - dispatch result summary
 
+## Registration User Meta Surfaces (Ultimate Member)
+
+A visitor registered through an Ultimate Member registration form gets ClickTrail user meta, written by
+`Integrations\Ultimate_Member` from the attribution cookie sent with the registration request (never from `$_POST`)
+and only when marketing consent allows (`Attribution_Provider::should_populate()` and, when consent is required,
+`Consent::marketing_allowed()`):
+
+- `_clicutcl_{field}` for every key of `Attribution_Provider::get_field_mapping()` present in the cookie payload (`gclid`, `lt_source`, `ft_campaign`, `visitor_id`, `session_id`, `session_count`, ...), each value `sanitize_text_field()`ed and cut to 255 characters; a key outside the mapping is dropped
+- `_clicutcl_um_signup_sent`: `yes`, written only after the `sign_up` dispatch succeeded, was skipped (server-side delivery off, duplicate) or was confirmed queued; an unqueued failure leaves it unset so a repeat of the hook can send again
+
+The leading underscore keeps the keys out of core's custom-field UI. Nothing is written for a user added from wp-admin
+(`um_registration_complete` carries a `null` form), for a registration without marketing consent, or when no
+attribution cookie came with the request (then only the sent marker is written). The password UM passes in `$args` is
+never read.
+
+Lifecycle: `Privacy_Handler` registers a separate exporter and eraser, `clicutcl-user-registration`, matched through
+`get_user_by( 'email' )` (`User_Registration_Privacy`); both work on the exact allowlist above, so lookalike keys and
+all other user meta are untouched, and they also run after Ultimate Member is deactivated. The daily cleanup removes the
+meta of at most 100 users per run whose `user_registered` is older than the attribution retention (cookie duration,
+default 90 days; the same period that applies to Woo order meta) and emits `clicutcl_cleanup_batch_incomplete` with
+scope `registration_user_meta` when more remain. The admin tracking purge and uninstall remove the meta of every user
+(uninstall keeps it when `clicutcl_preserve_data_on_uninstall` is truthy). WordPress deletes all of a user's meta with
+the user. Ultimate Member's own registration data (`submitted` details, profile fields) is outside this lifecycle.
+
+Because retention is measured from the registration date, attribution on accounts older than the retention period is
+not kept; copy it to a CRM or another user field at registration time if it must outlive that.
+
 ## Client-Side Storage
 
 Cookies:

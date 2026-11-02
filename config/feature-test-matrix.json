@@ -672,6 +672,46 @@
         }
       ]
     },
+    "ultimate-member-registration": {
+      "label": "Ultimate Member registration attribution",
+      "expected_behavior": "A visitor registered through an Ultimate Member registration form gets the consented attribution payload as allowlisted _clicutcl_* user meta and one server-side sign_up event (event_id um_registration_<user_id>); nothing is stored or dispatched without marketing consent, a repeat of the hook dispatches nothing, and the core sign_up cookie event carries the same event_id.",
+      "prerequisites": [
+        "Ultimate Member is active.",
+        "A visitor lands with UTMs or a click ID and then registers through a UM registration form."
+      ],
+      "automated": false,
+      "manual_verification": [
+        "Land with ?utm_source=test&gclid=X, register through the UM form, and confirm the new user's meta holds _clicutcl_gclid and _clicutcl_lt_source and Diagnostics shows one sign_up.",
+        "Repeat with consent required and denied and confirm the user has no _clicutcl_* meta and no sign_up was dispatched.",
+        "Export and erase the user through Tools > Export/Erase Personal Data and confirm the ClickTrail Registration Attribution group is exported and removed."
+      ],
+      "evidence": [
+        {
+          "file": "includes/integrations/class-ultimate-member.php",
+          "patterns": [
+            "um_registration_complete",
+            "um_submit_form_register",
+            "clicutcl_signup_event_id",
+            "Claim_Lock::acquire"
+          ]
+        },
+        {
+          "file": "includes/privacy/class-user-registration-privacy.php",
+          "patterns": [
+            "export_user_data",
+            "erase_user_data",
+            "purge_all_user_metadata"
+          ]
+        },
+        {
+          "file": "tests/unit/UltimateMemberRegistrationTest.php",
+          "patterns": [
+            "test_denied_consent_stores_nothing_and_dispatches_nothing",
+            "test_the_hook_firing_twice_for_one_user_dispatches_once"
+          ]
+        }
+      ]
+    },
     "diagnostics-conflict-scan": {
       "label": "Diagnostics conflict scan",
       "expected_behavior": "Diagnostics exposes a deterministic conflict scan for caching, destination mismatches, and Woo gaps.",

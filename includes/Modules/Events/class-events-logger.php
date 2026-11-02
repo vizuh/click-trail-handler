@@ -87,11 +87,25 @@ class Events_Logger {
 	 * @param int $user_id User ID.
 	 */
 	public function log_signup_event( $user_id ) {
+		/**
+		 * Filter the event ID of the browser `sign_up` event a registration emits.
+		 *
+		 * Lets a registration integration that also dispatches a server-side `sign_up` for the same user
+		 * (Ultimate Member does) give both the same ID, so a destination that deduplicates on event ID
+		 * counts the registration once.
+		 *
+		 * @since 1.13.0
+		 *
+		 * @param string $event_id Generated event ID.
+		 * @param int    $user_id  Registered user ID.
+		 */
+		$event_id = (string) apply_filters( 'clicutcl_signup_event_id', Event::generate_id( 'signup' ), (int) $user_id );
+
 		$this->set_event_cookie(
 			'ct_event_signup',
 			array(
 				'event'    => 'sign_up',
-				'event_id' => Event::generate_id( 'signup' ),
+				'event_id' => $event_id,
 				'params'   => array(
 					'user_hash' => hash( 'sha256', (string) $user_id . wp_salt( 'auth' ) ),
 					'method'    => 'wordpress',
