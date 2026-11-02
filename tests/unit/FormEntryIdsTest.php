@@ -37,6 +37,7 @@ namespace {
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-dedup-store.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/Core/class-attribution-provider.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/integrations/forms/interface-form-adapter.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-claim-lock.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/integrations/forms/class-abstract-form-adapter.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/integrations/forms/class-elementor-forms-adapter.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/integrations/forms/class-fluent-forms-adapter.php';
@@ -101,11 +102,24 @@ namespace {
 	 * Records `$wpdb->insert()` calls.
 	 */
 	final class ClickTrailEntryIdsWpdb {
-		public $prefix = 'wp_';
-		public $rows   = array();
+		public $prefix  = 'wp_';
+		public $options = 'wp_options';
+		public $rows    = array();
 
 		public function insert( $table, $data ) {
 			$this->rows[] = array( 'table' => $table, 'data' => $data );
+			return 1;
+		}
+
+		/**
+		 * Row-conditional option delete used by the submission claim release.
+		 */
+		public function delete( $table, $where ) {
+			$name = (string) $where['option_name'];
+			if ( ! isset( $GLOBALS['clicktrail_test_options'][ $name ] ) || (string) $GLOBALS['clicktrail_test_options'][ $name ] !== (string) $where['option_value'] ) {
+				return 0;
+			}
+			unset( $GLOBALS['clicktrail_test_options'][ $name ] );
 			return 1;
 		}
 	}

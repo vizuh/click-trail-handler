@@ -10,6 +10,7 @@ namespace CLICUTCL\Integrations\Forms;
 use CLICUTCL\Core\Attribution_Provider;
 use CLICUTCL\Server_Side\Consent;
 use CLICUTCL\Server_Side\Dispatcher;
+use CLICUTCL\Tracking\Claim_Lock;
 use CLICUTCL\Tracking\Dedup_Store;
 use CLICUTCL\Tracking\Identity_Resolver;
 
@@ -27,6 +28,16 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 	 * provider supplies no entry ID.
 	 */
 	const DEDUPE_BUCKET_SECONDS = 10;
+
+	/**
+	 * Seconds a submission claim may be held before it is considered abandoned.
+	 */
+	const SUBMISSION_CLAIM_TTL = 30;
+
+	/**
+	 * Claim key prefix for in-flight submissions.
+	 */
+	const SUBMISSION_CLAIM_PREFIX = 'clicutcl_form_claim_';
 
 	/**
 	 * Field prefix for ClickTrail fields.
@@ -76,6 +87,11 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 	 * so neither the dedupe store key nor the event ID exposes a guessable hash of an email or phone. That is best-effort: a repeat that crosses a bucket
 	 * boundary, or arrives with different posted ct_* values, counts as a new submission.
 	 *
+	 * Concurrency: the key is claimed atomically (`Claim_Lock`) before the row is written, so two
+	 * simultaneous calls for one key write one row and dispatch once; the loser returns the same IDs
+	 * with `duplicate` set. The dedupe marker is kept only after a successful insert and dispatch,
+	 * and the claim is always released, so a failed attempt does not suppress a retry.
+	 *
 	 * @param string          $platform       Platform name.
 	 * @param mixed           $form_id        Form ID.
 	 * @param array           $attribution    Attribution data associated with submission.
@@ -86,8 +102,6 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 	 *               leading `evt_`) and `duplicate` (bool). A repeat returns the same IDs.
 	 */
 	protected function log_submission( $platform, $form_id, $attribution, $identity_input = array(), $entry_id = null ) {
-		global $wpdb;
-
 		// Submission-time consent is authoritative. Do not persist or dispatch
 		// stale/client-posted attribution after marketing consent is withdrawn.
 		if ( ! $this->should_populate() || ( Consent::is_required() && ! Consent::marketing_allowed() ) ) {
@@ -103,15 +117,50 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 		$event_id    = 'form_' . substr( $fingerprint, 0, 32 );
 		$lead_id     = $this->derive_lead_id( $event_id );
 
-		// Dedup_Store::check_and_mark() is a transient read-then-write, so two truly simultaneous
-		// requests can both pass; sequential repeats (double click, retried AJAX) cannot.
-		if ( Dedup_Store::check_and_mark( 'form_submission', (string) $platform, $fingerprint, DAY_IN_SECONDS, false ) ) {
-			return array(
-				'event_id'  => $event_id,
-				'lead_id'   => $lead_id,
-				'duplicate' => true,
-			);
+		$duplicate = array(
+			'event_id'  => $event_id,
+			'lead_id'   => $lead_id,
+			'duplicate' => true,
+		);
+
+		// Claim the key atomically before reading the marker: a request that loses the claim
+		// is a simultaneous repeat of one still in flight and returns its deterministic IDs.
+		$claim_key = self::SUBMISSION_CLAIM_PREFIX . md5( $platform . '|' . $fingerprint );
+		$claim     = Claim_Lock::acquire( $claim_key, self::SUBMISSION_CLAIM_TTL );
+		if ( '' === $claim ) {
+			return $duplicate;
 		}
+
+		try {
+			// Sequential repeats (double click, retried AJAX, a hook firing twice) hit the marker.
+			if ( Dedup_Store::is_duplicate( 'form_submission', (string) $platform, $fingerprint, false ) ) {
+				return $duplicate;
+			}
+
+			return $this->write_and_dispatch_submission( $platform, $form_id, $attribution, $identity_input, $entry_id, $fingerprint, $event_id, $lead_id );
+		} finally {
+			Claim_Lock::release( $claim_key, $claim );
+		}
+	}
+
+	/**
+	 * Write the `form_submission` row, dispatch, and keep the dedupe marker once the row is stored.
+	 *
+	 * Runs while `log_submission()` holds the claim. The marker is set only after a successful
+	 * insert and dispatch, so a failed or interrupted attempt leaves nothing that suppresses a retry.
+	 *
+	 * @param string          $platform       Platform name.
+	 * @param mixed           $form_id        Form ID.
+	 * @param array           $attribution    Attribution data.
+	 * @param array           $identity_input Raw identity input candidates.
+	 * @param int|string|null $entry_id       Normalized entry ID.
+	 * @param string          $fingerprint    Dedupe fingerprint.
+	 * @param string          $event_id       Event ID.
+	 * @param string          $lead_id        Lead ID.
+	 * @return array
+	 */
+	private function write_and_dispatch_submission( $platform, $form_id, $attribution, $identity_input, $entry_id, $fingerprint, $event_id, $lead_id ) {
+		global $wpdb;
 
 		$table_name = $wpdb->prefix . 'clicutcl_events';
 
@@ -135,7 +184,7 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 			$event_data['identity'] = $this->anonymize_identity_for_log( $identity );
 		}
 
-		$wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Intentional insert into custom plugin table.
+		$inserted = $wpdb->insert( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery -- Intentional insert into custom plugin table.
 			$table_name,
 			array(
 				'event_type' => 'form_submission',
@@ -159,6 +208,10 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 			$attribution,
 			$context
 		);
+
+		if ( false !== $inserted ) {
+			Dedup_Store::mark( 'form_submission', (string) $platform, $fingerprint, DAY_IN_SECONDS );
+		}
 
 		/**
 		 * Fires after a form submission was logged and dispatched, once per entry (not on a

@@ -121,7 +121,7 @@ Integrations:
 Flow:
 
 1. ClickTrail injects or populates attribution where the form integration supports it
-2. submitted attribution is logged to ClickTrail's form event table, once per entry: `Abstract_Form_Adapter::log_submission()` marks a key in `Dedup_Store` (destination `form_submission`, event name = provider) before writing, and a repeat writes no second `form_submission` row and dispatches no second event, returning the first call's `event_id` (#140)
+2. submitted attribution is logged to ClickTrail's form event table, once per entry: `Abstract_Form_Adapter::log_submission()` claims the key atomically (`Claim_Lock`) and checks `Dedup_Store` (destination `form_submission`, event name = provider) before writing, keeps the marker after a successful write and dispatch, and a repeat writes no second `form_submission` row and dispatches no second event, returning the first call's `event_id` (#140)
 3. consent-aware identity is resolved from submitted form fields plus request context
 4. the enriched server-side form event is dispatched through the shared delivery pipeline
 
@@ -130,8 +130,8 @@ Form dedupe key (`log_submission()`):
 - providers with an entry ID (Gravity Forms, WPForms, Fluent Forms, Ninja Forms when its Save action stored a submission ID): `(site, provider, form_id, entry_id)`, held for a day
 - providers without one (Contact Form 7, Elementor Forms Pro): **best-effort** `(site, provider, form_id, HMAC of the submitted ct_* attribution values plus the email/phone found in the posted data, 10 s time bucket)`; the HMAC means no plain hash of an email or phone reaches the transient key or the event ID. A repeat that crosses a bucket boundary, or whose posted `ct_*` values differ, counts as a new submission; two visitors posting identical values inside one bucket count as one
 - the `event_id` is `form_` plus the first 32 hex characters of the key's `hash_hmac( 'sha256', ..., wp_salt( 'auth' ) )`, so it is the same on every call for an entry (and changes if the site's auth salt changes); `lead_id` is `lead_` plus it, matches the `clicutcl_events` row and the server-side event, and is not the ID of the browser `lead` push
-- the `Dedup_Store` read-then-write is not atomic: sequential repeats (double click, retried AJAX, a hook firing twice) are caught, two truly simultaneous requests can both pass
-- consent is checked before the dedupe mark; a gated call marks nothing
+- the claim makes simultaneous requests safe (#189): `Claim_Lock::acquire()` uses `wp_cache_add()` with a persistent object cache, otherwise `add_option()` whose boolean return decides the winner (the same design as the WooCommerce thank-you lock), with a request-unique owner token, a 30 s stale takeover through a row-conditional delete of the exact stale value, and an owner-checked release. The loser writes nothing and returns the winner's deterministic `event_id` / `lead_id` with `duplicate` set. The winner keeps the dedupe marker only after the row is stored and the event dispatched and always releases the claim, so a failed or thrown attempt leaves nothing that suppresses a retry; sequential repeats (double click, retried AJAX, a hook firing twice) hit the marker. A winner that outlives the 30 s TTL can overlap a successor by design. Form checks do not count toward the dedup hit/miss stats
+- consent is checked before the claim; a gated call claims and marks nothing
 
 ## 5. External Webhook Intake
 

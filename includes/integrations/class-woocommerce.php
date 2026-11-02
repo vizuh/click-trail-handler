@@ -12,6 +12,7 @@ use CLICUTCL\Consent\Snapshot_V1;
 use CLICUTCL\Modules\GTM\GTM_Settings;
 use CLICUTCL\Server_Side\Dispatcher;
 use CLICUTCL\Server_Side\Consent;
+use CLICUTCL\Tracking\Claim_Lock;
 use CLICUTCL\Tracking\Event_Translator_V1_To_V2;
 use CLICUTCL\Tracking\Identity_Resolver;
 
@@ -313,31 +314,7 @@ class WooCommerce {
 	 * @return string The stored lock value this request owns, or '' when another request holds the lock.
 	 */
 	private function acquire_purchase_lock( int $order_id ): string {
-		$key   = self::PURCHASE_LOCK_PREFIX . $order_id;
-		$token = wp_generate_uuid4();
-
-		if ( wp_using_ext_object_cache() ) {
-			return wp_cache_add( $key, $token, 'clicutcl', self::PURCHASE_LOCK_TTL ) ? $token : '';
-		}
-
-		$value = $token . '|' . time();
-		if ( add_option( $key, $value, '', 'no' ) ) {
-			return $value;
-		}
-
-		$stored     = (string) get_option( $key, '' );
-		$held_since = (int) substr( (string) strrchr( $stored, '|' ), 1 );
-		if ( $held_since <= 0 || ( time() - $held_since ) <= self::PURCHASE_LOCK_TTL ) {
-			return '';
-		}
-
-		// Only the request that deletes the exact stale row may re-claim; a
-		// concurrent late arrival that changed the row first wins instead.
-		if ( 1 !== $this->delete_purchase_lock_row( $key, $stored ) ) {
-			return '';
-		}
-
-		return add_option( $key, $value, '', 'no' ) ? $value : '';
+		return Claim_Lock::acquire( self::PURCHASE_LOCK_PREFIX . $order_id, self::PURCHASE_LOCK_TTL );
 	}
 
 	/**
@@ -351,44 +328,7 @@ class WooCommerce {
 	 * @return void
 	 */
 	private function release_purchase_lock( int $order_id, string $lock ): void {
-		$key = self::PURCHASE_LOCK_PREFIX . $order_id;
-
-		if ( wp_using_ext_object_cache() ) {
-			if ( wp_cache_get( $key, 'clicutcl' ) === $lock ) {
-				wp_cache_delete( $key, 'clicutcl' );
-			}
-			return;
-		}
-
-		$this->delete_purchase_lock_row( $key, $lock );
-	}
-
-	/**
-	 * Delete the option lock row only while it still stores the given value.
-	 *
-	 * `delete_option()` is unconditional, so this goes to the options table
-	 * directly and uses the row's current value as part of the WHERE clause;
-	 * the affected-rows count tells the caller whether it won. The per-request
-	 * options cache entry is dropped the same way core's `delete_option()`
-	 * does so a following `add_option()` pre-check sees the row is gone.
-	 *
-	 * @param string $key   Option name.
-	 * @param string $value Exact stored value that must still be present.
-	 * @return int Rows deleted (0 or 1).
-	 */
-	private function delete_purchase_lock_row( string $key, string $value ): int {
-		global $wpdb;
-
-		$deleted = $wpdb->delete(
-			$wpdb->options,
-			array(
-				'option_name'  => $key,
-				'option_value' => $value,
-			)
-		);
-		wp_cache_delete( $key, 'options' );
-
-		return false === $deleted ? 0 : (int) $deleted;
+		Claim_Lock::release( self::PURCHASE_LOCK_PREFIX . $order_id, $lock );
 	}
 
 	/**
