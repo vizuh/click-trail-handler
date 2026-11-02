@@ -274,9 +274,49 @@ const tests = {
     assert.strictEqual(calls[0].init.method, 'POST');
     assert.strictEqual(calls[0].init.credentials, 'same-origin');
     assert.strictEqual(calls[0].init.headers['X-Clicutcl-Token'], 'tok.sig');
-    assert.deepStrictEqual(JSON.parse(calls[0].init.body), { token: 'tok.sig' });
+    const body = JSON.parse(calls[0].init.body);
+    assert.strictEqual(body.token, 'tok.sig');
+    assert.strictEqual(body.domain_applied, '', 'host scope: the script wrote host-only');
+    const leftSeconds = (NOW + 87 * DAY - Date.now()) / 1000;
+    assert.ok(body.expires_in > leftSeconds - 5 && body.expires_in <= leftSeconds + 1, 'a restored cookie reports what the mirror had left (' + body.expires_in + ' vs ' + leftSeconds + ')');
     await flush();
     assert.strictEqual(window.localStorage.getItem('ct_cookie_reissue'), null, 'success clears the marker');
+  },
+
+  'the POST says which domain the script applied: the accepted domain, or host-only after a rejected probe': async function () {
+    const accepted = page({ cookieDomain: 'example.com', local: { attribution: mirror() } });
+    assert.strictEqual(accepted.calls.length, 1);
+    assert.strictEqual(JSON.parse(accepted.calls[0].init.body).domain_applied, 'example.com');
+
+    const rejected = page({ cookieDomain: 'example.com', jar: makeJar({}, { rejectDomain: true }), local: { attribution: mirror() } });
+    assert.strictEqual(rejected.calls.length, 1);
+    assert.strictEqual(JSON.parse(rejected.calls[0].init.body).domain_applied, '', 'probe refused the domain: the cookie is host-only, so the server must not add a Domain');
+
+    const mismatch = page({ cookieDomain: 'example.com', hostname: 'preview.cdn.test', config: { cookieReissueUrl: 'https://preview.cdn.test/wp-json/clicutcl/v2/cookie-refresh' }, local: { attribution: mirror() } });
+    assert.strictEqual(JSON.parse(mismatch.calls[0].init.body).domain_applied, '', 'domain does not cover the host: host-only');
+    await flush();
+  },
+
+  'a fresh landing write sends no expires_in (full retention), a restore does'() {
+    const landing = page({ search: '?gclid=G9&utm_source=google&utm_medium=cpc' });
+    assert.strictEqual(landing.calls.length, 1);
+    assert.ok(!('expires_in' in JSON.parse(landing.calls[0].init.body)));
+
+    const restored = page({ local: { attribution: mirror({ expiresAt: NOW + 10 * DAY }) } });
+    const sent = JSON.parse(restored.calls[0].init.body).expires_in;
+    assert.ok(sent > 10 * 86400 - 60 && sent <= 10 * 86400, 'about 10 days left: ' + sent);
+  },
+
+  'the remaining lifetime of a restore survives a failed first attempt': async function () {
+    const first = page({ local: { attribution: mirror({ expiresAt: NOW + 10 * DAY }) }, respond: () => ({ ok: false, status: 500 }) });
+    await flush();
+    const marker = JSON.parse(first.window.localStorage.getItem('ct_cookie_reissue'));
+    assert.ok(marker.x > 0, 'marker keeps the mirror expiry');
+    const stale = Object.assign({}, marker, { t: Date.now() - 2 * 60 * 60 * 1000 });
+    const later = page({ jar: makeJar({ attribution: first.jar.entries.get('attribution@') }), local: { attribution: mirror({ expiresAt: NOW + 10 * DAY }), ct_cookie_reissue: JSON.stringify(stale) } });
+    assert.strictEqual(later.calls.length, 1);
+    const sent = JSON.parse(later.calls[0].init.body).expires_in;
+    assert.ok(sent > 10 * 86400 - 120 && sent <= 10 * 86400, 'still about 10 days: ' + sent);
   },
 
   'a landing with a click ID writes the cookie, marks it pending and re-issues once': async function () {

@@ -67,8 +67,10 @@ def page_token(host=WWW):
     return match.group(1) if match else ''
 
 
-def post(token, cookie='', host=WWW, with_token=True):
-    return raw('POST', ROUTE, host=host, cookie=cookie, body=json.dumps({'token': token}), token=token if with_token else None)
+def post(token, cookie='', host=WWW, with_token=True, **extra):
+    # The script reports the domain it wrote the cookie with; `registrable` scope on this site means example.test.
+    body = dict({'token': token, 'domain_applied': APEX}, **extra)
+    return raw('POST', ROUTE, host=host, cookie=cookie, body=json.dumps(body), token=token if with_token else None)
 
 
 def decode(result):
@@ -94,6 +96,10 @@ out['pages'] = {k: [{'status': r['status'], 'set_cookie': r['set_cookie']} for r
 routes = {}
 routes['valid'] = post(token, 'attribution=' + ENCODED)
 routes['valid_apex'] = post(token, 'attribution=' + ENCODED, host=APEX)
+routes['host_only_claim'] = post(token, 'attribution=' + ENCODED, domain_applied='')
+routes['foreign_domain_claim'] = post(token, 'attribution=' + ENCODED, domain_applied='other.test')
+routes['no_domain_claim'] = post(token, 'attribution=' + ENCODED, domain_applied=None)
+routes['expires_in'] = post(token, 'attribution=' + ENCODED, expires_in=3600)
 routes['no_cookie'] = post(token)
 routes['legacy_name_only'] = post(token, 'ct_attribution=' + ENCODED)
 routes['invalid_json'] = post(token, 'attribution=' + urllib.parse.quote('not json'))

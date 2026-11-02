@@ -43,8 +43,9 @@ After the script writes (or restores) the attribution cookie, it asks the server
 4. **Given** no `attribution` cookie in the request, `cookie_days` is 0, or the setting is off, **Then** no header (403 `cookie_reissue_disabled` for the setting, 200 `reissued:false` otherwise).
 5. **Given** a missing or invalid client token, an oversized body or a rate-limited client, **Then** the same errors as the sibling routes (401, 413, 429) and no header.
 6. **Given** any non-REST request (a page GET or HEAD, the front page, a landing with `?gclid=`), **Then** the response carries no `Set-Cookie` from this feature, with consent granted or not.
-7. **Given** the re-issued cookie's name, path and `Domain` equal the JS writer's, **Then** the browser holds exactly one `attribution` cookie (no duplicate-name hazard, #154).
-8. **Given** the value, **Then** the cookie contains no field the request cookie did not already contain.
+7. **Given** the re-issued cookie's name, path and `Domain` equal the JS writer's, **Then** the browser holds exactly one `attribution` cookie (no duplicate-name hazard, #154). The server cannot see whether the script's `ct_scope_probe` fell back to host-only, so the POST body carries `domain_applied` (the domain the script wrote with, `''` for host-only). `Domain=` is sent only when `domain_applied` equals the configured `Cookie_Scope` domain and that domain covers the request host; empty, absent, another value or a non-string yields a host-only `Set-Cookie`, which replaces the script's host-only cookie.
+8. **Given** the cookie was restored from the mirror, **Then** the body carries `expires_in` (seconds the mirror has left) and the server sends `Max-Age = min(cookie_days*86400, expires_in)`; a missing, zero, negative or non-numeric value means the full retention (a fresh landing write sends none).
+9. **Given** the value, **Then** the cookie contains no field the request cookie did not already contain.
 
 ---
 
@@ -95,7 +96,7 @@ The browser does not call the route on every page view. It calls it when it has 
 - **FR-002**: The mirror read MUST remove an expired or legacy envelope (existing behaviour) and MUST NOT write storage or cookies before consent resolves.
 - **FR-003**: A new route `POST clicutcl/v2/cookie-refresh` MUST exist with the gate order: setting on (403 `cookie_reissue_disabled`), body at most 2048 bytes (413), rate limit scope `cookie_reissue` (429), client token (401), consent from the request cookie (403 `consent_required`). It MUST NOT use the token-nonce replay limit (it stores nothing and a shared page-cache token would starve other visitors behind one IP).
 - **FR-004**: `Attribution_Cookie_Reissue` MUST be the only place that validates the value and builds the header; the controller MUST emit it with `header( ..., false )` (append, never replace another plugin's `Set-Cookie`) only when `headers_sent()` is false.
-- **FR-005**: The header MUST be `Set-Cookie: attribution=<rawurlencode(value)>; Max-Age=<cookie_days*86400>; Path=/; Domain=<d>; SameSite=Lax; Secure` with `Domain` present only when `Cookie_Scope::resolve_for_site()` returns a domain that covers the request host, `Secure` present when `is_ssl()` or `home_url()` is https, and `HttpOnly` never present. Name `attribution`, path `/`, `SameSite=Lax` are constants.
+- **FR-005**: The header MUST be `Set-Cookie: attribution=<rawurlencode(value)>; Max-Age=<cookie_days*86400>; Path=/; Domain=<d>; SameSite=Lax; Secure` with `Domain` present only when `Cookie_Scope::resolve_for_site()` returns a domain that covers the request host and the client's `domain_applied` equals it, `Secure` present when `is_ssl()` or `home_url()` is https, and `HttpOnly` never present. Name `attribution`, path `/`, `SameSite=Lax` are constants.
 - **FR-006**: The route MUST add `Cache-Control: no-store, private` to a response that carries the header; it MUST NOT add a header to any other response.
 - **FR-007**: `attribution_cookie_reissue` MUST be in the attribution settings schema (default `0`), mapped in both directions in the admin settings app on the Capture tab, seeded `1` only on a fresh install (same rule as `cookie_scope`), localized as `cookieReissueUrl` (empty when off or when attribution is off) in `clicutcl_config`, and mint the client token when on.
 - **FR-008**: `ct_cookie_reissue` MUST be added to the storage inventory (`docs/guides/SECURITY-PRIVACY.md`), which `tools/qa/cmp-transition.test.js` checks against the keys the scripts write.
@@ -105,7 +106,7 @@ The browser does not call the route on every page view. It calls it when it has 
 
 - **attribution_cookie_reissue**: `0|1` in `clicutcl_attribution_settings`.
 - **cookieReissueUrl**: REST URL localized to `clicutcl-attribution.js`; empty when the feature is off.
-- **ct_cookie_reissue**: per-origin localStorage marker `{w: written-at ms, t: last-attempt ms}`; holds no attribution data.
+- **ct_cookie_reissue**: per-origin localStorage marker `{w: written-at ms, t: last-attempt ms, x: mirror expiry ms (restored cookies only)}`; holds no attribution data.
 
 ## Success Criteria *(mandatory)*
 

@@ -849,10 +849,15 @@
             const remainingDays = envelope.expiresAt > 0 ? (envelope.expiresAt - Date.now()) / (24 * 60 * 60 * 1000) : configuredDays;
             const days = Math.min(configuredDays, remainingDays);
             if (!(days > 0)) return false;
+            // The marker keeps the mirror's expiry, so the server re-issue cannot extend a restored cookie past it.
+            this.restoreExpiresAt = envelope.expiresAt > 0 ? envelope.expiresAt : 0;
             const restored = this.setCookie(CONFIG.cookieName, JSON.stringify(data), days) === true;
+            this.restoreExpiresAt = 0;
             if (restored && DEBUG_ENABLED) console.log('[ClickTrail] Attribution cookie restored from the localStorage mirror.');
             return restored;
         },
+
+        restoreExpiresAt: 0,
 
         readReissueMarker: function () {
             try {
@@ -860,7 +865,7 @@
                 if (!raw) return null;
                 const parsed = this.safeJsonParse(raw);
                 if (parsed && typeof parsed === 'object' && Number(parsed.w) > 0) {
-                    return { w: Number(parsed.w), t: Number(parsed.t) || 0 };
+                    return { w: Number(parsed.w), t: Number(parsed.t) || 0, x: Number(parsed.x) > 0 ? Number(parsed.x) : 0 };
                 }
                 localStorage.removeItem(COOKIE_REISSUE_KEY);
             } catch (e) { }
@@ -868,7 +873,7 @@
         },
 
         writeReissueMarker: function (marker) {
-            try { localStorage.setItem(COOKIE_REISSUE_KEY, JSON.stringify({ w: marker.w, t: marker.t })); } catch (e) { }
+            try { localStorage.setItem(COOKIE_REISSUE_KEY, JSON.stringify(marker.x > 0 ? { w: marker.w, t: marker.t, x: marker.x } : { w: marker.w, t: marker.t })); } catch (e) { }
         },
 
         // Only the write that is still the latest one may clear the marker: a newer script write during the request keeps it.
@@ -882,7 +887,7 @@
         // to re-issue it. Nothing is stored unless the feature is on and live consent allows it.
         markReissuePending: function () {
             if (!CONFIG.cookieReissueUrl || isAdminQaMode() || !liveConsentAllows()) return;
-            this.writeReissueMarker({ w: Date.now(), t: 0 });
+            this.writeReissueMarker({ w: Date.now(), t: 0, x: this.restoreExpiresAt });
         },
 
         reissueInFlight: false,
@@ -903,7 +908,21 @@
             } catch (e) {
                 return;
             }
-            this.writeReissueMarker({ w: marker.w, t: Date.now() });
+            // A restored cookie must not outlive its mirror: report what is left, and drop the request when nothing is.
+            const body = { token: token };
+            if (marker.x > 0) {
+                const left = Math.floor((marker.x - Date.now()) / 1000);
+                if (left < 1) {
+                    this.clearReissueMarker(marker.w);
+                    return;
+                }
+                body.expires_in = left;
+            }
+            // The server cannot see whether the domain probe fell back to host-only. Say which attribute the cookie was written with
+            // (the same memoized result as the real write), so the server's Set-Cookie replaces it instead of sitting next to it.
+            const applied = this.cookieDomainAttr();
+            body.domain_applied = applied ? applied.slice('; domain='.length) : '';
+            this.writeReissueMarker({ w: marker.w, t: Date.now(), x: marker.x });
             this.reissueInFlight = true;
             fetch(url, {
                 method: 'POST',
@@ -912,7 +931,7 @@
                     'Content-Type': 'application/json',
                     'X-Clicutcl-Token': token
                 },
-                body: JSON.stringify({ token: token }),
+                body: JSON.stringify(body),
                 keepalive: true
             })
                 .then((response) => {

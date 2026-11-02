@@ -57,12 +57,13 @@ AGENTS.md docs triggers (API, setting, storage/cookie change): `docs/reference/R
 
 ```text
 POST /wp-json/clicutcl/v2/cookie-refresh        X-Clicutcl-Token: <page token>   Cookie: attribution=<v>; ct_consent=...
+body {"token":"...","domain_applied":"example.com"|"" [,"expires_in":<seconds, restored cookies only>]}
 200 {"success":true,"reissued":true}
 Set-Cookie: attribution=<rawurlencode v>; Max-Age=<cookie_days*86400>; Path=/; Domain=example.com; SameSite=Lax; Secure
 Cache-Control: no-store, private
 
 host scope, http   -> no Domain, no Secure          registrable www.example.com -> Domain=example.com
-host not covered by cookieDomain -> no Domain       403 consent_required | 403 cookie_reissue_disabled | 401 | 413 | 429
+domain_applied "" / absent / != scope domain / host not covered -> no Domain (host-only)       403 consent_required | 403 cookie_reissue_disabled | 401 | 413 | 429
 200 {"success":true,"reissued":false,"reason":"not_json"}   (no Set-Cookie)
 ```
 
@@ -71,4 +72,5 @@ host not covered by cookieDomain -> no Domain       403 consent_required | 403 c
 - A cache, WAF or security plugin that blocks `POST /wp-json/clicutcl/v2/*` makes U2 fail silently; the marker retries hourly. Documented in the runbook and the setting description.
 - A page-cache plugin that caches REST `POST` (non-standard) could replay another visitor's `Set-Cookie`. Mitigation: `Cache-Control: no-store, private` on that response, the cookie echoes only the sender's own value, and docs tell operators to bypass `/wp-json/clicutcl/v2/`.
 - The route is reachable by anyone holding a page token: it echoes a cookie the caller already sent. No store, no side effect beyond the response.
-- `Domain` parity depends on both sides using `Cookie_Scope`; the PHPUnit test compares the header's domain with the localized `cookieDomain`, the E2E checks the single resulting cookie in a real browser.
+- `Domain` parity: the server cannot know whether the script's `probeDomain()` fell back to host-only (browser refused the domain), and a `Domain=` Set-Cookie next to a host-only script cookie would be a second same-name cookie (PHP reads the first, the script's write-time cleanup expires the other, the marker re-arms, flip-flop each visit). So the script reports `domain_applied` (the same memoized `cookieDomainAttr()` result it wrote with) and the server sends `Domain=` only when it equals the configured scope domain and covers the request host; anything else gets a host-only cookie. PHPUnit covers `''`, the scope domain, another domain, injection text, non-string and absent; the VM test covers the body after an accepted, a rejected and a non-covering domain; the E2E checks the single resulting cookie in a real browser.
+- A cookie restored from the mirror must not outlive the mirror: the marker keeps the mirror expiry (`x`) and the POST sends `expires_in`; the server clamps `Max-Age` to `[1, cookie_days*86400]`. A fresh landing write sends none, so its `Max-Age` is exactly `cookie_days*86400`.

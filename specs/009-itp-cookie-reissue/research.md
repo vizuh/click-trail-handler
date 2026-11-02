@@ -75,7 +75,17 @@ Vendor references:
 **Decision**: consent is read from the request's consent cookie only (`Consent::is_required()` and `Consent::marketing_allowed()`), never from the body, exactly as `whatsapp-ref` does. With `require_consent` on and no granted marketing consent the route answers 403 and sets nothing.
 **Rationale**: the same gate already protects the other consent-gated route; a body claim would let a client opt itself in.
 
-## R6 — Open questions and deferred
+## R6 — Which domain attribute the server sends
+
+**Decision**: the script tells the server which attribute it wrote the cookie with (`domain_applied` in the POST body, `''` for host-only). The server sends `Domain=` only when that equals the `Cookie_Scope` domain and the domain covers the request `Host`; any other value, a non-string or its absence gives a host-only `Set-Cookie`.
+**Rationale**: `Cookie_Scope::resolve()` says what the site wants; `Store.probeDomain()` finds out in the browser whether the domain is accepted (a public suffix the table does not list is refused). The server cannot observe that fallback. If it sent `Domain=example.com` after the script wrote host-only, the browser would hold two `attribution` cookies; PHP reads the first, the script's write-time cleanup expires the other variant and re-arms the marker, and the cookie flip-flops on every visit. The value comes from the same memoized `cookieDomainAttr()` the real write used (the marker exists only after a real write, so the probe has already run). It is validated server-side, so a forged value can only downgrade to host-only, never inject an attribute.
+
+## R7 — Lifetime of a restored cookie
+
+**Decision**: a cookie restored from the mirror sends `expires_in` (seconds the mirror has left, kept in the marker as `x`); the server uses `min(cookie_days*86400, expires_in)` when it is at least 1. A fresh landing write sends nothing and gets the full `cookie_days*86400`.
+**Rationale**: without it the re-issue would turn a cookie that had 3 days of retention left into one with the full retention, extending retention for a visitor who never produced a new touch. A request whose mirror has already expired is dropped client-side.
+
+## R8 — Open questions and deferred
 
 - `ct_visitor_id` is also script-written and capped; it was listed in the task text. It is a single opaque ID that PHP reads in `get_payload()`. Re-issuing it needs its own validation rule and a second `Set-Cookie`; left as a follow-up (listed in the PR).
 - The mirror and the pending marker live in `localStorage`, which W5 deletes together with script cookies after 7 days of no interaction; a visitor returning after that has nothing client-side and, if never re-issued (feature off, request failed), nothing at all.

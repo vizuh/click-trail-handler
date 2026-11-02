@@ -121,19 +121,19 @@ class Attribution_Cookie_Reissue {
 	 *
 	 * Same name, path, `SameSite` and `Domain` as the script writer; never HttpOnly (the script must read and expire it).
 	 *
-	 * @param string $raw    Validated raw cookie value.
-	 * @param int    $days   Retention in days (`cookie_days`).
-	 * @param string $domain Cookie domain (empty means host-only).
-	 * @param bool   $secure Whether to add `Secure`.
+	 * @param string $raw     Validated raw cookie value.
+	 * @param int    $max_age Lifetime in seconds.
+	 * @param string $domain  Cookie domain (empty means host-only).
+	 * @param bool   $secure  Whether to add `Secure`.
 	 * @return string
 	 */
-	public static function build_header( string $raw, int $days, string $domain, bool $secure ): string {
+	public static function build_header( string $raw, int $max_age, string $domain, bool $secure ): string {
 		// Checked here, at the sink: the domain comes from settings and the request host.
 		if ( '' !== $domain && 1 !== preg_match( '/^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/', $domain ) ) {
 			$domain = '';
 		}
 
-		$line = 'Set-Cookie: ' . self::COOKIE_NAME . '=' . self::encode( $raw ) . '; Max-Age=' . ( max( 1, $days ) * DAY_IN_SECONDS ) . '; Path=/';
+		$line = 'Set-Cookie: ' . self::COOKIE_NAME . '=' . self::encode( $raw ) . '; Max-Age=' . max( 1, $max_age ) . '; Path=/';
 		if ( '' !== $domain ) {
 			$line .= '; Domain=' . $domain;
 		}
@@ -150,10 +150,17 @@ class Attribution_Cookie_Reissue {
 	 *
 	 * Consent is checked by the route before this runs. Only the REST route calls this method.
 	 *
-	 * @param string $request_host Host header of the request (decides whether the cookie domain covers it).
+	 * The server cannot see whether the script's `domain=` probe fell back to host-only, so the script reports the domain it
+	 * actually applied (`$domain_applied`). `Domain` is sent only when that equals the configured scope domain and covers the
+	 * request host; anything else (empty, absent, garbage) gets a host-only cookie, which replaces the script's host-only cookie
+	 * instead of sitting next to it as a second same-name cookie.
+	 *
+	 * @param string $request_host   Host header of the request (decides whether the cookie domain covers it).
+	 * @param mixed  $domain_applied Domain the script wrote with (`''` for host-only), as sent by the client.
+	 * @param mixed  $expires_in     Seconds the script's own cookie has left (a cookie restored from the mirror), or null for the full retention.
 	 * @return array{issued:bool,reason:string}
 	 */
-	public static function issue( string $request_host ): array {
+	public static function issue( string $request_host, $domain_applied = null, $expires_in = null ): array {
 		if ( ! isset( $_COOKIE[ self::COOKIE_NAME ] ) || ! is_string( $_COOKIE[ self::COOKIE_NAME ] ) ) {
 			return self::result( false, 'no_cookie' );
 		}
@@ -177,14 +184,20 @@ class Attribution_Cookie_Reissue {
 
 		// The script's own rule: the localized domain applies only when it covers the host being served.
 		$domain = Cookie_Scope::resolve_for_site( $options )['domain'];
-		if ( ! Cookie_Scope::covers( $domain, $request_host ) ) {
+		if ( ! Cookie_Scope::covers( $domain, $request_host ) || ! is_string( $domain_applied ) || Cookie_Scope::normalize_host( $domain_applied ) !== $domain ) {
 			$domain = '';
+		}
+
+		// Never longer than the retention; a restored cookie keeps what the mirror had left.
+		$max_age = $days * DAY_IN_SECONDS;
+		if ( ( is_int( $expires_in ) || is_float( $expires_in ) || ( is_string( $expires_in ) && is_numeric( $expires_in ) ) ) && (int) $expires_in >= 1 ) {
+			$max_age = min( $max_age, (int) $expires_in );
 		}
 		$secure = is_ssl() || 'https' === wp_parse_url( home_url(), PHP_URL_SCHEME );
 
 		header( 'Cache-Control: no-store, private', true );
 		// Append, never replace: another plugin's Set-Cookie on this response must survive.
-		header( self::build_header( $raw, $days, $domain, $secure ), false );
+		header( self::build_header( $raw, $max_age, $domain, $secure ), false );
 
 		return self::result( true, 'ok' );
 	}

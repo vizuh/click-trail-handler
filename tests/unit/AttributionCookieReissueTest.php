@@ -108,14 +108,14 @@ namespace {
 			);
 		}
 
-		private function request( ?string $token = null, string $host = 'www.example.com', string $body = '' ): \WP_REST_Request {
+		private function request( ?string $token = null, string $host = 'www.example.com', string $body = '', array $extra = array() ): \WP_REST_Request {
 			$token = $token ?? Auth::mint_client_token();
 			return new \WP_REST_Request(
 				array(
 					'X-Clicutcl-Token' => $token,
 					'Host'             => $host,
 				),
-				'' === $body ? (string) json_encode( array( 'token' => $token ) ) : $body,
+				'' === $body ? (string) json_encode( array_merge( array( 'token' => $token ), $extra ) ) : $body,
 				'/clicutcl/v2/cookie-refresh'
 			);
 		}
@@ -272,7 +272,7 @@ namespace {
 			Option_Cache::set( 'clicutcl_attribution_settings', $settings );
 
 			$this->assertSame( $expected, Cookie_Scope::resolve_for_site( $settings )['domain'] );
-			$this->refresh( $this->request( null, $host ) );
+			$this->refresh( $this->request( null, $host, '', array( 'domain_applied' => $expected ) ) );
 
 			$line = $this->set_cookies()[0];
 			if ( '' === $expected ) {
@@ -285,16 +285,76 @@ namespace {
 
 		public function test_a_request_host_the_domain_does_not_cover_gets_a_host_only_cookie_like_the_script(): void {
 			$this->settings( array( 'cookie_scope' => 'registrable' ) );
-			$this->refresh( $this->request( null, 'preview.cdn.test' ) );
+			$this->refresh( $this->request( null, 'preview.cdn.test', '', array( 'domain_applied' => 'example.com' ) ) );
 			$this->assertStringNotContainsString( 'Domain=', $this->set_cookies()[0] );
 
 			$GLOBALS['clicktrail_test_headers'] = array();
-			$this->refresh( $this->request( null, 'badexample.com' ) );
+			$this->refresh( $this->request( null, 'badexample.com', '', array( 'domain_applied' => 'example.com' ) ) );
 			$this->assertStringNotContainsString( 'Domain=', $this->set_cookies()[0], 'a lookalike suffix does not cover' );
 
 			$GLOBALS['clicktrail_test_headers'] = array();
-			$this->refresh( $this->request( null, 'WWW.Example.com:8088' ) );
+			$this->refresh( $this->request( null, 'WWW.Example.com:8088', '', array( 'domain_applied' => 'Example.com' ) ) );
 			$this->assertStringContainsString( 'Domain=example.com', $this->set_cookies()[0], 'case and port are normalised' );
+		}
+
+		/**
+		 * The server cannot see whether the script's probe fell back to host-only, so the client says which domain it applied.
+		 * Any other cookie than the one the script wrote would sit next to it as a second same-name cookie.
+		 */
+		public function test_domain_is_sent_only_when_the_client_applied_the_configured_scope_domain(): void {
+			$this->settings( array( 'cookie_scope' => 'registrable' ) );
+
+			$cases = array(
+				'host-only (probe rejected the domain)' => array( array( 'domain_applied' => '' ), false ),
+				'the configured domain'                 => array( array( 'domain_applied' => 'example.com' ), true ),
+				'configured domain, other case'         => array( array( 'domain_applied' => 'EXAMPLE.com' ), true ),
+				'another domain'                        => array( array( 'domain_applied' => 'other.com' ), false ),
+				'a subdomain of the scope'              => array( array( 'domain_applied' => 'www.example.com' ), false ),
+				'a header-injection attempt'            => array( array( 'domain_applied' => "example.com\r\nSet-Cookie: x=1" ), false ),
+				'not a string'                          => array( array( 'domain_applied' => array( 'example.com' ) ), false ),
+				'absent (never sent by the script)'     => array( array(), false ),
+			);
+			foreach ( $cases as $label => $case ) {
+				$GLOBALS['clicktrail_test_headers'] = array();
+				$this->refresh( $this->request( null, 'www.example.com', '', $case[0] ) );
+				$line = $this->set_cookies()[0];
+				if ( $case[1] ) {
+					$this->assertStringContainsString( '; Path=/; Domain=example.com; SameSite=Lax', $line, $label );
+				} else {
+					$this->assertStringNotContainsString( 'Domain=', $line, $label );
+					$this->assertStringNotContainsString( "\n", $line, $label );
+				}
+			}
+		}
+
+		public function test_a_host_only_scope_ignores_a_claimed_domain(): void {
+			$this->settings( array( 'cookie_scope' => 'host' ) );
+			$this->refresh( $this->request( null, 'www.example.com', '', array( 'domain_applied' => 'example.com' ) ) );
+			$this->assertStringNotContainsString( 'Domain=', $this->set_cookies()[0] );
+		}
+
+		/**
+		 * A cookie restored from the mirror must not outlive the mirror: the client sends the remaining seconds.
+		 */
+		public function test_max_age_follows_the_remaining_mirror_lifetime_clamped_to_retention(): void {
+			$cases = array(
+				'remaining 10 days'     => array( 864000, 864000 ),
+				'longer than retention' => array( 400 * 86400, 90 * 86400 ),
+				'one second'            => array( 1, 1 ),
+				'zero'                  => array( 0, 90 * 86400 ),
+				'negative'              => array( -5, 90 * 86400 ),
+				'numeric string'        => array( '3600', 3600 ),
+				'garbage'               => array( 'soon', 90 * 86400 ),
+				'float'                 => array( 7200.9, 7200 ),
+			);
+			foreach ( $cases as $label => $case ) {
+				$GLOBALS['clicktrail_test_headers'] = array();
+				$this->refresh( $this->request( null, 'www.example.com', '', array( 'expires_in' => $case[0] ) ) );
+				$this->assertStringContainsString( '; Max-Age=' . $case[1] . ';', $this->set_cookies()[0], $label );
+			}
+			$GLOBALS['clicktrail_test_headers'] = array();
+			$this->refresh();
+			$this->assertStringContainsString( '; Max-Age=7776000;', $this->set_cookies()[0], 'absent: the full retention' );
 		}
 
 		// ----- No header -----

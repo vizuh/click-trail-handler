@@ -597,13 +597,20 @@ class Tracking_Controller extends WP_REST_Controller {
 	/**
 	 * Re-issue the visitor's own attribution cookie as an HTTP-set cookie (Safari ITP does not cap those).
 	 *
-	 * The only place `Set-Cookie` for the attribution cookie is emitted, and only on this REST POST.
+	 * The only place `Set-Cookie` for the attribution cookie is emitted, and only on this REST POST. Body: `token`, `domain_applied`
+	 * (the domain the script wrote the cookie with, `''` for host-only) and optionally `expires_in` (seconds left on a restored cookie).
 	 *
 	 * @param WP_REST_Request $request Request.
 	 * @return array
 	 */
 	public function refresh_attribution_cookie( WP_REST_Request $request ): array {
-		$result = Attribution_Cookie_Reissue::issue( (string) $request->get_header( 'host' ) );
+		$payload = $request->get_json_params();
+		$payload = is_array( $payload ) ? $payload : array();
+		$result  = Attribution_Cookie_Reissue::issue(
+			(string) $request->get_header( 'host' ),
+			$payload['domain_applied'] ?? null,
+			$payload['expires_in'] ?? null
+		);
 		if ( $result['issued'] ) {
 			return array(
 				'success'  => true,

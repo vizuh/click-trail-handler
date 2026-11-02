@@ -272,6 +272,7 @@ Typical checks:
 - Site Health shows "Attribution cookie server re-issue: on/off"
 - in the browser network tab, a request to `/wp-json/clicutcl/v2/cookie-refresh` follows the first page view that wrote the cookie and answers 200 with one `Set-Cookie: attribution=...; Max-Age=...`. 401 means the page was cached longer than the client token lives (7 days by default); 403 `consent_required` means the consent cookie is not readable by the server (for example a CMP that keeps consent only in `localStorage`); 403 `cookie_reissue_disabled` means the setting is off
 - exclude `/wp-json/clicutcl/v2/*` from page caches, CDN rules and WAF blocks that apply to `POST` requests; the browser retries an unanswered re-issue at most once an hour. If the REST host differs from the page origin (for example `www` versus the apex), the browser skips the request because the cookie would not be sent
+- the rate limiter (60 requests a minute per IP, scope `cookie_reissue`) uses the object cache when a persistent one exists and a transient otherwise, so on hosts without a persistent object cache it is best effort
 - page responses never carry this cookie; if a `Set-Cookie: attribution` appears on a page GET, another plugin or the server writes it
 
 ## Attribution Readiness

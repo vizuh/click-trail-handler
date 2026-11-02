@@ -40,6 +40,10 @@ check('HttpOnly' not in r['valid']['set_cookie'][0] and 'Secure' not in r['valid
 check(r['valid']['set_cookie'][0].split(';')[0].split('=', 1)[1] == enc, 'the value is the request value, byte for byte (encodeURIComponent form)')
 check(r['valid']['cache_control'] == ['no-store, private'], 'Cache-Control: no-store, private on the response that sets a cookie (%s)' % r['valid']['cache_control'])
 check(r['valid_apex']['set_cookie'] == [expected], 'apex host: same Domain=example.test')
+no_domain = expected.replace('; Domain=example.test', '')
+for name in ('host_only_claim', 'foreign_domain_claim', 'no_domain_claim'):
+    check(r[name]['set_cookie'] == [no_domain], '%s: the script did not apply the scope domain, so the server sends a host-only cookie (%s)' % (name, [c.split('; ')[2:] for c in r[name]['set_cookie']]))
+check(r['expires_in']['set_cookie'] == [expected.replace('Max-Age=7776000', 'Max-Age=3600')], 'expires_in=3600 (a restored cookie) caps Max-Age at 3600')
 for name in ('no_cookie', 'legacy_name_only', 'invalid_json', 'nested', 'oversized'):
     check(r[name]['status'] == 200 and r[name]['set_cookie'] == [] and r[name]['json']['reissued'] is False, '%s: 200, reissued=false (%s), no Set-Cookie' % (name, r[name]['json'].get('reason')))
 for name, status in (('no_token', 401), ('bad_token', 401), ('get_not_allowed', 404)):
@@ -72,6 +76,9 @@ for key, domain, with_domain in (('browser_registrable', '.example.test', True),
     check(b['after_clear_cookies'] == [] and second['mirror'], '%s: precondition: cookie gone, localStorage mirror kept' % tag)
     check(len(restore['cookies']) == 1 and restore['cookies'][0]['domain'] == domain, '%s: the cookie is restored from the mirror: one cookie, same domain attribute (%s)' % (tag, restore['cookies']))
     check(len(restore['refreshes']) == 1 and restore['refreshes'][0]['status'] == 200 and len([h for h in restore['refreshes'][0]['headers'] if h.lower().startswith('set-cookie:')]) == 1, '%s: the restore is followed by one re-issue request, 200, one Set-Cookie' % tag)
+    restore_sc = [h for h in restore['refreshes'][0]['headers'] if h.lower().startswith('set-cookie:')][0]
+    restore_age = int(restore_sc.split('Max-Age=')[1].split(';')[0])
+    check(7776000 - 600 < restore_age <= 7776000, '%s: the restore re-issue sends the mirror\'s remaining lifetime, not a fresh retention (Max-Age=%d)' % (tag, restore_age))
     check(near(restore['cookies'][0]['expires'], restore['expected_expires']), '%s: the restored and re-issued cookie lives cookie_days again (%.0f s off)' % (tag, restore['cookies'][0]['expires'] - restore['expected_expires']))
 
 o = d['browser_reissue_off']
