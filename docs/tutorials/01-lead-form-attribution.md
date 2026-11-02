@@ -15,6 +15,7 @@ Form behavior differs by adapter:
 - Fluent Forms can receive hidden fields automatically.
 - Contact Form 7 renders a `ct_<key>` hidden field only for keys the form references: add `[hidden ct_gclid]` (and the other keys you want) to the form, or put `[ct_gclid]` in the mail template, to get the value into the mail and Flamingo. A form with no `ct_*` reference carries none and keeps only ClickTrail's own lead.
 - Gravity Forms, WPForms, Forminator and Elementor Forms Pro need the matching `ct_*` hidden fields you want stored or exported (see below for how each plugin identifies them).
+- SureForms needs no field to keep attribution (ClickTrail writes it to the entry's extra data and its own lead); to see values in the entry and the notification email, add Text fields whose label is exactly `ct_<key>` (see below).
 - Elementor Forms Pro and Ninja Forms also keep attribution on the submission record itself.
 
 Every adapter refreshes the `ct_*` fields from the attribution cookie sent with the submit, so a form submitted on the landing page stores the click ID of that visit rather than the empty or previous value the page rendered. This is unit-tested, not yet verified on a live install of each form plugin.
@@ -50,6 +51,21 @@ empty. The entry also gets `ct_event_id` and `ct_lead_id` in its meta; use `{hid
 placeholders (the field's ID) in notifications. E2E on WordPress 7.1 with free Forminator
 1.58.4 verified landing, returning-visitor, cache and consent submits on AJAX forms for all
 three marker styles.
+
+### SureForms: label the fields
+
+Free SureForms has no Hidden field (it is a Pro block). Add a **Text** field per value
+you want, set its **label** to exactly `ct_<key>` (for example `ct_gclid`, `ct_ft_source`
+or `ct_lt_source`) and hide it with your own CSS through the block's **Additional CSS
+class(es)**. A field whose slug is `ct-<key>` also works. SureForms names the input
+after the label, not `ct_*`, so the browser never fills it: the value is written when
+the form is submitted, from the attribution cookie sent with the REST request, before
+SureForms stores the entry and sends the notification, so both show the same value
+(`{all_data}` lists the field under its label). Whatever a visitor types into such a
+field is replaced, and with no cookie or without marketing consent it is blank.
+Independently of any field, ClickTrail logs the lead and writes the attribution and
+`ct_event_id` / `ct_lead_id` into the entry's extra data. This is unit-tested; see
+`docs/reference/INTEGRATIONS.md` for what was run in the E2E harness.
 
 ### Elementor Forms Pro: set the field ID
 

@@ -17,6 +17,7 @@ const REQUIRED_ADAPTERS = {
   wpforms: 'source.form.wpforms',
   ninja: 'source.form.ninja',
   elementor: 'source.form.elementor',
+  sureforms: 'source.form.sureforms',
 };
 const REQUIRED_CASES = [
   'ajax_cache_path',
