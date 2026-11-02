@@ -116,11 +116,35 @@
         return envelope;
     }
 
+    var domainProbe = null;
+
+    function coversHost(domain) {
+        var host = String((window.location && window.location.hostname) || '').toLowerCase();
+        return !!domain && (host === domain || host.slice(-(domain.length + 1)) === '.' + domain);
+    }
+
+    function secureFlag() {
+        return window.location && window.location.protocol === 'https:' ? '; Secure' : '';
+    }
+
+    // Browsers refuse `domain=` on a public suffix and the suffix table is incomplete: prove the domain
+    // is accepted with a throwaway cookie before a real cookie relies on it.
+    function probeDomain(domain) {
+        try {
+            document.cookie = 'ct_scope_probe=1; domain=' + domain + '; path=/; SameSite=Lax' + secureFlag();
+            var accepted = /(^|;\s*)ct_scope_probe=1(;|$)/.test(document.cookie);
+            document.cookie = 'ct_scope_probe=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; domain=' + domain + '; path=/; SameSite=Lax' + secureFlag();
+            return accepted;
+        } catch (e) {
+            return false;
+        }
+    }
+
     function cookieDomainAttr() {
         var domain = String(CONFIG.cookieDomain || '').toLowerCase();
-        if (!domain) return '';
-        var host = String((window.location && window.location.hostname) || '').toLowerCase();
-        return (host === domain || host.slice(-(domain.length + 1)) === '.' + domain) ? '; domain=' + domain : '';
+        if (!coversHost(domain)) return '';
+        if (domainProbe === null) domainProbe = probeDomain(domain);
+        return domainProbe ? '; domain=' + domain : '';
     }
 
     // Lets clicutcl-attribution.js expire this cookie if the scope changes later.
@@ -132,10 +156,34 @@
         }
     }
 
+    // The other scope's copy of a cookie: host-only when a domain is applied, otherwise the last domain this origin used (or null).
+    function staleAttr(appliedAttr) {
+        if (appliedAttr) return '';
+        var candidate = String(CONFIG.cookieDomain || '').toLowerCase();
+        if (!candidate) {
+            try {
+                candidate = String(window.localStorage.getItem('ct_cookie_scope') || '').toLowerCase();
+            } catch (e) {
+                candidate = '';
+            }
+        }
+        return coversHost(candidate) ? '; domain=' + candidate : null;
+    }
+
+    function expireVariant(name, attr) {
+        if (attr === null) return;
+        document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0' + attr + '; path=/; SameSite=Lax' + secureFlag();
+    }
+
+    // Expires every copy (applied scope and the other one) so a withdrawal reaches all of them.
+    function expireCookieEverywhere(name) {
+        var applied = cookieDomainAttr();
+        expireVariant(name, applied);
+        expireVariant(name, staleAttr(applied));
+    }
+
     function clearPluginCookie() {
-        var name = String(CONFIG.cookieName || 'ct_consent');
-        var secure = window.location && window.location.protocol === 'https:' ? '; Secure' : '';
-        document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0' + cookieDomainAttr() + '; path=/; SameSite=Lax' + secure;
+        expireCookieEverywhere(String(CONFIG.cookieName || 'ct_consent'));
     }
 
     function normalizeConsent(value) {
@@ -204,6 +252,8 @@
         var domainAttr = cookieDomainAttr();
         document.cookie = name + '=' + value + '; expires=' + expires + domainAttr + '; path=/; SameSite=Lax' + secure;
         if (domainAttr) rememberCookieScope(domainAttr.slice('; domain='.length));
+        // A stale copy in the other scope would shadow this decision in document.cookie and in PHP $_COOKIE.
+        expireVariant(name, staleAttr(domainAttr));
     }
 
     function resolve(nextConsent, source, force, persistDecision, decisionAt) {

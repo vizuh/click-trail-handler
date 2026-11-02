@@ -544,11 +544,46 @@
             return match ? decodeURIComponent(match[2]) : '';
         }
 
+        coversHost(domain) {
+            const host = String(window.location.hostname || '').toLowerCase();
+            return !!domain && (host === domain || host.endsWith('.' + domain));
+        }
+
+        // Browsers refuse `domain=` on a public suffix: prove the domain is accepted before relying on it.
         cookieDomainAttr() {
             const domain = String((window.clicutclEventsConfig && window.clicutclEventsConfig.cookieDomain) || '').toLowerCase();
-            if (!domain) return '';
-            const host = String(window.location.hostname || '').toLowerCase();
-            return (host === domain || host.endsWith('.' + domain)) ? '; domain=' + domain : '';
+            if (!this.coversHost(domain)) return '';
+            if (this.domainProbe === undefined) {
+                const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+                try {
+                    document.cookie = 'ct_scope_probe=1; domain=' + domain + '; path=/; SameSite=Lax' + secure;
+                    this.domainProbe = /(^|;\s*)ct_scope_probe=1(;|$)/.test(document.cookie);
+                    document.cookie = 'ct_scope_probe=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0; domain=' + domain + '; path=/; SameSite=Lax' + secure;
+                } catch (e) {
+                    this.domainProbe = false;
+                }
+            }
+            return this.domainProbe ? '; domain=' + domain : '';
+        }
+
+        // Other scope's copy: host-only when a domain is applied, else the last domain this origin used (or null).
+        staleAttr(appliedAttr) {
+            if (appliedAttr) return '';
+            let candidate = String((window.clicutclEventsConfig && window.clicutclEventsConfig.cookieDomain) || '').toLowerCase();
+            if (!candidate) {
+                try {
+                    candidate = String(localStorage.getItem('ct_cookie_scope') || '').toLowerCase();
+                } catch (e) {
+                    candidate = '';
+                }
+            }
+            return this.coversHost(candidate) ? '; domain=' + candidate : null;
+        }
+
+        expireVariant(name, attr) {
+            if (attr === null) return;
+            const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
+            document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0' + attr + '; path=/; SameSite=Lax' + secureFlag;
         }
 
         setCookie(name, value, days) {
@@ -559,12 +594,16 @@
                 expires = '; expires=' + date.toUTCString();
             }
             const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
-            document.cookie = name + "=" + encodeURIComponent(value) + expires + this.cookieDomainAttr() + "; path=/; SameSite=Lax" + secureFlag;
+            const domainAttr = this.cookieDomainAttr();
+            document.cookie = name + "=" + encodeURIComponent(value) + expires + domainAttr + "; path=/; SameSite=Lax" + secureFlag;
+            this.expireVariant(name, this.staleAttr(domainAttr));
         }
 
+        // Expires every copy (applied scope and the other one) so a withdrawal reaches all of them.
         removeCookie(name) {
-            const secureFlag = window.location.protocol === 'https:' ? '; Secure' : '';
-            document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; Max-Age=0' + this.cookieDomainAttr() + '; path=/; SameSite=Lax' + secureFlag;
+            const applied = this.cookieDomainAttr();
+            this.expireVariant(name, applied);
+            this.expireVariant(name, this.staleAttr(applied));
         }
 
         ensureIdentity() {

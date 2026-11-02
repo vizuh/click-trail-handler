@@ -75,16 +75,20 @@ class Installer {
 	}
 
 	/**
-	 * Seed `cookie_scope` on a new install only. Existing installs keep the schema
-	 * default (`host`) because the option already exists or is absent by upgrade.
+	 * Seed `cookie_scope` on a genuinely fresh install only: no attribution option and no sign of earlier use.
+	 * Anything else keeps the schema default (`host`).
 	 *
 	 * Called from the activation hook, never from maybe_upgrade().
 	 *
 	 * @return void
 	 */
 	public static function seed_cookie_scope(): void {
-		if ( false !== get_option( 'clicutcl_attribution_settings', false ) ) {
-			return;
+		// Any sign of earlier use (reactivation, a deleted settings row) keeps the schema default `host`.
+		$earlier_use = array( 'clicutcl_attribution_settings', 'clicutcl_setup_complete', 'clicutcl_mode', 'clicutcl_tracking_v2', self::DB_VERSION_OPTION );
+		foreach ( $earlier_use as $option ) {
+			if ( false !== get_option( $option, false ) ) {
+				return;
+			}
 		}
 		add_option( 'clicutcl_attribution_settings', array( 'cookie_scope' => self::default_cookie_scope() ), '', false );
 	}

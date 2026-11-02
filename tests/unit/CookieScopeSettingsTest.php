@@ -169,6 +169,38 @@ namespace {
 			$this->assertSame( 'host', $GLOBALS['clicktrail_test_options']['clicutcl_attribution_settings']['cookie_scope'] );
 		}
 
+		/**
+		 * @return array<string, array{0:string}>
+		 */
+		public static function earlier_use_signals(): array {
+			return array(
+				'setup wizard completed' => array( 'clicutcl_setup_complete' ),
+				'tracking settings'      => array( 'clicutcl_tracking_v2' ),
+				'db version'             => array( 'clicutcl_db_version' ),
+				'wizard mode'            => array( 'clicutcl_mode' ),
+			);
+		}
+
+		/**
+		 * @dataProvider earlier_use_signals
+		 */
+		public function test_reactivating_an_existing_install_is_not_seeded( string $option ): void {
+			$GLOBALS['clicktrail_test_options'][ $option ] = 1;
+
+			Installer::seed_cookie_scope();
+
+			$this->assertArrayNotHasKey( 'clicutcl_attribution_settings', $GLOBALS['clicktrail_test_options'] );
+		}
+
+		public function test_extended_public_suffix_table(): void {
+			foreach ( array( 'a.gob.mx', 'a.go.jp', 'a.ltd.uk', 'a.plc.uk', 'a.nhs.uk', 'a.sch.uk', 'app.workers.dev', 'x.onrender.com', 'x.fly.dev', 'x.ngrok-free.app', 'x.ngrok.io' ) as $host ) {
+				$this->assertSame( 'public_suffix', Cookie_Scope::resolve( 'registrable', '', $host )['reason'], $host );
+			}
+			foreach ( array( 'org.uk', 'gov.uk', 'ac.uk', 'me.uk', 'com.mx', 'com.ar', 'com.co', 'co.nz', 'co.za', 'co.in', 'co.il', 'com.tr', 'com.cn', 'com.hk', 'com.sg', 'com.my', 'com.tw' ) as $suffix ) {
+				$this->assertTrue( Cookie_Scope::is_public_suffix( $suffix ), $suffix );
+			}
+		}
+
 		public function test_existing_settings_are_never_reseeded(): void {
 			$GLOBALS['clicktrail_test_options']['clicutcl_attribution_settings'] = array( 'cookie_days' => 30 );
 

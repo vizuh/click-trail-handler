@@ -45,9 +45,10 @@ class FakeStorage {
 }
 
 // Jar keyed by name + domain, like a browser: a host-only cookie and a domain cookie are distinct.
-function makeJar(seed) {
+function makeJar(seed, options = {}) {
   const entries = new Map();
   const log = [];
+  const probes = [];
   Object.entries(seed || {}).forEach(([key, value]) => {
     const [name, domain = ''] = key.split('@');
     entries.set(name + '@' + domain, value);
@@ -55,6 +56,7 @@ function makeJar(seed) {
   return {
     entries,
     log,
+    probes,
     names: () => [...entries.keys()].sort(),
     get: () => [...entries.entries()].map(([k, v]) => k.split('@')[0] + '=' + v).join('; '),
     set(raw) {
@@ -65,7 +67,9 @@ function makeJar(seed) {
       const domainPart = parts.find((p) => /^domain=/i.test(p));
       const domain = domainPart ? domainPart.slice(7).toLowerCase() : '';
       const expired = /max-age=0/i.test(raw) || /expires=thu, 01 jan 1970/i.test(raw);
-      log.push({ name, domain, expired, raw: String(raw) });
+      if (name === 'ct_scope_probe') { probes.push({ domain, expired }); } else { log.push({ name, domain, expired, raw: String(raw) }); }
+      // A browser drops a cookie whose domain attribute is a public suffix (or otherwise refused).
+      if (options.rejectDomain && domain) return;
       const key = name + '@' + domain;
       if (expired) entries.delete(key); else entries.set(key, value);
     },
@@ -131,7 +135,7 @@ const tests = {
     const removals = jar.log.filter((w) => w.expired);
     assert.ok(removals.some((w) => w.name === 'attribution'));
     assert.ok(removals.some((w) => w.name === 'ct_attribution'), 'legacy-name expiry is emitted');
-    assert.deepStrictEqual(allDomains(removals), ['example.com']);
+    assert.deepStrictEqual(allDomains(removals).sort(), ['', 'example.com'], 'both scopes are expired');
     assert.ok(!jar.names().some((n) => n.startsWith('attribution@')), 'the domain cookie is actually gone');
   },
 
@@ -165,8 +169,8 @@ const tests = {
     jar.log.length = 0;
     window.ClickTrailConsent.deny('manual');
     const removals = jar.log.filter((w) => w.expired && ['ct_session_id', 'ct_visitor_id'].includes(w.name));
-    assert.deepStrictEqual(removals.map((w) => w.name).sort(), ['ct_session_id', 'ct_visitor_id']);
-    assert.deepStrictEqual(allDomains(removals), ['example.com']);
+    assert.deepStrictEqual([...new Set(removals.map((w) => w.name))].sort(), ['ct_session_id', 'ct_visitor_id']);
+    assert.deepStrictEqual(allDomains(removals).sort(), ['', 'example.com']);
   },
 
   'events under scope host emits no domain'() {
@@ -209,7 +213,7 @@ const tests = {
     window.ClickTrailConsent.deny('manual');
     const cleared = jar.log.filter((w) => w.name === 'ct_consent' && w.expired);
     assert.ok(cleared.length >= 1);
-    assert.deepStrictEqual(allDomains(cleared), ['example.com']);
+    assert.deepStrictEqual(allDomains(cleared).sort(), ['', 'example.com']);
     assert.ok(!jar.names().includes('ct_consent@example.com'), 'domain-scoped ct_consent really expired');
   },
 
@@ -241,7 +245,7 @@ const tests = {
     const { window } = boot({ scripts: ['attribution'], cookieDomain: '', jar, local: { ct_cookie_scope: 'example.com' }, configs: { attribution: { requireConsent: true } } });
     assert.deepStrictEqual(jar.names(), ['attribution@', 'ct_consent_state@', 'ct_session_id@']);
     assert.strictEqual(jar.entries.get('attribution@'), 'AV');
-    assert.ok(jar.log.filter((w) => w.expired).every((w) => w.domain === 'example.com'), 'expiry used the previous domain');
+    assert.ok(jar.log.filter((w) => w.expired && w.name === 'attribution').some((w) => w.domain === 'example.com'), 'expiry used the previous domain');
     assert.strictEqual(window.localStorage.getItem('ct_cookie_scope'), '');
   },
 
@@ -279,6 +283,83 @@ const tests = {
     const { window } = boot({ scripts: ['attribution'], cookieDomain: 'example.com', jar, configs: { attribution: { requireConsent: true } } });
     assert.strictEqual(jar.log.length, 0);
     assert.strictEqual(window.localStorage.getItem('ct_cookie_scope'), null);
+  },
+
+  'migration survives a jar that rejects domain writes: old cookies stay, marker unwritten, writes stay host-only'() {
+    const value = encodeURIComponent('{"gclid":"OLD"}');
+    const jar = makeJar({ attribution: value, ct_visitor_id: 'vis_1', ct_consent: 'C', ct_consent_state: 'S', ct_session_id: 'X', ct_session: 'Y' }, { rejectDomain: true });
+    const { window } = boot({ scripts: ['attribution'], cookieDomain: 'example.com', jar });
+    ['attribution', 'ct_visitor_id', 'ct_consent', 'ct_consent_state', 'ct_session_id', 'ct_session'].forEach((n) => {
+      assert.ok(jar.entries.has(n + '@'), n + ' host-only copy survives');
+    });
+    assert.strictEqual(window.localStorage.getItem('ct_cookie_scope'), null);
+    assert.ok(jar.log.filter((w) => !w.expired && w.domain !== '').length === 0, 'no real cookie was written with a domain');
+  },
+
+  'with domain writes rejected every script falls back to host-only writes'() {
+    const jar = makeJar({}, { rejectDomain: true });
+    const { window } = boot({ scripts: ['bridge'], cookieDomain: 'example.com', jar });
+    window.ClickTrailConsent.grant('manual');
+    assert.ok(jar.entries.has('ct_consent_state@'), 'consent state landed host-only');
+  },
+
+  'a stale host-only consent cookie never shadows the domain cookie (bridge only, attribution off)'() {
+    const jar = makeJar({ ct_consent_state: 'STALE' });
+    const { window } = boot({ scripts: ['bridge'], cookieDomain: 'example.com', jar });
+    window.ClickTrailConsent.grant('manual');
+    assert.deepStrictEqual(jar.names().filter((n) => n.startsWith('ct_consent_state')), ['ct_consent_state@example.com']);
+  },
+
+  'the same holds in host mode: a stale domain consent cookie is expired when the host-only one is written'() {
+    const jar = makeJar({ 'ct_consent_state@example.com': 'STALE' });
+    const { window } = boot({ scripts: ['bridge'], cookieDomain: '', jar, local: { ct_cookie_scope: 'example.com' } });
+    window.ClickTrailConsent.grant('manual');
+    assert.deepStrictEqual(jar.names().filter((n) => n.startsWith('ct_consent_state')), ['ct_consent_state@']);
+  },
+
+  'banner accept expires a stale host-only ct_consent'() {
+    const created = [];
+    const jar = makeJar({ ct_consent: 'STALE' });
+    const page = boot({ scripts: ['bridge'], cookieDomain: 'example.com', jar });
+    // the bridge already resolved nothing; banner runs because the cookie read as a decision, so clear it first for the banner path
+    page.document.createElement = () => {
+      const el = { setAttribute() {}, appendChild() {}, style: {}, remove() {}, handlers: {}, addEventListener(type, fn) { el.handlers[type] = fn; } };
+      created.push(el);
+      return el;
+    };
+    jar.entries.delete('ct_consent@');
+    vm.runInContext(SOURCES.consent, vm.createContext(page.window), { filename: 'consent.js' });
+    jar.entries.set('ct_consent@', 'STALE');
+    created.find((el) => el.id === 'ct-accept-all').handlers.click();
+    assert.deepStrictEqual(jar.names().filter((n) => n.startsWith('ct_consent@') || n === 'ct_consent@example.com'), ['ct_consent@example.com']);
+  },
+
+  'events writes expire the opposite scope copy'() {
+    const jar = makeJar({ ct_visitor_id: 'OLD' });
+    const { window } = boot({ scripts: ['bridge', 'events'], cookieDomain: 'example.com', jar, search: '?s=term' });
+    window.ClickTrailConsent.grant('manual');
+    assert.ok(!jar.entries.has('ct_visitor_id@'), 'host-only visitor id expired');
+    assert.ok(jar.entries.has('ct_visitor_id@example.com'));
+  },
+
+  'attribution writes expire the opposite scope copy'() {
+    const jar = makeJar({ attribution: encodeURIComponent('{"gclid":"OLD"}') }, {});
+    boot({ scripts: ['attribution'], cookieDomain: 'example.com', jar, search: '?gclid=NEW' });
+    assert.deepStrictEqual(jar.names().filter((n) => n.startsWith('attribution')), ['attribution@example.com']);
+  },
+
+  'migration prefers an already shared domain cookie over an older host-only value'() {
+    const jar = makeJar({ attribution: 'OLD', 'attribution@example.com': 'NEW' });
+    boot({ scripts: ['attribution'], cookieDomain: 'example.com', jar, configs: { attribution: { requireConsent: true } } });
+    assert.deepStrictEqual(jar.names().filter((n) => n.startsWith('attribution')), ['attribution@example.com']);
+    assert.strictEqual(jar.entries.get('attribution@example.com'), 'NEW');
+  },
+
+  'removals expire both scopes in the bridge on denial'() {
+    const jar = makeJar({ ct_consent: 'A', 'ct_consent@example.com': 'B' });
+    const { window } = boot({ scripts: ['bridge'], cookieDomain: 'example.com', jar });
+    window.ClickTrailConsent.deny('manual');
+    assert.deepStrictEqual(jar.names().filter((n) => n.startsWith('ct_consent@') ), [], 'no ct_consent copy remains');
   },
 };
 

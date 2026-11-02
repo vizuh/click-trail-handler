@@ -139,10 +139,9 @@ class Setup_Wizard {
 		}
 
 		// Enable core attribution settings.
-		$attr = get_option( 'clicutcl_attribution_settings', false );
+		$attr = get_option( 'clicutcl_attribution_settings', array() );
 		if ( ! is_array( $attr ) ) {
-			// No stored option yet: a new install, so seed the new-install cookie scope.
-			$attr = array( 'cookie_scope' => \CLICUTCL\Database\Installer::default_cookie_scope() );
+			$attr = array();
 		}
 		$attr['enable_attribution']       = 1;
 		$attr['enable_js_injection']      = 1;
