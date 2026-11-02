@@ -22,7 +22,7 @@ action printing `[ct_gclid]`, `[ct_lt_source]` and `[ct_lt_content]`.
 
 ## Result
 
-`adapters-ci.sh`: **372 PASS, 7 FINDING, 0 FAIL**. `ci.sh`: **15 ok, 0 failure(s)**. The FINDING lines are the six WPForms Lite
+`adapters-ci.sh`: **423 PASS, 7 FINDING, 0 FAIL** (54 PASS and no FINDING/FAIL on the Formidable rows; the same run also drives SureForms, merged from `main` before this run). `ci.sh`: **15 ok, 0 failure(s)**. An earlier run on the branch before the SureForms merge: 372 PASS, 7 FINDING, 0 FAIL. The FINDING lines are the six WPForms Lite
 entry-meta limitations present before this change and, in this run, the Contact Form 7 concurrent-REST double submit
 (`S6 double_submit parallel_rest`: 2 rows, 1 dispatch; it was `PASS` in an earlier run of the same code, so it is a race in the
 Contact Form 7 best-effort dedupe, not related to Formidable).
