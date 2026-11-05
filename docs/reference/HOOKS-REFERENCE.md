@@ -432,7 +432,7 @@ Purpose:
 Purpose:
 
 - fires when the daily cleanup stops before finishing a bounded batch, so the remainder is processed on the next run
-- currently emitted for `woocommerce_order_meta` and `registration_user_meta` retention
+- emitted for `woocommerce_order_meta`, `edd_order_meta` and `registration_user_meta` retention
 
 Arguments:
 
@@ -520,6 +520,30 @@ Notes:
 
 - Gravity Forms, WPForms, Fluent Forms, Formidable Forms and Forminator (entry meta), MetForm and SureForms (entry `extras`) already write `ct_event_id` and `ct_lead_id` into their entry; use this action for Ninja Forms, Elementor Forms (Pro), Contact Form 7 and any other store
 - source-present / runtime-unverified
+
+
+## Easy Digital Downloads
+
+### `clicutcl_edd_purchase_payload`
+
+Type:
+
+- filter
+
+Purpose:
+
+- filter the final EDD purchase payload before ClickTrail pushes it to the `dataLayer` and the server-side dispatcher
+- returned arrays are merged over the defaults with `wp_parse_args()`; a non-array return keeps the defaults
+
+Arguments:
+
+- `$payload` (`array`): `event_name`, `event_id` (`purchase_edd_<order ID>`), `order_id`, `transaction_id`, `value`, `currency`, `items`, `attribution`, `identity`, `commerce`, `meta`, and `consent` when the order stored a snapshot
+- `$order` (`EDD\Orders\Order`)
+
+When it fires:
+
+- on the first order receipt render that is allowed to emit a purchase (complete `sale` order, current marketing consent, no `_clicutcl_tracking_sent` marker, dispatch lock won)
+- there is no `clicutcl_order_attribution_saved` equivalent for EDD
 
 ## WooCommerce
 

@@ -26,6 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *   $env = Setup_Detector::run();
  *   // $env['forms']       — array of all supported form plugins with active flag
  *   // $env['woocommerce'] — bool
+ *   // $env['edd']         — bool (Easy Digital Downloads)
  *   // $env['ultimate_member'] — bool
  *   // $env['caching']     — array of detected caching/CDN labels
  *   // $env['cmp']         — array of detected CMP plugins (key, label, cmp_source)
@@ -47,6 +48,7 @@ class Setup_Detector {
 		return array(
 			'forms'             => $forms,
 			'woocommerce'       => static::detect_woocommerce(),
+			'edd'               => static::detect_edd(),
 			'ultimate_member'   => static::detect_ultimate_member(),
 			'caching'           => $caching,
 			'cmp'               => $cmp,
@@ -159,6 +161,17 @@ class Setup_Detector {
 	 */
 	public static function detect_woocommerce(): bool {
 		return class_exists( 'WooCommerce' );
+	}
+
+	/**
+	 * Whether Easy Digital Downloads is active.
+	 *
+	 * Mirrors the runtime guard in `CLICUTCL\Integrations\Edd::init()`.
+	 *
+	 * @return bool
+	 */
+	public static function detect_edd(): bool {
+		return class_exists( 'Easy_Digital_Downloads' );
 	}
 
 	// -----------------------------------------------------------------------

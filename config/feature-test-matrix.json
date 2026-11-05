@@ -672,6 +672,108 @@
         }
       ]
     },
+    "edd-order-attribution": {
+      "label": "Easy Digital Downloads order attribution",
+      "expected_behavior": "A checkout with a click ID in the cookie stores the consent snapshot and the allowlisted _clicutcl_* attribution on the EDD order when it is built; denied or withdrawn consent stores the snapshot only; cron, WP-CLI and plain admin requests store nothing.",
+      "prerequisites": [
+        "Easy Digital Downloads 3.0+ is active.",
+        "Attribution capture is enabled."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Land with ?gclid=TEST, buy a download, and confirm the order meta holds _clicutcl_gclid = TEST (tools/qa/e2e/edd-ci.sh does this against real EDD).",
+        "Repeat with consent denied and confirm only _clicutcl_consent is stored."
+      ],
+      "evidence": [
+        {
+          "file": "includes/integrations/class-edd.php",
+          "patterns": [
+            "edd_built_order",
+            "save_order_attribution",
+            "is_managed_meta_key"
+          ]
+        },
+        {
+          "file": "clicutcl.php",
+          "patterns": [
+            "clicutcl_init_edd",
+            "plugins_loaded"
+          ]
+        },
+        {
+          "file": "tests/unit/EddIntegrationTest.php",
+          "patterns": [
+            "test_built_order_stores_consent_snapshot_and_only_known_attribution_keys",
+            "test_denied_consent_keeps_the_snapshot_but_drops_attribution"
+          ]
+        }
+      ]
+    },
+    "edd-purchase-receipt": {
+      "label": "Easy Digital Downloads receipt purchase",
+      "expected_behavior": "The order confirmation receipt pushes one purchase with event_id purchase_edd_<order ID> and dispatches the same event server-side, only for complete sale orders and current marketing consent; reloads and concurrent loads do not repeat it.",
+      "prerequisites": [
+        "Easy Digital Downloads 3.0+ is active.",
+        "Server-side delivery is enabled to observe the dispatch; the dataLayer push does not need it."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Complete a test purchase, confirm one purchase in the dataLayer with event_id purchase_edd_<order ID>, then reload the receipt and confirm no second push."
+      ],
+      "evidence": [
+        {
+          "file": "includes/integrations/class-edd.php",
+          "patterns": [
+            "edd_order_receipt_before_table",
+            "push_purchase_event",
+            "'purchase_edd_'",
+            "Claim_Lock::acquire"
+          ]
+        },
+        {
+          "file": "tests/unit/EddIntegrationTest.php",
+          "patterns": [
+            "test_reloading_the_receipt_does_not_fire_a_second_event",
+            "test_racing_receipt_loads_dispatch_once"
+          ]
+        }
+      ]
+    },
+    "edd-order-privacy": {
+      "label": "Easy Digital Downloads order metadata privacy lifecycle",
+      "expected_behavior": "ClickTrail order meta on EDD orders is exported, erased, expired by retention, purged from Diagnostics and removed on uninstall, without touching other EDD order meta.",
+      "prerequisites": [
+        "Easy Digital Downloads 3.0+ is active."
+      ],
+      "automated": true,
+      "manual_verification": [
+        "Run the WordPress personal-data export and erase tools for a buyer email and confirm the _clicutcl_* order meta is exported and then removed (tools/qa/e2e/edd-ci.sh does this against real EDD)."
+      ],
+      "evidence": [
+        {
+          "file": "includes/privacy/class-edd-order-privacy.php",
+          "patterns": [
+            "export_order_data",
+            "erase_order_data",
+            "purge_expired_order_metadata",
+            "purge_all_order_metadata"
+          ]
+        },
+        {
+          "file": "uninstall.php",
+          "patterns": [
+            "Edd_Order_Privacy"
+          ]
+        },
+        {
+          "file": "tests/unit/EddOrderPrivacyTest.php",
+          "patterns": [
+            "test_erase_removes_managed_meta_keeps_the_sent_marker_and_everything_else",
+            "test_managed_meta_query_is_one_key_clause_so_it_never_hits_the_61_table_join_limit"
+          ]
+        }
+      ]
+    },
     "ultimate-member-registration": {
       "label": "Ultimate Member registration attribution",
       "expected_behavior": "A visitor registered through an Ultimate Member registration form gets the consented attribution payload as allowlisted _clicutcl_* user meta and one server-side sign_up event (event_id um_registration_<user_id>); nothing is stored or dispatched without marketing consent, a repeat of the hook dispatches nothing, and the core sign_up cookie event carries the same event_id.",

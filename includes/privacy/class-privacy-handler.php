@@ -202,11 +202,12 @@ class Privacy_Handler {
 		$touch_items  = $this->export_touch_events_items( $email, $page );
 		$export_items = array_merge( $export_items, $touch_items['items'] );
 		$woo_items    = ( new Woo_Order_Privacy() )->export_order_data( $email, $page );
-		$export_items = array_merge( $export_items, $woo_items['items'] );
+		$edd_items    = ( new Edd_Order_Privacy() )->export_order_data( $email, $page );
+		$export_items = array_merge( $export_items, $woo_items['items'], $edd_items['items'] );
 
 		return array(
 			'data' => $export_items,
-			'done' => count( $rows ) < self::PAGE_SIZE && $touch_items['done'] && $woo_items['done'],
+			'done' => count( $rows ) < self::PAGE_SIZE && $touch_items['done'] && $woo_items['done'] && $edd_items['done'],
 		);
 	}
 
@@ -434,21 +435,24 @@ class Privacy_Handler {
 		}
 
 		$woo = ( new Woo_Order_Privacy() )->erase_order_data( $email, $page );
-		if ( ! empty( $woo['items_removed'] ) ) {
+		$edd = ( new Edd_Order_Privacy() )->erase_order_data( $email, $page );
+		if ( ! empty( $woo['items_removed'] ) || ! empty( $edd['items_removed'] ) ) {
 			$removed_any = true;
 		}
-		if ( ! empty( $woo['items_retained'] ) ) {
+		if ( ! empty( $woo['items_retained'] ) || ! empty( $edd['items_retained'] ) ) {
 			$retained = true;
 		}
-		if ( ! empty( $woo['messages'] ) && is_array( $woo['messages'] ) ) {
-			$messages = array_merge( $messages, $woo['messages'] );
+		foreach ( array( $woo, $edd ) as $order_result ) {
+			if ( ! empty( $order_result['messages'] ) && is_array( $order_result['messages'] ) ) {
+				$messages = array_merge( $messages, $order_result['messages'] );
+			}
 		}
 
 		return array(
 			'items_removed'  => $removed_any,
 			'items_retained' => $retained,
 			'messages'       => array_values( array_unique( $messages ) ),
-			'done'           => count( $rows ) < self::PAGE_SIZE && $woo['done'],
+			'done'           => count( $rows ) < self::PAGE_SIZE && $woo['done'] && $edd['done'],
 		);
 	}
 

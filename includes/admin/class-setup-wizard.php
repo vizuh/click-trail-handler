@@ -308,6 +308,8 @@ class Setup_Wizard {
 						);
 					} elseif ( $env['woocommerce'] ) {
 						esc_html_e( 'We found WooCommerce. ClickTrail will store attribution on every order automatically.', 'click-trail-handler' );
+					} elseif ( $env['edd'] ) {
+						esc_html_e( 'We found Easy Digital Downloads. ClickTrail will store attribution on every order automatically.', 'click-trail-handler' );
 					} else {
 						esc_html_e( 'ClickTrail will capture UTMs and click IDs from every visitor automatically.', 'click-trail-handler' );
 					}
@@ -356,6 +358,14 @@ class Setup_Wizard {
 						<div class="clicutcl-wizard__check-row">
 							<span class="clicutcl-wizard__check-icon dashicons dashicons-yes-alt" style="color:var(--clicktrail-success)" aria-hidden="true"></span>
 							<span class="clicutcl-wizard__check-label"><?php esc_html_e( 'WooCommerce order attribution', 'click-trail-handler' ); ?></span>
+							<span class="clicutcl-wizard__check-badge clicutcl-wizard__check-badge--on"><?php esc_html_e( 'Detected', 'click-trail-handler' ); ?></span>
+						</div>
+					<?php endif; ?>
+
+					<?php if ( $env['edd'] ) : ?>
+						<div class="clicutcl-wizard__check-row">
+							<span class="clicutcl-wizard__check-icon dashicons dashicons-yes-alt" style="color:var(--clicktrail-success)" aria-hidden="true"></span>
+							<span class="clicutcl-wizard__check-label"><?php esc_html_e( 'Easy Digital Downloads order attribution', 'click-trail-handler' ); ?></span>
 							<span class="clicutcl-wizard__check-badge clicutcl-wizard__check-badge--on"><?php esc_html_e( 'Detected', 'click-trail-handler' ); ?></span>
 						</div>
 					<?php endif; ?>
@@ -544,6 +554,9 @@ class Setup_Wizard {
 		}
 		if ( $env['woocommerce'] ) {
 			$parts[] = __( 'WooCommerce: ON', 'click-trail-handler' );
+		}
+		if ( $env['edd'] ) {
+			$parts[] = __( 'Easy Digital Downloads: ON', 'click-trail-handler' );
 		}
 		if ( ! empty( $env['ultimate_member'] ) ) {
 			$parts[] = __( 'Ultimate Member: ON', 'click-trail-handler' );

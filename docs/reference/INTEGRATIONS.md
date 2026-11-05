@@ -59,6 +59,7 @@ live hook, consent, identity, and retention behavior still require testing.
 | Reddit destination | Relay-only | Destination toggle and `rdt_cid`/Reddit source classification | No native Reddit delivery adapter; no Reddit conversion-delivery claim |
 | Forms | Source connector / runtime-unverified overall | CF7, Elementor Pro, Fluent, Formidable, Forminator, Gravity, MetForm, Ninja, SureForms, and WPForms paths; bounded Fluent Forms submission-storage evidence; bounded Formidable Forms free E2E slice (below); a Forminator 1.58.4 pod run (below); six-case evidence manifests | Live plugin-hook, posted-field, submission-storage, consent, and erasure proof for the remaining adapters |
 | WooCommerce | Source connector / runtime-unverified | Order attribution, storefront events, purchase/milestones, traces, allowlisted order-meta privacy lifecycle contracts, and a per-order thank-you dispatch lock (PHPUnit `WooCommercePurchaseDispatchLockTest`, #148) | Live checkout/CMP behavior, purchase dataLayer, dedup concurrency under real concurrent requests, queue/retry, and classic/HPOS staging proof |
+| Easy Digital Downloads (3.0+) | Source connector / runtime-unverified overall; Store gateway staged E2E | Consent-gated order attribution at `edd_built_order`, one receipt purchase (`purchase_edd_<order ID>`), allowlisted order-meta privacy lifecycle (PHPUnit `EddIntegrationTest`, `EddOrderPrivacyTest`; `tools/qa/e2e/edd-ci.sh` on EDD 3.7.3, Store gateway) | Stripe/PayPal/Square gateway runs, block receipt, refunds and status milestones, EDD Recurring/Software Licensing renewals |
 | Ultimate Member (free) | Source connector / runtime-unverified | Registration attribution stored as allowlisted `_clicutcl_*` user meta, one `sign_up` dispatch (`um_registration_<user_id>`, claim + sent-marker dedupe), consent gate, exporter/eraser/retention/purge (PHPUnit `UltimateMemberRegistrationTest`, `UserRegistrationPrivacyTest`) | Live behavior on other UM versions, UM extensions (social login, Stripe), registration over REST or the UM API, consent from a real CMP, destination acceptance |
 | Calendly, HubSpot, Typeform | Webhook ingress / runtime-unverified | Signed inbound routes and canonical translation | Provider timestamp, identity minimization, replay, consent, and E2E proof |
 | HubSpot embedded forms (updated editor v4 and legacy embeds) | Source-present / runtime-unverified | Browser `lead` on HubSpot's documented v4 submission-success event and legacy `hsFormCallback` `onFormSubmitted` message; `form_submit_failed` on v4 failure; consent-gated, deduplicated; Node VM contract test | A live HubSpot form submission; iframe origin of legacy iframe embeds; attribution written into HubSpot hidden fields (not implemented) |
@@ -416,6 +417,42 @@ persistence, UI, or AJAX route is added by M6-A. M6-B reproduced the core paths
 and blockers on isolated classic and HPOS stacks. Refund trace persistence and
 HPOS admin parity were remediated and re-tested; consent and the remaining
 runtime gates are still required before release promotion.
+
+## Easy Digital Downloads
+
+**Evidence boundary:** EDD 3.7.3, Store (manual) gateway, one download, Chromium and MariaDB in the disposable `tools/qa/e2e/edd-ci.sh` stack (`EVIDENCE-2026-11-02-edd.md`). Stripe, PayPal, Square and EDD's REST card controllers reach the same `edd_build_order()` but were not run; the block-based receipt, refunds, EDD 2.x payments, EDD Recurring and Software Licensing were not exercised.
+
+Managed by:
+
+- `includes/integrations/class-edd.php`
+- `includes/privacy/class-edd-order-privacy.php`
+- registration: `clicutcl_init_edd()` in `clicutcl.php` on `plugins_loaded`, not in the `init` priority 20 bootstrap
+
+Hooks, verified against EDD 3.7.3 source (`plugins.svn.wordpress.org/easy-digital-downloads/trunk/`):
+
+| EDD surface | Signature | Used for |
+|---|---|---|
+| `do_action( 'edd_built_order', $order_id, $order_data )` (`includes/orders/functions/orders.php`, end of `edd_build_order()`, after `edd_insert_payment`) | `int $order_id, array $order_data` | order attribution write |
+| `do_action( 'edd_order_receipt_before_table', $order, $edd_receipt_args )` (`templates/shortcode-receipt.php`; the block receipt's `totals.php` fires it with `array()`) | `EDD\Orders\Order $order, array $args` | purchase push and dispatch |
+| `edd_update_order_meta( $order_id, $key, $value )`, `edd_get_order_meta( $order_id, $key = '', $single = false )`, `edd_delete_order_meta( $order_id, $key, $value = '' )` | wrappers of `update_metadata( 'edd_order', ... )` | order meta |
+| `edd_get_orders( $args )` | `email`, `number`, `offset`, `orderby`, `order`, `meta_query`, `date_created_query` | privacy export, erase, retention, purge |
+
+Why `plugins_loaded`: EDD handles the checkout POST on `init` priority 10 (`edd_post_actions`, and `wp_ajax_edd_process_checkout`), so the order is built before ClickTrail's own `init` priority 20 bootstrap. A hook registered there never sees a normal checkout.
+
+Behavior:
+
+- the order is built while the buyer's request is still running, including for off-site gateways, so the cookie sent with that request is what is stored; nothing is read back from the viewer on the receipt
+- `edd_built_order` writes `_clicutcl_consent` (always) and the `_clicutcl_*` attribution keys (only when `Attribution_Provider::should_populate()` allows, and only keys the privacy allowlist recognizes; the provider does not allowlist cookie keys itself)
+- requests from cron, WP-CLI and plain admin screens write nothing; `admin-ajax.php` and REST requests count as the buyer's, because EDD checks out through them
+- the receipt emits one `purchase` only for a complete `sale` order (`complete`, `completed`, `publish`; refunded and revoked orders excluded), only while current marketing consent is granted, once per order and only for orders created within the retention window (the cookie duration, default 90 days; an older order, or one with an unreadable creation date, emits nothing because retention already expired its data): `Claim_Lock` key `clicutcl_edd_purchase_lock_<order_id>` plus `_clicutcl_tracking_sent`, re-read after the lock is won
+- an order that is still `pending` when the receipt loads pushes nothing; the purchase is emitted by a later receipt load once the order is complete (no status hook is used). The customer-request context guard is a denylist: cron, WP-CLI and plain admin screens are excluded, everything else counts as the buyer's request
+- the purchase-sent marker `_clicutcl_tracking_sent` holds no personal data and is kept by subject erase, retention and the Diagnostics purge, so a receipt revisited afterwards cannot push or dispatch a second copy; only uninstall removes it
+- the browser push and `Dispatcher::dispatch_commerce_event()` share one payload (`event_id` `purchase_edd_<order ID>`, `transaction_id` the EDD order number, value, currency, items, stored first/last touch, checkout consent snapshot). A failed, unqueued dispatch leaves the marker unset so a reload retries
+- the dataLayer contract follows the Woo classic contract (`ecommerce.*`, flat `ft_*`/`lt_*` and click IDs, `event_id`); the Woo `woo_enhanced_datalayer` / `woo_include_user_data` settings do not apply to EDD and no `user_data` is pushed
+- not implemented: order-status milestones, refunds, a trace snapshot or Diagnostics lookup, and the Woo cookie fallback for orders with no stored attribution
+- test-mode orders are tracked like live ones
+
+Privacy lifecycle (the sent marker excepted, see above): `Edd_Order_Privacy` mirrors `Woo_Order_Privacy` (export, erase, bounded retention, Diagnostics purge, uninstall) through `edd_get_orders()` and the `edd_*_order_meta()` functions. It reuses the Woo key allowlist and queries it as one anchored `REGEXP` key clause, because `WP_Meta_Query` joins once per clause and the 107 `EXISTS` clauses of the Woo query fail on MariaDB with "can only use 61 tables in a join". See [DATA-MODEL.md](../architecture/DATA-MODEL.md#easy-digital-downloads-order-meta-surfaces).
 
 ## Ultimate Member
 
