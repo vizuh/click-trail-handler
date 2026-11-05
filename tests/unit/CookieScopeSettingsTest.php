@@ -148,6 +148,14 @@ namespace {
 			$this->assertContains( 'clicutcl_cookie_custom_domain_invalid', $GLOBALS['clicktrail_test_settings_errors'] );
 		}
 
+		public function test_cookie_reissue_is_off_for_existing_settings_and_sanitised_as_a_toggle(): void {
+			$GLOBALS['clicktrail_test_options']['clicutcl_attribution_settings'] = array( 'cookie_days' => 30 );
+
+			$this->assertSame( 0, $this->admin()->sanitize_settings( array( 'cookie_days' => 45 ) )['attribution_cookie_reissue'] );
+			$this->assertSame( 1, $this->admin()->sanitize_settings( array( 'attribution_cookie_reissue' => '1' ) )['attribution_cookie_reissue'] );
+			$this->assertSame( 0, $this->admin()->sanitize_settings( array( 'attribution_cookie_reissue' => '0' ) )['attribution_cookie_reissue'] );
+		}
+
 		public function test_invalid_scope_value_is_sanitised_to_host(): void {
 			$settings = $this->admin()->sanitize_settings( array( 'cookie_scope' => 'everywhere' ) );
 
@@ -155,16 +163,22 @@ namespace {
 		}
 
 		public function test_new_install_is_seeded_registrable(): void {
-			Installer::seed_cookie_scope();
+			Installer::seed_fresh_install_defaults();
 
-			$this->assertSame( array( 'cookie_scope' => 'registrable' ), $GLOBALS['clicktrail_test_options']['clicutcl_attribution_settings'] );
+			$this->assertSame(
+				array(
+					'cookie_scope'               => 'registrable',
+					'attribution_cookie_reissue' => 1,
+				),
+				$GLOBALS['clicktrail_test_options']['clicutcl_attribution_settings']
+			);
 		}
 
 		public function test_subdomain_multisite_is_seeded_host(): void {
 			$GLOBALS['clicktrail_test_is_multisite']     = true;
 			$GLOBALS['clicktrail_test_subdomain_install'] = true;
 
-			Installer::seed_cookie_scope();
+			Installer::seed_fresh_install_defaults();
 
 			$this->assertSame( 'host', $GLOBALS['clicktrail_test_options']['clicutcl_attribution_settings']['cookie_scope'] );
 		}
@@ -187,7 +201,7 @@ namespace {
 		public function test_reactivating_an_existing_install_is_not_seeded( string $option ): void {
 			$GLOBALS['clicktrail_test_options'][ $option ] = 1;
 
-			Installer::seed_cookie_scope();
+			Installer::seed_fresh_install_defaults();
 
 			$this->assertArrayNotHasKey( 'clicutcl_attribution_settings', $GLOBALS['clicktrail_test_options'] );
 		}
@@ -204,7 +218,7 @@ namespace {
 		public function test_existing_settings_are_never_reseeded(): void {
 			$GLOBALS['clicktrail_test_options']['clicutcl_attribution_settings'] = array( 'cookie_days' => 30 );
 
-			Installer::seed_cookie_scope();
+			Installer::seed_fresh_install_defaults();
 
 			$this->assertSame( array( 'cookie_days' => 30 ), $GLOBALS['clicktrail_test_options']['clicutcl_attribution_settings'] );
 		}

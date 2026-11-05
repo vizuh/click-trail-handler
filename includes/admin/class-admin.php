@@ -601,6 +601,7 @@ class Admin {
 				'retention_days'       => absint( $attr_options['cookie_days'] ?? 90 ),
 				'cookie_scope'         => in_array( $attr_options['cookie_scope'] ?? 'host', Cookie_Scope::scopes(), true ) ? $attr_options['cookie_scope'] : 'host',
 				'cookie_custom_domain' => (string) ( $attr_options['cookie_custom_domain'] ?? '' ),
+				'cookie_reissue'       => ! empty( $attr_options['attribution_cookie_reissue'] ) ? 1 : 0,
 				'ga4_measurement_id'   => (string) ( $attr_options['ga4_measurement_id'] ?? '' ),
 				'decorate_links'       => ! empty( $attr_options['enable_link_decoration'] ) ? 1 : 0,
 				'allowed_domains'      => $this->format_multiline_setting( $attr_options['link_allowed_domains'] ?? '' ),
@@ -999,6 +1000,7 @@ class Admin {
 			'cookie_days'                 => $capture['retention_days'] ?? 90,
 			'cookie_scope'                => $capture['cookie_scope'] ?? 'host',
 			'cookie_custom_domain'        => $capture['cookie_custom_domain'] ?? '',
+			'attribution_cookie_reissue'  => ! empty( $capture['cookie_reissue'] ) ? 1 : 0,
 			'enable_link_decoration'      => ! empty( $capture['decorate_links'] ) ? 1 : 0,
 			'link_allowed_domains'        => $capture['allowed_domains'] ?? '',
 			'embed_allowed_domains'       => $capture['embed_domains'] ?? '',
@@ -1185,6 +1187,10 @@ class Admin {
 			'cookie_custom_domain'        => array(
 				'default'  => '',
 				'sanitize' => array( $this, 'sanitize_cookie_custom_domain' ),
+			),
+			'attribution_cookie_reissue'  => array(
+				'default'  => 0,
+				'sanitize' => array( $this, 'sanitize_toggle' ),
 			),
 			'ga4_measurement_id'          => array(
 				'default'  => '',

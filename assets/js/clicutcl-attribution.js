@@ -565,6 +565,9 @@
 
     // --- 1. STORE & UTILS ---
     const COOKIE_SCOPE_KEY = 'ct_cookie_scope';
+    // Marker: the script has written the attribution cookie and the server has not yet re-issued it as an HTTP-set cookie (Safari ITP, #141).
+    const COOKIE_REISSUE_KEY = 'ct_cookie_reissue';
+    const COOKIE_REISSUE_RETRY_MS = 60 * 60 * 1000;
     const Store = {
         base64UrlEncode: function (str) {
             return btoa(unescape(encodeURIComponent(str)))
@@ -705,6 +708,7 @@
             document.cookie = name + "=" + encodedValue + expires + domain + "; path=/; SameSite=Lax" + secureFlag;
             const persisted = this.getCookie(name) === rawValue;
             if (domain) this.rememberCookieScope(domain.slice('; domain='.length));
+            if (persisted && name === CONFIG.cookieName) this.markReissuePending();
             // Never leave the same name in the other scope: it would shadow this value in document.cookie and in PHP.
             if (persisted && typeof domainAttr !== 'string') {
                 scopes.forEach((attr) => { if (attr !== domain) this.expireVariant(name, attr); });
@@ -791,7 +795,8 @@
             if (moved > 0 || previous !== null) this.rememberCookieScope(applied);
         },
 
-        getLocalData: function () {
+        // The stored mirror with its expiry, or null. Expired and legacy (no retention metadata) envelopes are removed.
+        readLocalEnvelope: function () {
             try {
                 const raw = localStorage.getItem(CONFIG.cookieName);
                 if (!raw) return null;
@@ -812,7 +817,7 @@
                         localStorage.removeItem(CONFIG.cookieName);
                         return null;
                     }
-                    return normalizeStoredAttribution(parsed.data);
+                    return { data: normalizeStoredAttribution(parsed.data), expiresAt: expiresAt };
                 }
 
                 // Legacy localStorage copies had no retention metadata. Drop them
@@ -821,6 +826,120 @@
             } catch (e) { }
 
             return null;
+        },
+
+        getLocalData: function () {
+            const envelope = this.readLocalEnvelope();
+            return envelope ? envelope.data : null;
+        },
+
+        // Safari ITP can drop the script-written cookie (24 h after a link-decorated landing) while the mirror survives.
+        // Rewrite the cookie from the unexpired mirror, with the mirror's own expiry as the bound, through the one cookie
+        // writer (domain, probe, Secure, size cap). Callers run it only after live consent allows capture.
+        restoreCookieFromMirror: function () {
+            if (isAdminQaMode()) return false;
+            if (this.getCookie(CONFIG.cookieName)) return false;
+            if (CONFIG.cookieName !== 'ct_attribution' && this.getCookie('ct_attribution')) return false;
+            const envelope = this.readLocalEnvelope();
+            if (!envelope) return false;
+            const data = Object.assign({}, envelope.data);
+            delete data[CLICK_ID_HISTORY_KEY]; // browser-only, never in the server-readable cookie
+            if (!Object.keys(data).length) return false;
+            const configuredDays = Number(CONFIG.cookieDays) || 90;
+            const remainingDays = envelope.expiresAt > 0 ? (envelope.expiresAt - Date.now()) / (24 * 60 * 60 * 1000) : configuredDays;
+            const days = Math.min(configuredDays, remainingDays);
+            if (!(days > 0)) return false;
+            // The marker keeps the mirror's expiry, so the server re-issue cannot extend a restored cookie past it.
+            this.restoreExpiresAt = envelope.expiresAt > 0 ? envelope.expiresAt : 0;
+            const restored = this.setCookie(CONFIG.cookieName, JSON.stringify(data), days) === true;
+            this.restoreExpiresAt = 0;
+            if (restored && DEBUG_ENABLED) console.log('[ClickTrail] Attribution cookie restored from the localStorage mirror.');
+            return restored;
+        },
+
+        restoreExpiresAt: 0,
+
+        readReissueMarker: function () {
+            try {
+                const raw = localStorage.getItem(COOKIE_REISSUE_KEY);
+                if (!raw) return null;
+                const parsed = this.safeJsonParse(raw);
+                if (parsed && typeof parsed === 'object' && Number(parsed.w) > 0) {
+                    return { w: Number(parsed.w), t: Number(parsed.t) || 0, x: Number(parsed.x) > 0 ? Number(parsed.x) : 0 };
+                }
+                localStorage.removeItem(COOKIE_REISSUE_KEY);
+            } catch (e) { }
+            return null;
+        },
+
+        writeReissueMarker: function (marker) {
+            try { localStorage.setItem(COOKIE_REISSUE_KEY, JSON.stringify(marker.x > 0 ? { w: marker.w, t: marker.t, x: marker.x } : { w: marker.w, t: marker.t })); } catch (e) { }
+        },
+
+        // Only the write that is still the latest one may clear the marker: a newer script write during the request keeps it.
+        clearReissueMarker: function (writtenAt) {
+            const marker = this.readReissueMarker();
+            if (!marker || marker.w !== writtenAt) return;
+            try { localStorage.removeItem(COOKIE_REISSUE_KEY); } catch (e) { }
+        },
+
+        // The script has just written the attribution cookie: it is script-written again (capped by Safari), so ask the server
+        // to re-issue it. Nothing is stored unless the feature is on and live consent allows it.
+        markReissuePending: function () {
+            if (!CONFIG.cookieReissueUrl || isAdminQaMode() || !liveConsentAllows()) return;
+            this.writeReissueMarker({ w: Date.now(), t: 0, x: this.restoreExpiresAt });
+        },
+
+        reissueInFlight: false,
+
+        // One POST per page load at most, only while a marker is pending, the cookie exists and consent allows.
+        // The server echoes the cookie it was sent as an HTTP-set cookie (same value, lifetime and domain).
+        reissueCookie: function () {
+            const url = String(CONFIG.cookieReissueUrl || '');
+            const token = String(CONFIG.eventsToken || '');
+            if (!url || !token || typeof window.fetch !== 'function' || this.reissueInFlight) return;
+            if (isAdminQaMode() || !liveConsentAllows()) return;
+            const marker = this.readReissueMarker();
+            if (!marker || !this.getCookie(CONFIG.cookieName)) return;
+            if (Date.now() - marker.t < COOKIE_REISSUE_RETRY_MS) return;
+            // A cross-origin URL would not receive the cookie and its Set-Cookie would not reach this origin.
+            try {
+                if (new URL(url, window.location.href).origin !== window.location.origin) return;
+            } catch (e) {
+                return;
+            }
+            // A restored cookie must not outlive its mirror: report what is left, and drop the request when nothing is.
+            const body = { token: token };
+            if (marker.x > 0) {
+                const left = Math.floor((marker.x - Date.now()) / 1000);
+                if (left < 1) {
+                    this.clearReissueMarker(marker.w);
+                    return;
+                }
+                body.expires_in = left;
+            }
+            // The server cannot see whether the domain probe fell back to host-only. Say which attribute the cookie was written with
+            // (the same memoized result as the real write), so the server's Set-Cookie replaces it instead of sitting next to it.
+            const applied = this.cookieDomainAttr();
+            body.domain_applied = applied ? applied.slice('; domain='.length) : '';
+            this.writeReissueMarker({ w: marker.w, t: Date.now(), x: marker.x });
+            this.reissueInFlight = true;
+            fetch(url, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Clicutcl-Token': token
+                },
+                body: JSON.stringify(body),
+                keepalive: true
+            })
+                .then((response) => {
+                    // 2xx: done. 403: consent or the setting says no and nothing here can change that. 401, 429, 5xx: retry later.
+                    if (response && (response.ok || response.status === 403)) this.clearReissueMarker(marker.w);
+                })
+                .catch(() => { })
+                .finally(() => { this.reissueInFlight = false; });
         },
 
         setLocalData: function (data) {
@@ -873,6 +992,7 @@
                 this.removeCookie('ct_attribution');
             }
             try { localStorage.removeItem(CONFIG.cookieName); } catch (e) { }
+            try { localStorage.removeItem(COOKIE_REISSUE_KEY); } catch (e) { }
             try { sessionStorage.removeItem(CONFIG.cookieName); } catch (e) { }
             this.signedTokenCache = '';
             this.signedTokenPayloadHash = '';
@@ -2327,6 +2447,8 @@
                 return;
             }
             this.hasRunAttribution = true;
+            // Live consent allows capture: bring a cookie Safari dropped back from the mirror before anything reads it.
+            Store.restoreCookieFromMirror();
             let currentParams = Store.getQueryParams();
             let referrer = document.referrer;
 
@@ -2468,6 +2590,8 @@
             this.initFormListeners(storedData);
             this.initWhatsAppListener(storedData);
             Store.prepareSignedToken(storedData);
+            // After every script write of this page load (restore, touch, identifiers): upgrade the cookie to an HTTP-set one.
+            Store.reissueCookie();
         }
 
         hasTouchQuerySignal(params) {

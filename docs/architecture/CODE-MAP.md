@@ -39,6 +39,7 @@ This map is organized around the active code paths first, then compatibility and
 
 - `includes/class-clicutcl-core.php`
 - `includes/class-autoloader.php`
+- `includes/Core/class-attribution-cookie-reissue.php`: `Attribution_Cookie_Reissue`, the strict value check and `Set-Cookie` builder behind `POST /clicutcl/v2/cookie-refresh` (#141)
 - `includes/Core/class-cookie-scope.php`: `Cookie_Scope::resolve()`, the single resolver for the `cookieDomain` localized to the four front-end scripts
 - `includes/clicutcl-canonical.php`
 
@@ -142,6 +143,7 @@ This map is organized around the active code paths first, then compatibility and
 - `tools/qa/check-typing-policy.php`: repository typing policy check
 - `tools/qa/consent-bridge.test.js`, `tools/qa/cmp-transition.test.js`, `tools/qa/hubspot-form-capture.test.js`: consent bridge, CMP transition, and HubSpot embedded form capture checks (`npm run test:consent`)
 - `tools/qa/payment-referrer.test.js`: payment-return referrer checks for the attribution script (`npm run test:attribution`)
+- `tools/qa/cookie-reissue.test.js`: restore from the localStorage mirror and the re-issue request/marker (`npm run test:attribution`); PHP side in `tests/unit/AttributionCookieReissueTest.php`; wire proof in `tools/qa/e2e/cookie-reissue.sh`
 - `tools/qa/cookie-scope.test.js`: cookie `domain` attribute and one-time scope migration across the four scripts (`npm run test:attribution`); PHP side in `tests/unit/CookieScopeSettingsTest.php`
 - `tools/qa/whatsapp-handoff.test.js`: WhatsApp click event and `Ref: CT-` reference checks (`npm run test:attribution`, `npm run test:consent`)
 - `tools/admin-css/`: Tailwind source, config, and `check-scope.js` for `assets/css/admin-refresh.css` (`npm run build:admin-css`)
