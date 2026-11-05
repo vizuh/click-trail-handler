@@ -1,6 +1,6 @@
 <?php
 /**
- * E2E fixtures: Fluent Forms, WPForms Lite and SureForms forms plus one page per provider. Run with `wp eval-file`.
+ * E2E fixtures: Fluent Forms, WPForms Lite, Formidable and SureForms forms plus one page per provider. Run with `wp eval-file`.
  *
  * Every form carries the same ClickTrail hidden fields so the three providers are compared like for like.
  */
@@ -119,6 +119,52 @@ foreach ( array( 'hidden' => 'hidden', 'text' => 'text' ) as $variant => $field_
 	$wpforms_ids[ $variant ] = (int) $form_id;
 }
 
+// --- Formidable Forms (free): name, email, one native hidden field per ClickTrail key. The field key is the
+// marker (`ct_<key>`); Formidable keeps field keys unique across forms, so the keys are free only because this is
+// the one Formidable form.
+// Formidable creates its tables on admin_init, which wp-cli never fires: run its installer.
+FrmAppController::install();
+$formidable_id = (int) FrmForm::create(
+	array(
+		'form_key'    => 'e2e-formidable',
+		'name'        => 'E2E Formidable',
+		'description' => '',
+		'status'      => 'published',
+		'options'     => array(
+			'success_msg'  => 'E2E thanks',
+			'submit_value' => 'Submit',
+			'ajax_submit'  => 1,
+		),
+	)
+);
+$frm_fields = array(
+	array( 'type' => 'text', 'name' => 'Name', 'field_key' => 'e2e_name' ),
+	array( 'type' => 'email', 'name' => 'Email', 'field_key' => 'e2e_email', 'required' => 1 ),
+);
+// `ft_content` / `lt_content` are `utm_content` (the HandL "utm_content not passing" pitfall, #169).
+foreach ( array_merge( $ct_keys, array( 'ft_content', 'lt_content' ) ) as $key ) {
+	$frm_fields[] = array( 'type' => 'hidden', 'name' => 'Hidden ' . $key, 'field_key' => 'ct_' . $key );
+}
+foreach ( $frm_fields as $frm_field ) {
+	$values              = FrmFieldsHelper::setup_new_vars( $frm_field['type'], $formidable_id );
+	$values['name']      = $frm_field['name'];
+	$values['field_key'] = $frm_field['field_key'];
+	$values['required']  = $frm_field['required'] ?? 0;
+	FrmField::create( $values );
+}
+
+// An email notification that prints three hidden fields: the issue's "entry and email contain all three".
+$email_action   = FrmFormActionsController::get_form_actions( 'email' );
+$email_settings = $email_action->prepare_new( $formidable_id );
+$email_settings->post_content = array_merge(
+	$email_settings->post_content,
+	array(
+		'email_to'      => 'admin@example.test',
+		'email_subject' => 'E2E Formidable',
+		'email_message' => "GCLID: [ct_gclid]\nSOURCE: [ct_lt_source]\nCONTENT: [ct_lt_content]",
+	)
+);
+$email_action->save_settings( $email_settings );
 // --- MetForm: one form per builder, same hidden `ct_<key>` inputs and a stored entry plus an admin email that lists every field.
 // Block builder (MetForm 4.1.8+, no Elementor needed): `hiddenfield` blocks, Static value, empty.
 // Elementor builder: the Submit Button widget's Hidden Input list, empty Input Value.
@@ -237,6 +283,7 @@ $pages  = array(
 	'form-fluent'  => '[fluentform id="' . $fluent_id . '"]',
 	'form-wpforms'      => '[wpforms id="' . $wpforms_ids['hidden'] . '"]',
 	'form-wpforms-text' => '[wpforms id="' . $wpforms_ids['text'] . '"]',
+	'form-formidable'   => '[formidable id="' . $formidable_id . '"]',
 	'form-metform'      => '[metform form_id="' . $mf_block_id . '"]',
 	'form-metform-el'   => '[metform form_id="' . $mf_el_id . '"]',
 );
@@ -246,4 +293,4 @@ if ( $sureforms_id ) {
 foreach ( $pages as $slug => $content ) {
 	wp_insert_post( array( 'post_type' => 'page', 'post_status' => 'publish', 'post_title' => $slug, 'post_name' => $slug, 'post_content' => $content ) );
 }
-echo wp_json_encode( array( 'cf7' => $cf7_id, 'cf7_plain' => $cf7_plain_id, 'fluent' => $fluent_id, 'wpforms_hidden' => $wpforms_ids['hidden'], 'wpforms_text' => $wpforms_ids['text'], 'sureforms' => $sureforms_id, 'metform_block' => $mf_block_id, 'metform_elementor' => $mf_el_id ) ) . "\n";
+echo wp_json_encode( array( 'cf7' => $cf7_id, 'cf7_plain' => $cf7_plain_id, 'fluent' => $fluent_id, 'wpforms_hidden' => $wpforms_ids['hidden'], 'wpforms_text' => $wpforms_ids['text'], 'formidable' => $formidable_id, 'sureforms' => $sureforms_id, 'metform_block' => $mf_block_id, 'metform_elementor' => $mf_el_id ) ) . "\n";

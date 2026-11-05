@@ -31,14 +31,15 @@ class Form_Readiness_Analyzer {
 	 * @var array<string,string>
 	 */
 	private const ADAPTER_PATTERNS = array(
-		'cf7'       => 'automatic_hidden',
-		'fluent'    => 'automatic_hidden',
-		'gravity'   => 'matching_fields',
-		'metform'   => 'matching_fields',
-		'wpforms'   => 'matching_fields',
-		'elementor' => 'hook_storage',
-		'ninja'     => 'hook_storage',
-		'sureforms' => 'matching_fields',
+		'cf7'        => 'automatic_hidden',
+		'fluent'     => 'automatic_hidden',
+		'formidable' => 'matching_fields',
+		'gravity'    => 'matching_fields',
+		'metform'    => 'matching_fields',
+		'wpforms'    => 'matching_fields',
+		'elementor'  => 'hook_storage',
+		'ninja'      => 'hook_storage',
+		'sureforms'  => 'matching_fields',
 	);
 
 	/**

@@ -38,9 +38,10 @@ def touch_checks(scenario, name, res, expect):
         return
     entry = rec['entry']
     check(all(entry.get('ct_' + k) == v for k, v in expect.items()), scenario, name, 'provider entry carries ct_ fields %s (got %s)' % (expect, {k: entry.get('ct_' + k) for k in expect}))
-    if name == 'fluent':
+    if name in ('fluent', 'formidable'):
         meta = rec['meta']
-        check(all(meta.get('ct_' + k) == v for k, v in expect.items()), scenario, name, 'Fluent submission meta carries %s' % expect)
+        check(all(meta.get('ct_' + k) == v for k, v in expect.items()), scenario, name, '%s entry meta carries %s' % ('Fluent submission' if name == 'fluent' else 'Formidable', expect))
+        check(bool(meta.get('ct_event_id')) and bool(meta.get('ct_lead_id')), scenario, name, 'entry meta carries ct_event_id and ct_lead_id')
     if name == 'sureforms':
         meta = rec['meta']
         check(all(meta.get('ct_' + k) == v for k, v in expect.items()), scenario, name, 'SureForms entry extras carry %s (got %s)' % (expect, {k: meta.get('ct_' + k) for k in expect}))
@@ -80,6 +81,18 @@ for name, res in data.get('returning', {}).items():
     touch_checks('S2 returning', name, res, {'fbclid': 'NEW', 'lt_source': 'new_src', 'ft_source': 'old_src', 'attribution_selected_click_id': 'NEW'})
     lead = res['leads'][0] if res['leads'] else {}
     record('INFO', 'S2 returning', name, 'lead gclid=%r fbclid=%r lt_medium=%r ft_medium=%r' % (lead.get('gclid'), lead.get('fbclid'), lead.get('lt_medium'), lead.get('ft_medium')))
+
+uc = data.get('formidable_utm_content')
+if uc:
+    scenario = 'S9 formidable_utm_content'
+    expect = {'gclid': 'GU', 'lt_source': 'news', 'lt_content': 'banner-a', 'ft_content': 'banner-a'}
+    check(uc['status'] == 'sent', scenario, 'formidable', 'provider reports the submission as sent (%s)' % uc['status'])
+    check(len(uc['leads']) == 1 and all(uc['leads'][0].get(k) == v for k, v in expect.items()), scenario, 'formidable', 'stored lead carries %s' % expect)
+    rec = one_record(uc)
+    check(rec is not None and all(rec['entry'].get('ct_' + k) == v for k, v in expect.items()), scenario, 'formidable', 'Formidable entry carries ct_gclid, ct_lt_source and ct_lt_content/ct_ft_content (utm_content): %s' % (rec['entry'] if rec else None))
+    check(rec is not None and all(rec['meta'].get('ct_' + k) == v for k, v in expect.items()), scenario, 'formidable', 'Formidable entry meta carries the same keys')
+    check(any('GCLID: GU' in b and 'SOURCE: news' in b and 'CONTENT: banner-a' in b for b in uc['mail_bodies']), scenario, 'formidable', 'email notification prints gclid, source and content (%s)' % [b[-80:] for b in uc['mail_bodies']])
+
 
 def has_a_value(d):
     return {k: v for k, v in d.items() if any(a in str(v) for a in ('AAA', 'AFB', 'a_src'))}
@@ -124,7 +137,7 @@ for name, res in data.get('cache_leak', {}).items():
     check(entry.get('ct_gclid', '') == '' and entry.get('ct_ft_gclid', '') == '' and entry.get('ct_lt_gclid', '') == '', scenario, name + ' submit', "provider record is empty for the keys B's cookie lacks (gclid=%r)" % entry.get('ct_gclid'))
     check(lead.get('gclid', '') == '' and lead.get('ft_gclid', '') == '', scenario, name + ' submit', "stored lead is empty for the keys B's cookie lacks (gclid=%r)" % lead.get('gclid'))
     leaked = dict(has_a_value(entry), **{'lead.' + k: v for k, v in has_a_value(lead).items()})
-    if (name in ('fluent', 'sureforms') or name.startswith('metform')) and rec:
+    if (name in ('fluent', 'formidable', 'sureforms') or name.startswith('metform')) and rec:
         leaked.update({'meta.' + k: v for k, v in has_a_value(rec['meta']).items()})
     check(not leaked, scenario, name + ' submit', "no value of visitor A anywhere in the stored lead or provider record (%s)" % (leaked or 'none'))
 

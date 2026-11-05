@@ -104,6 +104,11 @@ class Setup_Detector {
 				'active' => defined( 'FLUENTFORM' ) || class_exists( '\FluentForm\Framework\Foundation\Application' ),
 			),
 			array(
+				'key'    => 'formidable',
+				'label'  => 'Formidable Forms',
+				'active' => class_exists( 'FrmAppHelper' ),
+			),
+			array(
 				'key'    => 'metform',
 				'label'  => 'MetForm',
 				'active' => defined( 'METFORM_VERSION' ) || class_exists( '\MetForm\Plugin' ),
