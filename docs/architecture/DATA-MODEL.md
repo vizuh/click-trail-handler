@@ -162,6 +162,7 @@ Written by the form adapters at submission time, after `log_submission()`, when 
 | Gravity Forms | entry meta (`gform_add_meta`), declared via `gform_entry_meta` and restored after an entry edit | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
 | WPForms | `wpforms()->entry_meta` (only when the entry ID is a real, positive ID) | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
 | Fluent Forms | `fluentform_submission_meta` (`response_id` = entry ID) | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
+| Formidable Forms | `frm_item_metas` row with `field_id` 0 and a serialized array (`FrmEntryMeta::add_entry_meta()`, the shape Formidable uses for its own non-field entry data); not shown in the Formidable entry view | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` (one row; a repeat adds a row with only the missing IDs) | `log_submission()` |
 | Forminator | `frmt_form_entry_meta` through `Forminator_Form_Entry_Model::set_fields()` (only when the entry ID is a real, positive ID) | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
 | MetForm | `metform-entry` post meta (`update_post_meta`; only when MetForm stored an entry for the form) | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
 | SureForms | entry `extras` column (`srfm_entries.extras`, an array SureForms owns; ClickTrail merges its keys into it and never replaces a non-array value; no write when the form stores no entry) | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
@@ -287,6 +288,33 @@ The trace snapshot stores:
 - canonical payload snapshot
 - dispatch result summary
 
+## Registration User Meta Surfaces (Ultimate Member)
+
+A visitor registered through an Ultimate Member registration form gets ClickTrail user meta, written by
+`Integrations\Ultimate_Member` from the attribution cookie sent with the registration request (never from `$_POST`)
+and only when marketing consent allows (`Attribution_Provider::should_populate()` and, when consent is required,
+`Consent::marketing_allowed()`):
+
+- `_clicutcl_{field}` for every key of `Attribution_Provider::get_field_mapping()` present in the cookie payload (`gclid`, `lt_source`, `ft_campaign`, `visitor_id`, `session_id`, `session_count`, ...), each value `sanitize_text_field()`ed and cut to 255 characters; a key outside the mapping is dropped
+- `_clicutcl_um_signup_sent`: `yes`, written only after the `sign_up` dispatch succeeded, was skipped (server-side delivery off, duplicate) or was confirmed queued; an unqueued failure leaves it unset so a repeat of the hook can send again
+
+The leading underscore keeps the keys out of core's custom-field UI. Nothing is written for a user added from wp-admin
+(`um_registration_complete` carries a `null` form), for a registration without marketing consent, or when no
+attribution cookie came with the request (then only the sent marker is written). The password UM passes in `$args` is
+never read.
+
+Lifecycle: `Privacy_Handler` registers a separate exporter and eraser, `clicutcl-user-registration`, matched through
+`get_user_by( 'email' )` (`User_Registration_Privacy`); both work on the exact allowlist above, so lookalike keys and
+all other user meta are untouched, and they also run after Ultimate Member is deactivated. The daily cleanup removes the
+meta of at most 100 users per run whose `user_registered` is older than the attribution retention (cookie duration,
+default 90 days; the same period that applies to Woo order meta) and emits `clicutcl_cleanup_batch_incomplete` with
+scope `registration_user_meta` when more remain. The admin tracking purge and uninstall remove the meta of every user
+(uninstall keeps it when `clicutcl_preserve_data_on_uninstall` is truthy). WordPress deletes all of a user's meta with
+the user. Ultimate Member's own registration data (`submitted` details, profile fields) is outside this lifecycle.
+
+Because retention is measured from the registration date, attribution on accounts older than the retention period is
+not kept; copy it to a CRM or another user field at registration time if it must outlive that.
+
 ## Client-Side Storage
 
 Cookies:
@@ -299,6 +327,8 @@ Cookies:
 - consent decision cookie for the server: `ct_consent_state`
 
 Cookie scope: the `cookie_scope` attribution setting (`host` default for existing installs, `registrable` seeded on new installs, `custom` with `cookie_custom_domain`) resolves in PHP (`Cookie_Scope::resolve()`) to one `cookieDomain`. Every cookie above is written and expired from JavaScript with `; domain=<cookieDomain>` when that value is a suffix of `location.hostname`, and host-only otherwise (public suffixes, IPs, single-label hosts and a non-covering domain always fall back to host-only). PHP readers read `$_COOKIE` by name and are unaffected. `localStorage['ct_cookie_scope']` holds the last applied domain so `clicutcl-attribution.js` can migrate existing cookies once per origin (host-only to domain, domain to host, domain to domain); it is written only next to a domain-scoped cookie or a migration. The `localStorage` mirror of `attribution` stays per origin. Safety: a throwaway `ct_scope_probe` cookie is written and read back before any real cookie gets a `domain` (the public-suffix table is incomplete, so the probe is the real guard; a failing probe means host-only writes); every write expires the same name in the other scope and every removal expires both scopes, in all four scripts; the migration expires the previous copy, writes the new one only if no shared copy is still readable, and restores the old cookie (and skips the marker) if that write fails, so an already shared value wins. The probe is written only when a real cookie write is about to happen, never for removals or an empty/denied boot; write and removal also expire the domain recorded in `ct_cookie_scope`. Limit: `document.cookie` cannot distinguish same-named cookies, and the marker is per origin, so another subdomain's stale copy is cleaned only when that origin writes or removes the cookie.
+
+Server re-issue of the attribution cookie (#141, `specs/009-itp-cookie-reissue/`): `attribution` has two writers. The script writes it with `document.cookie` (`Store.setCookie()`). When the `attribution_cookie_reissue` setting is on (schema default off for existing installs, seeded on for fresh installs), the script then asks `POST /clicutcl/v2/cookie-refresh` and the REST response sets the same cookie again with `Set-Cookie` (`Attribution_Cookie_Reissue`): same name and value, `Max-Age = cookie_days * 86400`, `Path=/`, `SameSite=Lax`, `Secure` on https, not `HttpOnly`, and a `Domain` only when the script reports (`domain_applied` in the request body) that it wrote the cookie with the configured `Cookie_Scope` domain and that domain covers the request `Host` (the script's domain probe can fall back to host-only, which the server cannot see), so there is one cookie, not two. An HTTP-set cookie is not subject to Safari's cap on script-written cookies; any later script write of the cookie (a new touch, a restore) makes it script-written again until the next re-issue. Only the REST `POST` sets it; no page response does. Restore: when the cookie is absent but an unexpired `localStorage['attribution']` mirror exists, `runAttribution()` rewrites the cookie from it (mirror's `expiresAt` as the bound, never past `cookie_days`, without `click_id_history`) after live consent allows capture. `localStorage['ct_cookie_reissue']` is a `{w, t, x?}` marker (script write time, last attempt time, and for a restored cookie the mirror's expiry, so the re-issue cannot extend it) that holds no attribution data; it is removed when the server answers, when consent is withdrawn and with `clearData()`.
 
 Browser storage:
 

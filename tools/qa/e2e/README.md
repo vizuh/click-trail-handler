@@ -33,10 +33,26 @@ Serves the one WordPress as `www.example.test` and `example.test` (`mu/ct-e2e-dy
 reads the CF7 hidden `ct_gclid` and submits; the script runs it once with `cookie_scope=registrable` (cookie
 `domain=.example.test`, apex field `GA`, stored lead carries it) and once with `host` (cookie host-only, apex field empty).
 
-## Form adapters (Fluent Forms, WPForms Lite, Forminator, SureForms, Contact Form 7, MetForm)
+## Attribution cookie re-issue (#141)
 
 ```sh
-tools/qa/e2e/adapters-ci.sh [plugin-root]   # same pod + Fluent Forms 6.2.16 + WPForms Lite 2.0.3.1 + Forminator 1.58.4 + SureForms 2.13.0 + Elementor 4.3.5 + MetForm 4.3.4, WP_DEBUG_LOG on
+flock /tmp/ct-e2e.lock tools/qa/e2e/cookie-reissue.sh [plugin-root]   # own pod run, tears down; exit 1 on any mismatch
+```
+
+Same two-host pod as the cookie-scope run. `cookie_reissue.py` proves on the wire that page GET/HEAD responses never carry `Set-Cookie`
+(with or without a valid `attribution` cookie and consent cookie), that `POST /clicutcl/v2/cookie-refresh` answers with exactly one
+`Set-Cookie: attribution=<same value>; Max-Age=7776000; Path=/; Domain=example.test; SameSite=Lax` (and the gates: token, consent from the
+request cookie, setting, invalid and oversized values), and that Chromium ends with one `attribution` cookie of the right domain and a 90-day
+lifetime although every script write of that cookie is capped to 24 hours by an init script (Safari's cap, emulated: the browser does not
+cap, so an uncapped lifetime is only possible if the server's cookie was applied). A control run with the setting off keeps the 24-hour cap.
+Chromium reports no response for a `keepalive` fetch, so the server-side view comes from `mu/ct-e2e-set-cookie-log.php` (`shutdown` hook
+recording status and the `Set-Cookie` headers PHP sent). Raw requests are rate limited (60 a minute per IP, scope `cookie_reissue`): wait a
+minute between manual reruns against one pod. Safari itself is not exercised.
+
+## Form adapters (Fluent Forms, WPForms Lite, Formidable Forms, Forminator, SureForms, Contact Form 7, MetForm)
+
+```sh
+tools/qa/e2e/adapters-ci.sh [plugin-root]   # same pod + Fluent Forms 6.2.16 + WPForms Lite 2.0.3.1 + Formidable Forms 7.0 + Forminator 1.58.4 + SureForms 2.13.0 + Elementor 4.3.5 + MetForm 4.3.4, WP_DEBUG_LOG on
 ```
 
 `adapters-setup.sh` extends `setup.sh` (pinned plugins, `fixtures.php` forms and one page per provider,
@@ -47,6 +63,12 @@ the cache leak of #152 or the double submit of #140). Run a subset with
 `python3 tools/qa/e2e/adapters.py <out-dir> landing returning` against a pod from `adapters-setup.sh`.
 `mu/ct-e2e-render-toggle.php` (option `ct_e2e_render_values`) forces the #152 render filter on so the cache scenario can build
 the stale-snapshot vector and prove the submit layer blanks it.
+Formidable Forms (free) keeps its entries in `frm_items` / `frm_item_metas`, so no provider capture is needed: `delta()` reads the entry
+fields (by field key `ct_<key>`) and the ClickTrail meta row (`field_id` 0) straight from the database. `adapters-setup.sh` skips
+Formidable's first-admin-request redirect to its onboarding wizard (it would turn the first `admin-ajax.php` call of a run into a 302)
+and `fixtures.php` runs Formidable's installer, since wp-cli never fires `admin_init`. Scenario `formidable_utm_content` (S9) lands with
+`utm_source`, `utm_content` and `gclid`, submits, and checks the entry, its meta, the lead and the email notification.
+
 Forminator (AJAX mode) has three forms from `fixtures-forminator.php` (providers `forminator`, `forminator_label`, `forminator_custom`: the
 Hidden fields marked by custom CSS class, by label, and by Default value "Custom value"); its provider record is the `frmt_form_entry` / `frmt_form_entry_meta`
 rows, and the notification mail (`GCLID: {hidden-1}`) is read from the `pre_wp_mail` capture.
@@ -55,7 +77,23 @@ six `ct_<key>` hidden inputs. Its entries are `metform-entry` posts, so `adapter
 `ct_*` post meta ClickTrail writes) straight from the database, and the observer in `mu/ct-e2e-provider-capture.php` logs the
 raw posted `ct_*` data on `metform_before_store_form_data`, i.e. what the browser sent before the refresh. The Elementor builder
 posts its Preact state, not the DOM, so the cache scenario plants visitor A's values in the served template for it.
-Results of a run: `EVIDENCE-<date>.md` (`EVIDENCE-2026-11-02-forminator.md` for Forminator, `EVIDENCE-2026-11-02-sureforms.md` for SureForms).
+Results of a run: `EVIDENCE-<date>.md` (`EVIDENCE-2026-11-02-sureforms.md` for SureForms, `EVIDENCE-2026-11-02-formidable.md` for Formidable Forms, `EVIDENCE-2026-11-02-forminator.md` for Forminator).
+
+## Ultimate Member registration (#174)
+
+```sh
+flock /tmp/ct-e2e.lock tools/qa/e2e/um-ci.sh [plugin-root]   # own pod run (Ultimate Member 2.14.1 free), tears down; exit 1 on any FAIL
+```
+
+`um-setup.sh` extends `setup.sh` with the pinned plugin, `WP_DEBUG_LOG` and UM's default registration form and pages
+(UM creates those only for a user who can `manage_options`, so the script runs its setup as `--user=admin`). `um.py`
+drives Chromium through the real UM registration form and judges what it finds, printing `PASS` / `FAIL` / `INFO`
+(any FAIL exits 1): S1 landing with `?utm_source=test&gclid=...` (user meta, one `sign_up` with `um_registration_<id>`
+across the server call and the browser events route, core `ct_event_signup` cookie and printed event share the ID),
+S2 consent required with accept, deny and undecided, S3 direct registration, S4 `um_registration_complete` replayed,
+S5 wp-admin "Add user", S6 the real WordPress exporter and eraser callbacks plus retention and purge-all through the real
+user query, S7 `WP_DEBUG_LOG`. Observations are written to `um.json`, verdicts to `results.json`. Run it with
+`flock` when other agents share the pod. Results: `EVIDENCE-<date>-ultimate-member.md`.
 
 Notes:
 

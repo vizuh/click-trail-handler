@@ -76,6 +76,35 @@ Used by:
 
 - cross-domain attribution continuity flow
 
+## `POST /clicutcl/v2/cookie-refresh`
+
+Purpose:
+
+- answer with an HTTP `Set-Cookie` that re-issues the visitor's own `attribution` cookie. Safari ITP shortens or purges cookies created with `document.cookie`; the same cookie set in an HTTP response is not subject to that cap (`specs/009-itp-cookie-reissue/research.md`). Source-present; the wire shape was checked in Chromium in the E2E harness, Safari behaviour is runtime-unverified.
+
+Used by:
+
+- `assets/js/clicutcl-attribution.js` (`Store.reissueCookie()`), only when the **Re-issue the attribution cookie from the server** setting (`attribution_cookie_reissue`) is on and the script has just written the attribution cookie (pending marker `localStorage['ct_cookie_reissue']`). At most one request per page load, and not again within an hour after a failed attempt. A returning visitor whose cookie is already HTTP-set sends nothing.
+
+Body (at most 2 KB): `{ token, domain_applied, expires_in? }`. The attribution value is never read from the body: the server echoes the `attribution` cookie of this request. `domain_applied` is the domain the script wrote the cookie with (`''` for host-only; the script's `ct_scope_probe` may have fallen back to host-only, which the server cannot see). `expires_in` is sent only for a cookie restored from the localStorage mirror: the seconds the mirror has left.
+
+Auth model, in this order:
+
+- feature gate: `attribution_cookie_reissue` and attribution on, else 403 `cookie_reissue_disabled`
+- body size: 2 KB, else 413 `payload_too_large`
+- per-IP rate limit (scope `cookie_reissue`, filters `clicutcl_v2_rate_limit` / `clicutcl_v2_rate_window`), else 429
+- page client token in `X-Clicutcl-Token` (or the JSON `token`), else 401
+- server-side consent: when consent is required, marketing consent must be granted in this request's consent cookie (never the body), else 403 `consent_required`
+- no token-nonce replay limit: the route stores nothing
+
+Responses: 200 `{ success: true, reissued: true }` with one `Set-Cookie` and `Cache-Control: no-store, private`; 200 `{ success: true, reissued: false, reason }` with no cookie header when the request had no `attribution` cookie (`no_cookie`), the value failed validation (`empty`, `too_large`, `not_json`, `not_object`, `too_many_keys`, `bad_key`, `bad_value`), `cookie_days` is 0 (`retention_disabled`) or output had started (`headers_sent`).
+
+The header: `Set-Cookie: attribution=<same value, encodeURIComponent form>; Max-Age=<cookie_days*86400>; Path=/[; Domain=<cookie scope domain>]; SameSite=Lax[; Secure]`. Never `HttpOnly` (the script reads and expires it), no new field (the value is echoed byte for byte after a strict schema check: JSON object, at most 128 keys, keys `[a-z0-9_]{1,64}`, scalar values, strings at most 256 characters without control characters, encoded size at most 3800 bytes). `Domain` is sent only when `domain_applied` equals the `Cookie_Scope` domain (the script's `cookieDomain`) and that domain covers the request `Host`; an empty, absent, different or non-string `domain_applied` gives a host-only cookie that replaces the script's host-only cookie, so the browser keeps one `attribution` cookie. `Max-Age` is `cookie_days*86400`, or `expires_in` when that is smaller (at least 1 second), so a restored cookie never outlives its mirror. `Secure` follows `is_ssl()` or an https site URL. The header is appended, never replacing another plugin's `Set-Cookie`.
+
+`Cache-Control: no-store, private` is added only to a response that issues the cookie (not to the `reissued:false` or error answers). The per-IP rate limiter uses the object cache when a persistent one exists and falls back to a transient otherwise (best effort, not atomic). Caching: this is a `POST`, so page caches do not store it. A cache, CDN rule or security plugin that blocks or caches `POST /wp-json/clicutcl/v2/*` defeats the feature (the script retries after an hour) and must exclude it. No page response ever carries this cookie.
+
+Stays capped: a cookie the script writes after a re-issue (a new touch, a restore) is script-written again until the next re-issue; `ct_visitor_id`, `ct_session_id`, `ct_session` and the localStorage mirror are not re-issued. WebKit also caps cookies in an HTTP response that arrives through third-party CNAME or IP cloaking at 7 days; this route is served by the page's own host, so that does not apply unless only the REST host is fronted by a third-party CNAME.
+
 ## `POST /clicutcl/v2/whatsapp-ref`
 
 Purpose:
@@ -211,7 +240,7 @@ The active REST controller receives canonical events and then routes them into t
 Relevant controls exposed by code:
 
 - max batch size
-- max request body size (128 KB for most routes, 16 KB for `whatsapp-ref`)
+- max request body size (128 KB for most routes, 16 KB for `whatsapp-ref`, 2 KB for `cookie-refresh`)
 - request rate limiting
 - token nonce replay limits
 - trusted proxy resolution

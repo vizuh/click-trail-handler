@@ -142,7 +142,7 @@ class SiteHealth {
 		$options         = get_option( 'clicutcl_consent_mode', array() );
 		$consent_enabled = ! empty( $options['enabled'] );
 
-		$scope_line = $this->describe_cookie_scope();
+		$scope_line = $this->describe_cookie_scope() . ' ' . $this->describe_cookie_reissue();
 
 		if ( $has_cookie ) {
 			return array(
@@ -186,6 +186,19 @@ class SiteHealth {
 
 		/* translators: 1: requested scope, 2: fallback reason code. */
 		return sprintf( __( 'Cookie scope: host (fallback from %1$s: %2$s).', 'click-trail-handler' ), $requested, $resolved['reason'] );
+	}
+
+	/**
+	 * One-line summary of the server re-issue of the attribution cookie (Safari ITP, #141).
+	 *
+	 * @return string
+	 */
+	private function describe_cookie_reissue(): string {
+		$options = \CLICUTCL\Settings\Attribution_Settings::get_all();
+
+		return ! empty( $options['attribution_cookie_reissue'] )
+			? __( 'Attribution cookie server re-issue: on.', 'click-trail-handler' )
+			: __( 'Attribution cookie server re-issue: off.', 'click-trail-handler' );
 	}
 
 	/**

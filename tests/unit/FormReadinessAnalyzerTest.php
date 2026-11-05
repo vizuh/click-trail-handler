@@ -50,6 +50,7 @@ final class FormReadinessAnalyzerTest extends TestCase {
 		return array(
 			'cf7 automatic hidden fields'       => array( $base . 'cf7.json' ),
 			'fluent automatic hidden fields'    => array( $base . 'fluent.json' ),
+			'formidable matching fields'         => array( $base . 'formidable.json' ),
 			'forminator matching fields'         => array( $base . 'forminator.json' ),
 			'gravity matching fields'            => array( $base . 'gravity.json' ),
 			'metform matching fields'            => array( $base . 'metform.json' ),

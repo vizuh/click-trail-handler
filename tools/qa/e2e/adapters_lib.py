@@ -12,6 +12,7 @@ PROVIDERS = {
     'fluent': {'path': '/form-fluent/', 'platform': 'fluentform'},
     'wpforms_hidden': {'path': '/form-wpforms/', 'platform': 'wpforms'},
     'wpforms_text': {'path': '/form-wpforms-text/', 'platform': 'wpforms'},
+    'formidable': {'path': '/form-formidable/', 'platform': 'formidable'},
     # Forminator (AJAX mode): the same Hidden fields marked three ways (see fixtures-forminator.php).
     'forminator': {'path': '/form-forminator/', 'platform': 'forminator'},
     'forminator_label': {'path': '/form-forminator-label/', 'platform': 'forminator'},
@@ -51,9 +52,10 @@ def snapshot():
     ids = wp_json(
         "global $wpdb; $p = $wpdb->prefix; "
         "$f = $wpdb->get_var( \"SELECT IFNULL(MAX(id),0) FROM {$p}fluentform_submissions\" ); "
+        "$fr = $wpdb->get_var( \"SELECT IFNULL(MAX(id),0) FROM {$p}frm_items\" ); "
         "$fm = $wpdb->get_var( \"SELECT IFNULL(MAX(entry_id),0) FROM {$p}frmt_form_entry\" ); "
         "$mf = $wpdb->get_var( \"SELECT IFNULL(MAX(ID),0) FROM {$p}posts WHERE post_type='metform-entry'\" ); "
-        "return array( 'events' => (int) $wpdb->get_var( \"SELECT IFNULL(MAX(id),0) FROM {$p}clicutcl_events\" ), 'fluent' => (int) $f, 'forminator' => (int) $fm, 'metform' => (int) $mf );"
+        "return array( 'events' => (int) $wpdb->get_var( \"SELECT IFNULL(MAX(id),0) FROM {$p}clicutcl_events\" ), 'fluent' => (int) $f, 'formidable' => (int) $fr, 'forminator' => (int) $fm, 'metform' => (int) $mf );"
     )
     ids['provider'] = len(pod_lines('ct-provider.jsonl'))
     ids['capture'] = len(pod_lines('ct-capture.jsonl'))
@@ -69,13 +71,18 @@ def delta(snap):
         "$fl = array(); foreach ( $wpdb->get_results( $wpdb->prepare( \"SELECT id, form_id, response FROM {$p}fluentform_submissions WHERE id > %%d ORDER BY id\", %d ) ) as $r ) { "
         "$meta = array(); foreach ( $wpdb->get_results( $wpdb->prepare( \"SELECT meta_key, value FROM {$p}fluentform_submission_meta WHERE response_id = %%d\", $r->id ) ) as $m ) { $meta[ $m->meta_key ] = $m->value; } "
         "$fl[] = array( 'id' => (int) $r->id, 'form_id' => (int) $r->form_id, 'response' => json_decode( $r->response, true ), 'meta' => $meta ); } "
+        "$fr = array(); foreach ( $wpdb->get_results( $wpdb->prepare( \"SELECT id, form_id, is_draft FROM {$p}frm_items WHERE id > %%d ORDER BY id\", %d ) ) as $r ) { "
+        "$fields = array(); $meta = array(); "
+        "foreach ( $wpdb->get_results( $wpdb->prepare( \"SELECT m.field_id, m.meta_value, f.field_key FROM {$p}frm_item_metas m LEFT JOIN {$p}frm_fields f ON f.id = m.field_id WHERE m.item_id = %%d\", $r->id ) ) as $m ) { "
+        "if ( (int) $m->field_id === 0 ) { $v = maybe_unserialize( $m->meta_value ); if ( is_array( $v ) ) { $meta = array_merge( $meta, $v ); } } else { $fields[ $m->field_key ] = wp_unslash( $m->meta_value ); } } "
+        "$fr[] = array( 'id' => (int) $r->id, 'form_id' => (int) $r->form_id, 'is_draft' => (int) $r->is_draft, 'fields' => $fields, 'meta' => $meta ); } "
         "$fm = array(); foreach ( $wpdb->get_results( $wpdb->prepare( \"SELECT entry_id, form_id, status FROM {$p}frmt_form_entry WHERE entry_id > %%d ORDER BY entry_id\", %d ) ) as $r ) { "
         "$meta = array(); foreach ( $wpdb->get_results( $wpdb->prepare( \"SELECT meta_key, meta_value FROM {$p}frmt_form_entry_meta WHERE entry_id = %%d\", $r->entry_id ) ) as $m ) { $meta[ $m->meta_key ] = maybe_unserialize( $m->meta_value ); } "
         "$fm[] = array( 'id' => (int) $r->entry_id, 'form_id' => (int) $r->form_id, 'status' => $r->status, 'meta' => $meta ); } "
         "$mf = array(); foreach ( $wpdb->get_col( \"SELECT ID FROM {$p}posts WHERE post_type='metform-entry' AND ID > %d ORDER BY ID\" ) as $id ) { "
         "$m = array(); foreach ( get_post_meta( (int) $id ) as $k => $v ) { if ( 0 === strpos( $k, 'ct_' ) ) { $m[ $k ] = $v[0]; } } "
         "$mf[] = array( 'id' => (int) $id, 'form_id' => (int) get_post_meta( (int) $id, 'metform_entries__form_id', true ), 'data' => get_post_meta( (int) $id, 'metform_entries__form_data', true ), 'meta' => $m ); } "
-        "return array( 'events' => $ev, 'fluent' => $fl, 'forminator' => $fm, 'metform' => $mf );" % (snap['events'], snap['fluent'], snap['forminator'], snap['metform'])
+        "return array( 'events' => $ev, 'fluent' => $fl, 'formidable' => $fr, 'forminator' => $fm, 'metform' => $mf );" % (snap['events'], snap['fluent'], snap['formidable'], snap['forminator'], snap['metform'])
     )
     stored['provider'] = pod_lines('ct-provider.jsonl')[snap['provider']:]
     stored['capture'] = [e for e in pod_lines('ct-capture.jsonl')[snap['capture']:]]
@@ -129,6 +136,8 @@ def ct_inputs(page):
             const out = {};
             for (const el of document.querySelectorAll('form input:not([type=submit]):not([type=button]), form textarea')) {
                 let label = (el.name || '').startsWith('ct_') ? el.name : null;
+                // Formidable names inputs item_meta[<field id>]; the field key is in the input id (field_<key>).
+                if (!label && (el.id || '').startsWith('field_ct_')) label = el.id.slice('field_'.length);
                 const sf = !label && /-lbl-([A-Za-z0-9+/]*)-/.exec(el.name || '');
                 if (sf) { try { const t = atob(sf[1] + '='.repeat((4 - sf[1].length % 4) % 4)); if (t.startsWith('ct_')) label = t; } catch (e) {} }
                 if (!label) {
@@ -154,6 +163,9 @@ def fill(page, provider, tag):
     elif provider == 'fluent':
         page.fill('input[name="your_name"]', 'E2E ' + tag)
         page.fill('input[name="email"]', email)
+    elif provider == 'formidable':
+        page.fill('#field_e2e_name', 'E2E ' + tag)
+        page.fill('#field_e2e_email', email)
     elif is_forminator(provider):
         page.fill('input[name="text-1"]', 'E2E ' + tag)
         page.fill('input[name="email-1"]', email)
@@ -180,6 +192,7 @@ def submit_button(provider):
     return {
         'cf7': 'input[type="submit"].wpcf7-submit',
         'fluent': 'button.ff-btn-submit',
+        'formidable': '.frm_button_submit',
         'metform': 'button.mfb-button[type="submit"]',
         'metform_el': 'button.metform-submit-btn',
         'sureforms': 'button.srfm-submit-button',
@@ -194,6 +207,9 @@ def wait_done(page, provider, timeout=25000):
     if provider == 'fluent':
         page.wait_for_selector('.ff-message-success, .ff-errors-in-stack, .ff-el-is-error', timeout=timeout)
         return 'sent' if page.locator('.ff-message-success').count() else 'failed: ' + page.inner_text('form, .ff-errors-in-stack')[:200]
+    if provider == 'formidable':
+        page.wait_for_selector('.frm_message, .frm_error_style, .frm_error', timeout=timeout)
+        return 'sent' if page.locator('.frm_message').count() else 'failed: ' + page.inner_text('form, .frm_error_style')[:200]
     if is_forminator(provider):
         page.wait_for_selector('.forminator-response-message.forminator-success, .forminator-response-message.forminator-error, .forminator-error-message', timeout=timeout)
         return 'sent' if page.locator('.forminator-response-message.forminator-success').count() else 'failed: ' + page.inner_text('form')[:200]

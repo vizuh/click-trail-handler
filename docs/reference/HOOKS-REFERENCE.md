@@ -89,7 +89,7 @@ Purpose:
 
 Notes:
 
-- read by `Cookie_Scope::is_public_suffix()`; a `registrable` or `custom` scope that lands on a listed suffix resolves to host-only with reason `public_suffix` (shown in Site Health and as `clicutcl_config.cookieScopeReason`)
+- read by `Cookie_Scope::is_public_suffix()`, which is also what `Attribution_Cookie_Reissue` uses for the `Domain` of the server re-issued cookie (#141), so the script and the server always agree; a `registrable` or `custom` scope that lands on a listed suffix resolves to host-only with reason `public_suffix` (shown in Site Health and as `clicutcl_config.cookieScopeReason`)
 - the default table covers common hosting suffixes; two-label suffixes whose first label is `co`, `com`, `net`, `org`, `gov`, `edu`, `ac`, `ne`, `or` or `me` (such as `co.uk`) are always treated as public
 
 Arguments:
@@ -214,7 +214,7 @@ Type:
 Purpose:
 
 - let form adapters write the requesting visitor's attribution cookie into rendered form HTML (CF7 hidden
-  fields, Gravity Forms `gform_field_value`, Fluent Forms hidden inputs, Elementor, WPForms and Forminator hidden fields; MetForm is not
+  fields, Gravity Forms `gform_field_value`, Fluent Forms hidden inputs, Elementor, WPForms, Formidable Forms and Forminator hidden fields; MetForm is not
   filled at render, the filter has no effect on it);
   default `false` keeps every `ct_*` value empty so a page cache cannot serve one visitor's values to another
   (#152); return `true` only on sites without a full-page cache
@@ -266,7 +266,7 @@ Purpose:
 
 - tune event intake token behavior, allowed hosts, rate limiting, and replay controls
 
-The rate-limit filters receive the route scope as their second argument: `events_batch`, `attribution_token_sign`, `attribution_token_verify` and, since the WhatsApp reference route (#145), `whatsapp_ref`. The reference-code TTL follows the attribution retention (`cookie_days`). Two filters bound the table (#145):
+The rate-limit filters receive the route scope as their second argument: `events_batch`, `attribution_token_sign`, `attribution_token_verify`, `whatsapp_ref` (#145) and `cookie_reissue` (the attribution cookie re-issue route, #141). The reference-code TTL follows the attribution retention (`cookie_days`). Two filters bound the table (#145):
 
 ### `clicutcl_whatsapp_ref_max_rows`
 
@@ -432,11 +432,11 @@ Purpose:
 Purpose:
 
 - fires when the daily cleanup stops before finishing a bounded batch, so the remainder is processed on the next run
-- currently emitted for `woocommerce_order_meta` retention
+- currently emitted for `woocommerce_order_meta` and `registration_user_meta` retention
 
 Arguments:
 
-- `$scope` (`string`): for example `woocommerce_order_meta`
+- `$scope` (`string`): `woocommerce_order_meta` or `registration_user_meta`
 - `$result` (`array`): batch result, including `remaining`
 
 ### `clicutcl_uninstall_order_meta_incomplete`
@@ -444,6 +444,16 @@ Arguments:
 Purpose:
 
 - fires during uninstall when ClickTrail WooCommerce order metadata could not all be removed in one pass
+
+Arguments:
+
+- `$result` (`array`): purge result, including `remaining`
+
+### `clicutcl_uninstall_user_meta_incomplete`
+
+Purpose:
+
+- fires during uninstall when the registration attribution user meta (Ultimate Member, `_clicutcl_*`) could not all be removed in one pass
 
 Arguments:
 
@@ -458,6 +468,31 @@ Type:
 Purpose:
 
 - receive aggregated delivery failure telemetry when remote telemetry is enabled
+
+## Registrations
+
+### `clicutcl_signup_event_id`
+
+Type:
+
+- filter
+
+Purpose:
+
+- change the event ID of the browser `sign_up` event that `Events_Logger::log_signup_event()` queues on core `user_register` (the `ct_event_signup` follow-up cookie)
+- the Ultimate Member integration uses it to give that event the ID of its own server-side `sign_up` (`um_registration_<user_id>`) while one of its registration form submits is being processed, so a destination that deduplicates on event ID counts the registration once; every other registration keeps the generated `signup_<uuid>` ID
+
+Arguments:
+
+- `$event_id` (`string`): generated event ID
+- `$user_id` (`int`): registered user ID
+
+### Ultimate Member hooks ClickTrail listens to
+
+Not ClickTrail hooks, listed because they are the integration's contract (verified against Ultimate Member 2.14.1 source, `includes/core/class-form.php` and `includes/core/um-actions-register.php`):
+
+- `um_submit_form_register` (action, priority 5, no arguments read): marks the request as a UM registration form submit; fires for every submit after UM's validation hook ran (UM's own handler at priority 10 stops when there are errors), before it inserts the user
+- `um_registration_complete` (action, priority 10, `$user_id`, `$args`, `$form_data`): fires after UM stored the submitted details and extra data; `$form_data` is `null` for a user added from wp-admin, which ClickTrail ignores. `$args` contains the submitted password and is never read.
 
 ## Form Submissions
 
@@ -474,7 +509,7 @@ Purpose:
 
 Arguments:
 
-- `$provider` (`string`): `gravityforms`, `wpforms`, `fluentform`, `forminator`, `ninjaforms`, `elementor_forms`, `contact-form-7`, `metform`, `sureforms`
+- `$provider` (`string`): `gravityforms`, `wpforms`, `fluentform`, `formidable`, `forminator`, `ninjaforms`, `elementor_forms`, `contact-form-7`, `metform`, `sureforms`
 - `$form_id` (`int|string`): provider form ID
 - `$entry_id` (`int|string|null`): provider entry ID; `null` for Contact Form 7 and Elementor Forms (Pro), for a Ninja Forms form without a Save action, and for a SureForms form that does not store entries
 - `$event_id` (`string`): ClickTrail event ID (`form_<32 hex>`, an HMAC of the dedupe key, stable for an entry), also stored in `clicutcl_events.event_data.event_id` and sent as the server event's ID
@@ -483,7 +518,7 @@ Arguments:
 
 Notes:
 
-- Gravity Forms, WPForms, Forminator, Fluent Forms, MetForm and SureForms (entry `extras`) already write `ct_event_id` and `ct_lead_id` into their entry; use this action for Ninja Forms, Elementor Forms (Pro), Contact Form 7 and any other store
+- Gravity Forms, WPForms, Fluent Forms, Formidable Forms and Forminator (entry meta), MetForm and SureForms (entry `extras`) already write `ct_event_id` and `ct_lead_id` into their entry; use this action for Ninja Forms, Elementor Forms (Pro), Contact Form 7 and any other store
 - source-present / runtime-unverified
 
 ## WooCommerce

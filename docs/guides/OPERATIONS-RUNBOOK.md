@@ -9,7 +9,7 @@
 ## Current release boundary
 
 This runbook documents source-observed operations, not a production safety certificate. Before the next runtime
-release, test consent withdrawal immediately before queue retry, Woo order-meta purge/export/erase/uninstall,
+release, test consent withdrawal immediately before queue retry, Woo order-meta and Ultimate Member user-meta purge/export/erase/uninstall,
 provider error responses, and sGTM preview URL rejection. The current queue path and purge scope remain release
 gates; do not interpret a visible Diagnostics result or a successful HTTP smoke check as proof of complete
 privacy deletion or exactly-once delivery.
@@ -256,6 +256,25 @@ Typical fixes:
 - non-conversion HubSpot events (deletion, merge, privacy deletion, unlisted types) return `200` with `ignored`;
   those are not failures
 
+## 9. Safari visitors lose attribution after a week (cookie re-issue)
+
+Symptoms:
+
+- leads from Safari or iOS carry no `ct_*` values when the visitor converts days after the first visit, while Chrome visitors keep theirs
+
+Explanation:
+
+- Safari ITP caps cookies written by JavaScript (24 hours after a link-decorated landing, deletion after 7 days without interaction) and purges `localStorage` on the same 7-day rule. ClickTrail restores a missing cookie from the `localStorage` mirror when the mirror survived, and, with **Re-issue the attribution cookie from the server** on (`attribution_cookie_reissue`), sets the same cookie again in the response of `POST /clicutcl/v2/cookie-refresh`, which Safari does not cap
+- the setting is on for fresh installs and off for upgraded ones until an admin switches it on
+
+Typical checks:
+
+- Site Health shows "Attribution cookie server re-issue: on/off"
+- in the browser network tab, a request to `/wp-json/clicutcl/v2/cookie-refresh` follows the first page view that wrote the cookie and answers 200 with one `Set-Cookie: attribution=...; Max-Age=...`. 401 means the page was cached longer than the client token lives (7 days by default); 403 `consent_required` means the consent cookie is not readable by the server (for example a CMP that keeps consent only in `localStorage`); 403 `cookie_reissue_disabled` means the setting is off
+- exclude `/wp-json/clicutcl/v2/*` from page caches, CDN rules and WAF blocks that apply to `POST` requests; the browser retries an unanswered re-issue at most once an hour. If the REST host differs from the page origin (for example `www` versus the apex), the browser skips the request because the cookie would not be sent
+- the rate limiter (60 requests a minute per IP, scope `cookie_reissue`) uses the object cache when a persistent one exists and a transient otherwise, so on hosts without a persistent object cache it is best effort
+- page responses never carry this cookie; if a `Set-Cookie: attribution` appears on a page GET, another plugin or the server writes it
+
 ## Attribution Readiness
 
 Diagnostics attribution readiness calls:
@@ -273,8 +292,8 @@ The response does not include click-ID values and does not prove provider delive
 ## Form-readiness contract
 
 The M5 first slice is a pure comparator and fixture corpus, not an admin tool.
-It accepts only field-presence snapshots for `cf7`, `fluent`, `gravity`,
-`wpforms`, `elementor`, `ninja`, and `sureforms`. It reports expected/submitted presence and
+It accepts only field-presence snapshots for `cf7`, `fluent`, `formidable`,
+`forminator`, `gravity`, `wpforms`, `elementor`, `ninja`, and `sureforms`. It reports expected/submitted presence and
 keeps provider record, hook payload, and ClickTrail event evidence separate.
 
 Operational limits:

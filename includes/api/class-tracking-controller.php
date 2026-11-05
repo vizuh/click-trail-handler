@@ -7,6 +7,7 @@
 
 namespace CLICUTCL\Api;
 
+use CLICUTCL\Core\Attribution_Cookie_Reissue;
 use CLICUTCL\Database\Whatsapp_Ref_Store;
 use CLICUTCL\Server_Side\Dispatcher;
 use CLICUTCL\Server_Side\Consent;
@@ -62,6 +63,11 @@ class Tracking_Controller extends WP_REST_Controller {
 	 * Maximum JSON body size, in bytes, of a WhatsApp reference registration.
 	 */
 	private const MAX_WHATSAPP_REF_BODY_BYTES = 16384;
+
+	/**
+	 * Maximum JSON body size, in bytes, of an attribution cookie re-issue request (the body only carries the token).
+	 */
+	private const MAX_COOKIE_REFRESH_BODY_BYTES = 2048;
 
 	/**
 	 * Maximum events accepted per batch.
@@ -137,6 +143,18 @@ class Tracking_Controller extends WP_REST_Controller {
 					'methods'             => WP_REST_Server::CREATABLE,
 					'callback'            => array( $this, 'verify_attribution_token' ),
 					'permission_callback' => array( $this, 'attribution_token_verify_permissions_check' ),
+				),
+			)
+		);
+
+		register_rest_route(
+			$this->namespace,
+			'/cookie-refresh',
+			array(
+				array(
+					'methods'             => WP_REST_Server::CREATABLE,
+					'callback'            => array( $this, 'refresh_attribution_cookie' ),
+					'permission_callback' => array( $this, 'cookie_refresh_permissions_check' ),
 				),
 			)
 		);
@@ -536,6 +554,74 @@ class Tracking_Controller extends WP_REST_Controller {
 		return array(
 			'success' => true,
 			'data'    => isset( $verified['data'] ) ? $verified['data'] : array(),
+		);
+	}
+
+	/**
+	 * Attribution cookie re-issue permission check.
+	 *
+	 * Setting first, then the same transport gates as the sibling routes, then consent from this request's cookie
+	 * (never from the body). No token-nonce replay limit: the route stores nothing, and a page-cached token shared by
+	 * visitors behind one IP would starve legitimate calls.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return true|WP_Error
+	 */
+	public function cookie_refresh_permissions_check( WP_REST_Request $request ) {
+		$settings = new Attribution_Settings();
+		if ( ! $settings->is_attribution_enabled() || ! $settings->is_cookie_reissue_enabled() ) {
+			return new WP_Error( 'cookie_reissue_disabled', 'Attribution cookie re-issue is disabled', array( 'status' => 403 ) );
+		}
+
+		if ( strlen( (string) $request->get_body() ) > self::MAX_COOKIE_REFRESH_BODY_BYTES ) {
+			return new WP_Error( 'payload_too_large', 'Payload too large', array( 'status' => 413 ) );
+		}
+
+		$rate = $this->check_rate_limit( 'cookie_reissue' );
+		if ( is_wp_error( $rate ) ) {
+			return $rate;
+		}
+
+		$verified = Auth::verify_client_token( $this->extract_token_from_request( $request ) );
+		if ( is_wp_error( $verified ) ) {
+			return $verified;
+		}
+
+		if ( Consent::is_required() && ! Consent::marketing_allowed() ) {
+			return new WP_Error( 'consent_required', 'Marketing consent is required', array( 'status' => 403 ) );
+		}
+
+		return true;
+	}
+
+	/**
+	 * Re-issue the visitor's own attribution cookie as an HTTP-set cookie (Safari ITP does not cap those).
+	 *
+	 * The only place `Set-Cookie` for the attribution cookie is emitted, and only on this REST POST. Body: `token`, `domain_applied`
+	 * (the domain the script wrote the cookie with, `''` for host-only) and optionally `expires_in` (seconds left on a restored cookie).
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return array
+	 */
+	public function refresh_attribution_cookie( WP_REST_Request $request ): array {
+		$payload = $request->get_json_params();
+		$payload = is_array( $payload ) ? $payload : array();
+		$result  = Attribution_Cookie_Reissue::issue(
+			(string) $request->get_header( 'host' ),
+			$payload['domain_applied'] ?? null,
+			$payload['expires_in'] ?? null
+		);
+		if ( $result['issued'] ) {
+			return array(
+				'success'  => true,
+				'reissued' => true,
+			);
+		}
+
+		return array(
+			'success'  => true,
+			'reissued' => false,
+			'reason'   => $result['reason'],
 		);
 	}
 

@@ -78,6 +78,7 @@ Primary user-facing controls:
 - attribution enablement
 - attribution retention
 - cookie scope (`cookie_scope`: host only, registrable domain, custom parent domain) and custom cookie domain (`cookie_custom_domain`); registrable shares cookies with every subdomain of the site, including staging, so pick host only when subdomains must stay separate; a custom domain that is not a parent of the site host or is a public suffix is saved as host only with a settings error
+- attribution cookie server re-issue (`attribution_cookie_reissue`, **Re-issue the attribution cookie from the server**): after the script writes the attribution cookie, one `POST /clicutcl/v2/cookie-refresh` makes the server set the same cookie again, which Safari ITP does not cap. Off for existing installs, seeded on for fresh installs; needs a REST `POST` that caches and firewalls leave alone
 - link decoration
 - allowed domains
 - skip signed URLs

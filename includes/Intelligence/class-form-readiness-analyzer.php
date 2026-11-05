@@ -33,6 +33,7 @@ class Form_Readiness_Analyzer {
 	private const ADAPTER_PATTERNS = array(
 		'cf7'        => 'automatic_hidden',
 		'fluent'     => 'automatic_hidden',
+		'formidable' => 'matching_fields',
 		'forminator' => 'matching_fields',
 		'gravity'    => 'matching_fields',
 		'metform'    => 'matching_fields',

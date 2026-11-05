@@ -349,8 +349,9 @@ class Forminator_Adapter extends Abstract_Form_Adapter {
 	 * Write the entry meta of the submissions `on_submission()` deferred.
 	 *
 	 * Fires at the end of `handle_form()`, after Forminator stored the entry fields, ran add-ons and sent mail. It does
-	 * not fire when `handle_form()` returns earlier (a Stripe checkout response), in which case an abandoned entry that
-	 * is being completed keeps no ClickTrail meta; the lead is still logged.
+	 * not fire when `handle_form()` returns earlier (a Stripe checkout response). That return also precedes
+	 * `forminator_custom_form_submit_before_set_fields`, so `on_submission()` has not run for that request: nothing was
+	 * deferred, no lead was logged and no entry meta was written.
 	 *
 	 * @param mixed $entry Forminator_Form_Entry_Model (unused; the stored objects are the same request's entries).
 	 * @return void

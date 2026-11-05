@@ -1,7 +1,7 @@
-"""E2E form-adapter scenarios (CF7, Fluent Forms, WPForms Lite, Forminator, SureForms, MetForm). Usage: adapters.py <evidence-dir> [scenario ...]
+"""E2E form-adapter scenarios (CF7, Fluent Forms, WPForms Lite, Formidable Forms, Forminator, SureForms, MetForm). Usage: adapters.py <evidence-dir> [scenario ...]
 
 Writes <evidence-dir>/adapters.json (observations only; verify_adapters.py judges them) and the optimizer-facing
-landing HTML. Scenarios: landing, landing_server_only, returning, cache_leak, double_submit, consent, script_attrs, cf7_no_references,
+landing HTML. Scenarios: landing, landing_server_only, returning, formidable_utm_content, cache_leak, double_submit, consent, script_attrs, cf7_no_references,
 edge_cache_headers.
 Consent-off scenarios run first; consent and script_attrs switch Consent Mode on.
 """
@@ -39,6 +39,12 @@ def records(provider, stored):
                 continue
             fields = {'ct_' + k[len('Hidden '):]: v for k, v in r['fields'].items() if k.startswith('Hidden ')}
             out.append({'entry': {k: v for k, v in fields.items() if v != '' or k[3:] in CT_FIELDS}, 'meta': {'entry_meta_api': r['entry_meta_api'], 'entry_id': r['entry_id']}})
+    elif provider == 'formidable':
+        # Formidable keeps the field values under their field keys (`ct_<key>`) and the ClickTrail entry meta
+        # (event_id, lead_id, attribution) as one `field_id` 0 row; drafts are not submissions.
+        for r in stored['formidable']:
+            if not r['is_draft']:
+                out.append({'entry': keep(r['fields']), 'meta': {k: v for k, v in r['meta'].items() if k.startswith('ct_')}})
     elif is_forminator(provider):
         # Hidden fields are hidden-1..6 in CT_FIELDS order (fixtures-forminator.php); `meta` is what ClickTrail wrote to the entry.
         for r in stored['forminator']:
@@ -120,6 +126,20 @@ def returning(browser):
     return {p: run_visit(browser, p, [first, second], 'return-' + p) for p in PROVIDERS}
 
 
+def formidable_utm_content(browser):
+    """#169: gclid, utm_source and utm_content reach the Formidable entry and its email notification."""
+    ctx = new_context(browser)
+    page = ctx.new_page()
+    snap = snapshot()
+    page.goto(BASE + '/form-formidable/?utm_source=news&utm_medium=email&utm_content=banner-a&gclid=GU')
+    status = submit(page, 'formidable', 'content-formidable')
+    settle()
+    result = observe('formidable', page, ctx, snap, status, {})
+    result['mail_bodies'] = [r['body'] for r in delta(snap)['provider'] if r['provider'] == 'mail']
+    ctx.close()
+    return result
+
+
 A_VALUES = ('AAA', 'AFB', 'a_src')
 
 
@@ -130,7 +150,8 @@ def render_ct_values(html):
         name = re.search(r'\bname=["\']([^"\']*)["\']', tag)
         value = re.search(r'\bvalue=["\']([^"\']*)["\']', tag)
         klass = re.search(r'\bclass=["\']([^"\']*)["\']', tag)
-        label = name.group(1) if name and name.group(1).startswith('ct_') else None
+        ident = re.search(r'\bid=["\']field_(ct_[^"\']*)["\']', tag)  # Formidable: item_meta[<id>] name, field key in the id
+        label = name.group(1) if name and name.group(1).startswith('ct_') else (ident.group(1) if ident else None)
         if not label and name and sureforms_label(name.group(1)):
             label = sureforms_label(name.group(1))
         if not label and klass:
@@ -193,6 +214,8 @@ def stale_submit(browser, provider, html, tag, cookies=None, prime_b=True, plant
         for key, value in planted.items():
             if provider.startswith('wpforms'):
                 selector = '[name="wpforms[fields][%s]"]' % ids[key]
+            elif provider == 'formidable':
+                selector = '#field_ct_%s' % key
             elif is_forminator(provider):
                 selector = 'form input[name="hidden-%d"]' % (CT_FIELDS.index(key) + 1)
             elif provider == 'sureforms':
@@ -219,7 +242,7 @@ def cache_leak(browser):
     consent:  consent required and not granted (no cookie, denied cookie), stale snapshot posted: everything blank.
     """
     out = {}
-    for provider in ('cf7', 'fluent', 'wpforms_text', 'forminator', 'sureforms', 'metform', 'metform_el'):
+    for provider in ('cf7', 'fluent', 'wpforms_text', 'formidable', 'forminator', 'sureforms', 'metform', 'metform_el'):
         path = PROVIDERS[provider]['path']
         result = {}
         set_render_values(False)
@@ -233,7 +256,8 @@ def cache_leak(browser):
         try:
             html_forced, _ = visitor_a_html(browser, path)
             result['forced_render'] = {'ct_inputs_non_empty': render_ct_values(html_forced), 'carries_A': 'AAA' in html_forced}
-            planted = provider not in ('cf7', 'forminator')  # Forminator fills its Hidden fields at render when the filter opts in, so A's snapshot already carries A's values.
+            # Forminator fills its Hidden fields at render when the filter opts in, so A's snapshot already carries A's values.
+            planted = provider not in ('cf7', 'formidable', 'forminator')
             result['submit'] = stale_submit(browser, provider, html_forced, 'cache-' + provider, plant_a_values=planted)
             set_consent_mode(True)
             consent = {}
@@ -440,7 +464,7 @@ def edge_cache_headers(browser):
 
 SCENARIOS = {
     'cf7_no_references': cf7_no_references,
-    'landing': landing, 'landing_server_only': landing_server_only, 'returning': returning, 'cache_leak': cache_leak,
+    'landing': landing, 'landing_server_only': landing_server_only, 'returning': returning, 'formidable_utm_content': formidable_utm_content, 'cache_leak': cache_leak,
     'double_submit': double_submit, 'consent': consent, 'script_attrs': script_attrs,
     'edge_cache_headers': edge_cache_headers,
 }

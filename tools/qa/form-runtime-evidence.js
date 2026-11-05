@@ -12,6 +12,7 @@ const path = require('path');
 const REQUIRED_ADAPTERS = {
   cf7: 'source.form.cf7',
   fluent: 'source.form.fluent',
+  formidable: 'source.form.formidable',
   forminator: 'source.form.forminator',
   gravity: 'source.form.gravity',
   metform: 'source.form.metform',

@@ -106,7 +106,7 @@ when they write a key that is missing from this table. The built-in banner's `ct
 <!-- storage-inventory:start -->
 | Key | Medium | Written by | Purpose | Lifetime | Before consent | CMP category | Scope |
 |---|---|---|---|---|---|---|---|
-| `attribution` | cookie, local, session | `clicutcl-attribution.js` | First/last-touch UTMs, click IDs, landing page, referrer (session copy only when the cookie is too large) | cookie duration setting (default 90 days) | no | Marketing | per `cookie_scope` (host-only or `domain=<cookieDomain>`) |
+| `attribution` | cookie (JS and server re-issue), local, session | `clicutcl-attribution.js`; server re-issue: `Attribution_Cookie_Reissue` on `POST /clicutcl/v2/cookie-refresh` (setting `attribution_cookie_reissue`) | First/last-touch UTMs, click IDs, landing page, referrer (session copy only when the cookie is too large). The server re-issue echoes the visitor's own cookie value and adds nothing; it runs only with marketing consent when consent is required | cookie duration setting (default 90 days) | no | Marketing | per `cookie_scope` (host-only or `domain=<cookieDomain>`) |
 | `ct_session` | cookie, local | `clicutcl-attribution.js` | Session number and timing | 1 day | no | Statistics | per `cookie_scope` (host-only or `domain=<cookieDomain>`) |
 | `ct_session_id` | cookie, session | `clicutcl-attribution.js`, `clicutcl-events.js` | Pseudonymous session ID | 1 day / tab | no | Statistics | per `cookie_scope` (host-only or `domain=<cookieDomain>`) |
 | `ct_visitor_id` | cookie, local | `clicutcl-attribution.js`, `clicutcl-events.js` | Pseudonymous visitor ID | 365 days | no | Marketing | per `cookie_scope` (host-only or `domain=<cookieDomain>`) |
@@ -116,8 +116,11 @@ when they write a key that is missing from this table. The built-in banner's `ct
 | `ct_consent_state` | cookie | `clicutcl-consent-bridge.js` | Consent decision read by the server | 365 days | decision only | Necessary | per `cookie_scope` (host-only or `domain=<cookieDomain>`) |
 | `ct_consent_v1` | local | `clicutcl-consent-bridge.js` | Consent decision shared across tabs | until changed | decision only | Necessary | origin (browser storage) |
 | `ct_consent` | cookie | `clicutcl-consent.js` | Built-in banner decision (plugin source only) | 365 days | decision only | Necessary | per `cookie_scope` (host-only or `domain=<cookieDomain>`) |
+| `ct_cookie_reissue` | local | `clicutcl-attribution.js` | Marker that the script wrote the attribution cookie and the server has not yet re-issued it (`{w, t, x?}`: write time, last attempt time, mirror expiry of a restored cookie; no attribution data). Written only with the re-issue setting on and marketing consent live; removed when the server answers, on consent withdrawal and with the cookie | until the server answers or consent is withdrawn | no | Marketing | origin (browser storage) |
 | `ct_cookie_scope` | local | `clicutcl-attribution.js`, `clicutcl-consent-bridge.js`, `clicutcl-consent.js` | Last cookie domain the plugin applied (empty means host-only), so a scope change can expire the previous cookies. Written only next to a domain-scoped cookie or a migration. | until changed | no (written with the first domain-scoped cookie) | Necessary | origin (browser storage) |
 <!-- storage-inventory:end -->
+
+Server re-issue (#141): Safari ITP caps cookies created with `document.cookie` (24 hours after a link-decorated landing, deletion after 7 days without interaction; quotes in `specs/009-itp-cookie-reissue/research.md`). With `attribution_cookie_reissue` on, the browser asks the server once after it writes the attribution cookie and the response sets the same cookie as an HTTP-set cookie with the configured retention. It is a REST `POST`, never a page response (a page that sets a cookie is not cached by CDNs), only when marketing consent is granted in the request's own consent cookie, with the same value and no added field. Retention is `cookie_days` from each re-issue, and a re-issue only follows a script write of the cookie, so it does not extend retention beyond what the script itself would have given. Consent withdrawal expires the cookie from the script as before (the cookie is deliberately not `HttpOnly`). Site owners should list this behaviour with the `attribution` cookie in their cookie policy: it is the same cookie, now set by the server as well as the script.
 
 Transient `ct_scope_probe` cookie: when a real cookie write is about to use a `domain` attribute, the scripts write `ct_scope_probe` with that domain, read it back and expire it within the same synchronous call to learn whether the browser accepts the domain (public suffixes are refused). It is never persisted, never carries data, and is not written on removals, on a denied or empty boot, or when `cookie_scope` is `host`.
 
@@ -186,6 +189,15 @@ events table (`clicutcl_touch_events`, matched on the exact hashed-email `visito
 delivery queue (`clicutcl_queue`, matched on raw and SHA-256-hashed email). This is not complete erasure proof:
 legacy event matching does not cover every stored hashed identity shape. Woo order metadata now has an
 allowlisted export/erase/uninstall lifecycle, but live Woo runtime verification remains open.
+
+Ultimate Member registration attribution (`_clicutcl_*` user meta, see [DATA-MODEL.md](../architecture/DATA-MODEL.md))
+is written only with marketing consent, from the attribution cookie sent with the registration request; no `$_POST`
+value and no password is read. It has its own exporter and eraser (`clicutcl-user-registration`, matched by the WordPress
+user with the requested email), which touch only the exact keys ClickTrail writes and also work after Ultimate Member is
+deactivated, a retention purge by registration date (the attribution retention, default 90 days), a purge-all in the
+Diagnostics purge and at uninstall, and deletion with the user. The dispatched `sign_up` event and its touch-event row
+fall under the touch-event and queue matching above (hashed email). Ultimate Member's own registration data is
+UM's exporter and eraser to handle; this lifecycle has not been run against a consent-required site with a real CMP.
 
 ## WhatsApp Reference Codes
 
@@ -296,13 +308,15 @@ visitor A's click IDs and UTM values to visitor B, whose lead then carries A's a
 
 Controls:
 
-- server render is empty by default (CF7, Gravity Forms, Fluent Forms, Elementor, WPForms, Forminator; MetForm renders nothing from ClickTrail; SureForms renders nothing at all, its field names are not `ct_*`); the filter
+- server render is empty by default (CF7, Gravity Forms, Fluent Forms, Elementor, WPForms, Formidable Forms, Forminator; MetForm renders nothing from ClickTrail; SureForms renders nothing at all, its field names are not `ct_*`); the filter
   `clicutcl_render_server_attribution_values` (default `false`) restores the old render for sites without a
   page cache
 - the browser Injector fills the visitor's own values after load and writes a hidden `ct_fill_source=js` into
   each form it fills; `Injector.clear()` removes it on consent denial
 - submit rule per adapter: a readable cookie is authoritative and keys it lacks are blanked; with no cookie,
-  posted values are kept only with the marker (CF7, Fluent Forms, MetForm block builder; SureForms honours a posted marker but the Injector cannot mark its forms), otherwise blanked; consent blocked blanks
+  posted values are kept only with the marker (CF7, Fluent Forms, MetForm block builder; SureForms honours a posted marker but the Injector cannot mark its forms), otherwise blanked (Formidable Forms inputs are
+  named `item_meta[<field id>]`, so the Injector never fills or marks them and its fields are always blanked
+  without a cookie); consent blocked blanks
   every posted `ct_*` before the provider stores or mails it; ClickTrail's own log receives the post-rule set
 - `ct_fill_source` is stripped by the adapters and is never stored, logged or forwarded; a forged marker without
   a cookie keeps only values the submitter already controlled
