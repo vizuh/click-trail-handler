@@ -88,11 +88,12 @@ if ( ! $clicutcl_preserve_data ) {
 	}
 
 	// EDD 3.x orders carry the same ClickTrail meta keys; the EDD helper reuses the Woo key allowlist.
+	// Only uninstall also removes the purchase-sent marker (subject erase, retention and the Diagnostics purge keep it).
 	$clicutcl_edd_privacy_file = __DIR__ . '/includes/privacy/class-edd-order-privacy.php';
 	if ( function_exists( 'edd_get_orders' ) && file_exists( $clicutcl_woo_privacy_file ) && file_exists( $clicutcl_edd_privacy_file ) ) {
 		require_once $clicutcl_woo_privacy_file;
 		require_once $clicutcl_edd_privacy_file;
-		$clicutcl_edd_purge = ( new \CLICUTCL\Privacy\Edd_Order_Privacy() )->purge_all_order_metadata();
+		$clicutcl_edd_purge = ( new \CLICUTCL\Privacy\Edd_Order_Privacy() )->purge_all_order_metadata( \CLICUTCL\Privacy\Edd_Order_Privacy::RETENTION_BATCH_SIZE, true );
 		if ( ! empty( $clicutcl_edd_purge['remaining'] ) && function_exists( 'do_action' ) ) {
 			do_action( 'clicutcl_uninstall_order_meta_incomplete', $clicutcl_edd_purge );
 		}

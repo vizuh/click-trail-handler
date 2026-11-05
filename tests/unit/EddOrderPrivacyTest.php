@@ -91,7 +91,7 @@ final class EddOrderPrivacyTest extends TestCase {
 		$this->assertSame( Edd_Order_Privacy::PAGE_SIZE, $GLOBALS['clicktrail_test_edd_order_queries'][1]['offset'] );
 	}
 
-	public function test_erase_removes_managed_meta_and_preserves_everything_else(): void {
+	public function test_erase_removes_managed_meta_keeps_the_sent_marker_and_everything_else(): void {
 		$this->add_order(
 			43,
 			array(
@@ -109,12 +109,53 @@ final class EddOrderPrivacyTest extends TestCase {
 		$this->assertFalse( $result['items_retained'] );
 		$this->assertSame(
 			array(
-				'_edd_phone' => '+351000000',
-				'tax_rate'   => '23',
+				'_clicutcl_tracking_sent' => 'yes',
+				'_edd_phone'              => '+351000000',
+				'tax_rate'                => '23',
 			),
-			$GLOBALS['clicktrail_test_edd_meta'][43]
+			$GLOBALS['clicktrail_test_edd_meta'][43],
+			'The marker holds no personal data and stops a later receipt visit from counting the order again.'
 		);
 		$this->assertArrayHasKey( 'meta_query', $GLOBALS['clicktrail_test_edd_order_queries'][0], 'Erase only visits orders that carry managed meta.' );
+	}
+
+	public function test_retention_keeps_the_sent_marker_and_ignores_orders_that_only_have_it(): void {
+		$this->add_order( 1, array( '_clicutcl_tracking_sent' => 'yes', '_clicutcl_consent' => '{}', '_clicutcl_gclid' => 'G' ), '2026-01-01 00:00:00' );
+		$this->add_order( 2, array( '_clicutcl_tracking_sent' => 'yes' ), '2026-01-02 00:00:00' );
+
+		$result = ( new Edd_Order_Privacy() )->purge_expired_order_metadata( 90 );
+
+		$this->assertSame( 1, $result['removed'] );
+		$this->assertSame( 0, $result['failed'] );
+		$this->assertSame( array( '_clicutcl_tracking_sent' => 'yes' ), $GLOBALS['clicktrail_test_edd_meta'][1] );
+		$this->assertSame( array( '_clicutcl_tracking_sent' => 'yes' ), $GLOBALS['clicktrail_test_edd_meta'][2] );
+		$this->assertFalse( $result['remaining'] );
+	}
+
+	public function test_only_a_full_purge_with_the_marker_flag_removes_the_sent_marker(): void {
+		$this->add_order( 7, array( '_clicutcl_tracking_sent' => 'yes', '_clicutcl_gclid' => 'G', 'keep' => 'me' ) );
+
+		$default = ( new Edd_Order_Privacy() )->purge_all_order_metadata();
+		$this->assertSame( 1, $default['removed'] );
+		$this->assertSame( array( '_clicutcl_tracking_sent' => 'yes', 'keep' => 'me' ), $GLOBALS['clicktrail_test_edd_meta'][7], 'The Diagnostics purge keeps the marker.' );
+
+		$uninstall = ( new Edd_Order_Privacy() )->purge_all_order_metadata( Edd_Order_Privacy::RETENTION_BATCH_SIZE, true );
+		$this->assertSame( 1, $uninstall['removed'] );
+		$this->assertFalse( $uninstall['remaining'] );
+		$this->assertSame( array( 'keep' => 'me' ), $GLOBALS['clicktrail_test_edd_meta'][7], 'Uninstall removes it too.' );
+	}
+
+	public function test_export_still_lists_the_sent_marker(): void {
+		$this->add_order( 8, array( '_clicutcl_tracking_sent' => 'yes' ) );
+
+		$result = ( new Edd_Order_Privacy() )->export_order_data( self::EMAIL );
+
+		$this->assertCount( 1, $result['items'] );
+		$this->assertSame( 'clicutcl-edd-order-8-_clicutcl_tracking_sent', $result['items'][0]['item_id'] );
+	}
+
+	public function test_retention_days_defaults_to_ninety(): void {
+		$this->assertSame( 90, Edd_Order_Privacy::retention_days() );
 	}
 
 	public function test_erase_reports_retained_meta_when_a_delete_fails(): void {
@@ -181,7 +222,7 @@ final class EddOrderPrivacyTest extends TestCase {
 	}
 
 	public function test_managed_meta_query_is_one_key_clause_so_it_never_hits_the_61_table_join_limit(): void {
-		// WP_Meta_Query joins the meta table once per clause. The Woo allowlist has 130+ OR'd keys,
+		// WP_Meta_Query joins the meta table once per clause. The Woo allowlist has 107 OR'd clauses,
 		// which MariaDB rejects ("can only use 61 tables in a join") on a real EDD order query.
 		$query = Edd_Order_Privacy::managed_meta_query();
 
@@ -189,12 +230,16 @@ final class EddOrderPrivacyTest extends TestCase {
 		$this->assertSame( 'REGEXP', $query[0]['compare_key'] );
 		$pattern = '/' . str_replace( '/', '\\/', $query[0]['key'] ) . '/';
 
-		foreach ( array( '_clicutcl_consent', '_clicutcl_tracking_sent', '_clicutcl_gclid', '_clicutcl_lt_gclid', '_clicutcl_ft_landing_page', '_clicutcl_visitor_id', '_clicutcl_session_count', '_clicutcl_woo_trace_snapshot' ) as $key ) {
+		foreach ( array( '_clicutcl_consent', '_clicutcl_gclid', '_clicutcl_lt_gclid', '_clicutcl_ft_landing_page', '_clicutcl_visitor_id', '_clicutcl_session_count', '_clicutcl_woo_trace_snapshot' ) as $key ) {
 			$this->assertSame( 1, preg_match( $pattern, $key ), $key . ' must be found by the query.' );
 		}
-		foreach ( array( '_edd_phone', 'tax_rate', '_clicutcl_other_plugin_state', 'x_clicutcl_consent', '_clicutcl_consent_extra' ) as $key ) {
-			$this->assertSame( 0, preg_match( $pattern, $key ), $key . ' must not be found by the query.' );
+		foreach ( array( '_edd_phone', 'tax_rate', '_clicutcl_other_plugin_state', 'x_clicutcl_consent', '_clicutcl_consent_extra', '_clicutcl_tracking_sent' ) as $key ) {
+			$this->assertSame( 0, preg_match( $pattern, $key ), $key . ' must not be found by the default query (the sent marker is preserved).' );
 		}
+
+		$with_marker = Edd_Order_Privacy::managed_meta_query( true );
+		$this->assertCount( 1, $with_marker );
+		$this->assertSame( 1, preg_match( '/' . str_replace( '/', '\\/', $with_marker[0]['key'] ) . '/', '_clicutcl_tracking_sent' ), 'The uninstall purge must find the marker.' );
 	}
 
 	public function test_lifecycle_is_wired_into_every_privacy_entry_point(): void {

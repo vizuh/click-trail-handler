@@ -93,6 +93,8 @@ if 'privacy' in data:
     check(len(p['accepted_keys_before']) > 0 and p['erase']['items_removed'] and not p['erase']['items_retained'] and p['accepted_keys_after'] == [], s, 'WordPress eraser removes the order meta')
     check(p['purge_all']['removed'] >= 2 and not p['purge_all']['remaining'] and p['keys_after_purge'] == [[], []], s, 'manual purge clears every order (%s)' % p['purge_all'])
 
+    check(p['landing_sent_after_aged'] == 'yes' and p['accepted_sent_after_erase'] == 'yes' and p['sent_after_purge'] == ['yes', 'yes'], s, 'the purchase-sent marker survives retention, erase and the manual purge (a later receipt visit cannot re-push)')
+
 log = out / 'debug.log'
 errors = []
 if log.exists():

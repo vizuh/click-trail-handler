@@ -135,7 +135,8 @@ def privacy(browser):
     set_consent_mode(False)
     php = (
         "$h = new CLICUTCL\\Privacy\\Privacy_Handler(); $p = new CLICUTCL\\Privacy\\Edd_Order_Privacy(); $r = array(); "
-        "$keys = function ( $id ) { $o = array(); foreach ( edd_get_order_meta( $id ) as $k => $v ) { if ( 0 === strpos( $k, '_clicutcl_' ) ) { $o[] = $k; } } sort( $o ); return $o; }; "
+        "$keys = function ( $id ) { $o = array(); foreach ( edd_get_order_meta( $id ) as $k => $v ) { if ( 0 === strpos( $k, '_clicutcl_' ) && '_clicutcl_tracking_sent' !== $k ) { $o[] = $k; } } sort( $o ); return $o; }; "
+        "$sent = function ( $id ) { return edd_get_order_meta( $id, '_clicutcl_tracking_sent', true ); }; "
         "$foreign = function ( $id ) { $o = array(); foreach ( edd_get_order_meta( $id ) as $k => $v ) { if ( 0 !== strpos( $k, '_clicutcl_' ) ) { $o[] = $k; } } sort( $o ); return $o; }; "
         "$ids = array(); foreach ( array( 'landing', 'accepted' ) as $t ) { $o = edd_get_orders( array( 'email' => $t . '@example.test', 'number' => 1 ) ); $ids[ $t ] = $o ? (int) $o[0]->id : 0; } "
         "$r['ids'] = $ids; "
@@ -148,12 +149,12 @@ def privacy(browser):
         "$r['landing_keys_before'] = $keys( $ids['landing'] ); $r['landing_foreign_before'] = $foreign( $ids['landing'] ); "
         "$fresh = $p->purge_expired_order_metadata( 90 ); $r['retention_fresh'] = $fresh; $r['landing_keys_after_fresh'] = $keys( $ids['landing'] ); "
         "edd_update_order( $ids['landing'], array( 'date_created' => gmdate( 'Y-m-d H:i:s', time() - 200 * DAY_IN_SECONDS ) ) ); "
-        "$aged = $p->purge_expired_order_metadata( 90 ); $r['retention_aged'] = $aged; $r['landing_keys_after_aged'] = $keys( $ids['landing'] ); $r['landing_foreign_after'] = $foreign( $ids['landing'] ); "
+        "$aged = $p->purge_expired_order_metadata( 90 ); $r['retention_aged'] = $aged; $r['landing_keys_after_aged'] = $keys( $ids['landing'] ); $r['landing_foreign_after'] = $foreign( $ids['landing'] ); $r['landing_sent_after_aged'] = $sent( $ids['landing'] ); "
         # eraser through the registered WordPress eraser
-        "$r['accepted_keys_before'] = $keys( $ids['accepted'] ); $er = $h->erase_user_data( 'accepted@example.test', 1 ); $r['erase'] = $er; $r['accepted_keys_after'] = $keys( $ids['accepted'] ); $r['accepted_foreign_after'] = $foreign( $ids['accepted'] ); "
+        "$r['accepted_keys_before'] = $keys( $ids['accepted'] ); $er = $h->erase_user_data( 'accepted@example.test', 1 ); $r['erase'] = $er; $r['accepted_keys_after'] = $keys( $ids['accepted'] ); $r['accepted_foreign_after'] = $foreign( $ids['accepted'] ); $r['accepted_sent_after_erase'] = $sent( $ids['accepted'] ); "
         # manual purge
         "edd_update_order_meta( $ids['accepted'], '_clicutcl_gclid', 'PURGE-ME' ); edd_update_order_meta( $ids['landing'], '_clicutcl_lt_source', 'PURGE-ME' ); "
-        "$purge = $p->purge_all_order_metadata(); $r['purge_all'] = $purge; $r['keys_after_purge'] = array( $keys( $ids['accepted'] ), $keys( $ids['landing'] ) ); "
+        "$purge = $p->purge_all_order_metadata(); $r['purge_all'] = $purge; $r['keys_after_purge'] = array( $keys( $ids['accepted'] ), $keys( $ids['landing'] ) ); $r['sent_after_purge'] = array( $sent( $ids['accepted'] ), $sent( $ids['landing'] ) ); "
         "return $r;"
     )
     return wp_json(php)

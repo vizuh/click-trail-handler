@@ -16,10 +16,12 @@ namespace {
 	require_once dirname( __DIR__, 2 ) . '/includes/Core/class-attribution-provider.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-claim-lock.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/privacy/class-woo-order-privacy.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/privacy/class-edd-order-privacy.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/integrations/class-edd.php';
 	require_once dirname( __DIR__ ) . '/helpers/edd-functions.php';
 
 	use CLICUTCL\Integrations\Edd;
+	use CLICUTCL\Privacy\Edd_Order_Privacy;
 	use PHPUnit\Framework\TestCase;
 
 	if ( ! function_exists( 'current_time' ) ) {
@@ -67,8 +69,17 @@ namespace {
 		public float $tax             = 23.0;
 		public float $discount        = 10.0;
 		public float $total           = 113.0;
-		public string $date_created   = '2026-10-31 10:00:00';
+		public string $date_created   = '';
 		public string $order_number   = '';
+
+		/**
+		 * Build an order created `$age` seconds ago (default: an hour).
+		 *
+		 * @param int $age Seconds since creation.
+		 */
+		public function __construct( int $age = 3600 ) {
+			$this->date_created = gmdate( 'Y-m-d H:i:s', time() - $age );
+		}
 
 		public function get_number() {
 			return 'EDD-' . $this->id;
@@ -380,6 +391,48 @@ namespace {
 			$this->assertSame( '', $this->receipt() );
 			$this->assertSame( array(), $GLOBALS['clicktrail_test_options'], 'The marker is checked before any lock is taken.' );
 			$this->assertSame( array(), $GLOBALS['clicktrail_test_dispatches'] );
+		}
+
+		public function test_an_order_older_than_the_retention_window_emits_nothing(): void {
+			$old = new EddTest_Order( 91 * DAY_IN_SECONDS );
+
+			$this->assertSame( '', $this->receipt( $old ), 'Retention already expired this order; its receipt must not count it again.' );
+			$this->assertSame( array(), $GLOBALS['clicktrail_test_dispatches'] );
+			$this->assertSame( array(), $GLOBALS['clicktrail_test_options'], 'No lock is taken.' );
+			$this->assertArrayNotHasKey( Edd::SENT_META_KEY, $this->meta() );
+
+			$inside = new EddTest_Order( 89 * DAY_IN_SECONDS );
+			$this->assertStringContainsString( 'window.dataLayer.push(', $this->receipt( $inside ), 'An order still inside the window is unaffected.' );
+		}
+
+		public function test_an_unreadable_creation_date_emits_nothing(): void {
+			$order               = new EddTest_Order();
+			$order->date_created = '';
+
+			$this->assertSame( '', $this->receipt( $order ) );
+			$this->assertSame( array(), $GLOBALS['clicktrail_test_dispatches'] );
+		}
+
+		public function test_revisiting_the_receipt_after_retention_and_erase_does_not_push_again(): void {
+			( new Edd() )->save_order_attribution( self::ORDER_ID, array() );
+			$this->assertStringContainsString( 'window.dataLayer.push(', $this->receipt() );
+			$this->assertCount( 1, $GLOBALS['clicktrail_test_dispatches'] );
+
+			// Subject erase and the Diagnostics purge remove the consent snapshot and attribution, not the marker.
+			$GLOBALS['clicktrail_test_edd_orders'] = array(
+				(object) array(
+					'id'           => self::ORDER_ID,
+					'email'        => 'buyer@example.com',
+					'date_created' => gmdate( 'Y-m-d H:i:s', time() - 3600 ),
+				),
+			);
+			$erase = ( new Edd_Order_Privacy() )->erase_order_data( 'buyer@example.com' );
+			( new Edd_Order_Privacy() )->purge_all_order_metadata();
+
+			$this->assertTrue( $erase['items_removed'] );
+			$this->assertSame( array( Edd::SENT_META_KEY => 'yes' ), $this->meta(), 'Only the personal-data-free marker is left.' );
+			$this->assertSame( '', $this->receipt(), 'A later receipt visit must not push the purchase again.' );
+			$this->assertCount( 1, $GLOBALS['clicktrail_test_dispatches'], 'And must not dispatch a second server copy.' );
 		}
 
 		public function test_marker_written_between_the_first_check_and_the_lock_claim_wins(): void {

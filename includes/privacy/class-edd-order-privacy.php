@@ -18,6 +18,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  * `_clicutcl_*` keys, and `Edd::save_order_attribution()` writes only keys this allowlist
  * recognizes, so everything it stores is exportable, erasable and expirable. Unrelated EDD
  * order meta (phone, tax rate, gateway ids) is never read or deleted.
+ *
+ * The one exception is the receipt "purchase already sent" marker (`Edd::SENT_META_KEY`). It holds
+ * no personal data and is the only thing that stops a receipt revisited after retention or after
+ * a subject erase from pushing the purchase and dispatching a second server copy, so subject
+ * erase, retention and the Diagnostics purge leave it in place. Only uninstall removes it.
  */
 class Edd_Order_Privacy {
 	/** Export and erase page size. */
@@ -26,18 +31,42 @@ class Edd_Order_Privacy {
 	/** Maximum order rows touched by one scheduled retention run. */
 	public const RETENTION_BATCH_SIZE = 100;
 
+	/** Meta key of the purchase-sent marker; survives erase, retention and the Diagnostics purge. */
+	public const SENT_MARKER_KEY = '_clicutcl_tracking_sent';
+
+	/**
+	 * Days an order's ClickTrail data is kept, as `Cleanup::run_cleanup()` measures it.
+	 *
+	 * `Edd::push_purchase_event()` uses this as the age past which a receipt no longer emits a
+	 * purchase, so that an order whose data retention already removed cannot be counted again.
+	 * Keep it in step with the `$days` that `Cleanup` passes to `purge_expired_order_metadata()`.
+	 *
+	 * @return int
+	 */
+	public static function retention_days(): int {
+		$days = class_exists( \CLICUTCL\Settings\Attribution_Settings::class )
+			? ( new \CLICUTCL\Settings\Attribution_Settings() )->get_cookie_duration()
+			: 90;
+
+		return $days < 1 ? 90 : $days;
+	}
+
 	/**
 	 * Build an EDD order meta query restricted to ClickTrail-owned keys.
 	 *
-	 * `WP_Meta_Query` joins the meta table once per clause, so the Woo allowlist as 130+ OR'd
+	 * `WP_Meta_Query` joins the meta table once per clause, so the Woo allowlist as 107 OR'd
 	 * `EXISTS` clauses exceeds MariaDB's 61-table join limit on a real EDD order query. The same
 	 * allowlist is folded into one anchored `REGEXP` on the meta key instead: exact keys must match
 	 * completely, prefix families only at the start. Lookalike keys never match, and callers still
 	 * re-check every order's keys with `Woo_Order_Privacy::is_managed_meta_key()` before deleting.
 	 *
+	 * The sent marker is left out unless asked for, so an order that carries only the marker is
+	 * not returned (and cannot fill a retention batch) when there is nothing left to remove.
+	 *
+	 * @param bool $with_sent_marker Whether the purchase-sent marker counts as a managed key.
 	 * @return array<int,array<string,string>> One-clause meta_query.
 	 */
-	public static function managed_meta_query(): array {
+	public static function managed_meta_query( bool $with_sent_marker = false ): array {
 		$exact    = array();
 		$prefixes = array();
 		foreach ( Woo_Order_Privacy::managed_meta_query() as $clause ) {
@@ -46,7 +75,7 @@ class Edd_Order_Privacy {
 			}
 			if ( isset( $clause['compare_key'] ) ) {
 				$prefixes[] = preg_quote( (string) $clause['key'], '/' );
-			} else {
+			} elseif ( $with_sent_marker || self::SENT_MARKER_KEY !== $clause['key'] ) {
 				$exact[] = preg_quote( (string) $clause['key'], '/' );
 			}
 		}
@@ -80,7 +109,7 @@ class Edd_Order_Privacy {
 
 		foreach ( $orders as $order ) {
 			$order_id = $this->order_id( $order );
-			foreach ( $this->get_order_managed_meta( $order_id ) as $meta ) {
+			foreach ( $this->get_order_managed_meta( $order_id, true ) as $meta ) {
 				$items[] = array(
 					'group_id'    => 'clicutcl_edd_orders',
 					'group_label' => __( 'ClickTrail Easy Digital Downloads Order Data', 'click-trail-handler' ),
@@ -210,12 +239,14 @@ class Edd_Order_Privacy {
 	 * Remove ClickTrail metadata from all orders for an explicit manual purge.
 	 *
 	 * Only orders that carry managed meta are visited. Cleaned orders leave the result set,
-	 * so the offset advances only past orders that could not be cleaned.
+	 * so the offset advances only past orders that could not be cleaned. The purchase-sent
+	 * marker stays unless `$with_sent_marker` is set, which only uninstall does.
 	 *
-	 * @param int $batch_size Number of orders fetched per page.
+	 * @param int  $batch_size       Number of orders fetched per page.
+	 * @param bool $with_sent_marker Also remove the purchase-sent marker.
 	 * @return array{processed:int,removed:int,failed:int,remaining:bool}
 	 */
-	public function purge_all_order_metadata( int $batch_size = self::RETENTION_BATCH_SIZE ): array {
+	public function purge_all_order_metadata( int $batch_size = self::RETENTION_BATCH_SIZE, bool $with_sent_marker = false ): array {
 		$batch_size = max( 1, $batch_size );
 		$processed  = 0;
 		$removed    = 0;
@@ -228,7 +259,7 @@ class Edd_Order_Privacy {
 					'offset'     => $failed,
 					'orderby'    => 'id',
 					'order'      => 'ASC',
-					'meta_query' => self::managed_meta_query(), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Explicit manual purge, batched.
+					'meta_query' => self::managed_meta_query( $with_sent_marker ), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- Explicit manual purge, batched.
 				)
 			);
 			if ( empty( $orders ) ) {
@@ -237,7 +268,7 @@ class Edd_Order_Privacy {
 
 			$processed += count( $orders );
 			foreach ( $orders as $order ) {
-				if ( $this->remove_order_metadata( $this->order_id( $order ) ) ) {
+				if ( $this->remove_order_metadata( $this->order_id( $order ), $with_sent_marker ) ) {
 					++$removed;
 				} else {
 					++$failed;
@@ -260,16 +291,20 @@ class Edd_Order_Privacy {
 	/**
 	 * Return managed metadata of one order.
 	 *
-	 * @param int $order_id Order ID.
+	 * @param int  $order_id         Order ID.
+	 * @param bool $with_sent_marker Include the purchase-sent marker.
 	 * @return array<int,array{key:string,value:mixed}>
 	 */
-	private function get_order_managed_meta( int $order_id ): array {
+	private function get_order_managed_meta( int $order_id, bool $with_sent_marker = false ): array {
 		if ( ! $order_id || ! function_exists( 'edd_get_order_meta' ) ) {
 			return array();
 		}
 
 		$rows = array();
 		foreach ( (array) edd_get_order_meta( $order_id ) as $key => $values ) {
+			if ( ! $with_sent_marker && self::SENT_MARKER_KEY === (string) $key ) {
+				continue;
+			}
 			$rows[] = array(
 				'key'   => (string) $key,
 				'value' => is_array( $values ) ? reset( $values ) : $values,
@@ -282,19 +317,20 @@ class Edd_Order_Privacy {
 	/**
 	 * Remove managed metadata from one order.
 	 *
-	 * @param int $order_id Order ID.
-	 * @return bool Whether every managed key is gone afterwards.
+	 * @param int  $order_id         Order ID.
+	 * @param bool $with_sent_marker Also remove the purchase-sent marker.
+	 * @return bool Whether every targeted managed key is gone afterwards.
 	 */
-	private function remove_order_metadata( int $order_id ): bool {
+	private function remove_order_metadata( int $order_id, bool $with_sent_marker = false ): bool {
 		if ( ! function_exists( 'edd_delete_order_meta' ) ) {
 			return false;
 		}
 
-		foreach ( $this->get_order_managed_meta( $order_id ) as $meta ) {
+		foreach ( $this->get_order_managed_meta( $order_id, $with_sent_marker ) as $meta ) {
 			edd_delete_order_meta( $order_id, $meta['key'] );
 		}
 
-		return empty( $this->get_order_managed_meta( $order_id ) );
+		return empty( $this->get_order_managed_meta( $order_id, $with_sent_marker ) );
 	}
 
 	/**

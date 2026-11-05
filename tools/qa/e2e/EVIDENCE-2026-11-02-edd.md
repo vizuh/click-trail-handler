@@ -37,7 +37,7 @@ Result: **61 checks, 0 FAIL**, exit 0 (`verify_edd.py`), on a fresh pod. The rec
   handling the checkout POST on `init` priority 10 (`edd_post_actions`); ClickTrail's own bootstrap runs on `init` priority 20.
   `Edd::init()` therefore runs from `plugins_loaded` (`clicutcl_init_edd()` in `clicutcl.php`). PHPUnit asserts the registration
   point; the E2E proves the behavior.
-- **61-table join limit.** `Woo_Order_Privacy::managed_meta_query()` (130+ OR'd `EXISTS` clauses) fails on MariaDB against EDD's
+- **61-table join limit.** `Woo_Order_Privacy::managed_meta_query()` (107 OR'd `EXISTS` clauses) fails on MariaDB against EDD's
   order tables: "Too many tables; MariaDB can only use 61 tables in a join". `WP_Meta_Query` joins the meta table once per clause.
   `Edd_Order_Privacy::managed_meta_query()` folds the same allowlist into one anchored `REGEXP` key clause (PHPUnit
   `test_managed_meta_query_is_one_key_clause_so_it_never_hits_the_61_table_join_limit`; E2E S5). The Woo query was not run against

@@ -9,6 +9,7 @@ namespace CLICUTCL\Integrations;
 
 use CLICUTCL\Consent\Snapshot_V1;
 use CLICUTCL\Core\Attribution_Provider;
+use CLICUTCL\Privacy\Edd_Order_Privacy;
 use CLICUTCL\Privacy\Woo_Order_Privacy;
 use CLICUTCL\Server_Side\Consent;
 use CLICUTCL\Server_Side\Dispatcher;
@@ -35,8 +36,9 @@ class Edd {
 
 	/**
 	 * Order meta key marking the receipt purchase as emitted (same key as WooCommerce orders).
+	 * Retention and subject erase keep it; see `Edd_Order_Privacy`.
 	 */
-	public const SENT_META_KEY = '_clicutcl_tracking_sent';
+	public const SENT_META_KEY = Edd_Order_Privacy::SENT_MARKER_KEY;
 
 	/**
 	 * Prefix for the per-order receipt dispatch lock (object cache key or option name).
@@ -117,6 +119,14 @@ class Edd {
 			return;
 		}
 
+		// An order older than the retention window has had its ClickTrail meta (including the
+		// consent snapshot) expired, so a receipt opened from an old email or account page must
+		// not count it again. An unreadable creation date is treated the same way: a missed
+		// purchase is recoverable, a duplicate one is not.
+		if ( ! $this->is_within_retention( (string) $order->date_created ) ) {
+			return;
+		}
+
 		// Receipt output is browser-side: it uses the visitor's current consent, never
 		// the order's historical grant, so a withdrawal wins.
 		if ( ! Consent::marketing_allowed() ) {
@@ -170,6 +180,19 @@ class Edd {
 		} finally {
 			Claim_Lock::release( self::PURCHASE_LOCK_PREFIX . $order_id, $lock );
 		}
+	}
+
+	/**
+	 * Whether an order is young enough for the receipt to emit its purchase.
+	 *
+	 * @param string $date_created Order creation date, `Y-m-d H:i:s` in UTC (EDD 3.x).
+	 * @return bool
+	 */
+	private function is_within_retention( string $date_created ): bool {
+		// strtotime( ' UTC' ) is "now", so an empty date must be rejected before parsing.
+		$created = '' === trim( $date_created ) ? false : strtotime( $date_created . ' UTC' );
+
+		return false !== $created && $created >= time() - ( Edd_Order_Privacy::retention_days() * DAY_IN_SECONDS );
 	}
 
 	/**

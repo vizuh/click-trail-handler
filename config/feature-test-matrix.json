@@ -768,7 +768,7 @@
         {
           "file": "tests/unit/EddOrderPrivacyTest.php",
           "patterns": [
-            "test_erase_removes_managed_meta_and_preserves_everything_else",
+            "test_erase_removes_managed_meta_keeps_the_sent_marker_and_everything_else",
             "test_managed_meta_query_is_one_key_clause_so_it_never_hits_the_61_table_join_limit"
           ]
         }
