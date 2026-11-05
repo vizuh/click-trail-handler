@@ -162,6 +162,7 @@ Written by the form adapters at submission time, after `log_submission()`, when 
 | Gravity Forms | entry meta (`gform_add_meta`), declared via `gform_entry_meta` and restored after an entry edit | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
 | WPForms | `wpforms()->entry_meta` (only when the entry ID is a real, positive ID) | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
 | Fluent Forms | `fluentform_submission_meta` (`response_id` = entry ID) | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
+| Formidable Forms | `frm_item_metas` row with `field_id` 0 and a serialized array (`FrmEntryMeta::add_entry_meta()`, the shape Formidable uses for its own non-field entry data); not shown in the Formidable entry view | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` (one row; a repeat adds a row with only the missing IDs) | `log_submission()` |
 | MetForm | `metform-entry` post meta (`update_post_meta`; only when MetForm stored an entry for the form) | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
 | SureForms | entry `extras` column (`srfm_entries.extras`, an array SureForms owns; ClickTrail merges its keys into it and never replaces a non-array value; no write when the form stores no entry) | `ct_<attribution key>`, `ct_event_id`, `ct_lead_id` | `log_submission()` |
 | Ninja Forms | none | none | `clicutcl_events` row and action `clicutcl_form_submission_logged` |
@@ -285,6 +286,33 @@ The trace snapshot stores:
 - `attempted_at`
 - canonical payload snapshot
 - dispatch result summary
+
+## Registration User Meta Surfaces (Ultimate Member)
+
+A visitor registered through an Ultimate Member registration form gets ClickTrail user meta, written by
+`Integrations\Ultimate_Member` from the attribution cookie sent with the registration request (never from `$_POST`)
+and only when marketing consent allows (`Attribution_Provider::should_populate()` and, when consent is required,
+`Consent::marketing_allowed()`):
+
+- `_clicutcl_{field}` for every key of `Attribution_Provider::get_field_mapping()` present in the cookie payload (`gclid`, `lt_source`, `ft_campaign`, `visitor_id`, `session_id`, `session_count`, ...), each value `sanitize_text_field()`ed and cut to 255 characters; a key outside the mapping is dropped
+- `_clicutcl_um_signup_sent`: `yes`, written only after the `sign_up` dispatch succeeded, was skipped (server-side delivery off, duplicate) or was confirmed queued; an unqueued failure leaves it unset so a repeat of the hook can send again
+
+The leading underscore keeps the keys out of core's custom-field UI. Nothing is written for a user added from wp-admin
+(`um_registration_complete` carries a `null` form), for a registration without marketing consent, or when no
+attribution cookie came with the request (then only the sent marker is written). The password UM passes in `$args` is
+never read.
+
+Lifecycle: `Privacy_Handler` registers a separate exporter and eraser, `clicutcl-user-registration`, matched through
+`get_user_by( 'email' )` (`User_Registration_Privacy`); both work on the exact allowlist above, so lookalike keys and
+all other user meta are untouched, and they also run after Ultimate Member is deactivated. The daily cleanup removes the
+meta of at most 100 users per run whose `user_registered` is older than the attribution retention (cookie duration,
+default 90 days; the same period that applies to Woo order meta) and emits `clicutcl_cleanup_batch_incomplete` with
+scope `registration_user_meta` when more remain. The admin tracking purge and uninstall remove the meta of every user
+(uninstall keeps it when `clicutcl_preserve_data_on_uninstall` is truthy). WordPress deletes all of a user's meta with
+the user. Ultimate Member's own registration data (`submitted` details, profile fields) is outside this lifecycle.
+
+Because retention is measured from the registration date, attribution on accounts older than the retention period is
+not kept; copy it to a CRM or another user field at registration time if it must outlive that.
 
 ## Client-Side Storage
 

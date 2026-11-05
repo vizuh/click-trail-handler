@@ -93,6 +93,7 @@ This map is organized around the active code paths first, then compatibility and
 
 - `includes/integrations/class-form-integration-manager.php`
 - `includes/integrations/class-woocommerce.php`
+- `includes/integrations/class-ultimate-member.php`: Ultimate Member registration attribution (user meta + one `sign_up` dispatch), registered from the core bootstrap when `UM_VERSION` and `UM()` exist
 - `includes/integrations/class-nitropack-compat.php`
 - `includes/integrations/class-optimizer-compat.php`
 - `includes/integrations/forms/`
@@ -111,6 +112,7 @@ This map is organized around the active code paths first, then compatibility and
 - `includes/utils/class-attribution.php`
 - `includes/utils/class-cleanup.php`
 - `includes/privacy/class-privacy-handler.php`
+- `includes/privacy/class-user-registration-privacy.php`: exporter, eraser, retention and purge-all for the registration user meta (exact-key allowlist)
 
 ## `assets/`
 

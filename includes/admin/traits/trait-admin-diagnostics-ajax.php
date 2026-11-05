@@ -10,6 +10,7 @@ namespace CLICUTCL\Admin;
 use CLICUTCL\Database\Whatsapp_Ref_Store;
 use CLICUTCL\Modules\Consent_Mode\Consent_Mode_Settings;
 use CLICUTCL\Modules\GTM\GTM_Settings;
+use CLICUTCL\Privacy\User_Registration_Privacy;
 use CLICUTCL\Privacy\Woo_Order_Privacy;
 use CLICUTCL\Server_Side\Dispatcher;
 use CLICUTCL\Server_Side\Queue;
@@ -210,6 +211,11 @@ trait Admin_Diagnostics_Ajax_Trait {
 		$woo_purge = ( new Woo_Order_Privacy() )->purge_all_order_metadata();
 		if ( ! empty( $woo_purge['remaining'] ) ) {
 			$errors[] = 'woocommerce_order_meta_purge_incomplete';
+		}
+
+		$user_purge = ( new User_Registration_Privacy() )->purge_all_user_metadata();
+		if ( ! empty( $user_purge['remaining'] ) ) {
+			$errors[] = 'registration_user_meta_purge_incomplete';
 		}
 
 		if ( ! empty( $errors ) ) {
@@ -966,7 +972,7 @@ trait Admin_Diagnostics_Ajax_Trait {
 	 */
 
 	/**
-	 * Check whether Gravity Forms and WPForms have ct_* hidden fields in active forms.
+	 * Check whether Gravity Forms, WPForms and Formidable Forms have ct_* hidden fields in active forms.
 	 *
 	 * Gravity Forms and WPForms require manually placed ct_* hidden fields for
 	 * attribution data to be captured in form entries. When those fields are absent,
@@ -1063,6 +1069,45 @@ trait Admin_Diagnostics_Ajax_Trait {
 								),
 							);
 						}
+					}
+				}
+			}
+		}
+
+		// --- Formidable Forms ---
+		if ( class_exists( 'FrmForm' ) && class_exists( 'FrmField' ) && class_exists( 'CLICUTCL\\Integrations\\Forms\\Formidable_Adapter' ) && method_exists( 'FrmForm', 'get_published_forms' ) ) {
+			// Same rule as Formidable_Adapter: a hidden field whose field key (or exact label) is `ct_<key>` for a mapped key.
+			$formidable_adapter = new \CLICUTCL\Integrations\Forms\Formidable_Adapter();
+			$formidable_forms   = FrmForm::get_published_forms();
+			if ( is_array( $formidable_forms ) ) {
+				foreach ( $formidable_forms as $form ) {
+					$form_id    = isset( $form->id ) ? (int) $form->id : 0;
+					$form_title = isset( $form->name ) && '' !== (string) $form->name ? (string) $form->name : "Form #{$form_id}";
+					$fields     = FrmField::get_all_for_form( $form_id );
+
+					$has_ct = false;
+					foreach ( is_array( $fields ) ? $fields : array() as $field ) {
+						if ( $formidable_adapter->is_marked_field( $field ) ) {
+							$has_ct = true;
+							break;
+						}
+					}
+
+					if ( ! $has_ct ) {
+						$edit_url   = admin_url( 'admin.php?page=formidable&frm_action=edit&id=' . $form_id );
+						$findings[] = array(
+							'severity' => 'medium',
+							'title'    => sprintf(
+								/* translators: %s: form title. */
+								__( 'Formidable Forms: "%s" has no ct_* attribution fields', 'click-trail-handler' ),
+								$form_title
+							),
+							'detail'   => sprintf(
+								/* translators: %s: edit form URL. */
+								__( 'Add Hidden fields whose Field Key is ct_lt_source, ct_gclid, etc. (Formidable adds a number when a key is already used, e.g. ct_gclid2) to capture attribution in this entry. <a href="%s">Edit form &rarr;</a>', 'click-trail-handler' ),
+								esc_url( $edit_url )
+							),
+						);
 					}
 				}
 			}

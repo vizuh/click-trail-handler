@@ -559,6 +559,33 @@
       ]
     },
     {
+      "id": "source.form.formidable",
+      "label": "Formidable Forms",
+      "role": "wordpress_source",
+      "status": "source_connector_runtime_unverified",
+      "provider_contract": "Formidable hooks frm_get_default_value, frm_pre_create_entry and frm_after_create_entry, hidden fields marked by field key or label, entry meta rows",
+      "what_exists": "Attribution capture and form-event paths are present. A hidden field whose field key is ct_<key> (Formidable's numeric uniqueness suffix accepted) or whose label is exactly ct_<key>, for a mapped key, is refreshed from the submit-time cookie at frm_pre_create_entry before Formidable stores the entry and its email actions run (cookie authoritative, absent keys and the no-cookie and consent-blocked cases blank), filled at render through frm_get_default_value only when clicutcl_render_server_attribution_values opts in, and logged once per stored entry at frm_after_create_entry with the entry ID; ct_event_id, ct_lead_id and the attribution are written as one field_id 0 frm_item_metas row. Hooks verified against the Formidable 7.0 source. The adapters-ci.sh harness (Formidable 7.0 free, WordPress 7.1, PHP 8.3, consent not required unless the scenario switches Consent Mode on) observed the landing, returning-visitor, cache-snapshot and consent scenarios and the utm_content/email scenario against the entry, its meta and the lead. Formidable Pro, drafts finished through the update path, front-end entry edits and other Formidable versions are unverified.",
+      "evidence": [
+        "includes/integrations/class-form-integration-manager.php",
+        "includes/integrations/forms/class-formidable-adapter.php",
+        "tests/fixtures/form-readiness/v1/formidable.json",
+        "tests/fixtures/form-runtime/v1/formidable.json",
+        "tests/unit/FormidableSubmissionRefreshTest.php",
+        "tools/qa/e2e/adapters.py"
+      ],
+      "test_ids": [
+        "form-readiness-contract",
+        "formidable-submission-refresh"
+      ],
+      "runtime_tests": [
+        "formidable-7.0-adapters-ci-wp7.1-php8.3-landing-returning-cache-consent-utm-content"
+      ],
+      "known_limits": [
+        "Posted attribution and form-owned entry meta are separate privacy boundaries.",
+        "Formidable Pro, repeater and draft-update paths, erasure and other Formidable versions remain unverified; the six-case runtime manifest stays runtime_unverified."
+      ]
+    },
+    {
       "id": "source.form.gravity",
       "label": "Gravity Forms",
       "role": "wordpress_source",
@@ -712,6 +739,37 @@
         "Consent denial/grant transitions, refund/cancellation, replay/dedup, queue replay, order-meta erasure, and trace identity minimization remain release blockers.",
         "Dedup is non-atomic; queued replay does not re-check consent; queue uniqueness omits destination.",
         "Classic and HPOS Store API fake COD checkout, order meta, purchase dataLayer, trace persistence, disabled dispatch, and empty queue were reproduced locally from a dirty 1.9.0 checkout; provider and release proof remain open."
+      ]
+    },
+    {
+      "id": "source.registration.ultimate_member",
+      "label": "Ultimate Member",
+      "role": "wordpress_source",
+      "status": "source_connector_runtime_unverified",
+      "provider_contract": "Ultimate Member um_submit_form_register and um_registration_complete actions (verified against 2.14.1 source); allowlisted _clicutcl_* user meta; sign_up event",
+      "what_exists": "Registration attribution: on um_registration_complete, with marketing consent, the attribution cookie sent with the request is stored as allowlisted _clicutcl_<key> user meta and one sign_up event (event_id um_registration_<user_id>) is dispatched, deduplicated by a Claim_Lock claim and a _clicutcl_um_signup_sent marker. The core user_register browser sign_up keeps firing and shares that event_id through the clicutcl_signup_event_id filter. Users added from wp-admin are ignored. Exporter/eraser clicutcl-user-registration, retention, Diagnostics purge and uninstall cover the user meta.",
+      "evidence": [
+        "includes/integrations/class-ultimate-member.php",
+        "includes/privacy/class-user-registration-privacy.php",
+        "includes/Modules/Events/class-events-logger.php",
+        "config/feature-registry.json",
+        "tests/unit/UltimateMemberRegistrationTest.php",
+        "tests/unit/UserRegistrationPrivacyTest.php",
+        "tests/unit/EventsLoggerCookieHeadersTest.php",
+        "tools/qa/e2e/um-ci.sh",
+        "tools/qa/e2e/EVIDENCE-2026-11-02-ultimate-member.md"
+      ],
+      "test_ids": [
+        "ultimate-member-registration"
+      ],
+      "runtime_tests": [
+        "ultimate-member-2.14.1-um-ci-S1-S7-wp7.1-php8.3-consent-banner-capture-stub"
+      ],
+      "known_limits": [
+        "Pod run only: Ultimate Member 2.14.1 free, ClickTrail plugin banner as consent source, collector stub. Other UM versions, UM extensions, registration over the UM REST API, a real CMP, consent withdrawal after registration and destination acceptance remain unverified.",
+        "Only the UM registration form is covered; WordPress core registration, WooCommerce account creation and other plugins keep the core sign_up follow-up event with no attribution on the user.",
+        "Retention is measured from the registration date (attribution retention, default 90 days), so attribution on older accounts is not kept.",
+        "Ultimate Member's own registration data is outside ClickTrail's exporter and eraser."
       ]
     },
     {

@@ -59,6 +59,13 @@ class Privacy_Handler {
 			'callback'               => array( $this, 'export_user_data' ),
 		);
 
+		// Registration attribution lives in user meta and is matched through the WordPress user with this
+		// email, not through the events-table match above, so it is a separate exporter and eraser.
+		$exporters['clicutcl-user-registration'] = array(
+			'exporter_friendly_name' => __( 'ClickTrail Registration Attribution', 'click-trail-handler' ),
+			'callback'               => array( $this, 'export_registration_data' ),
+		);
+
 		return $exporters;
 	}
 
@@ -74,7 +81,39 @@ class Privacy_Handler {
 			'callback'             => array( $this, 'erase_user_data' ),
 		);
 
+		$erasers['clicutcl-user-registration'] = array(
+			'eraser_friendly_name' => __( 'ClickTrail Registration Attribution', 'click-trail-handler' ),
+			'callback'             => array( $this, 'erase_registration_data' ),
+		);
+
 		return $erasers;
+	}
+
+	/**
+	 * Export the attribution ClickTrail stored on the user at registration (Ultimate Member).
+	 *
+	 * @param string $email Email address.
+	 * @param int    $page  Page number.
+	 * @return array{data:array<int,array<string,mixed>>,done:bool}
+	 */
+	public function export_registration_data( string $email, int $page = 1 ): array {
+		$export = ( new User_Registration_Privacy() )->export_user_data( $email, $page );
+
+		return array(
+			'data' => $export['items'],
+			'done' => $export['done'],
+		);
+	}
+
+	/**
+	 * Erase the attribution ClickTrail stored on the user at registration (Ultimate Member).
+	 *
+	 * @param string $email Email address.
+	 * @param int    $page  Page number.
+	 * @return array{items_removed:bool,items_retained:bool,messages:array<int,string>,done:bool}
+	 */
+	public function erase_registration_data( string $email, int $page = 1 ): array { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- Required by the WordPress personal data eraser callback signature.
+		return ( new User_Registration_Privacy() )->erase_user_data( $email );
 	}
 
 	/**

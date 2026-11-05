@@ -111,5 +111,54 @@ namespace {
 				$this->assertSame( array(), $GLOBALS['clicktrail_test_setcookie'], 'require_consent=' . var_export( $required, true ) );
 			}
 		}
+
+		/**
+		 * One sign_up identity for an Ultimate Member registration: the core `user_register` cookie event and the
+		 * UM handler's server-side event share one event ID, a plain registration keeps a random one (#174).
+		 */
+		private function um_signup_event_id(): string {
+			$this->assertCount( 1, $GLOBALS['clicktrail_test_setcookie'] );
+			$this->assertSame( 'ct_event_signup', $GLOBALS['clicktrail_test_setcookie'][0][0] );
+			$payload = json_decode( $GLOBALS['clicktrail_test_setcookie'][0][1], true );
+			$this->assertSame( 'sign_up', $payload['event'] );
+			return $payload['event_id'];
+		}
+
+		private function um_integration(): \CLICUTCL\Integrations\Ultimate_Member {
+			require_once dirname( __DIR__, 2 ) . '/includes/server-side/class-event.php';
+			require_once dirname( __DIR__, 2 ) . '/includes/integrations/class-ultimate-member.php';
+			$um = new \CLICUTCL\Integrations\Ultimate_Member();
+			$GLOBALS['clicktrail_test_filters']['clicutcl_signup_event_id'] = array( $um, 'filter_signup_event_id' );
+			return $um;
+		}
+
+		public function test_a_plain_wordpress_registration_keeps_a_random_signup_event_id(): void {
+			$this->require_consent( false );
+			$this->um_integration();
+
+			$this->logger()->log_signup_event( 42 );
+
+			$this->assertStringStartsWith( 'signup_', $this->um_signup_event_id() );
+		}
+
+		public function test_an_um_registration_gets_the_event_id_the_um_handler_dispatches(): void {
+			$this->require_consent( false );
+			$um = $this->um_integration();
+
+			$um->mark_registration_in_flight();
+			$this->logger()->log_signup_event( 42 );
+
+			$this->assertSame( \CLICUTCL\Integrations\Ultimate_Member::event_id( 42 ), $this->um_signup_event_id() );
+		}
+
+		public function test_denied_consent_sets_no_signup_cookie_for_an_um_registration(): void {
+			$this->require_consent( true );
+			$um = $this->um_integration();
+
+			$um->mark_registration_in_flight();
+			$this->logger()->log_signup_event( 42 );
+
+			$this->assertSame( array(), $GLOBALS['clicktrail_test_setcookie'] );
+		}
 	}
 }
