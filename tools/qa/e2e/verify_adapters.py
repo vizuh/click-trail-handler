@@ -42,6 +42,15 @@ def touch_checks(scenario, name, res, expect):
         meta = rec['meta']
         check(all(meta.get('ct_' + k) == v for k, v in expect.items()), scenario, name, '%s entry meta carries %s' % ('Fluent submission' if name == 'fluent' else 'Formidable', expect))
         check(bool(meta.get('ct_event_id')) and bool(meta.get('ct_lead_id')), scenario, name, 'entry meta carries ct_event_id and ct_lead_id')
+    if name.startswith('forminator'):
+        meta = rec['meta']
+        check(all(meta.get('ct_' + k) == v for k, v in expect.items()), scenario, name, 'Forminator entry meta carries %s' % expect)
+        event_id = str(meta.get('ct_event_id', ''))
+        check(event_id.startswith('form_') and meta.get('ct_lead_id') == 'lead_' + event_id, scenario, name, 'entry meta carries ct_event_id and the derived ct_lead_id (%s, %s)' % (event_id, meta.get('ct_lead_id')))
+        # The fixture mails `GCLID: {hidden-1}` and `SOURCE: {hidden-4}`: the stored value reaches the notification.
+        for label, key in (('GCLID', 'gclid'), ('SOURCE', 'lt_source')):
+            if key in expect:
+                check(any('%s: %s' % (label, expect[key]) in b for b in res['mail_bodies']), scenario, name, 'notification mail line `%s: {hidden}` carries %s' % (label, expect[key]))
     if name == 'sureforms':
         meta = rec['meta']
         check(all(meta.get('ct_' + k) == v for k, v in expect.items()), scenario, name, 'SureForms entry extras carry %s (got %s)' % (expect, {k: meta.get('ct_' + k) for k in expect}))
@@ -73,7 +82,7 @@ def touch_checks(scenario, name, res, expect):
 for scenario, expect_dom in (('landing', True), ('landing_server_only', False)):
     for name, res in data.get(scenario, {}).items():
         touch_checks('S1 ' + scenario, name, res, {'gclid': 'G1', 'lt_source': 't1', 'lt_medium': 'cpc', 'attribution_selected_click_id': 'G1'})
-        if scenario == 'landing_server_only' and name in ('cf7', 'fluent', 'metform', 'metform_el'):
+        if scenario == 'landing_server_only' and name in ('cf7', 'fluent', 'forminator', 'metform', 'metform_el'):
             pre = res['dom_before'].get('ct_gclid', '')
             record('PASS' if pre == '' else 'FINDING', 'S1 landing_server_only', name, 'with browser injection off the rendered field was %r at submit, so the stored value is the server submit-time refresh' % pre)
 
@@ -94,8 +103,11 @@ if uc:
     check(any('GCLID: GU' in b and 'SOURCE: news' in b and 'CONTENT: banner-a' in b for b in uc['mail_bodies']), scenario, 'formidable', 'email notification prints gclid, source and content (%s)' % [b[-80:] for b in uc['mail_bodies']])
 
 
+A_VALUES = ('AAA', 'AFB', 'a_src')
+
+
 def has_a_value(d):
-    return {k: v for k, v in d.items() if any(a in str(v) for a in ('AAA', 'AFB', 'a_src'))}
+    return {k: v for k, v in d.items() if any(a in str(v) for a in A_VALUES)}
 
 
 def all_blank(res):
@@ -137,8 +149,11 @@ for name, res in data.get('cache_leak', {}).items():
     check(entry.get('ct_gclid', '') == '' and entry.get('ct_ft_gclid', '') == '' and entry.get('ct_lt_gclid', '') == '', scenario, name + ' submit', "provider record is empty for the keys B's cookie lacks (gclid=%r)" % entry.get('ct_gclid'))
     check(lead.get('gclid', '') == '' and lead.get('ft_gclid', '') == '', scenario, name + ' submit', "stored lead is empty for the keys B's cookie lacks (gclid=%r)" % lead.get('gclid'))
     leaked = dict(has_a_value(entry), **{'lead.' + k: v for k, v in has_a_value(lead).items()})
-    if (name in ('fluent', 'formidable', 'sureforms') or name.startswith('metform')) and rec:
+    if (name in ('fluent', 'formidable', 'sureforms') or name.startswith('forminator') or name.startswith('metform')) and rec:
         leaked.update({'meta.' + k: v for k, v in has_a_value(rec['meta']).items()})
+    mail_leak = [b[:80] for b in sub['mail_bodies'] if any(a in b for a in A_VALUES)]
+    if mail_leak:
+        leaked['mail'] = mail_leak
     check(not leaked, scenario, name + ' submit', "no value of visitor A anywhere in the stored lead or provider record (%s)" % (leaked or 'none'))
 
     # (c) consent required, not granted, stale snapshot posted.
@@ -148,6 +163,9 @@ for name, res in data.get('cache_leak', {}).items():
         check(cres['leads'] == [] and cres['dispatched'] == 0, scenario, subject, 'no ClickTrail row and no dispatch (%d rows, %d dispatched)' % (len(cres['leads']), cres['dispatched']))
         stray = all_blank(cres)
         check(not stray, scenario, subject, 'every ct_* value in the provider record is blank (%s)' % (stray or 'none'))
+        if name.startswith('forminator'):
+            mail_leak = [b[:80] for b in cres['mail_bodies'] if any(a in b for a in A_VALUES)]
+            check(len(cres['mail_bodies']) == 1 and not mail_leak, scenario, subject, 'one notification mail, carrying no value of visitor A (%s)' % (mail_leak or 'none'))
 
 nr = data.get('cf7_no_references')
 if nr:
@@ -182,6 +200,8 @@ for key, res in data.get('consent', {}).items():
             stray.update({k: v for k, v in rec['entry'].items() if v})
             stray.update({k: v for k, v in rec['meta'].items() if v and k.startswith('ct_')})
         check(not stray, scenario, subject, 'provider records hold no attribution values (%s)' % (stray or 'none'))
+        if name.startswith('forminator'):
+            check(len(res['mail_bodies']) == 1 and not any('G5' in b for b in res['mail_bodies']), scenario, subject, 'one notification mail, carrying no attribution value (%s)' % [b[:60] for b in res['mail_bodies']])
         check('attribution' not in {c.split('=')[0] for c in res['cookie']}, scenario, subject, 'no attribution cookie written (%s)' % res['cookie'])
 
 sa = data.get('script_attrs')
@@ -244,6 +264,8 @@ if log.exists():
     legacy = [l for l in others if 'fluentform_insert_response_data' in l]
     record('FINDING' if legacy else 'PASS', 'debug.log', 'fluentform_insert_response_data',
            '%d "Hook fluentform_insert_response_data is deprecated" notice(s): Fluent_Forms_Adapter registers the legacy alias next to the slash hook (one notice per Fluent submission with WP_DEBUG)' % len(legacy))
+    ours_hooks = [l for l in others if re.search(r'forminator_(field_hidden_field_value|prepared_data|custom_form_submit_field_data|custom_form_submit_before_set_fields)', l)]
+    check(not ours_hooks, 'debug.log', 'forminator hooks', '%d PHP diagnostics line(s) naming a Forminator hook the adapter registers (a deprecated hook would raise one per submission)' % len(ours_hooks))
     mf_hooks = ('metform_before_store_form_data', 'metform_filter_before_store_form_data', 'metform_after_store_form_data', 'save_post_metform-entry')
     mf_deprecated = [l for l in lines if 'deprecated' in l.lower() and any(h in l for h in mf_hooks)]
     check(not mf_deprecated, 'debug.log', 'metform hooks', '%d deprecation notice(s) for the hooks MetForm_Adapter registers' % len(mf_deprecated))

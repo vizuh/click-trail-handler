@@ -111,6 +111,11 @@ class Setup_Detector {
 				'active' => class_exists( 'FrmAppHelper' ),
 			),
 			array(
+				'key'    => 'forminator',
+				'label'  => 'Forminator',
+				'active' => defined( 'FORMINATOR_VERSION' ) || class_exists( 'Forminator' ),
+			),
+			array(
 				'key'    => 'metform',
 				'label'  => 'MetForm',
 				'active' => defined( 'METFORM_VERSION' ) || class_exists( '\MetForm\Plugin' ),

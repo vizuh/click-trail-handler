@@ -49,10 +49,10 @@ Chromium reports no response for a `keepalive` fetch, so the server-side view co
 recording status and the `Set-Cookie` headers PHP sent). Raw requests are rate limited (60 a minute per IP, scope `cookie_reissue`): wait a
 minute between manual reruns against one pod. Safari itself is not exercised.
 
-## Form adapters (Fluent Forms, WPForms Lite, Formidable Forms, SureForms, Contact Form 7, MetForm)
+## Form adapters (Fluent Forms, WPForms Lite, Formidable Forms, Forminator, SureForms, Contact Form 7, MetForm)
 
 ```sh
-tools/qa/e2e/adapters-ci.sh [plugin-root]   # same pod + Fluent Forms 6.2.16 + WPForms Lite 2.0.3.1 + Formidable Forms 7.0 + SureForms 2.13.0 + Elementor 4.3.5 + MetForm 4.3.4, WP_DEBUG_LOG on
+tools/qa/e2e/adapters-ci.sh [plugin-root]   # same pod + Fluent Forms 6.2.16 + WPForms Lite 2.0.3.1 + Formidable Forms 7.0 + Forminator 1.58.4 + SureForms 2.13.0 + Elementor 4.3.5 + MetForm 4.3.4, WP_DEBUG_LOG on
 ```
 
 `adapters-setup.sh` extends `setup.sh` (pinned plugins, `fixtures.php` forms and one page per provider,
@@ -69,12 +69,15 @@ Formidable's first-admin-request redirect to its onboarding wizard (it would tur
 and `fixtures.php` runs Formidable's installer, since wp-cli never fires `admin_init`. Scenario `formidable_utm_content` (S9) lands with
 `utm_source`, `utm_content` and `gclid`, submits, and checks the entry, its meta, the lead and the email notification.
 
+Forminator (AJAX mode) has three forms from `fixtures-forminator.php` (providers `forminator`, `forminator_label`, `forminator_custom`: the
+Hidden fields marked by custom CSS class, by label, and by Default value "Custom value"); its provider record is the `frmt_form_entry` / `frmt_form_entry_meta`
+rows, and the notification mail (`GCLID: {hidden-1}`) is read from the `pre_wp_mail` capture.
 MetForm is driven in both builders (`metform` = the standalone block builder, `metform_el` = the Elementor builder), each with
 six `ct_<key>` hidden inputs. Its entries are `metform-entry` posts, so `adapters_lib.delta()` reads them (form data plus the
 `ct_*` post meta ClickTrail writes) straight from the database, and the observer in `mu/ct-e2e-provider-capture.php` logs the
 raw posted `ct_*` data on `metform_before_store_form_data`, i.e. what the browser sent before the refresh. The Elementor builder
 posts its Preact state, not the DOM, so the cache scenario plants visitor A's values in the served template for it.
-Results of a run: `EVIDENCE-<date>.md` (`EVIDENCE-2026-11-02-sureforms.md` for SureForms, `EVIDENCE-2026-11-02-formidable.md` for Formidable Forms).
+Results of a run: `EVIDENCE-<date>.md` (`EVIDENCE-2026-11-02-sureforms.md` for SureForms, `EVIDENCE-2026-11-02-formidable.md` for Formidable Forms, `EVIDENCE-2026-11-02-forminator.md` for Forminator).
 
 ## Ultimate Member registration (#174)
 

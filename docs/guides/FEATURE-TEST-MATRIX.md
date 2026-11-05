@@ -136,7 +136,7 @@ Smoke ID:
 - `form-readiness-contract`
 
 This structural check pins the pure presence comparator, its privacy tests, and
-one versioned fixture for each of the six existing form adapters. It verifies
+one versioned fixture for each form adapter. It verifies
 fixture ownership only. It does not prove that a form hook fired, a provider
 record was written, a cache/AJAX path worked, or a browser completed a submit.
 

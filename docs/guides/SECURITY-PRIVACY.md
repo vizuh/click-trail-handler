@@ -308,7 +308,7 @@ visitor A's click IDs and UTM values to visitor B, whose lead then carries A's a
 
 Controls:
 
-- server render is empty by default (CF7, Gravity Forms, Fluent Forms, Elementor, WPForms, Formidable Forms; MetForm renders nothing from ClickTrail; SureForms renders nothing at all, its field names are not `ct_*`); the filter
+- server render is empty by default (CF7, Gravity Forms, Fluent Forms, Elementor, WPForms, Formidable Forms, Forminator; MetForm renders nothing from ClickTrail; SureForms renders nothing at all, its field names are not `ct_*`); the filter
   `clicutcl_render_server_attribution_values` (default `false`) restores the old render for sites without a
   page cache
 - the browser Injector fills the visitor's own values after load and writes a hidden `ct_fill_source=js` into
