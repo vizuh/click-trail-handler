@@ -60,12 +60,9 @@ CALL = r"""
 global $wpdb;
 $wpdb->suppress_errors( true );
 $wpdb->last_error = '';
-$errors = array();
-add_filter( 'query', function ( $sql ) use ( &$errors ) { return $sql; } );
 $sqls = array();
 add_filter( 'query', function ( $sql ) use ( &$sqls ) { if ( false !== strpos( $sql, '_clicutcl_' ) && false !== stripos( $sql, 'JOIN' ) ) { $sqls[] = $sql; } return $sql; } );
 $priv = new CLICUTCL\Privacy\Woo_Order_Privacy();
-$before = $wpdb->last_error;
 $res = %(call)s;
 $err = $wpdb->last_error;
 $max_joins = 0; foreach ( $sqls as $s ) { $max_joins = max( $max_joins, substr_count( strtoupper( $s ), ' JOIN ' ) ); }

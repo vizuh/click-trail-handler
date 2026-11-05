@@ -123,7 +123,10 @@ class Edd {
 		// consent snapshot) expired, so a receipt opened from an old email or account page must
 		// not count it again. An unreadable creation date is treated the same way: a missed
 		// purchase is recoverable, a duplicate one is not.
-		if ( ! $this->is_within_retention( (string) $order->date_created ) ) {
+		// The completed date counts first: an order created long ago and paid later is fresh.
+		$completed = (string) ( $order->date_completed ?? '' );
+		$date      = '' !== trim( $completed ) && 0 !== strpos( $completed, '0000' ) ? $completed : (string) $order->date_created;
+		if ( ! $this->is_within_retention( $date ) ) {
 			return;
 		}
 
@@ -185,7 +188,7 @@ class Edd {
 	/**
 	 * Whether an order is young enough for the receipt to emit its purchase.
 	 *
-	 * @param string $date_created Order creation date, `Y-m-d H:i:s` in UTC (EDD 3.x).
+	 * @param string $date_created Order completed (else creation) date, `Y-m-d H:i:s` in UTC (EDD 3.x).
 	 * @return bool
 	 */
 	private function is_within_retention( string $date_created ): bool {

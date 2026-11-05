@@ -236,8 +236,15 @@ namespace {
 		}
 
 		public function get_date_created() {
-			$created = $GLOBALS['clicktrail_test_woo_created'] ?? time();
-			return new class( (int) $created ) {
+			return $this->stamp_object( (int) ( $GLOBALS['clicktrail_test_woo_created'] ?? time() ) );
+		}
+
+		public function get_date_paid() {
+			return isset( $GLOBALS['clicktrail_test_woo_paid'] ) ? $this->stamp_object( (int) $GLOBALS['clicktrail_test_woo_paid'] ) : null;
+		}
+
+		private function stamp_object( int $created ) {
+			return new class( $created ) {
 				private int $stamp;
 				public function __construct( int $stamp ) {
 					$this->stamp = $stamp;
@@ -325,7 +332,8 @@ namespace {
 				$GLOBALS['clicktrail_test_post_meta_calls'],
 				$GLOBALS['clicktrail_test_woo_saves'],
 				$GLOBALS['clicktrail_test_woo_db'],
-				$GLOBALS['clicktrail_test_woo_created']
+				$GLOBALS['clicktrail_test_woo_created'],
+				$GLOBALS['clicktrail_test_woo_paid']
 			);
 		}
 
@@ -394,6 +402,30 @@ namespace {
 			$this->assertSame( array(), $GLOBALS['clicktrail_test_dispatches'] );
 			$this->assertSame( array(), $GLOBALS['clicktrail_test_options'] );
 			$this->assertSame( 0, $GLOBALS['clicktrail_test_woo_saves'] );
+		}
+
+		public function test_old_order_paid_just_now_still_pushes(): void {
+			$GLOBALS['clicktrail_test_woo_created'] = time() - ( ( Woo_Order_Privacy::retention_days() + 30 ) * DAY_IN_SECONDS );
+			$GLOBALS['clicktrail_test_woo_paid']    = time();
+
+			$output = $this->run_racing_thank_you_loads();
+
+			$this->assertSame( 1, substr_count( $output, 'window.dataLayer.push(' ) );
+		}
+
+		public function test_order_created_and_paid_long_ago_never_pushes(): void {
+			$old = time() - ( ( Woo_Order_Privacy::retention_days() + 30 ) * DAY_IN_SECONDS );
+			$GLOBALS['clicktrail_test_woo_created'] = $old;
+			$GLOBALS['clicktrail_test_woo_paid']    = $old;
+
+			ob_start();
+			try {
+				( new WooCommerce() )->push_purchase_event( self::ORDER_ID );
+				$this->assertSame( '', ob_get_contents() );
+			} finally {
+				ob_end_clean();
+			}
+			$this->assertSame( array(), $GLOBALS['clicktrail_test_dispatches'] );
 		}
 
 		public function test_order_inside_retention_still_pushes(): void {

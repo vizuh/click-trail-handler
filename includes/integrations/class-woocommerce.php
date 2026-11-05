@@ -300,13 +300,16 @@ class WooCommerce {
 	}
 
 	/**
-	 * Whether an order is young enough for the thank-you page to emit its purchase.
+	 * Whether an order is young enough for the thank-you page to emit its purchase (paid date, else created date).
 	 *
 	 * @param \WC_Order $order Order instance.
 	 * @return bool
 	 */
 	private function is_within_retention( $order ): bool {
-		$created = is_callable( array( $order, 'get_date_created' ) ) ? $order->get_date_created() : null;
+		// A pending or failed order paid later (pay-for-order, admin-created, deposits) reaches the
+		// thank-you page at payment time, so the paid date counts before the creation date.
+		$paid    = is_callable( array( $order, 'get_date_paid' ) ) ? $order->get_date_paid() : null;
+		$created = is_object( $paid ) ? $paid : ( is_callable( array( $order, 'get_date_created' ) ) ? $order->get_date_created() : null );
 		$stamp   = ( is_object( $created ) && is_callable( array( $created, 'getTimestamp' ) ) ) ? (int) $created->getTimestamp() : 0;
 
 		return $stamp > 0 && $stamp >= time() - ( Woo_Order_Privacy::retention_days() * DAY_IN_SECONDS );

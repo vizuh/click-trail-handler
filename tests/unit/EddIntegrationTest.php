@@ -70,6 +70,7 @@ namespace {
 		public float $discount        = 10.0;
 		public float $total           = 113.0;
 		public string $date_created   = '';
+		public string $date_completed = '';
 		public string $order_number   = '';
 
 		/**
@@ -403,6 +404,18 @@ namespace {
 
 			$inside = new EddTest_Order( 89 * DAY_IN_SECONDS );
 			$this->assertStringContainsString( 'window.dataLayer.push(', $this->receipt( $inside ), 'An order still inside the window is unaffected.' );
+		}
+
+		public function test_an_old_order_completed_just_now_still_pushes(): void {
+			$order                 = new EddTest_Order( 100 * DAY_IN_SECONDS );
+			$order->date_completed = gmdate( 'Y-m-d H:i:s' );
+			$this->assertStringContainsString( 'window.dataLayer.push(', $this->receipt( $order ) );
+		}
+
+		public function test_an_order_created_and_completed_long_ago_emits_nothing(): void {
+			$order                 = new EddTest_Order( 200 * DAY_IN_SECONDS );
+			$order->date_completed = gmdate( 'Y-m-d H:i:s', time() - 100 * DAY_IN_SECONDS );
+			$this->assertSame( '', $this->receipt( $order ) );
 		}
 
 		public function test_an_unreadable_creation_date_emits_nothing(): void {

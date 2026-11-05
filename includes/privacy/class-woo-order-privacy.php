@@ -145,7 +145,7 @@ class Woo_Order_Privacy {
 	 * returned (and cannot fill a retention batch) when there is nothing left to remove.
 	 *
 	 * @param bool $with_sent_marker Whether the purchase-sent marker counts as a managed key.
-	 * @return array<int,array<string,string>> One-clause meta_query.
+	 * @return array<int,array<string,string>> One-clause (`type_key` BINARY makes the match case-sensitive) meta_query.
 	 */
 	public static function managed_meta_query( bool $with_sent_marker = false ): array {
 		$families = self::managed_key_families();
@@ -166,6 +166,7 @@ class Woo_Order_Privacy {
 			array(
 				'key'         => '^(' . implode( '|', $exact ) . ')$|^(' . implode( '|', $prefixes ) . ')',
 				'compare_key' => 'REGEXP',
+				'type_key'    => 'BINARY',
 			),
 		);
 	}
