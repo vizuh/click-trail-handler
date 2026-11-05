@@ -265,6 +265,20 @@
         "woo-order-cancelled"
       ]
     },
+    "ultimate_member_registration": {
+      "label": "Ultimate Member registration attribution",
+      "support_level": "source_present_runtime_unverified",
+      "runtime_surface": [
+        "forms",
+        "delivery",
+        "privacy"
+      ],
+      "enablement_path": "attribution.enable_attribution",
+      "docs_target": "docs/reference/INTEGRATIONS.md",
+      "smoke_test_ids": [
+        "ultimate-member-registration"
+      ]
+    },
     "diagnostics_conflict_scan": {
       "label": "Diagnostics conflict scan",
       "support_level": "shipped",

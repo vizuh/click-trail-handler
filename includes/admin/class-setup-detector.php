@@ -26,6 +26,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  *   $env = Setup_Detector::run();
  *   // $env['forms']       — array of all supported form plugins with active flag
  *   // $env['woocommerce'] — bool
+ *   // $env['ultimate_member'] — bool
  *   // $env['caching']     — array of detected caching/CDN labels
  *   // $env['cmp']         — array of detected CMP plugins (key, label, cmp_source)
  *   // $env['call_tracking'] — array of detected call-tracking tool labels
@@ -46,6 +47,7 @@ class Setup_Detector {
 		return array(
 			'forms'             => $forms,
 			'woocommerce'       => static::detect_woocommerce(),
+			'ultimate_member'   => static::detect_ultimate_member(),
 			'caching'           => $caching,
 			'cmp'               => $cmp,
 			'call_tracking'     => $call_tracking,
@@ -152,6 +154,21 @@ class Setup_Detector {
 	 */
 	public static function detect_woocommerce(): bool {
 		return class_exists( 'WooCommerce' );
+	}
+
+	// -----------------------------------------------------------------------
+	// Ultimate Member
+	// -----------------------------------------------------------------------
+
+	/**
+	 * Whether Ultimate Member is active.
+	 *
+	 * Mirrors `Ultimate_Member::is_active()` so the wizard and the runtime agree.
+	 *
+	 * @return bool
+	 */
+	public static function detect_ultimate_member(): bool {
+		return defined( 'UM_VERSION' ) && function_exists( 'UM' );
 	}
 
 	// -----------------------------------------------------------------------

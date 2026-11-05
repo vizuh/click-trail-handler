@@ -60,6 +60,22 @@ raw posted `ct_*` data on `metform_before_store_form_data`, i.e. what the browse
 posts its Preact state, not the DOM, so the cache scenario plants visitor A's values in the served template for it.
 Results of a run: `EVIDENCE-<date>.md` (`EVIDENCE-2026-11-02-sureforms.md` for SureForms, `EVIDENCE-2026-11-02-formidable.md` for Formidable Forms).
 
+## Ultimate Member registration (#174)
+
+```sh
+flock /tmp/ct-e2e.lock tools/qa/e2e/um-ci.sh [plugin-root]   # own pod run (Ultimate Member 2.14.1 free), tears down; exit 1 on any FAIL
+```
+
+`um-setup.sh` extends `setup.sh` with the pinned plugin, `WP_DEBUG_LOG` and UM's default registration form and pages
+(UM creates those only for a user who can `manage_options`, so the script runs its setup as `--user=admin`). `um.py`
+drives Chromium through the real UM registration form and judges what it finds, printing `PASS` / `FAIL` / `INFO`
+(any FAIL exits 1): S1 landing with `?utm_source=test&gclid=...` (user meta, one `sign_up` with `um_registration_<id>`
+across the server call and the browser events route, core `ct_event_signup` cookie and printed event share the ID),
+S2 consent required with accept, deny and undecided, S3 direct registration, S4 `um_registration_complete` replayed,
+S5 wp-admin "Add user", S6 the real WordPress exporter and eraser callbacks plus retention and purge-all through the real
+user query, S7 `WP_DEBUG_LOG`. Observations are written to `um.json`, verdicts to `results.json`. Run it with
+`flock` when other agents share the pod. Results: `EVIDENCE-<date>-ultimate-member.md`.
+
 Notes:
 
 - `mu/ct-e2e-capture.php` intercepts the server-side dispatch to `https://capture.invalid/collect` and

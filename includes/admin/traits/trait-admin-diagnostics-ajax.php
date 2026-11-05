@@ -10,6 +10,7 @@ namespace CLICUTCL\Admin;
 use CLICUTCL\Database\Whatsapp_Ref_Store;
 use CLICUTCL\Modules\Consent_Mode\Consent_Mode_Settings;
 use CLICUTCL\Modules\GTM\GTM_Settings;
+use CLICUTCL\Privacy\User_Registration_Privacy;
 use CLICUTCL\Privacy\Woo_Order_Privacy;
 use CLICUTCL\Server_Side\Dispatcher;
 use CLICUTCL\Server_Side\Queue;
@@ -210,6 +211,11 @@ trait Admin_Diagnostics_Ajax_Trait {
 		$woo_purge = ( new Woo_Order_Privacy() )->purge_all_order_metadata();
 		if ( ! empty( $woo_purge['remaining'] ) ) {
 			$errors[] = 'woocommerce_order_meta_purge_incomplete';
+		}
+
+		$user_purge = ( new User_Registration_Privacy() )->purge_all_user_metadata();
+		if ( ! empty( $user_purge['remaining'] ) ) {
+			$errors[] = 'registration_user_meta_purge_incomplete';
 		}
 
 		if ( ! empty( $errors ) ) {

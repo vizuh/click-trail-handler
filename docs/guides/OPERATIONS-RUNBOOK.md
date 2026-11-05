@@ -9,7 +9,7 @@
 ## Current release boundary
 
 This runbook documents source-observed operations, not a production safety certificate. Before the next runtime
-release, test consent withdrawal immediately before queue retry, Woo order-meta purge/export/erase/uninstall,
+release, test consent withdrawal immediately before queue retry, Woo order-meta and Ultimate Member user-meta purge/export/erase/uninstall,
 provider error responses, and sGTM preview URL rejection. The current queue path and purge scope remain release
 gates; do not interpret a visible Diagnostics result or a successful HTTP smoke check as proof of complete
 privacy deletion or exactly-once delivery.
