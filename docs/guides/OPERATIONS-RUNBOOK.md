@@ -293,7 +293,7 @@ The response does not include click-ID values and does not prove provider delive
 
 The M5 first slice is a pure comparator and fixture corpus, not an admin tool.
 It accepts only field-presence snapshots for `cf7`, `fluent`, `formidable`,
-`gravity`, `wpforms`, `elementor`, `ninja`, and `sureforms`. It reports expected/submitted presence and
+`forminator`, `gravity`, `wpforms`, `elementor`, `ninja`, and `sureforms`. It reports expected/submitted presence and
 keeps provider record, hook payload, and ClickTrail event evidence separate.
 
 Operational limits:

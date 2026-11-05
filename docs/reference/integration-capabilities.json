@@ -586,6 +586,33 @@
       ]
     },
     {
+      "id": "source.form.forminator",
+      "label": "Forminator",
+      "role": "wordpress_source",
+      "status": "source_connector_runtime_unverified",
+      "provider_contract": "WordPress form hooks and/or hidden-field/submission metadata",
+      "what_exists": "Attribution capture and form-event paths are present. A Hidden field marked with a custom CSS class token ct_<key>, a label exactly ct_<key>, or Default value Custom value set to exactly ct_<key> (mapped keys only) renders empty (forminator_field_hidden_field_value; the cookie value only when clicutcl_render_server_attribution_values opts in) and is filled from the submit-time cookie at forminator_prepared_data, before Forminator validates, stores and mails the submission, so AJAX and non-AJAX forms behave the same. forminator_custom_form_submit_field_data keeps Forminator from rewriting a refreshed field back to its Custom value / Embed default. forminator_custom_form_submit_before_set_fields logs the submission with the entry ID and writes ct_event_id, ct_lead_id and the attribution payload to the entry meta. Hook names were read from Forminator 1.58.4; exact population, successful-submission, consent, and third-party retention behavior requires live plugin tests.",
+      "evidence": [
+        "includes/integrations/class-form-integration-manager.php",
+        "includes/integrations/forms/class-forminator-adapter.php",
+        "tests/fixtures/form-readiness/v1/forminator.json",
+        "tests/fixtures/form-runtime/v1/forminator.json",
+        "tests/unit/ForminatorAdapterTest.php",
+        "tools/qa/e2e/EVIDENCE-2026-11-02-forminator.md"
+      ],
+      "test_ids": [
+        "form-readiness-contract",
+        "forminator-field-refresh"
+      ],
+      "runtime_tests": [
+        "forminator-1.58.4-adapters-ci-S1-S4-wp7.1-php8.3-ajax-three-marker-styles"
+      ],
+      "known_limits": [
+        "Posted attribution and form-owned submission metadata are separate privacy boundaries.",
+        "Pod run only: free Forminator 1.58.4, AJAX forms, consent-not-required plus the plugin banner. Non-AJAX forms, Forminator Pro-only fields, Stripe/PayPal pending entries, a real CMP, erasure and other Forminator versions remain unverified."
+      ]
+    },
+    {
       "id": "source.form.gravity",
       "label": "Gravity Forms",
       "role": "wordpress_source",
