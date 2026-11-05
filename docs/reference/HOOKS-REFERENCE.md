@@ -89,7 +89,7 @@ Purpose:
 
 Notes:
 
-- read by `Cookie_Scope::is_public_suffix()`; a `registrable` or `custom` scope that lands on a listed suffix resolves to host-only with reason `public_suffix` (shown in Site Health and as `clicutcl_config.cookieScopeReason`)
+- read by `Cookie_Scope::is_public_suffix()`, which is also what `Attribution_Cookie_Reissue` uses for the `Domain` of the server re-issued cookie (#141), so the script and the server always agree; a `registrable` or `custom` scope that lands on a listed suffix resolves to host-only with reason `public_suffix` (shown in Site Health and as `clicutcl_config.cookieScopeReason`)
 - the default table covers common hosting suffixes; two-label suffixes whose first label is `co`, `com`, `net`, `org`, `gov`, `edu`, `ac`, `ne`, `or` or `me` (such as `co.uk`) are always treated as public
 
 Arguments:
@@ -266,7 +266,7 @@ Purpose:
 
 - tune event intake token behavior, allowed hosts, rate limiting, and replay controls
 
-The rate-limit filters receive the route scope as their second argument: `events_batch`, `attribution_token_sign`, `attribution_token_verify` and, since the WhatsApp reference route (#145), `whatsapp_ref`. The reference-code TTL follows the attribution retention (`cookie_days`). Two filters bound the table (#145):
+The rate-limit filters receive the route scope as their second argument: `events_batch`, `attribution_token_sign`, `attribution_token_verify`, `whatsapp_ref` (#145) and `cookie_reissue` (the attribution cookie re-issue route, #141). The reference-code TTL follows the attribution retention (`cookie_days`). Two filters bound the table (#145):
 
 ### `clicutcl_whatsapp_ref_max_rows`
 

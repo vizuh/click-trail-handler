@@ -198,7 +198,7 @@ function inventoryKeys() {
     const cells = line.split('|').map((cell) => cell.trim());
     if (cells.length < 4 || !/^`/.test(cells[1])) return;
     const key = cells[1].replace(/`/g, '');
-    cells[2].split(',').map((medium) => medium.trim()).forEach((medium) => {
+    cells[2].split(',').map((medium) => medium.replace(/\s*\(.*\)\s*$/, '').trim()).forEach((medium) => {
       if (medium) keys.add(medium + ':' + key);
     });
   });

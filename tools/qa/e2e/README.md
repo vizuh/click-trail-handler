@@ -33,6 +33,22 @@ Serves the one WordPress as `www.example.test` and `example.test` (`mu/ct-e2e-dy
 reads the CF7 hidden `ct_gclid` and submits; the script runs it once with `cookie_scope=registrable` (cookie
 `domain=.example.test`, apex field `GA`, stored lead carries it) and once with `host` (cookie host-only, apex field empty).
 
+## Attribution cookie re-issue (#141)
+
+```sh
+flock /tmp/ct-e2e.lock tools/qa/e2e/cookie-reissue.sh [plugin-root]   # own pod run, tears down; exit 1 on any mismatch
+```
+
+Same two-host pod as the cookie-scope run. `cookie_reissue.py` proves on the wire that page GET/HEAD responses never carry `Set-Cookie`
+(with or without a valid `attribution` cookie and consent cookie), that `POST /clicutcl/v2/cookie-refresh` answers with exactly one
+`Set-Cookie: attribution=<same value>; Max-Age=7776000; Path=/; Domain=example.test; SameSite=Lax` (and the gates: token, consent from the
+request cookie, setting, invalid and oversized values), and that Chromium ends with one `attribution` cookie of the right domain and a 90-day
+lifetime although every script write of that cookie is capped to 24 hours by an init script (Safari's cap, emulated: the browser does not
+cap, so an uncapped lifetime is only possible if the server's cookie was applied). A control run with the setting off keeps the 24-hour cap.
+Chromium reports no response for a `keepalive` fetch, so the server-side view comes from `mu/ct-e2e-set-cookie-log.php` (`shutdown` hook
+recording status and the `Set-Cookie` headers PHP sent). Raw requests are rate limited (60 a minute per IP, scope `cookie_reissue`): wait a
+minute between manual reruns against one pod. Safari itself is not exercised.
+
 ## Form adapters (Fluent Forms, WPForms Lite, Formidable Forms, SureForms, Contact Form 7, MetForm)
 
 ```sh
