@@ -76,12 +76,13 @@ if ( ! $clicutcl_preserve_data ) {
 }
 
 if ( ! $clicutcl_preserve_data ) {
+	// Only uninstall also removes the purchase-sent marker (subject erase, retention and the Diagnostics purge keep it).
 	// Load the lifecycle helper because WordPress may include uninstall.php
 	// without loading the plugin bootstrap first.
 	$clicutcl_woo_privacy_file = __DIR__ . '/includes/privacy/class-woo-order-privacy.php';
 	if ( function_exists( 'wc_get_orders' ) && file_exists( $clicutcl_woo_privacy_file ) ) {
 		require_once $clicutcl_woo_privacy_file;
-		$clicutcl_woo_purge = ( new \CLICUTCL\Privacy\Woo_Order_Privacy() )->purge_all_order_metadata();
+		$clicutcl_woo_purge = ( new \CLICUTCL\Privacy\Woo_Order_Privacy() )->purge_all_order_metadata( \CLICUTCL\Privacy\Woo_Order_Privacy::RETENTION_BATCH_SIZE, true );
 		if ( ! empty( $clicutcl_woo_purge['remaining'] ) && function_exists( 'do_action' ) ) {
 			do_action( 'clicutcl_uninstall_order_meta_incomplete', $clicutcl_woo_purge );
 		}
