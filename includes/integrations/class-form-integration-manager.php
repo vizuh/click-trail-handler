@@ -10,6 +10,7 @@ namespace CLICUTCL\Integrations;
 use CLICUTCL\Integrations\Forms\CF7_Adapter;
 use CLICUTCL\Integrations\Forms\Elementor_Forms_Adapter;
 use CLICUTCL\Integrations\Forms\Fluent_Forms_Adapter;
+use CLICUTCL\Integrations\Forms\Formidable_Adapter;
 use CLICUTCL\Integrations\Forms\Gravity_Forms_Adapter;
 use CLICUTCL\Integrations\Forms\MetForm_Adapter;
 use CLICUTCL\Integrations\Forms\Ninja_Forms_Adapter;
@@ -62,6 +63,7 @@ class Form_Integration_Manager {
 			'CLICUTCL\Integrations\Forms\CF7_Adapter'     => 'forms/class-cf7-adapter.php',
 			'CLICUTCL\Integrations\Forms\Elementor_Forms_Adapter' => 'forms/class-elementor-forms-adapter.php',
 			'CLICUTCL\Integrations\Forms\Fluent_Forms_Adapter' => 'forms/class-fluent-forms-adapter.php',
+			'CLICUTCL\Integrations\Forms\Formidable_Adapter' => 'forms/class-formidable-adapter.php',
 			'CLICUTCL\Integrations\Forms\Gravity_Forms_Adapter' => 'forms/class-gravity-forms-adapter.php',
 			'CLICUTCL\Integrations\Forms\MetForm_Adapter' => 'forms/class-metform-adapter.php',
 			'CLICUTCL\Integrations\Forms\Ninja_Forms_Adapter' => 'forms/class-ninja-forms-adapter.php',

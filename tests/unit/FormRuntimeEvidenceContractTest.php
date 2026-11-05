@@ -69,6 +69,7 @@ final class FormRuntimeEvidenceContractTest extends TestCase {
 		return array(
 			'Contact Form 7' => array( 'cf7' ),
 			'Fluent Forms'  => array( 'fluent' ),
+			'Formidable Forms' => array( 'formidable' ),
 			'Gravity Forms' => array( 'gravity' ),
 			'MetForm'       => array( 'metform' ),
 			'WPForms'       => array( 'wpforms' ),
