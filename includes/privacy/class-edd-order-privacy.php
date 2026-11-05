@@ -32,7 +32,7 @@ class Edd_Order_Privacy {
 	public const RETENTION_BATCH_SIZE = 100;
 
 	/** Meta key of the purchase-sent marker; survives erase, retention and the Diagnostics purge. */
-	public const SENT_MARKER_KEY = '_clicutcl_tracking_sent';
+	public const SENT_MARKER_KEY = Woo_Order_Privacy::SENT_MARKER_KEY;
 
 	/**
 	 * Days an order's ClickTrail data is kept, as `Cleanup::run_cleanup()` measures it.
@@ -44,48 +44,22 @@ class Edd_Order_Privacy {
 	 * @return int
 	 */
 	public static function retention_days(): int {
-		$days = class_exists( \CLICUTCL\Settings\Attribution_Settings::class )
-			? ( new \CLICUTCL\Settings\Attribution_Settings() )->get_cookie_duration()
-			: 90;
-
-		return $days < 1 ? 90 : $days;
+		return Woo_Order_Privacy::retention_days();
 	}
 
 	/**
 	 * Build an EDD order meta query restricted to ClickTrail-owned keys.
 	 *
-	 * `WP_Meta_Query` joins the meta table once per clause, so the Woo allowlist as 107 OR'd
-	 * `EXISTS` clauses exceeds MariaDB's 61-table join limit on a real EDD order query. The same
-	 * allowlist is folded into one anchored `REGEXP` on the meta key instead: exact keys must match
-	 * completely, prefix families only at the start. Lookalike keys never match, and callers still
-	 * re-check every order's keys with `Woo_Order_Privacy::is_managed_meta_key()` before deleting.
-	 *
-	 * The sent marker is left out unless asked for, so an order that carries only the marker is
-	 * not returned (and cannot fill a retention batch) when there is nothing left to remove.
+	 * The Woo allowlist folded into one anchored `REGEXP` on the meta key (see
+	 * `Woo_Order_Privacy::managed_meta_query()`), so the query stays far below MariaDB's 61-table
+	 * join limit. Callers still re-check every order's keys with
+	 * `Woo_Order_Privacy::is_managed_meta_key()` before deleting.
 	 *
 	 * @param bool $with_sent_marker Whether the purchase-sent marker counts as a managed key.
 	 * @return array<int,array<string,string>> One-clause meta_query.
 	 */
 	public static function managed_meta_query( bool $with_sent_marker = false ): array {
-		$exact    = array();
-		$prefixes = array();
-		foreach ( Woo_Order_Privacy::managed_meta_query() as $clause ) {
-			if ( ! is_array( $clause ) || ! isset( $clause['key'] ) ) {
-				continue;
-			}
-			if ( isset( $clause['compare_key'] ) ) {
-				$prefixes[] = preg_quote( (string) $clause['key'], '/' );
-			} elseif ( $with_sent_marker || self::SENT_MARKER_KEY !== $clause['key'] ) {
-				$exact[] = preg_quote( (string) $clause['key'], '/' );
-			}
-		}
-
-		return array(
-			array(
-				'key'         => '^(' . implode( '|', $exact ) . ')$|^(' . implode( '|', $prefixes ) . ')',
-				'compare_key' => 'REGEXP',
-			),
-		);
+		return Woo_Order_Privacy::managed_meta_query( $with_sent_marker );
 	}
 
 	/**

@@ -89,8 +89,10 @@ namespace {
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-event-translator-v1-to-v2.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-claim-lock.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/integrations/class-woocommerce.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/privacy/class-woo-order-privacy.php';
 
 	use CLICUTCL\Integrations\WooCommerce;
+	use CLICUTCL\Privacy\Woo_Order_Privacy;
 	use PHPUnit\Framework\TestCase;
 
 	if ( ! function_exists( 'wc_get_order' ) ) {
@@ -233,6 +235,29 @@ namespace {
 			return $out;
 		}
 
+		public function get_date_created() {
+			return $this->stamp_object( (int) ( $GLOBALS['clicktrail_test_woo_created'] ?? time() ) );
+		}
+
+		public function get_date_paid() {
+			return isset( $GLOBALS['clicktrail_test_woo_paid'] ) ? $this->stamp_object( (int) $GLOBALS['clicktrail_test_woo_paid'] ) : null;
+		}
+
+		private function stamp_object( int $created ) {
+			return new class( $created ) {
+				private int $stamp;
+				public function __construct( int $stamp ) {
+					$this->stamp = $stamp;
+				}
+				public function getTimestamp(): int {
+					return $this->stamp;
+				}
+				public function date( string $format ): string {
+					return gmdate( $format, $this->stamp );
+				}
+			};
+		}
+
 		public function get_order_number() {
 			return (string) $this->id;
 		}
@@ -306,7 +331,9 @@ namespace {
 				$GLOBALS['clicktrail_test_ext_object_cache'],
 				$GLOBALS['clicktrail_test_post_meta_calls'],
 				$GLOBALS['clicktrail_test_woo_saves'],
-				$GLOBALS['clicktrail_test_woo_db']
+				$GLOBALS['clicktrail_test_woo_db'],
+				$GLOBALS['clicktrail_test_woo_created'],
+				$GLOBALS['clicktrail_test_woo_paid']
 			);
 		}
 
@@ -358,6 +385,55 @@ namespace {
 			$this->assertSame( array(), $GLOBALS['clicktrail_test_options'], 'No option row is written when a persistent object cache holds the lock.' );
 			$this->assertArrayNotHasKey( 'clicutcl_purchase_lock_' . self::ORDER_ID, $GLOBALS['clicktrail_test_cache']['clicutcl'] ?? array(), 'Cache lock released after the marker is saved.' );
 			$this->assertSame( 0, $GLOBALS['clicktrail_test_post_meta_calls'] );
+		}
+
+		public function test_order_older_than_retention_never_pushes_a_purchase(): void {
+			// Retention removed the order's marker along with the rest of its ClickTrail meta; a late visit must not count it again.
+			$GLOBALS['clicktrail_test_woo_created'] = time() - ( ( Woo_Order_Privacy::retention_days() + 1 ) * DAY_IN_SECONDS );
+
+			ob_start();
+			try {
+				( new WooCommerce() )->push_purchase_event( self::ORDER_ID );
+				$this->assertSame( '', ob_get_contents() );
+			} finally {
+				ob_end_clean();
+			}
+
+			$this->assertSame( array(), $GLOBALS['clicktrail_test_dispatches'] );
+			$this->assertSame( array(), $GLOBALS['clicktrail_test_options'] );
+			$this->assertSame( 0, $GLOBALS['clicktrail_test_woo_saves'] );
+		}
+
+		public function test_old_order_paid_just_now_still_pushes(): void {
+			$GLOBALS['clicktrail_test_woo_created'] = time() - ( ( Woo_Order_Privacy::retention_days() + 30 ) * DAY_IN_SECONDS );
+			$GLOBALS['clicktrail_test_woo_paid']    = time();
+
+			$output = $this->run_racing_thank_you_loads();
+
+			$this->assertSame( 1, substr_count( $output, 'window.dataLayer.push(' ) );
+		}
+
+		public function test_order_created_and_paid_long_ago_never_pushes(): void {
+			$old = time() - ( ( Woo_Order_Privacy::retention_days() + 30 ) * DAY_IN_SECONDS );
+			$GLOBALS['clicktrail_test_woo_created'] = $old;
+			$GLOBALS['clicktrail_test_woo_paid']    = $old;
+
+			ob_start();
+			try {
+				( new WooCommerce() )->push_purchase_event( self::ORDER_ID );
+				$this->assertSame( '', ob_get_contents() );
+			} finally {
+				ob_end_clean();
+			}
+			$this->assertSame( array(), $GLOBALS['clicktrail_test_dispatches'] );
+		}
+
+		public function test_order_inside_retention_still_pushes(): void {
+			$GLOBALS['clicktrail_test_woo_created'] = time() - ( ( Woo_Order_Privacy::retention_days() - 1 ) * DAY_IN_SECONDS );
+
+			$output = $this->run_racing_thank_you_loads();
+
+			$this->assertSame( 1, substr_count( $output, 'window.dataLayer.push(' ) );
 		}
 
 		public function test_preexisting_marker_returns_before_taking_a_lock(): void {

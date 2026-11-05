@@ -18,7 +18,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Using wc_get_orders()/WC_Order is intentional: the same calls work with
  * classic post-backed orders and HPOS orders without reaching into storage
- * tables directly.
+ * tables directly, except through the order-query `meta_query` argument.
+ *
+ * The one key it leaves in place is the thank-you "purchase already sent" marker
+ * (`SENT_MARKER_KEY`). It holds no personal data and is the only thing that stops a
+ * thank-you page revisited after retention or a subject erase from pushing the purchase
+ * a second time, so subject erase, retention and the Diagnostics purge keep it. Export
+ * still lists it, and only uninstall removes it.
  */
 class Woo_Order_Privacy {
 	/** Export and erase page size. */
@@ -27,10 +33,13 @@ class Woo_Order_Privacy {
 	/** Maximum order rows touched by one scheduled retention run. */
 	public const RETENTION_BATCH_SIZE = 100;
 
+	/** Meta key of the purchase-sent marker; survives subject erase, retention and the Diagnostics purge. */
+	public const SENT_MARKER_KEY = '_clicutcl_tracking_sent';
+
 	/** Exact order metadata keys written by ClickTrail. */
 	private const EXACT_META_KEYS = array(
 		'_clicutcl_consent',
-		'_clicutcl_tracking_sent',
+		self::SENT_MARKER_KEY,
 		'_clicutcl_woo_trace_snapshot',
 		'_clicutcl_visitor_id',
 		'_clicutcl_session_id',
@@ -78,11 +87,28 @@ class Woo_Order_Privacy {
 	);
 
 	/**
-	 * Build a Woo order query restricted to ClickTrail-owned metadata.
+	 * Days an order's ClickTrail data is kept, as `Cleanup::run_cleanup()` measures it.
 	 *
-	 * @return array<string|int,mixed> Woo meta_query clauses.
+	 * The thank-you push uses this as the age past which an order no longer emits a purchase, so an
+	 * order whose data retention already removed cannot be counted again. Keep it in step with the
+	 * `$days` that `Cleanup` passes to `purge_expired_order_metadata()`.
+	 *
+	 * @return int
 	 */
-	public static function managed_meta_query(): array {
+	public static function retention_days(): int {
+		$days = class_exists( \CLICUTCL\Settings\Attribution_Settings::class )
+			? ( new \CLICUTCL\Settings\Attribution_Settings() )->get_cookie_duration()
+			: 90;
+
+		return $days < 1 ? 90 : $days;
+	}
+
+	/**
+	 * Exact keys and key prefixes ClickTrail owns on an order.
+	 *
+	 * @return array{exact:array<int,string>,prefixes:array<int,string>}
+	 */
+	public static function managed_key_families(): array {
 		$keys = self::EXACT_META_KEYS;
 		foreach ( self::FALLBACK_ATTRIBUTION_META_KEYS as $key ) {
 			if ( ! in_array( $key, $keys, true ) ) {
@@ -97,21 +123,52 @@ class Woo_Order_Privacy {
 				}
 			}
 		}
-		$query = array( 'relation' => 'OR' );
-		foreach ( $keys as $key ) {
-			$query[] = array(
-				'key'     => $key,
-				'compare' => 'EXISTS',
-			);
+
+		return array(
+			'exact'    => $keys,
+			'prefixes' => array( '_clicutcl_ft_', '_clicutcl_lt_', '_clicutcl_woo_milestone_sent_' ),
+		);
+	}
+
+	/**
+	 * Build a Woo order query restricted to ClickTrail-owned metadata.
+	 *
+	 * Meta queries join the meta table once per clause that is not join-compatible, and `EXISTS`
+	 * clauses are not: the allowlist as ~107 OR'd `EXISTS` clauses exceeds MySQL/MariaDB's 61-table
+	 * join limit on HPOS (`wc_orders_meta`), where the database error surfaced as an empty result and
+	 * the eraser and retention cleanup silently processed nothing. The allowlist is folded into one
+	 * anchored `meta_key` `REGEXP` instead: exact keys must match completely, prefix families only at
+	 * the start, so lookalike keys never match. Callers still re-check every order's keys with
+	 * `is_managed_meta_key()` before deleting.
+	 *
+	 * The sent marker is left out unless asked for, so an order that carries only the marker is not
+	 * returned (and cannot fill a retention batch) when there is nothing left to remove.
+	 *
+	 * @param bool $with_sent_marker Whether the purchase-sent marker counts as a managed key.
+	 * @return array<int,array<string,string>> One-clause (`type_key` BINARY makes the match case-sensitive) meta_query.
+	 */
+	public static function managed_meta_query( bool $with_sent_marker = false ): array {
+		$families = self::managed_key_families();
+		$exact    = array();
+		foreach ( $families['exact'] as $key ) {
+			if ( $with_sent_marker || self::SENT_MARKER_KEY !== $key ) {
+				$exact[] = preg_quote( $key, '/' );
+			}
 		}
-		foreach ( array( '_clicutcl_ft_', '_clicutcl_lt_', '_clicutcl_woo_milestone_sent_' ) as $prefix ) {
-			$query[] = array(
-				'key'         => $prefix,
-				'compare_key' => 'LIKE',
-				'compare'     => 'EXISTS',
-			);
-		}
-		return $query;
+		$prefixes = array_map(
+			static function ( string $prefix ): string {
+				return preg_quote( $prefix, '/' );
+			},
+			$families['prefixes']
+		);
+
+		return array(
+			array(
+				'key'         => '^(' . implode( '|', $exact ) . ')$|^(' . implode( '|', $prefixes ) . ')',
+				'compare_key' => 'REGEXP',
+				'type_key'    => 'BINARY',
+			),
+		);
 	}
 
 	/**
@@ -125,26 +182,13 @@ class Woo_Order_Privacy {
 	 * @return bool
 	 */
 	public static function is_managed_meta_key( string $key ): bool {
-		if ( in_array( $key, self::EXACT_META_KEYS, true ) ) {
+		$families = self::managed_key_families();
+		if ( in_array( $key, $families['exact'], true ) ) {
 			return true;
 		}
-
-		if ( 0 === strpos( $key, '_clicutcl_ft_' )
-			|| 0 === strpos( $key, '_clicutcl_lt_' )
-			|| 0 === strpos( $key, '_clicutcl_woo_milestone_sent_' )
-		) {
-			return true;
-		}
-
-		if ( in_array( $key, self::FALLBACK_ATTRIBUTION_META_KEYS, true ) ) {
-			return true;
-		}
-
-		if ( class_exists( Attribution_Provider::class ) ) {
-			foreach ( Attribution_Provider::get_field_mapping() as $field ) {
-				if ( '_clicutcl_' . sanitize_key( (string) $field ) === $key ) {
-					return true;
-				}
+		foreach ( $families['prefixes'] as $prefix ) {
+			if ( 0 === strpos( $key, $prefix ) ) {
+				return true;
 			}
 		}
 
@@ -205,7 +249,7 @@ class Woo_Order_Privacy {
 			if ( ! is_object( $order ) || ! is_callable( array( $order, 'get_meta_data' ) ) ) {
 				continue;
 			}
-			$managed = $this->get_order_managed_meta( $order );
+			$managed = $this->get_order_managed_meta( $order, true );
 			if ( empty( $managed ) ) {
 				continue;
 			}
@@ -364,10 +408,13 @@ class Woo_Order_Privacy {
 	/**
 	 * Remove ClickTrail metadata from all orders for an explicit manual purge.
 	 *
-	 * @param int $batch_size Number of orders fetched per page.
+	 * The purchase-sent marker stays unless `$with_sent_marker` is set, which only uninstall does.
+	 *
+	 * @param int  $batch_size       Number of orders fetched per page.
+	 * @param bool $with_sent_marker Also remove the purchase-sent marker.
 	 * @return array{processed:int,removed:int,failed:int,remaining:bool}
 	 */
-	public function purge_all_order_metadata( int $batch_size = self::RETENTION_BATCH_SIZE ): array {
+	public function purge_all_order_metadata( int $batch_size = self::RETENTION_BATCH_SIZE, bool $with_sent_marker = false ): array {
 		$batch_size = max( 1, $batch_size );
 		$offset     = 0;
 		$processed  = 0;
@@ -389,11 +436,11 @@ class Woo_Order_Privacy {
 			}
 			$processed += count( $orders );
 			foreach ( $orders as $order ) {
-				$managed = $this->get_order_managed_meta( $order );
+				$managed = $this->get_order_managed_meta( $order, $with_sent_marker );
 				if ( empty( $managed ) ) {
 					continue;
 				}
-				if ( $this->remove_order_metadata( $order ) ) {
+				if ( $this->remove_order_metadata( $order, $with_sent_marker ) ) {
 					++$removed;
 				} else {
 					++$failed;
@@ -416,23 +463,32 @@ class Woo_Order_Privacy {
 	/**
 	 * Return managed metadata for an order-like object.
 	 *
-	 * @param mixed $order Woo order.
+	 * @param mixed $order            Woo order.
+	 * @param bool  $with_sent_marker Include the purchase-sent marker.
 	 * @return array<int,array{key:string,value:mixed}>
 	 */
-	private function get_order_managed_meta( $order ): array {
+	private function get_order_managed_meta( $order, bool $with_sent_marker = false ): array {
 		if ( ! is_object( $order ) || ! is_callable( array( $order, 'get_meta_data' ) ) ) {
 			return array();
 		}
-		return self::managed_meta( (array) $order->get_meta_data() );
+		return array_values(
+			array_filter(
+				self::managed_meta( (array) $order->get_meta_data() ),
+				static function ( array $meta ) use ( $with_sent_marker ): bool {
+					return $with_sent_marker || self::SENT_MARKER_KEY !== $meta['key'];
+				}
+			)
+		);
 	}
 
 	/**
 	 * Remove managed metadata from one order.
 	 *
-	 * @param mixed $order Woo order.
+	 * @param mixed $order            Woo order.
+	 * @param bool  $with_sent_marker Also remove the purchase-sent marker.
 	 * @return bool Whether metadata was removed and saved.
 	 */
-	private function remove_order_metadata( $order ): bool {
+	private function remove_order_metadata( $order, bool $with_sent_marker = false ): bool {
 		if ( ! is_object( $order )
 			|| ! is_callable( array( $order, 'get_meta_data' ) )
 			|| ! is_callable( array( $order, 'delete_meta_data' ) )
@@ -440,7 +496,7 @@ class Woo_Order_Privacy {
 		) {
 			return false;
 		}
-		$managed = $this->get_order_managed_meta( $order );
+		$managed = $this->get_order_managed_meta( $order, $with_sent_marker );
 		if ( empty( $managed ) ) {
 			return false;
 		}
@@ -455,7 +511,7 @@ class Woo_Order_Privacy {
 		} catch ( \Throwable $exception ) {
 			return false;
 		}
-		return 0 === count( $this->get_order_managed_meta( $order ) );
+		return 0 === count( $this->get_order_managed_meta( $order, $with_sent_marker ) );
 	}
 
 	/**

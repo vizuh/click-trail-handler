@@ -18,6 +18,13 @@ if ( ! function_exists( 'wc_get_orders' ) ) {
 	function wc_get_orders( $args = array() ) {
 		$orders = $GLOBALS['clicktrail_test_wc_orders'] ?? array();
 		if ( isset( $args['meta_query'] ) ) {
+			// MySQL/MariaDB allow 61 tables per join and every meta clause costs one join (EXISTS never shares one).
+			// The real failure surfaces as a database error and an empty result, so mimic that.
+			$joins = count( array_filter( $args['meta_query'], 'is_array' ) );
+			if ( $joins > 61 ) {
+				$GLOBALS['clicktrail_test_wc_join_error'] = $joins;
+				return array();
+			}
 			$orders = array_values( array_filter( $orders, static function ( $order ): bool {
 				return ! empty( CLICUTCL\Privacy\Woo_Order_Privacy::managed_meta( $order->get_meta_data() ) );
 			} ) );
@@ -112,7 +119,7 @@ final class WooOrderPrivacyTest extends TestCase {
 	}
 
 	protected function tearDown(): void {
-		unset( $GLOBALS['clicktrail_test_wc_orders'] );
+		unset( $GLOBALS['clicktrail_test_wc_orders'], $GLOBALS['clicktrail_test_wc_join_error'] );
 	}
 
 	public function test_export_reads_only_allowlisted_order_meta(): void {
@@ -148,8 +155,16 @@ final class WooOrderPrivacyTest extends TestCase {
 		$result = ( new Woo_Order_Privacy() )->erase_order_data( 'customer@example.test' );
 
 		$this->assertTrue( $result['items_removed'] );
-		$this->assertSame( array( array( 'key' => '_shipping_city', 'value' => 'Porto' ) ), $order->meta );
+		// The purchase-sent marker holds no personal data and stops a second thank-you push, so it stays.
+		$this->assertSame(
+			array(
+				array( 'key' => '_clicutcl_tracking_sent', 'value' => 'yes' ),
+				array( 'key' => '_shipping_city', 'value' => 'Porto' ),
+			),
+			$order->meta
+		);
 		$this->assertSame( 1, $order->saves );
+		$this->assertArrayNotHasKey( 'clicktrail_test_wc_join_error', $GLOBALS );
 	}
 
 	public function test_retention_is_bounded_and_reports_more_expired_orders(): void {
@@ -191,16 +206,85 @@ final class WooOrderPrivacyTest extends TestCase {
 		$this->assertTrue( $result['done'] );
 	}
 
-	public function test_retention_query_contains_exact_keys_and_managed_prefix_filters(): void {
+	public function test_managed_meta_query_is_one_key_clause_so_it_never_hits_the_61_table_join_limit(): void {
 		$query = Woo_Order_Privacy::managed_meta_query();
-		$this->assertSame( 'OR', $query['relation'] );
+		$this->assertCount( 1, $query );
+		$this->assertSame( 'REGEXP', $query[0]['compare_key'] );
+		$this->assertArrayNotHasKey( 'relation', $query );
 
-		$prefixes = array_column( array_filter( $query, 'is_array' ), 'key' );
-		$this->assertContains( '_clicutcl_ft_', $prefixes );
-		$this->assertContains( '_clicutcl_lt_', $prefixes );
-		$this->assertContains( '_clicutcl_woo_milestone_sent_', $prefixes );
+		$regexp = '/' . str_replace( '/', '\\/', $query[0]['key'] ) . '/';
+		$match  = static function ( string $key ) use ( $regexp ): bool {
+			return 1 === preg_match( $regexp, $key );
+		};
+		$this->assertTrue( $match( '_clicutcl_gclid' ) );
+		$this->assertTrue( $match( '_clicutcl_ft_source' ) );
+		$this->assertTrue( $match( '_clicutcl_lt_medium' ) );
+		$this->assertTrue( $match( '_clicutcl_woo_milestone_sent_order_paid' ) );
+		$this->assertFalse( $match( '_clicutcl_tracking_sent' ), 'The sent marker is not a managed key unless asked for.' );
+		$this->assertFalse( $match( 'x_clicutcl_gclid' ), 'Exact keys are anchored at both ends.' );
+		$this->assertFalse( $match( '_clicutcl_gclid_extra' ), 'Exact keys are anchored at both ends.' );
+		$this->assertFalse( $match( '_clicutcl_other_plugin_state' ) );
+		$this->assertFalse( $match( '_billing_email' ) );
+
+		$with_marker = Woo_Order_Privacy::managed_meta_query( true );
+		$this->assertSame( 1, preg_match( '/' . str_replace( '/', '\\/', $with_marker[0]['key'] ) . '/', '_clicutcl_tracking_sent' ) );
 	}
 
+	public function test_every_allowlisted_key_is_matched_by_the_query_pattern(): void {
+		$families = Woo_Order_Privacy::managed_key_families();
+		$this->assertGreaterThan( 61, count( $families['exact'] ) + count( $families['prefixes'] ), 'The allowlist is what overflowed the join limit.' );
+		$query  = Woo_Order_Privacy::managed_meta_query( true );
+		$regexp = '/' . str_replace( '/', '\\/', $query[0]['key'] ) . '/';
+		foreach ( $families['exact'] as $key ) {
+			$this->assertSame( 1, preg_match( $regexp, $key ), $key );
+			$this->assertTrue( Woo_Order_Privacy::is_managed_meta_key( $key ), $key );
+		}
+		foreach ( $families['prefixes'] as $prefix ) {
+			$this->assertSame( 1, preg_match( $regexp, $prefix . 'anything' ), $prefix );
+		}
+	}
+
+	public function test_erase_and_retention_still_process_orders_under_a_join_limit(): void {
+		$order = new ClickTrail_Test_Woo_Order( 7, array( array( 'key' => '_clicutcl_gclid', 'value' => 'g' ), array( 'key' => '_clicutcl_tracking_sent', 'value' => 'yes' ) ) );
+		$GLOBALS['clicktrail_test_wc_orders'] = array( $order );
+
+		$retention = ( new Woo_Order_Privacy() )->purge_expired_order_metadata( 90 );
+		$this->assertSame( 1, $retention['removed'] );
+		$this->assertArrayNotHasKey( 'clicktrail_test_wc_join_error', $GLOBALS );
+		$this->assertSame( array( array( 'key' => '_clicutcl_tracking_sent', 'value' => 'yes' ) ), $order->meta );
+
+		$order2 = new ClickTrail_Test_Woo_Order( 8, array( array( 'key' => '_clicutcl_gclid', 'value' => 'g' ) ) );
+		$GLOBALS['clicktrail_test_wc_orders'] = array( $order2 );
+		$erase = ( new Woo_Order_Privacy() )->erase_order_data( 'customer@example.test' );
+		$this->assertTrue( $erase['items_removed'] );
+		$this->assertArrayNotHasKey( 'clicktrail_test_wc_join_error', $GLOBALS );
+		$this->assertEmpty( $order2->meta );
+	}
+
+	public function test_export_lists_the_sent_marker_but_retention_and_purge_keep_it_until_uninstall(): void {
+		$meta  = array( array( 'key' => '_clicutcl_gclid', 'value' => 'g' ), array( 'key' => '_clicutcl_tracking_sent', 'value' => 'yes' ) );
+		$order = new ClickTrail_Test_Woo_Order( 9, $meta );
+		$GLOBALS['clicktrail_test_wc_orders'] = array( $order );
+
+		$export = ( new Woo_Order_Privacy() )->export_order_data( 'customer@example.test' );
+		$this->assertContains( 'clicutcl-woo-order-9-_clicutcl_tracking_sent', array_column( $export['items'], 'item_id' ) );
+
+		$default = ( new Woo_Order_Privacy() )->purge_all_order_metadata();
+		$this->assertSame( 1, $default['removed'] );
+		$this->assertSame( array( array( 'key' => '_clicutcl_tracking_sent', 'value' => 'yes' ) ), $order->meta );
+
+		$again = ( new Woo_Order_Privacy() )->purge_all_order_metadata();
+		$this->assertSame( 0, $again['removed'], 'A marker-only order has nothing left to remove.' );
+
+		$uninstall = ( new Woo_Order_Privacy() )->purge_all_order_metadata( Woo_Order_Privacy::RETENTION_BATCH_SIZE, true );
+		$this->assertSame( 1, $uninstall['removed'] );
+		$this->assertEmpty( $order->meta );
+	}
+
+	public function test_uninstall_removes_the_sent_marker(): void {
+		$source = (string) file_get_contents( dirname( __DIR__, 2 ) . '/uninstall.php' );
+		$this->assertMatchesRegularExpression( '/Woo_Order_Privacy\(\) \)->purge_all_order_metadata\( [^,]+, true \)/', $source );
+	}
 
 	public function test_erase_retries_page_one_to_reach_orders_after_prior_deletion(): void {
 		$orders = array();

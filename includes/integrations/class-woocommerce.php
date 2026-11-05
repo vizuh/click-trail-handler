@@ -10,6 +10,7 @@ namespace CLICUTCL\Integrations;
 use CLICUTCL\Core\Attribution_Provider;
 use CLICUTCL\Consent\Snapshot_V1;
 use CLICUTCL\Modules\GTM\GTM_Settings;
+use CLICUTCL\Privacy\Woo_Order_Privacy;
 use CLICUTCL\Server_Side\Dispatcher;
 use CLICUTCL\Server_Side\Consent;
 use CLICUTCL\Tracking\Claim_Lock;
@@ -246,6 +247,14 @@ class WooCommerce {
 			return;
 		}
 
+		// An order older than the retention window has had its ClickTrail meta expired, so a
+		// thank-you page opened from an old email or account page must not count it again. An
+		// unreadable creation date is treated the same way: a missed purchase is recoverable, a
+		// duplicate one is not.
+		if ( ! $this->is_within_retention( $order ) ) {
+			return;
+		}
+
 		// The marker above is a read-then-write: two concurrent thank-you loads
 		// (double tab, prefetch, reload mid-request) both pass it. Claim the
 		// order atomically before building or emitting anything so only one
@@ -288,6 +297,22 @@ class WooCommerce {
 		} finally {
 			$this->release_purchase_lock( (int) $order_id, $lock );
 		}
+	}
+
+	/**
+	 * Whether an order is young enough for the thank-you page to emit its purchase (paid date, else created date).
+	 *
+	 * @param \WC_Order $order Order instance.
+	 * @return bool
+	 */
+	private function is_within_retention( $order ): bool {
+		// A pending or failed order paid later (pay-for-order, admin-created, deposits) reaches the
+		// thank-you page at payment time, so the paid date counts before the creation date.
+		$paid    = is_callable( array( $order, 'get_date_paid' ) ) ? $order->get_date_paid() : null;
+		$created = is_object( $paid ) ? $paid : ( is_callable( array( $order, 'get_date_created' ) ) ? $order->get_date_created() : null );
+		$stamp   = ( is_object( $created ) && is_callable( array( $created, 'getTimestamp' ) ) ) ? (int) $created->getTimestamp() : 0;
+
+		return $stamp > 0 && $stamp >= time() - ( Woo_Order_Privacy::retention_days() * DAY_IN_SECONDS );
 	}
 
 	/**

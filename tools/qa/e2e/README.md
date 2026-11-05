@@ -123,3 +123,14 @@ cookie still sent) and `privacy` (WordPress exporter and eraser, retention on an
 `edd_get_orders()` queries). Run a subset with `python3 tools/qa/e2e/edd.py <out-dir> landing` against a pod from
 `edd-setup.sh`. Results of a run: `EVIDENCE-<date>-edd.md`.
 
+## WooCommerce privacy lifecycle (#206)
+
+```sh
+flock /tmp/ct-e2e.lock tools/qa/e2e/woo-privacy-ci.sh [plugin-root]   # same pod + WooCommerce 11.2.2, wp-cli only (no browser)
+```
+
+`woo-setup.sh` extends `setup.sh` with WooCommerce. `woo_privacy.py` creates orders through the WooCommerce CRUD API in
+HPOS and in posts storage (switching `woocommerce_custom_orders_table_enabled`), then runs the real `Woo_Order_Privacy`
+export, retention, erase, Diagnostics purge and uninstall purge against freshly seeded orders and records results, the
+database error and the widest JOIN of the ClickTrail meta query. `verify_woo_privacy.py` judges it (exit 1 on any FAIL).
+

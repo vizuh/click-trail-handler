@@ -331,6 +331,8 @@ What the current source paths implement:
 - push `event_id` (`purchase_<order_id>`, same as the server purchase event) on every thank-you `purchase` push regardless of `woo_enhanced_datalayer` (#139)
 - optionally widen Woo `dataLayer` pushes with consent-aware `user_data` for GTM-first setups
 - store purchase and milestone trace snapshots on the order for Diagnostics lookup
+- emit no thank-you purchase for an order whose paid (else created) date is older than the attribution retention window (its ClickTrail meta has been expired), and keep `_clicutcl_tracking_sent` through subject erase, retention and the Diagnostics purge so a late visit cannot count the order twice; only uninstall removes the marker
+- find orders for the personal-data eraser and retention cleanup with one anchored `meta_key REGEXP` clause on `wc_get_orders()` (not one `EXISTS` clause per key, which exceeded MariaDB's 61-table join limit on HPOS, #206)
 - optionally dispatch purchase and order-status milestone events into the server-side delivery pipeline
 
 Post-purchase milestone events:
