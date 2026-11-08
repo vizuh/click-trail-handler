@@ -583,10 +583,33 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 	}
 
 	/**
+	 * Cap a posted attribution value at 255 bytes, the limit the cookie path applies, so a visitor
+	 * cannot store an arbitrarily long value in the events JSON. A multibyte character is never cut
+	 * in half (an invalid sequence would make the row fail to encode).
+	 *
+	 * @param string $value Sanitised value.
+	 * @return string
+	 */
+	private function cap_value( $value ) {
+		if ( strlen( $value ) <= 255 ) {
+			return $value;
+		}
+
+		$capped = substr( $value, 0, 255 );
+		// Drop the bytes of a character the cut split (at most three).
+		while ( '' !== $capped && 1 !== preg_match( '//u', $capped ) ) {
+			$capped = substr( $capped, 0, -1 );
+		}
+
+		return $capped;
+	}
+
+	/**
 	 * Resolve the submit-time attribution set for posted ct_* values.
 	 *
 	 * Consent blocked: every key blank. Readable cookie present: the cookie is authoritative and
-	 * keys it lacks are blank. Cookie absent: posted values survive only with the JS fill marker.
+	 * keys it lacks are blank. Cookie absent: posted values survive only with the JS fill marker,
+	 * each capped at 255 bytes.
 	 *
 	 * @param array $posted Posted values keyed by mapped attribution key (without the `ct_` prefix).
 	 * @param bool  $marker Whether the form posted `ct_fill_source=js`.
@@ -614,7 +637,7 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 				if ( ! isset( $out[ $key ] ) ) {
 					continue;
 				}
-				$out[ $key ] = is_scalar( $value ) ? sanitize_text_field( (string) $value ) : '';
+				$out[ $key ] = is_scalar( $value ) ? $this->cap_value( sanitize_text_field( (string) $value ) ) : '';
 			}
 		}
 

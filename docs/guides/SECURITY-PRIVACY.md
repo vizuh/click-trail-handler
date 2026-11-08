@@ -27,7 +27,7 @@ These are not claims that the behavior is fixed. They are release gates for the 
 - Thank-you purchase processing now checks current visitor consent before reading stored attribution or emitting `dataLayer`; denial/unknown and grant entry paths have focused PHP tests. Form/Woo posted attribution and full browser/CMP revocation still need live verification. Strict/geo queued retries require a durable subject-consent resolver; missing authority defers without sending or consuming transport attempts.
 - Woo traces can retain identity metadata; ClickTrail now covers its Woo order-meta lifecycle through an explicit allowlist and automated contract tests, subject to live Woo runtime verification.
 - Browser conversion tokens and external form messages do not prove a real action or provider confirmation.
-- Webhook identity/timestamp/replay semantics and sGTM preview SSRF still require hardening.
+- Webhook identity/timestamp/replay semantics still require hardening. The sGTM preview probe validates the admin-posted loader and collector URLs (http/https, `wp_http_validate_url()`) and fetches them with `wp_safe_remote_request()` (unsafe URLs rejected, 2 redirects); that is unit-tested and runtime-unverified.
 
 Until these gates pass in PHP/WordPress/browser/provider tests, use `source-present / runtime-unverified`,
 not `privacy compliant`, `secure`, `guaranteed`, or `production-ready`.
@@ -190,6 +190,13 @@ delivery queue (`clicutcl_queue`, matched on raw and SHA-256-hashed email). This
 legacy event matching does not cover every stored hashed identity shape. Woo order metadata now has an
 allowlisted export/erase/uninstall lifecycle, but live Woo runtime verification remains open.
 
+Events-table matching is exact. The SQL `LIKE` over `event_data` is only a prefilter, so every candidate row is decoded
+and compared in PHP before it is exported, before its ID is collected for deletion and before its `visitor_id` is used for
+the WhatsApp reference rows: a value equal to the requested email (whole value, case-insensitive; `b@x.com` does not match
+`bob@x.com`), a `user_id` field equal to the user's ID (`5` does not match `55`), or a `user_hash` field equal to the user's
+salted hash. Paging is unchanged: the exporter pages over the candidate query and reports `done` from the fetched page, and
+the eraser scans candidates by `id` cursor, skipping look-alike rows, until it has a page of exact matches or reaches the end of the table.
+
 Ultimate Member registration attribution (`_clicutcl_*` user meta, see [DATA-MODEL.md](../architecture/DATA-MODEL.md))
 is written only with marketing consent, from the attribution cookie sent with the registration request; no `$_POST`
 value and no password is read. It has its own exporter and eraser (`clicutcl-user-registration`, matched by the WordPress
@@ -205,7 +212,7 @@ With WhatsApp tracking and **Append attribution to message** on (off by default)
 
 - stored: the code, the random `ct_visitor_id`, first/last-touch UTMs and click IDs from the signed-token allowlist, the selected click ID, creation and expiry time. Not stored: IP address, user agent, email, phone number, the WhatsApp number of the visitor (ClickTrail never sees it) or any page content
 - written only by a request that passes the client token, rate limit, size cap and the **server-side consent check** (the request's consent cookie, never the body); never written without attribution. A row is created only after a visitor interacts with a WhatsApp link: first pointer-over, focus or pointer-down on the link, a click on it, or (touch screens, where a tap is too short to register in time) the first touch anywhere on a page that holds a WhatsApp link. A page view alone creates nothing; a visitor who never touches or hovers the page, or a page without a WhatsApp link, creates no row.
-- bounded: at most 20 live rows per `visitor_id` and 50 000 rows in the table (filters `clicutcl_whatsapp_ref_max_per_visitor` / `clicutcl_whatsapp_ref_max_rows`); beyond that the route stores nothing
+- bounded, because a public route writes here and the `visitor_id` is client-chosen: at most 100 creations per client IP per 24 hours (`clicutcl_whatsapp_ref_max_per_ip`, 429 `whatsapp_ref_ip_limit`, checked before any database write), at most 20 creations per (`visitor_id`, client IP) pair per 24 hours (`clicutcl_whatsapp_ref_max_per_visitor`; an empty `visitor_id` is keyed on the IP alone, so anonymous requests of one address cannot use up the allowance of every other anonymous visitor), and 50 000 rows in the table (`clicutcl_whatsapp_ref_max_rows`). At the row ceiling, expired rows are purged first and, if the table is still full, the oldest 500 rows are evicted (a tenth of a smaller ceiling), so a flood cannot hold the feature down for the whole retention period; 503 `whatsapp_ref_capacity` is returned only when that eviction fails. The two per-client counters are transients (the object cache when there is one) keyed on a keyed hash of the IP, so the IP is never stored: not in the table and not in a key. They are fixed 24-hour windows opened by the first creation and updated without a lock, so concurrent requests can overshoot slightly
 - retention: the attribution retention setting (`cookie_days`, default 90 days); expired rows answer 404 immediately and are deleted by the daily cleanup in batches (and rows older than a shortened retention), by **Purge Tracking Data**, and at uninstall unless `clicutcl_preserve_data_on_uninstall`
 - read: only by administrators (`manage_options`) through `GET /clicutcl/v2/whatsapp-ref/<code>` or the Diagnostics lookup box
 - consent withdrawal clears the browser side (link restored, `ct_wa_ref` removed); the server row is not deleted at that moment, it expires with the TTL or goes through the eraser
@@ -352,6 +359,15 @@ Relevant filters:
 
 - `clicutcl_v2_trusted_proxies`
 - `clicutcl_trusted_proxies`
+
+How the client IP is resolved (`Tracking_Controller::get_client_ip()`):
+
+1. When `REMOTE_ADDR` is **not** in the trusted-proxy list, it is the client IP and no forwarding header is read.
+2. When `REMOTE_ADDR` is a trusted proxy, `X-Forwarded-For` is walked **from the right** and the first valid IP that is not itself a trusted proxy wins (the standard rightmost-untrusted rule). Entries further left are client-controlled, so `X-Forwarded-For: fake, real` resolves to `real` and `client, trustedProxy` to `client`. Blank and invalid entries are skipped.
+3. Only when `X-Forwarded-For` has no usable untrusted entry (absent, or every entry is a trusted proxy) is `CF-Connecting-IP` used, if it is a valid IP. It is a fallback because it is meaningful only when the immediate peer is Cloudflare, which the plugin cannot prove; any other trusted proxy passes a client-sent copy through unchanged.
+4. Otherwise the direct peer (`REMOTE_ADDR`) is used.
+
+Behaviour change (1.13.0): earlier versions preferred `CF-Connecting-IP` and took the **leftmost** untrusted `X-Forwarded-For` entry, both of which a client can set. A site that lists trusted proxies now attributes rate limits and per-IP quotas to the rightmost untrusted address. Behind Cloudflare, list the Cloudflare ranges (and any proxy in front of WordPress) as trusted proxies; the rightmost-untrusted entry is then the visitor Cloudflare saw. A site with no trusted proxies configured is unaffected.
 
 ## Secret Storage
 

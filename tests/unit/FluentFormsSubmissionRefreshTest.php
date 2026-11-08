@@ -143,6 +143,32 @@ namespace {
 			$this->assertSame( array(), $adapter->logged, 'An unmarked, cookie-less submit logs nothing.' );
 		}
 
+		public function test_the_marker_is_found_in_every_raw_request_shape(): void {
+			$_COOKIE = array();
+			$adapter = new ClickTrailFluentRefreshLogSpy();
+			foreach (
+				array(
+					'urlencoded data string' => array( 'data' => 'ct_gclid=A1&ct_fill_source=js' ),
+					'data array'             => array( 'data' => array( 'ct_fill_source' => 'js' ) ),
+					'top level field'        => array( 'ct_fill_source' => 'js' ),
+				) as $shape => $post
+			) {
+				$_POST = $post;
+				$out   = $adapter->refresh_response_data( array( 'ct_gclid' => 'A1' ), 7, array() );
+				$this->assertSame( array( 'ct_gclid' => 'A1' ), $out, $shape );
+			}
+
+			$_POST = array( 'data' => 'ct_gclid=A1&ct_fill_source=other' );
+			$this->assertSame( array( 'ct_gclid' => '' ), $adapter->refresh_response_data( array( 'ct_gclid' => 'A1' ), 7, array() ), 'any other marker value is not the marker' );
+			$_POST = array();
+		}
+
+		public function test_a_marked_cookieless_value_is_capped_at_255_characters(): void {
+			$_COOKIE = array();
+			$out     = ( new Fluent_Forms_Adapter() )->refresh_response_data( array( 'ct_gclid' => str_repeat( 'A', 5000 ), 'ct_fill_source' => 'js' ), 7, array() );
+			$this->assertSame( array( 'ct_gclid' => str_repeat( 'A', 255 ) ), $out );
+		}
+
 		public function test_denied_consent_blanks_every_ct_value_and_logs_nothing(): void {
 			$GLOBALS['clicktrail_test_consent_required']     = true;
 			$GLOBALS['clicktrail_test_consent_mode_enabled'] = true;

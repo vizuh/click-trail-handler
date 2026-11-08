@@ -218,7 +218,7 @@ class Gravity_Forms_Adapter extends Abstract_Form_Adapter {
 		$posted = array();
 		foreach ( $targets as $post_key => $key ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- GF verifies its own nonce; the value only feeds the resolver, which sanitizes it.
-			$posted[ $key ] = isset( $_POST[ $post_key ] ) && is_scalar( $_POST[ $post_key ] ) ? wp_unslash( $_POST[ $post_key ] ) : '';
+			$posted[ $key ] = isset( $_POST[ $post_key ] ) && is_scalar( $_POST[ $post_key ] ) ? sanitize_text_field( wp_unslash( $_POST[ $post_key ] ) ) : '';
 		}
 
 		// GF inputs never carry the Injector marker: no cookie means blank.

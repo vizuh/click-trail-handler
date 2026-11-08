@@ -130,30 +130,44 @@ trait Tracking_Controller_Security_Trait {
 			return $remote;
 		}
 
+		$xff   = filter_input( INPUT_SERVER, 'HTTP_X_FORWARDED_FOR', FILTER_UNSAFE_RAW );
 		$cf_ip = filter_input( INPUT_SERVER, 'HTTP_CF_CONNECTING_IP', FILTER_UNSAFE_RAW );
-		$cf_ip = $cf_ip ? sanitize_text_field( (string) $cf_ip ) : '';
-		if ( filter_var( $cf_ip, FILTER_VALIDATE_IP ) ) {
-			return $cf_ip;
+
+		return $this->client_ip_for_peer( $remote, is_string( $xff ) ? $xff : '', is_string( $cf_ip ) ? $cf_ip : '' );
+	}
+
+	/**
+	 * Decide the client IP from the direct peer and the forwarding headers.
+	 *
+	 * Forwarding headers are read only when the direct peer is a trusted proxy. `X-Forwarded-For`
+	 * is walked from the right (the end appended by infrastructure) and the first valid IP that is
+	 * not itself a trusted proxy wins; the left end is client-controlled and is never preferred.
+	 * `CF-Connecting-IP` is only a fallback, because it is meaningful solely when the immediate
+	 * peer is Cloudflare, which the plugin cannot prove; any other trusted proxy passes a
+	 * client-sent copy through. Everything else falls back to the direct peer.
+	 *
+	 * @param string $remote Direct peer (`REMOTE_ADDR`).
+	 * @param string $xff    `X-Forwarded-For` header value.
+	 * @param string $cf_ip  `CF-Connecting-IP` header value.
+	 * @return string
+	 */
+	private function client_ip_for_peer( string $remote, string $xff, string $cf_ip ): string {
+		if ( ! $this->is_trusted_proxy( $remote ) ) {
+			return $remote;
 		}
 
-		$xff = filter_input( INPUT_SERVER, 'HTTP_X_FORWARDED_FOR', FILTER_UNSAFE_RAW );
-		if ( $xff ) {
-			$parts    = array_map( 'trim', explode( ',', (string) $xff ) );
-			$fallback = '';
-			foreach ( $parts as $candidate ) {
-				$candidate = sanitize_text_field( (string) $candidate );
-				if ( filter_var( $candidate, FILTER_VALIDATE_IP ) ) {
-					if ( '' === $fallback ) {
-						$fallback = $candidate;
-					}
-					if ( ! $this->is_trusted_proxy( $candidate ) ) {
-						return $candidate;
-					}
+		if ( '' !== $xff ) {
+			foreach ( array_reverse( explode( ',', $xff ) ) as $candidate ) {
+				$candidate = sanitize_text_field( trim( $candidate ) );
+				if ( filter_var( $candidate, FILTER_VALIDATE_IP ) && ! $this->is_trusted_proxy( $candidate ) ) {
+					return $candidate;
 				}
 			}
-			if ( '' !== $fallback ) {
-				return $fallback;
-			}
+		}
+
+		$cf_ip = sanitize_text_field( $cf_ip );
+		if ( filter_var( $cf_ip, FILTER_VALIDATE_IP ) ) {
+			return $cf_ip;
 		}
 
 		return $remote;

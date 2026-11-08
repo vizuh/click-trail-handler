@@ -266,19 +266,25 @@ Purpose:
 
 - tune event intake token behavior, allowed hosts, rate limiting, and replay controls
 
-The rate-limit filters receive the route scope as their second argument: `events_batch`, `attribution_token_sign`, `attribution_token_verify`, `whatsapp_ref` (#145) and `cookie_reissue` (the attribution cookie re-issue route, #141). The reference-code TTL follows the attribution retention (`cookie_days`). Two filters bound the table (#145):
+The rate-limit filters receive the route scope as their second argument: `events_batch`, `attribution_token_sign`, `attribution_token_verify`, `whatsapp_ref` (#145) and `cookie_reissue` (the attribution cookie re-issue route, #141). The reference-code TTL follows the attribution retention (`cookie_days`). Three filters bound the table (#145):
 
 ### `clicutcl_whatsapp_ref_max_rows`
 
-Maximum rows in `wp_clicutcl_whatsapp_refs` (default `50000`, minimum 1). At the ceiling `POST /clicutcl/v2/whatsapp-ref` answers 503 `whatsapp_ref_capacity` and stores nothing until the daily purge frees room.
+Maximum rows in `wp_clicutcl_whatsapp_refs` (default `50000`, minimum 1). At the ceiling `POST /clicutcl/v2/whatsapp-ref` first purges expired rows and, if the table is still full, evicts the oldest 500 rows (a tenth of a smaller ceiling) before inserting; it answers 503 `whatsapp_ref_capacity` only when that eviction fails.
 
 - `int $max_rows`
 
 ### `clicutcl_whatsapp_ref_max_per_visitor`
 
-Maximum live (unexpired) rows per `visitor_id` (default `20`, minimum 1). Beyond it the route answers 429 `whatsapp_ref_visitor_limit`.
+Maximum creations per (`visitor_id`, client IP) pair in a 24-hour window (default `20`, minimum 1); an empty `visitor_id` is counted on the IP alone. Beyond it the route answers 429 `whatsapp_ref_visitor_limit`.
 
 - `int $max_per_visitor`
+
+### `clicutcl_whatsapp_ref_max_per_ip`
+
+Maximum creations per client IP in a 24-hour window (default `100`, minimum 1; since 1.13.0). Counted in a transient keyed on a keyed hash of the IP, never stored in the table. Beyond it the route answers 429 `whatsapp_ref_ip_limit` before any database write.
+
+- `int $max_per_ip`
 
 ## Webhook Security
 
@@ -364,7 +370,7 @@ Purpose:
 
 Purpose:
 
-- provide trusted proxy lists for request normalization
+- provide trusted proxy lists for request normalization; with a trusted `REMOTE_ADDR` the client IP is the rightmost untrusted `X-Forwarded-For` entry, then a valid `CF-Connecting-IP`, then `REMOTE_ADDR` (see [SECURITY-PRIVACY.md](../guides/SECURITY-PRIVACY.md))
 
 ## Diagnostics and Telemetry
 

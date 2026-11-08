@@ -40,6 +40,7 @@ Operational and readiness keys:
 - `clicutcl_whatsapp_refs_table_ready`
 - `clicutcl_whatsapp_refs_table_checked_at`
 - `clicutcl_db_version` (schema version; `Installer::maybe_upgrade()` re-runs `dbDelta` on existing installs until it matches `Installer::DB_VERSION`)
+- Claim-lock option rows, without a persistent object cache: `clicutcl_purchase_lock_<order_id>`, `clicutcl_edd_purchase_lock_<order_id>`, `clicutcl_um_signup_lock_<user_id>` and `clicutcl_form_claim_<hash>` (all `<token>|<unix time>`, see below). A request that dies holding one leaves the row behind, so the daily cleanup (`Claim_Lock::purge_stale()`, before the events-table check) deletes rows of those names whose stored time is more than a day old (oldest 500 examined per run, each through the row-conditional delete) and uninstall deletes all of them unless `clicutcl_preserve_data_on_uninstall`.
 - `clicutcl_purchase_lock_<order_id>` (short-lived, `autoload = no`, value `<uuid4>|<unix time>`; written by `WooCommerce::push_purchase_event()` only when no persistent object cache is present, deleted by a row-conditional `$wpdb->delete()` on its exact value after `_clicutcl_tracking_sent` is saved, taken over the same way after 30 s if a request died holding it; with a persistent object cache the same key holds the uuid in cache group `clicutcl` with a 30 s TTL instead)
 
 ## Option Responsibilities
@@ -263,7 +264,7 @@ Columns:
 - `snapshot` -- JSON `{ first_touch, last_touch, click_ids }` from the signed-token allowlist
 - `created_at`, `expires_at` -- UTC; `expires_at = created_at + cookie_days` (default 90)
 
-Row creation and bounds: A row is created only after a visitor interacts with a WhatsApp link: first pointer-over, focus or pointer-down on the link, a click on it, or (touch screens, where a tap is too short to register in time) the first touch anywhere on a page that holds a WhatsApp link. A page view alone creates nothing; a visitor who never touches or hovers the page, or a page without a WhatsApp link, creates no row. The table is bounded: at most 20 live rows per `visitor_id` and 50 000 rows in total (both filterable, see [HOOKS-REFERENCE.md](../reference/HOOKS-REFERENCE.md)); beyond either the route stores nothing. The table-wide count is cached in the transient `clicutcl_whatsapp_refs_count` (5 minutes; inserts bump it, purges drop it).
+Row creation and bounds: A row is created only after a visitor interacts with a WhatsApp link: first pointer-over, focus or pointer-down on the link, a click on it, or (touch screens, where a tap is too short to register in time) the first touch anywhere on a page that holds a WhatsApp link. A page view alone creates nothing; a visitor who never touches or hovers the page, or a page without a WhatsApp link, creates no row. The table is bounded (all three limits filterable, see [HOOKS-REFERENCE.md](../reference/HOOKS-REFERENCE.md)): at most 100 creations per client IP and 20 per (`visitor_id`, client IP) pair per 24 hours, and 50 000 rows in total. The two per-client limits are counters in transients `clicutcl_wa_ip_<hash>` and `clicutcl_wa_vis_<hash>` (`{count, expiry}`, the object cache when there is one) keyed on a keyed hash of the IP, so no IP address is stored in the table or in a key; they are fixed 24-hour windows updated without a lock (concurrent requests can overshoot slightly) and an empty `visitor_id` is counted on the IP alone. Over a per-client limit the route stores nothing. At the row ceiling the store first purges expired rows and, if still full, deletes the oldest 500 rows (`ORDER BY id ASC LIMIT`; a tenth of a smaller ceiling) before inserting; only a failed eviction answers 503. The table-wide count is cached in the transient `clicutcl_whatsapp_refs_count` (5 minutes; inserts bump it, purges and evictions drop it).
 
 Retention and lifecycle: `Cleanup::run_cleanup()` deletes `expires_at < now` and `created_at < now - retention` rows in batches of 1000 (up to 20 per run); lookups ignore expired rows even before the purge; the Diagnostics purge truncates the table; uninstall drops it; `Privacy_Handler` exports and deletes the rows of the `visitor_id` values found in the subject's logged events (one matching rule for both). The daily purge runs before the events-table check, so a missing events table does not stop it. `Installer::DB_VERSION` is 5 and is recorded only when this table exists, like the touch-events table.
 
@@ -423,6 +424,7 @@ read, or sent marker. An order's historical grant cannot authorize this browser 
 - removes plugin options
 - clears scheduled hooks
 - clears ClickTrail transients
+- removes claim-lock option rows (`clicutcl_*_lock_*`, `clicutcl_form_claim_*`)
 - removes allowlisted ClickTrail Woo order metadata through the WooCommerce CRUD API
 - drops the queue, events, and touch events tables by default
 

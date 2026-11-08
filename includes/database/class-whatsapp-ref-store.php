@@ -40,9 +40,24 @@ class Whatsapp_Ref_Store {
 	private const DEFAULT_MAX_ROWS = 50000;
 
 	/**
-	 * Default ceiling on live rows per `visitor_id`.
+	 * Default ceiling on creations per (`visitor_id`, client IP) pair per counter window.
 	 */
 	private const DEFAULT_MAX_PER_VISITOR = 20;
+
+	/**
+	 * Default ceiling on creations per client IP per counter window.
+	 */
+	private const DEFAULT_MAX_PER_IP = 100;
+
+	/**
+	 * Seconds a creation counter lives (opened by the first creation it counts).
+	 */
+	private const COUNTER_WINDOW = DAY_IN_SECONDS;
+
+	/**
+	 * Oldest rows evicted in one statement when the table is full of live rows.
+	 */
+	private const EVICT_BATCH = 500;
 
 	/**
 	 * Transient holding the cached table row count.
@@ -184,17 +199,61 @@ class Whatsapp_Ref_Store {
 	}
 
 	/**
+	 * Keyed hash of a client IP for the creation counters. The IP itself is never stored: not in
+	 * the table, and not in a counter key.
+	 *
+	 * @param string $ip Client IP.
+	 * @return string 32 hex characters.
+	 */
+	public static function hash_client_ip( string $ip ): string {
+		return substr( hash_hmac( 'sha256', $ip, wp_salt( 'auth' ) ), 0, 32 );
+	}
+
+	/**
+	 * Counter key for creations from one client IP.
+	 *
+	 * @param string $ip_hash Output of hash_client_ip().
+	 * @return string
+	 */
+	public static function ip_counter_key( string $ip_hash ): string {
+		return 'clicutcl_wa_ip_' . $ip_hash;
+	}
+
+	/**
+	 * Counter key for creations by one (`visitor_id`, client IP) pair. The `visitor_id` is chosen by
+	 * the client, so it never counts alone; an empty one is simply the hashed IP on its own.
+	 *
+	 * @param string $visitor_id `visitor_id` as stored on the row (may be '').
+	 * @param string $ip_hash    Output of hash_client_ip().
+	 * @return string
+	 */
+	public static function visitor_counter_key( string $visitor_id, string $ip_hash ): string {
+		return 'clicutcl_wa_vis_' . substr( hash( 'sha256', $visitor_id . '|' . $ip_hash ), 0, 32 );
+	}
+
+	/**
 	 * Insert a row; the unique `(blog_id, code)` key makes a duplicate code a no-op.
 	 *
-	 * Two ceilings come first, so a public route cannot fill the table: live rows per `visitor_id`
-	 * (`clicutcl_whatsapp_ref_max_per_visitor`, default 20) and rows in the table
-	 * (`clicutcl_whatsapp_ref_max_rows`, default 50 000; counted from a cached figure that inserts
-	 * bump and purges drop).
+	 * Three ceilings come first, so a public route cannot fill the table:
 	 *
-	 * @param array<string,mixed> $row Row built by build_row().
-	 * @return string `created`, `collision`, `visitor_limit`, `capacity` or `unavailable`.
+	 * - creations per client IP (`clicutcl_whatsapp_ref_max_per_ip`, default 100);
+	 * - creations per (`visitor_id`, client IP) pair (`clicutcl_whatsapp_ref_max_per_visitor`,
+	 *   default 20); an empty `visitor_id` is keyed on the IP alone;
+	 * - rows in the table (`clicutcl_whatsapp_ref_max_rows`, default 50 000; counted from a cached
+	 *   figure that inserts bump and purges drop). At the ceiling, expired rows are purged first and,
+	 *   if the table is still full, the oldest rows are evicted in one bounded batch so a flood
+	 *   cannot keep the feature down for the retention period.
+	 *
+	 * The two per-client ceilings are counters over a 24-hour window opened by the first creation
+	 * they count (transient, so the object cache when there is one), keyed on a hash of the IP. The
+	 * read-modify-write is not atomic: concurrent requests can overshoot a little, which is
+	 * acceptable for an abuse bound.
+	 *
+	 * @param array<string,mixed> $row     Row built by build_row().
+	 * @param string              $ip_hash Output of hash_client_ip() for the requesting client.
+	 * @return string `created`, `collision`, `ip_limit`, `visitor_limit`, `capacity` or `unavailable`.
 	 */
-	public static function create( array $row ): string {
+	public static function create( array $row, string $ip_hash ): string {
 		global $wpdb;
 
 		$table = self::table_name();
@@ -202,15 +261,20 @@ class Whatsapp_Ref_Store {
 			return 'unavailable';
 		}
 
+		$max_per_ip = max( 1, (int) apply_filters( 'clicutcl_whatsapp_ref_max_per_ip', self::DEFAULT_MAX_PER_IP ) );
+		$ip_key     = self::ip_counter_key( $ip_hash );
+		if ( self::counter_get( $ip_key ) >= $max_per_ip ) {
+			return 'ip_limit';
+		}
+
 		$max_per_visitor = max( 1, (int) apply_filters( 'clicutcl_whatsapp_ref_max_per_visitor', self::DEFAULT_MAX_PER_VISITOR ) );
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Plugin-owned table name.
-		$visitor_rows = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM {$table} WHERE blog_id = %d AND visitor_id = %s AND expires_at > %s", $row['blog_id'], $row['visitor_id'], $row['created_at'] ) );
-		if ( $visitor_rows >= $max_per_visitor ) {
+		$visitor_key     = self::visitor_counter_key( (string) $row['visitor_id'], $ip_hash );
+		if ( self::counter_get( $visitor_key ) >= $max_per_visitor ) {
 			return 'visitor_limit';
 		}
 
 		$max_rows = max( 1, (int) apply_filters( 'clicutcl_whatsapp_ref_max_rows', self::DEFAULT_MAX_ROWS ) );
-		if ( self::row_count( $table ) >= $max_rows ) {
+		if ( self::row_count( $table ) >= $max_rows && ! self::make_room( $table, $max_rows ) ) {
 			return 'capacity';
 		}
 
@@ -227,12 +291,75 @@ class Whatsapp_Ref_Store {
 			return 'collision';
 		}
 
+		self::counter_bump( $ip_key );
+		self::counter_bump( $visitor_key );
+
 		$cached = get_transient( self::COUNT_TRANSIENT );
 		if ( false !== $cached ) {
 			set_transient( self::COUNT_TRANSIENT, (int) $cached + 1, self::COUNT_TTL );
 		}
 
 		return 'created';
+	}
+
+	/**
+	 * Free room in a full table: purge expired rows, then, if it is still full, evict the oldest
+	 * rows (lowest `id`, the creation order) in one bounded batch.
+	 *
+	 * @param string $table    Table name.
+	 * @param int    $max_rows Row ceiling.
+	 * @return bool Whether there is room for one more row.
+	 */
+	private static function make_room( string $table, int $max_rows ): bool {
+		global $wpdb;
+
+		self::purge_expired( self::retention_days(), time() );
+		if ( self::row_count( $table ) < $max_rows ) {
+			return true;
+		}
+
+		// A small ceiling (a filter can set one) must not be wiped by a fixed batch.
+		$batch = max( 1, min( self::EVICT_BATCH, intdiv( $max_rows, 10 ) ) );
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned table name; bounded eviction of the oldest rows.
+		$deleted = $wpdb->query( $wpdb->prepare( "DELETE FROM {$table} ORDER BY id ASC LIMIT %d", $batch ) );
+		delete_transient( self::COUNT_TRANSIENT );
+
+		return false !== $deleted && (int) $deleted > 0;
+	}
+
+	/**
+	 * Creations counted under a key within its window.
+	 *
+	 * @param string $key Counter key.
+	 * @return int
+	 */
+	private static function counter_get( string $key ): int {
+		$state = get_transient( $key );
+		if ( ! is_array( $state ) || ! isset( $state['n'], $state['exp'] ) || (int) $state['exp'] <= time() ) {
+			return 0;
+		}
+
+		return (int) $state['n'];
+	}
+
+	/**
+	 * Count one creation under a key; the first one in a window opens it.
+	 *
+	 * @param string $key Counter key.
+	 * @return void
+	 */
+	private static function counter_bump( string $key ): void {
+		$now   = time();
+		$state = get_transient( $key );
+		if ( ! is_array( $state ) || ! isset( $state['n'], $state['exp'] ) || (int) $state['exp'] <= $now ) {
+			$state = array(
+				'n'   => 0,
+				'exp' => $now + self::COUNTER_WINDOW,
+			);
+		}
+
+		$state['n'] = (int) $state['n'] + 1;
+		set_transient( $key, $state, max( 1, (int) $state['exp'] - $now ) );
 	}
 
 	/**
@@ -249,7 +376,7 @@ class Whatsapp_Ref_Store {
 			return (int) $cached;
 		}
 
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared -- Plugin-owned table name; no user input.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned table name; no user input.
 		$count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" );
 		set_transient( self::COUNT_TRANSIENT, $count, self::COUNT_TTL );
 

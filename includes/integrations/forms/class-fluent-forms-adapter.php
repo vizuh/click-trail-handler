@@ -130,17 +130,18 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 		}
 
 		// phpcs:disable WordPress.Security.NonceVerification.Missing -- Fluent Forms verifies its own request; the value is compared to a constant and never stored.
-		$raw = isset( $_POST['data'] ) ? wp_unslash( $_POST['data'] ) : array();
-		if ( is_string( $raw ) ) {
+		// Only the marker is read from the raw request, and only to compare it with a constant.
+		if ( isset( $_POST['data'] ) && is_string( $_POST['data'] ) ) {
 			$parsed = array();
-			parse_str( $raw, $parsed );
-			$raw = $parsed;
-		}
-		if ( is_array( $raw ) && isset( $raw[ self::FILL_MARKER_FIELD ] ) && $this->has_fill_marker( $raw[ self::FILL_MARKER_FIELD ] ) ) {
+			parse_str( sanitize_text_field( wp_unslash( $_POST['data'] ) ), $parsed );
+			if ( isset( $parsed[ self::FILL_MARKER_FIELD ] ) && $this->has_fill_marker( $parsed[ self::FILL_MARKER_FIELD ] ) ) {
+				return true;
+			}
+		} elseif ( isset( $_POST['data'][ self::FILL_MARKER_FIELD ] ) && is_scalar( $_POST['data'][ self::FILL_MARKER_FIELD ] ) && $this->has_fill_marker( sanitize_text_field( wp_unslash( $_POST['data'][ self::FILL_MARKER_FIELD ] ) ) ) ) {
 			return true;
 		}
 
-		return isset( $_POST[ self::FILL_MARKER_FIELD ] ) && $this->has_fill_marker( wp_unslash( $_POST[ self::FILL_MARKER_FIELD ] ) );
+		return isset( $_POST[ self::FILL_MARKER_FIELD ] ) && is_scalar( $_POST[ self::FILL_MARKER_FIELD ] ) && $this->has_fill_marker( sanitize_text_field( wp_unslash( $_POST[ self::FILL_MARKER_FIELD ] ) ) );
 		// phpcs:enable WordPress.Security.NonceVerification.Missing
 	}
 

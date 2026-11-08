@@ -31,6 +31,7 @@ namespace {
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-webhook-auth.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/database/class-whatsapp-ref-store.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/api/class-tracking-controller.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-claim-lock.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/utils/class-cleanup.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/privacy/class-privacy-handler.php';
 
@@ -53,10 +54,19 @@ namespace {
 	 */
 	final class Fake_Whatsapp_Wpdb {
 		public string $prefix = 'wp_';
+		public string $options = 'wp_options';
 		public bool $table_exists = true;
 		/** @var array<string,array<string,string>> */
 		public array $rows = array();
 		public int $count_queries = 0;
+		public bool $fail_evict   = false;
+		/** @var int[] LIMIT of every eviction statement seen. */
+		public array $evictions = array();
+		public int $insert_attempts = 0;
+
+		public function esc_like( string $text ): string {
+			return addcslashes( $text, '_%\\' );
+		}
 
 		public function prepare( string $query, ...$args ): array {
 			if ( 1 === count( $args ) && is_array( $args[0] ) ) {
@@ -87,6 +97,9 @@ namespace {
 		}
 
 		public function get_results( array $q, $output = null ): array {
+			if ( false !== strpos( $q['sql'], 'FROM wp_options' ) ) {
+				return array(); // Claim-lock rows: none in this fake.
+			}
 			$ids = array_slice( $q['args'], 1, -1 );
 			$out = array();
 			foreach ( $this->rows as $row ) {
@@ -101,6 +114,7 @@ namespace {
 			$sql  = $q['sql'];
 			$args = $q['args'];
 			if ( 0 === strpos( $sql, 'INSERT INTO' ) ) {
+				++$this->insert_attempts;
 				// Column order of Whatsapp_Ref_Store::build_row().
 				$row = array_combine( array( 'blog_id', 'code', 'visitor_id', 'selected_click_id_key', 'selected_click_id', 'snapshot', 'created_at', 'expires_at' ), array_map( 'strval', $args ) );
 				$key = $row['blog_id'] . ':' . $row['code'];
@@ -109,6 +123,22 @@ namespace {
 				}
 				$this->rows[ $key ] = $row;
 				return 1;
+			}
+			if ( 0 === strpos( $sql, 'DELETE FROM' ) && false !== strpos( $sql, 'ORDER BY id ASC LIMIT' ) ) {
+				// Rows are kept in insertion order, which is `id` order.
+				$this->evictions[] = (int) $args[0];
+				if ( $this->fail_evict ) {
+					return false;
+				}
+				$deleted = 0;
+				foreach ( array_keys( $this->rows ) as $key ) {
+					if ( $deleted >= (int) $args[0] ) {
+						break;
+					}
+					unset( $this->rows[ $key ] );
+					++$deleted;
+				}
+				return $deleted;
 			}
 			if ( 0 === strpos( $sql, 'DELETE FROM' ) && false !== strpos( $sql, 'visitor_id IN' ) ) {
 				$deleted = 0;
@@ -426,19 +456,40 @@ namespace {
 
 		// ----- Table-fill caps -----
 
-		public function test_a_visitor_cannot_hold_more_than_the_cap_of_live_rows(): void {
+		/**
+		 * Row for a direct Whatsapp_Ref_Store::create() call.
+		 *
+		 * @param string $code       Code.
+		 * @param string $visitor_id Visitor ID.
+		 * @return array<string,mixed>
+		 */
+		private function store_row( string $code, string $visitor_id = 'vis_123' ): array {
+			return Whatsapp_Ref_Store::build_row( $code, array( 'gclid' => 'G1' ), 'gclid', $visitor_id, 1, 90, time() );
+		}
+
+		private function fill_rows( int $count, string $prefix = 'v' ): void {
+			for ( $i = 1; $i <= $count; $i++ ) {
+				$code                              = sprintf( 'R%07d', $i );
+				$this->db->rows[ '1:' . $code ] = array(
+					'blog_id'    => '1',
+					'code'       => $code,
+					'visitor_id' => $prefix . $i,
+					'created_at' => gmdate( 'Y-m-d H:i:s', time() - ( $count - $i ) ),
+					'expires_at' => gmdate( 'Y-m-d H:i:s', time() + DAY_IN_SECONDS ),
+				);
+			}
+		}
+
+		public function test_a_visitor_cannot_create_more_than_the_cap_from_one_address(): void {
 			$GLOBALS['clicktrail_test_filters']['clicutcl_whatsapp_ref_max_per_visitor'] = static fn() => 2;
 			$this->assertTrue( $this->create( $this->body( array( 'code' => 'AAAAAAAA' ) ) )['success'] );
 			$this->assertTrue( $this->create( $this->body( array( 'code' => 'BBBBBBBB' ) ) )['success'] );
 			$third = $this->create( $this->body( array( 'code' => 'CCCCCCCC' ) ) );
 			$this->assertTrue( is_wp_error( $third ) );
 			$this->assertSame( 'whatsapp_ref_visitor_limit', $third->get_error_code() );
+			$this->assertSame( 429, $third->get_error_data()['status'] );
 			$this->assertCount( 2, $this->db->rows, 'nothing stored over the cap' );
 			$this->assertTrue( $this->create( $this->body( array( 'code' => 'DDDDDDDD', 'visitor_id' => 'another' ) ) )['success'], 'another visitor is unaffected' );
-
-			// An expired row no longer counts.
-			$this->db->rows['1:AAAAAAAA']['expires_at'] = gmdate( 'Y-m-d H:i:s', time() - 5 );
-			$this->assertTrue( $this->create( $this->body( array( 'code' => 'EEEEEEEE' ) ) )['success'] );
 		}
 
 		public function test_the_per_visitor_cap_defaults_to_twenty(): void {
@@ -450,20 +501,135 @@ namespace {
 			$this->assertSame( 'whatsapp_ref_visitor_limit', $this->create( $this->body( array( 'code' => 'ZZZZZZZZ' ) ) )->get_error_code() );
 		}
 
-		public function test_a_global_row_ceiling_stops_inserts_and_purge_frees_capacity(): void {
+		public function test_the_per_ip_quota_defaults_to_one_hundred_and_answers_429_before_any_write(): void {
+			$GLOBALS['clicktrail_test_filters']['clicutcl_whatsapp_ref_max_per_visitor'] = static fn() => 1000;
+			$GLOBALS['clicktrail_test_filters']['clicutcl_whatsapp_ref_max_rows']        = static fn() => 100000;
+			$ip = Whatsapp_Ref_Store::hash_client_ip( '203.0.113.9' );
+			for ( $i = 0; $i < 100; $i++ ) {
+				$row = $this->store_row( 'AAAAA' . 'ABCDEFGH'[ intdiv( $i, 64 ) ] . 'ABCDEFGH'[ intdiv( $i, 8 ) % 8 ] . 'ABCDEFGH'[ $i % 8 ], 'v' . $i );
+				$this->assertSame( 'created', Whatsapp_Ref_Store::create( $row, $ip ), 'creation ' . $i );
+			}
+			$attempts = $this->db->insert_attempts;
+			$this->assertSame( 'ip_limit', Whatsapp_Ref_Store::create( $this->store_row( 'ZZZZZZZZ', 'fresh' ), $ip ) );
+			$this->assertSame( $attempts, $this->db->insert_attempts, 'no insert attempted over the quota' );
+			$this->assertCount( 100, $this->db->rows );
+			$this->assertSame( 'created', Whatsapp_Ref_Store::create( $this->store_row( 'BBBBBBBB', 'fresh' ), Whatsapp_Ref_Store::hash_client_ip( '203.0.113.10' ) ), 'another address is unaffected' );
+		}
+
+		public function test_the_ip_quota_filter_and_the_route_error(): void {
+			$GLOBALS['clicktrail_test_filters']['clicutcl_whatsapp_ref_max_per_ip'] = static fn() => 2;
+			$this->assertTrue( $this->create( $this->body( array( 'code' => 'AAAAAAAA', 'visitor_id' => 'a' ) ) )['success'] );
+			$this->assertTrue( $this->create( $this->body( array( 'code' => 'BBBBBBBB', 'visitor_id' => 'b' ) ) )['success'] );
+			$attempts = $this->db->insert_attempts;
+			$third    = $this->create( $this->body( array( 'code' => 'CCCCCCCC', 'visitor_id' => 'c' ) ) );
+			$this->assertTrue( is_wp_error( $third ) );
+			$this->assertSame( 'whatsapp_ref_ip_limit', $third->get_error_code() );
+			$this->assertSame( 429, $third->get_error_data()['status'] );
+			$this->assertSame( $attempts, $this->db->insert_attempts );
+		}
+
+		public function test_a_collision_does_not_consume_quota(): void {
+			$GLOBALS['clicktrail_test_filters']['clicutcl_whatsapp_ref_max_per_ip'] = static fn() => 2;
+			$ip = Whatsapp_Ref_Store::hash_client_ip( '203.0.113.9' );
+			$this->assertSame( 'created', Whatsapp_Ref_Store::create( $this->store_row( 'AAAAAAAA', 'a' ), $ip ) );
+			$this->assertSame( 'collision', Whatsapp_Ref_Store::create( $this->store_row( 'AAAAAAAA', 'b' ), $ip ) );
+			$this->assertSame( 'created', Whatsapp_Ref_Store::create( $this->store_row( 'BBBBBBBB', 'c' ), $ip ) );
+		}
+
+		public function test_an_expired_counter_window_resets_the_quota(): void {
+			$GLOBALS['clicktrail_test_filters']['clicutcl_whatsapp_ref_max_per_ip'] = static fn() => 1;
+			$ip = Whatsapp_Ref_Store::hash_client_ip( '203.0.113.9' );
+			$this->assertSame( 'created', Whatsapp_Ref_Store::create( $this->store_row( 'AAAAAAAA', 'a' ), $ip ) );
+			$this->assertSame( 'ip_limit', Whatsapp_Ref_Store::create( $this->store_row( 'BBBBBBBB', 'b' ), $ip ) );
+			$key = Whatsapp_Ref_Store::ip_counter_key( $ip );
+			$GLOBALS['clicktrail_test_transients'][ $key ]['exp'] = time() - 1;
+			$this->assertSame( 'created', Whatsapp_Ref_Store::create( $this->store_row( 'BBBBBBBB', 'b' ), $ip ) );
+		}
+
+		public function test_counter_keys_hold_a_hash_of_the_ip_never_the_ip_and_the_visitor_cap_is_per_pair(): void {
+			$ip_a = Whatsapp_Ref_Store::hash_client_ip( '203.0.113.9' );
+			$ip_b = Whatsapp_Ref_Store::hash_client_ip( '203.0.113.10' );
+			$this->assertNotSame( $ip_a, $ip_b );
+			$this->assertMatchesRegularExpression( '/^[0-9a-f]{32}$/', $ip_a );
+			$this->assertStringNotContainsString( '203.0.113.9', Whatsapp_Ref_Store::ip_counter_key( $ip_a ) );
+			$this->assertStringNotContainsString( '203.0.113.9', Whatsapp_Ref_Store::visitor_counter_key( 'vis', $ip_a ) );
+
+			$this->assertNotSame( Whatsapp_Ref_Store::visitor_counter_key( 'vis', $ip_a ), Whatsapp_Ref_Store::visitor_counter_key( 'vis', $ip_b ), 'same visitor_id, different address' );
+			$this->assertNotSame( Whatsapp_Ref_Store::visitor_counter_key( 'vis', $ip_a ), Whatsapp_Ref_Store::visitor_counter_key( 'other', $ip_a ), 'same address, different visitor_id' );
+			$this->assertNotSame( Whatsapp_Ref_Store::visitor_counter_key( '', $ip_a ), Whatsapp_Ref_Store::ip_counter_key( $ip_a ), 'empty id is its own namespace' );
+			$this->assertSame( Whatsapp_Ref_Store::visitor_counter_key( 'vis', $ip_a ), Whatsapp_Ref_Store::visitor_counter_key( 'vis', $ip_a ) );
+
+			// The table holds no address column or value.
+			Whatsapp_Ref_Store::create( $this->store_row( 'AAAAAAAA' ), $ip_a );
+			$this->assertStringNotContainsString( $ip_a, json_encode( $this->db->rows ) );
+		}
+
+		public function test_a_forged_visitor_id_cannot_exhaust_another_clients_cap(): void {
+			$GLOBALS['clicktrail_test_filters']['clicutcl_whatsapp_ref_max_per_visitor'] = static fn() => 2;
+			$attacker = Whatsapp_Ref_Store::hash_client_ip( '198.51.100.1' );
+			$victim   = Whatsapp_Ref_Store::hash_client_ip( '203.0.113.9' );
+			$this->assertSame( 'created', Whatsapp_Ref_Store::create( $this->store_row( 'AAAAAAAA', 'vis_victim' ), $attacker ) );
+			$this->assertSame( 'created', Whatsapp_Ref_Store::create( $this->store_row( 'BBBBBBBB', 'vis_victim' ), $attacker ) );
+			$this->assertSame( 'visitor_limit', Whatsapp_Ref_Store::create( $this->store_row( 'CCCCCCCC', 'vis_victim' ), $attacker ) );
+			$this->assertSame( 'created', Whatsapp_Ref_Store::create( $this->store_row( 'DDDDDDDD', 'vis_victim' ), $victim ), 'the real owner of the id is not blocked' );
+		}
+
+		public function test_anonymous_requests_are_capped_per_address_not_globally(): void {
+			$GLOBALS['clicktrail_test_filters']['clicutcl_whatsapp_ref_max_per_visitor'] = static fn() => 2;
+			$a = Whatsapp_Ref_Store::hash_client_ip( '198.51.100.1' );
+			$b = Whatsapp_Ref_Store::hash_client_ip( '203.0.113.9' );
+			$this->assertSame( 'created', Whatsapp_Ref_Store::create( $this->store_row( 'AAAAAAAA', '' ), $a ) );
+			$this->assertSame( 'created', Whatsapp_Ref_Store::create( $this->store_row( 'BBBBBBBB', '' ), $a ) );
+			$this->assertSame( 'visitor_limit', Whatsapp_Ref_Store::create( $this->store_row( 'CCCCCCCC', '' ), $a ) );
+			$this->assertSame( 'created', Whatsapp_Ref_Store::create( $this->store_row( 'DDDDDDDD', '' ), $b ), 'another anonymous visitor still registers' );
+			$this->assertSame( 'created', Whatsapp_Ref_Store::create( $this->store_row( 'EEEEEEEE', 'named' ), $a ), 'a named visitor behind the same address has its own count' );
+		}
+
+		public function test_a_full_table_evicts_the_oldest_rows_instead_of_rejecting(): void {
+			$GLOBALS['clicktrail_test_filters']['clicutcl_whatsapp_ref_max_rows'] = static fn() => 20;
+			$this->fill_rows( 20 );
+			$result = $this->create( $this->body( array( 'code' => 'CCCCCCCC', 'visitor_id' => 'new' ) ) );
+			$this->assertIsArray( $result );
+			$this->assertSame( array( 2 ), $this->db->evictions, 'a tenth of a small ceiling' );
+			$this->assertArrayNotHasKey( '1:R0000001', $this->db->rows );
+			$this->assertArrayNotHasKey( '1:R0000002', $this->db->rows );
+			$this->assertArrayHasKey( '1:R0000003', $this->db->rows, 'only the oldest went' );
+			$this->assertArrayHasKey( '1:CCCCCCCC', $this->db->rows );
+			$this->assertCount( 19, $this->db->rows );
+		}
+
+		public function test_eviction_is_bounded_to_five_hundred_rows(): void {
+			$GLOBALS['clicktrail_test_filters']['clicutcl_whatsapp_ref_max_rows'] = static fn() => 20000;
+			$this->fill_rows( 20000 );
+			$this->assertIsArray( $this->create( $this->body( array( 'code' => 'CCCCCCCC', 'visitor_id' => 'new' ) ) ) );
+			$this->assertSame( array( 500 ), $this->db->evictions );
+			$this->assertCount( 20000 - 500 + 1, $this->db->rows );
+			$this->assertArrayNotHasKey( '1:R0000500', $this->db->rows );
+			$this->assertArrayHasKey( '1:R0000501', $this->db->rows );
+		}
+
+		public function test_expired_rows_are_purged_before_anything_live_is_evicted(): void {
+			$GLOBALS['clicktrail_test_filters']['clicutcl_whatsapp_ref_max_rows'] = static fn() => 10;
+			$this->fill_rows( 10 );
+			$this->db->rows['1:R0000007']['expires_at'] = gmdate( 'Y-m-d H:i:s', time() - 5 );
+			$this->assertIsArray( $this->create( $this->body( array( 'code' => 'CCCCCCCC', 'visitor_id' => 'new' ) ) ) );
+			$this->assertSame( array(), $this->db->evictions, 'the purge made room' );
+			$this->assertArrayHasKey( '1:R0000001', $this->db->rows );
+			$this->assertArrayNotHasKey( '1:R0000007', $this->db->rows );
+		}
+
+		public function test_capacity_is_reported_only_when_eviction_fails(): void {
 			$GLOBALS['clicktrail_test_filters']['clicutcl_whatsapp_ref_max_rows'] = static fn() => 2;
-			$this->assertIsArray( $this->create( $this->body( array( 'code' => 'AAAAAAAA', 'visitor_id' => 'v1' ) ) ) );
-			$this->assertIsArray( $this->create( $this->body( array( 'code' => 'BBBBBBBB', 'visitor_id' => 'v2' ) ) ) );
-			$full = $this->create( $this->body( array( 'code' => 'CCCCCCCC', 'visitor_id' => 'v3' ) ) );
+			$this->fill_rows( 2 );
+			$this->db->fail_evict = true;
+			$full                 = $this->create( $this->body( array( 'code' => 'CCCCCCCC', 'visitor_id' => 'v3' ) ) );
 			$this->assertTrue( is_wp_error( $full ) );
 			$this->assertSame( 'whatsapp_ref_capacity', $full->get_error_code() );
+			$this->assertSame( 503, $full->get_error_data()['status'] );
 			$this->assertCount( 2, $this->db->rows );
 
-			// The daily purge removes an expired row and the next insert fits again.
-			$this->db->rows['1:AAAAAAAA']['expires_at'] = gmdate( 'Y-m-d H:i:s', time() - 5 );
-			$this->assertSame( 1, Whatsapp_Ref_Store::purge_expired( 90, time() ) );
-			$this->assertIsArray( $this->create( $this->body( array( 'code' => 'CCCCCCCC', 'visitor_id' => 'v3' ) ) ) );
-			$this->assertCount( 2, $this->db->rows );
+			$this->db->fail_evict = false;
+			$this->assertIsArray( $this->create( $this->body( array( 'code' => 'CCCCCCCC', 'visitor_id' => 'v3' ) ) ), 'recovers once eviction works' );
 		}
 
 		public function test_the_row_count_is_cached_between_inserts(): void {
@@ -472,8 +638,8 @@ namespace {
 			$after_first = $this->db->count_queries;
 			$this->create( $this->body( array( 'code' => 'BBBBBBBB', 'visitor_id' => 'v2' ) ) );
 			$this->create( $this->body( array( 'code' => 'CCCCCCCC', 'visitor_id' => 'v3' ) ) );
-			// Only the per-visitor count runs per insert; the table-wide count is read once and bumped.
-			$this->assertSame( $after_first + 2, $this->db->count_queries );
+			// The table-wide count is read once and bumped; no per-visitor COUNT runs any more.
+			$this->assertSame( $after_first, $this->db->count_queries );
 		}
 
 		// ----- Exactly 8 characters -----

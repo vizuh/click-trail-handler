@@ -159,6 +159,11 @@ class Privacy_Handler {
 			$rows = is_array( $rows ) ? $rows : array();
 		}
 
+		// Paging follows the rows the page query returned; the SQL match is only a prefilter, so
+		// rows that merely contain the email or ID as a substring are dropped here.
+		$fetched = count( $rows );
+		$rows    = $this->filter_rows_for_subject( $rows, $email, $user_id );
+
 		$export_items = array();
 
 		foreach ( $rows as $row ) {
@@ -207,7 +212,7 @@ class Privacy_Handler {
 
 		return array(
 			'data' => $export_items,
-			'done' => count( $rows ) < self::PAGE_SIZE && $touch_items['done'] && $woo_items['done'] && $edd_items['done'],
+			'done' => $fetched < self::PAGE_SIZE && $touch_items['done'] && $woo_items['done'] && $edd_items['done'],
 		);
 	}
 
@@ -292,7 +297,7 @@ class Privacy_Handler {
 				ARRAY_A
 			);
 			$rows = is_array( $rows ) ? $rows : array();
-			$ids  = array_merge( $ids, \CLICUTCL\Database\Whatsapp_Ref_Store::visitor_ids_from_event_rows( $rows ) );
+			$ids  = array_merge( $ids, \CLICUTCL\Database\Whatsapp_Ref_Store::visitor_ids_from_event_rows( $this->filter_rows_for_subject( $rows, $email, $user_id ) ) );
 			if ( count( $rows ) < self::PAGE_SIZE ) {
 				break;
 			}
@@ -320,27 +325,15 @@ class Privacy_Handler {
 			);
 		}
 
-		$table = $this->get_events_table_name();
-		$rows  = array();
+		$table     = $this->get_events_table_name();
+		$rows      = array();
+		$scan_done = true;
 
 		$user_id = (int) email_exists( $email );
 		if ( $this->table_exists( $table ) ) {
-			$table_escaped = esc_sql( $table );
-			$where         = $this->build_event_match_where( $email, $user_id );
-
-			// Always read first page for erasure to avoid offset skipping after deletions.
-			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name and WHERE clause are plugin-owned.
-			$query = "SELECT id, event_data FROM {$table_escaped} WHERE {$where['sql']} ORDER BY id ASC LIMIT %d";
-
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Required for privacy erasure callbacks.
-			$rows = $wpdb->get_results(
-				$wpdb->prepare(
-					$query, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $query built above.
-					array_merge( $where['params'], array( self::PAGE_SIZE ) )
-				),
-				ARRAY_A
-			);
-			$rows = is_array( $rows ) ? $rows : array();
+			$scan      = $this->select_subject_rows_for_erase( esc_sql( $table ), $this->build_event_match_where( $email, $user_id ), $email, $user_id );
+			$rows      = $scan['rows'];
+			$scan_done = $scan['done'];
 		}
 
 		$table_escaped = esc_sql( $table );
@@ -452,7 +445,7 @@ class Privacy_Handler {
 			'items_removed'  => $removed_any,
 			'items_retained' => $retained,
 			'messages'       => array_values( array_unique( $messages ) ),
-			'done'           => count( $rows ) < self::PAGE_SIZE && $woo['done'] && $edd['done'],
+			'done'           => $scan_done && $woo['done'] && $edd['done'],
 		);
 	}
 
@@ -492,9 +485,146 @@ class Privacy_Handler {
 	}
 
 	/**
+	 * Select up to one page of event rows that exactly belong to the subject, for erasure.
+	 *
+	 * The SQL match is a substring prefilter, so rows are verified in PHP. Candidates are read by
+	 * `id` cursor (not by page): a page of look-alike rows that are not deleted would otherwise be
+	 * re-read forever. The scan stops once a page of verified rows is collected or the table is
+	 * exhausted; `done` is true only for the latter, so the eraser is called again after a full page
+	 * and always makes progress (each call deletes the rows it returns).
+	 *
+	 * @param string                                     $table_escaped Escaped events table name.
+	 * @param array{sql:string,params:array<int,string>} $where         Prefilter from build_event_match_where().
+	 * @param string                                     $email         Email address.
+	 * @param int                                        $user_id       WordPress user ID (0 when none).
+	 * @return array{rows:array<int,array<string,mixed>>,done:bool}
+	 */
+	private function select_subject_rows_for_erase( string $table_escaped, array $where, string $email, int $user_id ): array {
+		global $wpdb;
+
+		$matched = array();
+		$last_id = 0;
+		while ( true ) {
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name and WHERE clause are plugin-owned.
+			$query = "SELECT id, event_data FROM {$table_escaped} WHERE id > %d AND {$where['sql']} ORDER BY id ASC LIMIT %d";
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- Required for privacy erasure callbacks; params merged dynamically.
+			$candidates = $wpdb->get_results(
+				$wpdb->prepare(
+					$query, // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $query built above.
+					array_merge( array( $last_id ), $where['params'], array( self::PAGE_SIZE ) )
+				),
+				ARRAY_A
+			);
+			$candidates = is_array( $candidates ) ? $candidates : array();
+
+			foreach ( $candidates as $candidate ) {
+				$last_id = max( $last_id, absint( $candidate['id'] ?? 0 ) );
+				if ( ! $this->event_row_belongs_to_subject( (string) ( $candidate['event_data'] ?? '' ), $email, $user_id ) ) {
+					continue;
+				}
+
+				$matched[] = $candidate;
+				if ( count( $matched ) >= self::PAGE_SIZE ) {
+					return array(
+						'rows' => $matched,
+						'done' => false,
+					);
+				}
+			}
+
+			if ( count( $candidates ) < self::PAGE_SIZE ) {
+				return array(
+					'rows' => $matched,
+					'done' => true,
+				);
+			}
+		}
+	}
+
+	/**
+	 * Keep only the rows whose payload exactly belongs to the subject.
+	 *
+	 * @param array<int,array<string,mixed>> $rows    Candidate rows with an `event_data` column.
+	 * @param string                         $email   Email address.
+	 * @param int                            $user_id WordPress user ID (0 when none).
+	 * @return array<int,array<string,mixed>>
+	 */
+	private function filter_rows_for_subject( array $rows, string $email, int $user_id ): array {
+		return array_values(
+			array_filter(
+				$rows,
+				function ( array $row ) use ( $email, $user_id ): bool {
+					return $this->event_row_belongs_to_subject( (string) ( $row['event_data'] ?? '' ), $email, $user_id );
+				}
+			)
+		);
+	}
+
+	/**
+	 * Whether an event payload exactly identifies the subject.
+	 *
+	 * A value matches when it is the email itself (whole value, case-insensitive: `b@x.com` is not
+	 * inside `bob@x.com`), a `user_id` field equal to the user ID (`5` is not `55`), or a `user_hash`
+	 * field equal to the user's salted hash. Fields are looked up at any depth, as the SQL prefilter
+	 * does. A payload that is not JSON matches only when the whole string is the email.
+	 *
+	 * @param string $event_data Raw `event_data`.
+	 * @param string $email      Email address.
+	 * @param int    $user_id    WordPress user ID (0 when none).
+	 * @return bool
+	 */
+	private function event_row_belongs_to_subject( string $event_data, string $email, int $user_id ): bool {
+		$email_lc = strtolower( trim( $email ) );
+		$decoded  = json_decode( $event_data, true );
+		if ( ! is_array( $decoded ) ) {
+			return '' !== $email_lc && strtolower( trim( $event_data ) ) === $email_lc;
+		}
+
+		$user_hash = $user_id > 0 ? hash( 'sha256', (string) $user_id . wp_salt( 'auth' ) ) : '';
+
+		return $this->payload_node_matches_subject( $decoded, $email_lc, $user_id, $user_hash );
+	}
+
+	/**
+	 * Depth-first exact match of a decoded payload node.
+	 *
+	 * @param array  $node      Decoded JSON node.
+	 * @param string $email_lc  Lower-cased email.
+	 * @param int    $user_id   WordPress user ID (0 when none).
+	 * @param string $user_hash Salted user hash ('' when no user).
+	 * @return bool
+	 */
+	private function payload_node_matches_subject( array $node, string $email_lc, int $user_id, string $user_hash ): bool {
+		foreach ( $node as $key => $value ) {
+			if ( is_array( $value ) ) {
+				if ( $this->payload_node_matches_subject( $value, $email_lc, $user_id, $user_hash ) ) {
+					return true;
+				}
+				continue;
+			}
+
+			if ( is_string( $value ) && '' !== $email_lc && strtolower( trim( $value ) ) === $email_lc ) {
+				return true;
+			}
+
+			if ( $user_id > 0 && 'user_id' === $key && ( is_int( $value ) || is_string( $value ) ) && (string) $value === (string) $user_id ) {
+				return true;
+			}
+
+			if ( '' !== $user_hash && 'user_hash' === $key && is_string( $value ) && hash_equals( $user_hash, $value ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
 	 * Build WHERE clause/params to match user-linked event records.
 	 *
-	 * Event table currently stores JSON in `event_data`, so matching is best-effort:
+	 * Event table currently stores JSON in `event_data`, so the SQL match is a substring prefilter that
+	 * callers MUST verify with event_row_belongs_to_subject():
 	 * - legacy numeric user id (`"user_id":123` or `"user_id":"123"`),
 	 * - email values,
 	 * - salted user hash used by current tracking flows.

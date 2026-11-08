@@ -1361,6 +1361,22 @@ trait Admin_Diagnostics_Ajax_Trait {
 	}
 
 	/**
+	 * Whether a URL may be probed by the sGTM preview helper: http(s) only, and accepted by
+	 * `wp_http_validate_url()` (which refuses user info, loopback, private and reserved addresses).
+	 *
+	 * @param string $url URL to probe.
+	 * @return bool
+	 */
+	private function is_safe_sgtm_probe_url( string $url ): bool {
+		$scheme = wp_parse_url( $url, PHP_URL_SCHEME );
+		if ( ! is_string( $scheme ) || ! in_array( strtolower( $scheme ), array( 'http', 'https' ), true ) ) {
+			return false;
+		}
+
+		return false !== wp_http_validate_url( $url );
+	}
+
+	/**
 	 * Run an HTTP reachability check for the sGTM preview helper.
 	 *
 	 * @param string $key            Check key.
@@ -1370,12 +1386,24 @@ trait Admin_Diagnostics_Ajax_Trait {
 	 * @return array<string,string>
 	 */
 	private function run_sgtm_http_preview_check( string $key, string $label, string $url, string $fallback_error ): array {
-		$response = wp_remote_request(
+		// The URL comes from the posted admin settings, so it is validated and fetched with the
+		// SSRF-safe API: no loopback/private targets, no non-http(s) schemes, no redirects into them.
+		if ( ! $this->is_safe_sgtm_probe_url( $url ) ) {
+			return array(
+				'key'    => sanitize_key( $key ),
+				'label'  => $label,
+				'status' => 'attention',
+				'detail' => __( 'Not probed: the URL is not a public http(s) address.', 'click-trail-handler' ),
+			);
+		}
+
+		$response = wp_safe_remote_request(
 			$url,
 			array(
-				'timeout'     => 5,
-				'method'      => 'GET',
-				'redirection' => 2,
+				'timeout'            => 5,
+				'method'             => 'GET',
+				'redirection'        => 2,
+				'reject_unsafe_urls' => true,
 			)
 		);
 

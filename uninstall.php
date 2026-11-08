@@ -73,6 +73,12 @@ if ( ! $clicutcl_preserve_data ) {
 			'_transient_timeout_clicutcl_%'
 		)
 	);
+
+	// Without a persistent object cache, purchase, sign-up and form claims are options rows
+	// (`clicutcl_*_lock_*`, `clicutcl_form_claim_*`). WordPress may include uninstall.php without
+	// loading the plugin bootstrap, so load the helper that owns those name patterns.
+	require_once __DIR__ . '/includes/tracking/class-claim-lock.php';
+	\CLICUTCL\Tracking\Claim_Lock::delete_all_rows();
 }
 
 if ( ! $clicutcl_preserve_data ) {

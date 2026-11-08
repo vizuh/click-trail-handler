@@ -254,9 +254,15 @@ if ( ! function_exists( 'wp_salt' ) ) {
 if ( ! class_exists( 'WP_Error' ) ) {
 	class WP_Error {
 		private string $code;
+		private $data;
 
-		public function __construct( string $code ) {
+		public function __construct( string $code, string $message = '', $data = '' ) {
 			$this->code = $code;
+			$this->data = $data;
+		}
+
+		public function get_error_data() {
+			return $this->data;
 		}
 
 		public function get_error_code(): string {

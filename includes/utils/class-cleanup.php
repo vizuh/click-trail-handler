@@ -45,6 +45,10 @@ class Cleanup {
 		// the events-table check below, which returns early, so a missing table there cannot stop it.
 		\CLICUTCL\Database\Whatsapp_Ref_Store::purge_expired( $days, time() );
 
+		// Option-backed claim locks (no object cache) that a dead request never released. Also before
+		// the events-table check.
+		\CLICUTCL\Tracking\Claim_Lock::purge_stale( DAY_IN_SECONDS );
+
 		$table_name         = $wpdb->prefix . 'clicutcl_events';
 		$table_name_escaped = esc_sql( $table_name ); // Internal, but still escape.
 
