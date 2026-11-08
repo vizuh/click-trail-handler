@@ -25,7 +25,8 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 
 	/**
 	 * Width in seconds of the time bucket in the best-effort dedupe key used when a
-	 * provider supplies no entry ID.
+	 * provider supplies no entry ID. A repeat is caught in the same or the previous bucket,
+	 * so the effective window is one to two buckets (10 to 20 s).
 	 */
 	const DEDUPE_BUCKET_SECONDS = 10;
 
@@ -81,15 +82,20 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 	 * Dedupe: a repeat call for the same `(provider, form_id, entry_id)` writes no second
 	 * `form_submission` row and dispatches no second event; it returns the first call's
 	 * `event_id` with `duplicate` set. The `event_id` is derived from the dedupe key, so it is
-	 * the same on every call for an entry. When the provider supplies no entry ID (CF7,
+	 * the same on every call for an entry (a best-effort repeat inside the window returns the
+	 * marked earlier submission's IDs). When the provider supplies no entry ID (CF7,
 	 * Elementor), the key is `(provider, form_id, HMAC of the ct_* values and the submitter's
 	 * email/phone, 10 s time bucket)`. The fingerprint is `hash_hmac( 'sha256', ..., wp_salt( 'auth' ) )`,
-	 * so neither the dedupe store key nor the event ID exposes a guessable hash of an email or phone. That is best-effort: a repeat that crosses a bucket
-	 * boundary, or arrives with different posted ct_* values, counts as a new submission.
+	 * so neither the dedupe store key nor the event ID exposes a guessable hash of an email or phone.
+	 * That is best-effort: a repeat is caught when it lands in the same or the previous 10 s bucket
+	 * (an effective 10 to 20 s window); a later repeat, or one with different posted ct_* values,
+	 * counts as a new submission.
 	 *
 	 * Concurrency: the key is claimed atomically (`Claim_Lock`) before the row is written, so two
-	 * simultaneous calls for one key write one row and dispatch once; the loser returns the same IDs
-	 * with `duplicate` set. The dedupe marker is kept only after a successful insert and dispatch,
+	 * simultaneous calls for one key write one row and dispatch once. Best-effort keys claim a
+	 * bucket-less identity, so simultaneous repeats serialize even across a bucket boundary. The loser
+	 * returns `duplicate` set; for a best-effort boundary case its IDs may differ from the winner's.
+	 * The dedupe marker is kept only after a successful insert and dispatch,
 	 * and the claim is always released, so a failed attempt does not suppress a retry.
 	 *
 	 * @param string          $platform       Platform name.
@@ -113,7 +119,8 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 		}
 
 		$entry_id    = $this->normalize_entry_id( $entry_id );
-		$fingerprint = $this->submission_fingerprint( $platform, $form_id, $attribution, $identity_input, $entry_id );
+		$keys        = $this->submission_keys( $platform, $form_id, $attribution, $identity_input, $entry_id );
+		$fingerprint = $keys['fingerprint'];
 		$event_id    = 'form_' . substr( $fingerprint, 0, 32 );
 		$lead_id     = $this->derive_lead_id( $event_id );
 
@@ -123,18 +130,26 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 			'duplicate' => true,
 		);
 
-		// Claim the key atomically before reading the marker: a request that loses the claim
-		// is a simultaneous repeat of one still in flight and returns its deterministic IDs.
-		$claim_key = self::SUBMISSION_CLAIM_PREFIX . md5( $platform . '|' . $fingerprint );
+		// Claim the bucket-less identity atomically before reading the markers: a request that
+		// loses the claim is a simultaneous repeat of one still in flight.
+		$claim_key = self::SUBMISSION_CLAIM_PREFIX . md5( $platform . '|' . $keys['claim'] );
 		$claim     = Claim_Lock::acquire( $claim_key, self::SUBMISSION_CLAIM_TTL );
 		if ( '' === $claim ) {
 			return $duplicate;
 		}
 
 		try {
-			// Sequential repeats (double click, retried AJAX, a hook firing twice) hit the marker.
-			if ( Dedup_Store::is_duplicate( 'form_submission', (string) $platform, $fingerprint, false ) ) {
-				return $duplicate;
+			// Sequential repeats (double click, retried AJAX, a hook firing twice) hit a marker:
+			// the current bucket's, or, for best-effort keys, the previous bucket's.
+			foreach ( array( $fingerprint, $keys['previous'] ) as $marked ) {
+				if ( '' !== $marked && Dedup_Store::is_duplicate( 'form_submission', (string) $platform, $marked, false ) ) {
+					$marked_event = 'form_' . substr( $marked, 0, 32 );
+					return array(
+						'event_id'  => $marked_event,
+						'lead_id'   => $this->derive_lead_id( $marked_event ),
+						'duplicate' => true,
+					);
+				}
 			}
 
 			return $this->write_and_dispatch_submission( $platform, $form_id, $attribution, $identity_input, $entry_id, $fingerprint, $event_id, $lead_id );
@@ -325,28 +340,44 @@ abstract class Abstract_Form_Adapter implements Form_Adapter_Interface {
 	}
 
 	/**
-	 * Dedupe fingerprint for one form submission.
+	 * Dedupe keys for one form submission.
+	 *
+	 * With a provider entry ID the key is exact: `fingerprint` only. Without one (best-effort)
+	 * the bucketed `fingerprint` is paired with the `previous` bucket's fingerprint and a
+	 * bucket-less `claim` identity, so simultaneous repeats serialize on one lock even when
+	 * they finish in different time buckets.
 	 *
 	 * @param string          $platform       Platform name.
 	 * @param mixed           $form_id        Form ID.
 	 * @param array           $attribution    Attribution data.
 	 * @param array           $identity_input Raw identity input candidates.
 	 * @param int|string|null $entry_id       Normalized provider entry ID, null when none.
-	 * @return string 64-character HMAC-SHA256 hex.
+	 * @return array{fingerprint:string,previous:string,claim:string} 64-character HMAC-SHA256 hex values; `previous` is empty for entry-ID keys.
 	 */
-	private function submission_fingerprint( $platform, $form_id, $attribution, $identity_input, $entry_id ) {
+	protected function submission_keys( $platform, $form_id, $attribution, $identity_input, $entry_id ) {
 		$scope = (int) get_current_blog_id() . '|' . $platform . '|' . ( is_scalar( $form_id ) ? (string) $form_id : '' );
+		$salt  = wp_salt( 'auth' );
 
 		if ( null !== $entry_id ) {
-			return hash_hmac( 'sha256', $scope . '|entry|' . $entry_id, wp_salt( 'auth' ) );
+			$fingerprint = hash_hmac( 'sha256', $scope . '|entry|' . $entry_id, $salt );
+			return array(
+				'fingerprint' => $fingerprint,
+				'previous'    => '',
+				'claim'       => $fingerprint,
+			);
 		}
 
 		$candidates = $this->extract_identity_candidates( is_array( $identity_input ) ? $identity_input : array() );
 		$values     = array_merge( (array) $attribution, array_intersect_key( $candidates, array_flip( array( 'email', 'phone' ) ) ) );
 		ksort( $values );
+		$json   = wp_json_encode( $values );
 		$bucket = (int) floor( $this->submission_time() / self::DEDUPE_BUCKET_SECONDS );
 
-		return hash_hmac( 'sha256', $scope . '|best_effort|' . $bucket . '|' . wp_json_encode( $values ), wp_salt( 'auth' ) );
+		return array(
+			'fingerprint' => hash_hmac( 'sha256', $scope . '|best_effort|' . $bucket . '|' . $json, $salt ),
+			'previous'    => hash_hmac( 'sha256', $scope . '|best_effort|' . ( $bucket - 1 ) . '|' . $json, $salt ),
+			'claim'       => hash_hmac( 'sha256', $scope . '|best_effort|' . $json, $salt ),
+		);
 	}
 
 	/**

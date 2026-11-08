@@ -200,6 +200,7 @@ server paths “first-class native delivery adapters” predates the current evi
 configured-endpoint relays whose provider authentication, acceptance, and runtime delivery remain unverified.
 
 = 1.13.0 =
+* Fixed: two simultaneous submissions or purchase notifications could both be recorded on sites without a persistent object cache.
 * Important: if you use Google Tag Manager, ClickTrail's dataLayer pushes no longer carry `session_id`, `client_id`, `user_id`, `session_number`, `engagement_time_msec`, `timestamp_micros`, `page_location` and `page_referrer` under those names. They are now sent as `ct_session_id`, `ct_client_id` and so on, and the page view event is `ct_page_view`. Custom GTM variables that read the old names must be updated; the bundled starter kit already is.
 * Important: Contact Form 7 only gets hidden fields for `ct_` tags that the form or its mail references. Add `[hidden ct_gclid]` to the form to get the value into mail and CRM add-ons. ClickTrail's own record is unaffected.
 * Important: attribution fields rendered by the server are now empty and are filled in the visitor's browser, so page caches can no longer serve one visitor's campaign to another.
@@ -217,6 +218,7 @@ configured-endpoint relays whose provider authentication, acceptance, and runtim
 * Fix: no cookie is set on a visitor's first page view, so CDNs can keep caching the page.
 * Security: WhatsApp reference requests are rate limited per visitor address, the server-side GTM test only fetches safe URLs, values posted by forms are length-capped, and leftover form locks are cleaned up.
 * Privacy: the personal data exporter and eraser now match an email or user exactly instead of by partial text.
+* Forms: simultaneous duplicate form submissions are caught even across a time boundary.
 
 = 1.12.0 =
 * Contact Form 7: ClickTrail now only adds hidden fields for the `ct_` tags the form or its mail references. Add `[hidden ct_gclid]` to the form to get the value into mail and CRM add-ons; ClickTrail's own lead is unaffected.
