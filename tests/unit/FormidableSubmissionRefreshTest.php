@@ -78,6 +78,8 @@ namespace {
 	 * Records `$wpdb->insert()` calls and supports the claim-lock delete.
 	 */
 	final class ClickTrailFormidableWpdb {
+		use \Claim_Options_Wpdb;
+
 		public $prefix  = 'wp_';
 		public $options = 'wp_options';
 		public $rows    = array();

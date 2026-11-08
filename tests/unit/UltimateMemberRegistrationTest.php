@@ -94,6 +94,8 @@ namespace {
 	 * Row-conditional delete like the options table: only when name and exact value match (Claim_Lock release).
 	 */
 	final class ClickTrailUmWpdbStub {
+		use \Claim_Options_Wpdb;
+
 		public $options = 'wp_options';
 
 		public function delete( $table, $where ) {

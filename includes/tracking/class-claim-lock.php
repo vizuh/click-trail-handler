@@ -17,8 +17,8 @@ if ( ! defined( 'ABSPATH' ) ) {
  * With a persistent object cache, `wp_cache_add()` is an atomic claim that
  * fails when the key already exists. Without one, the in-memory cache is
  * per request and cannot see a concurrent PHP worker, so it falls back to
- * `add_option()` uniqueness on the options table (the same pattern core uses
- * for upgrader locks). An option claim older than its TTL is treated as
+ * a first-writer-wins `INSERT IGNORE` on the options table (core `add_option()`
+ * upserts, so it cannot be the claim). An option claim older than its TTL is treated as
  * abandoned by a request that died before releasing it and is taken over
  * through a row-conditional delete of the exact stale value, so two late
  * arrivals cannot both take it.
@@ -48,11 +48,12 @@ class Claim_Lock {
 		}
 
 		$value = $token . '|' . time();
-		if ( add_option( $key, $value, '', 'no' ) ) {
+		if ( self::insert_row( $key, $value ) ) {
 			return $value;
 		}
 
-		$stored     = (string) get_option( $key, '' );
+		// Read the row, not get_option(): the per-request options cache may hold a stale value.
+		$stored     = self::read_row( $key );
 		$held_since = self::held_since( $stored );
 		if ( $held_since <= 0 || ( time() - $held_since ) <= $ttl_seconds ) {
 			return '';
@@ -64,7 +65,64 @@ class Claim_Lock {
 			return '';
 		}
 
-		return add_option( $key, $value, '', 'no' ) ? $value : '';
+		return self::insert_row( $key, $value ) ? $value : '';
+	}
+
+	/**
+	 * First-writer-wins insert of the claim row.
+	 *
+	 * Core `add_option()` is not an atomic claim: after a racy `get_option()` pre-check it runs
+	 * `INSERT ... ON DUPLICATE KEY UPDATE`, so a second concurrent writer overwrites the row and
+	 * still reports success. `INSERT IGNORE` leaves an existing row untouched and reports 0
+	 * affected rows, so exactly one concurrent caller sees 1.
+	 *
+	 * @param string $key   Option name.
+	 * @param string $value Claim value.
+	 * @return bool Whether this call created the row.
+	 */
+	private static function insert_row( string $key, string $value ): bool {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Core add_option() upserts, so it is not an atomic claim; INSERT IGNORE is first-writer-wins.
+		$inserted = $wpdb->query( $wpdb->prepare( "INSERT IGNORE INTO {$wpdb->options} (option_name, option_value, autoload) VALUES (%s, %s, 'no')", $key, $value ) );
+		if ( 1 !== $inserted ) {
+			return false;
+		}
+
+		self::forget_cached_row( $key );
+
+		return true;
+	}
+
+	/**
+	 * Current stored value of a claim row, straight from the options table.
+	 *
+	 * @param string $key Option name.
+	 * @return string Empty when no row exists.
+	 */
+	private static function read_row( string $key ): string {
+		global $wpdb;
+
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- A cached get_option() may be stale; the takeover decision needs the live row.
+		$value = $wpdb->get_var( $wpdb->prepare( "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s", $key ) );
+
+		return is_string( $value ) ? $value : '';
+	}
+
+	/**
+	 * Drop the options cache entries for a row changed behind core's back.
+	 *
+	 * @param string $key Option name.
+	 * @return void
+	 */
+	private static function forget_cached_row( string $key ): void {
+		wp_cache_delete( $key, 'options' );
+
+		$notoptions = wp_cache_get( 'notoptions', 'options' );
+		if ( is_array( $notoptions ) && isset( $notoptions[ $key ] ) ) {
+			unset( $notoptions[ $key ] );
+			wp_cache_set( 'notoptions', $notoptions, 'options' );
+		}
 	}
 
 	/**
@@ -167,7 +225,7 @@ class Claim_Lock {
 	 * directly and uses the row's current value as part of the WHERE clause;
 	 * the affected-rows count tells the caller whether it won. The per-request
 	 * options cache entry is dropped the same way core's `delete_option()`
-	 * does so a following `add_option()` pre-check sees the row is gone.
+	 * does so a following `get_option()` does not serve the deleted row.
 	 *
 	 * @param string $key   Option name.
 	 * @param string $value Exact stored value that must still be present.
@@ -184,7 +242,7 @@ class Claim_Lock {
 				'option_value' => $value,
 			)
 		);
-		wp_cache_delete( $key, 'options' );
+		self::forget_cached_row( $key );
 
 		return false === $deleted ? 0 : (int) $deleted;
 	}

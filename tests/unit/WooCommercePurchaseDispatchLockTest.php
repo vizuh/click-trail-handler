@@ -143,6 +143,8 @@ namespace {
 	 * value match, returning the affected-row count like the real method.
 	 */
 	final class ClickTrail_Test_Wpdb {
+		use \Claim_Options_Wpdb;
+
 		public string $options = 'wp_options';
 
 		/**

@@ -40,6 +40,8 @@ namespace {
 	 * Minimal `$wpdb` double for the row-conditional lock delete.
 	 */
 	final class EddTest_Wpdb {
+		use \Claim_Options_Wpdb;
+
 		public string $options = 'wp_options';
 
 		public function delete( $table, $where ) {
