@@ -239,6 +239,35 @@ namespace {
 			$this->assertSame( array( $theirs ), $this->db->event_ids() );
 		}
 
+		// ----- identity.hashed_email (what a form submission row actually stores) -----
+
+		public function test_rows_holding_only_the_hashed_email_are_exported_and_erased_for_that_subject(): void {
+			$mine   = $this->add_event( array( 'platform' => 'cf7', 'identity' => array( 'hashed_email' => hash( 'sha256', 'b@x.com' ), 'user_agent' => 'UA' ), 'attribution' => array( 'visitor_id' => 'vis_mine' ) ) );
+			$theirs = $this->add_event( array( 'platform' => 'cf7', 'identity' => array( 'hashed_email' => hash( 'sha256', 'bob@x.com' ) ), 'attribution' => array( 'visitor_id' => 'vis_theirs' ) ) );
+
+			list( $ids ) = $this->export_event_ids( 'b@x.com' );
+			$this->assertSame( array( $mine ), $ids );
+			$this->assertSame( array( array( 'vis_mine' ) ), $this->db->ref_selects );
+
+			( new Privacy_Handler() )->erase_user_data( 'b@x.com' );
+			$this->assertSame( array( $theirs ), $this->db->event_ids() );
+			$this->assertSame( array( array( 'vis_mine' ) ), $this->db->ref_deletes );
+		}
+
+		public function test_the_email_is_normalised_like_the_identity_resolver_before_hashing(): void {
+			// Identity_Resolver hashes strtolower( trim( email ) ) with plain sha256 and no salt.
+			$row = $this->add_event( array( 'identity' => array( 'hashed_email' => hash( 'sha256', 'b@x.com' ) ) ) );
+			list( $ids ) = $this->export_event_ids( 'B@X.com' );
+			$this->assertSame( array( $row ), $ids );
+		}
+
+		public function test_the_hash_must_sit_in_a_hashed_email_field(): void {
+			$this->add_event( array( 'note' => 'copied ' . hash( 'sha256', 'b@x.com' ) ) );
+			$this->add_event( array( 'identity' => array( 'hashed_phone' => hash( 'sha256', 'b@x.com' ) ) ) );
+			list( $ids ) = $this->export_event_ids( 'b@x.com' );
+			$this->assertSame( array(), $ids );
+		}
+
 		// ----- user_id / user_hash -----
 
 		public function test_user_id_5_does_not_match_user_id_55(): void {

@@ -139,12 +139,18 @@ trait Tracking_Controller_Security_Trait {
 	/**
 	 * Decide the client IP from the direct peer and the forwarding headers.
 	 *
-	 * Forwarding headers are read only when the direct peer is a trusted proxy. `X-Forwarded-For`
-	 * is walked from the right (the end appended by infrastructure) and the first valid IP that is
-	 * not itself a trusted proxy wins; the left end is client-controlled and is never preferred.
-	 * `CF-Connecting-IP` is only a fallback, because it is meaningful solely when the immediate
-	 * peer is Cloudflare, which the plugin cannot prove; any other trusted proxy passes a
-	 * client-sent copy through. Everything else falls back to the direct peer.
+	 * Forwarding headers are read only when the direct peer is a trusted proxy.
+	 *
+	 * - Opt-in `clicutcl_trust_cf_connecting_ip` (default false): a valid `CF-Connecting-IP` wins.
+	 *   It is meaningful only when every hop in front of WordPress is Cloudflare or a proxy that
+	 *   overwrites it; any other trusted proxy passes a client-sent copy through, so it is never
+	 *   read unless the operator says so.
+	 * - Otherwise `X-Forwarded-For` is walked from the right (the end appended by infrastructure).
+	 *   Each hop is normalised (`:port` stripped, `[v6]` unwrapped); a trusted proxy is skipped and
+	 *   the first untrusted IP is the client. A hop that is still not an IP (`unknown`, an
+	 *   obfuscated token, an empty part) stops the walk at the direct peer: everything to its left
+	 *   is client-controlled and must never be reached by skipping over it.
+	 * - Anything else resolves to the direct peer.
 	 *
 	 * @param string $remote Direct peer (`REMOTE_ADDR`).
 	 * @param string $xff    `X-Forwarded-For` header value.
@@ -156,21 +162,60 @@ trait Tracking_Controller_Security_Trait {
 			return $remote;
 		}
 
-		if ( '' !== $xff ) {
-			foreach ( array_reverse( explode( ',', $xff ) ) as $candidate ) {
-				$candidate = sanitize_text_field( trim( $candidate ) );
-				if ( filter_var( $candidate, FILTER_VALIDATE_IP ) && ! $this->is_trusted_proxy( $candidate ) ) {
-					return $candidate;
-				}
+		/**
+		 * Whether to trust `CF-Connecting-IP` when the direct peer is a trusted proxy.
+		 *
+		 * Enable only when the site is reachable exclusively through Cloudflare (so the header is
+		 * always set or overwritten by Cloudflare). Left off, the header is ignored because a visitor
+		 * can send it through any other trusted proxy.
+		 *
+		 * @since 1.13.0
+		 *
+		 * @param bool $trust Default false.
+		 */
+		if ( (bool) apply_filters( 'clicutcl_trust_cf_connecting_ip', false ) ) {
+			$cf_ip = sanitize_text_field( $cf_ip );
+			if ( filter_var( $cf_ip, FILTER_VALIDATE_IP ) ) {
+				return $cf_ip;
 			}
 		}
 
-		$cf_ip = sanitize_text_field( $cf_ip );
-		if ( filter_var( $cf_ip, FILTER_VALIDATE_IP ) ) {
-			return $cf_ip;
+		if ( '' === $xff ) {
+			return $remote;
+		}
+
+		foreach ( array_reverse( explode( ',', $xff ) ) as $hop ) {
+			$hop = $this->normalize_forwarded_hop( $hop );
+			if ( '' === $hop ) {
+				return $remote;
+			}
+			if ( ! $this->is_trusted_proxy( $hop ) ) {
+				return $hop;
+			}
 		}
 
 		return $remote;
+	}
+
+	/**
+	 * Normalise one `X-Forwarded-For` hop to a bare IP.
+	 *
+	 * Strips a `:port` from IPv4 and unwraps `[v6]` / `[v6]:port` (IIS/ARR and some load balancers
+	 * append the peer with its port).
+	 *
+	 * @param string $hop Raw hop.
+	 * @return string The IP, or '' when the hop is not one.
+	 */
+	private function normalize_forwarded_hop( string $hop ): string {
+		$hop = sanitize_text_field( trim( $hop ) );
+
+		if ( 1 === preg_match( '/^\[([0-9a-f:.]+)\](?::\d{1,5})?$/i', $hop, $m ) ) {
+			$hop = $m[1];
+		} elseif ( 1 === preg_match( '/^(\d{1,3}(?:\.\d{1,3}){3}):\d{1,5}$/', $hop, $m ) ) {
+			$hop = $m[1];
+		}
+
+		return false !== filter_var( $hop, FILTER_VALIDATE_IP ) ? $hop : '';
 	}
 
 	/**

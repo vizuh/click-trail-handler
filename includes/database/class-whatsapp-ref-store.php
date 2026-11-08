@@ -240,8 +240,9 @@ class Whatsapp_Ref_Store {
 	 * - creations per (`visitor_id`, client IP) pair (`clicutcl_whatsapp_ref_max_per_visitor`,
 	 *   default 20); an empty `visitor_id` is keyed on the IP alone;
 	 * - rows in the table (`clicutcl_whatsapp_ref_max_rows`, default 50 000; counted from a cached
-	 *   figure that inserts bump and purges drop). At the ceiling, expired rows are purged first and,
-	 *   if the table is still full, the oldest rows are evicted in one bounded batch so a flood
+	 *   figure that inserts bump and purges drop). At the ceiling, expired rows are purged first, the
+	 *   rows are re-counted and, if the table is still full, only the oldest rows needed are evicted
+	 *   (one batch of at most 500 per request) so a flood
 	 *   cannot keep the feature down for the retention period.
 	 *
 	 * The two per-client ceilings are counters over a 24-hour window opened by the first creation
@@ -303,8 +304,10 @@ class Whatsapp_Ref_Store {
 	}
 
 	/**
-	 * Free room in a full table: purge expired rows, then, if it is still full, evict the oldest
-	 * rows (lowest `id`, the creation order) in one bounded batch.
+	 * Free room in a table the cached count says is full: purge expired rows, re-count (the cached
+	 * figure can be stale-high after purges and must not cause live rows to be evicted), and, if the
+	 * table really is full, evict only the oldest rows needed (lowest `id`, the creation order),
+	 * at most one bounded batch per request.
 	 *
 	 * @param string $table    Table name.
 	 * @param int    $max_rows Row ceiling.
@@ -314,17 +317,22 @@ class Whatsapp_Ref_Store {
 		global $wpdb;
 
 		self::purge_expired( self::retention_days(), time() );
-		if ( self::row_count( $table ) < $max_rows ) {
+		$count = self::fresh_row_count( $table );
+		if ( $count < $max_rows ) {
 			return true;
 		}
 
-		// A small ceiling (a filter can set one) must not be wiped by a fixed batch.
-		$batch = max( 1, min( self::EVICT_BATCH, intdiv( $max_rows, 10 ) ) );
+		$batch = min( self::EVICT_BATCH, $count - $max_rows + 1 );
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned table name; bounded eviction of the oldest rows.
 		$deleted = $wpdb->query( $wpdb->prepare( "DELETE FROM {$table} ORDER BY id ASC LIMIT %d", $batch ) );
-		delete_transient( self::COUNT_TRANSIENT );
+		if ( false === $deleted || (int) $deleted < 1 ) {
+			return false;
+		}
 
-		return false !== $deleted && (int) $deleted > 0;
+		$count -= (int) $deleted;
+		set_transient( self::COUNT_TRANSIENT, max( 0, $count ), self::COUNT_TTL );
+
+		return $count < $max_rows;
 	}
 
 	/**
@@ -369,12 +377,22 @@ class Whatsapp_Ref_Store {
 	 * @return int
 	 */
 	private static function row_count( string $table ): int {
-		global $wpdb;
-
 		$cached = get_transient( self::COUNT_TRANSIENT );
 		if ( false !== $cached ) {
 			return (int) $cached;
 		}
+
+		return self::fresh_row_count( $table );
+	}
+
+	/**
+	 * Count the rows now and refresh the cached figure.
+	 *
+	 * @param string $table Table name.
+	 * @return int
+	 */
+	private static function fresh_row_count( string $table ): int {
+		global $wpdb;
 
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Plugin-owned table name; no user input.
 		$count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$table}" );

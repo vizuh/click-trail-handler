@@ -565,7 +565,8 @@ class Privacy_Handler {
 	 * Whether an event payload exactly identifies the subject.
 	 *
 	 * A value matches when it is the email itself (whole value, case-insensitive: `b@x.com` is not
-	 * inside `bob@x.com`), a `user_id` field equal to the user ID (`5` is not `55`), or a `user_hash`
+	 * inside `bob@x.com`), a `hashed_email` field equal to the SHA-256 of the email (what form
+	 * submissions store), a `user_id` field equal to the user ID (`5` is not `55`), or a `user_hash`
 	 * field equal to the user's salted hash. Fields are looked up at any depth, as the SQL prefilter
 	 * does. A payload that is not JSON matches only when the whole string is the email.
 	 *
@@ -583,28 +584,46 @@ class Privacy_Handler {
 
 		$user_hash = $user_id > 0 ? hash( 'sha256', (string) $user_id . wp_salt( 'auth' ) ) : '';
 
-		return $this->payload_node_matches_subject( $decoded, $email_lc, $user_id, $user_hash );
+		return $this->payload_node_matches_subject( $decoded, $email_lc, $this->hashed_email( $email ), $user_id, $user_hash );
+	}
+
+	/**
+	 * The `identity.hashed_email` value a form submission stores for an email: plain SHA-256 of the
+	 * trimmed, lower-cased address, no salt (`Identity_Resolver::resolve()`).
+	 *
+	 * @param string $email Email address.
+	 * @return string '' for an empty address.
+	 */
+	private function hashed_email( string $email ): string {
+		$email = strtolower( trim( $email ) );
+
+		return '' === $email ? '' : hash( 'sha256', $email );
 	}
 
 	/**
 	 * Depth-first exact match of a decoded payload node.
 	 *
-	 * @param array  $node      Decoded JSON node.
-	 * @param string $email_lc  Lower-cased email.
-	 * @param int    $user_id   WordPress user ID (0 when none).
-	 * @param string $user_hash Salted user hash ('' when no user).
+	 * @param array  $node       Decoded JSON node.
+	 * @param string $email_lc   Lower-cased email.
+	 * @param string $email_hash Identity-resolver hash of the email ('' when none).
+	 * @param int    $user_id    WordPress user ID (0 when none).
+	 * @param string $user_hash  Salted user hash ('' when no user).
 	 * @return bool
 	 */
-	private function payload_node_matches_subject( array $node, string $email_lc, int $user_id, string $user_hash ): bool {
+	private function payload_node_matches_subject( array $node, string $email_lc, string $email_hash, int $user_id, string $user_hash ): bool {
 		foreach ( $node as $key => $value ) {
 			if ( is_array( $value ) ) {
-				if ( $this->payload_node_matches_subject( $value, $email_lc, $user_id, $user_hash ) ) {
+				if ( $this->payload_node_matches_subject( $value, $email_lc, $email_hash, $user_id, $user_hash ) ) {
 					return true;
 				}
 				continue;
 			}
 
 			if ( is_string( $value ) && '' !== $email_lc && strtolower( trim( $value ) ) === $email_lc ) {
+				return true;
+			}
+
+			if ( '' !== $email_hash && 'hashed_email' === $key && is_string( $value ) && hash_equals( $email_hash, strtolower( $value ) ) ) {
 				return true;
 			}
 
@@ -627,6 +646,7 @@ class Privacy_Handler {
 	 * callers MUST verify with event_row_belongs_to_subject():
 	 * - legacy numeric user id (`"user_id":123` or `"user_id":"123"`),
 	 * - email values,
+	 * - the SHA-256 `identity.hashed_email` form submissions store,
 	 * - salted user hash used by current tracking flows.
 	 *
 	 * @param string $email   Email address.
@@ -636,9 +656,11 @@ class Privacy_Handler {
 	private function build_event_match_where( string $email, int $user_id ): array {
 		$params = array(
 			'%' . $this->escape_like( $email ) . '%',
+			'%' . $this->hashed_email( $email ) . '%', // Hex digest: nothing to escape.
 		);
 
 		$clauses = array(
+			'event_data LIKE %s',
 			'event_data LIKE %s',
 		);
 

@@ -133,8 +133,10 @@ class Fluent_Forms_Adapter extends Abstract_Form_Adapter {
 		// Only the marker is read from the raw request, and only to compare it with a constant.
 		if ( isset( $_POST['data'] ) && is_string( $_POST['data'] ) ) {
 			$parsed = array();
-			parse_str( sanitize_text_field( wp_unslash( $_POST['data'] ) ), $parsed );
-			if ( isset( $parsed[ self::FILL_MARKER_FIELD ] ) && $this->has_fill_marker( $parsed[ self::FILL_MARKER_FIELD ] ) ) {
+			// Parse first (sanitising the whole urlencoded string would strip its %XX octets), then
+			// sanitise only the single value that is used.
+			parse_str( wp_unslash( $_POST['data'] ), $parsed ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Parsed only; the one value read below is sanitised.
+			if ( isset( $parsed[ self::FILL_MARKER_FIELD ] ) && is_scalar( $parsed[ self::FILL_MARKER_FIELD ] ) && $this->has_fill_marker( sanitize_text_field( (string) $parsed[ self::FILL_MARKER_FIELD ] ) ) ) {
 				return true;
 			}
 		} elseif ( isset( $_POST['data'][ self::FILL_MARKER_FIELD ] ) && is_scalar( $_POST['data'][ self::FILL_MARKER_FIELD ] ) && $this->has_fill_marker( sanitize_text_field( wp_unslash( $_POST['data'][ self::FILL_MARKER_FIELD ] ) ) ) ) {

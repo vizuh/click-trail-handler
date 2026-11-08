@@ -585,27 +585,39 @@ namespace {
 			$this->assertSame( 'created', Whatsapp_Ref_Store::create( $this->store_row( 'EEEEEEEE', 'named' ), $a ), 'a named visitor behind the same address has its own count' );
 		}
 
-		public function test_a_full_table_evicts_the_oldest_rows_instead_of_rejecting(): void {
+		public function test_a_full_table_evicts_only_the_rows_needed_oldest_first(): void {
 			$GLOBALS['clicktrail_test_filters']['clicutcl_whatsapp_ref_max_rows'] = static fn() => 20;
 			$this->fill_rows( 20 );
 			$result = $this->create( $this->body( array( 'code' => 'CCCCCCCC', 'visitor_id' => 'new' ) ) );
 			$this->assertIsArray( $result );
-			$this->assertSame( array( 2 ), $this->db->evictions, 'a tenth of a small ceiling' );
+			$this->assertSame( array( 1 ), $this->db->evictions, 'room for one row, not a fixed batch' );
 			$this->assertArrayNotHasKey( '1:R0000001', $this->db->rows );
-			$this->assertArrayNotHasKey( '1:R0000002', $this->db->rows );
-			$this->assertArrayHasKey( '1:R0000003', $this->db->rows, 'only the oldest went' );
+			$this->assertArrayHasKey( '1:R0000002', $this->db->rows, 'only the oldest went' );
 			$this->assertArrayHasKey( '1:CCCCCCCC', $this->db->rows );
-			$this->assertCount( 19, $this->db->rows );
+			$this->assertCount( 20, $this->db->rows );
 		}
 
-		public function test_eviction_is_bounded_to_five_hundred_rows(): void {
-			$GLOBALS['clicktrail_test_filters']['clicutcl_whatsapp_ref_max_rows'] = static fn() => 20000;
+		public function test_eviction_is_bounded_to_five_hundred_rows_per_request(): void {
+			// The ceiling was lowered below the table size: 15 001 rows over, 500 per request.
+			$GLOBALS['clicktrail_test_filters']['clicutcl_whatsapp_ref_max_rows'] = static fn() => 5000;
 			$this->fill_rows( 20000 );
-			$this->assertIsArray( $this->create( $this->body( array( 'code' => 'CCCCCCCC', 'visitor_id' => 'new' ) ) ) );
+			$result = $this->create( $this->body( array( 'code' => 'CCCCCCCC', 'visitor_id' => 'new' ) ) );
+			$this->assertTrue( is_wp_error( $result ), 'one bounded batch does not make room yet' );
+			$this->assertSame( 'whatsapp_ref_capacity', $result->get_error_code() );
 			$this->assertSame( array( 500 ), $this->db->evictions );
-			$this->assertCount( 20000 - 500 + 1, $this->db->rows );
+			$this->assertCount( 19500, $this->db->rows );
 			$this->assertArrayNotHasKey( '1:R0000500', $this->db->rows );
 			$this->assertArrayHasKey( '1:R0000501', $this->db->rows );
+		}
+
+		public function test_a_stale_high_cached_count_does_not_evict_live_rows(): void {
+			$GLOBALS['clicktrail_test_filters']['clicutcl_whatsapp_ref_max_rows'] = static fn() => 1000;
+			$this->fill_rows( 10 );
+			$GLOBALS['clicktrail_test_transients']['clicutcl_whatsapp_refs_count'] = 1000; // Stale: rows were purged since.
+			$this->assertIsArray( $this->create( $this->body( array( 'code' => 'CCCCCCCC', 'visitor_id' => 'new' ) ) ) );
+			$this->assertSame( array(), $this->db->evictions, 'the fresh count showed room' );
+			$this->assertCount( 11, $this->db->rows );
+			$this->assertSame( 11, $GLOBALS['clicktrail_test_transients']['clicutcl_whatsapp_refs_count'], 'the cache is corrected' );
 		}
 
 		public function test_expired_rows_are_purged_before_anything_live_is_evicted(): void {

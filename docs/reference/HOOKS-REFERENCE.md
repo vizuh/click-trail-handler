@@ -270,7 +270,7 @@ The rate-limit filters receive the route scope as their second argument: `events
 
 ### `clicutcl_whatsapp_ref_max_rows`
 
-Maximum rows in `wp_clicutcl_whatsapp_refs` (default `50000`, minimum 1). At the ceiling `POST /clicutcl/v2/whatsapp-ref` first purges expired rows and, if the table is still full, evicts the oldest 500 rows (a tenth of a smaller ceiling) before inserting; it answers 503 `whatsapp_ref_capacity` only when that eviction fails.
+Maximum rows in `wp_clicutcl_whatsapp_refs` (default `50000`, minimum 1). At the ceiling `POST /clicutcl/v2/whatsapp-ref` first purges expired rows and, if the table is still full, re-counts and, if the table really is full, evicts only the oldest rows needed (at most 500 per request) before inserting; it answers 503 `whatsapp_ref_capacity` only when that eviction fails.
 
 - `int $max_rows`
 
@@ -370,7 +370,13 @@ Purpose:
 
 Purpose:
 
-- provide trusted proxy lists for request normalization; with a trusted `REMOTE_ADDR` the client IP is the rightmost untrusted `X-Forwarded-For` entry, then a valid `CF-Connecting-IP`, then `REMOTE_ADDR` (see [SECURITY-PRIVACY.md](../guides/SECURITY-PRIVACY.md))
+- provide trusted proxy lists for request normalization; with a trusted `REMOTE_ADDR` the client IP is the rightmost untrusted `X-Forwarded-For` hop (an unreadable hop stops the walk at `REMOTE_ADDR`), or a valid `CF-Connecting-IP` only when `clicutcl_trust_cf_connecting_ip` is enabled (see [SECURITY-PRIVACY.md](../guides/SECURITY-PRIVACY.md))
+
+### `clicutcl_trust_cf_connecting_ip`
+
+Opt in to trusting `CF-Connecting-IP` when `REMOTE_ADDR` is a trusted proxy (default `false`; since 1.13.0). Enable only when the site is reachable exclusively through Cloudflare; left off, the header is ignored because a visitor can send it through any other trusted proxy, and the client IP is the rightmost untrusted `X-Forwarded-For` hop. See [SECURITY-PRIVACY.md](../guides/SECURITY-PRIVACY.md) (Trusted Proxies and Request Identity).
+
+- `bool $trust`
 
 ## Diagnostics and Telemetry
 

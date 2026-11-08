@@ -158,6 +158,12 @@ namespace {
 				$this->assertSame( array( 'ct_gclid' => 'A1' ), $out, $shape );
 			}
 
+			// The urlencoded string is parsed before anything is sanitised: percent-encoding in the
+			// marker value is decoded by parse_str, not stripped.
+			$GLOBALS['clicktrail_test_strip_octets'] = true; // Core's sanitize_text_field() strips %XX octets.
+			$_POST                                   = array( 'data' => 'names%5Bfirst%5D=Jo&ct_fill_source=%6As' );
+			$this->assertSame( array( 'ct_gclid' => 'A1' ), $adapter->refresh_response_data( array( 'ct_gclid' => 'A1' ), 7, array() ), 'percent-encoded marker value' );
+
 			$_POST = array( 'data' => 'ct_gclid=A1&ct_fill_source=other' );
 			$this->assertSame( array( 'ct_gclid' => '' ), $adapter->refresh_response_data( array( 'ct_gclid' => 'A1' ), 7, array() ), 'any other marker value is not the marker' );
 			$_POST = array();
