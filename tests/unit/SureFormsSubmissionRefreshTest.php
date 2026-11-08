@@ -83,6 +83,8 @@ namespace {
 	 * Records `$wpdb->insert()` calls.
 	 */
 	final class ClickTrailSureFormsWpdb {
+		use \Claim_Options_Wpdb;
+
 		public $prefix  = 'wp_';
 		public $options = 'wp_options';
 		public $rows    = array();

@@ -381,3 +381,40 @@ if ( ! function_exists( 'delete_transient' ) ) {
 }
 
 // Each test file is responsible for `require_once`-ing its target classes.
+
+if ( ! trait_exists( 'Claim_Options_Wpdb' ) ) {
+	/**
+	 * `$wpdb` surface Claim_Lock uses, backed by `$GLOBALS['clicktrail_test_options']`.
+	 *
+	 * `INSERT IGNORE` is first-writer-wins: an existing name reports 0 affected rows.
+	 */
+	trait Claim_Options_Wpdb {
+		public function prepare( $query, ...$args ) {
+			if ( 1 === count( $args ) && is_array( $args[0] ) ) {
+				$args = $args[0];
+			}
+			return array(
+				'sql'  => $query,
+				'args' => $args,
+			);
+		}
+
+		public function query( $q ) {
+			if ( is_array( $q ) && 0 === strpos( $q['sql'], 'INSERT IGNORE' ) ) {
+				if ( isset( $GLOBALS['clicktrail_test_options'][ $q['args'][0] ] ) ) {
+					return 0;
+				}
+				$GLOBALS['clicktrail_test_options'][ $q['args'][0] ] = $q['args'][1];
+				return 1;
+			}
+			return 0;
+		}
+
+		public function get_var( $q ) {
+			if ( is_array( $q ) && 0 === strpos( $q['sql'], 'SELECT option_value' ) ) {
+				return $GLOBALS['clicktrail_test_options'][ $q['args'][0] ] ?? null;
+			}
+			return null;
+		}
+	}
+}

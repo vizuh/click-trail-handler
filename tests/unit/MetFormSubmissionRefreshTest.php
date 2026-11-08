@@ -82,6 +82,8 @@ namespace {
 	 * Records `$wpdb->insert()` calls and the row-conditional option delete the claim release uses.
 	 */
 	final class ClickTrailMetFormWpdb {
+		use \Claim_Options_Wpdb;
+
 		public $prefix  = 'wp_';
 		public $options = 'wp_options';
 		public $rows    = array();

@@ -65,6 +65,8 @@ namespace {
 	 * Records `$wpdb->insert()` calls.
 	 */
 	class ClickTrailDedupeWpdbStub {
+		use \Claim_Options_Wpdb;
+
 		public $prefix  = 'wp_';
 		public $options = 'wp_options';
 		public $rows    = array();
@@ -329,7 +331,7 @@ namespace {
 			$adapter->record( 'contact-form-7', 12, $this->attribution( 'bing' ), $posted );
 			$adapter->record( 'contact-form-7', 12, $this->attribution(), array( 'your-email' => 'joe@example.test' ) );
 			$adapter->record( 'contact-form-7', 13, $this->attribution(), $posted );
-			$adapter->now += 10;
+			$adapter->now += 30;
 			$adapter->record( 'contact-form-7', 12, $this->attribution(), $posted );
 
 			$this->assertCount( 5, $this->db->rows );
@@ -553,9 +555,77 @@ namespace {
 		 * @return string
 		 */
 		private function fingerprint_for( ClickTrailDedupeAdapter $adapter ): string {
-			$method = new \ReflectionMethod( Abstract_Form_Adapter::class, 'submission_fingerprint' );
+			$method = new \ReflectionMethod( Abstract_Form_Adapter::class, 'submission_keys' );
 			$method->setAccessible( true );
-			return $method->invoke( $adapter, 'gravityforms', 7, $this->attribution(), array(), 501 );
+			return $method->invoke( $adapter, 'gravityforms', 7, $this->attribution(), array(), 501 )['fingerprint'];
+		}
+
+		/**
+		 * Claim key for the best-effort CF7 form 12 submission.
+		 *
+		 * @param ClickTrailDedupeAdapter $adapter Adapter.
+		 * @param array                   $posted  Posted values.
+		 * @return string
+		 */
+		private function best_effort_claim_key( ClickTrailDedupeAdapter $adapter, array $posted ): string {
+			$method = new \ReflectionMethod( Abstract_Form_Adapter::class, 'submission_keys' );
+			$method->setAccessible( true );
+			$keys = $method->invoke( $adapter, 'contact-form-7', 12, $this->attribution(), $posted, null );
+			return Abstract_Form_Adapter::SUBMISSION_CLAIM_PREFIX . md5( 'contact-form-7|' . $keys['claim'] );
+		}
+
+		public function test_best_effort_repeat_in_the_adjacent_bucket_is_a_duplicate_with_the_earlier_ids(): void {
+			$adapter      = new ClickTrailDedupeAdapter();
+			$posted       = array( 'your-email' => 'jane@example.test' );
+			$adapter->now = 1000000019;
+			$first        = $adapter->record( 'contact-form-7', 12, $this->attribution(), $posted );
+			$adapter->now = 1000000021;
+			$second       = $adapter->record( 'contact-form-7', 12, $this->attribution(), $posted );
+
+			$this->assertFalse( $first['duplicate'] );
+			$this->assertTrue( $second['duplicate'] );
+			$this->assertSame( $first['event_id'], $second['event_id'] );
+			$this->assertSame( $first['lead_id'], $second['lead_id'] );
+			$this->assertCount( 1, $this->db->rows );
+			$this->assertCount( 1, $GLOBALS['clicktrail_test_dispatches'] );
+		}
+
+		public function test_best_effort_in_flight_claim_blocks_a_repeat_in_the_next_bucket(): void {
+			$adapter      = new ClickTrailDedupeAdapter();
+			$posted       = array( 'your-email' => 'jane@example.test' );
+			$adapter->now = 1000000019;
+			$GLOBALS['clicktrail_test_options'][ $this->best_effort_claim_key( $adapter, $posted ) ] = 'rival|' . time();
+
+			$adapter->now = 1000000021;
+			$result       = $adapter->record( 'contact-form-7', 12, $this->attribution(), $posted );
+
+			$this->assertTrue( $result['duplicate'] );
+			$this->assertSame( array(), $this->db->rows );
+			$this->assertSame( array(), $GLOBALS['clicktrail_test_dispatches'] );
+		}
+
+		public function test_best_effort_repeat_after_two_buckets_is_a_new_submission(): void {
+			$adapter      = new ClickTrailDedupeAdapter();
+			$posted       = array( 'your-email' => 'jane@example.test' );
+			$adapter->now = 1000000019;
+			$first        = $adapter->record( 'contact-form-7', 12, $this->attribution(), $posted );
+			$adapter->now = 1000000041;
+			$second       = $adapter->record( 'contact-form-7', 12, $this->attribution(), $posted );
+
+			$this->assertFalse( $second['duplicate'] );
+			$this->assertNotSame( $first['event_id'], $second['event_id'] );
+			$this->assertCount( 2, $this->db->rows );
+		}
+
+		public function test_best_effort_adjacent_bucket_with_different_values_is_not_a_duplicate(): void {
+			$adapter      = new ClickTrailDedupeAdapter();
+			$adapter->now = 1000000019;
+			$adapter->record( 'contact-form-7', 12, $this->attribution(), array( 'your-email' => 'jane@example.test' ) );
+			$adapter->now = 1000000021;
+			$second       = $adapter->record( 'contact-form-7', 12, $this->attribution(), array( 'your-email' => 'joe@example.test' ) );
+
+			$this->assertFalse( $second['duplicate'] );
+			$this->assertCount( 2, $this->db->rows );
 		}
 	}
 }

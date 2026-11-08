@@ -72,6 +72,9 @@ namespace {
 		}
 
 		public function get_var( $q ) {
+			if ( is_array( $q ) && 0 === strpos( $q['sql'], 'SELECT option_value' ) ) {
+				return $this->rows[ $q['args'][0] ] ?? null;
+			}
 			return null; // No plugin tables exist.
 		}
 
@@ -90,6 +93,13 @@ namespace {
 		}
 
 		public function query( $q ) {
+			if ( is_array( $q ) && 0 === strpos( $q['sql'], 'INSERT IGNORE' ) ) {
+				if ( isset( $this->rows[ $q['args'][0] ] ) ) {
+					return 0;
+				}
+				$this->rows[ $q['args'][0] ] = $q['args'][1];
+				return 1;
+			}
 			if ( ! is_array( $q ) || 0 !== strpos( $q['sql'], 'DELETE FROM' ) ) {
 				return 0;
 			}
@@ -146,6 +156,25 @@ namespace {
 				'other_plugin_lock_1'             => $this->claim( 9 * DAY_IN_SECONDS ),
 				'clicutcl_form_claimed_setting'   => $this->claim( 9 * DAY_IN_SECONDS ),
 			);
+		}
+
+		public function test_a_second_claim_on_an_existing_row_loses_and_does_not_overwrite_it(): void {
+			$first  = Claim_Lock::acquire( 'clicutcl_form_claim_race', 60 );
+			$second = Claim_Lock::acquire( 'clicutcl_form_claim_race', 60 );
+
+			$this->assertNotSame( '', $first );
+			$this->assertSame( '', $second );
+			$this->assertSame( $first, $this->db->rows['clicutcl_form_claim_race'] );
+		}
+
+		public function test_takeover_decides_on_the_live_row_not_a_cached_option(): void {
+			$this->db->rows['clicutcl_form_claim_x']                         = $this->claim( 600 );
+			$GLOBALS['clicktrail_test_options']['clicutcl_form_claim_x'] = $this->claim( 1, 'cached' );
+
+			$won = Claim_Lock::acquire( 'clicutcl_form_claim_x', 60 );
+
+			$this->assertNotSame( '', $won );
+			$this->assertSame( $won, $this->db->rows['clicutcl_form_claim_x'] );
 		}
 
 		public function test_only_stale_claim_rows_are_deleted(): void {

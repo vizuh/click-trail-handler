@@ -5,7 +5,7 @@ Author URI: https://vizuh.com
 Tags: attribution, utm, consent mode, woocommerce, server-side tracking
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 1.12.0
+Stable tag: 1.13.0
 Requires PHP: 8.1
 WC requires at least: 10.4.2
 License: GPLv2 or later
@@ -198,6 +198,27 @@ The entries below are historical release notes. They do not replace the current 
 behavior that still requires current runtime verification. In particular, older wording that calls platform-named
 server paths “first-class native delivery adapters” predates the current evidence classification: those paths are
 configured-endpoint relays whose provider authentication, acceptance, and runtime delivery remain unverified.
+
+= 1.13.0 =
+* Fixed: two simultaneous submissions or purchase notifications could both be recorded on sites without a persistent object cache.
+* Important: if you use Google Tag Manager, ClickTrail's dataLayer pushes no longer carry `session_id`, `client_id`, `user_id`, `session_number`, `engagement_time_msec`, `timestamp_micros`, `page_location` and `page_referrer` under those names. They are now sent as `ct_session_id`, `ct_client_id` and so on, and the page view event is `ct_page_view`. Custom GTM variables that read the old names must be updated; the bundled starter kit already is.
+* Important: Contact Form 7 only gets hidden fields for `ct_` tags that the form or its mail references. Add `[hidden ct_gclid]` to the form to get the value into mail and CRM add-ons. ClickTrail's own record is unaffected.
+* Important: attribution fields rendered by the server are now empty and are filled in the visitor's browser, so page caches can no longer serve one visitor's campaign to another.
+* Important: new installs default to cookie scope "registrable" (the cookie is shared across subdomains, including staging sites) and cookie re-issue on. Existing installs keep their current behaviour.
+* Important: behind a trusted proxy, the visitor IP is now taken from the rightmost untrusted `X-Forwarded-For` hop. Sites reachable only through Cloudflare can opt in to `CF-Connecting-IP` with the filter `clicutcl_trust_cf_connecting_ip`.
+* Important: the WooCommerce and Easy Digital Downloads thank-you page no longer pushes a purchase for orders older than the data retention window.
+* New: Easy Digital Downloads orders now carry attribution and send a purchase event.
+* New: Ultimate Member registrations now carry attribution and send a sign-up event, with privacy export, erase and retention support.
+* New: Formidable Forms, Forminator, SureForms and MetForm are supported: add a hidden field named `ct_<key>`, for example `ct_gclid`.
+* New: clicks on WhatsApp links send a `contact_whatsapp_start` event. The optional "Append attribution to message" setting (still off by default) now adds a short reference code instead of a long encoded block.
+* New: cookie scope setting (this host only, shared across subdomains, or a custom domain) on the Capture tab.
+* Safari: the attribution cookie is re-issued after Safari's tracking prevention shortens it.
+* Fix: Google Analytics 4 session cookies in the newer GS2 format are now read correctly.
+* Fix: WooCommerce privacy erase and retention cleanup now work on stores using High-Performance Order Storage.
+* Fix: no cookie is set on a visitor's first page view, so CDNs can keep caching the page.
+* Security: WhatsApp reference requests are rate limited per visitor address, the server-side GTM test only fetches safe URLs, values posted by forms are length-capped, and leftover form locks are cleaned up.
+* Privacy: the personal data exporter and eraser now match an email or user exactly instead of by partial text.
+* Forms: simultaneous duplicate form submissions are caught even across a time boundary.
 
 = 1.12.0 =
 * Contact Form 7: ClickTrail now only adds hidden fields for the `ct_` tags the form or its mail references. Add `[hidden ct_gclid]` to the form to get the value into mail and CRM add-ons; ClickTrail's own lead is unaffected.
