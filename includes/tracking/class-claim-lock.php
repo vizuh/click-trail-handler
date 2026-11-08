@@ -53,7 +53,7 @@ class Claim_Lock {
 		}
 
 		$stored     = (string) get_option( $key, '' );
-		$held_since = (int) substr( (string) strrchr( $stored, '|' ), 1 );
+		$held_since = self::held_since( $stored );
 		if ( $held_since <= 0 || ( time() - $held_since ) <= $ttl_seconds ) {
 			return '';
 		}
@@ -65,6 +65,81 @@ class Claim_Lock {
 		}
 
 		return add_option( $key, $value, '', 'no' ) ? $value : '';
+	}
+
+	/**
+	 * Delete option-backed claim rows abandoned for longer than `$max_age_seconds`.
+	 *
+	 * Without a persistent object cache every claim is an options row named like
+	 * `clicutcl_purchase_lock_<id>` or `clicutcl_form_claim_<hash>`; release() removes it, but a
+	 * request that died before releasing leaves it behind until the same key is claimed again, which
+	 * for a purchase or form fingerprint may be never. Only rows whose stored `<token>|<time>` time
+	 * is older than the bound go, each through the same row-conditional delete the takeover uses, so
+	 * a claim re-taken meanwhile is left alone. Rows whose value has no readable time are kept.
+	 * The oldest rows are examined first and at most `$limit` per call.
+	 *
+	 * @param int $max_age_seconds Age (seconds) after which a claim row counts as abandoned.
+	 * @param int $limit           Maximum rows examined per call.
+	 * @return int Rows deleted.
+	 */
+	public static function purge_stale( int $max_age_seconds = DAY_IN_SECONDS, int $limit = 500 ): int {
+		global $wpdb;
+
+		$patterns = self::option_name_patterns();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Cron cleanup of the plugin's own option rows; the options table has no core query API for a name pattern.
+		$rows = $wpdb->get_results( $wpdb->prepare( "SELECT option_name, option_value FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s ORDER BY option_id ASC LIMIT %d", $patterns[0], $patterns[1], max( 1, $limit ) ), ARRAY_A );
+		if ( ! is_array( $rows ) ) {
+			return 0;
+		}
+
+		$cutoff  = time() - max( 1, $max_age_seconds );
+		$deleted = 0;
+		foreach ( $rows as $row ) {
+			$held_since = self::held_since( (string) $row['option_value'] );
+			if ( $held_since > 0 && $held_since < $cutoff ) {
+				$deleted += self::delete_row( (string) $row['option_name'], (string) $row['option_value'] );
+			}
+		}
+
+		return $deleted;
+	}
+
+	/**
+	 * Delete every option-backed claim row (uninstall).
+	 *
+	 * @return void
+	 */
+	public static function delete_all_rows(): void {
+		global $wpdb;
+
+		$patterns = self::option_name_patterns();
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Uninstall cleanup of the plugin's own option rows; the options table has no core query API for a name pattern.
+		$wpdb->query( $wpdb->prepare( "DELETE FROM {$wpdb->options} WHERE option_name LIKE %s OR option_name LIKE %s", $patterns[0], $patterns[1] ) );
+	}
+
+	/**
+	 * LIKE patterns of the option names claims use: `clicutcl_<name>_lock_<id>` (purchase, Ultimate
+	 * Member sign-up) and `clicutcl_form_claim_<hash>`.
+	 *
+	 * @return string[]
+	 */
+	private static function option_name_patterns(): array {
+		global $wpdb;
+
+		return array(
+			$wpdb->esc_like( 'clicutcl_' ) . '%' . $wpdb->esc_like( '_lock_' ) . '%',
+			$wpdb->esc_like( 'clicutcl_form_claim_' ) . '%',
+		);
+	}
+
+	/**
+	 * Time a stored claim value (`<token>|<unix time>`) was taken.
+	 *
+	 * @param string $stored Stored option value.
+	 * @return int Unix time, or 0 when the value carries none.
+	 */
+	private static function held_since( string $stored ): int {
+		return (int) substr( (string) strrchr( $stored, '|' ), 1 );
 	}
 
 	/**
@@ -101,6 +176,7 @@ class Claim_Lock {
 	private static function delete_row( string $key, string $value ): int {
 		global $wpdb;
 
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Atomic row-conditional delete (name and exact value); core's delete_option() is unconditional and no core API offers a compare-and-delete.
 		$deleted = $wpdb->delete(
 			$wpdb->options,
 			array(

@@ -52,6 +52,10 @@ if ( ! function_exists( 'sanitize_text_field' ) ) {
 	function sanitize_text_field( $value ) {
 		$s = (string) $value;
 		$s = preg_replace( '/[\x00-\x1F\x7F]/', '', $s );
+		if ( ! empty( $GLOBALS['clicktrail_test_strip_octets'] ) ) {
+			// Core also strips percent-encoded octets; opt-in so only tests that care pay for it.
+			$s = preg_replace( '/%[a-f0-9]{2}/i', '', $s );
+		}
 		return trim( $s );
 	}
 }
@@ -254,9 +258,15 @@ if ( ! function_exists( 'wp_salt' ) ) {
 if ( ! class_exists( 'WP_Error' ) ) {
 	class WP_Error {
 		private string $code;
+		private $data;
 
-		public function __construct( string $code ) {
+		public function __construct( string $code, string $message = '', $data = '' ) {
 			$this->code = $code;
+			$this->data = $data;
+		}
+
+		public function get_error_data() {
+			return $this->data;
 		}
 
 		public function get_error_code(): string {

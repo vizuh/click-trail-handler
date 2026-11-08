@@ -702,7 +702,7 @@ class Tracking_Controller extends WP_REST_Controller {
 			return new WP_Error( 'invalid_code', 'Invalid reference code', array( 'status' => 400 ) );
 		}
 
-		switch ( Whatsapp_Ref_Store::create( $row ) ) {
+		switch ( Whatsapp_Ref_Store::create( $row, Whatsapp_Ref_Store::hash_client_ip( $this->get_client_ip() ) ) ) {
 			case 'created':
 				return array(
 					'success'    => true,
@@ -711,6 +711,8 @@ class Tracking_Controller extends WP_REST_Controller {
 				);
 			case 'collision':
 				return new WP_Error( 'whatsapp_ref_collision', 'Reference code already exists', array( 'status' => 409 ) );
+			case 'ip_limit':
+				return new WP_Error( 'whatsapp_ref_ip_limit', 'Too many reference codes from this address', array( 'status' => 429 ) );
 			case 'visitor_limit':
 				return new WP_Error( 'whatsapp_ref_visitor_limit', 'Too many reference codes for this visitor', array( 'status' => 429 ) );
 			case 'capacity':

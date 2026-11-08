@@ -215,6 +215,24 @@ namespace {
 			}
 		}
 
+		public function test_every_hosting_platform_suffix_still_resolves_to_host_only(): void {
+			$suffixes = array( 'workers.dev', 'pages.dev', 'onrender.com', 'fly.dev', 'herokuapp.com', 'netlify.app', 'vercel.app', 'github.io', 'gitlab.io', 'ngrok.io', 'ngrok-free.app', 'wpengine.com', 'wpenginepowered.com', 'kinsta.cloud', 'cloudfront.net', 'azurewebsites.net', 'amazonaws.com', 'web.app', 'firebaseapp.com', 'appspot.com', 'myshopify.com', 'blogspot.com', 'wordpress.com' );
+			foreach ( $suffixes as $suffix ) {
+				$this->assertTrue( Cookie_Scope::is_public_suffix( $suffix ), $suffix );
+				$this->assertSame( 'public_suffix', Cookie_Scope::resolve( 'registrable', '', 'tenant.' . $suffix )['reason'], 'registrable on tenant.' . $suffix );
+				$this->assertSame( 'public_suffix', Cookie_Scope::resolve( 'custom', $suffix, 'tenant.' . $suffix )['reason'], 'custom ' . $suffix );
+				$this->assertSame( '', Cookie_Scope::resolve( 'registrable', '', 'tenant.' . $suffix )['domain'], $suffix );
+			}
+		}
+
+		public function test_the_source_holds_no_full_hosting_hostname_literal(): void {
+			// Plugin Check's offloaded-content scan reads a quoted service hostname as a fetched resource.
+			$source = (string) file_get_contents( dirname( __DIR__, 2 ) . '/includes/Core/class-cookie-scope.php' );
+			foreach ( array( 'herokuapp.com', 'amazonaws.com', 'cloudfront.net', 'azurewebsites.net', 'github.io' ) as $host ) {
+				$this->assertStringNotContainsString( "'" . $host . "'", $source, $host );
+			}
+		}
+
 		public function test_existing_settings_are_never_reseeded(): void {
 			$GLOBALS['clicktrail_test_options']['clicutcl_attribution_settings'] = array( 'cookie_days' => 30 );
 

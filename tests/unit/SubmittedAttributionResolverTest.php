@@ -84,6 +84,26 @@ namespace {
 			$this->assertSame( 'A2', $out['ft_source'] );
 		}
 
+		public function test_posted_values_are_capped_at_255_characters_like_the_cookie_path(): void {
+			$_COOKIE = array();
+			$long    = str_repeat( 'x', 4000 );
+			$out     = ( new ClickTrailResolverAdapter() )->resolve( array( 'gclid' => $long, 'ft_source' => str_repeat( 'y', 255 ), 'lt_source' => 'short' ), true );
+
+			$this->assertSame( str_repeat( 'x', 255 ), $out['gclid'] );
+			$this->assertSame( str_repeat( 'y', 255 ), $out['ft_source'], 'exactly 255 is kept whole' );
+			$this->assertSame( 'short', $out['lt_source'] );
+		}
+
+		public function test_the_cap_never_splits_a_multibyte_character(): void {
+			$_COOKIE = array();
+			$value   = str_repeat( 'a', 254 ) . 'é' . 'tail'; // 'é' is two bytes and straddles byte 255.
+			$out     = ( new ClickTrailResolverAdapter() )->resolve( array( 'gclid' => $value ), true );
+
+			$this->assertLessThanOrEqual( 255, strlen( $out['gclid'] ) );
+			$this->assertSame( 1, preg_match( '//u', $out['gclid'] ), 'still valid UTF-8, so the events row still encodes' );
+			$this->assertStringStartsWith( str_repeat( 'a', 254 ), $out['gclid'] );
+		}
+
 		public function test_no_cookie_without_marker_blanks_everything(): void {
 			$_COOKIE = array();
 			$out     = ( new ClickTrailResolverAdapter() )->resolve( self::posted_by_a(), false );

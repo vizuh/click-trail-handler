@@ -161,27 +161,31 @@ class Log_List_Table extends \WP_List_Table {
 			return '-';
 		}
 
+		// Logged JSON is visitor-influenced: a non-scalar value must not reach esc_html() as an array.
+		$text   = static function ( $value ): string {
+			return is_scalar( $value ) ? (string) $value : '';
+		};
 		$output = array();
 
 		if ( isset( $data['wa_target_type'] ) || isset( $data['wa_target_path'] ) ) {
-			$target   = ( $data['wa_target_type'] ?? '' ) . ( $data['wa_target_path'] ?? '' );
+			$target   = $text( $data['wa_target_type'] ?? '' ) . $text( $data['wa_target_path'] ?? '' );
 			$output[] = '<strong>Target:</strong> ' . esc_html( $target );
 		}
 
 		if ( isset( $data['page_path'] ) ) {
-			$output[] = '<strong>Page:</strong> ' . esc_html( $data['page_path'] );
+			$output[] = '<strong>Page:</strong> ' . esc_html( $text( $data['page_path'] ) );
 		}
 
 		if ( isset( $data['attribution'] ) && is_array( $data['attribution'] ) ) {
 			$attr = $data['attribution'];
 			if ( ! empty( $attr['ft_source'] ) ) {
-				$output[] = '<strong>Source:</strong> ' . esc_html( $attr['ft_source'] );
+				$output[] = '<strong>Source:</strong> ' . esc_html( $text( $attr['ft_source'] ) );
 			}
 			if ( ! empty( $attr['ft_medium'] ) ) {
-				$output[] = '<strong>Medium:</strong> ' . esc_html( $attr['ft_medium'] );
+				$output[] = '<strong>Medium:</strong> ' . esc_html( $text( $attr['ft_medium'] ) );
 			}
 			if ( ! empty( $attr['ft_campaign'] ) ) {
-				$output[] = '<strong>Campaign:</strong> ' . esc_html( $attr['ft_campaign'] );
+				$output[] = '<strong>Campaign:</strong> ' . esc_html( $text( $attr['ft_campaign'] ) );
 			}
 		}
 
