@@ -12,7 +12,7 @@
 - [ ] T003 Seed `purchase_trigger = paid` and `thank_you_lead = never` inside the fresh-install branch of `seed_fresh_install_defaults()`, behind the existing earlier-use guard; leave `maybe_upgrade()` and the wizard alone (FR-003). Target: `includes/database/class-installer.php:95-111`
 - [ ] T004 Events-tab section "Conversion semantics": the two selects with the FR-016 copy and the double-counting warning; strings go through the text domain. Target: `assets/js/admin-settings-app.js` near `:916` (`woo_enhanced_datalayer`), `includes/admin/class-admin.php`
 - [ ] T005 Wizard step 3 summary part for WooCommerce or EDD (FR-017). Target: `includes/admin/class-setup-wizard.php:544-560`
-- [ ] T006 `SiteHealth::test_conversion_semantics()` and its `add_tests()` entry; status `good` in both modes unless T001 says otherwise (FR-017). Target: `includes/admin/class-sitehealth.php:36-55`
+- [ ] T006 `SiteHealth::test_conversion_semantics()` and its `add_tests()` entry; status `good` in both modes unless T001 says otherwise; when WooCommerce uses a block theme, add a hint if the order-confirmation template does not appear to contain the "Additional information" block (the browser `purchase` and the step event would not render; W6) (FR-017). Target: `includes/admin/class-sitehealth.php:36-55`
 - [ ] T007 PHPUnit `tests/unit/PurchaseTriggerSettingsTest.php`, patterned on `CookieScopeSettingsTest.php`: missing key reads legacy, invalid values fall back, fresh seed, no seed on earlier use, wizard never writes the keys. Target: `tests/unit/`
 
 ## Phase 2: WooCommerce server paths (US1, US2, US3, US5)
@@ -42,7 +42,7 @@
 - [ ] T021 PHPUnit `tests/unit/WooPaidPurchaseTest.php`: every row of the plan's test table (SC-001). Target: `tests/unit/`
 - [ ] T022 PHPUnit EDD cases in `EddIntegrationTest.php` (SC-002). Target: `tests/unit/EddIntegrationTest.php`, `tests/helpers/edd-doubles.php`
 - [ ] T023 Node VM `tools/qa/thank-you-semantics.test.js` (SC-003) and add it to `npm run test:consent`. Target: `tools/qa/thank-you-semantics.test.js`, `package.json:6`
-- [ ] T024 Harness `woo-purchase-ci.sh`, `woo_purchase.py`, `verify_woo_purchase.py`: `hook-probe`, `bacs-then-paid` (including the authenticated wp-admin status change with an opposite consent cookie), `card-simulated`, `cod`, `failed`, `refresh-tabs`, `legacy-unchanged`, `retention`; record `EVIDENCE-<date>-woo-purchase.md`; run under `flock /tmp/ct-e2e.lock` (SC-004). Target: `tools/qa/e2e/`
+- [ ] T024 Harness `woo-purchase-ci.sh`, `woo_purchase.py`, `verify_woo_purchase.py`: `hook-probe` (a real thank-you page on the classic shortcode checkout and on a block checkout, plus a block template with the "Additional information" block removed), `bacs-then-paid` (including the authenticated wp-admin status change with an opposite consent cookie), `card-simulated`, `cod`, `failed`, `refresh-tabs`, `legacy-unchanged`, `retention`; record `EVIDENCE-<date>-woo-purchase.md`; run under `flock /tmp/ct-e2e.lock` (SC-004). Target: `tools/qa/e2e/`
 - [ ] T025 Harness `edd-pending-complete` in `edd-ci.sh`/`edd.py`/`verify_edd.py`; record `EVIDENCE-<date>-edd-paid.md` (SC-004). Target: `tools/qa/e2e/`
 
 ## Phase 6: Docs and release

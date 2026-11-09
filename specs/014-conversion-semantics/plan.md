@@ -52,7 +52,7 @@ Five parts, in dependency order. U1: two settings (`purchase_trigger`, `thank_yo
 | EDD: `edd_update_payment_status` handler `on_status_change( $order_id, $new_status, $old_status )`, the same helpers (own copies, EDD has no shared base), marker values, `Claim_Lock` (`PURCHASE_LOCK_PREFIX`), creation-date guard, snapshot consent; the receipt pushes the step event and applies the `paid` branch | `includes/integrations/class-edd.php:64-71`, `:113-186` |
 | Localize `orderReceived` (bool) in the Woo events config so the script defers on order-received pages | `includes/class-clicutcl-core.php:568-` (`build_woocommerce_events_config()`), consumed at `assets/js/clicutcl-events.js:2106` |
 | Localize `thankYouLead` (`always` / `fallback` / `never`) | `includes/class-clicutcl-core.php:333` (next to `thankYouMatchers`) |
-| Site Health `test_conversion_semantics()` and its `add_tests()` entry | `includes/admin/class-sitehealth.php:36-55` |
+| Site Health `test_conversion_semantics()` and its `add_tests()` entry, with a hint when a block theme's order-confirmation template lacks the "Additional information" block (W6) | `includes/admin/class-sitehealth.php:36-55` |
 | Wizard step 3 summary part | `includes/admin/class-setup-wizard.php:544-560` |
 | Readiness analyzer: allow `purchase` after a `payment_complete` / `paid_status_change` transition; new fixtures beside F06/F07 | `includes/Intelligence/class-woo-readiness-analyzer.php`, `tests/fixtures/woo-readiness/v1/` |
 
@@ -142,7 +142,7 @@ Draft for `docs/tutorials/04-gtm-starter-kit.md`, `INTEGRATIONS.md` and the chan
 
 | Scenario | What it does | Observes |
 |---|---|---|
-| `hook-probe` | request the order-received page of a fresh order on the shortcode checkout page and on the block template | whether `woocommerce_thankyou` fires (W6) |
+| `hook-probe` | request a real order-received page of a fresh order on the classic shortcode checkout and on a block checkout with the default blockified template, then on a block template with the "Additional information" block removed | whether our `woocommerce_thankyou` callback output (step event, purchase) renders in each (W6) |
 | `bacs-then-paid` | Chromium checkout with BACS, thank-you page, then `$order->update_status( 'processing' )` through wp-cli and again through an authenticated wp-admin edit with an opposite consent cookie | step event only at first; one captured `purchase_<id>` after payment; consent per snapshot; reload pushes browser `purchase` once |
 | `card-simulated` | order created with `created_via = checkout`, `payment_complete()` from wp-cli (no card gateway exists in the harness), then the thank-you page | one server `purchase`, one browser `purchase` with the same `event_id`, marker `yes` |
 | `cod` | Chromium checkout with COD | order `processing`, purchase counted, document the caveat |
@@ -159,7 +159,7 @@ Draft for `docs/tutorials/04-gtm-starter-kit.md`, `INTEGRATIONS.md` and the chan
 - **Consent authority change touches the dispatcher.** `Dispatcher::consent_allows()` is shared by every event. The new branch is keyed on an explicit payload flag only set by the Woo and EDD purchase paths, so no other event changes; whether the milestones adopt it is open question 7.
 - **A queued `purchase` on a consent-required site** waits on `clicutcl_queue_consent_snapshot` (default null, `class-queue.php:282-306`), exactly as every queued event does today. This spec does not fix it; sites that need queue retries under consent must supply the filter. Flagged in the changelog.
 - **Eligibility allowlist can under-count** a gateway that creates orders with its own `created_via`; the filter and `order_paid` cover it, and the harness evidence should record the values seen.
-- **Block order-received template** may not fire `woocommerce_thankyou` (W6): the browser `purchase` and the step event could be absent there. Server `purchase` is unaffected. Verify in `hook-probe` before any claim in the docs.
+- **Block order-received template** runs `woocommerce_thankyou` through the "Additional information" block (W6, source-present); a customised block template that removes that block silently drops the legacy `purchase` push and the step event while the server `purchase` still works. Mitigation: documented caveat, a Site Health hint (T006) and the `hook-probe` harness scenario on both checkout types; runtime-unverified until it passes.
 - **EDD hook** is unverified for completion (W9); T013 proves it in the harness before the handler is relied on.
 - **Session evidence for leads is coarse.** Any form submit in the tab suppresses the fallback lead (research R10).
 - **Order of `woocommerce_payment_complete` and the status hook**: both run in one request, the status hook first (W2); the lock and marker make the order irrelevant, and a test pins it.
