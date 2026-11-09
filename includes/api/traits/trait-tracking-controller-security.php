@@ -85,13 +85,27 @@ trait Tracking_Controller_Security_Trait {
 	}
 
 	/**
-	 * Optional replay-limit keyed by token nonce and client IP.
+	 * Replay limit keyed by token nonce, client IP and request session.
 	 *
-	 * @param array $claims Verified token claims.
-	 * @param int   $default_limit Limit applied when the setting is 0/unset (0 disables).
+	 * The token nonce is minted into page HTML, so a page cache hands the same nonce to every
+	 * visitor of that page. A cap keyed only on (nonce, IP) would therefore starve every visitor
+	 * behind one IP. The counter is keyed on (nonce, IP, session id from the request body) and
+	 * lives in a fixed window of at most one hour, never the token lifetime. The per-IP rate
+	 * limiter (check_rate_limit) stays the primary abuse control.
+	 *
+	 * Without a session/visitor id in the body the request falls into a shared per-(nonce, IP)
+	 * bucket with a ten times larger allowance.
+	 *
+	 * The setting `token_nonce_limit` (0 = built-in default) and the filter
+	 * `clicutcl_v2_token_nonce_limit` (0 = disabled) set the allowance per window.
+	 *
+	 * @param array                $claims        Verified token claims.
+	 * @param int                  $default_limit Allowance per window when the setting is 0/unset (0 disables).
+	 * @param WP_REST_Request|null $request       Request, used to read the session id.
+	 * @param string               $scope         Route scope, so routes do not share a counter.
 	 * @return true|WP_Error
 	 */
-	private function check_token_nonce_limit( array $claims, int $default_limit = 0 ) {
+	private function check_token_nonce_limit( array $claims, int $default_limit = 0, ?WP_REST_Request $request = null, string $scope = '' ) {
 		$nonce = isset( $claims['nonce'] ) ? sanitize_text_field( (string) $claims['nonce'] ) : '';
 		if ( '' === $nonce ) {
 			return true;
@@ -107,16 +121,82 @@ trait Tracking_Controller_Security_Trait {
 			return true;
 		}
 
-		$ttl = isset( $claims['exp'] ) ? max( 60, absint( $claims['exp'] ) - time() ) : HOUR_IN_SECONDS;
-		$ip  = $this->get_client_ip();
-		$key = 'clicutcl_v2_nonce_' . md5( $nonce . '|' . $ip );
-		$hit = (int) get_transient( $key );
-		if ( $hit >= $limit ) {
+		$session = $request ? $this->extract_request_session_id( $request ) : '';
+		if ( '' === $session ) {
+			$limit = min( 5000, $limit * 10 );
+		}
+
+		$window = HOUR_IN_SECONDS;
+		if ( isset( $claims['exp'] ) ) {
+			$window = max( 60, min( HOUR_IN_SECONDS, absint( $claims['exp'] ) - time() ) );
+		}
+
+		$ip    = $this->get_client_ip();
+		$key   = 'clicutcl_v2_nonce_' . md5( $scope . '|' . $nonce . '|' . $ip . '|' . $session );
+		$state = get_transient( $key );
+		$now   = time();
+		if ( ! is_array( $state ) || ! isset( $state['n'], $state['s'] ) || $now - (int) $state['s'] >= $window ) {
+			$state = array(
+				'n' => 0,
+				's' => $now,
+			);
+		}
+
+		if ( (int) $state['n'] >= $limit ) {
 			return new WP_Error( 'nonce_replay_limited', 'Too many requests for token nonce', array( 'status' => 429 ) );
 		}
 
-		set_transient( $key, $hit + 1, $ttl );
+		$state['n'] = (int) $state['n'] + 1;
+		set_transient( $key, $state, max( 1, $window - ( $now - (int) $state['s'] ) ) );
 		return true;
+	}
+
+	/**
+	 * Best-effort session (or visitor) id from the JSON body, bounded and sanitized.
+	 *
+	 * @param WP_REST_Request $request Request.
+	 * @return string
+	 */
+	private function extract_request_session_id( WP_REST_Request $request ): string {
+		$body = $request->get_json_params();
+		if ( ! is_array( $body ) ) {
+			return '';
+		}
+
+		$candidates = array( $body );
+		if ( isset( $body['event'] ) && is_array( $body['event'] ) ) {
+			$candidates[] = $body['event'];
+		}
+		if ( isset( $body['events'] ) && is_array( $body['events'] ) && isset( $body['events'][0] ) && is_array( $body['events'][0] ) ) {
+			$candidates[] = $body['events'][0];
+		}
+
+		foreach ( $candidates as $candidate ) {
+			foreach ( array( 'session_id', 'visitor_id' ) as $field ) {
+				if ( isset( $candidate[ $field ] ) && is_scalar( $candidate[ $field ] ) ) {
+					$value = substr( sanitize_text_field( (string) $candidate[ $field ] ), 0, 128 );
+					if ( '' !== $value ) {
+						return $value;
+					}
+				}
+			}
+		}
+
+		return '';
+	}
+
+	/**
+	 * Count a gate rejection in failure telemetry (fixed error code only, bounded cardinality).
+	 *
+	 * @param WP_Error $error Gate error.
+	 * @return void
+	 */
+	private function record_gate_rejection( WP_Error $error ): void {
+		$code = $error->get_error_code();
+		if ( in_array( $code, array( 'nonce_replay_limited', 'rate_limited', 'token_expired', 'invalid_signature' ), true )
+			&& is_callable( array( \CLICUTCL\Server_Side\Dispatcher::class, 'record_failure' ) ) ) {
+			\CLICUTCL\Server_Side\Dispatcher::record_failure( $code );
+		}
 	}
 
 	/**

@@ -35,7 +35,8 @@ Important constraints:
 - browser event collection must be enabled
 - request body size is capped
 - request rate limiting is enforced
-- each page token is limited to 20 browser-batch requests by default
+- token replay limit: counted per (page token nonce, client IP, `session_id`/`visitor_id` from the body) in a fixed window of at most one hour, default 120 requests per window, else 429 `nonce_replay_limited`. Distinct sessions that share one cached page token and IP do not share a counter. A request without a session id uses a shared per-(nonce, IP) bucket with ten times the allowance. The `token_nonce_limit` setting overrides the default (0 = default); the `clicutcl_v2_token_nonce_limit` filter returns 0 to disable
+- gate rejections `nonce_replay_limited`, `rate_limited`, `token_expired` and `invalid_signature` (this route, `attribution-token/sign` and `whatsapp-ref`) increment the failure-telemetry counters under those fixed codes, outside the debug window
 - only the browser events emitted by `clicutcl-events.js` are accepted; purchase and lifecycle outcomes use trusted server routes
 
 Allowed canonical browser events:
@@ -124,7 +125,7 @@ Auth model, in this order:
 - per-IP rate limit (scope `whatsapp_ref`, filters `clicutcl_v2_rate_limit` / `clicutcl_v2_rate_window`), else 429
 - page client token in `X-Clicutcl-Token` (or the JSON `token`), else 401
 - server-side consent: when consent is required, marketing consent must be granted in this request's consent cookie (never the body), else 403 `consent_required`
-- per-token-nonce replay limit (default 20), else 429
+- per-(token nonce, IP, session) replay limit (default 30 per hour, same key/window as the batch route), else 429
 - in the store, before any database write: per-client-IP creation quota (default 100 per 24 hours, filter `clicutcl_whatsapp_ref_max_per_ip`), else 429 `whatsapp_ref_ip_limit`; then per-(`visitor_id`, client IP) quota (default 20 per 24 hours), else 429 `whatsapp_ref_visitor_limit`. The client IP follows the trusted-proxy rules in [SECURITY-PRIVACY.md](../guides/SECURITY-PRIVACY.md)
 
 Responses: 200 `{ success, code, expires_at }`; 400 `invalid_code` / `invalid_attribution_data`; 409 `whatsapp_ref_collision` (the code exists; the stored row is not touched and the client retries once with a new code); 429 `whatsapp_ref_ip_limit` (this client IP already created the maximum in 24 hours, default 100, filter `clicutcl_whatsapp_ref_max_per_ip`) and `whatsapp_ref_visitor_limit` (this `visitor_id` from this client IP already created the maximum in 24 hours, default 20, filter `clicutcl_whatsapp_ref_max_per_visitor`; an empty `visitor_id` counts on the IP alone); 503 `whatsapp_ref_capacity` (the table holds the maximum rows, default 50 000, filter `clicutcl_whatsapp_ref_max_rows`, and neither the expired-row purge nor evicting the oldest rows (at most 500 per request) freed room) and `whatsapp_ref_unavailable` (table missing).

@@ -23,6 +23,7 @@ require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-auth.php';
 require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-webhook-auth.php';
 require_once dirname( __DIR__, 2 ) . '/includes/api/class-tracking-controller.php';
 
+use CLICUTCL\Server_Side\Dispatcher;
 use CLICUTCL\Api\Tracking_Controller;
 use CLICUTCL\Core\Storage\Option_Cache;
 use CLICUTCL\Tracking\Auth;
@@ -629,5 +630,91 @@ final class RestAuthPermissionsTest extends TestCase {
 		$result = $controller->webhook_permissions_check( $request );
 		$this->assertTrue( is_wp_error( $result ) );
 		$this->assertSame( 'external_webhooks_disabled', $result->get_error_code() );
+	}
+
+	// ------------------------------------------------------------------
+	// WP-01: token nonce replay cap (cached page / shared IP)
+	// ------------------------------------------------------------------
+
+	private function batch_request_for_session( string $token, string $session ): \WP_REST_Request {
+		return new \WP_REST_Request(
+			array( 'X-Clicutcl-Token' => $token ),
+			wp_json_encode( array( 'events' => array( array( 'session_id' => $session ) ) ) ),
+			'/clicutcl/v2/events/batch'
+		);
+	}
+
+	public function test_batch_accepts_many_sessions_sharing_one_cached_token_and_ip(): void {
+		$_SERVER['REMOTE_ADDR'] = '203.0.113.9';
+		$controller             = new Tracking_Controller();
+		$token                  = Auth::mint_client_token();
+
+		for ( $i = 1; $i <= 60; $i++ ) {
+			$result = $controller->batch_events_permissions_check( $this->batch_request_for_session( $token, 'sess-' . $i ) );
+			$this->assertTrue( $result, 'request ' . $i . ' from a distinct session must be accepted' );
+		}
+	}
+
+	public function test_batch_still_bounds_a_single_session(): void {
+		$_SERVER['REMOTE_ADDR'] = '203.0.113.10';
+		// Keep the per-IP rate limiter out of the way: this test targets the replay cap.
+		Option_Cache::set( 'clicutcl_tracking_v2', array( 'security' => array( 'rate_limit_limit' => 2000 ) ) );
+		$controller             = new Tracking_Controller();
+		$token                  = Auth::mint_client_token();
+		$request                = $this->batch_request_for_session( $token, 'one-session' );
+
+		$rejected = null;
+		for ( $i = 1; $i <= 400; $i++ ) {
+			$result = $controller->batch_events_permissions_check( $request );
+			if ( is_wp_error( $result ) ) {
+				$rejected = $result;
+				break;
+			}
+		}
+
+		$this->assertNotNull( $rejected, 'one session must still be capped' );
+		$this->assertSame( 'nonce_replay_limited', $rejected->get_error_code() );
+		$this->assertGreaterThan( 20, $i, 'default must allow a real page worth of events' );
+	}
+
+	public function test_configured_nonce_limit_is_honoured_per_session(): void {
+		$_SERVER['REMOTE_ADDR'] = '203.0.113.11';
+		Option_Cache::set( 'clicutcl_tracking_v2', array( 'security' => array( 'token_nonce_limit' => 3 ) ) );
+		$controller = new Tracking_Controller();
+		$token      = Auth::mint_client_token();
+		$request    = $this->batch_request_for_session( $token, 's1' );
+
+		for ( $i = 0; $i < 3; $i++ ) {
+			$this->assertTrue( $controller->batch_events_permissions_check( $request ) );
+		}
+		$result = $controller->batch_events_permissions_check( $request );
+		$this->assertTrue( is_wp_error( $result ) );
+		$this->assertSame( 'nonce_replay_limited', $result->get_error_code() );
+		$this->assertTrue( $controller->batch_events_permissions_check( $this->batch_request_for_session( $token, 's2' ) ) );
+	}
+
+	/**
+	 * Runs in its own process: other suites declare a stub Dispatcher, and this
+	 * test needs the real failure counters.
+	 *
+	 * @runInSeparateProcess
+	 * @preserveGlobalState disabled
+	 */
+	public function test_gate_rejections_increment_failure_telemetry(): void {
+		require_once dirname( __DIR__, 2 ) . '/includes/server-side/class-dispatcher.php';
+		$_SERVER['REMOTE_ADDR'] = '203.0.113.12';
+		$controller             = new Tracking_Controller();
+		$request                = new \WP_REST_Request(
+			array( 'X-Clicutcl-Token' => 'bogus.token' ),
+			'{}',
+			'/clicutcl/v2/events/batch'
+		);
+		$result                 = $controller->batch_events_permissions_check( $request );
+		$this->assertTrue( is_wp_error( $result ) );
+
+		$ref = new \ReflectionProperty( Dispatcher::class, 'failure_deltas' );
+		$ref->setAccessible( true );
+		$deltas = $ref->getValue();
+		$this->assertSame( 1, $deltas[ $result->get_error_code() ] ?? 0 );
 	}
 }

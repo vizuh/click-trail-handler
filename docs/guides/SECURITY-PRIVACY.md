@@ -225,7 +225,7 @@ Browser event intake uses signed client tokens.
 Relevant controls:
 
 - token TTL
-- token nonce replay limit
+- token replay limit per (token nonce, client IP, session id), fixed window of at most one hour (default 120 browser events, 30 sign/WhatsApp-ref requests; `0` in settings = default); gate rejections (`nonce_replay_limited`, `rate_limited`, `token_expired`, `invalid_signature`) are counted in failure telemetry
 - allowed token hosts
 - optional subdomain token acceptance
 
