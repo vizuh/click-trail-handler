@@ -43,7 +43,7 @@ Namespace `CLICUTCL\Offline` resolves to `includes/offline/class-*.php` through 
 |---|---|
 | Table `clicutcl_conversions`, readiness options, `DB_VERSION` 6 recorded only when the table is ready | `includes/database/class-installer.php:23`, `:140-260` |
 | `Conversion_Store`: `build_row` (pure), `insert` (`INSERT ... ON DUPLICATE KEY UPDATE id = id`: 1 inserted, 0 duplicate, `false` error), `find_lead( lead_id )` (conversion table first, then `clicutcl_events` `event_type = form_submission` with `esc_like` on a validated `lead_...` ID, `LIMIT 1`), `count_for_lead`, `purge_expired`, `delete_by_lead_ids` | `includes/database/class-conversion-store.php` (new) |
-| `lifecycle_update()` and `lifecycle_permissions_check()` per spec FR-007; stage allowlist unchanged (`lead`, `book_appointment`, `qualified_lead`, `client_won`) | `includes/api/class-tracking-controller.php:87-92`, `:796-880` |
+| `lifecycle_update()` and `lifecycle_permissions_check()` per spec FR-007 and FR-012 (`lifecycle.crm_ingestion.enabled` enforced beside the flag and token gates); stage allowlist unchanged (`lead`, `book_appointment`, `qualified_lead`, `client_won`) | `includes/api/class-tracking-controller.php:87-92`, `:796-880` |
 | Purge; eraser and exporter match a record by `lead_id` found in the subject's event rows (spec 008 R9 rule) or by `email_sha256` (plain and Google-normalised hash of the subject's email), which also reaches provider rows that have no events row; uninstall drop | `includes/utils/class-cleanup.php:33-60`, `includes/privacy/class-privacy-handler.php`, `uninstall.php` |
 
 ```text
@@ -53,7 +53,7 @@ clicutcl_conversions  (all datetimes UTC, written with gmdate())
   click_id_key varchar(16) | click_id varchar(200) | click_time datetime null
   email_sha256 char(64) | phone_sha256 char(64)
   value decimal(12,4) null | currency char(3) | order_id varchar(128) | occurred_at datetime
-  consent_state varchar(16) | consent_basis varchar(24)   -- granted|not_required|legacy|unknown ; legitimate_interest|''
+  consent_state varchar(16) | consent_basis varchar(24) | source_class varchar(24)   -- granted|not_required|legacy|unknown ; unknown|<evidenced legal basis> ; first_party|provider_originated
   snapshot text   -- {"utm":{}, "landing_page":"", "form":{"platform","form_id"}, "click_ids":{}}
   created_at datetime | expires_at datetime
   UNIQUE (blog_id, row_key) | KEY lead_id | KEY expires_at | KEY occurred_at

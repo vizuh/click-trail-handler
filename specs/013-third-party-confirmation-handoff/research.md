@@ -67,9 +67,9 @@ Source read on 2026-11-04 (`main` @ `e00552c`, 1.12.0 plus unreleased 1.13 work)
 
 ## R4: Reuse or generalise the reference store
 
-**Decision**: generalise: rename to `Handoff_Ref_Store`; one row per attribution snapshot, no `purpose` column; mint allowed when WhatsApp append or `handoff_refs` is on.
+**Decision**: generalise: keep and reuse the shipped `Whatsapp_Ref_Store` and table (the generic names are aliases, R10); one row per attribution snapshot, no `purpose` column; mint allowed when WhatsApp append or `handoff_refs` is on.
 **Rationale**: the row, collision handling, TTL, ceilings, cleanup, eraser and lookup are already purpose-agnostic (`build_snapshot` takes the signed-token allowlist, nothing WhatsApp-specific); a second table would copy all of it. Sharing ceilings is acceptable because rows are per snapshot per tab session. A code minted for a chat link is harmless as a Stripe reference.
-**Rejected**: a `purpose` column (a migration that buys no isolation: lookup is by unguessable code and the data is the same snapshot); keeping the WhatsApp names and adding a second route (naming debt, two gates).
+**Rejected**: a `purpose` column (a migration that buys no isolation: lookup is by unguessable code and the data is the same snapshot); renaming the store or table (superseded by R10: 1.13.0 shipped); a second route with its own gate (the `/handoff-ref` alias shares the callbacks and gates).
 
 ## R5: Which vendors can echo the reference
 
@@ -101,10 +101,20 @@ Source read on 2026-11-04 (`main` @ `e00552c`, 1.12.0 plus unreleased 1.13 work)
 | Braintree | a documented payment-succeeded hook exists (V10 shows none), else the site's server calls ClickTrail through its own code |
 | Booking engines other than Calendly | the vendor publishes a message, callback or webhook contract and a reference field |
 
+## R10: Decision (2026-11-09): 1.13 shipped, keep the names, add aliases
+
+**Decision**: 1.13.0 shipped on 2026-11-08 (GitHub v1.13.0 and WordPress.org) with `POST /clicutcl/v2/whatsapp-ref`, table `clicutcl_whatsapp_refs`, `ct_wa_ref` and `DB_VERSION` 5. No rename. Those names stay for at least one release and the generic names are added beside them as aliases (route `/handoff-ref`, key `ct_handoff_ref`, `clicutcl_handoff_ref_*` filters, JS `requestHandoffRef` / `getHandoffRef`). The table, class and `DB_VERSION` do not change. Removal of the WhatsApp names is a later, separately announced decision.
+**Rationale**: renaming a released REST route, storage key and table breaks sites and cached scripts that already use them. Of the options (view, table rename, or generic names only on the route/param surface), the last is least risky: a `RENAME` needs a migration and a `DB_VERSION` bump, and a view needs privileges many hosts lack and complicates `dbDelta`, eraser and uninstall. The code, row and ceilings are shared, so aliases cost one route registration and a few lines of JS.
+
+## R11: Decision (2026-11-09): unresolved reference
+
+**Decision**: when a reference does not resolve and consent is not required, the browser or provider-side signal does NOT emit a `purchase` (ignored; browser events are signals, R3). Separately, the independently verified business event can still be recorded server-side from an authenticated webhook as its own record with attribution marked `unresolved`; attribution is never invented. The two cases are different and must not be conflated: one is an unverifiable page signal, the other a signed payment.
+**Rationale**: a `purchase` without attribution can count conversions ClickTrail cannot attribute or verify. **Hugo decision needed**: the alternative (emit a `purchase` without attribution) was considered and rejected for that reason; reopen only if Hugo wants it.
+
 ## Open questions for Hugo
 
-1. Has 1.13 shipped before this branch lands? If yes, keep `/whatsapp-ref`, the table and `ct_wa_ref` for one release and add the generic names beside them; if no, rename now (FR-007).
+1. ~~Has 1.13 shipped?~~ Decided, see R10.
 2. Remove the unsourced `calendly-booked` string from the legacy matcher, or keep it for sites that post it themselves?
 3. Should withdrawing consent delete the server row (needs a client-signed delete route) or keep the retention TTL as in spec 008?
-4. When a reference does not resolve and consent is not required, emit the `purchase` without attribution, or ignore it (the current decision)?
+4. ~~Unresolved reference: emit `purchase` without attribution?~~ Decided, see R11.
 5. Verify live: Calendly's invitee URI form in the message against the webhook's; whether `salesforce_uuid` can carry a reference; Cal.com, Acuity, SimplyBook and Mindbody echo fields (R5).
