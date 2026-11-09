@@ -317,6 +317,7 @@ The grouped payload is translated back into:
 - `clicutcl_server_side`
 - `clicutcl_tracking_v2`
 
+`clicutcl_save_admin_settings` reads `settings` as a JSON string, unslashes it once and decodes it before any sanitising, so secrets and URLs reach their per-field sanitisers unchanged. A missing or undecodable payload (anything that does not decode to an array) returns a JSON error with HTTP 400 and saves nothing.
 The admin payload also includes:
 
 - registry-backed adapter and destination metadata

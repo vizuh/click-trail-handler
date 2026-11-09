@@ -973,7 +973,7 @@ class Admin {
 	 * @return array<string, mixed>
 	 */
 	private function save_unified_admin_settings( $payload ) {
-		$payload             = is_array( $payload ) ? wp_unslash( $payload ) : array();
+		$payload             = is_array( $payload ) ? $payload : array();
 		$capture             = isset( $payload['capture'] ) && is_array( $payload['capture'] ) ? $payload['capture'] : array();
 		$forms               = isset( $payload['forms'] ) && is_array( $payload['forms'] ) ? $payload['forms'] : array();
 		$events              = isset( $payload['events'] ) && is_array( $payload['events'] ) ? $payload['events'] : array();

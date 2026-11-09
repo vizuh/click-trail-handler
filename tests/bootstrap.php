@@ -56,6 +56,11 @@ if ( ! function_exists( 'sanitize_text_field' ) ) {
 			// Core also strips percent-encoded octets; opt-in so only tests that care pay for it.
 			$s = preg_replace( '/%[a-f0-9]{2}/i', '', $s );
 		}
+		if ( ! empty( $GLOBALS['clicktrail_test_strip_tags'] ) ) {
+			// Core strips <...> spans and collapses whitespace runs; opt-in like the octet stripping.
+			$s = preg_replace( '/<[^>]*>/', '', $s );
+			$s = preg_replace( '/ {2,}/', ' ', $s );
+		}
 		return trim( $s );
 	}
 }
@@ -93,6 +98,10 @@ if ( ! function_exists( 'absint' ) ) {
 
 if ( ! function_exists( 'wp_unslash' ) ) {
 	function wp_unslash( $value ) {
+		if ( ! empty( $GLOBALS['clicktrail_test_real_unslash'] ) ) {
+			// Opt-in: mirror core, which strips one level of slashes recursively.
+			return is_array( $value ) ? array_map( 'wp_unslash', $value ) : ( is_string( $value ) ? stripslashes( $value ) : $value );
+		}
 		return $value;
 	}
 }
