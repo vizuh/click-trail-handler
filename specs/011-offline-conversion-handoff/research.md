@@ -64,7 +64,7 @@ Vendor references:
 
 ## R8 Consent semantics for provider leads
 
-**Decision**: these leads did not pass the site's CMP. Store `consent_state = unknown`, `consent_basis = legitimate_interest` (an operational label, not a legal finding; open question 1), hashes only, and exclude provider rows (leads and their stages) from every export unless `include_provider_leads` is on. Calendly precedent (`includes/tracking/webhooks/class-calendlywebhookadapter.php`): a webhook consent state exists only when the booking link carried a stamp; absent means no decision. The admin text next to the setting warns that Google's lead form has its own conversion goal (About lead form assets: "Campaign must be optimized towards a Google lead form conversion goal") and CallRail may report calls to Google itself, so exporting the `lead` row can double count [INFERENCE: not verified with either vendor].
+**Decision**: these leads did not pass the site's CMP. Store `source_class = provider_originated`, `consent_state = unknown`, `consent_basis = unknown` (see R12), hashes only, and exclude provider rows (leads and their stages) from every export unless `include_provider_leads` is on. Calendly precedent (`includes/tracking/webhooks/class-calendlywebhookadapter.php`): a webhook consent state exists only when the booking link carried a stamp; absent means no decision. The admin text next to the setting warns that Google's lead form has its own conversion goal (About lead form assets: "Campaign must be optimized towards a Google lead form conversion goal") and CallRail may report calls to Google itself, so exporting the `lead` row can double count [INFERENCE: not verified with either vendor].
 
 ## R9 CSV escaping versus click IDs
 
@@ -78,10 +78,25 @@ Vendor references:
 
 No route here is anonymous. Webhooks: secret or signature auth, 128 KB cap, rate limit scope `offline_webhook`. Lifecycle: admin or CRM token, 128 KB cap, `lifecycle` rate limit for token callers. Store: 50 000 rows, 8 stage rows per lead, atomic unique key. No outbound HTTP, so no SSRF surface.
 
+## R12 Decision (2026-11-09): provider rows are `provider_originated`, not `legitimate_interest`
+
+**Decision**: the stored label is `source_class = provider_originated`, a SOURCE classification. `legitimate_interest` is a legal basis, a different concept, and is never stored here. The legal basis / consent evidence is a separate field (`consent_basis`) and stays `unknown` until evidenced. An unknown state is never rendered as direct traffic, organic or consent granted, and a provider lead never fabricates a first-party visit or click ID.
+**Rationale**: a source label that doubles as a legal claim would assert a basis nobody evidenced; keeping the two fields apart lets each be filled only from evidence.
+
+## R13 Decision (2026-11-09): no mapping of `marketing` to `Ad User Data` / `Ad Personalization`
+
+**Decision**: the site `marketing` flag is not mapped to Google's `Ad User Data` or `Ad Personalization`; both stay unset. No per-row or per-setting input for a verified per-purpose value exists in this spec, so: unset, with a documented extension point later for a verified value per purpose. The EEA caveat stays documented.
+**Rationale**: one site-level flag does not evidence two distinct Google purposes for each person; sending an inferred grant would assert consent nobody gave.
+
+## R14 Decision (2026-11-09): enforce `lifecycle.crm_ingestion.enabled` server-side
+
+**Decision**: `lifecycle_permissions_check()` also checks `lifecycle.crm_ingestion.enabled` (FR-012); off plus a valid token is rejected with 403 `lifecycle_disabled`, the style of the existing flag gate.
+**Rationale**: a setting that only hides UI is not a control; the endpoint is the boundary.
+
 ## Open questions
 
-1. Provider rows: keep `legitimate_interest` as the stored label, or use a neutral `provider_originated`?
-2. Map site `marketing` consent to Google's `Ad User Data` / `Ad Personalization` columns, or keep them unset? (EEA uploads may need them.)
-3. Gmail rule: dots only (Data Manager Help) or dots plus `+suffix` (API and formatting guide)? Also 7014069 step 7 says hashed first-party data "should exactly match what was entered in the lead form", which conflicts with normalising first.
-4. Enforce `lifecycle.crm_ingestion.enabled` in `lifecycle_permissions_check()` (today only the flag and the token gate it)?
-5. A restated stage value (same lead, stage, order ID) is ignored as a duplicate; is that acceptable or should a later value supersede?
+1. ~~Provider rows label~~ Decided, see R12.
+2. ~~Map `marketing` to `Ad User Data` / `Ad Personalization`~~ Decided, see R13.
+3. Gmail rule: dots only (Data Manager Help) or dots plus `+suffix` (API and formatting guide)? Also 7014069 step 7 says hashed first-party data "should exactly match what was entered in the lead form", which conflicts with normalising first. **Hugo decision needed.**
+4. ~~Enforce `lifecycle.crm_ingestion.enabled`~~ Decided, see R14.
+5. A restated stage value (same lead, stage, order ID) is ignored as a duplicate; is that acceptable or should a later value supersede? **Hugo decision needed**: current behaviour ignores an identical restatement; the alternative records a versioned update and dedupes only identical source events.

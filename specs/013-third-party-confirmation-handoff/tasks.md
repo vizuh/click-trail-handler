@@ -4,12 +4,12 @@
 
 ## Phase 0: Decisions
 
-- [ ] T001 Resolve research open questions 1 and 2 (rename timing, `calendly-booked`); the rest of the plan assumes "1.13 not shipped, keep the string". Target: `research.md`, `plan.md` Risks
+- [ ] T001 Research open question 1 is decided (1.13.0 shipped: keep names, add aliases, FR-007); question 4 is decided (browser never emits an unresolved `purchase`; signed webhook records `unresolved`); question 2 stays open and the plan assumes "keep the string". Target: `research.md`, `plan.md` Risks
 
 ## Phase 1: Generalise the reference store (US3 foundation)
 
-- [ ] T002 Rename `Whatsapp_Ref_Store` to `Handoff_Ref_Store` (file, class, table `clicutcl_handoff_refs`, readiness options, `clicutcl_handoff_ref_*` filters, route `/handoff-ref`, localized `handoffRefUrl`, AJAX action, Diagnostics card text, sessionStorage key `ct_handoff_ref`, `getWhatsAppRef` to `getHandoffRef`), migrating every caller and removing the old names (FR-007). Target: `includes/database/class-whatsapp-ref-store.php`, `class-installer.php`, `includes/utils/class-cleanup.php`, `includes/privacy/class-privacy-handler.php`, `uninstall.php`, `includes/api/class-tracking-controller.php:551-657`, `includes/class-clicutcl-core.php:426`, `includes/admin/traits/trait-admin-diagnostics-ajax.php`, `assets/js/clicutcl-attribution.js:1957-2088`, `:1299`, `assets/js/clicutcl-events.js:907`, `assets/js/admin-diagnostics.js`
-- [ ] T003 Update the tests and docs that name the old identifiers. Target: `tools/qa/whatsapp-handoff.test.js`, `tools/qa/cmp-transition.test.js`, `tests/unit/WhatsappRefTest.php` to `HandoffRefTest.php`, `docs/guides/SECURITY-PRIVACY.md:115`, `:208`
+- [ ] T002 Add generic aliases beside the shipped WhatsApp names without renaming or removing any: route `/handoff-ref` (POST and GET `<code>`, same callbacks), localized `handoffRefUrl`, session key `ct_handoff_ref` written beside `ct_wa_ref` (read from either, both cleared on withdrawal), `clicutcl_handoff_ref_*` filters layered on the legacy filters, `requestHandoffRef` / `getHandoffRef` with `getWhatsAppRef` kept as alias. Class, table, readiness options and `DB_VERSION` untouched (FR-007). Target: `includes/api/class-tracking-controller.php:551-657`, `includes/class-clicutcl-core.php:426`, `assets/js/clicutcl-attribution.js:1957-2088`, `:1299`, `assets/js/clicutcl-events.js:907`, `assets/js/admin-diagnostics.js`
+- [ ] T003 Extend the tests and add the deprecated-alias note to docs; existing assertions on the WhatsApp names stay. Target: `tools/qa/whatsapp-handoff.test.js`, `tools/qa/cmp-transition.test.js`, `tests/unit/WhatsappRefTest.php`, `docs/guides/SECURITY-PRIVACY.md:115`, `:208`
 - [ ] T004 Setting `handoff_refs` (default 0, never seeded); the mint route's feature gate becomes `append || handoff_refs`; `eventsToken` also minted when `handoff_refs` is on (FR-006, FR-008). Target: `includes/admin/class-admin.php` schema near `:1233`, `includes/api/class-tracking-controller.php`, `includes/class-clicutcl-core.php:221`
 
 ## Phase 2: Completion events (US1, US2)
@@ -27,7 +27,7 @@
 
 - [ ] T010 `stripe` branch in `Webhook_Auth::verify_request()`: all `v1`, `t.body` HMAC, ignore other schemes, `hash_equals` per candidate, tolerance from the existing clamp, replay cache unchanged (FR-010). Target: `includes/tracking/class-webhook-auth.php:69`
 - [ ] T011 Provider `stripe` in the defaults, sanitiser, admin provider rows and the settings app; `provider_adapter()` case (FR-006). Target: `includes/tracking/class-settings.php:79-91`, `includes/admin/class-admin.php:622`, `:1074`, `assets/js/admin-settings-app.js:505`, `:752`, `includes/api/class-tracking-controller.php:923`
-- [ ] T012 `Stripe_Webhook_Adapter`: event whitelist, `payment_status = paid`, `livemode` rule and `clicutcl_stripe_accept_test_events`, reference pattern and `Handoff_Ref_Store::find()`, `metadata.ct_event` closed list, `Claim_Lock` then `Dedup_Store`, ignored events answer 200, no outbound request (FR-011). Target: `includes/tracking/webhooks/class-stripewebhookadapter.php` (new)
+- [ ] T012 `Stripe_Webhook_Adapter`: event whitelist, `payment_status = paid`, `livemode` rule and `clicutcl_stripe_accept_test_events`, reference pattern and `Whatsapp_Ref_Store::find()`, `metadata.ct_event` closed list, `Claim_Lock` then `Dedup_Store`, ignored events answer 200, a well-formed unresolved reference is recorded with attribution `unresolved` (no invented attribution; test it), no outbound request (FR-011). Target: `includes/tracking/webhooks/class-stripewebhookadapter.php` (new)
 - [ ] T013 Minor-unit exponent table (zero-decimal, three-decimal, ISK and HUF special cases) transcribed from https://docs.stripe.com/currencies with the URL in a comment; `value` and `currency` only (FR-012). Target: adapter file
 - [ ] T014 `source.webhook.stripe` entry, evidence level `source_present`. Target: `docs/reference/integration-capabilities.json`
 
