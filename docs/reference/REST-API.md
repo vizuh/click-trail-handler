@@ -206,7 +206,27 @@ Auth model:
 
 - lifecycle token
 
-### Server-origin events and strict consent
+## `GET /clicutcl/v2/diagnostics/delivery`
+
+Purpose:
+
+- return delivery diagnostics for privileged users
+
+Auth model:
+
+- admin capability check through the controller permission callback
+
+## `GET /clicutcl/v2/diagnostics/dedup`
+
+Purpose:
+
+- inspect dedup diagnostics for privileged users
+
+Auth model:
+
+- admin capability check through the controller permission callback
+
+## Server-origin events and strict consent
 
 Applies to `POST /clicutcl/v2/webhooks/{provider}` and `POST /clicutcl/v2/lifecycle/update`. These requests come from a
 provider or CRM server, not from the visitor's browser, so they normally carry no ClickTrail consent cookie. The
@@ -248,26 +268,6 @@ What an operator can do on this version:
   subject-bound consent store for server-origin events (deferred by design). Either send these conversions from the
   system that holds the consent record, or choose a consent mode that does not require consent for these requests
   where your legal basis allows it (`geo` with a resolved country uses the provider server's country, not the visitor's)
-
-## `GET /clicutcl/v2/diagnostics/delivery`
-
-Purpose:
-
-- return delivery diagnostics for privileged users
-
-Auth model:
-
-- admin capability check through the controller permission callback
-
-## `GET /clicutcl/v2/diagnostics/dedup`
-
-Purpose:
-
-- inspect dedup diagnostics for privileged users
-
-Auth model:
-
-- admin capability check through the controller permission callback
 
 ## Canonical Event Flow
 
