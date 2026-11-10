@@ -642,11 +642,23 @@ class WooCommerce {
 	 * @return \CLICUTCL\Server_Side\Adapter_Result
 	 */
 	private function dispatch_order_payload( $order, array $payload, string $event_name, string $source_hook ) {
-		// A live withdrawal must also prevent the trace snapshot from being
-		// written. Background requests with no live cookie retain the stored
-		// checkout snapshot semantics in Dispatcher.
-		if ( Consent::is_required() && Consent::has_state() && ! Consent::marketing_allowed() ) {
+		// A denial (live withdrawal in the buyer's request, or the order's
+		// checkout snapshot anywhere else) must also prevent the trace snapshot
+		// from being written. Only a failure counter records the skip.
+		$consent_authority = $this->get_order_consent_authority( $order );
+		$denied            = null === $consent_authority
+			? Consent::is_required() && ! Consent::marketing_allowed()
+			: ! $consent_authority;
+		if ( $denied ) {
+			Dispatcher::record_failure( 'consent_denied' );
 			return \CLICUTCL\Server_Side\Adapter_Result::skipped( 'consent_denied' );
+		}
+
+		if ( null !== $consent_authority ) {
+			// Outbound consent comes from the order, never from a payload filter
+			// or the requester's cookie (Event::from_purchase falls back to it).
+			$snapshot           = $this->get_order_consent_snapshot( $order );
+			$payload['consent'] = empty( $snapshot ) ? Snapshot_V1::capture( array(), false ) : $snapshot;
 		}
 
 		$payload['event_name'] = sanitize_key( $event_name );
@@ -658,7 +670,7 @@ class WooCommerce {
 		$this->store_trace_snapshot( $order, $event_name, $snapshot );
 		$order->save();
 
-		$result   = Dispatcher::dispatch_commerce_event( $payload );
+		$result   = Dispatcher::dispatch_commerce_event( $payload, $consent_authority );
 		$dispatch = array(
 			'status'      => $result->skipped ? 'skipped' : ( $result->success ? 'sent' : 'error' ),
 			'message'     => sanitize_text_field( (string) $result->message ),
@@ -1084,6 +1096,46 @@ class WooCommerce {
 	}
 
 	/**
+	 * Decide who holds consent authority for a server-side order event.
+	 *
+	 * A front-end request with a live consent state keeps the live-cookie rule
+	 * (null), so the buyer's withdrawal there still wins. A front-end request
+	 * without a live state (e.g. a ?wc-api= gateway callback) is decided by the
+	 * order's checkout snapshot when one is stored, so the requester's own
+	 * geography never overrides it; only an order without a snapshot falls back
+	 * to that request's policy. Every other request (wp-admin, REST, cron,
+	 * WP-CLI) is decided by the snapshot too: a shop manager's cookie never
+	 * decides a buyer's consent. The buyer's geography is unknown there, so geo
+	 * mode counts as required (as for queue workers); a snapshot captured where
+	 * consent was not required already reads as granted. A missing or malformed
+	 * snapshot fails closed when consent is required.
+	 *
+	 * @param \WC_Order $order Order instance.
+	 * @return bool|null Explicit decision, or null for live request semantics.
+	 */
+	private function get_order_consent_authority( $order ): ?bool {
+		$snapshot = $this->get_order_consent_snapshot( $order );
+
+		if ( $this->is_customer_request_context() ) {
+			if ( Consent::has_state() ) {
+				return null;
+			}
+			if ( ! empty( $snapshot ) ) {
+				return ! empty( $snapshot['marketing'] );
+			}
+			$required = Consent::is_required();
+		} else {
+			$required = Consent::is_required_for_queue();
+		}
+
+		if ( ! $required ) {
+			return true;
+		}
+
+		return ! empty( $snapshot['marketing'] );
+	}
+
+	/**
 	 * Resolve purchase identity for server-side delivery.
 	 *
 	 * @param \WC_Order $order Order instance.
@@ -1123,12 +1175,13 @@ class WooCommerce {
 			$input['user_agent'] = $user_agent;
 		}
 
-		$resolver = new Identity_Resolver();
+		$resolver          = new Identity_Resolver();
+		$consent_authority = $this->get_order_consent_authority( $order );
 
 		return $resolver->resolve(
 			$input,
 			array(
-				'marketing_allowed' => Consent::marketing_allowed(),
+				'marketing_allowed' => null === $consent_authority ? Consent::marketing_allowed() : $consent_authority,
 				'include_ip_ua'     => true,
 			)
 		);

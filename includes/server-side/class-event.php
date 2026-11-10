@@ -28,6 +28,16 @@ class Event {
 	private $data = array();
 
 	/**
+	 * Explicit marketing-consent decision set by a trusted server caller.
+	 *
+	 * Kept outside the event data on purpose: request payloads (browser
+	 * events, webhooks) cannot set it, and it is not serialized or sent.
+	 *
+	 * @var bool|null
+	 */
+	private $consent_authority = null;
+
+	/**
 	 * Constructor.
 	 *
 	 * @param array $data Event data.
@@ -58,6 +68,25 @@ class Event {
 	 */
 	public function to_array() {
 		return $this->data;
+	}
+
+	/**
+	 * Set the explicit marketing-consent decision for this event.
+	 *
+	 * @param bool $allowed Whether marketing processing is allowed.
+	 * @return void
+	 */
+	public function set_consent_authority( bool $allowed ): void {
+		$this->consent_authority = $allowed;
+	}
+
+	/**
+	 * Explicit marketing-consent decision, or null when none was set.
+	 *
+	 * @return bool|null
+	 */
+	public function get_consent_authority(): ?bool {
+		return $this->consent_authority;
 	}
 
 	/**

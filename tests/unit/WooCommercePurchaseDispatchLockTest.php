@@ -110,6 +110,17 @@ namespace {
 		}
 	}
 
+	if ( ! function_exists( 'is_admin' ) ) {
+		/**
+		 * The thank-you page is a front-end (customer) request.
+		 *
+		 * @return bool
+		 */
+		function is_admin() {
+			return false;
+		}
+	}
+
 	if ( ! function_exists( 'current_time' ) ) {
 		function current_time( $type ) {
 			return 'mysql' === $type ? '2026-10-31 00:00:00' : time();

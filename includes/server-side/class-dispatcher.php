@@ -121,11 +121,18 @@ class Dispatcher {
 	/**
 	 * Dispatch a commerce event payload through the purchase/event builder.
 	 *
-	 * @param array $payload Commerce payload.
+	 * @param array     $payload           Commerce payload.
+	 * @param bool|null $consent_authority Explicit marketing-consent decision from a
+	 *                                     trusted caller (e.g. the order's checkout
+	 *                                     snapshot outside the buyer's request). Null
+	 *                                     keeps the default consent precedence.
 	 * @return Adapter_Result
 	 */
-	public static function dispatch_commerce_event( $payload ) {
+	public static function dispatch_commerce_event( $payload, ?bool $consent_authority = null ) {
 		$event = Event::from_purchase( $payload );
+		if ( null !== $consent_authority ) {
+			$event->set_consent_authority( $consent_authority );
+		}
 		return self::dispatch( $event );
 	}
 
@@ -418,6 +425,14 @@ class Dispatcher {
 	 * @return bool
 	 */
 	private static function consent_allows( ?Event $event = null ) {
+		// An explicit decision from a trusted server caller is final: WooCommerce
+		// order events outside the buyer's own request are decided from the
+		// order's checkout snapshot, so neither the cookie nor the consent policy
+		// of whoever triggered this request (manager, gateway) may override it.
+		if ( $event instanceof Event && null !== $event->get_consent_authority() ) {
+			return $event->get_consent_authority();
+		}
+
 		if ( ! Consent::is_required() ) {
 			return true;
 		}
