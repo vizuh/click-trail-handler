@@ -266,6 +266,8 @@ Purpose:
 
 - tune event intake token behavior, allowed hosts, rate limiting, and replay controls
 
+`clicutcl_v2_token_nonce_limit` receives the allowance per window (`int`): the `token_nonce_limit` setting when above 0, otherwise the route default (120 for `events/batch`, 30 for `attribution-token/sign` and `whatsapp-ref`). It is counted per (token nonce, client IP, body `session_id`/`visitor_id`) in a fixed window of at most one hour; clamped to 0-5000, where returning `0` disables the cap. A request without a session id shares one per-(nonce, IP) bucket with ten times the allowance. Rejections answer 429 `nonce_replay_limited` and are counted in failure telemetry.
+
 The rate-limit filters receive the route scope as their second argument: `events_batch`, `attribution_token_sign`, `attribution_token_verify`, `whatsapp_ref` (#145) and `cookie_reissue` (the attribution cookie re-issue route, #141). The reference-code TTL follows the attribution retention (`cookie_days`). Three filters bound the table (#145):
 
 ### `clicutcl_whatsapp_ref_max_rows`

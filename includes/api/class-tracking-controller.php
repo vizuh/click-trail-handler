@@ -259,6 +259,7 @@ class Tracking_Controller extends WP_REST_Controller {
 		$rate = $this->check_rate_limit( 'events_batch' );
 		if ( is_wp_error( $rate ) ) {
 			$this->record_gate_debug( 'rejected', $rate->get_error_code(), array() );
+			$this->record_gate_rejection( $rate );
 			return $rate;
 		}
 
@@ -276,12 +277,14 @@ class Tracking_Controller extends WP_REST_Controller {
 		$verified = Auth::verify_client_token( (string) $token );
 		if ( is_wp_error( $verified ) ) {
 			$this->record_gate_debug( 'rejected', $verified->get_error_code(), array() );
+			$this->record_gate_rejection( $verified );
 			return $verified;
 		}
 
-		$nonce_limit = $this->check_token_nonce_limit( $verified, 20 );
+		$nonce_limit = $this->check_token_nonce_limit( $verified, 120, $request, 'events_batch' );
 		if ( is_wp_error( $nonce_limit ) ) {
 			$this->record_gate_debug( 'rejected', $nonce_limit->get_error_code(), array() );
+			$this->record_gate_rejection( $nonce_limit );
 			return $nonce_limit;
 		}
 
@@ -450,21 +453,24 @@ class Tracking_Controller extends WP_REST_Controller {
 
 		$rate = $this->check_rate_limit( 'attribution_token_sign' );
 		if ( is_wp_error( $rate ) ) {
+			$this->record_gate_rejection( $rate );
 			return $rate;
 		}
 
 		$token    = $this->extract_token_from_request( $request );
 		$verified = Auth::verify_client_token( $token );
 		if ( is_wp_error( $verified ) ) {
+			$this->record_gate_rejection( $verified );
 			return $verified;
 		}
 
 		// The sign endpoint is reachable by any visitor holding the
-		// page-embedded client token, so enforce a per-token-nonce replay
-		// limit by default (legit flows re-sign only when attribution
-		// changes); 0 in settings no longer disables it for this route.
-		$nonce_limit = $this->check_token_nonce_limit( $verified, 20 );
+		// page-embedded client token, so enforce a per-(token nonce, IP,
+		// session) replay limit (legit flows re-sign only when attribution
+		// changes); 0 in settings means the built-in default, not "off".
+		$nonce_limit = $this->check_token_nonce_limit( $verified, 30, $request, 'attribution_token_sign' );
 		if ( is_wp_error( $nonce_limit ) ) {
+			$this->record_gate_rejection( $nonce_limit );
 			return $nonce_limit;
 		}
 
@@ -647,11 +653,13 @@ class Tracking_Controller extends WP_REST_Controller {
 
 		$rate = $this->check_rate_limit( 'whatsapp_ref' );
 		if ( is_wp_error( $rate ) ) {
+			$this->record_gate_rejection( $rate );
 			return $rate;
 		}
 
 		$verified = Auth::verify_client_token( $this->extract_token_from_request( $request ) );
 		if ( is_wp_error( $verified ) ) {
+			$this->record_gate_rejection( $verified );
 			return $verified;
 		}
 
@@ -659,8 +667,9 @@ class Tracking_Controller extends WP_REST_Controller {
 			return new WP_Error( 'consent_required', 'Marketing consent is required', array( 'status' => 403 ) );
 		}
 
-		$nonce_limit = $this->check_token_nonce_limit( $verified, 20 );
+		$nonce_limit = $this->check_token_nonce_limit( $verified, 30, $request, 'whatsapp_ref' );
 		if ( is_wp_error( $nonce_limit ) ) {
+			$this->record_gate_rejection( $nonce_limit );
 			return $nonce_limit;
 		}
 
