@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, and reviewers
 - **Canonical for**: option keys, cookies, tables, transients, cron hooks, and persistence surfaces
 - **Update when**: stored keys, retention behavior, queue schema, or cookie/storage usage changes
-- **Last verified against version**: `1.9.0`
+- **Last verified against version**: `1.13.0` for the queue table, queue lock, dead-letter lifecycle, queue cleanup and uninstall sections; other sections last verified against `1.9.0`
 
 This document summarizes the active storage surfaces used by ClickTrail.
 
@@ -42,6 +42,7 @@ Operational and readiness keys:
 - `clicutcl_db_version` (schema version; `Installer::maybe_upgrade()` re-runs `dbDelta` on existing installs until it matches `Installer::DB_VERSION`)
 - Claim-lock option rows, without a persistent object cache: `clicutcl_purchase_lock_<order_id>`, `clicutcl_edd_purchase_lock_<order_id>`, `clicutcl_um_signup_lock_<user_id>` and `clicutcl_form_claim_<hash>` (all `<token>|<unix time>`, see below). A request that dies holding one leaves the row behind, so the daily cleanup (`Claim_Lock::purge_stale()`, before the events-table check) deletes rows of those names whose stored time is more than a day old (oldest 500 examined per run, each through the row-conditional delete) and uninstall deletes all of them unless `clicutcl_preserve_data_on_uninstall`.
 - `clicutcl_purchase_lock_<order_id>` (short-lived, `autoload = no`, value `<uuid4>|<unix time>`; written by `WooCommerce::push_purchase_event()` only when no persistent object cache is present, deleted by a row-conditional `$wpdb->delete()` on its exact value after `_clicutcl_tracking_sent` is saved, taken over the same way after 30 s if a request died holding it; with a persistent object cache the same key holds the uuid in cache group `clicutcl` with a 30 s TTL instead)
+- `clicutcl_queue_lock`: the queue worker lock (`Queue::acquire_lock()`). An option row, not a transient: it is created with an atomic `INSERT IGNORE` into the options table (`autoload = no`, value = the acquisition unix time), so only one of two concurrent runs gets it. A run that finds a row older than `Queue::LOCK_TTL` (120 s) takes it over with a compare-and-swap `UPDATE` on the exact stale value; `release_lock()` deletes the row only while it still holds the value this run wrote. The row normally exists only while a queue run is in progress. It does not match the claim-lock pattern `clicutcl_%_lock_%` (no trailing `_`), so the claim-lock cleanup and uninstall leave a crashed run's row behind
 
 ## Option Responsibilities
 
@@ -182,6 +183,14 @@ Purpose:
 
 - store queued server-side delivery retries
 
+One row per `(event_name, event_id)` (unique key `event_name_event_id`). Row lifecycle (`includes/server-side/class-queue.php`):
+
+- `pending` (column default): `Queue::process()` picks up to 10 due rows per run (`status = 'pending' AND next_attempt_at <= now`, oldest `next_attempt_at` first). A retryable failure increments `attempts` and sets `next_attempt_at` to now + `60 * 2^attempts` seconds (at least 60, at most 3600). A delivered row, a row the destination dedup already marked as sent, and a row whose payload is not valid JSON are deleted
+- `consent_unresolved`: under required consent with no current snapshot from `clicutcl_queue_consent_snapshot`, the row stays `pending`, `next_attempt_at` moves 300 s ahead, `last_error` becomes `consent_unresolved`, and `attempts` is not incremented
+- `failed` (dead-letter): set after the fifth failed attempt (`Queue::MAX_ATTEMPTS`), immediately on a non-retryable result, and on an explicit `consent_denied` snapshot. The row keeps its payload, `attempts` and `last_error`. On a schema older than `clicutcl_db_version` 2 (no `status` column) such a row is deleted instead
+- replay: `Queue::requeue_failed()` (Diagnostics button "Retry Failed Deliveries", AJAX `clicutcl_requeue_failed_deliveries`) resets up to 50 `failed` rows per call, oldest `id` first, to `pending` with `attempts = 0` and `next_attempt_at = now`. Enqueueing the same event again also revives its `failed` row
+- retention: see [Cron Hooks](#cron-hooks); retention counts from `created_at`, which a replay does not reset
+
 Columns:
 
 - `id`
@@ -193,6 +202,7 @@ Columns:
 - `attempts`
 - `next_attempt_at`
 - `last_error`
+- `status` -- `pending` or `failed` (dead-letter); added in schema version 2
 - `created_at`
 
 ## `wp_clicutcl_touch_events`
@@ -370,8 +380,9 @@ Common transients:
 - `clicutcl_failure_telemetry`
 - `clicutcl_failure_flush_lock`
 - `clicutcl_health_check_result`
-- `clicutcl_queue_lock`
 - `clicutcl_v2_events_buffer`
+
+The queue lock `clicutcl_queue_lock` is not a transient; it is an option row (see [WordPress Options](#wordpress-options)).
 
 There are also dynamic transient families used for:
 
@@ -391,7 +402,7 @@ Cleanup behavior:
 
 - event rows retained according to attribution retention days
 - touch event rows retained for the same attribution retention days (default 90)
-- queue rows retained according to `clicutcl_queue_retention_days` filter
+- queue rows, by `created_at` (at most 1000 deleted per run): rows not in `failed` after `clicutcl_queue_retention_days` (default 7), so a row still `pending` at that age (including one held by `consent_unresolved` or just replayed from the dead-letter state) is deleted undelivered; `failed` (dead-letter) rows after `clicutcl_queue_dead_letter_retention_days` (default 30, never less than the queue retention)
 - Woo order metadata retained according to attribution retention days, in bounded batches
 
 ## Secret Handling
@@ -421,12 +432,13 @@ read, or sent marker. An order's historical grant cannot authorize this browser 
 
 `uninstall.php`:
 
-- removes plugin options
+- removes the plugin options listed in `uninstall.php`; options outside that list stay behind, among them `clicutcl_db_version`, the setup wizard's `clicutcl_mode` and `clicutcl_setup_complete`, and a leftover `clicutcl_queue_lock` row
 - clears scheduled hooks
 - clears ClickTrail transients
 - removes claim-lock option rows (`clicutcl_*_lock_*`, `clicutcl_form_claim_*`)
 - removes allowlisted ClickTrail Woo order metadata through the WooCommerce CRUD API
-- drops the queue, events, and touch events tables by default
+- drops the queue, events, touch events, and WhatsApp reference tables by default
+- on multisite, runs for the site that ran the uninstall only (it does not loop over the network's sites); it also deletes the network option `clicutcl_server_side_network`
 
 Data preservation can be overridden with:
 
