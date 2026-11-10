@@ -858,7 +858,21 @@ class Tracking_Controller extends WP_REST_Controller {
 
 		$dispatch = Dispatcher::dispatch_from_v2( $canonical );
 		if ( ! $dispatch->success && ! $dispatch->skipped ) {
-			return new WP_Error( 'dispatch_failed', sanitize_text_field( (string) $dispatch->message ), array( 'status' => 500 ) );
+			// Persisted for retry: acknowledge, so the provider does not resend an event the queue
+			// already holds. Only an event that was neither delivered nor queued is a 500.
+			if ( empty( $dispatch->meta['queued'] ) ) {
+				return new WP_Error( 'dispatch_failed', sanitize_text_field( (string) $dispatch->message ), array( 'status' => 500 ) );
+			}
+
+			return array(
+				'success'    => true,
+				'queued'     => true,
+				'skipped'    => false,
+				'detail'     => sanitize_key( (string) $dispatch->message ),
+				'duplicate'  => false,
+				'event_id'   => $canonical['event_id'],
+				'event_name' => $canonical['event_name'],
+			);
 		}
 
 		if ( $dispatch->success ) {
@@ -953,7 +967,19 @@ class Tracking_Controller extends WP_REST_Controller {
 
 		$dispatch = Dispatcher::dispatch_from_v2( $canonical );
 		if ( ! $dispatch->success && ! $dispatch->skipped ) {
-			return new WP_Error( 'dispatch_failed', sanitize_text_field( (string) $dispatch->message ), array( 'status' => 500 ) );
+			// Queued for retry is accepted; only neither delivered nor queued is a 500.
+			if ( empty( $dispatch->meta['queued'] ) ) {
+				return new WP_Error( 'dispatch_failed', sanitize_text_field( (string) $dispatch->message ), array( 'status' => 500 ) );
+			}
+
+			return array(
+				'success'    => true,
+				'queued'     => true,
+				'skipped'    => false,
+				'detail'     => sanitize_key( (string) $dispatch->message ),
+				'event_id'   => $canonical['event_id'],
+				'event_name' => $canonical['event_name'],
+			);
 		}
 
 		return array(

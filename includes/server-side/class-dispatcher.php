@@ -8,6 +8,7 @@
 namespace CLICUTCL\Server_Side;
 
 use CLICUTCL\Support\Feature_Registry;
+use CLICUTCL\Tracking\Claim_Lock;
 use CLICUTCL\Tracking\Dedup_Store;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -37,6 +38,17 @@ class Dispatcher {
 	 * Transient key for telemetry write throttling.
 	 */
 	private const FAILURE_TELEMETRY_FLUSH_LOCK = 'clicutcl_failure_flush_lock';
+
+	/**
+	 * Transient key prefix for per-destination circuit breaker state.
+	 */
+	private const BREAKER_TRANSIENT_PREFIX = 'clicutcl_delivery_breaker_';
+
+	/**
+	 * Claim key prefix for the single half-open probe. Matches the `clicutcl_%_lock_%`
+	 * pattern Claim_Lock::purge_stale() sweeps, so a probe that died unreleased is cleaned up.
+	 */
+	private const BREAKER_PROBE_PREFIX = 'clicutcl_breaker_probe_lock_';
 
 	/**
 	 * Registered adapter keys mapped to their class names.
@@ -182,7 +194,35 @@ class Dispatcher {
 			return Adapter_Result::skipped( 'duplicate_event' );
 		}
 
-		$result = $adapter->send( $event );
+		// Circuit breaker: while a destination is failing, skip the blocking live send and queue
+		// the event directly. After the cool-down exactly one request (an atomic claim) probes.
+		$breaker_key = self::BREAKER_TRANSIENT_PREFIX . md5( $destination_key . '|' . $endpoint );
+		$probe_key   = self::BREAKER_PROBE_PREFIX . md5( $destination_key . '|' . $endpoint );
+		$breaker     = self::breaker_state( $breaker_key );
+		$probe       = '';
+		if ( $breaker['open_until'] > 0 ) {
+			if ( $breaker['open_until'] <= time() ) {
+				$probe = Claim_Lock::acquire( $probe_key, self::get_timeout() + 10 );
+			}
+			if ( '' === $probe ) {
+				$result       = Adapter_Result::error( 0, 'circuit_open' );
+				$result->meta = array(
+					'queued' => (bool) Queue::enqueue( $event, $adapter->get_name(), $endpoint, 'circuit_open' ),
+				);
+				self::record_last_error( 'circuit_open', 'circuit_open' );
+				self::record_failure( 'circuit_open' );
+				return $result;
+			}
+		}
+
+		try {
+			$result = $adapter->send( $event );
+			self::breaker_record( $breaker_key, $result );
+		} finally {
+			if ( '' !== $probe ) {
+				Claim_Lock::release( $probe_key, $probe );
+			}
+		}
 		self::log_dispatch( $event, $adapter, $result );
 		if ( ! $result->success && ! $result->skipped ) {
 			self::record_last_error( 'adapter_error', $result->message );
@@ -203,6 +243,87 @@ class Dispatcher {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Consecutive retryable failures (within the window) that open the breaker; 0 disables it.
+	 *
+	 * @return int
+	 */
+	private static function breaker_threshold(): int {
+		return max( 0, (int) apply_filters( 'clicutcl_delivery_breaker_threshold', 5 ) );
+	}
+
+	/**
+	 * Read circuit breaker state for one destination.
+	 *
+	 * Timestamps live inside the value, so an evicted or TTL-less transient only ever
+	 * closes the breaker early; it never keeps it open.
+	 *
+	 * @param string $key Transient key.
+	 * @return array{count:int,first_at:int,open_until:int}
+	 */
+	private static function breaker_state( string $key ): array {
+		$state = self::breaker_threshold() > 0 ? get_transient( $key ) : false;
+		$state = is_array( $state ) ? $state : array();
+
+		return array(
+			'count'      => absint( $state['count'] ?? 0 ),
+			'first_at'   => absint( $state['first_at'] ?? 0 ),
+			'open_until' => absint( $state['open_until'] ?? 0 ),
+		);
+	}
+
+	/**
+	 * Update circuit breaker state from a live send result.
+	 *
+	 * Only retryable transport/server failures count. A delivery or a terminal rejection
+	 * proves the collector answered, so it closes the breaker; skipped results change nothing.
+	 *
+	 * ponytail: get-then-set transient, so a burst of parallel failing requests can exceed the
+	 * threshold by the concurrency level before the breaker opens. Use an atomic counter
+	 * (wp_cache_incr) if that ever matters.
+	 *
+	 * @param string         $key    Transient key.
+	 * @param Adapter_Result $result Send result.
+	 * @return void
+	 */
+	private static function breaker_record( string $key, Adapter_Result $result ): void {
+		$threshold = self::breaker_threshold();
+		if ( $threshold < 1 || $result->skipped ) {
+			return;
+		}
+
+		// Re-read after the send: another request may have opened the breaker meanwhile.
+		$state = self::breaker_state( $key );
+
+		if ( $result->success || ! $result->retryable ) {
+			if ( $state['count'] > 0 || $state['open_until'] > 0 ) {
+				delete_transient( $key );
+			}
+			return;
+		}
+
+		$now      = time();
+		$window   = max( 1, (int) apply_filters( 'clicutcl_delivery_breaker_window', MINUTE_IN_SECONDS ) );
+		$cooldown = max( 1, (int) apply_filters( 'clicutcl_delivery_breaker_cooldown', MINUTE_IN_SECONDS ) );
+
+		if ( $state['open_until'] > 0 ) {
+			// Failed half-open probe (or opened by a parallel request): stay open another cool-down.
+			$state['open_until'] = $now + $cooldown;
+		} else {
+			if ( ! $state['first_at'] || ( $now - $state['first_at'] ) > $window ) {
+				$state['count']    = 0;
+				$state['first_at'] = $now;
+			}
+			++$state['count'];
+			if ( $state['count'] >= $threshold ) {
+				$state['open_until'] = $now + $cooldown;
+				self::record_failure( 'circuit_opened' );
+			}
+		}
+
+		set_transient( $key, $state, max( HOUR_IN_SECONDS, $window + $cooldown ) );
 	}
 
 	/**

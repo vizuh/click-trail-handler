@@ -195,6 +195,10 @@ Columns:
 - `last_error`
 - `created_at`
 
+Retention: rows not in the dead-letter state are deleted after `clicutcl_queue_retention_days`
+(default 7) by their own bounded DELETE; its affected-row count is reported as
+`queue_expired_pending` failure telemetry and the `clicutcl_queue_pending_expired` action.
+
 ## `wp_clicutcl_touch_events`
 
 Added in `1.9.0`. This is a separate, permanent table from `wp_clicutcl_events` above (which
@@ -375,6 +379,7 @@ Common transients:
 
 There are also dynamic transient families used for:
 
+- delivery circuit breaker state per destination: `clicutcl_delivery_breaker_<md5(adapter|endpoint)>` (`count`, `first_at`, `open_until`; written only after a retryable failure, deleted when the collector answers). Its half-open probe claim is `clicutcl_breaker_probe_lock_<md5>` (object cache, or an option row swept by the stale-claim cleanup)
 - rate limiting
 - token replay / nonce guards
 - diagnostics buffers

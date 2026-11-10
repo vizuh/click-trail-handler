@@ -82,18 +82,31 @@ Defaults:
 
 - cron hook: `clicutcl_dispatch_queue`
 - interval: every 5 minutes
-- batch size: 10 rows
+- per run: due rows fetched 10 at a time until none remain or the time budget is spent (default 45 s, filter `clicutcl_queue_time_budget`, capped at half the 120 s lock TTL); each row is attempted at most once per run
 - max attempts: 5
 - lock transient: `clicutcl_queue_lock`
 
 Retries use exponential backoff and stop after max attempts.
+
+Delivery circuit breaker: after 5 consecutive retryable live-send failures to one destination
+within 60 s, `Dispatcher::dispatch()` stops calling the collector for 60 s and queues events
+directly (`last_error` / failure telemetry code `circuit_open`; `circuit_opened` counts each trip).
+After the cool-down one request sends a probe; success or a terminal `4xx` closes the breaker, a
+retryable failure reopens it. Healthy collectors are unaffected. Tune or disable (threshold `0`)
+with the `clicutcl_delivery_breaker_*` filters in `HOOKS-REFERENCE.md`. The queue worker itself
+does not consult the breaker; it relies on its backoff.
+
+Webhook and lifecycle routes return `200` with `queued: true` when the live send failed but the
+event was queued, so providers do not resend; `500` means it was neither delivered nor queued.
 
 If queue rows report `consent_unresolved`, configure the subject-bound
 [`clicutcl_queue_consent_snapshot`](../reference/HOOKS-REFERENCE.md#clicutcl_queue_consent_snapshot)
 resolver against your durable consent authority. ClickTrail has no built-in subject
 registry; cron cookies and historical event grants cannot establish current consent.
 Unresolved rows stay pending, retry after five minutes, and retain their attempt
-count until the normal retention cleanup. Explicit withdrawal becomes
+count until the normal retention cleanup. Each queue run that defers a row for this reason adds
+one `queue_consent_unresolved` to failure telemetry, so the stall is visible in Diagnostics.
+Explicit withdrawal becomes
 `consent_denied`; expired or invalid authority stays unresolved. Strict and geo modes
 require this lookup independently of the worker's location. Local/development
 workers leave queued rows untouched unless the environment override allows sending.
@@ -186,6 +199,7 @@ Checks:
 - WP-Cron activity
 - stale queue lock
 - adapter and endpoint validity
+- failure telemetry: `circuit_open` (collector down, live sends are being queued), `queue_consent_unresolved` (strict/geo consent with no `clicutcl_queue_consent_snapshot` resolver), `queue_expired_pending` (rows reached retention undelivered)
 
 Typical fixes:
 
@@ -405,7 +419,7 @@ Daily cleanup removes:
 Retention defaults:
 
 - events: attribution retention days
-- queue: 7 days, filterable
+- queue: 7 days, filterable; pending rows deleted at this age never reached the collector and are counted (`queue_expired_pending` telemetry, action `clicutcl_queue_pending_expired`); dead-letter rows keep 30 days
 - WhatsApp reference codes: attribution retention days (each row carries its own `expires_at`)
 
 ## Multisite
