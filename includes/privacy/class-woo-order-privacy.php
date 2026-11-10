@@ -20,11 +20,13 @@ if ( ! defined( 'ABSPATH' ) ) {
  * classic post-backed orders and HPOS orders without reaching into storage
  * tables directly, except through the order-query `meta_query` argument.
  *
- * The one key it leaves in place is the thank-you "purchase already sent" marker
- * (`SENT_MARKER_KEY`). It holds no personal data and is the only thing that stops a
- * thank-you page revisited after retention or a subject erase from pushing the purchase
- * a second time, so subject erase, retention and the Diagnostics purge keep it. Export
- * still lists it, and only uninstall removes it.
+ * The keys it leaves in place are the thank-you "purchase already sent" marker
+ * (`SENT_MARKER_KEY`) and the per-milestone sent markers (`MILESTONE_MARKER_PREFIX`).
+ * They hold only a flag or a timestamp, no personal data, and are the only thing that
+ * stops a thank-you revisit or a later status change after retention or a subject erase
+ * from sending the purchase or an `order_paid`/`order_refunded`/`order_cancelled`
+ * milestone a second time, so subject erase, retention and the Diagnostics purge keep
+ * them. Export still lists them, and only uninstall removes them.
  */
 class Woo_Order_Privacy {
 	/** Export and erase page size. */
@@ -35,6 +37,18 @@ class Woo_Order_Privacy {
 
 	/** Meta key of the purchase-sent marker; survives subject erase, retention and the Diagnostics purge. */
 	public const SENT_MARKER_KEY = '_clicutcl_tracking_sent';
+
+	/** Key prefix of the per-milestone sent markers; kept like `SENT_MARKER_KEY`. */
+	public const MILESTONE_MARKER_PREFIX = '_clicutcl_woo_milestone_sent_';
+
+	/** Managed keys that hold plugin state, never attribution: not written from, or sent as, attribution. */
+	private const CONTROL_META_KEYS = array(
+		'_clicutcl_consent',
+		self::SENT_MARKER_KEY,
+	);
+
+	/** Prefix of Woo plugin-state keys (trace snapshot, milestone markers). */
+	private const CONTROL_META_PREFIX = '_clicutcl_woo_';
 
 	/** Exact order metadata keys written by ClickTrail. */
 	private const EXACT_META_KEYS = array(
@@ -126,7 +140,7 @@ class Woo_Order_Privacy {
 
 		return array(
 			'exact'    => $keys,
-			'prefixes' => array( '_clicutcl_ft_', '_clicutcl_lt_', '_clicutcl_woo_milestone_sent_' ),
+			'prefixes' => array( '_clicutcl_ft_', '_clicutcl_lt_', self::MILESTONE_MARKER_PREFIX ),
 		);
 	}
 
@@ -141,26 +155,26 @@ class Woo_Order_Privacy {
 	 * the start, so lookalike keys never match. Callers still re-check every order's keys with
 	 * `is_managed_meta_key()` before deleting.
 	 *
-	 * The sent marker is left out unless asked for, so an order that carries only the marker is not
-	 * returned (and cannot fill a retention batch) when there is nothing left to remove.
+	 * The sent and milestone markers are left out unless asked for, so an order that carries only
+	 * markers is not returned (and cannot fill a retention batch) when there is nothing left to remove.
 	 *
-	 * @param bool $with_sent_marker Whether the purchase-sent marker counts as a managed key.
+	 * @param bool $with_sent_marker Whether the purchase-sent and milestone markers count as managed keys.
 	 * @return array<int,array<string,string>> One-clause (`type_key` BINARY makes the match case-sensitive) meta_query.
 	 */
 	public static function managed_meta_query( bool $with_sent_marker = false ): array {
 		$families = self::managed_key_families();
 		$exact    = array();
 		foreach ( $families['exact'] as $key ) {
-			if ( $with_sent_marker || self::SENT_MARKER_KEY !== $key ) {
+			if ( $with_sent_marker || ! self::is_marker_key( $key ) ) {
 				$exact[] = preg_quote( $key, '/' );
 			}
 		}
-		$prefixes = array_map(
-			static function ( string $prefix ): string {
-				return preg_quote( $prefix, '/' );
-			},
-			$families['prefixes']
-		);
+		$prefixes = array();
+		foreach ( $families['prefixes'] as $prefix ) {
+			if ( $with_sent_marker || self::MILESTONE_MARKER_PREFIX !== $prefix ) {
+				$prefixes[] = preg_quote( $prefix, '/' );
+			}
+		}
 
 		return array(
 			array(
@@ -193,6 +207,32 @@ class Woo_Order_Privacy {
 		}
 
 		return false;
+	}
+
+	/**
+	 * Determine whether a key is a managed attribution field, not plugin state.
+	 *
+	 * Order attribution is written from, and sent as, only these keys: the consent snapshot,
+	 * the sent markers and the `_clicutcl_woo_*` trace/milestone state are written by the plugin
+	 * itself and must never be set or read back through an attribution payload.
+	 *
+	 * @param string $key Metadata key.
+	 * @return bool
+	 */
+	public static function is_attribution_meta_key( string $key ): bool {
+		return self::is_managed_meta_key( $key )
+			&& ! in_array( $key, self::CONTROL_META_KEYS, true )
+			&& 0 !== strpos( $key, self::CONTROL_META_PREFIX );
+	}
+
+	/**
+	 * Whether a key is the purchase-sent marker or a milestone sent marker.
+	 *
+	 * @param string $key Metadata key.
+	 * @return bool
+	 */
+	private static function is_marker_key( string $key ): bool {
+		return self::SENT_MARKER_KEY === $key || 0 === strpos( $key, self::MILESTONE_MARKER_PREFIX );
 	}
 
 	/**
@@ -408,10 +448,10 @@ class Woo_Order_Privacy {
 	/**
 	 * Remove ClickTrail metadata from all orders for an explicit manual purge.
 	 *
-	 * The purchase-sent marker stays unless `$with_sent_marker` is set, which only uninstall does.
+	 * The purchase-sent and milestone markers stay unless `$with_sent_marker` is set, which only uninstall does.
 	 *
 	 * @param int  $batch_size       Number of orders fetched per page.
-	 * @param bool $with_sent_marker Also remove the purchase-sent marker.
+	 * @param bool $with_sent_marker Also remove the purchase-sent and milestone markers.
 	 * @return array{processed:int,removed:int,failed:int,remaining:bool}
 	 */
 	public function purge_all_order_metadata( int $batch_size = self::RETENTION_BATCH_SIZE, bool $with_sent_marker = false ): array {
@@ -464,7 +504,7 @@ class Woo_Order_Privacy {
 	 * Return managed metadata for an order-like object.
 	 *
 	 * @param mixed $order            Woo order.
-	 * @param bool  $with_sent_marker Include the purchase-sent marker.
+	 * @param bool  $with_sent_marker Include the purchase-sent and milestone markers.
 	 * @return array<int,array{key:string,value:mixed}>
 	 */
 	private function get_order_managed_meta( $order, bool $with_sent_marker = false ): array {
@@ -475,7 +515,7 @@ class Woo_Order_Privacy {
 			array_filter(
 				self::managed_meta( (array) $order->get_meta_data() ),
 				static function ( array $meta ) use ( $with_sent_marker ): bool {
-					return $with_sent_marker || self::SENT_MARKER_KEY !== $meta['key'];
+					return $with_sent_marker || ! self::is_marker_key( $meta['key'] );
 				}
 			)
 		);
@@ -485,7 +525,7 @@ class Woo_Order_Privacy {
 	 * Remove managed metadata from one order.
 	 *
 	 * @param mixed $order            Woo order.
-	 * @param bool  $with_sent_marker Also remove the purchase-sent marker.
+	 * @param bool  $with_sent_marker Also remove the purchase-sent and milestone markers.
 	 * @return bool Whether metadata was removed and saved.
 	 */
 	private function remove_order_metadata( $order, bool $with_sent_marker = false ): bool {

@@ -12,7 +12,8 @@ This document summarizes the active storage surfaces used by ClickTrail.
 > storage and HPOS, and only removes the allowlisted ClickTrail keys/prefixes. Orders to clean are found
 > with one anchored `meta_key REGEXP` meta-query clause (an `EXISTS` clause per key made HPOS join
 > `wc_orders_meta` ~107 times and exceed MariaDB's 61-table join limit, #206). `_clicutcl_tracking_sent`
-> is the exception: subject erase, retention and the Diagnostics purge keep it; only uninstall removes it.
+> and the `_clicutcl_woo_milestone_sent_*` markers are the exception: subject erase, retention and the
+> Diagnostics purge keep them; only uninstall removes them.
 
 ## WordPress Options
 
@@ -275,12 +276,13 @@ WooCommerce order-level tracking state now also uses order meta for traceability
 - `_clicutcl_consent`: v1 decision snapshot for new orders (`schema_version`, decision, basis, revision, capture/expiry, source ID, marketing, analytics); historical boolean snapshots normalize as `legacy_unversioned`
 - `_clicutcl_tracking_sent`: purchase dedup marker written only after a successful, skipped, or confirmed queued purchase attempt; holds no personal data, so subject erase, retention and the Diagnostics purge keep it (export lists it, uninstall removes it); the thank-you page emits no purchase for an order older than the retention window
 - `_clicutcl_woo_trace_snapshot`: stored purchase and milestone trace snapshots
-- `_clicutcl_woo_milestone_sent_{event_name}`: per-milestone sent markers written only after a successful, skipped, or confirmed queued milestone attempt
-- `_clicutcl_{field}`, `_clicutcl_ft_{field}`, `_clicutcl_lt_{field}`: attribution fields, click IDs, browser IDs, visitor/session/trail IDs, and session counters
+- `_clicutcl_woo_milestone_sent_{event_name}`: per-milestone sent markers written only after a successful, skipped, or confirmed queued milestone attempt; each holds only a timestamp, so subject erase, retention and the Diagnostics purge keep it like `_clicutcl_tracking_sent` (export lists it, uninstall removes it) and a later status change cannot re-send `order_paid`, `order_refunded` or `order_cancelled`
+- `_clicutcl_{field}`, `_clicutcl_ft_{field}`, `_clicutcl_lt_{field}`: attribution fields, click IDs, browser IDs, visitor/session/trail IDs, and session counters. Checkout writes a cookie or posted key only when `Woo_Order_Privacy::is_attribution_meta_key()` allows it (a managed key that is not `_clicutcl_consent`, `_clicutcl_tracking_sent` or `_clicutcl_woo_*`), and only those keys are read back into dispatched attribution
 
 Lifecycle: `Privacy_Handler` exports and erases matching customer orders by billing email. The daily cleanup
 removes metadata from at most 100 expired orders per run and emits `clicutcl_cleanup_batch_incomplete` when
-more expired orders remain. The admin tracking purge and uninstall remove the same managed metadata. Uninstall
+more expired orders remain. The admin tracking purge and uninstall remove the same managed metadata, except
+that only uninstall removes the sent and milestone markers. Uninstall
 preserves options, tables, transients, and order metadata when `clicutcl_preserve_data_on_uninstall` is truthy.
 
 The trace snapshot stores:

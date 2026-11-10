@@ -221,6 +221,10 @@ namespace {
 			$this->meta[ (string) $key ] = $value;
 		}
 
+		public function delete_meta_data( $key ): void {
+			unset( $this->meta[ (string) $key ] );
+		}
+
 		public function save(): void {
 			$GLOBALS['clicktrail_test_woo_db'][ $this->id ] = $this->meta;
 			++$GLOBALS['clicktrail_test_woo_saves'];
@@ -436,6 +440,110 @@ namespace {
 			$output = $this->run_racing_thank_you_loads();
 
 			$this->assertSame( 1, substr_count( $output, 'window.dataLayer.push(' ) );
+		}
+
+		/**
+		 * Declare `wc_get_orders()` over the shared test "database" and an admin-screen `is_admin()`
+		 * (a later status change made by a shop manager, so no visitor-cookie fallback).
+		 *
+		 * Declared at run time, inside this class's isolated test processes only, so the
+		 * WooOrderPrivacyTest and other doubles in the parent process are never shadowed.
+		 */
+		private static function use_admin_order_storage(): void {
+			if ( ! function_exists( 'is_admin' ) ) {
+				/**
+				 * Admin request.
+				 *
+				 * @return bool
+				 */
+				function is_admin() {
+					return true;
+				}
+			}
+			if ( function_exists( 'wc_get_orders' ) ) {
+				return;
+			}
+			/**
+			 * Return every order in the test "database" (retention and erase re-check keys themselves).
+			 *
+			 * @param array $args Query arguments (ignored).
+			 * @return array<int,object>
+			 */
+			function wc_get_orders( $args = array() ) {
+				$orders = array();
+				foreach ( array_keys( $GLOBALS['clicktrail_test_woo_db'] ?? array() ) as $order_id ) {
+					$orders[] = new ClickTrail_Test_Order( (int) $order_id );
+				}
+				return $orders;
+			}
+		}
+
+		/**
+		 * @return array<string,array{string}>
+		 */
+		public static function privacyCleanupProvider(): array {
+			return array(
+				'retention purge' => array( 'retention' ),
+				'subject erase'   => array( 'erase' ),
+			);
+		}
+
+		/**
+		 * @dataProvider privacyCleanupProvider
+		 */
+		public function test_paid_milestone_is_not_re_sent_after_privacy_cleanup( string $cleanup ): void {
+			self::use_admin_order_storage();
+			( new WooCommerce() )->track_paid_milestone_from_status_change( self::ORDER_ID, 'pending', 'processing', null );
+			$this->assertCount( 1, $GLOBALS['clicktrail_test_dispatches'] );
+			$this->assertSame( 'order_paid', $GLOBALS['clicktrail_test_dispatches'][0]['event_name'] );
+
+			$privacy = new Woo_Order_Privacy();
+			if ( 'retention' === $cleanup ) {
+				$privacy->purge_expired_order_metadata( 90 );
+			} else {
+				$privacy->erase_order_data( 'buyer@example.com' );
+			}
+
+			$stored = $GLOBALS['clicktrail_test_woo_db'][ self::ORDER_ID ];
+			$this->assertArrayNotHasKey( '_clicutcl_lt_source', $stored, 'The cleanup ran and removed the attribution.' );
+			$this->assertArrayNotHasKey( WooCommerce::TRACE_META_KEY, $stored, 'The trace snapshot is personal data and is removed.' );
+
+			( new WooCommerce() )->track_paid_milestone_from_status_change( self::ORDER_ID, 'on-hold', 'completed', null );
+			( new WooCommerce() )->track_paid_milestone( self::ORDER_ID );
+			$this->assertCount( 1, $GLOBALS['clicktrail_test_dispatches'], 'A later paid status change must not emit order_paid again.' );
+			$this->assertSame( '2026-10-31 00:00:00', $stored[ WooCommerce::MILESTONE_META_PREFIX . 'order_paid' ] ?? null, 'The milestone marker survives the cleanup.' );
+		}
+
+		public function test_uninstall_purge_removes_the_milestone_marker(): void {
+			self::use_admin_order_storage();
+			$GLOBALS['clicktrail_test_woo_db'][ self::ORDER_ID ][ WooCommerce::MILESTONE_META_PREFIX . 'order_paid' ] = '2026-10-31 00:00:00';
+
+			( new Woo_Order_Privacy() )->purge_all_order_metadata();
+			$this->assertArrayHasKey( WooCommerce::MILESTONE_META_PREFIX . 'order_paid', $GLOBALS['clicktrail_test_woo_db'][ self::ORDER_ID ], 'The Diagnostics purge keeps the marker.' );
+
+			( new Woo_Order_Privacy() )->purge_all_order_metadata( Woo_Order_Privacy::RETENTION_BATCH_SIZE, true );
+			$this->assertSame( array(), $GLOBALS['clicktrail_test_woo_db'][ self::ORDER_ID ] );
+		}
+
+		public function test_milestone_attribution_excludes_control_and_unknown_order_meta(): void {
+			$GLOBALS['clicktrail_test_woo_db'][ self::ORDER_ID ] = array(
+				'_clicutcl_lt_source'                         => 'google',
+				'_clicutcl_gclid'                             => 'click-id',
+				'_clicutcl_tracking_sent'                     => 'yes',
+				'_clicutcl_woo_milestone_sent_order_refunded' => '2026-10-01 00:00:00',
+				'_clicutcl_woo_trace_snapshot'                => 'legacy-scalar-trace',
+				'_clicutcl_foo'                               => 'bar',
+			);
+
+			( new WooCommerce() )->track_paid_milestone( self::ORDER_ID );
+
+			$this->assertCount( 1, $GLOBALS['clicktrail_test_dispatches'] );
+			$attribution = $GLOBALS['clicktrail_test_dispatches'][0]['attribution'];
+			$this->assertSame( 'google', $attribution['last_touch']['source'] );
+			$this->assertSame( 'click-id', $attribution['gclid'] );
+			foreach ( array( 'tracking_sent', 'woo_milestone_sent_order_refunded', 'woo_trace_snapshot', 'foo' ) as $key ) {
+				$this->assertArrayNotHasKey( $key, $attribution, $key . ' must not leave the site as attribution.' );
+			}
 		}
 
 		public function test_preexisting_marker_returns_before_taking_a_lock(): void {
