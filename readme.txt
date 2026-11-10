@@ -201,15 +201,14 @@ configured-endpoint relays whose provider authentication, acceptance, and runtim
 
 = 1.13.1 =
 * Security: follow-up login, sign-up and comment event cookies are HMAC-signed and limited to their own event; pages that print one are sent no-cache headers.
-* Security: Calendly webhook bookings no longer send or queue the invitee's raw email. With stamped marketing consent only a SHA-256 hash is kept, otherwise no identity.
+* Security: Calendly webhook bookings no longer send or queue the invitee's raw email. With a `c=1` consent stamp only a SHA-256 hash is sent; without one (including on sites where consent is not required) the booking carries no email at all.
 * Fix: WooCommerce order milestones, refunds and cancellations triggered from wp-admin, REST, cron, WP-CLI or cookieless gateway callbacks follow the buyer's checkout consent snapshot, not the consent cookie of whoever triggered the request.
-* Fix: WooCommerce orders store only allowlisted attribution keys from the cookie, and order milestone markers survive retention and privacy erasure so `order_paid`, `order_refunded` and `order_cancelled` are never sent twice.
-* Fix: browser events, token signing and WhatsApp references are no longer dropped after 20 requests per cached page and IP; the replay cap is per session and hourly, and gate rejections are counted in failure telemetry.
-* Fix: Save settings and backup import no longer corrupt secrets, selectors and URLs (percent-escapes, angle brackets, spaces, backslashes) and reject undecodable payloads with an error instead of saving an empty configuration.
-* Fix: server-side delivery has a circuit breaker (a down collector no longer slows every request), webhook and lifecycle routes return 2xx for queued events, the retry queue drains within a 45 s budget instead of 10 rows per run, and expired pending rows and consent stalls show in failure telemetry.
-* Fix: the retention cleanup cron re-schedules itself when missing (including network-activated sites), and uninstall removes every ClickTrail option on every site of a network.
-* Performance: dedup diagnostics counters are buffered per request and written at most every 10 seconds; touch-event inserts no longer probe the table on every event.
-* Docs: queue dead-letter replay and lock storage, CI versus manual test evidence, and webhook/lifecycle behaviour under strict consent are documented.
+* Fix: WooCommerce orders store only allowlisted attribution keys from the cookie, and order milestone markers survive retention, privacy erasure and the Diagnostics purge, so `order_paid`, `order_refunded` and `order_cancelled` are not re-sent after them.
+* Fix: browser events, token signing and WhatsApp references are no longer dropped after 20 requests per cached page and IP. Default caps are now 120 browser-event and 30 sign/WhatsApp-reference requests per token, IP and session per hour, and the Delivery > Advanced field is relabelled "Maximum requests per token and session (hourly, 0 = default)" (0 always meant the default). Gate rejections are counted in failure telemetry.
+* Fix: Save settings no longer corrupts secrets, selectors and URLs (percent-escapes, angle brackets, spaces, backslashes) and rejects an undecodable payload with an error instead of saving an empty configuration; backup import no longer strips backslashes.
+* Fix: server-side delivery has a circuit breaker (a down collector no longer slows every request), webhook and lifecycle routes answer 200 with `queued: true` instead of 500 when an event is queued for retry, the retry queue drains in pages within a 45 s budget instead of 10 rows per run, and expired pending rows and consent stalls show in failure telemetry.
+* Fix: the retention cleanup cron re-schedules itself when missing (including network-activated sites), and uninstall removes every ClickTrail option, table and scheduled task on every site of a network.
+* Performance: dedup diagnostics counters are buffered per request and written at most every 10 seconds (on busy sites the Diagnostics hit/miss numbers are a sample); touch-event inserts no longer probe the table on every event.
 
 = 1.13.0 =
 * Fixed: two simultaneous submissions or purchase notifications could both be recorded on sites without a persistent object cache.
