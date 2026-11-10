@@ -674,7 +674,7 @@ final class RestAuthPermissionsTest extends TestCase {
 
 		$this->assertNotNull( $rejected, 'one session must still be capped' );
 		$this->assertSame( 'nonce_replay_limited', $rejected->get_error_code() );
-		$this->assertGreaterThan( 20, $i, 'default must allow a real page worth of events' );
+		$this->assertSame( 121, $i, 'default batch cap is 120 per session per window; the old lifetime cap of 20 rejected at request 21' );
 	}
 
 	public function test_configured_nonce_limit_is_honoured_per_session(): void {
