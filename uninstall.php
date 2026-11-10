@@ -17,54 +17,40 @@ if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
  */
 $clicutcl_preserve_data = (bool) apply_filters( 'clicutcl_preserve_data_on_uninstall', false );
 
-// Delete plugin options only when data preservation was not requested.
-if ( ! $clicutcl_preserve_data ) {
-	$clicutcl_option_keys = array(
-		'clicutcl_attribution_settings',
-		'clicutcl_consent_mode',
-		'clicutcl_gtm',
-		'clicutcl_pii_risk_detected',
-		'clicutcl_server_side',
-		'clicutcl_server_side_network',
-		'clicutcl_tracking_v2',
-		'clicutcl_last_error',
-		'clicutcl_attempts',
-		'clicutcl_dispatch_log',
-		'clicutcl_sitehealth_status',
-		'clicutcl_db_ready',
-		'clicutcl_db_ready_checked_at',
-		'clicutcl_events_table_ready',
-		'clicutcl_events_table_checked_at',
-		'clicutcl_queue_table_ready',
-		'clicutcl_queue_table_checked_at',
-		'clicutcl_touch_events_table_ready',
-		'clicutcl_touch_events_table_checked_at',
-		'clicutcl_whatsapp_refs_table_ready',
-		'clicutcl_whatsapp_refs_table_checked_at',
-		'_transient_clicutcl_debug_until',
-		'_transient_timeout_clicutcl_debug_until',
-	);
-	foreach ( $clicutcl_option_keys as $clicutcl_option_key ) {
-		delete_option( $clicutcl_option_key );
-	}
+// WordPress may include uninstall.php without loading the plugin bootstrap, so load the helpers that
+// own the option names (`Installer::UNINSTALL_OPTION_NAMES`) and the claim-row name patterns.
+require_once __DIR__ . '/includes/database/class-installer.php';
+require_once __DIR__ . '/includes/tracking/class-claim-lock.php';
 
-	if ( function_exists( 'is_multisite' ) && is_multisite() ) {
-		delete_site_option( 'clicutcl_server_side_network' );
-	}
-}
-
-// Clear scheduled hooks.
-wp_clear_scheduled_hook( 'clicutcl_dispatch_queue' );
-wp_clear_scheduled_hook( 'clicutcl_daily_cleanup' );
-
-// Cancel Action Scheduler recurring actions when AS library is present.
-if ( function_exists( 'as_unschedule_all_actions' ) ) {
-	as_unschedule_all_actions( 'clicutcl_dispatch_queue', array(), 'clicktrail-delivery' );
-}
-
-if ( ! $clicutcl_preserve_data ) {
-	// Clear known transients used for diagnostics, dedup, rate limits, and replay guards.
+/**
+ * Remove the current site's ClickTrail options, scheduled hooks, transients, claim rows and tables.
+ *
+ * Each site of a network has its own options table, cron and plugin tables, so this runs once per site.
+ */
+$clicutcl_uninstall_site = static function () use ( $clicutcl_preserve_data ) {
 	global $wpdb;
+
+	// Delete plugin options only when data preservation was not requested.
+	if ( ! $clicutcl_preserve_data ) {
+		foreach ( \CLICUTCL\Database\Installer::UNINSTALL_OPTION_NAMES as $option_name ) {
+			delete_option( $option_name );
+		}
+	}
+
+	// Clear scheduled hooks.
+	wp_clear_scheduled_hook( 'clicutcl_dispatch_queue' );
+	wp_clear_scheduled_hook( 'clicutcl_daily_cleanup' );
+
+	// Cancel Action Scheduler recurring actions when AS library is present.
+	if ( function_exists( 'as_unschedule_all_actions' ) ) {
+		as_unschedule_all_actions( 'clicutcl_dispatch_queue', array(), 'clicktrail-delivery' );
+	}
+
+	if ( $clicutcl_preserve_data ) {
+		return;
+	}
+
+	// Clear known transients used for diagnostics, dedup, rate limits, and replay guards.
 	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Uninstall cleanup; no cache needed.
 	$wpdb->query(
 		$wpdb->prepare(
@@ -75,10 +61,42 @@ if ( ! $clicutcl_preserve_data ) {
 	);
 
 	// Without a persistent object cache, purchase, sign-up and form claims are options rows
-	// (`clicutcl_*_lock_*`, `clicutcl_form_claim_*`). WordPress may include uninstall.php without
-	// loading the plugin bootstrap, so load the helper that owns those name patterns.
-	require_once __DIR__ . '/includes/tracking/class-claim-lock.php';
+	// (`clicutcl_*_lock_*`, `clicutcl_form_claim_*`).
 	\CLICUTCL\Tracking\Claim_Lock::delete_all_rows();
+
+	$queue_table         = $wpdb->prefix . 'clicutcl_queue';
+	$events_table        = $wpdb->prefix . 'clicutcl_events';
+	$touch_events_table  = $wpdb->prefix . 'clicutcl_touch_events';
+	$whatsapp_refs_table = $wpdb->prefix . 'clicutcl_whatsapp_refs';
+
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Uninstall cleanup.
+	$wpdb->query( "DROP TABLE IF EXISTS {$queue_table}" );
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Uninstall cleanup.
+	$wpdb->query( "DROP TABLE IF EXISTS {$events_table}" );
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Uninstall cleanup.
+	$wpdb->query( "DROP TABLE IF EXISTS {$touch_events_table}" );
+	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Uninstall cleanup.
+	$wpdb->query( "DROP TABLE IF EXISTS {$whatsapp_refs_table}" );
+};
+
+if ( function_exists( 'is_multisite' ) && is_multisite() ) {
+	// 'number' => 0 lifts get_sites()' default cap of 100 sites.
+	foreach ( get_sites(
+		array(
+			'fields' => 'ids',
+			'number' => 0,
+		)
+	) as $clicutcl_site_id ) {
+		switch_to_blog( (int) $clicutcl_site_id );
+		$clicutcl_uninstall_site();
+		restore_current_blog();
+	}
+
+	if ( ! $clicutcl_preserve_data ) {
+		delete_site_option( 'clicutcl_server_side_network' );
+	}
+} else {
+	$clicutcl_uninstall_site();
 }
 
 if ( ! $clicutcl_preserve_data ) {
@@ -106,7 +124,7 @@ if ( ! $clicutcl_preserve_data ) {
 		}
 	}
 
-	// Registration attribution meta (Ultimate Member) lives in user meta and outlives the tables below.
+	// Registration attribution meta (Ultimate Member) lives in user meta, which a network shares.
 	// Load the helper because WordPress may include uninstall.php without loading the plugin bootstrap first.
 	if ( function_exists( 'get_users' ) ) {
 		require_once __DIR__ . '/includes/Core/class-attribution-provider.php';
@@ -117,18 +135,4 @@ if ( ! $clicutcl_preserve_data ) {
 			do_action( 'clicutcl_uninstall_user_meta_incomplete', $clicutcl_user_purge );
 		}
 	}
-
-	$clicutcl_queue_table         = $wpdb->prefix . 'clicutcl_queue';
-	$clicutcl_events_table        = $wpdb->prefix . 'clicutcl_events';
-	$clicutcl_touch_events_table  = $wpdb->prefix . 'clicutcl_touch_events';
-	$clicutcl_whatsapp_refs_table = $wpdb->prefix . 'clicutcl_whatsapp_refs';
-
-	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Uninstall cleanup.
-	$wpdb->query( "DROP TABLE IF EXISTS {$clicutcl_queue_table}" );
-	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Uninstall cleanup.
-	$wpdb->query( "DROP TABLE IF EXISTS {$clicutcl_events_table}" );
-	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Uninstall cleanup.
-	$wpdb->query( "DROP TABLE IF EXISTS {$clicutcl_touch_events_table}" );
-	// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Uninstall cleanup.
-	$wpdb->query( "DROP TABLE IF EXISTS {$clicutcl_whatsapp_refs_table}" );
 }

@@ -730,7 +730,8 @@ namespace {
 			$this->assertStringContainsString( 'Whatsapp_Ref_Store::purge_expired', (string) file_get_contents( $root . '/includes/utils/class-cleanup.php' ) );
 			$this->assertStringContainsString( 'Whatsapp_Ref_Store::delete_by_visitor_ids', (string) file_get_contents( $root . '/includes/privacy/class-privacy-handler.php' ) );
 			$this->assertStringContainsString( 'clicutcl_whatsapp_refs', (string) file_get_contents( $root . '/uninstall.php' ) );
-			$this->assertStringContainsString( 'clicutcl_whatsapp_refs_table_ready', (string) file_get_contents( $root . '/uninstall.php' ) );
+			require_once $root . '/includes/database/class-installer.php';
+			$this->assertContains( 'clicutcl_whatsapp_refs_table_ready', \CLICUTCL\Database\Installer::UNINSTALL_OPTION_NAMES, 'uninstall.php deletes the shared option list' );
 		}
 	}
 }

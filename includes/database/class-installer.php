@@ -68,6 +68,46 @@ class Installer {
 	private const WHATSAPP_REFS_READY_CHECKED_AT_OPTION = 'clicutcl_whatsapp_refs_table_checked_at';
 
 	/**
+	 * Every per-site option the plugin writes, deleted by uninstall.php on each site.
+	 *
+	 * Literal names where the writer's class cannot be loaded during uninstall. Transients
+	 * (`_transient_clicutcl_*`) and claim-lock rows (`Claim_Lock::delete_all_rows()`) are removed
+	 * by name pattern instead. tests/unit/UninstallCompletenessTest.php fails when a writer adds a
+	 * name this list misses.
+	 */
+	public const UNINSTALL_OPTION_NAMES = array(
+		'clicutcl_attribution_settings',
+		'clicutcl_consent_mode',
+		'clicutcl_gtm',
+		'clicutcl_pii_risk_detected',
+		'clicutcl_server_side',
+		'clicutcl_server_side_network',
+		'clicutcl_tracking_v2',
+		'clicutcl_last_error',
+		'clicutcl_attempts',
+		'clicutcl_dispatch_log',
+		'clicutcl_sitehealth_status',
+		'clicutcl_queue_lock',
+		'clicutcl_mode',
+		'clicutcl_setup_complete',
+		'clicutcl_gtm_offer_dismissed',
+		'clicutcl_gtm_offer_subscribed',
+		'clicutcl_activated_at',
+		'clicutcl_first_order_tracked_at',
+		'clicutcl_db_ready',
+		'clicutcl_db_ready_checked_at',
+		self::DB_VERSION_OPTION,
+		self::EVENTS_READY_OPTION,
+		self::EVENTS_READY_CHECKED_AT_OPTION,
+		self::QUEUE_READY_OPTION,
+		self::QUEUE_READY_CHECKED_AT_OPTION,
+		self::TOUCH_EVENTS_READY_OPTION,
+		self::TOUCH_EVENTS_READY_CHECKED_AT_OPTION,
+		self::WHATSAPP_REFS_READY_OPTION,
+		self::WHATSAPP_REFS_READY_CHECKED_AT_OPTION,
+	);
+
+	/**
 	 * Run the installer.
 	 */
 	public static function run() {

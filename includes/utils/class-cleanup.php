@@ -26,6 +26,28 @@ class Cleanup {
 	 */
 	public function register() {
 		add_action( 'clicutcl_daily_cleanup', array( $this, 'run_cleanup' ) );
+		self::ensure_schedule();
+	}
+
+	/**
+	 * Schedule the daily cleanup when cron has no event for it.
+	 *
+	 * Activation schedules it only on the site that ran the activation hook, and a lost cron entry is
+	 * never recreated, so retention would silently stop. Checked at most once per request.
+	 *
+	 * @return void
+	 */
+	public static function ensure_schedule() {
+		static $checked = false;
+
+		if ( $checked ) {
+			return;
+		}
+		$checked = true;
+
+		if ( ! wp_next_scheduled( 'clicutcl_daily_cleanup' ) ) {
+			wp_schedule_event( time(), 'daily', 'clicutcl_daily_cleanup' );
+		}
 	}
 
 	/**

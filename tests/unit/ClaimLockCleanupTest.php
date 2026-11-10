@@ -136,6 +136,9 @@ namespace {
 			$GLOBALS['wpdb']                           = $this->db;
 			$GLOBALS['clicktrail_test_cache']          = array();
 			$GLOBALS['clicktrail_test_filters']        = array();
+			$GLOBALS['clicktrail_test_options']        = array();
+			// One store: rows written through $wpdb are what get_option()/delete_option() see.
+			$this->db->rows = &$GLOBALS['clicktrail_test_options'];
 		}
 
 		private function claim( int $age_seconds, string $token = 'tok' ): string {
@@ -168,7 +171,9 @@ namespace {
 		}
 
 		public function test_takeover_decides_on_the_live_row_not_a_cached_option(): void {
-			$this->db->rows['clicutcl_form_claim_x']                         = $this->claim( 600 );
+			// The live table diverges from what get_option() serves (a stale options cache) on purpose.
+			$live                                                        = array( 'clicutcl_form_claim_x' => $this->claim( 600 ) );
+			$this->db->rows                                              = &$live;
 			$GLOBALS['clicktrail_test_options']['clicutcl_form_claim_x'] = $this->claim( 1, 'cached' );
 
 			$won = Claim_Lock::acquire( 'clicutcl_form_claim_x', 60 );
@@ -239,6 +244,53 @@ namespace {
 			$this->assertSame( array( 'clicutcl_purchase_lock_2' ), array_keys( $this->db->rows ) );
 		}
 
+		// ----- daily cleanup schedule -----
+
+		/**
+		 * Load Cleanup with a WP-cron stub that records schedule calls.
+		 *
+		 * @param array<string,int> $scheduled Hook => next run already in cron.
+		 */
+		private function cleanup_with_cron( array $scheduled ): void {
+			$GLOBALS['clicktrail_test_cron']           = $scheduled;
+			$GLOBALS['clicktrail_test_cron_scheduled'] = array();
+			if ( ! function_exists( 'wp_next_scheduled' ) ) {
+				function wp_next_scheduled( $hook ) {
+					return $GLOBALS['clicktrail_test_cron'][ $hook ] ?? false;
+				}
+			}
+			if ( ! function_exists( 'wp_schedule_event' ) ) {
+				function wp_schedule_event( $timestamp, $recurrence, $hook ) {
+					$GLOBALS['clicktrail_test_cron'][ $hook ]    = $timestamp;
+					$GLOBALS['clicktrail_test_cron_scheduled'][] = array( $hook, $recurrence );
+					return true;
+				}
+			}
+			require_once dirname( __DIR__, 2 ) . '/includes/utils/class-cleanup.php';
+		}
+
+		public function test_register_schedules_the_missing_daily_cleanup_once(): void {
+			$this->cleanup_with_cron( array() );
+
+			( new \CLICUTCL\Utils\Cleanup() )->register();
+			$this->assertNotFalse( wp_next_scheduled( 'clicutcl_daily_cleanup' ) );
+
+			// The check runs once per request: a second register() does not re-read cron.
+			$GLOBALS['clicktrail_test_cron'] = array();
+			( new \CLICUTCL\Utils\Cleanup() )->register();
+
+			$this->assertSame( array( array( 'clicutcl_daily_cleanup', 'daily' ) ), $GLOBALS['clicktrail_test_cron_scheduled'] );
+		}
+
+		public function test_register_leaves_an_existing_daily_cleanup_alone(): void {
+			$this->cleanup_with_cron( array( 'clicutcl_daily_cleanup' => 123 ) );
+
+			( new \CLICUTCL\Utils\Cleanup() )->register();
+
+			$this->assertSame( array(), $GLOBALS['clicktrail_test_cron_scheduled'] );
+			$this->assertSame( 123, wp_next_scheduled( 'clicutcl_daily_cleanup' ) );
+		}
+
 		// ----- uninstall.php -----
 
 		/**
@@ -261,9 +313,9 @@ namespace {
 			$this->seed();
 			$this->run_uninstall( false );
 			$this->assertSame(
-				array( 'clicutcl_tracking_v2', 'clicutcl_dispatch_log', 'clicutclXpurchaseXlockX9', 'other_plugin_lock_1', 'clicutcl_form_claimed_setting' ),
+				array( 'clicutclXpurchaseXlockX9', 'other_plugin_lock_1', 'clicutcl_form_claimed_setting' ),
 				array_keys( $this->db->rows ),
-				'fresh and stale claims are gone; the plugin settings are removed by the option list, not asserted here'
+				'fresh and stale claims and the plugin settings are gone; lookalikes the claim patterns must not match stay'
 			);
 		}
 
