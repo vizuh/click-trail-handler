@@ -170,9 +170,14 @@ class Touch_Events_Store {
 
 		// This fires on every dispatched event, including public REST intake, so a
 		// missing table (e.g. dbDelta failed on activation) must fail silently
-		// rather than surface a $wpdb error into a WP_DEBUG response.
+		// rather than surface a $wpdb error into a WP_DEBUG response. Trust the
+		// readiness the Installer recorded; probe only when it never recorded one.
+		$ready = Installer::touch_events_table_ready();
+		if ( false === $ready ) {
+			return;
+		}
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Lightweight metadata check on plugin-owned table; no core wrapper available.
-		if ( $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) !== $table ) {
+		if ( null === $ready && $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) !== $table ) {
 			return;
 		}
 
@@ -181,7 +186,11 @@ class Touch_Events_Store {
 		$columns      = implode( ', ', array_keys( $row ) );
 		$placeholders = implode( ', ', array_map( static fn( $value ) => null === $value ? 'NULL' : '%s', $row ) );
 		$values       = array_values( array_filter( $row, static fn( $value ) => null !== $value ) );
+		// A table dropped after readiness was recorded must not print into the response;
+		// hide_errors() still lets $wpdb log the failure.
+		$shown = $wpdb->hide_errors();
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Table and columns are plugin-owned; placeholders are generated above and every value is prepared.
 		$wpdb->query( $wpdb->prepare( "INSERT INTO {$table} ({$columns}) VALUES ({$placeholders}) ON DUPLICATE KEY UPDATE id = id", $values ) );
+		$wpdb->show_errors( $shown );
 	}
 }

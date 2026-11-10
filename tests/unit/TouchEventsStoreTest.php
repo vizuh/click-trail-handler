@@ -5,15 +5,15 @@
  * the dual attribution-shape derivation (nested first_touch/last_touch from
  * WooCommerce vs flat ft_/lt_ keys from browser events and forms).
  *
- * insert() itself requires a live $wpdb and is not exercised here, same
- * constraint QueueRetryTest documents for class-queue.php's DB-touching
- * methods.
+ * The insert() guards (schema version, cached table readiness, silent
+ * failure on a missing table) run against a query-recording $wpdb fake.
  *
  * @package ClickTrail
  */
 
 declare(strict_types=1);
 
+require_once dirname( __DIR__, 2 ) . '/includes/database/class-installer.php';
 require_once dirname( __DIR__, 2 ) . '/includes/database/class-touch-events-store.php';
 
 use CLICUTCL\Database\Touch_Events_Store;
@@ -224,5 +224,124 @@ final class TouchEventsStoreTest extends TestCase {
 		$row = Touch_Events_Store::build_row( $this->event_data( array( 'timestamp' => 1_700_000_000 ) ), true, 1 );
 
 		$this->assertSame( gmdate( 'Y-m-d H:i:s', 1_700_000_000 ), $row['created_at'] );
+	}
+
+	/**
+	 * Install a $wpdb fake that records every query and the error-display state
+	 * it ran under. `$table_exists` drives the SHOW TABLES answer.
+	 *
+	 * @param bool        $table_exists Whether the touch table exists.
+	 * @param int|null    $ready        Cached readiness option value, null = never written.
+	 * @param int         $db_version   Stored schema version.
+	 * @return object
+	 */
+	private function install_wpdb( bool $table_exists, ?int $ready, int $db_version = \CLICUTCL\Database\Installer::DB_VERSION ): object {
+		$GLOBALS['clicktrail_test_options']['clicutcl_db_version'] = $db_version;
+		unset( $GLOBALS['clicktrail_test_options']['clicutcl_touch_events_table_ready'] );
+		if ( null !== $ready ) {
+			$GLOBALS['clicktrail_test_options']['clicutcl_touch_events_table_ready'] = $ready;
+		}
+
+		$GLOBALS['wpdb'] = new class( $table_exists ) {
+			public $prefix = 'wp_';
+			public $queries = array();
+			public $show_errors = true;
+			private $table_exists;
+
+			public function __construct( bool $table_exists ) {
+				$this->table_exists = $table_exists;
+			}
+
+			public function prepare( $query, ...$args ) {
+				return $query;
+			}
+
+			public function get_var( $query ) {
+				$this->queries[] = array( $query, $this->show_errors );
+				return $this->table_exists ? 'wp_clicutcl_touch_events' : null;
+			}
+
+			public function query( $query ) {
+				$this->queries[] = array( $query, $this->show_errors );
+				return $this->table_exists ? 1 : false;
+			}
+
+			public function hide_errors() {
+				$shown             = $this->show_errors;
+				$this->show_errors = false;
+				return $shown;
+			}
+
+			public function show_errors( $show = true ) {
+				$shown             = $this->show_errors;
+				$this->show_errors = $show;
+				return $shown;
+			}
+		};
+
+		return $GLOBALS['wpdb'];
+	}
+
+	private function queries_matching( object $wpdb, string $prefix ): array {
+		return array_values( array_filter( $wpdb->queries, static fn( $q ) => 0 === strpos( $q[0], $prefix ) ) );
+	}
+
+	protected function tearDown(): void {
+		unset( $GLOBALS['wpdb'] );
+		unset( $GLOBALS['clicktrail_test_options']['clicutcl_db_version'], $GLOBALS['clicktrail_test_options']['clicutcl_touch_events_table_ready'] );
+	}
+
+	public function test_insert_skips_the_show_tables_probe_when_readiness_is_cached_ready(): void {
+		$wpdb = $this->install_wpdb( true, 1 );
+
+		Touch_Events_Store::record( $this->event_data(), true, 1 );
+		Touch_Events_Store::record( $this->event_data( array( 'event_id' => 'purchase_456' ) ), true, 1 );
+
+		$this->assertSame( array(), $this->queries_matching( $wpdb, 'SHOW TABLES' ) );
+		$this->assertCount( 2, $this->queries_matching( $wpdb, 'INSERT INTO wp_clicutcl_touch_events' ) );
+	}
+
+	public function test_a_table_missing_despite_cached_readiness_fails_without_displaying_a_db_error(): void {
+		$wpdb = $this->install_wpdb( false, 1 );
+
+		Touch_Events_Store::record( $this->event_data(), true, 1 );
+
+		$inserts = $this->queries_matching( $wpdb, 'INSERT INTO' );
+		$this->assertCount( 1, $inserts );
+		$this->assertFalse( $inserts[0][1], 'The INSERT must run with error display off.' );
+		$this->assertTrue( $wpdb->show_errors, 'The previous error-display state must be restored.' );
+	}
+
+	public function test_insert_falls_back_to_the_probe_when_readiness_is_unknown(): void {
+		$wpdb = $this->install_wpdb( true, null );
+
+		Touch_Events_Store::record( $this->event_data(), true, 1 );
+
+		$this->assertCount( 1, $this->queries_matching( $wpdb, 'SHOW TABLES' ) );
+		$this->assertCount( 1, $this->queries_matching( $wpdb, 'INSERT INTO' ) );
+	}
+
+	public function test_unknown_readiness_and_missing_table_writes_nothing(): void {
+		$wpdb = $this->install_wpdb( false, null );
+
+		Touch_Events_Store::record( $this->event_data(), true, 1 );
+
+		$this->assertSame( array(), $this->queries_matching( $wpdb, 'INSERT INTO' ) );
+	}
+
+	public function test_insert_issues_no_query_when_readiness_is_cached_not_ready(): void {
+		$wpdb = $this->install_wpdb( true, 0 );
+
+		Touch_Events_Store::record( $this->event_data(), true, 1 );
+
+		$this->assertSame( array(), $wpdb->queries );
+	}
+
+	public function test_insert_issues_no_query_while_the_schema_upgrade_is_incomplete(): void {
+		$wpdb = $this->install_wpdb( true, 1, \CLICUTCL\Database\Installer::DB_VERSION - 1 );
+
+		Touch_Events_Store::record( $this->event_data(), true, 1 );
+
+		$this->assertSame( array(), $wpdb->queries );
 	}
 }

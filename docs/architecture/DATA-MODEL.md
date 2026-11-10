@@ -372,6 +372,10 @@ Common transients:
 - `clicutcl_health_check_result`
 - `clicutcl_queue_lock`
 - `clicutcl_v2_events_buffer`
+- `clicutcl_v2_dedup_stats`
+- `clicutcl_v2_dedup_stats_flush_lock`
+
+`clicutcl_v2_dedup_stats` (read by `GET /clicutcl/v2/diagnostics/dedup`) is not written by the dedup check itself: `Dedup_Store` counts hits and misses in memory and writes them once at `shutdown`, at most once every 10 seconds site-wide (`clicutcl_v2_dedup_stats_flush_lock`). A request that ends while the lock is held drops its counts, so under load the counters are a sample, not an exact tally. They are advisory only.
 
 There are also dynamic transient families used for:
 

@@ -75,6 +75,16 @@ class Installer {
 	}
 
 	/**
+	 * Touch events table readiness as last recorded by create_tables().
+	 *
+	 * @return bool|null True/false when recorded, null when never checked.
+	 */
+	public static function touch_events_table_ready(): ?bool {
+		$ready = get_option( self::TOUCH_EVENTS_READY_OPTION, null );
+		return null === $ready ? null : (bool) absint( $ready );
+	}
+
+	/**
 	 * Default cookie scope for a brand-new install: `registrable`, or `host` on
 	 * subdomain multisite networks where every site shares one registrable domain.
 	 *
