@@ -5,7 +5,7 @@ Author URI: https://vizuh.com
 Tags: attribution, utm, consent mode, woocommerce, server-side tracking
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 1.13.0
+Stable tag: 1.13.1
 Requires PHP: 8.1
 WC requires at least: 10.4.2
 License: GPLv2 or later
@@ -198,6 +198,18 @@ The entries below are historical release notes. They do not replace the current 
 behavior that still requires current runtime verification. In particular, older wording that calls platform-named
 server paths “first-class native delivery adapters” predates the current evidence classification: those paths are
 configured-endpoint relays whose provider authentication, acceptance, and runtime delivery remain unverified.
+
+= 1.13.1 =
+* Security: follow-up login, sign-up and comment event cookies are HMAC-signed and limited to their own event; pages that print one are sent no-cache headers.
+* Security: Calendly webhook bookings no longer send or queue the invitee's raw email. With stamped marketing consent only a SHA-256 hash is kept, otherwise no identity.
+* Fix: WooCommerce order milestones, refunds and cancellations triggered from wp-admin, REST, cron, WP-CLI or cookieless gateway callbacks follow the buyer's checkout consent snapshot, not the consent cookie of whoever triggered the request.
+* Fix: WooCommerce orders store only allowlisted attribution keys from the cookie, and order milestone markers survive retention and privacy erasure so `order_paid`, `order_refunded` and `order_cancelled` are never sent twice.
+* Fix: browser events, token signing and WhatsApp references are no longer dropped after 20 requests per cached page and IP; the replay cap is per session and hourly, and gate rejections are counted in failure telemetry.
+* Fix: Save settings and backup import no longer corrupt secrets, selectors and URLs (percent-escapes, angle brackets, spaces, backslashes) and reject undecodable payloads with an error instead of saving an empty configuration.
+* Fix: server-side delivery has a circuit breaker (a down collector no longer slows every request), webhook and lifecycle routes return 2xx for queued events, the retry queue drains within a 45 s budget instead of 10 rows per run, and expired pending rows and consent stalls show in failure telemetry.
+* Fix: the retention cleanup cron re-schedules itself when missing (including network-activated sites), and uninstall removes every ClickTrail option on every site of a network.
+* Performance: dedup diagnostics counters are buffered per request and written at most every 10 seconds; touch-event inserts no longer probe the table on every event.
+* Docs: queue dead-letter replay and lock storage, CI versus manual test evidence, and webhook/lifecycle behaviour under strict consent are documented.
 
 = 1.13.0 =
 * Fixed: two simultaneous submissions or purchase notifications could both be recorded on sites without a persistent object cache.
