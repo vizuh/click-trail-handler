@@ -8,6 +8,7 @@
 namespace CLICUTCL\Tracking\Webhooks;
 
 use CLICUTCL\Tracking\Event_Translator_V1_To_V2;
+use CLICUTCL\Tracking\Identity_Resolver;
 use CLICUTCL\Tracking\WebhookProviderAdapterInterface;
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -106,16 +107,28 @@ class CalendlyWebhookAdapter implements WebhookProviderAdapterInterface {
 			}
 		}
 
-		$input = array();
-		$stamp = self::parse_stamp( isset( $tracking['salesforce_uuid'] ) && is_scalar( $tracking['salesforce_uuid'] ) ? (string) $tracking['salesforce_uuid'] : '' );
+		$input             = array();
+		$marketing_allowed = false;
+		$stamp             = self::parse_stamp( isset( $tracking['salesforce_uuid'] ) && is_scalar( $tracking['salesforce_uuid'] ) ? (string) $tracking['salesforce_uuid'] : '' );
 		if ( null !== $stamp ) {
 			$attribution = array_merge( $attribution, $stamp['click_ids'] );
 			// The visitor's consent decision when the booking link was decorated; same trust
 			// level as the consent cookie it was read from. A webhook has no cookie of its own.
 			if ( null !== $stamp['consent'] ) {
-				$input['consent'] = array( 'marketing' => $stamp['consent'] );
+				$input['consent']  = array( 'marketing' => $stamp['consent'] );
+				$marketing_allowed = $stamp['consent'];
 			}
 		}
+
+		// Only an explicit c=1 grant allows identity, and then only as a SHA-256 hash;
+		// the raw invitee email never enters the event (or the retry queue built from it).
+		$identity = ( new Identity_Resolver() )->resolve(
+			array( 'email' => $email ),
+			array(
+				'marketing_allowed' => $marketing_allowed,
+				'caller'            => 'calendly_webhook',
+			)
+		);
 
 		return Event_Translator_V1_To_V2::translate(
 			$input + array(
@@ -126,9 +139,7 @@ class CalendlyWebhookAdapter implements WebhookProviderAdapterInterface {
 					'provider'      => 'calendly',
 					'submit_status' => 'success',
 				),
-				'identity'     => array(
-					'email' => $email,
-				),
+				'identity'     => $identity,
 				'attribution'  => $attribution,
 				'meta'         => array(
 					'provider_event' => $event,

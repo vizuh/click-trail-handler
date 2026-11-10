@@ -660,6 +660,10 @@ and a consent snapshot, so a consented booking can be delivered when consent is 
 Calendly's script before ClickTrail runs keep their original URL. The `salesforce_uuid` length limit and a live
 booking remain unverified.
 
+The invitee email is never sent or queued in clear text. With a `c=1` stamp the event carries only
+`identity.hashed_email` (SHA-256 of the trimmed, lowercased address, via `Identity_Resolver`); without `c=1` it
+carries no identity, including on sites where consent is not required. The adapter reads no phone number.
+
 ## Lifecycle Updates
 
 Route:
