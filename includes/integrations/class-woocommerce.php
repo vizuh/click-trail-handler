@@ -1099,10 +1099,12 @@ class WooCommerce {
 	 * Decide who holds consent authority for a server-side order event.
 	 *
 	 * A front-end request with a live consent state keeps the live-cookie rule
-	 * (null), so the buyer's withdrawal there still wins; without a live state
-	 * it keeps today's policy for that request and falls back to the snapshot.
-	 * Every other request (wp-admin, REST, cron, WP-CLI) is decided by the
-	 * checkout snapshot stored on the order: a shop manager's cookie never
+	 * (null), so the buyer's withdrawal there still wins. A front-end request
+	 * without a live state (e.g. a ?wc-api= gateway callback) is decided by the
+	 * order's checkout snapshot when one is stored, so the requester's own
+	 * geography never overrides it; only an order without a snapshot falls back
+	 * to that request's policy. Every other request (wp-admin, REST, cron,
+	 * WP-CLI) is decided by the snapshot too: a shop manager's cookie never
 	 * decides a buyer's consent. The buyer's geography is unknown there, so geo
 	 * mode counts as required (as for queue workers); a snapshot captured where
 	 * consent was not required already reads as granted. A missing or malformed
@@ -1112,9 +1114,14 @@ class WooCommerce {
 	 * @return bool|null Explicit decision, or null for live request semantics.
 	 */
 	private function get_order_consent_authority( $order ): ?bool {
+		$snapshot = $this->get_order_consent_snapshot( $order );
+
 		if ( $this->is_customer_request_context() ) {
 			if ( Consent::has_state() ) {
 				return null;
+			}
+			if ( ! empty( $snapshot ) ) {
+				return ! empty( $snapshot['marketing'] );
 			}
 			$required = Consent::is_required();
 		} else {
@@ -1125,7 +1132,7 @@ class WooCommerce {
 			return true;
 		}
 
-		return ! empty( $this->get_order_consent_snapshot( $order )['marketing'] );
+		return ! empty( $snapshot['marketing'] );
 	}
 
 	/**

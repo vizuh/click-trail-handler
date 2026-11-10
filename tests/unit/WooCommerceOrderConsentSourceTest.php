@@ -2,9 +2,12 @@
 /**
  * Consent source for WooCommerce order events (audit F2, WP-05).
  *
- * Outside the buyer's own request (wp-admin, REST, cron, WP-CLI, cookieless
- * gateway callbacks) the order's checkout consent snapshot decides both the
- * dispatch and the identity gate; a cookie present on that request never does.
+ * In wp-admin, REST, cron and WP-CLI the order's checkout consent snapshot
+ * decides both the dispatch and the identity gate (geo mode counts as
+ * required); a cookie present on that request never does. A front-end request
+ * without a live consent state (e.g. a ?wc-api= gateway callback) also follows
+ * a stored snapshot; only an order without one falls back to that request's
+ * own policy.
  *
  * @package ClickTrail
  */
@@ -299,6 +302,19 @@ namespace {
 			$this->assertSame( 'order_refund', $dispatch['payload']['event_name'] );
 			$this->assertSame( hash( 'sha256', 'buyer@example.com' ), $dispatch['payload']['identity']['hashed_email'] ?? null );
 			$this->assertTrue( $dispatch['authority'] );
+		}
+
+		public function test_front_end_cookieless_callback_in_geo_mode_follows_a_denied_snapshot(): void {
+			// Gateway callback on a front-end URL (?wc-api=), no cookie, gateway server outside the configured regions.
+			$GLOBALS['clicktrail_test_consent_mode']     = 'geo';
+			$GLOBALS['clicktrail_test_consent_required'] = false;
+			$order = $this->given_order( $this->snapshot( false ) );
+
+			( new WooCommerce() )->track_paid_milestone( self::ORDER_ID );
+
+			$this->assertSame( array(), $GLOBALS['clicktrail_test_dispatches'], 'The requester\'s geography does not override a denied snapshot.' );
+			$this->assertArrayNotHasKey( WooCommerce::TRACE_META_KEY, $order->meta );
+			$this->assertSame( array( 'consent_denied' ), $GLOBALS['clicktrail_test_failures'] );
 		}
 
 		public function test_front_end_cookieless_request_in_geo_mode_keeps_the_request_policy(): void {

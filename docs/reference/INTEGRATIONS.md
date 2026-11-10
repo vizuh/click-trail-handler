@@ -377,16 +377,21 @@ Consent source for server-side order events (`order_paid`, `order_refunded`,
 
 - the buyer's own front-end request with a live consent state uses that live
   state, so a withdrawal in that request still wins
-- every other request (wp-admin, REST, cron, WP-CLI, cookieless gateway
-  callbacks) ignores any consent cookie on the request. The `_clicutcl_consent`
-  snapshot decides the dispatch, the identity gate (hashed email/phone, IP, user
-  agent) and the consent sent on the event; the decision reaches
-  `Dispatcher::dispatch_commerce_event()` explicitly, so a shop manager's or
-  gateway's cookie never decides a buyer's consent
-- outside the buyer's request, geo mode counts as consent-required (the buyer's
-  location is unknown there; a snapshot captured where consent was not required
-  already reads as granted). A missing or malformed snapshot sends nothing when
-  consent is required
+- wp-admin, REST, cron and WP-CLI requests ignore any consent cookie on the
+  request. The `_clicutcl_consent` snapshot decides the dispatch, the identity
+  gate (hashed email/phone, IP, user agent) and the consent sent on the event;
+  the decision reaches `Dispatcher::dispatch_commerce_event()` explicitly, so a
+  shop manager's cookie never decides a buyer's consent
+- in those requests geo mode counts as consent-required (the buyer's location
+  is unknown there; a snapshot captured where consent was not required already
+  reads as granted). A missing or malformed snapshot sends nothing when consent
+  is required
+- a front-end request without a live consent state (for example a `?wc-api=`
+  gateway callback) follows the stored snapshot the same way, so the
+  requester's geography never overrides it. Limit: for an order without a
+  snapshot (e.g. some express-checkout flows) that request's own consent policy
+  applies, including its geography in geo mode; under required consent it
+  sends nothing
 - a consent-skipped order event writes no trace snapshot; it increments the
   `consent_denied` failure-telemetry counter
 - EDD does not use this rule yet (its receipt purchase runs only in the buyer's request)
