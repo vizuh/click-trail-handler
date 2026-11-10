@@ -242,7 +242,7 @@ Queue behavior:
 
 - cron hook: `clicutcl_dispatch_queue`
 - interval: every 5 minutes
-- batch size: 10 due rows per run
+- batch size: pages of 10 due rows per run until none are due or the 45 s time budget (`clicutcl_queue_time_budget`) runs out
 - max attempts: 5
 - exponential backoff capped at 1 hour
 
