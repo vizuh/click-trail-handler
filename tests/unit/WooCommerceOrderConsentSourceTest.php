@@ -271,9 +271,9 @@ namespace {
 			( new WooCommerce() )->track_cancelled_milestone( self::ORDER_ID );
 
 			$dispatch = $this->single_dispatch();
-			$this->assertTrue( $dispatch['authority'], 'The snapshot decision is passed to the dispatcher explicitly.' );
 			$this->assertSame( hash( 'sha256', 'buyer@example.com' ), $dispatch['payload']['identity']['hashed_email'] ?? null );
 			$this->assertTrue( $dispatch['payload']['consent']['marketing'] );
+			$this->assertTrue( $dispatch['authority'], 'The snapshot decision is passed to the dispatcher explicitly.' );
 		}
 
 		/**
@@ -285,8 +285,8 @@ namespace {
 			( new WooCommerce() )->track_paid_milestone( self::ORDER_ID );
 
 			$dispatch = $this->single_dispatch();
-			$this->assertTrue( $dispatch['authority'] );
 			$this->assertSame( hash( 'sha256', 'buyer@example.com' ), $dispatch['payload']['identity']['hashed_email'] ?? null );
+			$this->assertTrue( $dispatch['authority'] );
 		}
 
 		public function test_admin_refund_with_granted_snapshot_and_no_cookie_carries_identity(): void {
@@ -297,7 +297,19 @@ namespace {
 
 			$dispatch = $this->single_dispatch();
 			$this->assertSame( 'order_refund', $dispatch['payload']['event_name'] );
+			$this->assertSame( hash( 'sha256', 'buyer@example.com' ), $dispatch['payload']['identity']['hashed_email'] ?? null );
 			$this->assertTrue( $dispatch['authority'] );
+		}
+
+		public function test_front_end_cookieless_request_in_geo_mode_keeps_the_request_policy(): void {
+			// Visitor outside the configured regions, no cookie, order saved without a snapshot (express flow).
+			$GLOBALS['clicktrail_test_consent_mode']     = 'geo';
+			$GLOBALS['clicktrail_test_consent_required'] = false;
+			$this->given_order( null );
+
+			( new WooCommerce() )->track_paid_milestone( self::ORDER_ID );
+
+			$dispatch = $this->single_dispatch();
 			$this->assertSame( hash( 'sha256', 'buyer@example.com' ), $dispatch['payload']['identity']['hashed_email'] ?? null );
 		}
 
@@ -344,8 +356,8 @@ namespace {
 			( new WooCommerce() )->track_cancelled_milestone( self::ORDER_ID );
 
 			$dispatch = $this->single_dispatch();
-			$this->assertTrue( $dispatch['authority'] );
 			$this->assertTrue( $dispatch['payload']['consent']['marketing'], 'The outbound consent is not the requester\'s cookie.' );
+			$this->assertTrue( $dispatch['authority'] );
 		}
 
 		public function test_payload_filter_cannot_replace_the_order_snapshot(): void {
