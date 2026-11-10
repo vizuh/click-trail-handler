@@ -110,8 +110,9 @@ Row lifecycle and columns: [DATA-MODEL.md](../architecture/DATA-MODEL.md#wp_clic
 
 To replay:
 
-1. Fix the cause first (endpoint, adapter, collector credentials, consent resolver). A replayed row that fails again
-   goes back to `failed` after five more attempts.
+1. Fix the cause first (endpoint, adapter, collector credentials, consent resolver). A replayed row goes back to
+   `failed` after five more retryable failures, or at once on a non-retryable result or an explicit `consent_denied`
+   snapshot.
 2. Click "Retry Failed Deliveries" in Diagnostics. It calls `Queue::requeue_failed()`, which resets up to 50
    `failed` rows (oldest first) to `pending` with `attempts = 0`, due now. The button is disabled when there are no
    failed rows. Click again for more than 50 rows. From code: `\CLICUTCL\Server_Side\Queue::requeue_failed( $limit )`

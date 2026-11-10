@@ -248,8 +248,9 @@ dispatcher (`Dispatcher::consent_allows()`, `includes/server-side/class-dispatch
 
 A skipped event answers HTTP `200` so the provider does not retry, with
 `{ "success": false, "skipped": true, "detail": "consent_denied", "event_id": …, "event_name": … }` (webhooks also
-return `"duplicate": false`). In a HubSpot array each item is reported under `events` and the top-level `success` is
-`false` when any item was skipped. `detail` is the dispatcher's skip reason; earlier gates return `disabled`,
+return `"duplicate": false`). A HubSpot array with one item returns that same flat object. Only a HubSpot array with
+two or more items reports each item under `events`, with a top-level `success` that is `false` when any item was
+skipped. `detail` is the dispatcher's skip reason; earlier gates return `disabled`,
 `non_production_environment` or `missing_endpoint` before consent is checked, so `consent_denied` appears only when
 server-side delivery is enabled, an endpoint is set and the environment allows sending.
 
