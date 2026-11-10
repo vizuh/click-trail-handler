@@ -20,6 +20,10 @@ namespace CLICUTCL\Modules\Events {
 	function is_ssl() {
 		return false;
 	}
+
+	function nocache_headers() {
+		$GLOBALS['clicktrail_test_nocache'] = ( $GLOBALS['clicktrail_test_nocache'] ?? 0 ) + 1;
+	}
 }
 
 namespace {
@@ -51,7 +55,100 @@ namespace {
 			require_once dirname( __DIR__, 2 ) . '/includes/Modules/Events/class-events-logger.php';
 			$GLOBALS['clicktrail_test_events_hooks'] = array();
 			$GLOBALS['clicktrail_test_setcookie']    = array();
+			$GLOBALS['clicktrail_test_nocache']      = 0;
 			$_COOKIE                                 = array();
+		}
+
+		/**
+		 * The follow-up cookie format, computed independently of the logger: base64url(json) . '.' . HMAC-SHA256 hex.
+		 */
+		private function signed( array $data, string $salt = 'test-salt-auth' ): string {
+			$b64 = rtrim( strtr( base64_encode( json_encode( $data ) ), '+/', '-_' ), '=' );
+			return $b64 . '.' . hash_hmac( 'sha256', $b64, $salt );
+		}
+
+		private function decode_signed( string $value ): array {
+			$parts = explode( '.', $value );
+			$this->assertCount( 2, $parts, 'cookie value is <payload>.<signature>' );
+			$this->assertSame( hash_hmac( 'sha256', $parts[0], 'test-salt-auth' ), $parts[1] );
+			return json_decode( base64_decode( strtr( $parts[0], '-_', '+/' ) ), true );
+		}
+
+		private function process_and_render( Events_Logger $logger ): string {
+			$logger->process_event_cookies();
+			ob_start();
+			$logger->render_server_events();
+			return ob_get_clean();
+		}
+
+		private function assert_rejected( string $cookie_name, string $value ): void {
+			$this->require_consent( false );
+			$_COOKIE[ $cookie_name ] = $value;
+
+			$this->assertSame( '', $this->process_and_render( $this->logger() ) );
+			$this->assertSame( array( $cookie_name ), array_column( $GLOBALS['clicktrail_test_setcookie'], 0 ), 'a rejected cookie is still expired' );
+			$this->assertSame( 0, $GLOBALS['clicktrail_test_nocache'] );
+			$this->assertFalse( defined( 'DONOTCACHEPAGE' ) );
+		}
+
+		/**
+		 * F11: a forged, unsigned follow-up cookie (any event name) must not reach window.clicutclServerEvents / dataLayer.
+		 */
+		public function test_a_forged_unsigned_cookie_renders_nothing(): void {
+			$this->assert_rejected( 'ct_event_login', '{"event":"lead","event_id":"evt_forged","params":{"value":999}}' );
+		}
+
+		public function test_a_cookie_with_a_wrong_signature_renders_nothing(): void {
+			$this->assert_rejected( 'ct_event_login', $this->signed( array( 'event' => 'login', 'event_id' => 'evt_bad' ), 'attacker-salt' ) );
+		}
+
+		public function test_a_signed_cookie_with_a_disallowed_event_name_renders_nothing(): void {
+			$this->assert_rejected( 'ct_event_login', $this->signed( array( 'event' => 'lead', 'event_id' => 'evt_lead' ) ) );
+		}
+
+		public function test_a_signed_event_in_another_events_cookie_renders_nothing(): void {
+			$this->assert_rejected( 'ct_event_login', $this->signed( array( 'event' => 'sign_up', 'event_id' => 'evt_swap' ) ) );
+		}
+
+		public function test_a_valid_signed_cookie_renders_once_clears_and_marks_the_response_uncacheable(): void {
+			$this->require_consent( false );
+			$logger                      = $this->logger();
+			$_COOKIE['ct_event_comment'] = $this->signed( array( 'event' => 'comment_submit', 'event_id' => 'evt_ok', 'params' => array( 'comment_id' => 7 ) ) );
+
+			$out = $this->process_and_render( $logger );
+
+			$this->assertSame( 1, substr_count( $out, '"event":"comment_submit"' ) );
+			$this->assertSame( 1, substr_count( $out, 'evt_ok' ) );
+			$this->assertSame( array( 'ct_event_comment' ), array_column( $GLOBALS['clicktrail_test_setcookie'], 0 ) );
+			$this->assertSame( '', $GLOBALS['clicktrail_test_setcookie'][0][1] );
+			$this->assertSame( 1, $GLOBALS['clicktrail_test_nocache'] );
+			$this->assertTrue( defined( 'DONOTCACHEPAGE' ) && DONOTCACHEPAGE );
+
+			ob_start();
+			$logger->render_server_events();
+			$this->assertSame( '', ob_get_clean(), 'rendered once' );
+		}
+
+		public function test_a_cookie_the_logger_writes_is_signed_and_read_back(): void {
+			$this->require_consent( false );
+			require_once dirname( __DIR__, 2 ) . '/includes/server-side/class-event.php';
+			$this->logger()->log_login_event( 'alice', (object) array( 'ID' => 5 ) );
+
+			$this->assertSame( 'ct_event_login', $GLOBALS['clicktrail_test_setcookie'][0][0] );
+			$value = $GLOBALS['clicktrail_test_setcookie'][0][1];
+			$this->assertSame( 'login', $this->decode_signed( $value )['event'] );
+			$this->assertTrue( $GLOBALS['clicktrail_test_setcookie'][0][2]['httponly'] );
+
+			$GLOBALS['clicktrail_test_setcookie'] = array();
+			$_COOKIE['ct_event_login']            = $value;
+			$this->assertStringContainsString( '"event":"login"', $this->process_and_render( $this->logger() ) );
+		}
+
+		public function test_no_cache_signal_without_a_pending_event_cookie(): void {
+			$this->require_consent( false );
+			$this->assertSame( '', $this->process_and_render( $this->logger() ) );
+			$this->assertSame( 0, $GLOBALS['clicktrail_test_nocache'] );
+			$this->assertFalse( defined( 'DONOTCACHEPAGE' ) );
 		}
 
 		private function require_consent( bool $required ): void {
@@ -73,7 +170,7 @@ namespace {
 			$logger = $this->logger();
 			$this->assertContains( 'process_event_cookies', $this->callbacks( 'send_headers' ) );
 
-			$_COOKIE['ct_event_login'] = '{"event":"login","event_id":"evt_1"}';
+			$_COOKIE['ct_event_login'] = $this->signed( array( 'event' => 'login', 'event_id' => 'evt_1' ) );
 			$logger->process_event_cookies();
 			$cleared = count( $GLOBALS['clicktrail_test_setcookie'] );
 			$this->assertSame( 1, $cleared );
@@ -119,7 +216,7 @@ namespace {
 		private function um_signup_event_id(): string {
 			$this->assertCount( 1, $GLOBALS['clicktrail_test_setcookie'] );
 			$this->assertSame( 'ct_event_signup', $GLOBALS['clicktrail_test_setcookie'][0][0] );
-			$payload = json_decode( $GLOBALS['clicktrail_test_setcookie'][0][1], true );
+			$payload = $this->decode_signed( $GLOBALS['clicktrail_test_setcookie'][0][1] );
 			$this->assertSame( 'sign_up', $payload['event'] );
 			return $payload['event_id'];
 		}

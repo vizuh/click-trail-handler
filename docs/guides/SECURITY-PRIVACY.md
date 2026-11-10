@@ -56,6 +56,12 @@ Current source behavior (audit status):
   order metadata, queued deliveries, and third-party deliveries are not automatically erased
 - most browser event paths check consent before pushing tracked events, but follow-up logger, form, and Woo paths
   require independent verification
+- follow-up event cookies (`ct_event_login`, `ct_event_signup`, `ct_event_comment`; 60 seconds, `HttpOnly`, `SameSite=Lax`)
+  carry `base64url(JSON).HMAC-SHA256` keyed with `wp_salt( 'auth' )`. The next page prints the event only when the signature
+  verifies and the event is the one its cookie owns (`login`, `sign_up`, `comment_submit`); an unsigned, tampered or
+  mismatched cookie prints nothing and is still expired. A page that prints a queued event sends `nocache_headers()` and
+  defines `DONOTCACHEPAGE`, so a page cache or CDN does not replay one visitor's event to others. A signed value has no
+  expiry of its own: a visitor can replay their own captured cookie to their own browser
 - initial server-side dispatch checks consent; queued retries resolve current subject consent through `clicutcl_queue_consent_snapshot`, never worker cookies. No built-in subject registry exists: strict/geo retries remain pending without authoritative resolution, bounded by queue retention. Explicit withdrawal blocks delivery; unknown or expired authority defers without consuming attempts.
 
 ## Consent Sources
