@@ -8,6 +8,19 @@
 declare(strict_types=1);
 
 namespace {
+	if ( ! defined( 'CLICUTCL_DIR' ) ) {
+		define( 'CLICUTCL_DIR', dirname( __DIR__, 2 ) . '/' );
+	}
+
+	require_once dirname( __DIR__, 2 ) . '/includes/Core/Storage/class-option-cache.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/support/class-feature-registry.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-settings.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-consentdecisioninterface.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-consent-decision.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-identityresolverinterface.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-phone-calling-codes.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-identity-resolver.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/server-side/class-event.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-canonicaleventinterfacev2.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-eventv2.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/Consent/class-decision-v1.php';
@@ -182,6 +195,50 @@ namespace {
 				$this->assertArrayNotHasKey( 'gclid', $event['attribution'], $value );
 				$this->assertArrayNotHasKey( 'evil_key', $event['attribution'], $value );
 				$this->assertEmpty( $event['consent']['marketing'] ?? false, $value );
+			}
+		}
+
+		/**
+		 * The canonical event and its server-side Event normalisation (which mirrors
+		 * identity into meta.identity and is what the retry queue persists).
+		 *
+		 * @param array $event Canonical v2 event.
+		 * @return string
+		 */
+		private static function event_json( array $event ): string {
+			$normalized = \CLICUTCL\Server_Side\Event::normalize(
+				array(
+					'event_name' => $event['event_name'],
+					'event_id'   => $event['event_id'],
+					'identity'   => $event['identity'],
+					'meta'       => $event['meta'],
+				)
+			);
+
+			return (string) wp_json_encode( array( $event, $normalized ) );
+		}
+
+		public function test_consented_booking_carries_only_hashed_email(): void {
+			$payload = json_decode( self::BODY, true );
+			$payload['payload']['email']                       = ' Lead@Example.com ';
+			$payload['payload']['tracking']['salesforce_uuid'] = 'ct1;gclid=abc;c=1';
+			$event = ( new CalendlyWebhookAdapter() )->map_to_canonical( $payload );
+
+			$this->assertSame( array( 'hashed_email' => hash( 'sha256', 'lead@example.com' ) ), $event['identity'] );
+			$json = self::event_json( $event );
+			$this->assertStringNotContainsStringIgnoringCase( 'lead@example.com', $json );
+			$this->assertStringNotContainsString( '"email"', $json );
+		}
+
+		public function test_booking_without_consent_carries_no_identity(): void {
+			foreach ( array( 'ref123', 'ct1;gclid=abc', 'ct1;gclid=abc;c=0', 'ct1;c=0' ) as $stamp ) {
+				$event = $this->with_stamp( $stamp );
+
+				$this->assertSame( array(), $event['identity'], $stamp );
+				$json = self::event_json( $event );
+				$this->assertStringNotContainsString( 'lead@example.com', $json, $stamp );
+				$this->assertStringNotContainsString( '"email"', $json, $stamp );
+				$this->assertStringNotContainsString( hash( 'sha256', 'lead@example.com' ), $json, $stamp );
 			}
 		}
 
