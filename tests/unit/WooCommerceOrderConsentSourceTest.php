@@ -68,6 +68,7 @@ namespace {
 	require_once dirname( __DIR__, 2 ) . '/includes/Consent/class-snapshot-v1.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/server-side/class-consent.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/Core/class-attribution-provider.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/privacy/class-woo-order-privacy.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/Core/Storage/class-option-cache.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/support/class-feature-registry.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-settings.php';
