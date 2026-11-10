@@ -210,17 +210,18 @@ class Woo_Order_Privacy {
 	}
 
 	/**
-	 * Determine whether a key is a managed attribution field, not plugin state.
+	 * Determine whether a key is a known attribution field, not plugin state.
 	 *
-	 * Order attribution is written from, and sent as, only these keys: the consent snapshot,
-	 * the sent markers and the `_clicutcl_woo_*` trace/milestone state are written by the plugin
-	 * itself and must never be set or read back through an attribution payload.
+	 * Order attribution is written from, and sent as, only these keys: exact allowlisted keys
+	 * (the field mapping), never an arbitrary `_clicutcl_ft_*`/`_clicutcl_lt_*` suffix. The consent
+	 * snapshot, the sent markers and the `_clicutcl_woo_*` trace/milestone state are written by the
+	 * plugin itself and must never be set or read back through an attribution payload.
 	 *
 	 * @param string $key Metadata key.
 	 * @return bool
 	 */
 	public static function is_attribution_meta_key( string $key ): bool {
-		return self::is_managed_meta_key( $key )
+		return in_array( $key, self::managed_key_families()['exact'], true )
 			&& ! in_array( $key, self::CONTROL_META_KEYS, true )
 			&& 0 !== strpos( $key, self::CONTROL_META_PREFIX );
 	}

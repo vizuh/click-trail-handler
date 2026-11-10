@@ -149,6 +149,8 @@ namespace {
 					'woo_trace_snapshot'            => 'forged-trace',
 					'woo_milestone_sent_order_paid' => '2020-01-01 00:00:00',
 					'foo'                           => 'bar',
+					'ft_foo'                        => 'bar',
+					'lt_bar'                        => 'baz',
 				)
 			);
 
@@ -160,7 +162,7 @@ namespace {
 			$snapshot = json_decode( (string) $order->meta[ WooCommerce::CONSENT_META_KEY ], true );
 			$this->assertArrayNotHasKey( 'forged', $snapshot, 'The checkout consent snapshot must not be overwritten by a cookie key.' );
 			$this->assertSame( 1, $snapshot['schema_version'] ?? null );
-			foreach ( array( '_clicutcl_tracking_sent', '_clicutcl_woo_trace_snapshot', '_clicutcl_woo_milestone_sent_order_paid', '_clicutcl_foo' ) as $key ) {
+			foreach ( array( '_clicutcl_tracking_sent', '_clicutcl_woo_trace_snapshot', '_clicutcl_woo_milestone_sent_order_paid', '_clicutcl_foo', '_clicutcl_ft_foo', '_clicutcl_lt_bar' ) as $key ) {
 				$this->assertArrayNotHasKey( $key, $order->meta, $key . ' must not be written from the cookie payload.' );
 			}
 		}
