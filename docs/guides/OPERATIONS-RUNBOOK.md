@@ -25,6 +25,10 @@ On activation, ClickTrail:
    - `clicutcl_daily_cleanup`
    - `clicutcl_dispatch_queue`
 
+Both schedules self-heal while the plugin is active: every request re-creates a missing event
+(`Cleanup::ensure_schedule()`, `Queue::ensure_schedule()`). This covers a lost cron entry and the sites
+of a network activation that never ran the activation hook.
+
 ## Deactivation
 
 On deactivation, ClickTrail clears:
@@ -426,10 +430,13 @@ When multisite network defaults are configured:
 
 Default uninstall behavior:
 
-- remove options
+- remove options (`Installer::UNINSTALL_OPTION_NAMES`, including the queue lock row)
 - clear transients
 - clear scheduled hooks
 - drop plugin tables
+
+On multisite, uninstall repeats all four steps on every site of the network and then deletes the
+network option `clicutcl_server_side_network`.
 
 Preservation override:
 

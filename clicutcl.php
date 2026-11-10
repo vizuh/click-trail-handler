@@ -145,9 +145,7 @@ register_activation_hook(
 		CLICUTCL\Database\Installer::seed_fresh_install_defaults();
 		CLICUTCL\Database\Installer::run();
 
-		if ( ! wp_next_scheduled( 'clicutcl_daily_cleanup' ) ) {
-			wp_schedule_event( time(), 'daily', 'clicutcl_daily_cleanup' );
-		}
+		CLICUTCL\Utils\Cleanup::ensure_schedule();
 
 		if ( class_exists( 'CLICUTCL\\Server_Side\\Queue' ) ) {
 			CLICUTCL\Server_Side\Queue::ensure_schedule();

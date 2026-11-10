@@ -421,12 +421,20 @@ read, or sent marker. An order's historical grant cannot authorize this browser 
 
 `uninstall.php`:
 
-- removes plugin options
+- removes plugin options: every name in `Installer::UNINSTALL_OPTION_NAMES` (settings, readiness flags,
+  `clicutcl_db_version`, setup wizard `clicutcl_mode` / `clicutcl_setup_complete`, GTM offer markers,
+  the `clicutcl_queue_lock` row)
 - clears scheduled hooks
-- clears ClickTrail transients
+- clears ClickTrail transients (`_transient_clicutcl_*`, `_transient_timeout_clicutcl_*`)
 - removes claim-lock option rows (`clicutcl_*_lock_*`, `clicutcl_form_claim_*`)
 - removes allowlisted ClickTrail Woo order metadata through the WooCommerce CRUD API
-- drops the queue, events, and touch events tables by default
+- drops the queue, events, touch events, and WhatsApp reference tables by default
+
+On multisite it runs the options, scheduled hooks, transients, claim rows, and table steps on every
+site (`get_sites()` + `switch_to_blog()`), then deletes the network option `clicutcl_server_side_network`.
+Order and user metadata are purged once, from the site that ran the uninstall.
+`tests/unit/UninstallCompletenessTest.php` seeds every option name the plugin writes and fails if
+uninstall leaves one behind.
 
 Data preservation can be overridden with:
 
