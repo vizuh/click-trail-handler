@@ -244,6 +244,14 @@ final class DeliveryBreakerTest extends TestCase {
 			'tracking/class-webhookprovideradapterinterface.php',
 			'tracking/class-event-translator-v1-to-v2.php',
 			'tracking/class-webhook-auth.php',
+			// Identity resolution used by the Calendly adapter (and its own dependencies).
+			'Core/Storage/class-option-cache.php',
+			'tracking/class-settings.php',
+			'tracking/class-consentdecisioninterface.php',
+			'tracking/class-consent-decision.php',
+			'tracking/class-identityresolverinterface.php',
+			'tracking/class-phone-calling-codes.php',
+			'tracking/class-identity-resolver.php',
 			'tracking/webhooks/class-calendlywebhookadapter.php',
 			'api/class-tracking-controller.php',
 		) as $file ) {
