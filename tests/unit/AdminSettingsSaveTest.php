@@ -19,8 +19,9 @@ namespace {
 	 * @preserveGlobalState disabled
 	 */
 	final class AdminSettingsSaveTest extends TestCase {
-		private const SECRET = 'a%2Fb<c>d  e';
-		private const URL    = 'https://x.test/c?x=a%2Fb';
+		private const SECRET   = 'a%2Fb<c>d  e\\f';
+		private const URL      = 'https://x.test/c?x=a%2Fb';
+		private const SELECTOR = '#a\\:b';
 
 		protected function setUp(): void {
 			require_once __DIR__ . '/AdminSettingsSaveStubs.php';
@@ -88,7 +89,8 @@ namespace {
 			$this->post_settings(
 				array(
 					'forms'    => array(
-						'providers' => array(
+						'observer_target' => self::SELECTOR,
+						'providers'       => array(
 							'hubspot' => array(
 								'enabled' => 1,
 								'secret'  => self::SECRET,
@@ -113,6 +115,44 @@ namespace {
 			$server = $GLOBALS['clicktrail_test_options']['clicutcl_server_side'] ?? null;
 			$this->assertIsArray( $server );
 			$this->assertSame( self::URL, $server['endpoint_url'] );
+			$attribution = $GLOBALS['clicktrail_test_options']['clicutcl_attribution_settings'] ?? null;
+			$this->assertIsArray( $attribution );
+			$this->assertSame( self::SELECTOR, $attribution['inject_observer_target'] );
+		}
+
+		public function test_backup_import_keeps_backslashes_byte_for_byte(): void {
+			$snapshot          = array(
+				'meta'    => array( 'format' => 'clicktrail-settings-backup' ),
+				'options' => array(
+					'clicutcl_attribution_settings' => array( 'inject_observer_target' => self::SELECTOR ),
+					'clicutcl_tracking_v2'          => array(
+						'external_forms' => array(
+							'providers' => array(
+								'hubspot' => array(
+									'enabled' => 1,
+									'secret'  => self::SECRET,
+								),
+							),
+						),
+					),
+				),
+			);
+			$_POST['snapshot'] = addslashes( (string) json_encode( $snapshot ) );
+			$_POST['nonce']    = 'n';
+
+			try {
+				$this->admin()->ajax_import_settings_backup();
+				$this->fail( 'Handler did not respond.' );
+			} catch ( \AdminSettingsSaveResponse $response ) {
+				$this->assertTrue( $response->ok );
+			}
+
+			$tracking = $GLOBALS['clicktrail_test_options']['clicutcl_tracking_v2'] ?? null;
+			$this->assertIsArray( $tracking );
+			$this->assertSame( self::SECRET, $tracking['external_forms']['providers']['hubspot']['secret'] );
+			$attribution = $GLOBALS['clicktrail_test_options']['clicutcl_attribution_settings'] ?? null;
+			$this->assertIsArray( $attribution );
+			$this->assertSame( self::SELECTOR, $attribution['inject_observer_target'] );
 		}
 
 		public function test_undecodable_payload_is_rejected_with_400_and_touches_nothing(): void {
