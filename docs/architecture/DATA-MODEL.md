@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, and reviewers
 - **Canonical for**: option keys, cookies, tables, transients, cron hooks, and persistence surfaces
 - **Update when**: stored keys, retention behavior, queue schema, or cookie/storage usage changes
-- **Last verified against version**: `1.13.0` for the queue table, queue lock, dead-letter lifecycle, queue cleanup and uninstall sections; other sections last verified against `1.9.0`
+- **Last verified against version**: `1.13.0` for the queue table, queue lock, dead-letter lifecycle and queue cleanup sections; other sections last verified against `1.9.0`
 
 This document summarizes the active storage surfaces used by ClickTrail.
 
@@ -42,7 +42,7 @@ Operational and readiness keys:
 - `clicutcl_db_version` (schema version; `Installer::maybe_upgrade()` re-runs `dbDelta` on existing installs until it matches `Installer::DB_VERSION`)
 - Claim-lock option rows, without a persistent object cache: `clicutcl_purchase_lock_<order_id>`, `clicutcl_edd_purchase_lock_<order_id>`, `clicutcl_um_signup_lock_<user_id>` and `clicutcl_form_claim_<hash>` (all `<token>|<unix time>`, see below). A request that dies holding one leaves the row behind, so the daily cleanup (`Claim_Lock::purge_stale()`, before the events-table check) deletes rows of those names whose stored time is more than a day old (oldest 500 examined per run, each through the row-conditional delete) and uninstall deletes all of them unless `clicutcl_preserve_data_on_uninstall`.
 - `clicutcl_purchase_lock_<order_id>` (short-lived, `autoload = no`, value `<uuid4>|<unix time>`; written by `WooCommerce::push_purchase_event()` only when no persistent object cache is present, deleted by a row-conditional `$wpdb->delete()` on its exact value after `_clicutcl_tracking_sent` is saved, taken over the same way after 30 s if a request died holding it; with a persistent object cache the same key holds the uuid in cache group `clicutcl` with a 30 s TTL instead)
-- `clicutcl_queue_lock`: the queue worker lock (`Queue::acquire_lock()`). An option row, not a transient: it is created with an atomic `INSERT IGNORE` into the options table (`autoload = no`, value = the acquisition unix time), so only one of two concurrent runs gets it. A run that finds a row older than `Queue::LOCK_TTL` (120 s) takes it over with a compare-and-swap `UPDATE` on the exact stale value; `release_lock()` deletes the row only while it still holds the value this run wrote. The row normally exists only while a queue run is in progress. It does not match the claim-lock pattern `clicutcl_%_lock_%` (no trailing `_`), so the claim-lock cleanup and uninstall leave a crashed run's row behind
+- `clicutcl_queue_lock`: the queue worker lock (`Queue::acquire_lock()`). An option row, not a transient: it is created with an atomic `INSERT IGNORE` into the options table (`autoload = no`, value = the acquisition unix time), so only one of two concurrent runs gets it. A run that finds a row older than `Queue::LOCK_TTL` (120 s) takes it over with a compare-and-swap `UPDATE` on the exact stale value; `release_lock()` deletes the row only while it still holds the value this run wrote. The row normally exists only while a queue run is in progress. It does not match the claim-lock pattern `clicutcl_%_lock_%` (no trailing `_`), so the claim-lock cleanup leaves a crashed run's row behind (for uninstall, see [Uninstall Behavior](#uninstall-behavior))
 
 ## Option Responsibilities
 
@@ -432,13 +432,12 @@ read, or sent marker. An order's historical grant cannot authorize this browser 
 
 `uninstall.php`:
 
-- removes the plugin options listed in `uninstall.php`; options outside that list stay behind, among them `clicutcl_db_version`, the setup wizard's `clicutcl_mode` and `clicutcl_setup_complete`, and a leftover `clicutcl_queue_lock` row
+- removes plugin options
 - clears scheduled hooks
 - clears ClickTrail transients
 - removes claim-lock option rows (`clicutcl_*_lock_*`, `clicutcl_form_claim_*`)
 - removes allowlisted ClickTrail Woo order metadata through the WooCommerce CRUD API
-- drops the queue, events, touch events, and WhatsApp reference tables by default
-- on multisite, runs for the site that ran the uninstall only (it does not loop over the network's sites); it also deletes the network option `clicutcl_server_side_network`
+- drops the queue, events, and touch events tables by default
 
 Data preservation can be overridden with:
 
