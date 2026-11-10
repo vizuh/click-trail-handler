@@ -372,6 +372,25 @@ The buyer's consent snapshot is stored separately in `_clicutcl_consent` even
 when attribution is denied. This snapshot records the checkout-time policy
 state; it is not proof of consent for a later request.
 
+Consent source for server-side order events (`order_paid`, `order_refunded`,
+`order_refund`, `order_cancelled`, and the server copy of `purchase`):
+
+- the buyer's own front-end request with a live consent state uses that live
+  state, so a withdrawal in that request still wins
+- every other request (wp-admin, REST, cron, WP-CLI, cookieless gateway
+  callbacks) ignores any consent cookie on the request. The `_clicutcl_consent`
+  snapshot decides the dispatch, the identity gate (hashed email/phone, IP, user
+  agent) and the consent sent on the event; the decision reaches
+  `Dispatcher::dispatch_commerce_event()` explicitly, so a shop manager's or
+  gateway's cookie never decides a buyer's consent
+- outside the buyer's request, geo mode counts as consent-required (the buyer's
+  location is unknown there; a snapshot captured where consent was not required
+  already reads as granted). A missing or malformed snapshot sends nothing when
+  consent is required
+- a consent-skipped order event writes no trace snapshot; it increments the
+  `consent_denied` failure-telemetry counter
+- EDD does not use this rule yet (its receipt purchase runs only in the buyer's request)
+
 Canonical order metadata for external connectors:
 
 - `_clicutcl_ft_*` — immutable first-touch fields.
@@ -408,7 +427,6 @@ thank-you output before attribution reads, resolves retry consent by queued subj
 covers allowlisted Woo metadata export/erase/purge/uninstall. Their focused regression checks
 do not replace browser/CMP and provider validation. Remaining boundaries include:
 
-- purchase identity still reads live-cookie consent in server-context milestone paths
 - purchase-path skipped dispatch can set the sent marker after the browser consent gate passes
 - Dispatcher `Dedup_Store` check/send/mark is non-atomic; the thank-you purchase path is covered by the per-order lock above, server-context milestone paths are not
 - queue uniqueness omits destination; strict/geo retries require a durable subject-consent resolver

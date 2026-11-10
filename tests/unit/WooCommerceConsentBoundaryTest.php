@@ -27,6 +27,8 @@ namespace {
 	use CLICUTCL\Integrations\Forms\Fluent_Forms_Adapter;
 	use CLICUTCL\Integrations\Forms\Gravity_Forms_Adapter;
 	use CLICUTCL\Integrations\WooCommerce;
+	use CLICUTCL\Server_Side\Dispatcher;
+	use CLICUTCL\Server_Side\Event;
 	use PHPUnit\Framework\TestCase;
 
 	/**
@@ -198,6 +200,95 @@ namespace {
 
 			$this->assertArrayHasKey( 'other', $result['extra'] );
 			$this->assertArrayNotHasKey( 'clicktrail_attribution', $result['extra'] );
+		}
+
+		public function test_dispatcher_explicit_order_authority_beats_a_granted_request_cookie(): void {
+			$_COOKIE['production_consent'] = 'granted';
+			$event = $this->make_event( true );
+			$event->set_consent_authority( false );
+
+			$this->assertFalse( $this->dispatcher_consent_allows( $event ) );
+		}
+
+		public function test_dispatcher_explicit_order_authority_beats_a_denied_request_cookie(): void {
+			$_COOKIE['production_consent'] = 'denied';
+			$event = $this->make_event( false );
+			$event->set_consent_authority( true );
+
+			$this->assertTrue( $this->dispatcher_consent_allows( $event ) );
+		}
+
+		public function test_dispatcher_explicit_denial_holds_even_when_the_request_does_not_require_consent(): void {
+			$GLOBALS['clicktrail_test_consent_required'] = false;
+			$event = $this->make_event( true );
+			$event->set_consent_authority( false );
+
+			$this->assertFalse( $this->dispatcher_consent_allows( $event ) );
+		}
+
+		public function test_dispatcher_without_authority_keeps_live_cookie_precedence(): void {
+			$_COOKIE['production_consent'] = 'granted';
+
+			$this->assertTrue( $this->dispatcher_consent_allows( $this->make_event( false ) ) );
+		}
+
+		public function test_payload_cannot_set_the_dispatcher_consent_authority(): void {
+			$_COOKIE['production_consent'] = 'denied';
+			$this->load_dispatcher();
+			$event = new Event(
+				array(
+					'event_name' => 'purchase',
+					'event_id'   => 'purchase_1',
+					'consent'    => array( 'marketing' => true ),
+					'meta'       => array( 'consent_authority' => 'order_snapshot' ),
+				)
+			);
+
+			$this->assertNull( $event->get_consent_authority() );
+			$this->assertFalse( $this->dispatcher_consent_allows( $event ) );
+		}
+
+		/**
+		 * Load the real Event and Dispatcher inside the isolated test process.
+		 *
+		 * Other test files declare Dispatcher doubles, so the real class cannot be
+		 * required at file scope where PHPUnit loads every test file together.
+		 *
+		 * @return void
+		 */
+		private function load_dispatcher(): void {
+			require_once dirname( __DIR__, 2 ) . '/includes/server-side/class-event.php';
+			require_once dirname( __DIR__, 2 ) . '/includes/server-side/class-dispatcher.php';
+		}
+
+		/**
+		 * Build a server event carrying a consent snapshot.
+		 *
+		 * @param bool $marketing Snapshot marketing grant.
+		 * @return Event
+		 */
+		private function make_event( bool $marketing ): Event {
+			$this->load_dispatcher();
+			return new Event(
+				array(
+					'event_name' => 'order_refund',
+					'event_id'   => 'order_refund_1_2',
+					'consent'    => array( 'marketing' => $marketing ),
+				)
+			);
+		}
+
+		/**
+		 * Evaluate the dispatcher consent gate for an event.
+		 *
+		 * @param Event $event Event.
+		 * @return bool
+		 */
+		private function dispatcher_consent_allows( Event $event ): bool {
+			$this->load_dispatcher();
+			$method = new \ReflectionMethod( Dispatcher::class, 'consent_allows' );
+			$method->setAccessible( true );
+			return (bool) $method->invoke( null, $event );
 		}
 
 		/**
