@@ -3,7 +3,7 @@
 - **Audience**: contributors, maintainers, integrators, and reviewers
 - **Canonical for**: active routes, auth model, diagnostics endpoints, and REST-side constraints
 - **Update when**: routes, auth headers, body limits, or intake behavior changes
-- **Last verified against version**: `1.8.14` (the `whatsapp-ref` routes: source-present, 1.12.x branch for #145)
+- **Last verified against version**: `1.8.14` (the `whatsapp-ref` routes: source-present, 1.12.x branch for #145; the server-origin consent behaviour of the webhook and lifecycle routes: `1.13.0`)
 
 Active REST namespace:
 
@@ -234,6 +234,50 @@ Purpose:
 Auth model:
 
 - admin capability check through the controller permission callback
+
+## Server-origin events and strict consent
+
+Applies to `POST /clicutcl/v2/webhooks/{provider}` and `POST /clicutcl/v2/lifecycle/update`. These requests come from a
+provider or CRM server, not from the visitor's browser, so they normally carry no ClickTrail consent cookie. The
+dispatcher (`Dispatcher::consent_allows()`, `includes/server-side/class-dispatcher.php`) decides per event:
+
+1. Consent not required for this request (consent mode off, `relaxed`, or `geo` with the request's country outside
+   the configured regions): the event is delivered as usual.
+2. Consent required: `strict` always; `geo` when no regions are configured, when the request's country is unknown, or
+   when it is one of the regions. The country is that of the request, i.e. the provider's server, never the visitor.
+   It is known only through `clicutcl_request_country_code` or trusted geo headers (`clicutcl_trust_geo_request_headers`);
+   by default it is unknown, so `geo` behaves like `strict` here.
+3. Under required consent, a consent cookie on the request decides when one is present (for example a logged-in
+   administrator calling `lifecycle/update` from a browser sends their own cookie). Without one, the event's own
+   `consent.marketing` decides:
+   - Calendly: taken from the `c=` segment of ClickTrail's `salesforce_uuid` stamp (`ct1;…;c=1`). `c=1` is delivered;
+     `c=0`, a stamp without `c=`, and a missing or malformed stamp are skipped.
+   - HubSpot, Typeform and lifecycle updates: the adapters set no consent, and `lifecycle/update` ignores any `consent`
+     field in its body, so the event is skipped.
+
+A skipped event answers HTTP `200` so the provider does not retry, with
+`{ "success": false, "skipped": true, "detail": "consent_denied", "event_id": …, "event_name": … }` (webhooks also
+return `"duplicate": false`). A HubSpot array with one item returns that same flat object. Only a HubSpot array with
+two or more items reports each item under `events`, with a top-level `success` that is `false` when any item was
+skipped. `detail` is the dispatcher's skip reason; earlier gates return `disabled`,
+`non_production_environment` or `missing_endpoint` before consent is checked, so `consent_denied` appears only when
+server-side delivery is enabled, an endpoint is set and the environment allows sending.
+
+A consent skip is final for that request:
+
+- the event is not queued, so the [`clicutcl_queue_consent_snapshot`](HOOKS-REFERENCE.md#clicutcl_queue_consent_snapshot)
+  resolver never sees it and nothing retries it
+- no `webhook_<provider>` dedup mark is written, so a provider resend is evaluated again
+- no `wp_clicutcl_touch_events` row is written
+- no failure telemetry or last-error entry is recorded; the response body is the only signal
+
+What an operator can do on this version:
+
+- Calendly: keep booking-link decoration on, so visitors who consented carry `c=1` in the stamp
+- HubSpot, Typeform and lifecycle: there is no built-in way to attach a visitor's consent. ClickTrail has no
+  subject-bound consent store for server-origin events (deferred by design). Either send these conversions from the
+  system that holds the consent record, or choose a consent mode that does not require consent for these requests
+  where your legal basis allows it (`geo` with a resolved country uses the provider server's country, not the visitor's)
 
 ## Canonical Event Flow
 

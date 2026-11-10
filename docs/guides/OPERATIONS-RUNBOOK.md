@@ -88,7 +88,7 @@ Defaults:
 - interval: every 5 minutes
 - per run: due rows fetched 10 at a time until none remain or the time budget is spent (default 45 s, filter `clicutcl_queue_time_budget`, capped at half the 120 s lock TTL); each row is attempted at most once per run
 - max attempts: 5
-- lock transient: `clicutcl_queue_lock`
+- lock: option row `clicutcl_queue_lock` (not a transient; see [Stuck queue lock](#stuck-queue-lock))
 
 Retries use exponential backoff and stop after max attempts.
 
@@ -118,6 +118,44 @@ workers leave queued rows untouched unless the environment override allows sendi
 The queue is also used to enrich Diagnostics Woo order-trace lookups with current retry state for a stored `event_name` plus `event_id`.
 
 Woo purchase and milestone sent markers are only written after a successful, skipped, or confirmed queued attempt. If a Woo order trace shows an error with no matching queue row, the order-level sent marker should remain unset and the event can be retried by the original hook path.
+
+### Dead-letter rows and replay
+
+A row that failed five times, got a non-retryable result, or hit an explicit `consent_denied` snapshot is kept with
+`status = 'failed'` (dead-letter) instead of being deleted. Diagnostics shows the count as "Failed (dead-letter)".
+Row lifecycle and columns: [DATA-MODEL.md](../architecture/DATA-MODEL.md#wp_clicutcl_queue).
+
+To replay:
+
+1. Fix the cause first (endpoint, adapter, collector credentials, consent resolver). A replayed row goes back to
+   `failed` after five more retryable failures, or at once on a non-retryable result or an explicit `consent_denied`
+   snapshot.
+2. Click "Retry Failed Deliveries" in Diagnostics. It calls `Queue::requeue_failed()`, which resets up to 50
+   `failed` rows (oldest first) to `pending` with `attempts = 0`, due now. The button is disabled when there are no
+   failed rows. Click again for more than 50 rows. From code: `\CLICUTCL\Server_Side\Queue::requeue_failed( $limit )`
+   accepts 1 to 500.
+3. The next queue run (every 5 minutes) sends them. Rows for an event the destination dedup already marked as sent
+   are deleted without a send.
+
+Retention runs on `created_at`, which a replay does not reset: a replayed row older than `clicutcl_queue_retention_days`
+(default 7) is deleted by the next daily cleanup if it is still `pending`. Replay older dead-letter rows shortly
+before a queue run and confirm they leave the queue. Dead-letter rows are deleted after
+`clicutcl_queue_dead_letter_retention_days` (default 30).
+
+### Stuck queue lock
+
+The lock is the option row `clicutcl_queue_lock` (not a transient), holding the unix time the current run took it.
+A run that cannot take the lock does nothing. Check it with `wp option get clicutcl_queue_lock`:
+
+- no row: no run holds the lock
+- a time less than 120 s old (`Queue::LOCK_TTL`): a run is in progress, or one died very recently; wait
+- a time more than 120 s old: the holder died. The next run takes the lock over automatically; no action needed
+- a value that is not a unix time (for example `0`): never expires; delete it with
+  `wp option delete clicutcl_queue_lock` while no queue run is active
+
+The queue does not run at all while server-side delivery is disabled, and workers in a `local` or `development`
+environment leave rows untouched unless `clicutcl_dispatch_in_environment` allows sending. In Diagnostics, "Max Attempts in Queue" and
+"Oldest Next Attempt" include dead-letter rows; use "Pending Events" and "Due Now" to judge a backlog.
 
 ## Common Failure Patterns
 
@@ -209,7 +247,8 @@ Typical fixes:
 
 - ensure WP-Cron runs on low-traffic environments
 - correct endpoint or adapter mismatch
-- clear stale locks in staging if a worker crashed
+- a lock left by a crashed worker is taken over by the next run after 120 s; see [Stuck queue lock](#stuck-queue-lock)
+- replay dead-letter rows once the cause is fixed; see [Dead-letter rows and replay](#dead-letter-rows-and-replay)
 
 ## 6. A booking or lead shows an older ad click
 
