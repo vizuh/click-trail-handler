@@ -42,6 +42,17 @@ class Events_Logger {
 	private $queued_events = array();
 
 	/**
+	 * Follow-up cookie name => the only event name that cookie may carry.
+	 *
+	 * @var array<string,string>
+	 */
+	const EVENT_COOKIES = array(
+		'ct_event_login'   => 'login',
+		'ct_event_signup'  => 'sign_up',
+		'ct_event_comment' => 'comment_submit',
+	);
+
+	/**
 	 * Constructor.
 	 *
 	 * @param Context $context Plugin context.
@@ -149,10 +160,14 @@ class Events_Logger {
 			return;
 		}
 
+		// Sign the payload so a visitor cannot forge an event the next page prints (F11).
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_encode -- Base64URL encoding for a signed cookie, not code obfuscation.
+		$payload = rtrim( strtr( base64_encode( (string) wp_json_encode( $data ) ), '+/', '-_' ), '=' );
+
 		// Set cookie for 1 minute with security flags.
 		setcookie(
 			$name,
-			wp_json_encode( $data ),
+			$payload . '.' . self::sign_event_cookie( $payload ),
 			array(
 				'expires'  => time() + 60,
 				'path'     => COOKIEPATH,
@@ -162,6 +177,38 @@ class Events_Logger {
 				'samesite' => 'Lax',
 			)
 		);
+	}
+
+	/**
+	 * HMAC of a follow-up cookie payload.
+	 *
+	 * @param string $payload Base64URL-encoded JSON payload.
+	 * @return string
+	 */
+	private static function sign_event_cookie( $payload ) {
+		return hash_hmac( 'sha256', $payload, wp_salt( 'auth' ) );
+	}
+
+	/**
+	 * Decode a follow-up cookie value, or null when it is unsigned, tampered or not the cookie's own event.
+	 *
+	 * @param string $cookie_name Cookie name.
+	 * @param string $value       Raw cookie value.
+	 * @return array|null
+	 */
+	private function verify_event_cookie( $cookie_name, $value ) {
+		$parts = explode( '.', $value );
+		if ( 2 !== count( $parts ) || ! hash_equals( self::sign_event_cookie( $parts[0] ), $parts[1] ) ) {
+			return null;
+		}
+
+		// phpcs:ignore WordPress.PHP.DiscouragedPHPFunctions.obfuscation_base64_decode -- Base64URL decoding for a signed cookie, not code obfuscation.
+		$event_data = json_decode( (string) base64_decode( strtr( $parts[0], '-_', '+/' ), true ), true );
+		if ( ! is_array( $event_data ) || ! isset( $event_data['event'] ) || self::EVENT_COOKIES[ $cookie_name ] !== $event_data['event'] ) {
+			return null;
+		}
+
+		return $event_data;
 	}
 
 	/**
@@ -195,7 +242,7 @@ class Events_Logger {
 	 */
 	public function process_event_cookies() {
 		$this->queued_events = array();
-		$events              = array( 'ct_event_login', 'ct_event_signup', 'ct_event_comment' );
+		$events              = array_keys( self::EVENT_COOKIES );
 		if ( Consent::is_required() && ! Consent::marketing_allowed() ) {
 			foreach ( $events as $cookie_name ) {
 				// Only expire a cookie the request carries: an unconditional clear adds a Set-Cookie to every
@@ -209,13 +256,20 @@ class Events_Logger {
 
 		foreach ( $events as $cookie_name ) {
 			if ( isset( $_COOKIE[ $cookie_name ] ) ) {
-				$event_data = json_decode( sanitize_text_field( wp_unslash( $_COOKIE[ $cookie_name ] ) ), true );
-
+				$event_data = $this->verify_event_cookie( $cookie_name, sanitize_text_field( wp_unslash( $_COOKIE[ $cookie_name ] ) ) );
 				if ( $event_data ) {
 					$this->queued_events[] = $this->normalize_event_cookie_payload( $event_data );
-					// Clear the cookie after reading.
-					$this->clear_event_cookie( $cookie_name );
 				}
+				// Clear the cookie after reading, including a rejected one.
+				$this->clear_event_cookie( $cookie_name );
+			}
+		}
+
+		if ( ! empty( array_filter( $this->queued_events ) ) ) {
+			// This page prints one visitor's event: a cached copy would replay it to everyone.
+			nocache_headers();
+			if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+				define( 'DONOTCACHEPAGE', true );
 			}
 		}
 	}
