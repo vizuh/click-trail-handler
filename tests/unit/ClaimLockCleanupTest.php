@@ -273,10 +273,13 @@ namespace {
 			$this->cleanup_with_cron( array() );
 
 			( new \CLICUTCL\Utils\Cleanup() )->register();
+			$this->assertNotFalse( wp_next_scheduled( 'clicutcl_daily_cleanup' ) );
+
+			// The check runs once per request: a second register() does not re-read cron.
+			$GLOBALS['clicktrail_test_cron'] = array();
 			( new \CLICUTCL\Utils\Cleanup() )->register();
 
 			$this->assertSame( array( array( 'clicutcl_daily_cleanup', 'daily' ) ), $GLOBALS['clicktrail_test_cron_scheduled'] );
-			$this->assertNotFalse( wp_next_scheduled( 'clicutcl_daily_cleanup' ) );
 		}
 
 		public function test_register_leaves_an_existing_daily_cleanup_alone(): void {

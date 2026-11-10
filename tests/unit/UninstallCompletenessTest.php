@@ -239,24 +239,24 @@ namespace {
 				return array_values( array_filter( $values, 'strlen' ) );
 			};
 
-			$arg = "'[^']*'(?:\\s*\\.)?|\\\\?(?:\\w+\\\\)*\\w+::[A-Z0-9_]+(?:\\s*\\.)?|\\$\\w+";
+			// Any first argument: shapes $resolve does not understand are reported as unresolved.
+			$arg = '[^\s),][^,]*';
 
-			$resolve = static function ( string $expr, string $class, string $src, int $offset ) use ( &$resolve, $resolve_const, $arg ): ?array {
-				$expr   = trim( $expr );
-				$concat = '.' === substr( $expr, -1 );
-				$expr   = rtrim( $expr, " \t\n." );
-				if ( preg_match( "/^'([^']*)'$/", $expr, $m ) ) {
-					return array( $m[1] . ( $concat ? 'x' : '' ) );
+			$resolve = static function ( string $expr, string $class, string $src, int $offset ) use ( &$resolve, $resolve_const ): ?array {
+				$expr = trim( $expr );
+				if ( preg_match( "/^'([^']*)'\s*(\.)?(.*)$/s", $expr, $m ) && ( '' !== $m[2] || '' === trim( $m[3] ) ) ) {
+					return array( $m[1] . ( '' !== $m[2] ? 'x' : '' ) );
 				}
-				if ( preg_match( '/^\\\\?(?:\w+\\\\)*(\w+)::([A-Z0-9_]+)$/', $expr, $m ) ) {
-					$owner = in_array( $m[1], array( 'self', 'static' ), true ) ? $class : $m[1];
-					$names = $resolve_const( $owner, $m[2], 'static' === $m[1] );
-					return array() === $names ? null : array_map( static fn( $n ) => $n . ( $concat ? 'x' : '' ), $names );
+				if ( preg_match( '/^\\\\?(?:\w+\\\\)*(\w+)::([A-Z0-9_]+)\b(?!\s*\()\s*(\.)?(.*)$/s', $expr, $m ) && ( '' !== $m[3] || '' === trim( $m[4] ) ) ) {
+					$owner  = in_array( $m[1], array( 'self', 'static' ), true ) ? $class : $m[1];
+					$names  = $resolve_const( $owner, $m[2], 'static' === $m[1] );
+					$suffix = '' !== $m[3] ? 'x' : '';
+					return array() === $names ? null : array_map( static fn( $n ) => $n . $suffix, $names );
 				}
 				if ( preg_match( '/^\$(\w+)$/', $expr, $m ) ) {
 					$before = substr( $src, 0, $offset );
 					$var    = preg_quote( $m[1], '/' );
-					$assign = preg_match_all( '/\$' . $var . '\s*=\s*(' . $arg . ')/', $before, $a, PREG_OFFSET_CAPTURE ) ? end( $a[1] ) : null;
+					$assign = preg_match_all( '/\$' . $var . '\s*=(?![=>])\s*([^;]+);/', $before, $a, PREG_OFFSET_CAPTURE ) ? end( $a[1] ) : null;
 					$loop   = preg_match_all( '/foreach\s*\(\s*(\\\\?(?:\w+\\\\)*\w+::[A-Z0-9_]+)\s+as\s+\$' . $var . '\s*\)/', $before, $l, PREG_OFFSET_CAPTURE ) ? end( $l[1] ) : null;
 					$pick   = ( $loop && ( ! $assign || $loop[1] > $assign[1] ) ) ? $loop : $assign;
 					return $pick ? $resolve( $pick[0], $class, $src, (int) $pick[1] ) : null;
