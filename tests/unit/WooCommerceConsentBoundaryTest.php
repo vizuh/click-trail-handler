@@ -13,6 +13,7 @@ namespace {
 	require_once dirname( __DIR__, 2 ) . '/includes/Consent/class-snapshot-v1.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/server-side/class-consent.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/Core/class-attribution-provider.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/privacy/class-woo-order-privacy.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-claim-lock.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/integrations/class-woocommerce.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/integrations/forms/interface-form-adapter.php';
@@ -137,6 +138,35 @@ namespace {
 			$this->assertSame( 'cookie-source', $order->meta['_clicutcl_ft_source'] );
 			$this->assertSame( 'cookie-campaign', $order->meta['_clicutcl_ft_campaign'] );
 			$this->assertSame( 'cookie-click-id', $order->meta['_clicutcl_fbclid'] );
+		}
+
+		public function test_cookie_payload_cannot_write_control_or_unknown_order_meta_keys(): void {
+			$_COOKIE['production_consent'] = 'granted';
+			$_COOKIE['ct_attribution']    = json_encode(
+				array(
+					'ft_source'                     => 'google',
+					'gclid'                         => 'cookie-click-id',
+					'tracking_sent'                 => 'yes',
+					'consent'                       => '{"marketing":true,"forged":true}',
+					'woo_trace_snapshot'            => 'forged-trace',
+					'woo_milestone_sent_order_paid' => '2020-01-01 00:00:00',
+					'foo'                           => 'bar',
+					'ft_foo'                        => 'bar',
+					'lt_bar'                        => 'baz',
+				)
+			);
+
+			$order = $this->make_order();
+			( new WooCommerce() )->save_order_attribution( $order );
+
+			$this->assertSame( 'google', $order->meta['_clicutcl_ft_source'] );
+			$this->assertSame( 'cookie-click-id', $order->meta['_clicutcl_gclid'] );
+			$snapshot = json_decode( (string) $order->meta[ WooCommerce::CONSENT_META_KEY ], true );
+			$this->assertArrayNotHasKey( 'forged', $snapshot, 'The checkout consent snapshot must not be overwritten by a cookie key.' );
+			$this->assertSame( 1, $snapshot['schema_version'] ?? null );
+			foreach ( array( '_clicutcl_tracking_sent', '_clicutcl_woo_trace_snapshot', '_clicutcl_woo_milestone_sent_order_paid', '_clicutcl_foo', '_clicutcl_ft_foo', '_clicutcl_lt_bar' ) as $key ) {
+				$this->assertArrayNotHasKey( $key, $order->meta, $key . ' must not be written from the cookie payload.' );
+			}
 		}
 
 		public function test_invalid_checkout_nonce_does_not_persist_posted_attribution(): void {

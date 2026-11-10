@@ -127,7 +127,11 @@ class WooCommerce {
 
 		foreach ( $attribution as $key => $value ) {
 			$meta_key = sanitize_key( $key );
-			if ( '' === $meta_key ) {
+
+			// The cookie payload is client-controlled and the provider does not allowlist keys:
+			// write only attribution keys the privacy lifecycle manages, never plugin state such as
+			// the consent snapshot just stored or the sent markers.
+			if ( '' === $meta_key || ! Woo_Order_Privacy::is_attribution_meta_key( '_clicutcl_' . $meta_key ) ) {
 				continue;
 			}
 
@@ -1051,11 +1055,9 @@ class WooCommerce {
 				continue;
 			}
 
-			if ( 0 === strpos( $key, '_clicutcl_' ) ) {
-				$meta_key = substr( $key, 10 );
-				if ( '' !== $meta_key && ! in_array( $meta_key, array( 'tracking_sent', 'consent' ), true ) ) {
-					$attribution[ $meta_key ] = $value;
-				}
+			// Plugin state (consent, sent markers, `_clicutcl_woo_*`) and unknown keys never leave as attribution.
+			if ( Woo_Order_Privacy::is_attribution_meta_key( (string) $key ) ) {
+				$attribution[ substr( $key, 10 ) ] = $value;
 			}
 		}
 

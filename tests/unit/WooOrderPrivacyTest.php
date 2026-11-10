@@ -155,10 +155,11 @@ final class WooOrderPrivacyTest extends TestCase {
 		$result = ( new Woo_Order_Privacy() )->erase_order_data( 'customer@example.test' );
 
 		$this->assertTrue( $result['items_removed'] );
-		// The purchase-sent marker holds no personal data and stops a second thank-you push, so it stays.
+		// The purchase-sent and milestone markers hold no personal data and stop a second push, so they stay.
 		$this->assertSame(
 			array(
 				array( 'key' => '_clicutcl_tracking_sent', 'value' => 'yes' ),
+				array( 'key' => '_clicutcl_woo_milestone_sent_order_paid', 'value' => 'now' ),
 				array( 'key' => '_shipping_city', 'value' => 'Porto' ),
 			),
 			$order->meta
@@ -219,8 +220,9 @@ final class WooOrderPrivacyTest extends TestCase {
 		$this->assertTrue( $match( '_clicutcl_gclid' ) );
 		$this->assertTrue( $match( '_clicutcl_ft_source' ) );
 		$this->assertTrue( $match( '_clicutcl_lt_medium' ) );
-		$this->assertTrue( $match( '_clicutcl_woo_milestone_sent_order_paid' ) );
+		$this->assertTrue( $match( '_clicutcl_woo_trace_snapshot' ) );
 		$this->assertFalse( $match( '_clicutcl_tracking_sent' ), 'The sent marker is not a managed key unless asked for.' );
+		$this->assertFalse( $match( '_clicutcl_woo_milestone_sent_order_paid' ), 'Milestone markers are not managed keys unless asked for.' );
 		$this->assertFalse( $match( 'x_clicutcl_gclid' ), 'Exact keys are anchored at both ends.' );
 		$this->assertFalse( $match( '_clicutcl_gclid_extra' ), 'Exact keys are anchored at both ends.' );
 		$this->assertFalse( $match( '_clicutcl_other_plugin_state' ) );
@@ -228,6 +230,39 @@ final class WooOrderPrivacyTest extends TestCase {
 
 		$with_marker = Woo_Order_Privacy::managed_meta_query( true );
 		$this->assertSame( 1, preg_match( '/' . str_replace( '/', '\\/', $with_marker[0]['key'] ) . '/', '_clicutcl_tracking_sent' ) );
+		$this->assertSame( 1, preg_match( '/' . str_replace( '/', '\\/', $with_marker[0]['key'] ) . '/', '_clicutcl_woo_milestone_sent_order_paid' ) );
+	}
+
+	public function test_lifecycle_fixture_markers_survive_every_cleanup_but_uninstall(): void {
+		$fixture = json_decode( (string) file_get_contents( dirname( __DIR__ ) . '/fixtures/woo-privacy/order-meta-lifecycle-v1.json' ), true );
+		$meta    = array();
+		foreach ( array_merge( $fixture['managed_keys'], $fixture['unmanaged_keys'] ) as $key ) {
+			$meta[] = array( 'key' => $key, 'value' => 'v' );
+		}
+		$keep = array_merge( $fixture['preserved_keys'], $fixture['unmanaged_keys'] );
+
+		$cleanups = array(
+			'erase'      => static function ( Woo_Order_Privacy $privacy ): void {
+				$privacy->erase_order_data( 'customer@example.test' );
+			},
+			'retention'  => static function ( Woo_Order_Privacy $privacy ): void {
+				$privacy->purge_expired_order_metadata( 90 );
+			},
+			'diagnostics' => static function ( Woo_Order_Privacy $privacy ): void {
+				$privacy->purge_all_order_metadata();
+			},
+		);
+		foreach ( $cleanups as $name => $cleanup ) {
+			$order                                = new ClickTrail_Test_Woo_Order( 11, $meta );
+			$GLOBALS['clicktrail_test_wc_orders'] = array( $order );
+			$cleanup( new Woo_Order_Privacy() );
+			$this->assertSame( $keep, array_column( $order->meta, 'key' ), $name );
+		}
+
+		$order                                = new ClickTrail_Test_Woo_Order( 12, $meta );
+		$GLOBALS['clicktrail_test_wc_orders'] = array( $order );
+		( new Woo_Order_Privacy() )->purge_all_order_metadata( Woo_Order_Privacy::RETENTION_BATCH_SIZE, true );
+		$this->assertSame( $fixture['unmanaged_keys'], array_column( $order->meta, 'key' ), 'uninstall' );
 	}
 
 	public function test_every_allowlisted_key_is_matched_by_the_query_pattern(): void {

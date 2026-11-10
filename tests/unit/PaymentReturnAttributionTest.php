@@ -13,6 +13,7 @@ namespace {
 	require_once dirname( __DIR__, 2 ) . '/includes/Consent/class-snapshot-v1.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/server-side/class-consent.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/Core/class-attribution-provider.php';
+	require_once dirname( __DIR__, 2 ) . '/includes/privacy/class-woo-order-privacy.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/tracking/class-claim-lock.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/integrations/class-woocommerce.php';
 	require_once dirname( __DIR__, 2 ) . '/includes/settings/class-attribution-settings.php';
