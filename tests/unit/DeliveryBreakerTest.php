@@ -142,10 +142,10 @@ final class DeliveryBreakerTest extends TestCase {
 
 	public function test_after_cooldown_one_probe_is_sent_and_success_closes_the_breaker(): void {
 		$this->boot();
-		$GLOBALS['clicktrail_test_filters']['clicutcl_delivery_breaker_cooldown'] = static fn() => 1;
+		$GLOBALS['clicktrail_test_filters']['clicutcl_delivery_breaker_cooldown'] = static fn() => 2;
 		$this->dispatch_many( 5, 'trip-' );
 		$this->assertSame( 'circuit_open', Dispatcher::dispatch( ct_delivery_event( 'open-1' ) )->message );
-		sleep( 2 );
+		sleep( 3 );
 
 		// While the probe is in flight a second request must not send.
 		$GLOBALS['ct_http']['status']  = 200;
@@ -168,9 +168,9 @@ final class DeliveryBreakerTest extends TestCase {
 
 	public function test_failed_probe_reopens_the_breaker(): void {
 		$this->boot();
-		$GLOBALS['clicktrail_test_filters']['clicutcl_delivery_breaker_cooldown'] = static fn() => 1;
+		$GLOBALS['clicktrail_test_filters']['clicutcl_delivery_breaker_cooldown'] = static fn() => 2;
 		$this->dispatch_many( 5, 'trip-' );
-		sleep( 2 );
+		sleep( 3 );
 
 		$probe = Dispatcher::dispatch( ct_delivery_event( 'probe-1' ) );
 		$this->assertSame( 6, $GLOBALS['ct_http']['attempts'] );
