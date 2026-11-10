@@ -242,7 +242,7 @@ dispatcher (`Dispatcher::consent_allows()`, `includes/server-side/class-dispatch
    administrator calling `lifecycle/update` from a browser sends their own cookie). Without one, the event's own
    `consent.marketing` decides:
    - Calendly: taken from the `c=` segment of ClickTrail's `salesforce_uuid` stamp (`ct1;…;c=1`). `c=1` is delivered;
-     `c=0` or a stamp without `c=` is skipped.
+     `c=0`, a stamp without `c=`, and a missing or malformed stamp are skipped.
    - HubSpot, Typeform and lifecycle updates: the adapters set no consent, and `lifecycle/update` ignores any `consent`
      field in its body, so the event is skipped.
 
