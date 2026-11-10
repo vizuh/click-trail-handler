@@ -296,21 +296,20 @@ trait Admin_Diagnostics_Ajax_Trait {
 		}
 		check_ajax_referer( 'clicutcl_admin_settings', 'nonce' );
 
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above.
-		$raw = isset( $_POST['settings'] ) ? sanitize_text_field( wp_unslash( $_POST['settings'] ) ) : '';
-		if ( is_string( $raw ) ) {
-			$decoded = json_decode( $raw, true );
-			$raw     = is_array( $decoded ) ? $decoded : array();
-		}
-
-		if ( ! is_array( $raw ) ) {
-			$raw = array();
+		// Decode the raw JSON first: sanitize_text_field() on the encoded string would strip percent-octets
+		// and <...> spans, collapse whitespace and corrupt escapes inside secrets and URLs. Per-field
+		// sanitisers run in save_unified_admin_settings().
+		// phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce verified above; JSON is decoded here and every field is sanitised by its own setting sanitiser.
+		$raw     = isset( $_POST['settings'] ) && is_string( $_POST['settings'] ) ? wp_unslash( $_POST['settings'] ) : '';
+		$decoded = json_decode( $raw, true );
+		if ( ! is_array( $decoded ) ) {
+			wp_send_json_error( array( 'message' => __( 'Invalid settings payload.', 'click-trail-handler' ) ), 400 );
 		}
 
 		wp_send_json_success(
 			array(
 				'message'  => __( 'Settings saved.', 'click-trail-handler' ),
-				'settings' => $this->save_unified_admin_settings( $raw ),
+				'settings' => $this->save_unified_admin_settings( $decoded ),
 			)
 		);
 	}

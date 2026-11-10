@@ -973,7 +973,7 @@ class Admin {
 	 * @return array<string, mixed>
 	 */
 	private function save_unified_admin_settings( $payload ) {
-		$payload             = is_array( $payload ) ? wp_unslash( $payload ) : array();
+		$payload             = is_array( $payload ) ? $payload : array();
 		$capture             = isset( $payload['capture'] ) && is_array( $payload['capture'] ) ? $payload['capture'] : array();
 		$forms               = isset( $payload['forms'] ) && is_array( $payload['forms'] ) ? $payload['forms'] : array();
 		$events              = isset( $payload['events'] ) && is_array( $payload['events'] ) ? $payload['events'] : array();
@@ -1283,7 +1283,6 @@ class Admin {
 			return array();
 		}
 
-		$input      = wp_unslash( $input );
 		$normalized = array();
 
 		foreach ( $input as $key => $value ) {
@@ -1430,7 +1429,7 @@ class Admin {
 		// phpcs:disable WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound -- local variables inside a class method, not globals.
 		$current = is_network_admin() ? Settings::get_network() : get_option( 'clicutcl_server_side', array() );
 		$current = is_array( $current ) ? $current : array();
-		$input   = is_array( $input ) ? wp_unslash( $input ) : array();
+		$input   = is_array( $input ) ? $input : array();
 
 		$new_input = array_merge(
 			array(

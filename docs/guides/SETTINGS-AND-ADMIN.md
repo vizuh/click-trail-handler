@@ -317,6 +317,8 @@ The grouped payload is translated back into:
 - `clicutcl_server_side`
 - `clicutcl_tracking_v2`
 
+`clicutcl_save_admin_settings` reads `settings` as a JSON string, unslashes it once and decodes it before any sanitising, so secrets and URLs reach their per-field sanitisers unchanged. The option sanitisers (`Admin::sanitize_settings()`, `Admin::sanitize_server_side_settings()`, `Tracking_Settings::sanitize()`) expect already-unslashed input and do not unslash again, so backslashes in secrets and selectors survive a save or a backup import. A missing or undecodable payload (anything that does not decode to an array) returns a JSON error with HTTP 400 and saves nothing.
+
 The admin payload also includes:
 
 - registry-backed adapter and destination metadata
