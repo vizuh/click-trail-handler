@@ -126,24 +126,46 @@ class Cleanup {
 		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Lightweight metadata check on plugin-owned escaped table.
 		$has_status = (bool) $wpdb->get_var( $wpdb->prepare( "SHOW COLUMNS FROM {$queue_table_escaped} LIKE %s", 'status' ) );
 
+		// Rows still pending at retention never reached the collector. Their DELETE runs on its
+		// own so its affected-row count is exactly how many were purged undelivered.
 		if ( $has_status ) {
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned and escaped.
-			$queue_sql = "DELETE FROM {$queue_table_escaped} WHERE ( status <> 'failed' AND created_at < DATE_SUB(UTC_TIMESTAMP(), INTERVAL %d DAY) ) OR ( status = 'failed' AND created_at < DATE_SUB(UTC_TIMESTAMP(), INTERVAL %d DAY) ) LIMIT 1000";
+			$pending_sql = "DELETE FROM {$queue_table_escaped} WHERE status <> 'failed' AND created_at < DATE_SUB(UTC_TIMESTAMP(), INTERVAL %d DAY) LIMIT 1000";
+
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Cron cleanup on plugin-owned table.
+			$expired_pending = (int) $wpdb->query(
+				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- The query string is constructed safely above.
+				$wpdb->prepare( $pending_sql, $queue_days )
+			);
+
+			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned and escaped.
+			$failed_sql = "DELETE FROM {$queue_table_escaped} WHERE status = 'failed' AND created_at < DATE_SUB(UTC_TIMESTAMP(), INTERVAL %d DAY) LIMIT 1000";
 
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Cron cleanup on plugin-owned table.
 			$wpdb->query(
 				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- The query string is constructed safely above.
-				$wpdb->prepare( $queue_sql, $queue_days, $dead_letter_days )
+				$wpdb->prepare( $failed_sql, $dead_letter_days )
 			);
 		} else {
 			// phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned and escaped.
 			$queue_sql = "DELETE FROM {$queue_table_escaped} WHERE created_at < DATE_SUB(UTC_TIMESTAMP(), INTERVAL %d DAY) LIMIT 1000";
 
+			// Pre-v2 schema has no dead-letter state, so every row it holds is pending.
 			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Cron cleanup on plugin-owned table.
-			$wpdb->query(
+			$expired_pending = (int) $wpdb->query(
 				// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- The query string is constructed safely above.
 				$wpdb->prepare( $queue_sql, $queue_days )
 			);
+		}
+
+		if ( $expired_pending > 0 ) {
+			// record_failure() counts one per call; the loop keeps telemetry equal to rows lost.
+			for ( $i = 0; $i < $expired_pending; $i++ ) {
+				\CLICUTCL\Server_Side\Dispatcher::record_failure( 'queue_expired_pending' );
+			}
+			if ( function_exists( 'do_action' ) ) {
+				do_action( 'clicutcl_queue_pending_expired', $expired_pending );
+			}
 		}
 	}
 }

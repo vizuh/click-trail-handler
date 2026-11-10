@@ -40,8 +40,9 @@ class Queue {
 	const MAX_ATTEMPTS = 5;
 
 	/**
-	 * Processing lock TTL in seconds. Must comfortably exceed a worst-case
-	 * batch (10 sends at the default 5s timeout plus overhead).
+	 * Processing lock TTL in seconds. Must comfortably exceed a worst-case run:
+	 * a row is only started inside the time budget (at most LOCK_TTL / 2), so a
+	 * run ends by budget + one send timeout (15s max) = 75s, inside this TTL.
 	 */
 	const LOCK_TTL = 120;
 
@@ -306,7 +307,22 @@ class Queue {
 	}
 
 	/**
+	 * Wall-clock seconds one run may spend starting rows.
+	 *
+	 * Clamped to [1, LOCK_TTL / 2] so the lock always outlives the run (see LOCK_TTL).
+	 *
+	 * @return int
+	 */
+	public static function get_time_budget(): int {
+		$budget = (int) apply_filters( 'clicutcl_queue_time_budget', 45 );
+		return max( 1, min( intdiv( self::LOCK_TTL, 2 ), $budget ) );
+	}
+
+	/**
 	 * Process queued events.
+	 *
+	 * Fetches due rows 10 at a time and keeps going until no due rows remain or
+	 * the time budget is spent. Each row is attempted at most once per run.
 	 *
 	 * @return void
 	 */
@@ -329,25 +345,42 @@ class Queue {
 				return;
 			}
 
-			$now = current_time( 'mysql', true );
+			$now        = current_time( 'mysql', true );
+			$deadline   = microtime( true ) + self::get_time_budget();
+			$due_filter = self::db_supports_status() ? "status = 'pending' AND " : '';
+			$seen       = array();
+			$stalled    = false;
 
-			if ( self::db_supports_status() ) {
+			do {
+				// Rows already handled this run are excluded: one whose UPDATE failed, or that
+				// process_row() left untouched, would otherwise be re-fetched until the budget.
+				// ponytail: the NOT IN list grows with rows handled per run (hundreds at most
+				// inside the budget); switch to an id cursor if runs ever get much longer.
+				$exclude = $seen ? ' AND id NOT IN (' . implode( ', ', array_fill( 0, count( $seen ), '%d' ) ) . ')' : '';
+				// phpcs:ignore WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- One %d per excluded id, built above.
 				$query = $wpdb->prepare(
-					"SELECT * FROM {$table_name} WHERE status = 'pending' AND next_attempt_at <= %s ORDER BY next_attempt_at ASC LIMIT 10", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned.
-					$now
+					"SELECT * FROM {$table_name} WHERE {$due_filter}next_attempt_at <= %s{$exclude} ORDER BY next_attempt_at ASC LIMIT 10", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name plugin-owned; filter and placeholders are fixed literals.
+					array_merge( array( $now ), $seen )
 				);
-			} else {
-				$query = $wpdb->prepare(
-					"SELECT * FROM {$table_name} WHERE next_attempt_at <= %s ORDER BY next_attempt_at ASC LIMIT 10", // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared -- Table name is plugin-owned.
-					$now
-				);
-			}
 
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above; variable passed for readability.
-			$rows = $wpdb->get_results( $query, ARRAY_A );
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter -- Query is prepared above; variable passed for readability.
+				$rows = $wpdb->get_results( $query, ARRAY_A );
+				$rows = is_array( $rows ) ? $rows : array();
 
-			foreach ( $rows as $row ) {
-				self::process_row( $row );
+				foreach ( $rows as $row ) {
+					if ( microtime( true ) >= $deadline ) {
+						break 2;
+					}
+					$seen[] = (int) $row['id'];
+					if ( 'consent_unresolved' === self::process_row( $row ) ) {
+						$stalled = true;
+					}
+				}
+			} while ( ! empty( $rows ) );
+
+			if ( $stalled ) {
+				// Visible in failure telemetry once per run, without consuming attempts.
+				Dispatcher::record_failure( 'queue_consent_unresolved' );
 			}
 		} finally {
 			self::release_lock();
@@ -358,7 +391,7 @@ class Queue {
 	 * Process single queue row.
 	 *
 	 * @param array $row Row data.
-	 * @return void
+	 * @return string|null 'consent_unresolved' when the row was deferred for missing consent authority.
 	 */
 	private static function process_row( $row ) {
 		global $wpdb;
@@ -422,7 +455,7 @@ class Queue {
 				array( '%d' )
 			);
 			Dispatcher::record_last_error( 'queue_consent_unresolved', 'consent_unresolved' );
-			return;
+			return 'consent_unresolved';
 		}
 		if ( false === $consent ) {
 			$result            = Adapter_Result::error( 0, 'consent_denied' );

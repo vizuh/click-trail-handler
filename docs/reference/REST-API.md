@@ -184,6 +184,12 @@ Auth model:
 
 HubSpot webhook arrays are processed item by item. Consent-blocked webhook and lifecycle requests still return HTTP success to prevent retries, but their JSON body reports `success: false`, `skipped: true`, and the skip reason.
 
+Delivery failures on webhook and lifecycle requests:
+
+- live send failed (or was short-circuited by the delivery circuit breaker) but the event was persisted to the retry queue: HTTP `200` with `success: true`, `queued: true`, `skipped: false` and `detail` set to the failure (`error`, `circuit_open`, ...). The provider must not resend; the queue delivers it.
+- neither delivered nor queued (terminal `4xx` rejection by the collector, or the queue insert failed): `500 dispatch_failed`, so the provider retries.
+- a queued webhook event is not given the `webhook_<provider>` dedup mark; a provider resend re-enters the dispatcher, where the queue and destination dedup keep it single.
+
 Signature, timestamp and secret failures return `401`. HubSpot re-sends any `4xx`/`5xx` up to 10 times over 24
 hours, so a wrong or missing HubSpot secret, or a proxy that rewrites the path (or rewrites `Host` to something
 other than the `home_url()` host) without a matching `clicutcl_hubspot_v3_request_uris` entry, produces 10 failed
@@ -206,6 +212,8 @@ Allowed lifecycle stages:
 Auth model:
 
 - lifecycle token
+
+Responses follow the webhook delivery-failure rules above: queued is `200` with `queued: true`; `500 dispatch_failed` only when the event was neither delivered nor queued.
 
 ## `GET /clicutcl/v2/diagnostics/delivery`
 

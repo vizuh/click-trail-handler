@@ -425,6 +425,35 @@ Arguments:
 
 - `$days` (`int`)
 
+## Delivery Resilience
+
+### `clicutcl_delivery_breaker_threshold`
+
+Purpose:
+
+- consecutive retryable live-send failures (network error, `408`/`425`/`429`, `5xx`) to one destination, inside the window, that open the circuit breaker; while open, `Dispatcher::dispatch()` skips the live send and queues the event (`meta.queued`, message `circuit_open`)
+- default `5`; `0` disables the breaker
+- terminal `4xx` rejections and skipped results never count; a delivery or a terminal rejection closes the breaker
+
+### `clicutcl_delivery_breaker_window`
+
+Purpose:
+
+- seconds within which the threshold failures must fall to count as consecutive; default `60`
+
+### `clicutcl_delivery_breaker_cooldown`
+
+Purpose:
+
+- seconds the breaker stays open; after it, one request (an atomic claim) sends a half-open probe, which closes the breaker on success or a terminal rejection and reopens it for another cool-down on a retryable failure; default `60`
+
+### `clicutcl_queue_time_budget`
+
+Purpose:
+
+- wall-clock seconds one queue run may spend starting rows; the run fetches due rows 10 at a time until none remain or the budget is spent
+- default `45`; clamped to `1` .. `Queue::LOCK_TTL / 2` (60) so a run plus one send timeout always ends inside the queue lock
+
 ## Miscellaneous
 
 ### `clicutcl_cookie_name`
@@ -452,6 +481,18 @@ Arguments:
 
 - `$scope` (`string`): `woocommerce_order_meta` or `registration_user_meta`
 - `$result` (`array`): batch result, including `remaining`
+
+### `clicutcl_queue_pending_expired`
+
+Purpose:
+
+- fires when the daily cleanup deletes queue rows that were still pending (never delivered) at `clicutcl_queue_retention_days`; dead-letter rows keep their own retention and are not counted
+- the same count is added to failure telemetry as `queue_expired_pending`
+- not fired when nothing pending expired
+
+Arguments:
+
+- `$count` (`int`): pending rows deleted in this run (at most 1000 per run)
 
 ### `clicutcl_uninstall_order_meta_incomplete`
 
