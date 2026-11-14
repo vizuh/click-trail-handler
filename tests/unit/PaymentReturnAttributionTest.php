@@ -156,6 +156,35 @@ namespace {
 			$this->assertSame( array( 'acs.issuer-bank.example' ), $config['ignoredReferrerHosts'] );
 		}
 
+		public function test_sensitive_query_keys_filter_reaches_the_attribution_script_config(): void {
+			$GLOBALS['clicktrail_test_filters']['clicutcl_sensitive_query_keys'] = static function (): array {
+				return array( 'email', 'ref_no' );
+			};
+
+			$plugin = ( new \ReflectionClass( Plugin::class ) )->newInstanceWithoutConstructor();
+			$method = new \ReflectionMethod( Plugin::class, 'build_attribution_config' );
+			$method->setAccessible( true );
+			$config = $method->invoke(
+				$plugin,
+				array(),
+				array(
+					'cookie_name'     => 'ct_consent',
+					'require_consent' => false,
+				),
+				90,
+				false,
+				'',
+				'',
+				false,
+				array(
+					'domain' => '',
+					'reason' => 'host_scope',
+				)
+			);
+
+			$this->assertSame( array( 'email', 'ref_no' ), $config['sensitiveQueryKeys'] );
+		}
+
 		/**
 		 * Create a WooCommerce order double that records each save.
 		 *

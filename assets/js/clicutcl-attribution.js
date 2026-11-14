@@ -126,6 +126,40 @@
         return s;
     }
 
+    // Sensitive query keys (#232): removed from every stored landing page and referrer.
+    // Default mirrors Attribution_Provider::SENSITIVE_QUERY_KEYS; PHP localizes the filtered list.
+    const DEFAULT_SENSITIVE_QUERY_KEYS = [
+        'email', 'e-mail', 'mail', 'phone', 'tel', 'mobile', 'token', 'access_token', 'id_token',
+        'auth', 'password', 'pass', 'pwd', 'secret', 'key', 'api_key', 'apikey', 'code', 'otp',
+        'session', 'sessionid', 'sid', 'signature', 'sig', 'nonce', 'ssn', 'card', 'iban'
+    ];
+    const SENSITIVE_QUERY_KEYS = (Array.isArray(CONFIG.sensitiveQueryKeys) ? CONFIG.sensitiveQueryKeys : DEFAULT_SENSITIVE_QUERY_KEYS)
+        .map((word) => String(word || '').trim().toLowerCase())
+        .filter(Boolean);
+
+    const URL_VALUE_KEYS = ['ft_landing_page', 'lt_landing_page', 'ft_referrer', 'lt_referrer'];
+
+    function isSensitiveQueryKey(rawKey) {
+        let key = String(rawKey || '');
+        try {
+            key = decodeURIComponent(key.replace(/\+/g, ' '));
+        } catch (e) {}
+        key = key.trim().toLowerCase();
+        if (!key || key.indexOf('utm_') === 0 || CLICK_ID_SIGNAL_KEYS.indexOf(key) !== -1) return false;
+        return SENSITIVE_QUERY_KEYS.some((word) => key === word || key.endsWith('_' + word));
+    }
+
+    // Drops sensitive parameters and the fragment. Kept parameters keep their order and raw encoding.
+    function redactSensitiveQuery(rawUrl) {
+        let url = String(rawUrl === null || rawUrl === undefined ? '' : rawUrl);
+        const hashAt = url.indexOf('#');
+        if (hashAt !== -1) url = url.slice(0, hashAt);
+        const queryAt = url.indexOf('?');
+        if (queryAt === -1) return url;
+        const kept = url.slice(queryAt + 1).split('&').filter((pair) => !isSensitiveQueryKey(pair.split('=')[0]));
+        return url.slice(0, queryAt) + (kept.length ? '?' + kept.join('&') : '');
+    }
+
     // Diagnostics are names and counts only, never cookie values. Each code is reported once
     // per page load as a `ct:diagnostic` document event (and in the console when debugging).
     const reportedDiagnostics = {};
@@ -188,7 +222,8 @@
                 return;
             }
             if (typeof rawValue === 'string' || typeof rawValue === 'number') {
-                const v = sanitizeValue(rawValue, 256);
+                // Values written by older versions may still carry a raw query string.
+                const v = sanitizeValue(URL_VALUE_KEYS.indexOf(key) !== -1 ? redactSensitiveQuery(rawValue) : rawValue, 256);
                 if (v !== '') out[key] = v;
             }
         });
@@ -562,7 +597,7 @@
 
         return {
             host: referrerHost,
-            referrer: sanitizeValue(referrerUrl.toString(), 256)
+            referrer: sanitizeValue(redactSensitiveQuery(referrerUrl.toString()), 256)
         };
     }
 
@@ -1228,9 +1263,13 @@
                 sessionStorage.setItem(PENDING_SS_KEY, JSON.stringify({
                     v: 1,
                     savedAt: Date.now(),
-                    params: params,
-                    referrer: (document.referrer || '').slice(0, 512),
-                    landingPage: (window.location.href || '').slice(0, 512)
+                    params: Object.keys(params).reduce((safe, key) => {
+                        // The cross-domain token is read back on promotion; every other sensitive key is dropped.
+                        if (key === tokenParam || !isSensitiveQueryKey(key)) safe[key] = params[key];
+                        return safe;
+                    }, {}),
+                    referrer: redactSensitiveQuery(document.referrer || '').slice(0, 512),
+                    landingPage: redactSensitiveQuery(window.location.href || '').slice(0, 512)
                 }));
                 if (DEBUG_ENABLED) {
                     console.log('[ClickTrail] Pending capture saved to sessionStorage.');
@@ -2512,7 +2551,7 @@
                             if (!stored[k]) stored[k] = tokenData[k];
                         });
                         stored.lt_touch_timestamp = now;
-                        stored.lt_landing_page = window.location.href;
+                        stored.lt_landing_page = redactSensitiveQuery(window.location.href);
                         Store.saveData(stored);
                         API.install();
                         Store.prepareSignedToken(stored);
@@ -2595,7 +2634,7 @@
                     event_name: 'page_view',
                     occurred_at: new Date().toISOString(),
                     landing_page: pageTouch('landing_page') || window.location.pathname,
-                    referrer: pageTouch('referrer') || document.referrer || '',
+                    referrer: pageTouch('referrer') || redactSensitiveQuery(document.referrer || ''),
                     source: pageTouch('source'),
                     medium: pageTouch('medium'),
                     campaign: pageTouch('campaign'),
@@ -2673,9 +2712,9 @@
             }
             data[prefix + '_touch_timestamp'] = timestamp;
             if (prefix === 'ft' && !data[prefix + '_landing_page']) {
-                data[prefix + '_landing_page'] = window.location.href;
+                data[prefix + '_landing_page'] = redactSensitiveQuery(window.location.href);
             } else if (prefix === 'lt') {
-                data[prefix + '_landing_page'] = window.location.href;
+                data[prefix + '_landing_page'] = redactSensitiveQuery(window.location.href);
             }
         }
 

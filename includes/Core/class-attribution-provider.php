@@ -116,6 +116,57 @@ class Attribution_Provider {
 	);
 
 	/**
+	 * Query parameter names removed from stored landing pages and referrers.
+	 *
+	 * Matched case-insensitively as the whole name or as an `_<word>` suffix. Mirrored by
+	 * DEFAULT_SENSITIVE_QUERY_KEYS in assets/js/clicutcl-attribution.js.
+	 *
+	 * @var string[]
+	 */
+	private const SENSITIVE_QUERY_KEYS = array(
+		'email',
+		'e-mail',
+		'mail',
+		'phone',
+		'tel',
+		'mobile',
+		'token',
+		'access_token',
+		'id_token',
+		'auth',
+		'password',
+		'pass',
+		'pwd',
+		'secret',
+		'key',
+		'api_key',
+		'apikey',
+		'code',
+		'otp',
+		'session',
+		'sessionid',
+		'sid',
+		'signature',
+		'sig',
+		'nonce',
+		'ssn',
+		'card',
+		'iban',
+	);
+
+	/**
+	 * Stored values that hold a URL and must not carry sensitive query parameters.
+	 *
+	 * @var string[]
+	 */
+	private const URL_VALUE_FIELDS = array(
+		'ft_landing_page',
+		'lt_landing_page',
+		'ft_referrer',
+		'lt_referrer',
+	);
+
+	/**
 	 * Payment and hosted-checkout hosts whose referrals are not a traffic source.
 	 *
 	 * Matched as the host itself or any subdomain of it, like same-site referrers.
@@ -256,6 +307,10 @@ class Attribution_Provider {
 
 			// Handle simple values only; no nested arrays expected in flattened payload.
 			if ( is_scalar( $value ) ) {
+				// Cookies written by older versions may hold a raw query string; redact before sanitizing strips encoded octets.
+				if ( in_array( $meta_key, self::URL_VALUE_FIELDS, true ) ) {
+					$value = self::redact_sensitive_query( (string) $value );
+				}
 				$clean = sanitize_text_field( $value );
 				// Reject unsubstituted ad-platform dynamic parameter macros, e.g.
 				// Facebook {{campaign.name}}, {{adset.name}}, {{ad.name}}, etc.
@@ -449,6 +504,100 @@ class Attribution_Provider {
 		}
 
 		return array_values( $normalized );
+	}
+
+	/**
+	 * Get the query parameter names removed from stored landing pages and referrers.
+	 *
+	 * @return string[] Lowercase names; each also matches as an `_<name>` suffix.
+	 */
+	public static function get_sensitive_query_keys() {
+		/**
+		 * Filter the query parameter names removed before a landing page or referrer is stored.
+		 *
+		 * A parameter is removed when its lowercased name equals an entry or ends with
+		 * `_<entry>`, so `email` also removes `user_email`. `utm_*` parameters and captured
+		 * click IDs are never removed, whatever this list says.
+		 *
+		 * @since 1.14.0
+		 *
+		 * @param string[] $keys Parameter names, for example `email`.
+		 */
+		$keys = apply_filters( 'clicutcl_sensitive_query_keys', self::SENSITIVE_QUERY_KEYS );
+
+		$normalized = array();
+		foreach ( (array) $keys as $key ) {
+			if ( ! is_string( $key ) ) {
+				continue;
+			}
+
+			$key = strtolower( trim( $key ) );
+			if ( '' !== $key ) {
+				$normalized[ $key ] = $key;
+			}
+		}
+
+		return array_values( $normalized );
+	}
+
+	/**
+	 * Remove sensitive query parameters and the fragment from a stored URL.
+	 *
+	 * Kept parameters keep their order and encoding; the `?` is dropped when none remain.
+	 *
+	 * @param string $url Landing page or referrer URL.
+	 * @return string
+	 */
+	public static function redact_sensitive_query( $url ) {
+		$url      = (string) $url;
+		$hash_at  = strpos( $url, '#' );
+		$url      = false === $hash_at ? $url : substr( $url, 0, $hash_at );
+		$query_at = strpos( $url, '?' );
+		if ( false === $query_at ) {
+			return $url;
+		}
+
+		$sensitive = self::get_sensitive_query_keys();
+		$kept      = array();
+		foreach ( explode( '&', substr( $url, $query_at + 1 ) ) as $pair ) {
+			$name = strtolower( trim( rawurldecode( str_replace( '+', ' ', explode( '=', $pair, 2 )[0] ) ) ) );
+			if ( ! self::is_protected_query_key( $name ) && self::matches_sensitive_key( $name, $sensitive ) ) {
+				continue;
+			}
+			$kept[] = $pair;
+		}
+
+		return substr( $url, 0, $query_at ) . ( $kept ? '?' . implode( '&', $kept ) : '' );
+	}
+
+	/**
+	 * Whether a lowercased query parameter name is an attribution parameter that is always kept.
+	 *
+	 * @param string $name Lowercased parameter name.
+	 * @return bool
+	 */
+	private static function is_protected_query_key( $name ) {
+		return 0 === strpos( $name, 'utm_' )
+			|| in_array( $name, self::CLICK_ID_FIELDS, true )
+			|| in_array( $name, self::PAID_MARKER_FIELDS, true )
+			|| in_array( $name, self::CLICK_ID_FIELD_ALIASES, true );
+	}
+
+	/**
+	 * Whether a lowercased name equals a sensitive key or ends with `_<key>`.
+	 *
+	 * @param string   $name      Lowercased parameter name.
+	 * @param string[] $sensitive Sensitive keys.
+	 * @return bool
+	 */
+	private static function matches_sensitive_key( $name, array $sensitive ) {
+		foreach ( $sensitive as $key ) {
+			if ( $name === $key || str_ends_with( $name, '_' . $key ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**

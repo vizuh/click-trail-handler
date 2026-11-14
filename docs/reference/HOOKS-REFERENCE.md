@@ -136,6 +136,38 @@ add_filter( 'clicutcl_ignored_referrer_hosts', function ( $hosts ) {
 } );
 ```
 
+### `clicutcl_sensitive_query_keys`
+
+Type:
+
+- filter
+
+Purpose:
+
+- list the query parameter names removed from the landing page and referrer before they are stored
+
+Notes:
+
+- passed to `assets/js/clicutcl-attribution.js` as `clicutcl_config.sensitiveQueryKeys` and used by `Attribution_Provider::sanitize()` for `ft_`/`lt_` landing page and referrer values read from an existing cookie
+- a parameter is removed when its lowercased name equals an entry or ends with `_<entry>`; `email` removes `email` and `user_email`, not `emailer`
+- `utm_*` parameters, captured click IDs and paid markers are never removed, even if listed; the fragment is always dropped
+- defaults: `email`, `e-mail`, `mail`, `phone`, `tel`, `mobile`, `token`, `access_token`, `id_token`, `auth`, `password`, `pass`, `pwd`, `secret`, `key`, `api_key`, `apikey`, `code`, `otp`, `session`, `sessionid`, `sid`, `signature`, `sig`, `nonce`, `ssn`, `card`, `iban`
+- values are lowercased and trimmed; non-strings and empty values are discarded. Returning an empty array turns redaction off, which is not recommended
+- see [Sensitive Query Redaction](../guides/SECURITY-PRIVACY.md#sensitive-query-redaction-232)
+
+Arguments:
+
+- `string[] $keys`
+
+Example:
+
+```php
+add_filter( 'clicutcl_sensitive_query_keys', function ( $keys ) {
+	$keys[] = 'jwt';
+	return $keys;
+} );
+```
+
 ## Consent
 
 ### `clicutcl_consent_defaults`
