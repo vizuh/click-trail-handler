@@ -52,6 +52,7 @@ When consent is required, nothing is stored until the visitor agrees. ClickTrail
 - It does not prove which click caused a sale, and it does not decide which channel deserves the revenue.
 - It does not resolve one person's identity across devices.
 - It is not an attribution dashboard, a hosted server-side GTM platform, a lead manager, or an ad optimizer. It works alongside GA4 and GTM. For call tracking, lead scoring, or ad-spend optimization, pair it with a specialist tool.
+- It does not capture attribution for visitors with JavaScript disabled or blocked. Only the browser script writes the attribution cookie, and no PHP code reads UTMs or click IDs from the URL, so a lead from such a visitor has no attribution unless an earlier visit left the cookie. This keeps cached form pages safe (#152). The opt-in filter `clicutcl_render_server_attribution_values` only renders the values of an existing cookie into forms on sites without a page cache; it does not capture anything from the URL.
 - It does not install ad pixels. The Meta Pixel, Google tag, TikTok Pixel, LinkedIn Insight Tag, Pinterest Tag, and Reddit Pixel stay yours, usually through GTM.
 - Server-side delivery sends JSON to the endpoint you configure. The adapters named after Meta, Google Ads / GA4, LinkedIn, Pinterest, and TikTok exist in the code, but we have not verified that any provider accepts them end to end. Reddit is a relay-only destination.
 - We have not yet verified a live Calendly booking round trip.

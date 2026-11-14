@@ -357,6 +357,24 @@ Controls:
 - `ct_fill_source` is stripped by the adapters and is never stored, logged or forwarded; a forged marker without
   a cookie keeps only values the submitter already controlled
 
+No-JavaScript boundary: the `attribution` cookie is written only by the browser script
+(`assets/js/clicutcl-attribution.js`), from the visitor's own URL parameters and referrer. No PHP code reads UTMs
+or click IDs from the request URL, and no page response sets the cookie. The one server `Set-Cookie` for it is the
+Safari ITP re-issue on `POST /clicutcl/v2/cookie-refresh`, which echoes the cookie the browser already sent, so it
+also needs the script to have run. A visitor with JavaScript disabled or blocked (strict blockers, some corporate
+proxies) who has no earlier cookie therefore has no attribution: the form's `ct_*` fields stay empty, no
+`ct_fill_source=js` marker is written (only the browser Injector writes it), and the submit rule finds neither
+a cookie nor a marker, so the lead is stored without attribution. A visitor whose cookie was written on an earlier
+visit with JavaScript keeps it, and the submit rule still reads it. This is the price of the #152 fix: a server that
+rendered the values into the form for no-JS visitors would put them into cached HTML. The gap is known and documented here.
+
+The opt-in filter `clicutcl_render_server_attribution_values` does not close that gap. It only makes the form adapters
+that render values (not MetForm or SureForms) write the values of an existing `attribution` cookie (or the legacy
+`ct_attribution`) into the form HTML, when `Attribution_Provider::should_populate()` allows it. It does not read URL
+parameters, does not create or write a cookie, and does nothing for a visitor who has no cookie, including every
+first-visit landing page and every no-JS visitor with no earlier cookie. Turn it on only for a site without a
+full-page cache, because a cache that stores that HTML would serve one visitor's values to another.
+
 Evidence: source-present / runtime-unverified (PHPUnit and a Node VM test; no live page cache run).
 
 ## Queue, Revocation, and Retention Boundary
