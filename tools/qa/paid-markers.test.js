@@ -148,6 +148,16 @@ const tests = {
     assert.strictEqual(data.attribution_selected_click_id, undefined);
   },
 
+  'gclid, gbraid and wbraid also default the medium to cpc when no utm_medium'() {
+    ['gclid', 'gbraid', 'wbraid'].forEach((key) => {
+      const data = boot({ referrer: 'https://www.google.com/', url: LANDING + '?' + key + '=X1' });
+      assert.strictEqual(data.lt_channel, 'Google Ads', key);
+      assert.strictEqual(data.lt_medium, 'cpc', key);
+    });
+    const tagged = boot({ referrer: '', url: LANDING + '?gclid=X1&utm_medium=display' });
+    assert.strictEqual(tagged.lt_medium, 'display');
+  },
+
   'gclid still wins the selection next to gad_source'() {
     const data = boot({ referrer: 'https://www.google.com/', url: LANDING + '?gclid=G1&gad_source=1&gad_campaignid=999' });
     assert.strictEqual(data.attribution_selected_click_id, 'G1');

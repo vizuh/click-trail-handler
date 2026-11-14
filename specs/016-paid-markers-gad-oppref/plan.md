@@ -8,7 +8,7 @@ The markers join `CLICK_ID_KEYS` in `clicutcl-attribution.js`, which already dri
 
 ## Decision: default medium
 
-`cpc` is added for `gad_source` and `oppref` only. A bare `gclid` landing keeps today's behaviour (no default medium) so this change does not alter existing Google Ads data.
+`cpc` is added when the URL has no `utm_medium` and carries `gclid`, `gbraid`, `wbraid`, `gad_source` or `oppref`, as the unit requirement reads. This also changes a bare `gclid` landing: `lt_medium` was empty, it is now `cpc` (and `lt_source` stays empty, as before). No existing test pinned the empty medium; `tools/qa/smoke.js` and `repeat-visit-scenarios.js` all pass `utm_medium`. Rollback: drop the `gclid`/`gbraid`/`wbraid` terms from that one condition.
 
 ## Repo gates
 

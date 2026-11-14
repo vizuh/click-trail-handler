@@ -53,12 +53,12 @@ Safari link tracking protection, Brave or an ad blocker strip `gclid`, but `gad_
 
 - **FR-001**: The three keys are captured from the URL, 128 characters at most, top level plus `ft_`/`lt_`.
 - **FR-002**: `gclid`, `gbraid`, `wbraid` or `gad_source` give `Google Ads`; `oppref` gives `ChatGPT Ads` (after the other paid click IDs).
-- **FR-003**: Medium `cpc` is added only when the touch has no `utm_medium` (`gad_source`, `oppref`); source `chatgpt` only when it has no `utm_source` (`oppref`).
+- **FR-003**: Medium `cpc` is added only when the touch has no `utm_medium` and carries `gclid`, `gbraid`, `wbraid`, `gad_source` or `oppref`; source `chatgpt` only when it has no `utm_source` (`oppref`). A `gad_source` landing has no source field (like a bare `gclid`), so `lt_source` and `lt_referrer` stay empty.
 - **FR-004**: The markers are never selectable click IDs and never reach the Calendly stamp.
 - **FR-005**: `assets/gtm-starter-kit.json` is unchanged.
 
 ## Out of scope
 
-- A default medium for a bare `gclid` landing (unchanged).
+- A default source for Google click IDs and `gad_source`.
 - `applyTouch` stale-field behaviour (WP-11, #230).
 - The signed attribution token allowlist and outbound link decoration.

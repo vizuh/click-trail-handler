@@ -2691,12 +2691,9 @@
                 }
             });
 
-            // A paid marker without UTMs still says how the visit was paid for (#231).
-            if (out.gad_source && !out.medium) out.medium = 'cpc';
-            if (out.oppref) {
-                if (!out.medium) out.medium = 'cpc';
-                if (!out.source) out.source = 'chatgpt';
-            }
+            // A paid click or marker without UTMs still says how the visit was paid for (#231).
+            if ((out.gclid || out.gbraid || out.wbraid || out.gad_source || out.oppref) && !out.medium) out.medium = 'cpc';
+            if (out.oppref && !out.source) out.source = 'chatgpt';
 
             return out;
         }
