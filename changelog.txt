@@ -310,6 +310,16 @@ Source: triage of the stashed pre-7.0 WIP — vault `01-projects/clicktrail/wip-
 *   Added HOOKS-REFERENCE.md clarifications on `ct_*` entry meta registration and channel label storage.
 
 
+= 1.6.0 =
+* Added full channel classification to Gravity Forms entries: `ct_ft_channel` stores a human-readable label (Google Ads, ChatGPT, Mailchimp, etc.) derived from click IDs, UTM parameters, or referrer context; server-side fallback computes the label when JS is unavailable.
+* Added six new click IDs to the capture schema: `rdt_cid` (Reddit), `pin_cid` (Pinterest), `snap_cid` (Snapchat), `mc_cid` and `mc_eid` (Mailchimp), and `dclid` (Display & Video 360).
+* Added nine `{clicutcl_*}` merge tags for Gravity Forms notifications and confirmations, including `{clicutcl_channel}`, `{clicutcl_click_id}`, and seven UTM-based tags.
+* Added per-form attribution tracking toggle in Gravity Forms form settings, with a global default option and `clicutcl_gf_tracking_enabled` filter for developer overrides.
+* Added admin QA mode: attribution data is written to `sessionStorage` only when a `manage_options` user is logged in, preventing admin browsing from polluting attribution records.
+* Added `sessionStorage` fallback for attribution capture when browser cookies are blocked.
+* Added minification-exclusion data attributes to ClickTrail script tags to prevent cache and optimization plugins from deferring or bundling them.
+* Added entry-edit safety for Gravity Forms: `ct_*` attribution meta is excluded from the editable fields screen and restored automatically if cleared during a manual entry edit.
+
 = 1.5.2 =
 *   **Code quality (line endings)**: Normalized mixed line endings in the consent, attribution-token, and privacy handlers so standards checks and packaging behave consistently across environments.
 *   **Code quality (PHPCS cleanup)**: Resolved the remaining coding-standards issues in those handlers and documented the intentional exceptions for signed-token Base64URL helpers and the required WordPress privacy eraser callback signature.

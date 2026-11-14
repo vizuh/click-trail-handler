@@ -10,6 +10,11 @@ ClickTrail keeps what the visitor arrived with: the UTMs, the ad click ID, the r
 
 ClickTrail records what arrived. It does not decide what caused the sale.
 
+**[Install from WordPress.org](https://wordpress.org/plugins/click-trail-handler/)**
+
+[![WordPress.org version](https://img.shields.io/wordpress/plugin/v/click-trail-handler?label=wordpress.org)](https://wordpress.org/plugins/click-trail-handler/)
+[![Active installs](https://img.shields.io/wordpress/plugin/installs/click-trail-handler)](https://wordpress.org/plugins/click-trail-handler/)
+[![Rating](https://img.shields.io/wordpress/plugin/rating/click-trail-handler)](https://wordpress.org/plugins/click-trail-handler/#reviews)
 [![GitHub release](https://img.shields.io/github/v/release/vizuh/click-trail-handler?label=version&color=blue)](https://github.com/vizuh/click-trail-handler/releases)
 [![License](https://img.shields.io/badge/license-GPL--2.0--or--later-green)](LICENSE)
 [![PHP](https://img.shields.io/badge/PHP-8.1%2B-blue)](https://www.php.net/)
