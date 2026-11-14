@@ -36,8 +36,8 @@ A returning visitor whose stored last touch is a Google Ads click (`gclid=G1`, `
 
 - **FR-001**: When `applyTouch('lt', ...)` runs, it first deletes every `lt_<key>` for each key in `TOUCH_FIELD_KEYS` (derived from `TOUCH_QUERY_FIELD_MAP`), `channel`, `referrer` and every key in `CLICK_ID_KEYS`, plus the legacy `lt_sc_click_id`, then writes the new touch. No second hand-maintained field list.
 - **FR-002**: `applyTouch('ft', ...)` is unchanged.
-- **FR-004**: `Store.getData()` reads the last touch as one unit. When the cookie and the localStorage mirror both exist, every `lt_*` key comes from the copy with the newest `lt_touch_timestamp` (the cookie on a tie); the two copies are never merged key by key for `lt_*`. Without this, a sibling subdomain on a shared `cookieDomain` cookie re-reads the deleted `lt_*` keys from its own mirror and writes them back into the shared cookie on its next save. All other keys keep the existing merge (cookie over localStorage over sessionStorage). Review round 1 of PR #234 found this gap; the fix widens the scope from `applyTouch`/`runAttribution` to the one read helper.
 - **FR-003**: PHP readers (`Attribution_Provider`, WooCommerce/EDD `collect_order_attribution`, form adapters) already read `lt_*` through empty-checked lookups; no PHP change.
+- **FR-004**: `Store.getData()` reads the last touch as one unit. When the cookie and the localStorage mirror both exist, every `lt_*` key comes from the copy with the newest `lt_touch_timestamp` (the cookie on a tie); the two copies are never merged key by key for `lt_*`. Without this, a sibling subdomain on a shared `cookieDomain` cookie re-reads the deleted `lt_*` keys from its own mirror and writes them back into the shared cookie on its next save. All other keys keep the existing merge (cookie over localStorage over sessionStorage). Review round 1 of PR #234 found this gap; the fix widens the scope from `applyTouch`/`runAttribution` to the one read helper.
 
 ### Edge Cases
 
@@ -49,4 +49,4 @@ Matches `@vizuh/clicktrail-core` `mergeAttributionTouch` for UTM fields and its 
 
 ## Out of scope
 
-Channel resolution and key-list changes (WP-12), landing-page query redaction (#232), `gad_source` / `oppref` (#231).
+Channel resolution and key-list changes (WP-12), landing-page query redaction (#232), `gad_source` / `oppref` capture (#231, already on main; its `lt_` keys are cleared through the derived `CLICK_ID_KEYS` list).
