@@ -11,3 +11,7 @@
 ## Dependencies
 
 T001, T002 → T003, T004. All → T005.
+
+## Deferred (outside this unit's allowed files)
+
+- [ ] T006 Events: redact the `document.referrer` fallback (`marketing_trail.referrer`, `page_context.referrer`) in `assets/js/clicutcl-events.js`, and `landing_page` / `referrer` in `includes/server-side/class-event.php` (reuse `Attribution_Provider::redact_sensitive_query()`). Found by the round 1 review: on a second same-origin page with no stored referrer, `document.referrer` is the raw landing URL. Needs a scope decision; tracked as a follow-up, not done in this PR.

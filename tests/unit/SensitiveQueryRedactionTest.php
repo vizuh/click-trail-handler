@@ -96,7 +96,6 @@ final class SensitiveQueryRedactionTest extends TestCase {
 			array(
 				'ft_landing_page'    => self::BASE . '/pricing/?utm_source=mail&email=jane%40example.com&token=SECRET123',
 				'lt_landing_page'    => self::BASE . '/pricing/?gclid=G1&phone=5551234',
-				'first_landing_page' => self::BASE . '/legacy/?utm_campaign=c&password=P',
 				'ft_referrer'        => 'https://partner.example.org/r?id=7&session=S3',
 				'lt_source'          => 'mail',
 				'gclid'              => 'G1',
@@ -109,6 +108,18 @@ final class SensitiveQueryRedactionTest extends TestCase {
 		$this->assertSame( 'mail', $data['lt_source'] );
 		$this->assertSame( 'G1', $data['gclid'] );
 		$this->assertStringNotContainsString( 'SECRET123', (string) json_encode( $data ) );
+	}
+
+	public function test_sanitize_redacts_the_first_landing_page_alias(): void {
+		// Alone: when ft_landing_page is also present, sanitize() skips the alias.
+		$GLOBALS['clicktrail_test_strip_octets'] = true;
+
+		$data = Attribution_Provider::sanitize(
+			array( 'first_landing_page' => self::BASE . '/legacy/?utm_campaign=c&password=P' )
+		);
+
+		$this->assertSame( self::BASE . '/legacy/?utm_campaign=c', $data['ft_landing_page'] );
+		$this->assertStringNotContainsString( 'password', (string) json_encode( $data ) );
 	}
 
 	public function test_sanitize_leaves_other_fields_alone(): void {
