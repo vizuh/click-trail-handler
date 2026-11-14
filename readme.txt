@@ -5,7 +5,7 @@ Author URI: https://vizuh.com
 Tags: attribution, utm, consent mode, woocommerce, server-side tracking
 Requires at least: 6.5
 Tested up to: 7.1
-Stable tag: 1.13.1
+Stable tag: 1.14.0
 Requires PHP: 8.1
 WC requires at least: 10.4.2
 License: GPLv2 or later
@@ -204,6 +204,13 @@ The entries below are historical release notes. They do not replace the current 
 behavior that still requires current runtime verification. In particular, older wording that calls platform-named
 server paths “first-class native delivery adapters” predates the current evidence classification: those paths are
 configured-endpoint relays whose provider authentication, acceptance, and runtime delivery remain unverified.
+
+= 1.14.0 =
+* Fix: a new visit now replaces the whole last touch. Before, a Meta or organic visit after a Google Ads click kept the earlier campaign, source and `gclid` in the last touch, so leads and orders mixed two campaigns. First touch and the newest value of each click ID are unchanged. (#230)
+* New: `gad_source`, `gad_campaignid` and `oppref` are captured. A Google Ads visit whose `gclid` was stripped (Safari link protection, Brave, ad blockers) is labelled Google Ads instead of Google Organic, and ChatGPT Ads (`oppref`) is labelled separately from unpaid ChatGPT referrals. They reach `ct_*` form fields and order meta, and are never chosen as the click ID for conversion upload. (#231)
+* Privacy: query parameters such as email, phone, token, password, key, code and session are removed from the stored landing page and referrer (cookie, form fields, order meta and browser events); UTMs and click IDs are kept. Filter `clicutcl_sensitive_query_keys`. (#232)
+* New: Site Health and Diagnostics warn when FlyingPress is active and list the Delay JavaScript exclusion keywords to add. (#165)
+* Docs: visitors with JavaScript disabled or blocked get no attribution (fields render empty for cache safety and the cookie is written by the browser); `clicutcl_render_server_attribution_values` only renders an existing cookie. (#233)
 
 = 1.13.1 =
 * Security: follow-up login, sign-up and comment event cookies are HMAC-signed and limited to their own event; pages that print one are sent no-cache headers.
