@@ -68,6 +68,8 @@ Ter código para uma integração não prova que ela funciona em produção. O s
 | Mailchimp | `mc_cid`, `mc_eid` |
 | Display & Video 360 | `dclid` |
 
+Marcadores de mídia paga também são capturados como campos do toque, mas nunca viram o ID de clique selecionado: `gad_source` e `gad_campaignid` (Google Ads sem `gclid`, classificado como `Google Ads`) e `oppref` (classificado como `ChatGPT Ads`).
+
 **Integrações**
 
 - **Formulários**: Contact Form 7, Elementor Forms (Pro), Fluent Forms, Formidable Forms, Forminator, Gravity Forms, MetForm, Ninja Forms, SureForms, WPForms

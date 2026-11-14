@@ -27,7 +27,9 @@
     const CLICK_ID_KEYS = [
         'gclid', 'fbclid', 'msclkid', 'ttclid', 'wbraid', 'gbraid',
         'twclid', 'li_fat_id', 'sccid', 'epik',
-        'rdt_cid', 'pin_cid', 'snap_cid', 'mc_cid', 'mc_eid', 'dclid'
+        'rdt_cid', 'pin_cid', 'snap_cid', 'mc_cid', 'mc_eid', 'dclid',
+        // Paid markers (#231): captured like click IDs, never selected (not in D3_CLICK_ID_KEYS).
+        'gad_source', 'gad_campaignid', 'oppref'
     ];
     const CLICK_ID_SIGNAL_KEYS = CLICK_ID_KEYS.concat(['sc_click_id']);
     // D3 (clicktrail-js ruling): ad click IDs that enter the selection audit, in engine order.
@@ -474,7 +476,7 @@
 
     function resolveChannelLabel(params, referrer) {
         // Paid click IDs — highest priority, checked before referrer
-        if (params.gclid || params.gbraid || params.wbraid) return 'Google Ads';
+        if (params.gclid || params.gbraid || params.wbraid || params.gad_source) return 'Google Ads';
         if (params.msclkid) return 'Microsoft Ads';
         if (params.li_fat_id) return 'LinkedIn Ads';
         if (params.twclid) return 'X Ads';
@@ -483,6 +485,7 @@
         if (params.pin_cid || params.epik) return 'Pinterest Ads';
         if (params.snap_cid || params.sccid) return 'Snapchat Ads';
         if (params.dclid) return 'Display & Video 360';
+        if (params.oppref) return 'ChatGPT Ads';
 
         // fbclid: Ads only when a paid medium is also present
         var med = sanitizeValue(params.utm_medium || '', 64).toLowerCase();
@@ -2687,6 +2690,10 @@
                     out[key] = value;
                 }
             });
+
+            // A paid click or marker without UTMs still says how the visit was paid for (#231).
+            if ((out.gclid || out.gbraid || out.wbraid || out.gad_source || out.oppref) && !out.medium) out.medium = 'cpc';
+            if (out.oppref && !out.source) out.source = 'chatgpt';
 
             return out;
         }
