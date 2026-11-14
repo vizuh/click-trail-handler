@@ -117,6 +117,9 @@ class Event {
 		$event['consent']     = isset( $data['consent'] ) && is_array( $data['consent'] ) ? $data['consent'] : array();
 		$event['meta']        = isset( $data['meta'] ) && is_array( $data['meta'] ) ? $data['meta'] : array();
 
+		// An older cached script, or a stored value, can still hold the raw landing page and referrer (#232).
+		$event['attribution'] = Attribution_Provider::redact_url_fields( $event['attribution'] );
+
 		if ( isset( $event['page']['referrer'] ) && is_scalar( $event['page']['referrer'] ) ) {
 			// The browser sends the raw document.referrer, which can be a landing URL carrying an email or token (#232).
 			$event['page']['referrer'] = Attribution_Provider::redact_sensitive_query( (string) $event['page']['referrer'] );

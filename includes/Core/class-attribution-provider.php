@@ -571,6 +571,28 @@ class Attribution_Provider {
 	}
 
 	/**
+	 * Redact the landing page and referrer values of an attribution payload, flat or nested under
+	 * `first_touch` / `last_touch`. Other fields and the payload shape are left as they are.
+	 *
+	 * @param array $data Attribution payload.
+	 * @return array
+	 */
+	public static function redact_url_fields( array $data ) {
+		foreach ( array_merge( self::URL_VALUE_FIELDS, array( 'first_landing_page', 'landing_page', 'referrer' ) ) as $key ) {
+			if ( isset( $data[ $key ] ) && is_scalar( $data[ $key ] ) ) {
+				$data[ $key ] = self::redact_sensitive_query( (string) $data[ $key ] );
+			}
+		}
+		foreach ( array( 'first_touch', 'last_touch' ) as $touch ) {
+			if ( isset( $data[ $touch ] ) && is_array( $data[ $touch ] ) ) {
+				$data[ $touch ] = self::redact_url_fields( $data[ $touch ] );
+			}
+		}
+
+		return $data;
+	}
+
+	/**
 	 * Whether a lowercased query parameter name is an attribution parameter that is always kept.
 	 *
 	 * @param string $name Lowercased parameter name.

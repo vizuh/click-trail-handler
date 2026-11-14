@@ -237,8 +237,9 @@ so the value is removed before it is written, not at each destination.
 - Events: when no referrer is stored (a second same-origin page), `clicutcl-events.js` falls back to `document.referrer`,
   which is the full landing URL. That value is redacted in `page_context.referrer` and `marketing_trail.referrer` with the
   attribution script's own function (`window.ClickTrail.redactSensitiveQuery`); if the attribution script is not loaded the
-  query and fragment are dropped instead. `Event::normalize()` redacts `page.referrer` and the marketing trail
-  `landing_page` and `referrer` again before the event is queued or sent, so a payload from an older cached script is
+  query and fragment are dropped instead. `Event::normalize()` redacts `page.referrer`, the marketing trail
+  `landing_page` and `referrer`, and the `attribution` landing page and referrer fields (flat, or under
+  `first_touch` / `last_touch`) again before the event is queued or sent, so a payload from an older cached script is
   covered too. Events already queued or sent are not rewritten.
 - Boundaries: a parameter whose name is not on the list (for example `jwt` or `reset`) is stored; add it with
   the filter. This is key-name matching, not value inspection: an address in a parameter named `q` is stored.

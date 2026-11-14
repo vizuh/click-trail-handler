@@ -44,7 +44,7 @@ A visitor lands on `/pricing/?utm_source=mail&utm_medium=email&email=jane%40exam
 
 1. **Given** a second same-origin page whose `document.referrer` is the landing URL of scenario 1, **Then** the lead's `marketing_trail.referrer` and `page_context.referrer` are `/pricing/?utm_source=mail&utm_medium=email` (host kept), in the dataLayer push and in the collector request.
 2. **Given** the attribution script is not loaded, **Then** the events script sends the referrer without query or fragment.
-3. **Given** a payload whose `page.referrer`, `marketing_trail.landing_page`/`referrer` or cookie-derived `lt_`/`ft_` landing page and referrer carry the raw URL, **Then** `Event::normalize()` stores them redacted, before sanitizing, so the retry queue never holds the raw URL.
+3. **Given** a payload whose `page.referrer`, `marketing_trail.landing_page`/`referrer` or `attribution` landing page and referrer (flat `ft_`/`lt_` keys, or `landing_page`/`referrer` under `first_touch`/`last_touch`) carry the raw URL, **Then** `Event::normalize()` stores them redacted, before sanitizing. The retry queue stores the normalized event, and the intake debug log keeps attribution key names only, so neither holds the raw URL.
 
 ### User Story 4 - Filterable list (Priority: P2)
 
@@ -60,7 +60,7 @@ A visitor lands on `/pricing/?utm_source=mail&utm_medium=email&email=jane%40exam
 - **FR-003**: Kept parameters keep order and raw encoding. The `?` is dropped when none remain. The fragment is dropped.
 - **FR-004**: Applied before storage at `applyTouch` (first and last touch), `getExternalReferrerDetails`, the cross-domain token merge, `PendingCapture`, and when stored values are read (`sanitizeAttributionData`, `Attribution_Provider::sanitize`).
 - **FR-005**: The list is `Attribution_Provider::SENSITIVE_QUERY_KEYS`, filtered by `clicutcl_sensitive_query_keys`, localized as `clicutcl_config.sensitiveQueryKeys`. The script keeps the same default for a page without the localized config.
-- **FR-006**: The events script redacts `page_context.referrer` and the `marketing_trail` `landing_page`/`referrer` (including the `document.referrer` fallback) with `window.ClickTrail.redactSensitiveQuery`, and drops the query when that function is absent. `Server_Side\Event::normalize()` redacts `page.referrer` and the trail `landing_page`/`referrer` before sanitizing.
+- **FR-006**: The events script redacts `page_context.referrer` and the `marketing_trail` `landing_page`/`referrer` (including the `document.referrer` fallback) with `window.ClickTrail.redactSensitiveQuery`, and drops the query when that function is absent. `Server_Side\Event::normalize()` redacts `page.referrer`, the trail `landing_page`/`referrer` and the `attribution` URL fields (`Attribution_Provider::redact_url_fields()`) before sanitizing.
 - **FR-007**: No cookie name, option name, REST route or JSON shape changes.
 
 ## Out of scope

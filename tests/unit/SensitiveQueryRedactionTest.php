@@ -169,4 +169,37 @@ final class SensitiveQueryRedactionTest extends TestCase {
 		$this->assertSame( $clean, $event['marketing_trail']['referrer'] );
 		$this->assertStringNotContainsString( 'SECRET123', (string) wp_json_encode( $event['marketing_trail'] ) );
 	}
+
+	public function test_event_attribution_blob_is_redacted_flat_and_nested(): void {
+		$url   = self::BASE . '/pricing/?utm_source=mail&email=jane%40example.com&token=SECRET123&gclid=G1';
+		$clean = self::BASE . '/pricing/?utm_source=mail&gclid=G1';
+
+		// What the retry queue persists comes from $event, so check the normalized attribution itself.
+		$event = Event::normalize(
+			array(
+				'event_name'  => 'lead',
+				'event_id'    => 'e4',
+				'attribution' => array(
+					'ft_landing_page' => $url,
+					'lt_landing_page' => $url,
+					'ft_referrer'     => $url,
+					'lt_referrer'     => $url,
+					'lt_source'       => 'mail',
+					'first_touch'     => array( 'landing_page' => $url, 'referrer' => $url, 'source' => 'mail' ),
+					'last_touch'      => array( 'landing_page' => $url, 'referrer' => $url ),
+				),
+			)
+		);
+
+		$attribution = $event['attribution'];
+		$this->assertSame( $clean, $attribution['ft_landing_page'] );
+		$this->assertSame( $clean, $attribution['lt_landing_page'] );
+		$this->assertSame( $clean, $attribution['ft_referrer'] );
+		$this->assertSame( $clean, $attribution['lt_referrer'] );
+		$this->assertSame( $clean, $attribution['first_touch']['landing_page'] );
+		$this->assertSame( $clean, $attribution['last_touch']['referrer'] );
+		$this->assertSame( 'mail', $attribution['lt_source'] );
+		$this->assertSame( 'mail', $attribution['first_touch']['source'] );
+		$this->assertStringNotContainsString( 'SECRET123', (string) wp_json_encode( $event ) );
+	}
 }
