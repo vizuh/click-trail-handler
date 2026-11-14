@@ -242,7 +242,7 @@ Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GT
 * Privacy: the personal data exporter and eraser now match an email or user exactly instead of by partial text.
 * Forms: simultaneous duplicate form submissions are caught even across a time boundary.
 
-Older releases: see the [full changelog](https://github.com/vizuh/click-trail-handler/blob/main/changelog.txt).
+Older releases: see the [full changelog](https://github.com/vizuh/click-trail-handler/blob/main/changelog.txt). The entries below are historical release notes. They do not replace the current source/evidence status in `docs/reference/INTEGRATIONS.md` and `docs/guides/SECURITY-PRIVACY.md`; earlier claims may describe intended behavior that still requires current runtime verification. In particular, older wording that calls platform-named server paths “first-class native delivery adapters” predates the current evidence classification: those paths are configured-endpoint relays whose provider authentication, acceptance, and runtime delivery remain unverified.
 
 == Upgrade Notice ==
 
