@@ -213,6 +213,37 @@ Diagnostics purge and at uninstall, and deletion with the user. The dispatched `
 fall under the touch-event and queue matching above (hashed email). Ultimate Member's own registration data is
 UM's exporter and eraser to handle; this lifecycle has not been run against a consent-required site with a real CMP.
 
+## Sensitive Query Redaction (#232)
+
+The landing page and referrer stored in `ft_landing_page`, `lt_landing_page`, `ft_referrer` and `lt_referrer` never carry
+sensitive query parameters or the URL fragment. They appear in the `attribution` cookie, its local-storage mirror, the
+pending-capture copy in session storage, form `ct_*_landing_page` and `ct_*_referrer` fields, order meta and server events,
+so the value is removed before it is written, not at each destination.
+
+- A parameter is removed when its lowercased, URL-decoded name equals a sensitive key or ends with `_<key>`. The default
+  keys are `email`, `e-mail`, `mail`, `phone`, `tel`, `mobile`, `token`, `access_token`, `id_token`, `auth`, `password`,
+  `pass`, `pwd`, `secret`, `key`, `api_key`, `apikey`, `code`, `otp`, `session`, `sessionid`, `sid`, `signature`, `sig`,
+  `nonce`, `ssn`, `card` and `iban`. `user_email` is removed; `monkey` and `keyword` are not.
+- `utm_*` parameters and captured click IDs and paid markers (`gclid`, `fbclid`, `gad_source`, `oppref`, `sc_click_id` and
+  the rest of the capture list) are always kept, even if a filtered list names them.
+- Kept parameters keep their order and encoding. The `?` is dropped when none remain. The fragment is always dropped.
+- The list is filterable with [`clicutcl_sensitive_query_keys`](../reference/HOOKS-REFERENCE.md#clicutcl_sensitive_query_keys)
+  and reaches the script as `clicutcl_config.sensitiveQueryKeys`. If the script runs without that config it falls back to
+  the same default list.
+- Cookies written by older versions may hold a raw URL. The script cleans `ft_`/`lt_` landing page and referrer values when
+  it reads stored data, and `Attribution_Provider::sanitize()` redacts them on every server read (forms, orders, events),
+  so those values stop reaching new destinations after the update. Order meta and event rows already written are not
+  rewritten.
+- Events: when no referrer is stored (a second same-origin page), `clicutcl-events.js` falls back to `document.referrer`,
+  which is the full landing URL. That value is redacted in `page_context.referrer` and `marketing_trail.referrer` with the
+  attribution script's own function (`window.ClickTrail.redactSensitiveQuery`); if the attribution script is not loaded the
+  query and fragment are dropped instead. `Event::normalize()` redacts `page.referrer`, the marketing trail
+  `landing_page` and `referrer`, and the `attribution` landing page and referrer fields (flat, or under
+  `first_touch` / `last_touch`) again before the event is queued or sent, so a payload from an older cached script is
+  covered too. Events already queued or sent are not rewritten.
+- Boundaries: a parameter whose name is not on the list (for example `jwt` or `reset`) is stored; add it with
+  the filter. This is key-name matching, not value inspection: an address in a parameter named `q` is stored.
+
 ## WhatsApp Reference Codes
 
 With WhatsApp tracking and **Append attribution to message** on (off by default) and marketing consent granted, a visitor who clicks a WhatsApp link sends `Ref: CT-<8 chars>` in the chat. The server holds one row per code in `wp_clicutcl_whatsapp_refs`:

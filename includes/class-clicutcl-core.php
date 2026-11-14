@@ -446,6 +446,7 @@ class Plugin {
 			'tokenVerifyUrl'            => esc_url_raw( rest_url( 'clicutcl/v2/attribution-token/verify' ) ),
 			'linkAppendBlob'            => false,
 			'ignoredReferrerHosts'      => Core\Attribution_Provider::get_ignored_referrer_hosts(),
+			'sensitiveQueryKeys'        => Core\Attribution_Provider::get_sensitive_query_keys(),
 		);
 	}
 

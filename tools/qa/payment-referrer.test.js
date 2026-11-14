@@ -187,7 +187,8 @@ const tests = {
     assert.strictEqual(data.lt_source, 'partner.example.org');
     assert.strictEqual(data.lt_medium, 'referral');
     assert.strictEqual(data.lt_referrer, 'https://partner.example.org/review');
-    assert.strictEqual(data.lt_landing_page, THANK_YOU_URL);
+    // The WooCommerce order key is a secret: stored landing pages drop it (#232).
+    assert.strictEqual(data.lt_landing_page, 'https://shop.example.test/checkout/order-received/123/');
     assertTouchUnchanged(data, 'ft');
   },
 
