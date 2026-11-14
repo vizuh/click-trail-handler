@@ -236,6 +236,46 @@ class Setup_Detector {
 		return array_values( array_unique( $found ) );
 	}
 
+	/**
+	 * Whether FlyingPress is an active plugin.
+	 *
+	 * Read from `active_plugins` (not a constant) so the answer tracks the site state.
+	 * ponytail: single-site list only; network-activated FlyingPress on multisite is not seen.
+	 *
+	 * @return bool
+	 */
+	public static function detect_flyingpress(): bool {
+		foreach ( (array) get_option( 'active_plugins', array() ) as $plugin_path ) {
+			if ( 'flying-press' === strtolower( (string) explode( '/', (string) $plugin_path )[0] ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Warning text when FlyingPress is active, empty string otherwise.
+	 *
+	 * FlyingPress publishes no filter and no readable option for Delay JavaScript
+	 * (specs/006-optimizer-exclusions/research.md R3), so the settings cannot be
+	 * checked: the text asks the site owner to confirm the exclusion keywords.
+	 * Shared by the Site Health test and the Diagnostics conflict scan.
+	 *
+	 * @return string
+	 */
+	public static function flyingpress_delay_warning(): string {
+		if ( ! static::detect_flyingpress() ) {
+			return '';
+		}
+
+		return sprintf(
+			/* translators: %s: comma-separated keywords to paste into FlyingPress. */
+			__( 'FlyingPress is active. If Delay JavaScript is on, it holds ClickTrail scripts until the first interaction, so the landing touch is recorded late or lost. FlyingPress offers no automatic exclusion for this. Open FlyingPress > Optimization > JavaScript > Delay JavaScript > Exclude keywords and add: %s', 'click-trail-handler' ),
+			implode( ', ', \CLICUTCL\Integrations\Optimizer_Compat::FLYINGPRESS_DELAY_KEYWORDS )
+		);
+	}
+
 	// -----------------------------------------------------------------------
 	// Consent Management Platforms
 	// -----------------------------------------------------------------------
