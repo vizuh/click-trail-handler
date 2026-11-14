@@ -117,4 +117,28 @@ final class ChannelResolverTest extends TestCase {
 			)
 		);
 	}
+
+	/** Paid markers (#231): gad_source is Google Ads without a gclid. */
+	public function test_gad_source_without_gclid_classifies_as_google_ads(): void {
+		$this->assertSame(
+			'Google Ads',
+			$this->resolver->resolve( array( 'ft_gad_source' => '1' ), 'https://www.google.com/' )
+		);
+		$this->assertSame( 'Google Ads', $this->resolver->resolve( array( 'gad_source' => '1' ) ) );
+	}
+
+	/** Paid markers (#231): oppref is ChatGPT Ads, an unpaid chatgpt.com referral is not. */
+	public function test_oppref_classifies_as_chatgpt_ads_and_plain_referral_stays_chatgpt(): void {
+		$this->assertSame(
+			'ChatGPT Ads',
+			$this->resolver->resolve( array( 'ft_oppref' => 'abc123' ), 'https://chatgpt.com/' )
+		);
+		$this->assertSame( 'ChatGPT', $this->resolver->resolve( array(), 'https://chatgpt.com/' ) );
+	}
+
+	/** gad_campaignid alone is not a channel signal; a click ID still outranks oppref. */
+	public function test_gad_campaignid_alone_is_not_a_signal_and_gclid_outranks_oppref(): void {
+		$this->assertSame( 'Unknown', $this->resolver->resolve( array( 'gad_campaignid' => '999' ) ) );
+		$this->assertSame( 'Google Ads', $this->resolver->resolve( array( 'gclid' => 'g', 'oppref' => 'o' ) ) );
+	}
 }

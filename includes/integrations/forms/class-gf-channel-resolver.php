@@ -34,7 +34,8 @@ class Gf_Channel_Resolver {
 	 *
 	 * Priority order matches the JS classifier:
 	 *   1. Paid click IDs (Google, Microsoft, LinkedIn, X, Reddit, TikTok,
-	 *      Pinterest, Snapchat) → respective Ads label.
+	 *      Pinterest, Snapchat) → respective Ads label. `gad_source` counts as
+	 *      Google Ads and `oppref` as `ChatGPT Ads`.
 	 *   2. `fbclid` plus a paid utm_medium (`cpc`, `paid_social`, `paid`) →
 	 *      `Facebook Ads`.
 	 *   3. Email-platform signals (`mc_cid`/`mc_eid`, `utm_source` matches
@@ -64,7 +65,7 @@ class Gf_Channel_Resolver {
 		};
 
 		// 1. Paid click IDs.
-		if ( $has( 'gclid' ) || $has( 'gbraid' ) || $has( 'wbraid' ) ) {
+		if ( $has( 'gclid' ) || $has( 'gbraid' ) || $has( 'wbraid' ) || $has( 'gad_source' ) ) {
 			return 'Google Ads';
 		}
 		if ( $has( 'msclkid' ) ) {
@@ -90,6 +91,9 @@ class Gf_Channel_Resolver {
 		}
 		if ( $has( 'dclid' ) ) {
 			return 'Display & Video 360';
+		}
+		if ( $has( 'oppref' ) ) {
+			return 'ChatGPT Ads';
 		}
 
 		// 2. fbclid only when a paid medium is present.

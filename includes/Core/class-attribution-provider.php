@@ -81,6 +81,17 @@ class Attribution_Provider {
 	);
 
 	/**
+	 * Paid markers: captured and mapped like click IDs, but never a click ID for adapters or selection.
+	 *
+	 * @var string[]
+	 */
+	private const PAID_MARKER_FIELDS = array(
+		'gad_source',
+		'gad_campaignid',
+		'oppref',
+	);
+
+	/**
 	 * Legacy click ID aliases that we still read and populate.
 	 *
 	 * @var string[]
@@ -292,7 +303,7 @@ class Attribution_Provider {
 			$fields[] = 'lt_' . $field;
 		}
 
-		foreach ( self::CLICK_ID_FIELD_ALIASES as $field ) {
+		foreach ( array_merge( self::PAID_MARKER_FIELDS, self::CLICK_ID_FIELD_ALIASES ) as $field ) {
 			$fields[] = 'ft_' . $field;
 			$fields[] = 'lt_' . $field;
 		}
@@ -300,6 +311,7 @@ class Attribution_Provider {
 		return array_merge(
 			$fields,
 			self::CLICK_ID_FIELDS,
+			self::PAID_MARKER_FIELDS,
 			self::CLICK_ID_FIELD_ALIASES,
 			self::BROWSER_IDENTIFIER_FIELDS,
 			array(
@@ -461,7 +473,7 @@ class Attribution_Provider {
 	 * @return array
 	 */
 	private static function normalize_click_ids( array $data ) {
-		foreach ( self::CLICK_ID_FIELDS as $field ) {
+		foreach ( array_merge( self::CLICK_ID_FIELDS, self::PAID_MARKER_FIELDS ) as $field ) {
 			// Last touch wins so a returning visitor's new click replaces the first visit's copy.
 			if ( ! empty( $data[ 'lt_' . $field ] ) ) {
 				$data[ $field ] = $data[ 'lt_' . $field ];

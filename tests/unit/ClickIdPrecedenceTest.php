@@ -39,6 +39,21 @@ final class ClickIdPrecedenceTest extends TestCase {
 		$this->assertSame( 'TOP', Attribution_Provider::sanitize( array( 'gclid' => 'TOP', 'ft_gclid' => 'FT' ) )['gclid'] );
 	}
 
+	/** Paid markers (#231) are touch fields, not click IDs: mapped and mirrored top-level, never an adapter click ID. */
+	public function test_paid_markers_are_mapped_but_are_not_click_ids(): void {
+		$mapping = Attribution_Provider::get_field_mapping();
+		foreach ( array( 'gad_source', 'gad_campaignid', 'oppref' ) as $marker ) {
+			foreach ( array( $marker, 'ft_' . $marker, 'lt_' . $marker ) as $field ) {
+				$this->assertContains( $field, $mapping, $field );
+			}
+			$this->assertNotContains( $marker, Attribution_Provider::get_click_id_fields(), $marker );
+		}
+
+		$data = Attribution_Provider::sanitize( array( 'ft_gad_source' => '1', 'lt_gad_source' => '2', 'lt_oppref' => 'abc' ) );
+		$this->assertSame( '2', $data['gad_source'] );
+		$this->assertSame( 'abc', $data['oppref'] );
+	}
+
 	public function test_get_payload_reads_canonical_cookie_before_legacy(): void {
 		$cookies = $_COOKIE;
 		try {

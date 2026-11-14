@@ -265,6 +265,13 @@ final class WooOrderPrivacyTest extends TestCase {
 		$this->assertSame( $fixture['unmanaged_keys'], array_column( $order->meta, 'key' ), 'uninstall' );
 	}
 
+	public function test_paid_marker_order_meta_is_a_managed_attribution_key(): void {
+		foreach ( array( 'gad_source', 'gad_campaignid', 'oppref', 'ft_oppref', 'lt_gad_source' ) as $field ) {
+			$this->assertTrue( Woo_Order_Privacy::is_managed_meta_key( '_clicutcl_' . $field ), $field );
+			$this->assertTrue( Woo_Order_Privacy::is_attribution_meta_key( '_clicutcl_' . $field ), $field );
+		}
+	}
+
 	public function test_every_allowlisted_key_is_matched_by_the_query_pattern(): void {
 		$families = Woo_Order_Privacy::managed_key_families();
 		$this->assertGreaterThan( 61, count( $families['exact'] ) + count( $families['prefixes'] ), 'The allowlist is what overflowed the join limit.' );

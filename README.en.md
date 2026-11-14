@@ -76,6 +76,8 @@ Having code for an integration is not proof that it works in production. Current
 | Mailchimp | `mc_cid`, `mc_eid` |
 | Display & Video 360 | `dclid` |
 
+Paid markers are captured as touch fields too, but they are never the selected click ID: `gad_source` and `gad_campaignid` (Google Ads without a `gclid`, labelled `Google Ads`) and `oppref` (labelled `ChatGPT Ads`).
+
 **Integrations**
 
 - **Forms**: Contact Form 7, Elementor Forms (Pro), Fluent Forms, Formidable Forms, Forminator, Gravity Forms, MetForm, Ninja Forms, SureForms, WPForms

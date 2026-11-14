@@ -404,6 +404,9 @@ Canonical order metadata for external connectors:
   (`_clicutcl_lt_<id>` wins; the first-touch copy is only a fallback). Orders saved before 1.10.5
   can hold the first visit's value; order events prefer `_clicutcl_lt_<id>` for them. `ctwa_clid`
   and other provider names remain unchanged.
+- `_clicutcl_{gad_source,gad_campaignid,oppref}` (plus `_clicutcl_ft_*` / `_clicutcl_lt_*`) — paid markers
+  stored like click IDs. They label the channel (`gad_source` → `Google Ads`, `oppref` → `ChatGPT Ads`) but are
+  never the selected click ID, never sent to ad-platform adapters and never added to the Calendly stamp.
 - `_clicutcl_visitor_id` and `_clicutcl_session_id` — pseudonymous join keys when
   available.
 
