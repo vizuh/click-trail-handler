@@ -12,6 +12,7 @@
 
 T001, T002 → T003, T004. All → T005.
 
-## Deferred (outside this unit's allowed files)
+## Events (round 3; files outside the unit's original list, widened because the acceptance names events)
 
-- [ ] T006 Events: redact the `document.referrer` fallback (`marketing_trail.referrer`, `page_context.referrer`) in `assets/js/clicutcl-events.js`, and `landing_page` / `referrer` in `includes/server-side/class-event.php` (reuse `Attribution_Provider::redact_sensitive_query()`). Found by the round 1 review: on a second same-origin page with no stored referrer, `document.referrer` is the raw landing URL. Needs a scope decision; tracked as a follow-up, not done in this PR.
+- [x] T006 Events: the `document.referrer` fallback (`marketing_trail.referrer`, `page_context.referrer`) is redacted in `assets/js/clicutcl-events.js` via `window.ClickTrail.redactSensitiveQuery` (query dropped when attribution is not loaded), and `landing_page` / `referrer` / `page.referrer` in `includes/server-side/class-event.php` via `Attribution_Provider::redact_sensitive_query()`. Found by the round 1 review: on a second same-origin page with no stored referrer, `document.referrer` is the raw landing URL. Tests written first and seen failing: 2 Node VM cases (`tools/qa/sensitive-query.test.js`) and `SensitiveQueryRedactionTest::test_event_redacts_the_page_referrer_and_the_trail_envelope`. — `assets/js/clicutcl-events.js`, `assets/js/clicutcl-attribution.js`, `includes/server-side/class-event.php`
+- [x] T007 Docs: events paragraph. — `docs/guides/SECURITY-PRIVACY.md`, `docs/reference/HOOKS-REFERENCE.md`

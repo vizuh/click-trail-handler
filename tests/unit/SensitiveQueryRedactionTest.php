@@ -8,8 +8,10 @@
 declare(strict_types=1);
 
 require_once dirname( __DIR__, 2 ) . '/includes/Core/class-attribution-provider.php';
+require_once dirname( __DIR__, 2 ) . '/includes/server-side/class-event.php';
 
 use CLICUTCL\Core\Attribution_Provider;
+use CLICUTCL\Server_Side\Event;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -127,5 +129,44 @@ final class SensitiveQueryRedactionTest extends TestCase {
 
 		$this->assertSame( 'code=spring', $data['lt_campaign'] );
 		$this->assertSame( 'email?token=1', $data['lt_term'] );
+	}
+
+	public function test_event_redacts_the_page_referrer_and_the_trail_envelope(): void {
+		$url   = self::BASE . '/pricing/?utm_source=mail&utm_medium=email&email=jane%40example.com&token=SECRET123&phone=5551234';
+		$clean = self::BASE . '/pricing/?utm_source=mail&utm_medium=email';
+
+		// Browser page_context only: the raw document.referrer of a second same-origin page.
+		$event = Event::normalize(
+			array(
+				'event_name' => 'lead',
+				'event_id'   => 'e1',
+				'page'       => array( 'path' => '/quote/', 'referrer' => $url ),
+			)
+		);
+		$this->assertSame( $clean, $event['page']['referrer'] );
+		$this->assertSame( $clean, $event['marketing_trail']['referrer'] );
+
+		// Values the browser supplied in the trail envelope, and a cookie written by an older version.
+		$event = Event::normalize(
+			array(
+				'event_name'      => 'lead',
+				'event_id'        => 'e2',
+				'attribution'     => array( 'lt_landing_page' => $url, 'ft_referrer' => $url ),
+				'marketing_trail' => array( 'landing_page' => $url, 'referrer' => $url ),
+			)
+		);
+		$this->assertSame( $clean, $event['marketing_trail']['landing_page'] );
+		$this->assertSame( $clean, $event['marketing_trail']['referrer'] );
+
+		$event = Event::normalize(
+			array(
+				'event_name'  => 'lead',
+				'event_id'    => 'e3',
+				'attribution' => array( 'lt_landing_page' => $url, 'ft_referrer' => $url ),
+			)
+		);
+		$this->assertSame( $clean, $event['marketing_trail']['landing_page'] );
+		$this->assertSame( $clean, $event['marketing_trail']['referrer'] );
+		$this->assertStringNotContainsString( 'SECRET123', (string) wp_json_encode( $event['marketing_trail'] ) );
 	}
 }

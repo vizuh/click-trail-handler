@@ -11,10 +11,12 @@ const vm = require('vm');
 
 const ROOT = path.join(__dirname, '..', '..');
 const SOURCE = fs.readFileSync(path.join(ROOT, 'assets/js/clicutcl-attribution.js'), 'utf8');
+const EVENTS_SOURCE = fs.readFileSync(path.join(ROOT, 'assets/js/clicutcl-events.js'), 'utf8');
 const BASE = 'https://shop.example.test';
 const ISSUE_URL = BASE + '/pricing/?utm_source=mail&utm_medium=email&email=jane%40example.com&token=SECRET123&phone=5551234';
 const ISSUE_URL_REDACTED = BASE + '/pricing/?utm_source=mail&utm_medium=email';
 const SECRETS = ['jane', 'SECRET123', '5551234'];
+const EVENTS_CONFIG = { enabled: true, transportEnabled: true, eventsBatchUrl: BASE + '/wp-json/clicutcl/v2/events/batch', eventsToken: 'tok', iframeOrigins: [] };
 
 function phpSensitiveKeys() {
   const php = fs.readFileSync(path.join(ROOT, 'includes/Core/class-attribution-provider.php'), 'utf8');
@@ -23,9 +25,18 @@ function phpSensitiveKeys() {
   return [...match[1].matchAll(/'([^']+)'/g)].map((m) => m[1]);
 }
 
-function boot({ url, referrer = '', stored = null, config = {}, verifyData = null }) {
+// `events` (a clicutclEventsConfig object) also loads the real events script into the same page.
+// `attribution: false` loads the events script alone, as on a site with attribution switched off.
+function boot({ url, referrer = '', stored = null, config = {}, verifyData = null, events = null, attribution = true }) {
   const jar = Object.create(null);
   const writes = [];
+  const sent = [];
+  const listeners = { document: Object.create(null), window: Object.create(null) };
+  const bus = (name) => ({
+    addEventListener(type, fn) { if (typeof fn === 'function') (listeners[name][type] = listeners[name][type] || []).push(fn); },
+    removeEventListener() {},
+    dispatchEvent(event) { (listeners[name][event.type] || []).slice().forEach((fn) => fn(event)); return true; },
+  });
   if (stored) jar.attribution = encodeURIComponent(JSON.stringify(stored));
 
   const document = {
@@ -36,9 +47,7 @@ function boot({ url, referrer = '', stored = null, config = {}, verifyData = nul
     body: { appendChild() {} },
     head: { appendChild() {} },
     documentElement: {},
-    addEventListener() {},
-    removeEventListener() {},
-    dispatchEvent() { return true; },
+    ...bus('document'),
     querySelectorAll: () => [],
     querySelector: () => null,
     getElementsByTagName: () => [],
@@ -95,10 +104,11 @@ function boot({ url, referrer = '', stored = null, config = {}, verifyData = nul
     clearTimeout() {},
     setInterval: () => 0,
     clearInterval() {},
-    addEventListener() {},
-    removeEventListener() {},
-    dispatchEvent() { return true; },
-    fetch: () => Promise.resolve({ ok: true, json: () => (verifyData ? { data: verifyData } : {}) }),
+    ...bus('window'),
+    fetch: (target, init) => {
+      sent.push(String(target) + ' ' + String((init && init.body) || ''));
+      return Promise.resolve({ ok: true, json: () => (verifyData ? { data: verifyData } : {}) });
+    },
     CSS: { escape: (value) => String(value) },
     CustomEvent: class CustomEvent {
       constructor(type, options) { this.type = type; this.detail = options && options.detail; }
@@ -120,9 +130,15 @@ function boot({ url, referrer = '', stored = null, config = {}, verifyData = nul
   window.window = window;
   window.self = window;
 
-  vm.runInContext(SOURCE, vm.createContext(window), { filename: 'clicutcl-attribution.js' });
+  const context = vm.createContext(window);
+  if (events) {
+    window.clicutclEventsConfig = events;
+    window.ClickTrailConsent = { isResolved: () => true, isGranted: () => true, getState: () => ({ marketing: true, analytics: true }) };
+  }
+  if (attribution) vm.runInContext(SOURCE, context, { filename: 'clicutcl-attribution.js' });
+  if (events) vm.runInContext(EVENTS_SOURCE, context, { filename: 'clicutcl-events.js' });
   const data = window.ClickTrail ? window.ClickTrail.getData() : {};
-  return { data, writes, dataLayer, window };
+  return { data, writes, dataLayer, window, sent, document };
 }
 
 function assertNoSecrets(result, secrets = SECRETS) {
@@ -263,6 +279,28 @@ const tests = {
     assert.strictEqual(data.lt_landing_page, BASE + '/landing/');
     assert.strictEqual(data.ft_landing_page, 'https://other.example.test/x?utm_source=partner');
     assertNoSecrets({ data, writes: result.writes, dataLayer: result.dataLayer });
+  },
+
+  // Second page of the issue scenario: same-origin, so no referrer is stored and the events
+  // script falls back to the raw document.referrer, which is the full landing URL.
+  'events: a lead after a same-origin hop carries the landing URL without email, token and phone'() {
+    const result = boot({ url: BASE + '/quote/', referrer: ISSUE_URL, events: EVENTS_CONFIG });
+    result.document.dispatchEvent({ type: 'wpcf7mailsent', detail: { contactFormId: 12, unitTag: 'wpcf7-f12-p3-o1' } });
+    const lead = result.dataLayer.find((entry) => entry.event === 'lead');
+    assert.ok(lead, 'a lead was pushed');
+    assert.strictEqual(lead.marketing_trail.referrer, ISSUE_URL_REDACTED);
+    assert.strictEqual(result.sent.length, 1, 'the lead was sent to the collector');
+    assert.strictEqual(JSON.parse(result.sent[0].slice(result.sent[0].indexOf('{'))).events[0].page_context.referrer, ISSUE_URL_REDACTED);
+    assertNoSecrets({ data: lead, writes: result.sent, dataLayer: result.dataLayer });
+  },
+
+  'events: with attribution switched off the referrer query is dropped, never sent raw'() {
+    const result = boot({ url: BASE + '/quote/', referrer: ISSUE_URL, events: EVENTS_CONFIG, attribution: false });
+    result.document.dispatchEvent({ type: 'wpcf7mailsent', detail: { contactFormId: 12, unitTag: 'wpcf7-f12-p3-o1' } });
+    const lead = result.dataLayer.find((entry) => entry.event === 'lead');
+    assert.ok(lead, 'a lead was pushed');
+    assert.strictEqual(lead.marketing_trail.referrer, BASE + '/pricing/');
+    assertNoSecrets({ data: lead, writes: result.sent, dataLayer: result.dataLayer });
   },
 };
 

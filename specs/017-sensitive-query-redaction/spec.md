@@ -38,6 +38,14 @@ A visitor lands on `/pricing/?utm_source=mail&utm_medium=email&email=jane%40exam
 1. **Given** a verified cross-domain token, **Then** the merged `lt_landing_page` is the redacted URL, and landing page or referrer values carried by the verified token data are redacted.
 2. **Given** an `attribution` cookie written by an older version with a raw landing page or referrer, **Then** the script returns it redacted, and `Attribution_Provider::sanitize()` redacts it on the server (forms, orders, events), including when the key is the `first_landing_page` alias.
 
+### User Story 5 - Events (Priority: P1)
+
+**Acceptance Scenarios**:
+
+1. **Given** a second same-origin page whose `document.referrer` is the landing URL of scenario 1, **Then** the lead's `marketing_trail.referrer` and `page_context.referrer` are `/pricing/?utm_source=mail&utm_medium=email` (host kept), in the dataLayer push and in the collector request.
+2. **Given** the attribution script is not loaded, **Then** the events script sends the referrer without query or fragment.
+3. **Given** a payload whose `page.referrer`, `marketing_trail.landing_page`/`referrer` or cookie-derived `lt_`/`ft_` landing page and referrer carry the raw URL, **Then** `Event::normalize()` stores them redacted, before sanitizing, so the retry queue never holds the raw URL.
+
 ### User Story 4 - Filterable list (Priority: P2)
 
 **Acceptance Scenarios**:
@@ -52,11 +60,12 @@ A visitor lands on `/pricing/?utm_source=mail&utm_medium=email&email=jane%40exam
 - **FR-003**: Kept parameters keep order and raw encoding. The `?` is dropped when none remain. The fragment is dropped.
 - **FR-004**: Applied before storage at `applyTouch` (first and last touch), `getExternalReferrerDetails`, the cross-domain token merge, `PendingCapture`, and when stored values are read (`sanitizeAttributionData`, `Attribution_Provider::sanitize`).
 - **FR-005**: The list is `Attribution_Provider::SENSITIVE_QUERY_KEYS`, filtered by `clicutcl_sensitive_query_keys`, localized as `clicutcl_config.sensitiveQueryKeys`. The script keeps the same default for a page without the localized config.
-- **FR-006**: No cookie name, option name, REST route or JSON shape changes.
+- **FR-006**: The events script redacts `page_context.referrer` and the `marketing_trail` `landing_page`/`referrer` (including the `document.referrer` fallback) with `window.ClickTrail.redactSensitiveQuery`, and drops the query when that function is absent. `Server_Side\Event::normalize()` redacts `page.referrer` and the trail `landing_page`/`referrer` before sanitizing.
+- **FR-007**: No cookie name, option name, REST route or JSON shape changes.
 
 ## Out of scope
 
-- `clicutcl-events.js` still sends the raw `document.referrer` in `page_context.referrer` and as a fallback (follow-up).
+- Event rows and queue entries already written are not rewritten.
 - Rewriting order meta or event rows already stored.
 - Matching on values (an address in a parameter named `q`), and names outside the list (`jwt`, `reset`); sites add those with the filter.
 - Last-touch replacement (#230, WP-11) and paid markers (#231, WP-12), which share `applyTouch` but are separate behaviour.

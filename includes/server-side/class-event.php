@@ -7,9 +7,14 @@
 
 namespace CLICUTCL\Server_Side;
 
+use CLICUTCL\Core\Attribution_Provider;
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
+
+// The redaction helper lives here; load it so the event can be built without the autoloader (queue workers, tests).
+require_once __DIR__ . '/../Core/class-attribution-provider.php';
 
 /**
  * Class Event
@@ -111,6 +116,11 @@ class Event {
 		$event['identity']    = isset( $data['identity'] ) && is_array( $data['identity'] ) ? $data['identity'] : array();
 		$event['consent']     = isset( $data['consent'] ) && is_array( $data['consent'] ) ? $data['consent'] : array();
 		$event['meta']        = isset( $data['meta'] ) && is_array( $data['meta'] ) ? $data['meta'] : array();
+
+		if ( isset( $event['page']['referrer'] ) && is_scalar( $event['page']['referrer'] ) ) {
+			// The browser sends the raw document.referrer, which can be a landing URL carrying an email or token (#232).
+			$event['page']['referrer'] = Attribution_Provider::redact_sensitive_query( (string) $event['page']['referrer'] );
+		}
 
 		if ( empty( $event['identity'] ) && ! empty( $event['meta']['identity'] ) && is_array( $event['meta']['identity'] ) ) {
 			$event['identity'] = $event['meta']['identity'];
@@ -222,8 +232,8 @@ class Event {
 			'site_id'        => self::first_value( $provided['site_id'] ?? '', $meta['site_id'] ?? '' ),
 			'event_name'     => $trail_event_name,
 			'occurred_at'    => self::first_value( $provided['occurred_at'] ?? '', gmdate( 'Y-m-d\TH:i:s\Z', $event['timestamp'] ) ),
-			'landing_page'   => self::first_value( $provided['landing_page'] ?? '', self::attribution_value( $attribution, 'landing_page' ), $event['page']['path'] ?? '' ),
-			'referrer'       => self::first_value( $provided['referrer'] ?? '', self::attribution_value( $attribution, 'referrer' ), $event['page']['referrer'] ?? '' ),
+			'landing_page'   => self::first_url( $provided['landing_page'] ?? '', self::attribution_value( $attribution, 'landing_page' ), $event['page']['path'] ?? '' ),
+			'referrer'       => self::first_url( $provided['referrer'] ?? '', self::attribution_value( $attribution, 'referrer' ), $event['page']['referrer'] ?? '' ),
 			'source'         => self::first_value( $provided['source'] ?? '', self::attribution_value( $attribution, 'source' ) ),
 			'medium'         => self::first_value( $provided['medium'] ?? '', self::attribution_value( $attribution, 'medium' ) ),
 			'campaign'       => self::first_value( $provided['campaign'] ?? '', self::attribution_value( $attribution, 'campaign' ) ),
@@ -272,6 +282,22 @@ class Event {
 			}
 		}
 		return '';
+	}
+
+	/**
+	 * First non-empty URL value with sensitive query parameters removed (#232).
+	 *
+	 * Redaction runs before sanitizing: sanitize_text_field() strips percent-encoded octets,
+	 * which would turn an encoded parameter name into one that no longer matches the list.
+	 *
+	 * @param mixed ...$values Candidate URLs, highest priority first.
+	 * @return string
+	 */
+	private static function first_url( ...$values ) {
+		foreach ( $values as $i => $value ) {
+			$values[ $i ] = is_scalar( $value ) ? Attribution_Provider::redact_sensitive_query( (string) $value ) : '';
+		}
+		return self::first_value( ...$values );
 	}
 
 	/**

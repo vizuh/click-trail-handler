@@ -1477,7 +1477,10 @@
                 // The confirmed WhatsApp reference code (without the CT- prefix) for the stored
                 // attribution, or '' when none is registered or consent is missing.
                 getWhatsAppRef: () => WhatsAppRef.current(),
-                decorateEmbedUrl: (url) => Decorator.decorateEmbedUrl(url)
+                decorateEmbedUrl: (url) => Decorator.decorateEmbedUrl(url),
+                // The same redaction the stored landing page and referrer go through (#232); the
+                // events script uses it for the raw document.referrer it sends.
+                redactSensitiveQuery: (url) => redactSensitiveQuery(url)
             };
             window.ClickTrailIdentity = withIdentity ? Identity.get() : null;
             window.ClickTrailSession = withIdentity ? SessionManager.getPayload() : null;

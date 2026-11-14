@@ -148,7 +148,7 @@ Purpose:
 
 Notes:
 
-- passed to `assets/js/clicutcl-attribution.js` as `clicutcl_config.sensitiveQueryKeys` and used by `Attribution_Provider::sanitize()` for `ft_`/`lt_` landing page and referrer values read from an existing cookie
+- passed to `assets/js/clicutcl-attribution.js` as `clicutcl_config.sensitiveQueryKeys` and used by `Attribution_Provider::sanitize()` for `ft_`/`lt_` landing page and referrer values read from an existing cookie; `Server_Side\Event::normalize()` applies the same list to `page.referrer` and the marketing trail `landing_page` and `referrer`
 - a parameter is removed when its lowercased name equals an entry or ends with `_<entry>`; `email` removes `email` and `user_email`, not `emailer`
 - `utm_*` parameters, captured click IDs and paid markers are never removed, even if listed; the fragment is always dropped
 - defaults: `email`, `e-mail`, `mail`, `phone`, `tel`, `mobile`, `token`, `access_token`, `id_token`, `auth`, `password`, `pass`, `pwd`, `secret`, `key`, `api_key`, `apikey`, `code`, `otp`, `session`, `sessionid`, `sid`, `signature`, `sig`, `nonce`, `ssn`, `card`, `iban`

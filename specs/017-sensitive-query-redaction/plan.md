@@ -31,4 +31,6 @@ AGENTS.md storage/cookie trigger: `docs/guides/SECURITY-PRIVACY.md` (done). Hook
 | localize `sensitiveQueryKeys` | `includes/class-clicutcl-core.php` |
 | Node VM test, wired into `test:attribution`; one expectation updated | `tools/qa/sensitive-query.test.js`, `tools/qa/payment-referrer.test.js`, `package.json` |
 | PHPUnit | `tests/unit/SensitiveQueryRedactionTest.php`, `tests/unit/PaymentReturnAttributionTest.php` |
+| events path (round 3; files outside the original list, widened to meet the acceptance "events" clause): redact `document.referrer` and expose `ClickTrail.redactSensitiveQuery` | `assets/js/clicutcl-events.js`, `assets/js/clicutcl-attribution.js` |
+| events path server side: `first_url()` and `page.referrer` redaction; loads `Attribution_Provider` itself | `includes/server-side/class-event.php` |
 | docs | `docs/guides/SECURITY-PRIVACY.md`, `docs/reference/HOOKS-REFERENCE.md` |

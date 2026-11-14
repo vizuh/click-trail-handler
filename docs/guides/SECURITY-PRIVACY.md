@@ -234,8 +234,13 @@ so the value is removed before it is written, not at each destination.
   it reads stored data, and `Attribution_Provider::sanitize()` redacts them on every server read (forms, orders, events),
   so those values stop reaching new destinations after the update. Order meta and event rows already written are not
   rewritten.
-- Boundaries: `clicutcl-events.js` still sends the raw `document.referrer` as `page_context.referrer` and as the fallback
-  when no stored referrer exists; that script is outside this change and tracked as a follow-up. A parameter whose name is not on the list (for example `jwt` or `reset`) is stored; add it with
+- Events: when no referrer is stored (a second same-origin page), `clicutcl-events.js` falls back to `document.referrer`,
+  which is the full landing URL. That value is redacted in `page_context.referrer` and `marketing_trail.referrer` with the
+  attribution script's own function (`window.ClickTrail.redactSensitiveQuery`); if the attribution script is not loaded the
+  query and fragment are dropped instead. `Event::normalize()` redacts `page.referrer` and the marketing trail
+  `landing_page` and `referrer` again before the event is queued or sent, so a payload from an older cached script is
+  covered too. Events already queued or sent are not rewritten.
+- Boundaries: a parameter whose name is not on the list (for example `jwt` or `reset`) is stored; add it with
   the filter. This is key-name matching, not value inspection: an address in a parameter named `q` is stored.
 
 ## WhatsApp Reference Codes

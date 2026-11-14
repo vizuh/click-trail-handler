@@ -212,7 +212,7 @@
                 page_context: {
                     path: window.location.pathname || '/',
                     title: document.title || '',
-                    referrer: document.referrer || '',
+                    referrer: this.redactUrl(document.referrer),
                     viewport_w: window.innerWidth || 0,
                     viewport_h: window.innerHeight || 0
                 },
@@ -437,6 +437,16 @@
             return Object.keys(out).length ? out : null;
         }
 
+        // Removes sensitive query parameters (#232) with the attribution script's own redaction.
+        // Without it (attribution switched off) the query and fragment are dropped: fail closed.
+        redactUrl(value) {
+            const url = String(value === null || value === undefined ? '' : value);
+            if (window.ClickTrail && typeof window.ClickTrail.redactSensitiveQuery === 'function') {
+                return window.ClickTrail.redactSensitiveQuery(url);
+            }
+            return url.split(/[?#]/)[0];
+        }
+
         getAttributionPayload() {
             if (window.ClickTrail && typeof window.ClickTrail.getData === 'function') {
                 const data = window.ClickTrail.getData();
@@ -455,6 +465,7 @@
                 return text.indexOf(name) === 0 ? text : name + text;
             };
             const first = (...values) => values.map((value) => this.safeText(value, 255)).find(Boolean) || '';
+            const redact = (value) => this.redactUrl(value);
             const touch = (key) => first(
                 eventData[key],
                 attribution['lt_' + key],
@@ -491,8 +502,8 @@
                 site_id: first(supplied.site_id, eventData.site_id, window.clicutclEventsConfig && window.clicutclEventsConfig.siteId),
                 event_name: first(supplied.event_name, normalizedEventName),
                 occurred_at: first(supplied.occurred_at, eventData.occurred_at, eventData.event_time, new Date().toISOString()),
-                landing_page: first(supplied.landing_page, touch('landing_page'), window.location.pathname),
-                referrer: first(supplied.referrer, touch('referrer'), document.referrer),
+                landing_page: first(redact(supplied.landing_page), redact(touch('landing_page')), window.location.pathname),
+                referrer: first(redact(supplied.referrer), redact(touch('referrer')), redact(document.referrer)),
                 source: first(supplied.source, touch('source')),
                 medium: first(supplied.medium, touch('medium')),
                 campaign: first(supplied.campaign, touch('campaign')),
