@@ -40,6 +40,11 @@ class SiteHealth {
 			'test'  => array( $this, 'test_cache_conflicts' ),
 		);
 
+		$tests['direct']['clicutcl_flyingpress_delay'] = array(
+			'label' => __( 'ClickTrail: FlyingPress Delay JavaScript', 'click-trail-handler' ),
+			'test'  => array( $this, 'test_flyingpress_delay' ),
+		);
+
 		$tests['direct']['clicutcl_js_seen'] = array(
 			'label' => __( 'ClickTrail: Admin diagnostics script heartbeat', 'click-trail-handler' ),
 			'test'  => array( $this, 'test_js_seen' ),
@@ -101,6 +106,29 @@ class SiteHealth {
 				__( 'Detected: %s. Full-page caching can make hidden field values stale. Enable ClickTrail\'s client-side capture fallback.', 'click-trail-handler' ),
 				esc_html( implode( ', ', $found ) )
 			),
+		);
+	}
+
+	/**
+	 * Warns when FlyingPress is active: its Delay JavaScript needs ClickTrail keywords excluded.
+	 *
+	 * @return array Site Health result.
+	 */
+	public function test_flyingpress_delay(): array {
+		$warning = Setup_Detector::flyingpress_delay_warning();
+
+		if ( '' === $warning ) {
+			return array(
+				'status'      => 'good',
+				'label'       => __( 'FlyingPress is not active', 'click-trail-handler' ),
+				'description' => __( 'No FlyingPress Delay JavaScript exclusion is needed.', 'click-trail-handler' ),
+			);
+		}
+
+		return array(
+			'status'      => 'recommended',
+			'label'       => __( 'FlyingPress may delay ClickTrail scripts', 'click-trail-handler' ),
+			'description' => esc_html( $warning ),
 		);
 	}
 

@@ -73,6 +73,8 @@ Having code for an integration is not proof that it works in production. Current
 * Mailchimp: `mc_cid`, `mc_eid`
 * Display & Video 360: `dclid`
 
+Paid markers are captured as touch fields too, but are never the selected click ID: `gad_source` and `gad_campaignid` (Google Ads without a `gclid`, labelled `Google Ads`) and `oppref` (labelled `ChatGPT Ads`).
+
 = Integrations =
 
 * **Forms**: Contact Form 7, Elementor Forms (Pro), Fluent Forms, Formidable Forms, Forminator, Gravity Forms, MetForm, Ninja Forms, SureForms, WPForms
@@ -166,6 +168,10 @@ No. WooCommerce is one documented conversion surface; ClickTrail also has lead-f
 = What happens if my site uses aggressive caching? =
 
 ClickTrail renders form attribution fields empty on the server, so cached form pages carry no visitor's data and do not need to be excluded from the page cache; its client-side script fills the visitor's own values after load, and the submit-time cookie corrects them. Minify, combine, defer and delay-JS features are handled too: every ClickTrail script tag carries `nowprocket data-no-optimize="1" data-no-defer="1" data-noptimize="1" data-cfasync="false"` and the scripts are listed on the exclusion filters of WP Rocket (`rocket_delay_js_exclusions`, `rocket_exclude_defer_js`, `rocket_exclude_js`), LiteSpeed Cache (`litespeed_optimize_js_excludes`, `litespeed_optm_js_defer_exc`, `litespeed_optm_gm_js_exc`), Autoptimize (`autoptimize_filter_js_exclude`), Perfmatters (`perfmatters_delay_js_exclusions`, `perfmatters_defer_js_exclusions`, `perfmatters_minify_js_exclusions`), SiteGround Speed Optimizer (`sgo_js_minify_exclude`, `sgo_javascript_combine_exclude`, `sgo_js_async_exclude`), and FlyingPress JS minification (`flying_press_exclude_from_minify:js`). To check: view the page source, confirm every `clicutcl-*.js` tag carries the attributes, and confirm `window.ClickTrail` is defined before submitting a form. Delay-JS features run scripts on the first interaction (WP Rocket lists `keydown`, `mousemove`, `touchstart`, `scroll`, `click`, `input`, `onsubmit`), so a keyboard-only submit still runs them, too late for the landing touch. FlyingPress documents no attribute and no delay or defer filter, only the minification filter above: add `clicutcl` and `clicktrail-consent-mode` to its exclusion field. Source-present / runtime-unverified.
+
+= Do visitors with JavaScript disabled or blocked get attribution? =
+
+No. Only the browser script writes the attribution cookie, and no PHP code reads UTMs or click IDs from the URL, so a lead from a visitor with JavaScript disabled or blocked (strict blockers, some corporate proxies) has no attribution, unless an earlier visit with JavaScript left the cookie. ClickTrail renders form fields empty on the server so cached pages never carry one visitor's values to another (#152); the trade-off is that no-JS visitors are not covered. The opt-in filter `clicutcl_render_server_attribution_values` does not change that: it only writes the values of an existing cookie into form HTML, on sites without a page cache, and never captures anything from the URL.
 
 = Do I need to add hidden fields to every form? =
 

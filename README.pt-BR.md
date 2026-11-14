@@ -44,6 +44,7 @@ Quando o consentimento é obrigatório, nada é armazenado até o visitante acei
 - Não prova qual clique causou uma venda e não decide qual canal merece a receita.
 - Não resolve a identidade de uma pessoa entre dispositivos.
 - Não é um painel de atribuição, uma plataforma hospedada de GTM server-side, um gestor de leads nem um otimizador de anúncios. Ele trabalha ao lado do GA4 e do GTM. Para call tracking, lead scoring ou otimização de investimento em anúncios, combine-o com uma ferramenta especializada.
+- Não captura atribuição de visitantes com JavaScript desativado ou bloqueado. Só o script do navegador grava o cookie de atribuição, e nenhum código PHP lê UTMs ou IDs de clique da URL. Por isso, um lead desse visitante fica sem atribuição, a menos que uma visita anterior tenha deixado o cookie. Isso mantém seguras as páginas de formulário em cache (#152). O filtro opcional `clicutcl_render_server_attribution_values` apenas escreve nos formulários os valores de um cookie que já existe, em sites sem cache de página; ele não captura nada da URL.
 - Não instala pixels de anúncios. Meta Pixel, Google tag, TikTok Pixel, LinkedIn Insight Tag, Pinterest Tag e Reddit Pixel continuam com você, normalmente via GTM.
 - A entrega server-side envia JSON para o endpoint que você configurar. Os adaptadores com nome de Meta, Google Ads / GA4, LinkedIn, Pinterest e TikTok existem no código, mas ainda não verificamos se algum provedor aceita esses envios de ponta a ponta. O Reddit é um destino apenas de repasse (relay-only).
 - Ainda não verificamos um agendamento real no Calendly de ponta a ponta.
@@ -67,6 +68,8 @@ Ter código para uma integração não prova que ela funciona em produção. O s
 | Reddit | `rdt_cid` |
 | Mailchimp | `mc_cid`, `mc_eid` |
 | Display & Video 360 | `dclid` |
+
+Marcadores de mídia paga também são capturados como campos do toque, mas nunca viram o ID de clique selecionado: `gad_source` e `gad_campaignid` (Google Ads sem `gclid`, classificado como `Google Ads`) e `oppref` (classificado como `ChatGPT Ads`).
 
 **Integrações**
 
