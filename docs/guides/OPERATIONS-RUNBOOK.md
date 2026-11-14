@@ -177,6 +177,7 @@ Typical fixes:
 - leave client-side fallback enabled
 - leave dynamic-content watching enabled
 - exclude ClickTrail scripts from aggressive delay or merge rules
+- FlyingPress: it has no filter for Delay JavaScript, so ClickTrail cannot exclude itself. With FlyingPress active, Site Health ("ClickTrail: FlyingPress Delay JavaScript", recommended) and the Diagnostics conflict scan warn and name the keywords. Add `clicutcl` and `clicktrail-consent-mode` under FlyingPress > Optimization > JavaScript > Delay JavaScript > Exclude keywords, then purge the cache. The warning shows whenever FlyingPress is active because its Delay JavaScript setting and exclusion list are not readable; it does not clear after you add the keywords
 - purge cache and retest
 
 ## 2. Consent prevents attribution or events
@@ -386,6 +387,7 @@ Diagnostics conflict scan calls:
 It is designed for deterministic local checks such as:
 
 - cache or optimization plugins detected while client fallback is off
+- FlyingPress active (warning: add the Delay JavaScript exclusion keywords `clicutcl` and `clicktrail-consent-mode`)
 - active call tracking scripts detected (informational only; ClickTrail already skips `tel:` link decoration automatically)
 - Woo storefront events enabled without WooCommerce
 - sGTM mode enabled without a container or loader source

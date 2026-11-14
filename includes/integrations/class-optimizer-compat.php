@@ -61,6 +61,16 @@ class Optimizer_Compat {
 	);
 
 	/**
+	 * Keywords to paste into FlyingPress > Delay JavaScript > exclusions.
+	 *
+	 * FlyingPress matches partial keywords against the whole `<script>` tag, so
+	 * `clicutcl` covers the four files and `clicktrail-consent-mode` the inline snippet.
+	 *
+	 * @var string[]
+	 */
+	public const FLYINGPRESS_DELAY_KEYWORDS = array( 'clicutcl', 'clicktrail-consent-mode' );
+
+	/**
 	 * Plugin folder of the standard install, kept as an extra path when the real folder differs.
 	 *
 	 * @var string

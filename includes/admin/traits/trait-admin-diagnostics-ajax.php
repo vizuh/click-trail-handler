@@ -836,6 +836,17 @@ trait Admin_Diagnostics_Ajax_Trait {
 			);
 		}
 
+		$flyingpress_warning = Setup_Detector::flyingpress_delay_warning();
+		if ( '' !== $flyingpress_warning ) {
+			$findings[] = array(
+				'severity'       => 'warn',
+				'title'          => __( 'FlyingPress detected — check Delay JavaScript exclusions', 'click-trail-handler' ),
+				'detail'         => $flyingpress_warning,
+				'target_tab'     => 'capture',
+				'target_section' => 'capture-general',
+			);
+		}
+
 		if ( ! empty( $server_effective['enabled'] ) && empty( $server_effective['endpoint_url'] ) ) {
 			$findings[] = array(
 				'severity' => 'high',
