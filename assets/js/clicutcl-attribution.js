@@ -2637,6 +2637,15 @@
         }
 
         applyTouch(prefix, data, fields, timestamp) {
+            if (prefix === 'lt') {
+                // A new last touch replaces the old one: drop every touch field and click ID it lacks.
+                // Top-level click IDs and click_id_history are not touched here.
+                TOUCH_FIELD_KEYS.concat(['channel', 'referrer'], CLICK_ID_KEYS).forEach((key) => {
+                    delete data[prefix + '_' + key];
+                });
+                // Legacy alias of lt_sccid (normalized to lt_sccid on read).
+                delete data.lt_sc_click_id;
+            }
             // Apply mapped fields to data with prefix
             for (const [key, val] of Object.entries(fields)) {
                 if (val) data[prefix + '_' + key] = val;
