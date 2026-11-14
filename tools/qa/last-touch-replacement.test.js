@@ -40,9 +40,37 @@ const PAID_TOUCH = {
   wbraid: 'W1',
 };
 
-function boot({ referrer = '', search = '', stored = PAID_TOUCH, requireConsent = false }) {
-  const jar = Object.create(null);
-  if (stored) jar.attribution = encodeURIComponent(JSON.stringify(stored));
+const newStorage = () => {
+  const values = Object.create(null);
+  return {
+    getItem: (key) => (key in values ? values[key] : null),
+    setItem: (key, value) => { values[key] = String(value); },
+    removeItem: (key) => { delete values[key]; },
+    key: (index) => Object.keys(values)[index] || null,
+    get length() { return Object.keys(values).length; },
+  };
+};
+
+// `jar` is shared between boots of different hosts; `localStorage` is per origin.
+function boot({
+  referrer = '',
+  search = '',
+  stored = PAID_TOUCH,
+  requireConsent = false,
+  site = SITE,
+  cookieDomain = '',
+  jar = new Map(),
+  localStorage = newStorage(),
+  extraCookies = {},
+}) {
+  const host = new URL(site).hostname;
+  // Cookie jar entries are keyed `name|domain`; a cookie without `domain=` is host-only (`host:<host>`).
+  if (stored && !jar.size) jar.set('attribution|' + (cookieDomain || 'host:' + host), encodeURIComponent(JSON.stringify(stored)));
+  Object.entries(extraCookies).forEach(([name, value]) => jar.set(name + '|' + (cookieDomain || 'host:' + host), value));
+  const visible = () => [...jar.entries()].filter(([key]) => {
+    const scope = key.split('|')[1];
+    return scope.startsWith('host:') ? scope === 'host:' + host : host === scope || host.endsWith('.' + scope);
+  });
 
   const document = {
     readyState: 'complete',
@@ -61,34 +89,25 @@ function boot({ referrer = '', search = '', stored = PAID_TOUCH, requireConsent 
     createElement: () => ({ setAttribute() {}, appendChild() {}, style: {} }),
   };
   Object.defineProperty(document, 'cookie', {
-    get: () => Object.keys(jar).map((name) => name + '=' + jar[name]).join('; '),
+    get: () => visible().map(([key, value]) => key.split('|')[0] + '=' + value).join('; '),
     set: (raw) => {
       const [pair, ...attrs] = String(raw).split(';');
       const split = pair.indexOf('=');
       if (split === -1) return;
       const name = pair.slice(0, split).trim();
       const value = pair.slice(split + 1);
-      if (value === '' || /max-age=0|expires=thu, 01 jan 1970/i.test(attrs.join(';'))) delete jar[name];
-      else jar[name] = value;
+      const domain = attrs.join(';').match(/domain=([^;]+)/i);
+      const key = name + '|' + (domain ? domain[1].trim().toLowerCase() : 'host:' + host);
+      if (value === '' || /max-age=0|expires=thu, 01 jan 1970/i.test(attrs.join(';'))) jar.delete(key);
+      else jar.set(key, value);
     },
   });
 
-  const storage = () => {
-    const values = Object.create(null);
-    return {
-      getItem: (key) => (key in values ? values[key] : null),
-      setItem: (key, value) => { values[key] = String(value); },
-      removeItem: (key) => { delete values[key]; },
-      key: (index) => Object.keys(values)[index] || null,
-      get length() { return Object.keys(values).length; },
-    };
-  };
-
-  const location = new URL(SITE + search);
+  const location = new URL(site + search);
   const window = {
     document,
-    localStorage: storage(),
-    sessionStorage: storage(),
+    localStorage,
+    sessionStorage: newStorage(),
     location: {
       href: location.href,
       search: location.search,
@@ -127,6 +146,7 @@ function boot({ referrer = '', search = '', stored = PAID_TOUCH, requireConsent 
       cookieDays: 90,
       requireConsent,
       ignoredReferrerHosts: ['paypal.com'],
+      cookieDomain,
     },
   };
   window.window = window;
@@ -224,6 +244,33 @@ const tests = {
   'a same-site referrer changes nothing'() {
     const data = boot({ referrer: SITE + 'pricing/' });
     assert.deepStrictEqual(pick(data, 'lt_'), pick(PAID_TOUCH, 'lt_'));
+  },
+
+  'a sibling subdomain does not bring the old last touch back from its own localStorage (cookieDomain)'() {
+    const jar = new Map();
+    jar.set('attribution|example.test', encodeURIComponent(JSON.stringify(PAID_TOUCH)));
+    const www = 'https://www.example.test/';
+    const shop = 'https://shop.example.test/';
+    const shared = () => JSON.parse(decodeURIComponent(jar.get('attribution|example.test')));
+    const wwwStorage = newStorage();
+    const shared_opts = { cookieDomain: 'example.test', jar, stored: null };
+    // www. reads the paid touch, which mirrors it into www.'s localStorage.
+    boot({ ...shared_opts, site: www, localStorage: wwwStorage });
+    // shop. gets a new touch and rewrites the shared cookie.
+    boot({ ...shared_opts, site: shop, search: '?utm_source=newsletter&utm_medium=email' });
+    assert.deepStrictEqual(
+      ltKeys(shared()),
+      ['lt_channel', 'lt_landing_page', 'lt_medium', 'lt_source', 'lt_touch_timestamp'],
+      'shared cookie kept the old last touch'
+    );
+    // www. direct visit: must read the new touch, not its stale mirror.
+    const direct = boot({ ...shared_opts, site: www, localStorage: wwwStorage });
+    assert.deepStrictEqual(ltKeys(direct), ltKeys(shared()), 'www. read the stale mirror');
+    assert.ok(!('lt_campaign' in direct) && !('lt_gclid' in direct), 'stale lt_campaign or lt_gclid came back');
+    // www. save (a new _fbp forces one) must not write the stale keys back into the shared cookie.
+    boot({ ...shared_opts, site: www, localStorage: wwwStorage, extraCookies: { _fbp: 'fb.1.1700000000000.123' } });
+    assert.ok(!('lt_campaign' in shared()) && !('lt_gclid' in shared()), 'stale keys written back to the shared cookie');
+    assert.strictEqual(shared().lt_source, 'newsletter');
   },
 
   'denied consent still clears stored attribution'() {

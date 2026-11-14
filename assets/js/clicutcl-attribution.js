@@ -1028,7 +1028,25 @@
             const ssObj = !cookieObj && !lsObj ? this.getSessionData() : null;
 
             // Cookie takes precedence; sessionStorage is last resort
-            return withHistory(normalizeStoredAttribution(Object.assign({}, ssObj || {}, lsObj || {}, cookieObj || {})));
+            if (!(cookieObj && typeof cookieObj === 'object' && lsObj)) {
+                return withHistory(normalizeStoredAttribution(Object.assign({}, ssObj || {}, lsObj || {}, cookieObj || {})));
+            }
+
+            // The last touch is one unit: merging it key by key brings back lt_ keys a newer touch deleted
+            // (a sibling subdomain's own localStorage mirror still holds them while the cookie is shared).
+            // Take every lt_ key from the copy with the newest lt_touch_timestamp; the cookie wins a tie.
+            const cookieCopy = normalizeStoredAttribution(cookieObj);
+            const lsCopy = normalizeStoredAttribution(lsObj);
+            const stamp = (copy) => Date.parse(copy.lt_touch_timestamp) || 0;
+            const newest = stamp(lsCopy) > stamp(cookieCopy) ? lsCopy : cookieCopy;
+            const merged = Object.assign({}, lsCopy, cookieCopy);
+            Object.keys(merged).forEach((key) => {
+                if (key.indexOf('lt_') === 0) delete merged[key];
+            });
+            Object.keys(newest).forEach((key) => {
+                if (key.indexOf('lt_') === 0) merged[key] = newest[key];
+            });
+            return withHistory(normalizeStoredAttribution(merged));
         },
 
         saveData: function (data) {
