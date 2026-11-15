@@ -1,8 +1,8 @@
-=== ClickTrail – UTM Tracking & Lead Source for Forms & WooCommerce ===
+=== ClickTrail – UTM & Click ID Tracking (gclid) for Forms & WooCommerce ===
 Contributors: hugoc
 Author: Vizuh
 Author URI: https://vizuh.com
-Tags: utm tracking, gclid, lead source, attribution, woocommerce
+Tags: utm tracking, gclid, attribution, utm, woocommerce
 Requires at least: 6.5
 Tested up to: 7.1
 Stable tag: 1.14.0
@@ -11,7 +11,7 @@ WC requires at least: 10.4.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Saves UTMs and ad click IDs (gclid, fbclid) to every form entry and WooCommerce order. First and last touch, cache-safe, consent-aware.
+Saves UTMs and ad click IDs (gclid, fbclid) to form entries and WooCommerce orders. First and last touch attribution, cache-safe and consent-aware.
 
 == Description ==
 
@@ -30,6 +30,12 @@ Pick the path that matches your site.
 * **GTM or server-side GTM**: turn on Capture, Events, and Delivery. Events go to the `dataLayer`, and ClickTrail can send canonical JSON to an endpoint you set.
 
 Then place one test order or send one test form, and look at what was stored. The [use-case guide](https://github.com/vizuh/click-trail-handler/blob/main/docs/guides/USE-CASES.md) and [tutorials](https://github.com/vizuh/click-trail-handler/blob/main/docs/tutorials/README.md) walk through each path.
+
+= Common setups =
+
+* **Google Ads click IDs, saved for a later upload**: ClickTrail stores `gclid`, `gbraid` and `wbraid` on the first touch and the last touch. It writes them to the `ct_*` fields on a form (Fluent Forms adds those fields on its own) and to the WooCommerce order, so you can upload the values later. ClickTrail does not send them to Google Ads. A visit that arrives with `gad_source` and no `gclid` is labelled Google Ads. `gad_source` is never used as the click ID.
+* **Cached sites**: attribution fields are rendered empty and filled in the visitor's browser, so a cached form page does not need its own cache exclusion. Minify and delay exclusions are listed under Integrations and are source-present / runtime-unverified. FlyingPress still needs a manual exclusion, and Site Health warns when it is active.
+* **Sites that require consent**: when your settings require consent, nothing is stored until the visitor agrees. ClickTrail follows Cookiebot and Complianz decisions, including a change the visitor makes on the page. On withdrawal it clears its storage and removes the parameters it added to links. Compliance still depends on your legal requirements and your settings.
 
 = What it does =
 
@@ -192,6 +198,38 @@ Consent mode is optional in configuration. When enabled, ClickTrail applies the 
 = Can I keep using my existing consent platform? =
 
 Yes. ClickTrail can listen to its own banner, Cookiebot, OneTrust, Complianz, GTM, or a custom source. You do not need to replace an existing CMP just to use the plugin.
+
+= How do I track UTM parameters in Contact Form 7? =
+
+Add `[hidden ct_ft_source]`, `[hidden ct_lt_campaign]` or `[hidden ct_gclid]` to the form, or `[ct_gclid]` in the mail. ClickTrail fills the `ct_*` tags the form or its mail references. It does not add tags you did not write. Fluent Forms is the integration that adds hidden fields on its own.
+
+= How do I capture UTM parameters in Gravity Forms? =
+
+Add a Hidden field, tick "Allow field to be populated dynamically", and set the parameter name to a ClickTrail key such as `ct_lt_source` or `ct_gclid`. Gravity Forms also gets a channel label, nine `{clicutcl_*}` merge tags, and a per-form Attribution Tracking switch.
+
+= How do I track UTM parameters in WPForms? =
+
+Add a Hidden field with the CSS class `ct_<key>`, for example `ct_gclid`. WPForms Lite has no Hidden field: use a Single Line Text field with that CSS class and hide it with CSS. A label of exactly `ct_<key>` also matches. ClickTrail does not add the field for you.
+
+= How do I pass UTM parameters to Elementor forms? =
+
+In Elementor Forms (Pro), add a hidden field and set its field ID to `ct_<key>`, for example `ct_gclid`. ClickTrail fills that field from the visitor's attribution. A form with no `ct_*` field still keeps the attribution on ClickTrail's own submission record. ClickTrail does not add the hidden field for you.
+
+= How do I save the gclid in WordPress? =
+
+ClickTrail stores `gclid`, `gbraid` and `wbraid` on the first touch and the last touch. The latest value is written to a `ct_gclid` field (use `ct_ft_gclid` or `ct_lt_gclid` to pin a touch) and to WooCommerce order meta. A visit that arrives with `gad_source` and no `gclid` is still labelled Google Ads. `gad_source` is stored, and it is never the click ID.
+
+= Why do my UTM parameters disappear when the visitor changes page? =
+
+UTMs live in the URL and drop off at the next click. ClickTrail keeps the first touch and the last touch in a first-party cookie, with a `localStorage` copy, so a form on another page, or a later visit, still receives them. When the cookie and `localStorage` are both unavailable, that tab falls back to `sessionStorage`, which ends when the tab closes.
+
+= My cache plugin breaks UTM tracking. Does ClickTrail work with WP Rocket or LiteSpeed? =
+
+Yes, for the page cache: fields are rendered empty and filled in the browser, so the form page does not need its own cache exclusion. WP Rocket, LiteSpeed Cache, Autoptimize, Perfmatters, SiteGround Optimizer, Cloudflare Rocket Loader and NitroPack are covered by script attributes and exclusion filters (NitroPack only when it is active). FlyingPress needs a manual exclusion (`clicutcl` and `clicktrail-consent-mode`), and Site Health warns when it is active. Delay JavaScript runs the scripts on the first interaction, including a keyboard-only submit, which is too late to record the landing touch. The full list is under Integrations and is source-present / runtime-unverified.
+
+= Why are my UTM parameters not showing in GA4? =
+
+ClickTrail does not change GA4 reports and it does not install the Google tag. It saves the UTMs and click IDs on the form entry or the WooCommerce order. When Events is on, it can push that campaign context to the `dataLayer` for Google Tag Manager. A tag in GTM still has to send the values to GA4.
 
 == Screenshots ==
 
