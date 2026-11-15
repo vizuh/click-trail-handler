@@ -1,8 +1,8 @@
-=== ClickTrail – UTM & Click ID Tracking (gclid) for Forms & WooCommerce ===
+=== ClickTrail – UTM Tracking & Lead Source for Forms & WooCommerce ===
 Contributors: hugoc
 Author: Vizuh
 Author URI: https://vizuh.com
-Tags: utm tracking, gclid, attribution, utm, woocommerce
+Tags: utm tracking, gclid, lead source, attribution, woocommerce
 Requires at least: 6.5
 Tested up to: 7.1
 Stable tag: 1.14.0
@@ -11,7 +11,7 @@ WC requires at least: 10.4.2
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Saves UTMs and ad click IDs (gclid, fbclid) to form entries and WooCommerce orders. First and last touch attribution, cache-safe and consent-aware.
+Saves UTMs and ad click IDs (gclid, fbclid) to every form entry and WooCommerce order. First and last touch, cache-safe, consent-aware.
 
 == Description ==
 
@@ -30,12 +30,6 @@ Pick the path that matches your site.
 * **GTM or server-side GTM**: turn on Capture, Events, and Delivery. Events go to the `dataLayer`, and ClickTrail can send canonical JSON to an endpoint you set.
 
 Then place one test order or send one test form, and look at what was stored. The [use-case guide](https://github.com/vizuh/click-trail-handler/blob/main/docs/guides/USE-CASES.md) and [tutorials](https://github.com/vizuh/click-trail-handler/blob/main/docs/tutorials/README.md) walk through each path.
-
-= Common setups =
-
-* **Google Ads click IDs, saved for a later upload**: ClickTrail stores `gclid`, `gbraid` and `wbraid` on the first touch and the last touch. It writes them to the `ct_*` fields on a form (Fluent Forms adds those fields on its own) and to the WooCommerce order, so you can upload the values later. ClickTrail does not send them to Google Ads. A visit that arrives with `gad_source` and no `gclid` is labelled Google Ads. `gad_source` is never used as the click ID.
-* **Cached sites**: attribution fields are rendered empty and filled in the visitor's browser, so a cached form page does not need its own cache exclusion. Minify and delay exclusions are listed under Integrations and are source-present / runtime-unverified. FlyingPress still needs a manual exclusion, and Site Health warns when it is active.
-* **Sites that require consent**: when your settings require consent, nothing is stored until the visitor agrees. ClickTrail follows Cookiebot and Complianz decisions, including a change the visitor makes on the page. On withdrawal it clears its storage and removes the parameters it added to links. Compliance still depends on your legal requirements and your settings.
 
 = What it does =
 
